@@ -7853,6 +7853,2215 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
     "costConfidence": "placeholder",
     "pricingRequired": true,
     "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "id": "material-gen-cond-barricade-a-frame-aluminum-28in",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Barricades",
+    "csiDivision": "01",
+    "csiSection": "01 55 26",
+    "name": "A-frame barricade, aluminum, 28 in, orange reflective sheeting",
+    "description": "Aluminum A-frame barricade, 28 in tall, with orange reflective sheeting, for construction zone traffic control.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "barricades",
+      "traffic control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-gen-cond-barricade-caution-tape-3in-1000ft",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Barricades",
+    "csiDivision": "01",
+    "csiSection": "01 55 26",
+    "name": "Caution tape, yellow/black, 3 in x 1000 ft roll, non-adhesive",
+    "description": "Non-adhesive caution barrier tape, yellow/black, 3 in x 1000 ft, for temporary hazard zone demarcation.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "LF"
+    ],
+    "tags": [
+      "general conditions",
+      "barricades",
+      "safety"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "id": "material-gen-cond-barricade-stanchion-chrome-retractable",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Barricades",
+    "csiDivision": "01",
+    "csiSection": "01 55 26",
+    "name": "Crowd control stanchion, chrome, retractable belt, 7.5 ft reach",
+    "description": "Chrome crowd control stanchion with retractable belt, 7.5 ft reach, for temporary queue and access control.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "barricades"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 485,
+    "id": "material-gen-cond-barricade-jersey-barrier-precast-12ft",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Barricades",
+    "csiDivision": "01",
+    "csiSection": "01 55 26",
+    "name": "Jersey barrier, precast concrete, 12 ft, standard F-shape profile",
+    "description": "Precast concrete F-shape Jersey barrier, 12 ft section, 32 in tall, for construction traffic control.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "barricades",
+      "traffic control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "id": "material-gen-cond-barricade-safety-flag-orange-18x18",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Barricades",
+    "csiDivision": "01",
+    "csiSection": "01 55 26",
+    "name": "Safety flag, orange, 18 in x 18 in, with 30 in PVC stake",
+    "description": "Fluorescent orange safety flag, 18 in x 18 in, on 30 in PVC stake, for construction zone hazard marking.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "barricades"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-gen-cond-barricade-traffic-cone-28in-orange-7lb",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Barricades",
+    "csiDivision": "01",
+    "csiSection": "01 55 26",
+    "name": "Traffic cone, 28 in, NCHRP 350, orange, 7 lb rubber base",
+    "description": "NCHRP 350-compliant orange traffic safety cone, 28 in tall, 7 lb weighted rubber base, reflective collar.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "barricades",
+      "traffic control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-gen-cond-cleaning-allpurpose-cleaner-concentrated-1gal",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Cleaning Supplies",
+    "csiDivision": "01",
+    "csiSection": "01 74 23",
+    "name": "All-purpose cleaner, concentrated, 1 gal jug, dilution 32:1 ratio",
+    "description": "Concentrated industrial all-purpose cleaner, 1 gal, 32:1 dilution ratio, biodegradable, for construction cleaning.",
+    "unit": "GAL",
+    "commonUnits": [
+      "GAL"
+    ],
+    "tags": [
+      "general conditions",
+      "cleaning"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-gen-cond-cleaning-concrete-floor-sweep-50lb",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Cleaning Supplies",
+    "csiDivision": "01",
+    "csiSection": "01 74 23",
+    "name": "Concrete floor sweep compound, 50 lb bag, oil-absorbent",
+    "description": "Oil-absorbent concrete floor sweep compound, 50 lb bag, for general construction cleaning and spill control.",
+    "unit": "BAG",
+    "commonUnits": [
+      "BAG"
+    ],
+    "tags": [
+      "general conditions",
+      "cleaning"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "material-gen-cond-cleaning-floor-squeegee-24in-rubber",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Cleaning Supplies",
+    "csiDivision": "01",
+    "csiSection": "01 74 23",
+    "name": "Floor squeegee, 24 in, rubber blade, 60 in handle, heavy-duty",
+    "description": "Heavy-duty floor squeegee, 24 in wide rubber blade, with 60 in handle, for water and slurry removal on concrete.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "cleaning"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "material-gen-cond-cleaning-trash-bag-55gal-50ct-heavy-duty",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Cleaning Supplies",
+    "csiDivision": "01",
+    "csiSection": "01 74 23",
+    "name": "Heavy-duty trash bag, 55 gal, 50-count box, 3-mil, black",
+    "description": "Black 3-mil heavy-duty trash bags, 55 gallon, 50-count box, for construction site waste collection.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "cleaning"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 42,
+    "id": "material-gen-cond-cleaning-mop-bucket-wringer-35qt",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Cleaning Supplies",
+    "csiDivision": "01",
+    "csiSection": "01 74 23",
+    "name": "Mop bucket with side-press wringer, 35 qt, yellow polypropylene",
+    "description": "Commercial 35 qt polypropylene mop bucket with side-press wringer, for construction phase cleaning.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "cleaning"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-gen-cond-cleaning-push-broom-36in-steel-hard-bristle",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Cleaning Supplies",
+    "csiDivision": "01",
+    "csiSection": "01 74 23",
+    "name": "Push broom, 36 in, steel frame, hard-bristle, long handle",
+    "description": "Commercial push broom, 36 in head with hard tampico bristles, threaded steel handle, for concrete and rough floors.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "cleaning"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "id": "material-gen-cond-cleaning-scrub-brush-poly-stiff-8in",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Cleaning Supplies",
+    "csiDivision": "01",
+    "csiSection": "01 74 23",
+    "name": "Scrub brush, polypropylene, stiff-bristle, 8 in, hand-held",
+    "description": "Stiff-bristle polypropylene hand scrub brush, 8 in, for concrete surface cleaning and grout scrubbing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "cleaning"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-gen-cond-cleaning-shop-vac-filter-bag-5-8gal-3pack",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Cleaning Supplies",
+    "csiDivision": "01",
+    "csiSection": "01 74 23",
+    "name": "Shop vacuum filter bag, 5-8 gal, 3-pack, high-filtration type",
+    "description": "High-filtration shop vacuum filter bags, 3-pack, for standard 5-8 gallon wet/dry vacs in construction use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "cleaning"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-gen-cond-dust-control-adhesive-carpet-mask-24x200ft",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Dust Control",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Adhesive carpet mask, low-tack, 24 in x 200 ft roll, blue poly",
+    "description": "Low-tack adhesive carpet protection film, 24 in x 200 ft, blue polyethylene, for temporary surface protection.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL"
+    ],
+    "tags": [
+      "general conditions",
+      "dust control",
+      "floor protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 42,
+    "id": "material-gen-cond-dust-control-barrier-frame-telescoping",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Dust Control",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Dust barrier frame system, telescoping pole set, floor-to-ceiling",
+    "description": "Telescoping steel pole dust barrier frame system, adjusts 8-12 ft, for poly sheeting dust containment walls.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "dust control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-gen-cond-dust-control-zipper-door-kit-4x8",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Dust Control",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Dust barrier zipper door kit, poly, 4 ft x 8 ft, self-adhesive frame",
+    "description": "Poly dust containment zipper door kit, 4 ft x 8 ft, with adhesive frame and zip closure for dust control.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "dust control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "id": "material-gen-cond-dust-control-containment-foam-board-4x8",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Dust Control",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Dust containment wall panel, foam board, 4 ft x 8 ft, 1 in thick",
+    "description": "Rigid foam board dust containment panel, 4 ft x 8 ft x 1 in, for temporary wall enclosures during renovation.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "general conditions",
+      "dust control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-gen-cond-dust-control-hvac-filter-sock-16x16",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Dust Control",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "HVAC filter sock, poly mesh, 16 in x 16 in x 6 in, reusable",
+    "description": "Reusable polyester mesh HVAC duct filter sock, 16 in x 16 in x 6 in depth, for construction dust protection.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "dust control",
+      "HVAC"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "id": "material-gen-cond-dust-control-neg-air-prefilter-20x20",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Dust Control",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Negative air machine pre-filter, 20 in x 20 in x 2 in, MERV 8",
+    "description": "MERV 8 pre-filter for negative air machines, 20 in x 20 in x 2 in, for construction dust containment.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "dust control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 38,
+    "id": "material-gen-cond-dust-control-plastic-sheeting-4mil-12x200",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Dust Control",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Plastic sheeting, 4 mil poly, 12 ft x 200 ft roll, clear",
+    "description": "Standard 4 mil clear polyethylene sheeting, 12 ft x 200 ft roll, for vapor barrier and dust control applications.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "SF"
+    ],
+    "tags": [
+      "general conditions",
+      "dust control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 48,
+    "id": "material-gen-cond-dust-control-plastic-sheeting-6mil-20x100",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Dust Control",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Plastic sheeting, 6 mil poly, 20 ft x 100 ft roll, clear",
+    "description": "Heavy-duty 6 mil clear polyethylene sheeting, 20 ft x 100 ft, for dust barriers, concrete curing, and covers.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "SF"
+    ],
+    "tags": [
+      "general conditions",
+      "dust control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "id": "material-gen-cond-erosion-construction-entrance-stone-cy",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Erosion Control",
+    "csiDivision": "01",
+    "csiSection": "01 57 19",
+    "name": "Construction entrance stone pad, 3 in clean crushed, per CY",
+    "description": "Clean crushed stone, 3 in aggregate, for construction entrance stabilization pad per SWPPP requirements.",
+    "unit": "CY",
+    "commonUnits": [
+      "CY",
+      "TON"
+    ],
+    "tags": [
+      "general conditions",
+      "erosion control",
+      "stormwater"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 38,
+    "id": "material-gen-cond-erosion-control-blanket-straw-coconut-112ft",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Erosion Control",
+    "csiDivision": "01",
+    "csiSection": "01 57 19",
+    "name": "Erosion control blanket, straw/coconut fiber, 8 ft x 112 ft roll",
+    "description": "Biodegradable straw/coconut fiber erosion control blanket, 8 ft x 112 ft, for slopes and drainage channels.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "SF"
+    ],
+    "tags": [
+      "general conditions",
+      "erosion control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-gen-cond-erosion-inlet-filter-bag-geotextile",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Erosion Control",
+    "csiDivision": "01",
+    "csiSection": "01 57 19",
+    "name": "Inlet protection filter bag, geotextile, standard curb inlet",
+    "description": "Geotextile curb inlet filter bag, standard size, for sediment capture at storm drain inlets, reusable frame.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "erosion control",
+      "stormwater"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "id": "material-gen-cond-erosion-silt-fence-36in-100ft-roll",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Erosion Control",
+    "csiDivision": "01",
+    "csiSection": "01 57 19",
+    "name": "Silt fence, 36 in geotextile, with posts, 100 ft roll",
+    "description": "Woven geotextile silt fence, 36 in tall, with pre-attached wooden stakes every 6 ft, 100 ft roll.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "LF"
+    ],
+    "tags": [
+      "general conditions",
+      "erosion control",
+      "stormwater"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 42,
+    "id": "material-gen-cond-erosion-silt-sock-8in-25ft-compost",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Erosion Control",
+    "csiDivision": "01",
+    "csiSection": "01 57 19",
+    "name": "Silt sock, 8 in diameter, compost-filled, 25 ft length",
+    "description": "Biodegradable compost silt sock, 8 in diameter x 25 ft, woven mesh casing for perimeter erosion control.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "erosion control",
+      "stormwater"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "id": "material-gen-cond-erosion-turbidity-curtain-4x50-floating",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Erosion Control",
+    "csiDivision": "01",
+    "csiSection": "01 57 19",
+    "name": "Turbidity curtain, 4 ft deep x 50 ft, floating, with anchor",
+    "description": "Floating turbidity silt curtain, Type 1, 4 ft depth x 50 ft length, PVC float boom with anchor weights.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "erosion control",
+      "stormwater"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 52,
+    "id": "material-gen-cond-erosion-wattle-check-dam-straw-25ft",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Erosion Control",
+    "csiDivision": "01",
+    "csiSection": "01 57 19",
+    "name": "Wattle check dam, straw compost, 9 in diameter, 25 ft length",
+    "description": "Biodegradable straw-filled wattle check dam, 9 in x 25 ft, for channel and swale erosion control.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "erosion control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "id": "material-gen-cond-consumables-carpenter-pencil-12pack",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Jobsite Consumables",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Carpenter pencils, flat, medium lead, 12-pack, for wood marking",
+    "description": "Flat-body carpenter pencils, medium lead, 12-pack, for marking lumber, masonry, and general construction layout.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "consumables",
+      "layout"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-gen-cond-consumables-chalk-line-reel-100ft",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Jobsite Consumables",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Chalk line reel, 100 ft, with blue chalk powder, auto-rewind",
+    "description": "100 ft chalk line reel with auto-rewind, includes 2 oz blue chalk powder, for layout and alignment.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "consumables",
+      "layout"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 10,
+    "id": "material-gen-cond-consumables-duct-tape-3in-60yd-silver",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Jobsite Consumables",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Duct tape, silver, 3 in x 60 yd roll, industrial multi-purpose",
+    "description": "Industrial silver duct tape, 3 in wide x 60 yd, high-adhesion, for temporary repair and bundling on jobsite.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL"
+    ],
+    "tags": [
+      "general conditions",
+      "consumables"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "id": "material-gen-cond-consumables-marking-spray-orange-17oz",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Jobsite Consumables",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Marking spray paint, inverted tip, fluorescent orange, 17 oz can",
+    "description": "Fluorescent orange inverted marking paint, 17 oz aerosol can, for layout lines, utility marking, and surveying.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "consumables",
+      "layout"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "id": "material-gen-cond-consumables-blue-tape-2in-60yd",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Jobsite Consumables",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Painter's tape, blue, 2 in x 60 yd roll, medium-tack, 14-day",
+    "description": "Medium-tack blue painter's masking tape, 2 in x 60 yd, 14-day clean removal, for jobsite masking tasks.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL"
+    ],
+    "tags": [
+      "general conditions",
+      "consumables"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-gen-cond-consumables-sharpie-marker-12pack-black",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Jobsite Consumables",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Permanent marker, black, medium-tip, 12-pack, waterproof, fast-dry",
+    "description": "Waterproof fast-dry black permanent markers, medium-tip, 12-pack, for labeling and layout on the jobsite.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "consumables"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2,
+    "id": "material-gen-cond-consumables-rebar-marking-chalk-crayon",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Jobsite Consumables",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Rebar marking chalk crayon, jumbo, red, weather-resistant",
+    "description": "Jumbo weather-resistant red chalk crayon for marking rebar, concrete, masonry, and steel, bulk contractor pack.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "consumables",
+      "layout"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "id": "material-gen-cond-consumables-utility-knife-blades-10pack",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Jobsite Consumables",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Utility knife blades, bi-metal, heavy-duty, 10-pack refill",
+    "description": "Heavy-duty bi-metal utility knife replacement blades, 10-pack, for standard snap-off and retractable knives.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "consumables"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "id": "material-gen-cond-consumables-wire-nuts-assorted-100pack",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Jobsite Consumables",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Wire nuts, assorted sizes, plastic, 100-pack, indoor/outdoor",
+    "description": "Assorted-size plastic wire nuts, 100-pack, for temporary electrical connections on the jobsite, color-coded.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "consumables"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-gen-cond-consumables-zip-ties-11in-100pack-black",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Jobsite Consumables",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Zip ties, nylon, 11 in, UV-resistant, black, 100-pack bundle",
+    "description": "UV-resistant nylon cable ties, 11 in, 50 lb tensile, black, 100-pack, for bundling and securing on jobsite.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "consumables"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-gen-cond-layout-batter-board-clamp-metal-pair",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Layout Materials",
+    "csiDivision": "01",
+    "csiSection": "01 71 23",
+    "name": "Batter board clamp, metal, adjustable, pair, for layout boards",
+    "description": "Adjustable metal clamp pair for attaching batter boards to stakes, for site layout and foundation control.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "layout"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "id": "material-gen-cond-layout-batterboard-lumber-1x6x8ft",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Layout Materials",
+    "csiDivision": "01",
+    "csiSection": "01 71 23",
+    "name": "Batterboard lumber, 1 in x 6 in x 8 ft, pine, for site layout",
+    "description": "Standard pine batterboard lumber, 1 in x 6 in x 8 ft, for batter board construction and site layout grids.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "layout",
+      "surveying"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "id": "material-gen-cond-layout-bricklayer-line-pin-pair",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Layout Materials",
+    "csiDivision": "01",
+    "csiSection": "01 71 23",
+    "name": "Bricklayer's line pin, steel, pair, for masonry course alignment",
+    "description": "Steel bricklayer line pins, pair, for anchoring mason's line to masonry for course alignment and leveling.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "layout"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "id": "material-gen-cond-layout-corner-bracket-metal-batter-board",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Layout Materials",
+    "csiDivision": "01",
+    "csiSection": "01 71 23",
+    "name": "Corner bracket, metal, for batter board assembly, stake-mount",
+    "description": "Metal corner bracket for batter board layout assembly, stake-mounted, for right-angle layout corners.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "layout"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 38,
+    "id": "material-gen-cond-layout-grade-rod-aluminum-8ft-telescoping",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Layout Materials",
+    "csiDivision": "01",
+    "csiSection": "01 71 23",
+    "name": "Grade rod, aluminum, 8 ft, telescoping, for laser and optical level",
+    "description": "Telescoping aluminum grade rod, 8 ft, with graduations in feet/tenths, for use with laser and optical levels.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "layout",
+      "surveying"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "id": "material-gen-cond-layout-laser-target-card-6x6-fluorescent",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Layout Materials",
+    "csiDivision": "01",
+    "csiSection": "01 71 23",
+    "name": "Laser target card, fluorescent, 6 in x 6 in, for laser levels",
+    "description": "Fluorescent laser detector target card, 6 in x 6 in, for enhancing laser beam visibility at long distances.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "layout",
+      "surveying"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-gen-cond-layout-layout-adhesive-spray-temp-11oz",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Layout Materials",
+    "csiDivision": "01",
+    "csiSection": "01 71 23",
+    "name": "Layout adhesive, temporary, spray can, 11 oz, repositionable",
+    "description": "Temporary repositionable spray adhesive, 11 oz, for attaching layout templates and paper to surfaces.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "layout"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "id": "material-gen-cond-layout-masons-line-nylon-500ft",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Layout Materials",
+    "csiDivision": "01",
+    "csiSection": "01 71 23",
+    "name": "Mason's line, nylon twine, 500 ft roll, braided, yellow/white",
+    "description": "Braided nylon mason's line, 500 ft roll, UV-resistant, for layout lines, batter boards, and alignment control.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "LF"
+    ],
+    "tags": [
+      "general conditions",
+      "layout",
+      "surveying"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "id": "material-gen-cond-layout-plumb-bob-8oz-steel-with-string",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Layout Materials",
+    "csiDivision": "01",
+    "csiSection": "01 71 23",
+    "name": "Plumb bob, 8 oz, steel, precision-tip, with 25 ft braided string",
+    "description": "Precision 8 oz steel plumb bob with replaceable tip and 25 ft braided string for vertical alignment control.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "layout",
+      "surveying"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1,
+    "id": "material-gen-cond-layout-surveyor-stake-1x2x24in-sharpened",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Layout Materials",
+    "csiDivision": "01",
+    "csiSection": "01 71 23",
+    "name": "Surveyor stake, wooden, 1 in x 2 in x 24 in, machine-sharpened",
+    "description": "Machine-sharpened wooden surveyor stakes, 1 in x 2 in x 24 in, for site layout and survey monument marking.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "layout",
+      "surveying"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-gen-cond-protection-cardboard-4x8-quarter-in",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Protection Board",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Cardboard protection sheet, 4 ft x 8 ft, 0.25 in, double-wall",
+    "description": "Double-wall corrugated cardboard protection sheet, 4 ft x 8 ft, 0.25 in thick, for floors during construction.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "general conditions",
+      "floor protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 16,
+    "id": "material-gen-cond-protection-poly-corrugated-sheet-4x8",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Protection Board",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Corrugated plastic sheet, 4 ft x 8 ft, 4 mm, reusable, gray",
+    "description": "Reusable corrugated polypropylene protection sheet, 4 ft x 8 ft, 4 mm, for floor and stair protection.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "general conditions",
+      "floor protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "material-gen-cond-protection-gypsum-board-4x8-fire-resist",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Protection Board",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Fire-resistant protection board, gypsum, 4 ft x 8 ft, 5/8 in",
+    "description": "Fire-resistant 5/8 in gypsum board, 4 ft x 8 ft, for temporary fire protection barriers in construction.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "general conditions",
+      "fire protection",
+      "protection board"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "material-gen-cond-protection-foam-underlayment-2x25ft-roll",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Protection Board",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Foam underlayment protection, 2 ft x 25 ft roll, 6 mm, blue",
+    "description": "Blue polyethylene foam underlayment, 2 ft wide x 25 ft roll, 6 mm thick, for finished floor protection.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "SF"
+    ],
+    "tags": [
+      "general conditions",
+      "floor protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 62,
+    "id": "material-gen-cond-protection-ram-board-38x100ft-roll",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Protection Board",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Ram Board construction floor protection, 38 in x 100 ft roll",
+    "description": "Ram Board heavy-duty construction floor protection paper, 38 in x 100 ft, breathable, non-slip, 38 lbs.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "SF"
+    ],
+    "tags": [
+      "general conditions",
+      "floor protection",
+      "protection board"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-gen-cond-safety-sign-confined-space-10x14",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Safety Signage",
+    "csiDivision": "01",
+    "csiSection": "01 55 00",
+    "name": "Safety sign, confined space entry, OSHA, 10 in x 14 in aluminum",
+    "description": "OSHA-compliant confined space entry sign, 10 in x 14 in aluminum, ANSI Z535.2, four-color print.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "safety signage",
+      "OSHA"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-gen-cond-safety-sign-fall-hazard-10x14",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Safety Signage",
+    "csiDivision": "01",
+    "csiSection": "01 55 00",
+    "name": "Safety sign, fall hazard, do not enter, aluminum, 10 in x 14 in",
+    "description": "Fall hazard / do not enter warning sign, 10 in x 14 in aluminum, ANSI Z535 color coding, pre-drilled.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "safety signage",
+      "OSHA"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 10,
+    "id": "material-gen-cond-safety-sign-first-aid-station-10x14",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Safety Signage",
+    "csiDivision": "01",
+    "csiSection": "01 55 00",
+    "name": "Safety sign, first aid station location, aluminum, 10 in x 14 in",
+    "description": "First aid station location sign, green/white, 10 in x 14 in aluminum, ANSI Z535.2, pre-drilled corners.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "safety signage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-gen-cond-safety-sign-forklift-traffic-10x14",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Safety Signage",
+    "csiDivision": "01",
+    "csiSection": "01 55 00",
+    "name": "Safety sign, forklift traffic area, aluminum, 10 in x 14 in",
+    "description": "Forklift traffic warning sign, 10 in x 14 in aluminum, ANSI Z535.2, four-color, reflective, pre-drilled.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "safety signage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-gen-cond-safety-sign-hard-hat-required-10x14",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Safety Signage",
+    "csiDivision": "01",
+    "csiSection": "01 55 00",
+    "name": "Safety sign, hard hat required, aluminum, 10 in x 14 in",
+    "description": "ANSI Z535.2 hard hat required safety sign, 10 in x 14 in aluminum, four-color, pre-drilled corners.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "safety signage",
+      "OSHA"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-gen-cond-safety-sign-high-voltage-7x10",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Safety Signage",
+    "csiDivision": "01",
+    "csiSection": "01 55 00",
+    "name": "Safety sign, high voltage hazard, aluminum, 7 in x 10 in",
+    "description": "High voltage danger sign, 7 in x 10 in aluminum, ANSI Z535 danger header, yellow/black, pre-drilled.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "safety signage",
+      "OSHA"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 10,
+    "id": "material-gen-cond-safety-sign-no-trespassing-10x14",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Safety Signage",
+    "csiDivision": "01",
+    "csiSection": "01 55 00",
+    "name": "Safety sign, no trespassing authorized personnel, 10 in x 14 in",
+    "description": "No trespassing / authorized personnel only sign, 10 in x 14 in aluminum, reflective finish, pre-drilled.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "safety signage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "id": "material-gen-cond-safety-sign-wet-floor-folding-aframe",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Safety Signage",
+    "csiDivision": "01",
+    "csiSection": "01 55 00",
+    "name": "Wet floor sign, folding A-frame, plastic, bilingual, 28 in tall",
+    "description": "Bilingual wet floor / piso mojado folding A-frame sign, 28 in tall, yellow plastic, with non-slip feet.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "safety signage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 48,
+    "id": "material-gen-cond-tarps-canvas-12x16-heavy-duty",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Tarps and Covers",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Canvas tarp, 12 ft x 16 ft, heavy-duty, cotton duck, waterproof",
+    "description": "Heavy-duty cotton duck canvas tarp, 12 ft x 16 ft, waterproofed, reinforced edges, for equipment and material cover.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "tarps"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 32,
+    "id": "material-gen-cond-tarps-mesh-debris-10x20-orange",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Tarps and Covers",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Mesh debris tarp, 10 ft x 20 ft, safety-orange, scaffolding use",
+    "description": "Safety-orange woven mesh debris tarp, 10 ft x 20 ft, for scaffolding containment and debris catch applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "tarps",
+      "scaffolding"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 52,
+    "id": "material-gen-cond-tarps-poly-6mil-20x100ft-roll",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Tarps and Covers",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Poly tarp, 6 mil, 20 ft x 100 ft roll, clear, concrete curing",
+    "description": "Heavy-duty 6 mil clear polyethylene tarp, 20 ft x 100 ft, for concrete curing, weather protection, and covers.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "SF"
+    ],
+    "tags": [
+      "general conditions",
+      "tarps",
+      "concrete curing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-gen-cond-tarps-poly-standard-20x30-blue",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Tarps and Covers",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Poly tarp, standard, 20 ft x 30 ft, blue, with grommets, 5 mil",
+    "description": "Blue 5 mil polyethylene woven tarp, 20 ft x 30 ft, reinforced edges with brass grommets every 18 in.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "tarps"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 78,
+    "id": "material-gen-cond-tarps-waterproof-roof-30x50-reinforced",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Tarps and Covers",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Waterproof roof tarp, 30 ft x 50 ft, 6 mil reinforced, blue",
+    "description": "Reinforced 6 mil blue polyethylene roof tarp, 30 ft x 50 ft, with rope-reinforced edges and brass grommets.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "tarps",
+      "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-gen-cond-tarps-welding-blanket-4x6-fiberglass",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Tarps and Covers",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Welding blanket, fiberglass, 4 ft x 6 ft, 1500°F rated, grommet",
+    "description": "Fiberglass welding blanket, 4 ft x 6 ft, rated to 1500°F, with grommets for hanging, for hot work protection.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "tarps",
+      "welding"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-gen-cond-temp-fencing-barricade-post-orange-48in",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Fencing",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Barricade post, orange plastic, 48 in, delineator type, each",
+    "description": "Orange plastic delineator barricade post, 48 in, flexible, with weighted rubber base for temporary protection.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary fencing",
+      "barricade"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "id": "material-gen-cond-temp-fencing-privacy-screen-6x50-green",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Fencing",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Privacy screen, chain link, green mesh fabric, 6 ft x 50 ft roll",
+    "description": "Knitted polyethylene privacy screen, 6 ft x 50 ft, green, for chain link temporary fencing, UV-resistant.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary fencing",
+      "privacy"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2,
+    "id": "material-gen-cond-temp-fencing-clamp-chainlink",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Fencing",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Temporary fence clamp, chain link panel, galvanized, bolt-type",
+    "description": "Galvanized bolt-type fence panel clamp for joining temporary chain link panels, 1-3/8 in OD fitting.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary fencing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 145,
+    "id": "material-gen-cond-temp-fencing-gate-chain-link-10ft",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Fencing",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Temporary fence gate, chain link, 10 ft opening, with latch",
+    "description": "Temporary chain link swing gate, 10 ft opening, galvanized frame, with chain and padlock hasp latch.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary fencing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 38,
+    "id": "material-gen-cond-temp-fencing-chainlink-panel-6x10",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Fencing",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Temporary fence panel, galvanized chain link, 6 ft x 10 ft",
+    "description": "Galvanized chain link temporary fence panel, 6 ft tall x 10 ft wide, with pipe frame for jobsite perimeter.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary fencing",
+      "site safety"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-gen-cond-temp-fencing-post-cup-rubber-base",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Fencing",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Temporary fence post base cup, rubber, weighted, each",
+    "description": "Rubber weighted post base cup for temporary fence panels, compatible with standard 1-3/8 in OD posts.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary fencing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "id": "material-gen-cond-temp-fencing-t-post-5ft-galvanized",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Fencing",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Temporary fence T-post, galvanized, 5 ft, driven, per each",
+    "description": "Galvanized steel T-post, 5 ft, for temporary chain link fence support, step-in anchor base, 1.25 lb/ft.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary fencing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-gen-cond-temp-fencing-tension-wire-100ft-roll",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Fencing",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Temporary fence tension wire, galvanized, 12.5 gauge, 100 ft roll",
+    "description": "Galvanized high-tensile tension wire, 12.5 gauge, 100 ft roll, for chain link fence bottom and top tension.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "LF"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary fencing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "id": "material-gen-cond-temp-power-drop-cord-10-3-100ft",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Power",
+    "csiDivision": "01",
+    "csiSection": "01 51 13",
+    "name": "Drop cord, 10/3 SJTW, 100 ft, single grounded receptacle",
+    "description": "Heavy-duty 10/3 SJTW construction drop cord, 100 ft, single 20A grounded receptacle, for temporary power.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary power"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 42,
+    "id": "material-gen-cond-temp-power-extension-cord-reel-12-3-50ft",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Power",
+    "csiDivision": "01",
+    "csiSection": "01 51 13",
+    "name": "Extension cord reel, 12/3 SJTW, 50 ft, single outlet, GFCI",
+    "description": "Heavy-duty 12/3 SJTW extension cord, 50 ft reel, single grounded outlet, for construction temporary power.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary power"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "id": "material-gen-cond-temp-power-generator-cord-l14-30-25ft",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Power",
+    "csiDivision": "01",
+    "csiSection": "01 51 13",
+    "name": "Generator cord, L14-30, 10/4 SJTW, 25 ft, 30A 125/250V",
+    "description": "Generator power cord, L14-30 plugs, 10/4 SJTW, 25 ft, 30A 125/250V for temporary power distribution.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary power"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-gen-cond-temp-power-gfci-inline-15a",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Power",
+    "csiDivision": "01",
+    "csiSection": "01 51 13",
+    "name": "Ground fault circuit interrupter, inline GFCI adapter, 15A",
+    "description": "Inline GFCI plug adapter, 15A, 120V, with test/reset buttons, for temporary power tool protection.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary power"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "material-gen-cond-temp-power-power-strip-heavy-duty-6outlet",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Power",
+    "csiDivision": "01",
+    "csiSection": "01 51 13",
+    "name": "Power strip, heavy-duty, 6-outlet, 15A, 6 ft cord, surge protect",
+    "description": "Heavy-duty 6-outlet power strip, 15A, 6 ft cord, with surge protection and lighted power switch.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary power"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 285,
+    "id": "material-gen-cond-temp-power-spider-box-60a-6outlet",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Power",
+    "csiDivision": "01",
+    "csiSection": "01 51 13",
+    "name": "Spider box, temporary power distribution, 60A, 6-outlet GFCI",
+    "description": "Temporary power spider box, 60A 120/240V, 6 GFCI-protected outlets, weatherproof enclosure, OSHA-compliant.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary power"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-gen-cond-temp-power-panel-cover-gfci-2gang-weatherproof",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Power",
+    "csiDivision": "01",
+    "csiSection": "01 51 13",
+    "name": "Temporary panel cover, GFCI, 2-gang, weatherproof, in-use cover",
+    "description": "Weatherproof in-use cover for 2-gang temporary power outlet box, GFCI-rated, for outdoor construction use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary power"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 145,
+    "id": "material-gen-cond-temp-power-temporary-power-pole-12ft",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Power",
+    "csiDivision": "01",
+    "csiSection": "01 51 13",
+    "name": "Temporary power pole, wood, 12 ft, with meter socket bracket",
+    "description": "Wooden temporary power pole, 12 ft, treated, with meter socket and panel bracket for construction power.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary power"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-gen-cond-temp-protection-column-wrap-cardboard",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Protection",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Column wrap, corrugated cardboard, 4 ft x 8 ft sheet, triple-wall",
+    "description": "Heavy-duty triple-wall corrugated cardboard column protection sheet, 4 ft x 8 ft, tape-on installation.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "material-gen-cond-temp-protection-countertop-film-24x100ft",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Protection",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Countertop protection film, self-adhesive, 24 in x 100 ft roll",
+    "description": "Self-adhesive polyethylene countertop protection film, 24 in x 100 ft, low-tack, removable, clear.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "id": "material-gen-cond-temp-protection-door-frame-foam-8ft",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Protection",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Door frame protector, foam wrap, 8 ft length, adhesive-back",
+    "description": "Self-adhesive foam door frame protector, 8 ft length, 2 in wide, for construction phase door protection.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-gen-cond-temp-protection-elevator-quilted-blanket",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Protection",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Elevator cab protection, quilted moving blanket panel, 72 in x 80 in",
+    "description": "Quilted moving blanket for elevator cab wall protection, 72 in x 80 in, industrial-grade cotton, velcro.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-gen-cond-temp-protection-floor-board-4x8-fluted",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Protection",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Floor protection board, fluted polypropylene, 4 ft x 8 ft sheet",
+    "description": "Fluted polypropylene construction floor protection sheet, 4 ft x 8 ft, 4 mm thick, reusable, gray.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary protection",
+      "floor protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-gen-cond-temp-protection-handrail-foam-wrap-50ft",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Protection",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Handrail protection wrap, polyfoam, 1 in thick, 50 ft roll",
+    "description": "Polyethylene foam handrail wrap, 1 in thick, 50 ft roll, self-adhesive closure, for finish protection.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "LF"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-gen-cond-temp-protection-stair-nosing-rubber-48in",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Protection",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Stair nosing cover, rubber, self-adhesive, 48 in strip, black",
+    "description": "Self-adhesive black rubber stair nosing protector, 48 in strip, 3/4 in overhang, for construction phase.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 26,
+    "id": "material-gen-cond-temp-protection-window-film-poly-24x100ft",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Protection",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Window protection film, poly, self-adhesive, 24 in x 100 ft roll",
+    "description": "Low-tack self-adhesive polyethylene window protection film, 24 in x 100 ft, UV-resistant, removable.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 42,
+    "id": "material-gen-cond-temp-water-backflow-preventer-portable-3-4in",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Water",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Backflow preventer, portable, 3/4 in, brass, double check type",
+    "description": "Portable brass double-check backflow preventer, 3/4 in, for construction temporary water supply connections.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary water"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 38,
+    "id": "material-gen-cond-temp-water-garden-hose-3-4x50ft-rubber",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Water",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Garden hose assembly, 3/4 in x 50 ft, rubber, with couplings",
+    "description": "Commercial rubber garden hose, 3/4 in x 50 ft, with brass couplings, for construction temporary water use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary water"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "id": "material-gen-cond-temp-water-hose-bib-adapter-brass-3-4in",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Water",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Hose bib adapter, brass, 3/4 in male to swivel female, each",
+    "description": "Brass hose bib adapter fitting, 3/4 in male NPT to 3/4 in female garden hose swivel, for temporary water.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary water"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "id": "material-gen-cond-temp-water-hose-nozzle-pistol-9-pattern",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Water",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Hose nozzle, pistol-grip, 9-pattern, 3/4 in FHT, brass body",
+    "description": "Brass pistol-grip 9-pattern hose nozzle, 3/4 in female hose thread, adjustable from mist to jet.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary water"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-gen-cond-temp-water-manifold-splitter-3way-brass",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Water",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Manifold hose splitter, 3-way, 3/4 in, brass, with shutoffs",
+    "description": "Brass 3-way manifold hose splitter, 3/4 in FHT inlet, three 3/4 in MHT outlets with individual shutoff valves.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary water"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 48,
+    "id": "material-gen-cond-temp-water-hose-1in-25ft-epdm",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Water",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Water supply hose, 1 in x 25 ft, EPDM rubber, with fittings",
+    "description": "Heavy-duty EPDM rubber water supply hose, 1 in x 25 ft, with quick-connect cam-lock fittings at each end.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary water"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "material-hvac-flex-duct-insulated-r-6-12-in-x-25-ft",
     "type": "material",
@@ -14702,6 +16911,236 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
   {
     "costConfidence": "placeholder",
     "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 125,
+    "id": "material-mep-drains-area-drain-cast-iron-12x12",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Drain Bodies",
+    "csiDivision": "22",
+    "csiSection": "22 13 19",
+    "name": "Area drain, cast iron, 12 in x 12 in, with grate, 4 in outlet",
+    "description": "Cast iron area drain body, 12 in x 12 in, with ductile iron grate, 4 in no-hub outlet for exterior drainage.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "area drain"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "id": "material-mep-drains-backwater-valve-pvc-4in-access-lid",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Drain Bodies",
+    "csiDivision": "22",
+    "csiSection": "22 13 16",
+    "name": "Backwater valve, PVC, 4 in, inline, with access frame and lid",
+    "description": "PVC inline backwater valve, 4 in, with removable access frame and lid for cleanout, for sanitary sewer protection.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "backwater valve"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-mep-drains-cleanout-pvc-4in-plug-cover",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Drain Bodies",
+    "csiDivision": "22",
+    "csiSection": "22 13 16",
+    "name": "Cleanout, PVC, 4 in, plug-type, with cast iron access cover",
+    "description": "PVC 4 in cleanout body with plug-type cap and round cast iron floor access cover, for underground sanitary.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "cleanout"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "material-mep-drains-floor-drain-pvc-4in-square-top",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Drain Bodies",
+    "csiDivision": "22",
+    "csiSection": "22 13 19",
+    "name": "Floor drain body, PVC, 4 in outlet, square top, adjustable collar",
+    "description": "PVC floor drain with 4 in outlet, adjustable collar, square PVC grate top, for interior slab-on-grade use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "floor drain"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "id": "material-mep-drains-floor-drain-cast-iron-6in-4in-round",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Drain Bodies",
+    "csiDivision": "22",
+    "csiSection": "22 13 19",
+    "name": "Floor drain, cast iron, 6 in body, 4 in round strainer, trap primer",
+    "description": "Cast iron floor drain, 6 in body, with 4 in round strainer, trap primer connection, and sediment bucket.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "floor drain"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-mep-drains-p-trap-abs-1-1-2in-with-cleanout",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Drain Bodies",
+    "csiDivision": "22",
+    "csiSection": "22 13 16",
+    "name": "P-trap, ABS, 1-1/2 in, with cleanout plug, standard pattern",
+    "description": "ABS standard P-trap, 1-1/2 in, with cleanout plug, for lavatory, bar sink, and 1-1/2 in fixture applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "P-trap"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 145,
+    "id": "material-mep-drains-roof-drain-cast-iron-3in-dome",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Drain Bodies",
+    "csiDivision": "22",
+    "csiSection": "22 14 26",
+    "name": "Roof drain, cast iron, 3 in outlet, 8 in dome, with gravel stop",
+    "description": "Cast iron roof drain, 3 in no-hub outlet, 8 in diameter dome strainer, gravel stop, for flat roof applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "roof drain"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "id": "material-mep-drains-roof-drain-cast-iron-4in-12in-dome",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Drain Bodies",
+    "csiDivision": "22",
+    "csiSection": "22 14 26",
+    "name": "Roof drain, cast iron, 4 in outlet, 12 in dome, with sump receiver",
+    "description": "Cast iron roof drain, 4 in no-hub outlet, 12 in dome, integral sump receiver and gravel stop, flat roof use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "roof drain"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 42,
+    "id": "material-mep-drains-shower-drain-chrome-4in-tile-flange",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Drain Bodies",
+    "csiDivision": "22",
+    "csiSection": "22 13 19",
+    "name": "Shower drain, chrome, 4 in, adjustable, with tile-in flange",
+    "description": "Adjustable chrome shower drain, 4 in outlet, with tile-in strainer and seepage collar, for shower bases.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "shower drain"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "id": "material-mep-drains-trap-primer-3-4in-auto",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Drain Bodies",
+    "csiDivision": "22",
+    "csiSection": "22 13 19",
+    "name": "Trap primer, 3/4 in supply line, automatic, pressure differential",
+    "description": "Automatic trap primer, 3/4 in supply connection, pressure-differential type, for floor drain trap maintenance.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "trap primer"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
     "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "material-mep-materials-electrical-emt-conduit-galvanized-3-4-in-x-10-ft",
@@ -14791,6 +17230,351 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
       "mep materials",
       "electrical",
       "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 38,
+    "id": "material-mep-fire-protection-bell-alarm-6in-chrome",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Fire Alarm",
+    "csiDivision": "28",
+    "csiSection": "28 31 11",
+    "name": "Bell alarm, 6 in, chrome, surface-mount, 24V DC, polarized",
+    "description": "Surface-mounted 24V DC polarized bell alarm, 6 in, chrome, for fire alarm annunciation in commercial buildings.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "fire alarm",
+      "notification"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 68,
+    "id": "material-mep-fire-protection-alarm-pull-station-red",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Fire Alarm",
+    "csiDivision": "28",
+    "csiSection": "28 31 11",
+    "name": "Fire alarm pull station, red, single-action, surface-mount, addressable",
+    "description": "Addressable single-action fire alarm pull station, red, surface-mount, UL-listed, for fire alarm systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "fire alarm",
+      "fire protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 48,
+    "id": "material-mep-fire-protection-heat-detector-135f-fixed",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Fire Alarm",
+    "csiDivision": "28",
+    "csiSection": "28 31 11",
+    "name": "Heat detector, 135°F fixed-temp, ceiling-mount, addressable, UL",
+    "description": "Addressable fixed-temperature heat detector, 135°F, ceiling-mount with base, UL-listed for fire alarm systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "fire alarm",
+      "heat detector"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "id": "material-mep-fire-protection-smoke-detector-photoelectric-4wire",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Fire Alarm",
+    "csiDivision": "28",
+    "csiSection": "28 31 11",
+    "name": "Smoke detector, photoelectric, 4-wire, ceiling-mount, addressable",
+    "description": "Addressable photoelectric smoke detector, 4-wire, ceiling-mount, with base, UL-listed for fire alarm systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "fire alarm",
+      "smoke detector"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "id": "material-mep-fire-protection-cpvc-branch-1in-10ft",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Fire Protection",
+    "csiDivision": "21",
+    "csiSection": "21 13 13",
+    "name": "CPVC fire sprinkler branch pipe, 1 in, 10 ft length, UL-listed",
+    "description": "UL-listed CPVC fire sprinkler branch pipe, 1 in, 10 ft length, orange color-coded, for wet-pipe systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "fire protection",
+      "CPVC pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-mep-fire-protection-cpvc-branch-3-4in-10ft",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Fire Protection",
+    "csiDivision": "21",
+    "csiSection": "21 13 13",
+    "name": "CPVC fire sprinkler branch pipe, 3/4 in, 10 ft length, listed",
+    "description": "UL-listed CPVC fire sprinkler branch pipe, 3/4 in, 10 ft length, orange, for wet-pipe systems, CTS type.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "fire protection",
+      "CPVC pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 48,
+    "id": "material-mep-fire-protection-dry-pendant-1-2in-165f",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Fire Protection",
+    "csiDivision": "21",
+    "csiSection": "21 13 13",
+    "name": "Dry pendant sprinkler head, 1/2 in, 165°F, for unheated spaces",
+    "description": "UL-listed dry pendant sprinkler, 1/2 in orifice, 165°F, for unheated attics and walk-in coolers, 4 in stem.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "fire protection",
+      "sprinkler"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-mep-fire-protection-grooved-coupling-2in-flexible",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Fire Protection",
+    "csiDivision": "21",
+    "csiSection": "21 13 13",
+    "name": "Grooved coupling, 2 in, flexible, with gasket and bolts, per pair",
+    "description": "Victaulic-style flexible grooved coupling, 2 in, with EPDM gasket and nuts/bolts, pair for pipe joining.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "fire protection",
+      "grooved coupling"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 38,
+    "id": "material-mep-fire-protection-grooved-coupling-4in-rigid",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Fire Protection",
+    "csiDivision": "21",
+    "csiSection": "21 13 13",
+    "name": "Grooved coupling, 4 in, rigid, with gasket and bolts, per pair",
+    "description": "Victaulic-style rigid grooved coupling, 4 in, with EPDM gasket and nuts/bolts, for rigid fire main joints.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "fire protection",
+      "grooved coupling"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-mep-fire-protection-grooved-steel-main-2in-10ft",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Fire Protection",
+    "csiDivision": "21",
+    "csiSection": "21 13 13",
+    "name": "Grooved steel pipe, 2 in, schedule 10, 10 ft, fire sprinkler main",
+    "description": "Schedule 10 steel pipe, 2 in, 10 ft, roll-grooved ends, for grooved coupling fire sprinkler main systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "fire protection",
+      "steel pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "id": "material-mep-fire-protection-grooved-steel-main-4in-10ft",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Fire Protection",
+    "csiDivision": "21",
+    "csiSection": "21 13 13",
+    "name": "Grooved steel pipe, 4 in, schedule 10, 10 ft, fire sprinkler main",
+    "description": "Schedule 10 steel pipe, 4 in, 10 ft, roll-grooved ends, for larger fire sprinkler mains with grooved fittings.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "fire protection",
+      "steel pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-mep-fire-protection-pendant-sprinkler-1-2in-155f",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Fire Protection",
+    "csiDivision": "21",
+    "csiSection": "21 13 13",
+    "name": "Pendant sprinkler head, 1/2 in orifice, 155°F, chrome, concealed",
+    "description": "UL-listed pendant sprinkler head, 1/2 in orifice, 155°F, with concealed cover plate, standard response.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "fire protection",
+      "sprinkler"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "id": "material-mep-fire-protection-sprinkler-escutcheon-chrome",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Fire Protection",
+    "csiDivision": "21",
+    "csiSection": "21 13 13",
+    "name": "Sprinkler head escutcheon plate, chrome, recessed, 2-piece set",
+    "description": "Two-piece chrome recessed escutcheon plate for concealed pendant sprinkler heads, adjustable depth range.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "fire protection",
+      "sprinkler"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-mep-fire-protection-sprinkler-head-wrench-ss",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Fire Protection",
+    "csiDivision": "21",
+    "csiSection": "21 13 13",
+    "name": "Sprinkler head installation wrench, stainless steel, multi-pattern",
+    "description": "Stainless steel sprinkler head wrench, multi-pattern, for installation and removal without cracking sprinkler.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "fire protection",
+      "tools"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-mep-fire-protection-upright-sprinkler-1-2in-155f",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Fire Protection",
+    "csiDivision": "21",
+    "csiSection": "21 13 13",
+    "name": "Upright sprinkler head, 1/2 in orifice, 155°F, chrome, standard",
+    "description": "UL-listed upright sprinkler head, 1/2 in orifice, 155°F fusible link, chrome finish, standard coverage.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "fire protection",
+      "sprinkler"
     ]
   },
   {
@@ -14888,6 +17672,597 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
   {
     "costConfidence": "placeholder",
     "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-mep-hvac-controls-control-transformer-75va-120-24v",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "HVAC Controls",
+    "csiDivision": "23",
+    "csiSection": "23 05 13",
+    "name": "Control transformer, 75 VA, 120V primary / 24V secondary, HVAC",
+    "description": "HVAC control transformer, 75 VA, 120V primary to 24V secondary, with circuit breaker protection, Class 2.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "HVAC",
+      "controls",
+      "transformer"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "id": "material-mep-hvac-controls-damper-actuator-24v-spring-return",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "HVAC Controls",
+    "csiDivision": "23",
+    "csiSection": "23 09 23",
+    "name": "Damper actuator, 24V AC/DC, spring-return, 35 in-lb torque, auto",
+    "description": "Floating or on/off 24V AC/DC spring-return damper actuator, 35 in-lb torque, for HVAC zone damper control.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "HVAC",
+      "controls",
+      "damper actuator"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "id": "material-mep-hvac-controls-duct-pressure-sensor-0-1in-wc",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "HVAC Controls",
+    "csiDivision": "23",
+    "csiSection": "23 09 23",
+    "name": "Duct static pressure sensor, 0-1.0 in WC, 24V, 4-20 mA output",
+    "description": "24V duct static pressure sensor, 0-1.0 in W.C. range, 4-20 mA output, for VAV and AHU pressure control.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "HVAC",
+      "controls",
+      "pressure sensor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 145,
+    "id": "material-mep-hvac-controls-economizer-controller-24v",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "HVAC Controls",
+    "csiDivision": "23",
+    "csiSection": "23 09 23",
+    "name": "Economizer controller, 24V, 4-wire, enthalpy-based, outdoor reset",
+    "description": "Enthalpy-based economizer controller, 24V, 4-wire, with outdoor air and mixed air sensors for AHU economizers.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "HVAC",
+      "controls",
+      "economizer"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "id": "material-mep-hvac-controls-humidistat-duct-24v-adjustable",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "HVAC Controls",
+    "csiDivision": "23",
+    "csiSection": "23 09 23",
+    "name": "Humidistat, duct-mount, 24V, adjustable 20-90% RH, SPDT output",
+    "description": "Duct-mount humidistat, 24V, SPDT output, adjustable 20-90% RH setpoint, for dehumidification control.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "HVAC",
+      "controls",
+      "humidistat"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 75,
+    "id": "material-mep-hvac-controls-low-limit-freeze-stat-15ft",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "HVAC Controls",
+    "csiDivision": "23",
+    "csiSection": "23 09 23",
+    "name": "Low-limit freeze protection stat, duct, 15 ft capillary, 35°F trip",
+    "description": "Duct-mount freeze protection thermostat, 15 ft averaging capillary, 35°F trip point, for AHU coil protection.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "HVAC",
+      "controls",
+      "freeze protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "id": "material-mep-hvac-controls-oat-sensor-10k-thermistor",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "HVAC Controls",
+    "csiDivision": "23",
+    "csiSection": "23 09 23",
+    "name": "Outside air temperature sensor, 10K thermistor, weather-resistant",
+    "description": "Weather-resistant outdoor air temperature sensor, 10K ohm NTC thermistor, for HVAC outside air reset control.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "HVAC",
+      "controls",
+      "sensor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "id": "material-mep-hvac-controls-thermostat-7day-programmable-24v",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "HVAC Controls",
+    "csiDivision": "23",
+    "csiSection": "23 09 23",
+    "name": "Room thermostat, 7-day programmable, 24V, heat/cool, backlit LCD",
+    "description": "24V 7-day programmable thermostat, heat/cool, backlit LCD, for residential and light commercial HVAC systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "HVAC",
+      "controls",
+      "thermostat"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 285,
+    "id": "material-mep-hvac-controls-vfd-drive-1hp-208-230v-3phase",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "HVAC Controls",
+    "csiDivision": "23",
+    "csiSection": "23 05 13",
+    "name": "VFD drive, 1 HP, 208-230V, 3-phase, NEMA 1, for HVAC fans/pumps",
+    "description": "Variable frequency drive (VFD), 1 HP, 208-230V 3-phase, NEMA 1 enclosure, for HVAC fan and pump speed control.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "HVAC",
+      "controls",
+      "VFD"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 68,
+    "id": "material-mep-hvac-controls-zone-board-4zone-24v-hydronic",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "HVAC Controls",
+    "csiDivision": "23",
+    "csiSection": "23 09 23",
+    "name": "Zone control board, 4-zone, 24V, hydronic heating system",
+    "description": "Four-zone 24V hydronic heating zone control board with zone status LEDs and transformer terminal, wall-mount.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "HVAC",
+      "controls",
+      "zone"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "id": "material-mep-low-voltage-patch-panel-24port-cat6-1u",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Low-Voltage",
+    "csiDivision": "27",
+    "csiSection": "27 11 00",
+    "name": "24-port Cat6 patch panel, 1U rackmount, with port labels, 110-type",
+    "description": "24-port Cat6 1U rackmount patch panel, 110-type punchdown, with numbered port labels, for data rooms.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "low voltage",
+      "patch panel",
+      "Cat6"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "id": "material-mep-low-voltage-cable-sleeve-split-1-2in-6ft",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Low-Voltage",
+    "csiDivision": "27",
+    "csiSection": "27 15 00",
+    "name": "Cable sleeve, 1/2 in, split-loom, black, 6 ft length, flexible",
+    "description": "Split-loom flexible cable sleeve, 1/2 in, black, 6 ft, for bundling and protecting low-voltage cable runs.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "low voltage",
+      "cable management"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "id": "material-mep-low-voltage-cable-staple-1-4in-insulated-100pk",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Low-Voltage",
+    "csiDivision": "27",
+    "csiSection": "27 15 00",
+    "name": "Cable staple, 1/4 in, insulated, coaxial/Cat type, 100-pack",
+    "description": "Insulated cable staple, 1/4 in, 100-pack, for securing Cat5e/Cat6 and coax cables without damaging jacket.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "low voltage",
+      "cable management"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "id": "material-mep-low-voltage-cat6-cable-1000ft-blue-plenum",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Low-Voltage",
+    "csiDivision": "27",
+    "csiSection": "27 15 00",
+    "name": "Cat6 network cable, 1,000 ft box, blue, plenum-rated, CMP",
+    "description": "CMP-rated plenum Cat6 Ethernet cable, 1,000 ft pull box, blue jacket, for in-ceiling data network runs.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX"
+    ],
+    "tags": [
+      "mep materials",
+      "low voltage",
+      "data",
+      "Cat6"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "material-mep-low-voltage-data-outlet-box-single-gang-keystone",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Low-Voltage",
+    "csiDivision": "27",
+    "csiSection": "27 15 00",
+    "name": "Data outlet box, single-gang, 1-port keystone, 20A, recessed",
+    "description": "Single-gang recessed data outlet box, 1-port keystone insert, 20A decorator power combo, white, low-voltage ring.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "low voltage",
+      "data outlet"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "id": "material-mep-low-voltage-hdmi-wall-plate-2port-white",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Low-Voltage",
+    "csiDivision": "27",
+    "csiSection": "27 15 00",
+    "name": "HDMI wall plate, 2-port keystone, single-gang, white, feed-through",
+    "description": "Single-gang white HDMI wall plate, 2-port feed-through keystone, for AV wall outlet installations.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "low voltage",
+      "AV",
+      "HDMI"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "id": "material-mep-low-voltage-keystone-jack-cat6-white-110",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Low-Voltage",
+    "csiDivision": "27",
+    "csiSection": "27 15 00",
+    "name": "Keystone jack, Cat6, white, 110-style punchdown, T568A/B wiring",
+    "description": "Cat6 keystone jack, 110-style punchdown, T568A/B dual-mode, white, for data outlet plate installation.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "low voltage",
+      "Cat6",
+      "keystone"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2,
+    "id": "material-mep-low-voltage-mounting-bracket-single-gang",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Low-Voltage",
+    "csiDivision": "27",
+    "csiSection": "27 15 00",
+    "name": "Low-voltage mounting bracket, single-gang, plastic, old-work, adjustable",
+    "description": "Old-work plastic single-gang low-voltage mounting bracket for cable pass-through plates, adjustable depth.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "low voltage",
+      "mounting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "id": "material-mep-low-voltage-rg6-coax-500ft-box-white",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Low-Voltage",
+    "csiDivision": "27",
+    "csiSection": "27 15 00",
+    "name": "RG6 coaxial cable, 500 ft box, white, quad-shielded, CL2 rated",
+    "description": "Quad-shielded RG6 coaxial cable, 500 ft box, white, CL2-rated, for cable TV and satellite distribution.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX"
+    ],
+    "tags": [
+      "mep materials",
+      "low voltage",
+      "coax",
+      "cable TV"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "id": "material-mep-low-voltage-structured-wiring-panel-14in",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Low-Voltage",
+    "csiDivision": "27",
+    "csiSection": "27 11 00",
+    "name": "Structured wiring panel, 14 in, with buss bar and mounting plate",
+    "description": "Structured media center panel, 14 in, with buss bar, cable management ring, for residential/light commercial.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "low voltage",
+      "structured wiring"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "id": "material-mep-pipe-fittings-copper-elbow-90-3-4in-type-l",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Pipe and Fittings",
+    "csiDivision": "22",
+    "csiSection": "22 11 16",
+    "name": "Copper elbow, 90 degree, 3/4 in, solder-joint, type L wrought",
+    "description": "Wrought copper 90-degree elbow, 3/4 in solder-joint, type L, for domestic water direction changes.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "copper fittings"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "id": "material-mep-pipe-fittings-copper-tee-1-2in-solder-type-l",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Pipe and Fittings",
+    "csiDivision": "22",
+    "csiSection": "22 11 16",
+    "name": "Copper tee, 1/2 in, solder-joint, type L, wrought copper, standard",
+    "description": "Wrought copper solder-joint tee, 1/2 in, type L, for domestic water branch connections per ASTM B75.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "copper fittings"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-mep-pipe-fittings-press-fit-coupling-1in-copper",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Pipe and Fittings",
+    "csiDivision": "22",
+    "csiSection": "22 11 16",
+    "name": "Press-fit coupling, 1 in, copper, XL Press, full coupling",
+    "description": "XL Press-type copper press-fit full coupling, 1 in, EPDM O-ring, UL-listed, for tool-press plumbing joints.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "press fit",
+      "copper"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "id": "material-mep-pipe-fittings-push-connect-tee-1-2in",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Pipe and Fittings",
+    "csiDivision": "22",
+    "csiSection": "22 11 16",
+    "name": "Push-to-connect tee, 1/2 in, brass, for copper/CPVC/PEX, SharkBite",
+    "description": "SharkBite-compatible push-to-connect tee, 1/2 in, brass body, for copper, CPVC, or PEX pipe connections.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "push connect"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "id": "material-mep-pipe-fittings-ss-flex-connector-3-4x18in",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Pipe and Fittings",
+    "csiDivision": "22",
+    "csiSection": "22 11 16",
+    "name": "Stainless flex connector, 3/4 in FIP x FIP, 18 in, corrugated",
+    "description": "Corrugated stainless steel flexible connector, 3/4 in FIP x FIP, 18 in length, for water heater connections.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "flex connector"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
     "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "material-mep-materials-plumbing-pex-tubing-1-2-in-red-blue-100-ft-coil",
@@ -14977,6 +18352,595 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
       "mep materials",
       "plumbing",
       "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 145,
+    "id": "material-mep-fixtures-backflow-rpz-3-4in-reduced-pressure",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Fixtures",
+    "csiDivision": "22",
+    "csiSection": "22 11 23",
+    "name": "Backflow preventer, reduced-pressure zone, 3/4 in, USC listed",
+    "description": "USC FCCCHR-listed reduced pressure zone backflow preventer (RPZ), 3/4 in, for high-hazard cross connection.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "backflow",
+      "RPZ"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "material-mep-fixtures-dishwasher-supply-kit-3-8in",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Fixtures",
+    "csiDivision": "22",
+    "csiSection": "22 42 00",
+    "name": "Dishwasher supply kit, 3/8 in angle stop and braided supply line set",
+    "description": "Dishwasher connection kit, 3/8 in compression angle stop valve with 72 in braided SS supply line, no drain hose.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "fixtures",
+      "dishwasher"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 285,
+    "id": "material-mep-fixtures-floor-mount-urinal-vitreous-china",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Fixtures",
+    "csiDivision": "22",
+    "csiSection": "22 42 00",
+    "name": "Floor-mount urinal, vitreous china, white, standard flush valve",
+    "description": "Floor-mounted vitreous china urinal, white, standard siphon-jet with flushometer valve connection, ADA available.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "fixtures",
+      "urinal"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "material-mep-fixtures-hose-bibb-brass-3-4in-vacuum-breaker",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Fixtures",
+    "csiDivision": "22",
+    "csiSection": "22 42 00",
+    "name": "Hose bibb, brass, 3/4 in FIP, with integral vacuum breaker, sillcock",
+    "description": "Brass sillcock with integral vacuum breaker, 3/4 in FIP connection, for exterior hose bibb installations.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "fixtures",
+      "hose bibb"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-mep-fixtures-ice-maker-supply-line-braided-6ft",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Fixtures",
+    "csiDivision": "22",
+    "csiSection": "22 42 00",
+    "name": "Ice maker supply line, braided stainless, 6 ft, 1/4 in, with valve",
+    "description": "Braided stainless steel ice maker supply line, 6 ft, 1/4 in, with compression fitting and inline shutoff valve.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "fixtures",
+      "appliance"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 95,
+    "id": "material-mep-fixtures-laundry-tub-polypropylene-23x18",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Fixtures",
+    "csiDivision": "22",
+    "csiSection": "22 42 00",
+    "name": "Laundry tub, polypropylene, 23 in x 18 in x 12 in, utility sink",
+    "description": "Freestanding polypropylene utility/laundry tub, 23 in x 18 in x 12 in, with legs and drain strainer.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "fixtures",
+      "laundry"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "id": "material-mep-fixtures-mop-sink-polypropylene-24x24x10",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Fixtures",
+    "csiDivision": "22",
+    "csiSection": "22 42 00",
+    "name": "Mop sink, polypropylene, 24 in x 24 in x 10 in, floor-mount",
+    "description": "Floor-mounted polypropylene mop sink, 24 in x 24 in x 10 in, with drain and hose bracket, no faucet.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "fixtures",
+      "mop sink"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 345,
+    "id": "material-mep-fixtures-service-sink-wall-hung-stainless",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Fixtures",
+    "csiDivision": "22",
+    "csiSection": "22 42 00",
+    "name": "Service sink, wall-hung, stainless, 24 in x 20 in, no faucet",
+    "description": "Wall-hung stainless steel service/slop sink, 24 in x 20 in, 16 gauge, with drain and wall brackets.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "fixtures",
+      "service sink"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 68,
+    "id": "material-mep-fixtures-mixing-valve-thermostatic-1-2in-asse1016",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Fixtures",
+    "csiDivision": "22",
+    "csiSection": "22 42 00",
+    "name": "Thermostatic mixing valve, 1/2 in, ASSE 1016, for lavatory",
+    "description": "ASSE 1016-compliant thermostatic mixing valve, 1/2 in, adjustable 85-120°F, for ADA scald protection.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "fixtures",
+      "mixing valve"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 38,
+    "id": "material-mep-fixtures-utility-faucet-lever-1-2in-chrome",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Fixtures",
+    "csiDivision": "22",
+    "csiSection": "22 42 00",
+    "name": "Utility faucet, lever handle, 1/2 in FIP, chrome, single-hole",
+    "description": "Chrome single-hole utility faucet, lever handle, 1/2 in FIP inlets, for laundry tubs and service sinks.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "fixtures",
+      "faucet"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "material-mep-plumbing-valves-ball-valve-1in-brass-fpt",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Valves",
+    "csiDivision": "22",
+    "csiSection": "22 05 23",
+    "name": "Ball valve, 1 in, brass, full-port, FPT x FPT, 600 WOG",
+    "description": "Full-port brass ball valve, 1 in FPT x FPT, 600 WOG, for main shutoffs and branch isolation on water supply.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "valves"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 42,
+    "id": "material-mep-plumbing-valves-ball-valve-1-1-2in-brass-fpt",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Valves",
+    "csiDivision": "22",
+    "csiSection": "22 05 23",
+    "name": "Ball valve, 1-1/2 in, brass, full-port, FPT x FPT, 600 WOG",
+    "description": "Full-port brass ball valve, 1-1/2 in FPT x FPT, 600 WOG, for building main shutoff and larger branch isolation.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "valves"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 32,
+    "id": "material-mep-plumbing-valves-ball-valve-1-1-4in-brass-fpt",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Valves",
+    "csiDivision": "22",
+    "csiSection": "22 05 23",
+    "name": "Ball valve, 1-1/4 in, brass, full-port, FPT x FPT, 600 WOG",
+    "description": "Full-port brass ball valve, 1-1/4 in FPT x FPT, 600 WOG, for larger branch lines on domestic water systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "valves"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-mep-plumbing-valves-ball-valve-1-2in-brass-fpt",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Valves",
+    "csiDivision": "22",
+    "csiSection": "22 05 23",
+    "name": "Ball valve, 1/2 in, brass, full-port, FPT x FPT, 600 WOG",
+    "description": "Full-port brass ball valve, 1/2 in FPT x FPT, 600 WOG rating, chrome-plated ball, for domestic water shutoff.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "valves"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 58,
+    "id": "material-mep-plumbing-valves-ball-valve-2in-brass-fpt",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Valves",
+    "csiDivision": "22",
+    "csiSection": "22 05 23",
+    "name": "Ball valve, 2 in, brass, full-port, FPT x FPT, 600 WOG",
+    "description": "Full-port brass ball valve, 2 in FPT x FPT, 600 WOG, for building water mains and larger service lines.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "valves"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 16,
+    "id": "material-mep-plumbing-valves-ball-valve-3-4in-brass-fpt",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Valves",
+    "csiDivision": "22",
+    "csiSection": "22 05 23",
+    "name": "Ball valve, 3/4 in, brass, full-port, FPT x FPT, 600 WOG",
+    "description": "Full-port brass ball valve, 3/4 in FPT x FPT, 600 WOG, chrome-plated ball, for domestic water supply isolation.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "valves"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 16,
+    "id": "material-mep-plumbing-valves-check-valve-3-4in-brass-swing",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Valves",
+    "csiDivision": "22",
+    "csiSection": "22 05 23",
+    "name": "Check valve, 3/4 in, brass, swing-type, FPT x FPT, 200 WOG",
+    "description": "Swing-type brass check valve, 3/4 in FPT x FPT, 200 WOG, for backflow prevention on water supply lines.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "valves",
+      "backflow"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 42,
+    "id": "material-mep-plumbing-valves-expansion-tank-2gal-potable",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Valves",
+    "csiDivision": "22",
+    "csiSection": "22 33 30",
+    "name": "Expansion tank, potable water, 2 gal, steel, bladder type, NSF",
+    "description": "NSF-certified bladder-type potable water expansion tank, 2 gal, for domestic hot water system pressure control.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "expansion tank"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "id": "material-mep-plumbing-valves-expansion-tank-4-5gal-potable",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Valves",
+    "csiDivision": "22",
+    "csiSection": "22 33 30",
+    "name": "Expansion tank, potable water, 4.5 gal, steel, bladder, NSF-rated",
+    "description": "NSF-certified bladder potable water expansion tank, 4.5 gal, for larger domestic hot water system installations.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "expansion tank"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "id": "material-mep-plumbing-valves-gate-valve-1-2in-brass-full-port",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Valves",
+    "csiDivision": "22",
+    "csiSection": "22 05 23",
+    "name": "Gate valve, 1/2 in, brass, full-port, FPT x FPT, non-rising stem",
+    "description": "Full-port brass gate valve, 1/2 in FPT x FPT, non-rising stem, for water supply system zone isolation.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "valves"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 68,
+    "id": "material-mep-plumbing-valves-pressure-reducing-3-4in-gauge",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Valves",
+    "csiDivision": "22",
+    "csiSection": "22 05 23",
+    "name": "Pressure reducing valve, 3/4 in, with gauge, 25-75 PSI adjust",
+    "description": "Bronze PRV, 3/4 in, with integral pressure gauge, adjustable 25-75 PSI, for domestic water service pressure control.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "valves",
+      "PRV"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "id": "material-mep-plumbing-valves-pressure-relief-valve-150psi",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Valves",
+    "csiDivision": "22",
+    "csiSection": "22 34 00",
+    "name": "Pressure relief valve, 150 PSI, 3/4 in, bronze, ASME-rated",
+    "description": "ASME-rated bronze pressure/temperature relief valve, 3/4 in, 150 PSI set, for heating systems and boilers.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "valves",
+      "safety"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-mep-plumbing-valves-pressure-relief-valve-30psi",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Valves",
+    "csiDivision": "22",
+    "csiSection": "22 34 00",
+    "name": "Pressure relief valve, 30 PSI, 3/4 in, bronze, ASME-rated",
+    "description": "ASME-rated bronze pressure relief valve, 3/4 in, 30 PSI set point, for water heater and vessel protection.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "valves",
+      "safety"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-mep-plumbing-valves-water-hammer-arrestor-c-3-4in",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Valves",
+    "csiDivision": "22",
+    "csiSection": "22 05 29",
+    "name": "Water hammer arrestor, size C, 3/4 in FIP, ASSE 1010, PDI-rated",
+    "description": "ASSE 1010-listed PDI size C water hammer arrestor, 3/4 in FIP for 11-20 fixture unit branch lines.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "water hammer"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "material-mep-plumbing-valves-water-hammer-arrestor-d-1in",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Valves",
+    "csiDivision": "22",
+    "csiSection": "22 05 29",
+    "name": "Water hammer arrestor, size D, 1 in FIP, ASSE 1010, PDI-rated",
+    "description": "ASSE 1010-listed PDI size D water hammer arrestor, 1 in FIP for 21-45 fixture unit branch lines.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "water hammer"
     ]
   },
   {
@@ -17953,6 +21917,29 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
   {
     "costConfidence": "placeholder",
     "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "id": "material-roofing-flashing-copper-cap-10ft-coil-6in",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Flashing",
+    "csiDivision": "07",
+    "csiSection": "07 62 00",
+    "name": "Copper cap flashing, 16 oz, 10 ft coil, 6 in wide, for masonry",
+    "description": "Sixteen-ounce copper cap flashing coil, 10 ft, 6 in wide, for masonry parapet wall cap and through-wall flashing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "flashing",
+      "copper"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
     "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "material-roofing-flashing-drip-edge-flashing-aluminum-10-ft-length",
@@ -18047,6 +22034,29 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
     "costConfidence": "placeholder",
     "pricingRequired": true,
     "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-roofing-flashing-lead-sheet-3lb-12x12",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Flashing",
+    "csiDivision": "07",
+    "csiSection": "07 62 00",
+    "name": "Lead flashing sheet, 3 lb, 12 in x 12 in, for plumbing vents",
+    "description": "Three-pound lead flashing sheet, 12 in x 12 in, for custom pipe and vent base flashing on all roof types.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "flashing",
+      "lead"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 12,
     "type": "material",
     "id": "material-roofing-exterior-pipe-boot-epdm-1-1-2-in",
@@ -18093,6 +22103,30 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
     "costConfidence": "placeholder",
     "pricingRequired": true,
     "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "id": "material-roofing-rake-edge-trim-galvanized-10ft",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Flashing",
+    "csiDivision": "07",
+    "csiSection": "07 62 00",
+    "name": "Rake edge trim, galvanized steel, 10 ft, 2 in face, L-style drip edge",
+    "description": "Galvanized steel rake/eave drip edge trim, L-style, 10 ft, 2 in face, for shingle and felt edge termination.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "roofing",
+      "flashing",
+      "drip edge"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 18,
     "type": "material",
     "id": "material-roofing-exterior-roof-vent-turtle-type-aluminum",
@@ -18133,6 +22167,212 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
     "tags": [
       "exterior",
       "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-roofing-flashing-z-flashing-aluminum-10ft",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Flashing",
+    "csiDivision": "07",
+    "csiSection": "07 62 00",
+    "name": "Z-flashing, aluminum, 10 ft, 4 in x 4 in x 1 in, mill finish",
+    "description": "Extruded aluminum Z-flashing, 10 ft, 4 in back leg x 4 in face x 1 in top, for horizontal siding transitions.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "flashing",
+      "aluminum"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 68,
+    "id": "material-roofing-gutter-copper-half-round-10ft-5in",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Gutters and Downspouts",
+    "csiDivision": "07",
+    "csiSection": "07 71 23",
+    "name": "Copper gutter, half-round, 5 in, 10 ft section, 16 oz",
+    "description": "Sixteen-ounce copper half-round gutter, 5 in width, 10 ft section, for traditional and historic roof systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "gutters",
+      "copper"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "id": "material-roofing-downspout-elbow-3x4-aluminum-75deg",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Gutters and Downspouts",
+    "csiDivision": "07",
+    "csiSection": "07 71 23",
+    "name": "Downspout elbow, 3 in x 4 in, aluminum, 75°, for wall offsets",
+    "description": "Aluminum downspout elbow, 3 in x 4 in, 75-degree angle, for wall offset connections on rectangular downspouts.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "gutters",
+      "downspout"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-roofing-downspout-strap-aluminum-adjustable-25pk",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Gutters and Downspouts",
+    "csiDivision": "07",
+    "csiSection": "07 71 23",
+    "name": "Downspout strap, aluminum, adjustable, screw-mount, 25-pack",
+    "description": "Adjustable aluminum downspout mounting straps, 25-pack, for securing rectangular downspouts to wall fascia.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "gutters",
+      "downspout"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "id": "material-roofing-fascia-cover-aluminum-8ft-prefinished-white",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Gutters and Downspouts",
+    "csiDivision": "07",
+    "csiSection": "07 71 23",
+    "name": "Fascia cover, aluminum, 8 ft, pre-bent, prefinished white",
+    "description": "Pre-bent aluminum fascia cover, 8 ft, prefinished white, for covering wood fascia boards on gutter systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "roofing",
+      "gutters",
+      "fascia"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "id": "material-roofing-gutter-end-cap-aluminum-5in-pair",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Gutters and Downspouts",
+    "csiDivision": "07",
+    "csiSection": "07 71 23",
+    "name": "Gutter end cap, aluminum, 5 in, left/right pair, caulked",
+    "description": "Aluminum gutter end caps, 5 in, left and right pair, for sealing gutter ends, with butyl sealant applied.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "gutters"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "id": "material-roofing-gutter-outlet-drop-3in-aluminum",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Gutters and Downspouts",
+    "csiDivision": "07",
+    "csiSection": "07 71 23",
+    "name": "Gutter outlet drop, 3 in, aluminum, with screen, each",
+    "description": "Aluminum gutter outlet drop, 3 in diameter, with mesh debris screen, for connecting gutter to downspout.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "gutters",
+      "downspout"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-roofing-gutter-spike-ferrule-kit-7in-25pack",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Gutters and Downspouts",
+    "csiDivision": "07",
+    "csiSection": "07 71 23",
+    "name": "Gutter spike and ferrule kit, aluminum, 7 in spike, 25-pack",
+    "description": "Aluminum gutter spike and ferrule kit, 7 in spike with 4 in ferrule, 25-pack for aluminum gutter installation.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "gutters"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "id": "material-roofing-gutter-underground-leader-elbow-pvc-90",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Gutters and Downspouts",
+    "csiDivision": "07",
+    "csiSection": "07 71 23",
+    "name": "Underground downspout leader elbow, PVC, 90°, 4 in, with adapter",
+    "description": "PVC 90-degree underground leader elbow, 4 in, with aluminum downspout adapter for concealed drainage system.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "downspout",
+      "underground drainage"
     ]
   },
   {
@@ -18233,6 +22473,29 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
       "roofing",
       "membrane",
       "insulation"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-roofing-tpo-seam-roller-2in-silicone",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Membrane Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 54 23",
+    "name": "TPO seam roller, 2 in, silicone wheel, manual, for membrane seams",
+    "description": "Manual 2 in silicone seam roller for pressing TPO, EPDM, and PVC membrane seams after heat-welding.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "TPO",
+      "membrane"
     ]
   },
   {
@@ -18363,6 +22626,238 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
   {
     "costConfidence": "placeholder",
     "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "id": "material-roofing-mod-bitumen-base-sheet-sbs-smooth",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Modified Bitumen",
+    "csiDivision": "07",
+    "csiSection": "07 55 63",
+    "name": "Modified bitumen base sheet, SBS, smooth face, 1 roofing square",
+    "description": "SBS-modified bitumen base/ply sheet, smooth face, 1 roofing square, for torch or cold-process underlayment.",
+    "unit": "Sq",
+    "commonUnits": [
+      "Sq"
+    ],
+    "tags": [
+      "roofing",
+      "modified bitumen",
+      "membrane"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "id": "material-roofing-mod-bitumen-cap-sheet-sbs-granulated",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Modified Bitumen",
+    "csiDivision": "07",
+    "csiSection": "07 55 63",
+    "name": "Modified bitumen cap sheet, SBS, granulated, 1 roofing square",
+    "description": "SBS-modified bitumen cap sheet, granulated surface, 1 roofing square, for torch or cold-adhesive application.",
+    "unit": "Sq",
+    "commonUnits": [
+      "Sq"
+    ],
+    "tags": [
+      "roofing",
+      "modified bitumen",
+      "membrane"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 10,
+    "id": "material-roofing-vent-cap-bath-fan-plastic-4in",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Roof Vents",
+    "csiDivision": "07",
+    "csiSection": "07 72 00",
+    "name": "Bath fan cap, plastic, 4 in duct, with backdraft damper, exterior",
+    "description": "Plastic bathroom exhaust fan exterior cap, 4 in duct, with spring-loaded backdraft damper and bug screen.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "vents",
+      "bath fan"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "id": "material-roofing-vent-cap-dryer-aluminum-4in-louvered",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Roof Vents",
+    "csiDivision": "07",
+    "csiSection": "07 72 00",
+    "name": "Dryer vent cap, aluminum, 4 in duct, louvered, with pest screen",
+    "description": "Aluminum dryer vent cap, 4 in duct size, louvered blades with pest screen, for exterior wall installation.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "vents",
+      "dryer vent"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-roofing-vent-foundation-screen-8x16-galv",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Roof Vents",
+    "csiDivision": "07",
+    "csiSection": "07 72 00",
+    "name": "Foundation vent screen, 8 in x 16 in, galvanized, with adjustable damper",
+    "description": "Galvanized steel foundation vent screen, 8 in x 16 in, with adjustable damper, for crawl space ventilation.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "vents",
+      "foundation vent"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-roofing-vent-cap-range-hood-aluminum-6in",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Roof Vents",
+    "csiDivision": "07",
+    "csiSection": "07 72 00",
+    "name": "Range hood cap, aluminum, 6 in duct, with damper, exterior wall",
+    "description": "Aluminum range hood exterior cap, 6 in duct, with backdraft damper and bird screen, for kitchen exhaust.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "vents",
+      "range hood"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-roofing-soffit-vent-strip-aluminum-8ft",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Roof Vents",
+    "csiDivision": "07",
+    "csiSection": "07 72 00",
+    "name": "Soffit ventilation strip, 8 ft, aluminum, mill finish, 1 in wide slot",
+    "description": "Aluminum continuous soffit ventilation strip, 8 ft, 1 in wide vented slot, for rafter-bay air intake at eaves.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "roofing",
+      "vents",
+      "soffit"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-roofing-adhesive-deck-28oz-polyurethane",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Roofing Accessories",
+    "csiDivision": "07",
+    "csiSection": "07 92 00",
+    "name": "Roof deck adhesive, 28 oz cartridge, polyurethane, for OSB/plywood",
+    "description": "Polyurethane adhesive for roof deck OSB/plywood, 28 oz cartridge, for enhanced shear strength and squeak prevention.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "adhesive",
+      "deck"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "id": "material-roofing-repair-cement-fibered-1gal-black",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Roofing Accessories",
+    "csiDivision": "07",
+    "csiSection": "07 99 00",
+    "name": "Roof repair cement, fibered asphalt, 1 gal, black, trowel-grade",
+    "description": "Fibered asphalt roof repair cement, 1 gal, trowel-grade, for flashing, crack, and leak repairs on all roofs.",
+    "unit": "GAL",
+    "commonUnits": [
+      "GAL"
+    ],
+    "tags": [
+      "roofing",
+      "repair",
+      "cement"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "id": "material-roofing-nails-galvanized-1-3-4in-50lb-box",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Roofing Fasteners",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Roofing nails, galvanized, 1-3/4 in, 11 gauge, 50 lb box",
+    "description": "Galvanized smooth-shank roofing nails, 1-3/4 in x 11 gauge, 50 lb box, for asphalt shingle installation.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "LB"
+    ],
+    "tags": [
+      "roofing",
+      "fasteners",
+      "nails"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
     "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "material-roofing-shingles-asphalt-shingles-architectural-laminated-per-square",
@@ -18405,6 +22900,53 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
       "roofing",
       "shingles",
       "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "id": "material-roofing-shingles-ridge-cap-bundle-20lf-architectural",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Shingles",
+    "csiDivision": "07",
+    "csiSection": "07 31 13",
+    "name": "Ridge cap shingles, architectural, bundle, approx 20 LF coverage",
+    "description": "Architectural-grade ridge cap shingles, bundle covering approximately 20 LF, color-match to field shingles.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "shingles",
+      "ridge cap"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "id": "material-roofing-ice-guard-rubberized-3x75ft-roll",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Underlayment",
+    "csiDivision": "07",
+    "csiSection": "07 26 00",
+    "name": "Eave ice and water guard, rubberized asphalt, 3 ft x 75 ft roll",
+    "description": "Rubberized asphalt self-adhering ice and water shield, 3 ft wide x 75 ft roll, for eave and valley protection.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "SF"
+    ],
+    "tags": [
+      "roofing",
+      "underlayment",
+      "ice guard"
     ]
   },
   {
@@ -19728,6 +24270,417 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
     "costConfidence": "placeholder",
     "pricingRequired": true,
     "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "id": "material-sitework-fencing-barbed-wire-2strand-1320ft-galv",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Fencing",
+    "csiDivision": "32",
+    "csiSection": "32 31 13",
+    "name": "Barbed wire, 2-strand, 12.5 gauge galvanized, 1,320 ft spool",
+    "description": "Galvanized 2-strand barbed wire, 12.5 gauge, 1,320 ft (1/4 mile) spool, for fence top security applications.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "LF"
+    ],
+    "tags": [
+      "sitework",
+      "fencing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "id": "material-sitework-fencing-chainlink-fabric-6x50-9ga-galv",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Fencing",
+    "csiDivision": "32",
+    "csiSection": "32 31 13",
+    "name": "Chain link fence fabric, 6 ft x 50 ft roll, 9 gauge, galvanized",
+    "description": "Galvanized 9-gauge chain link fence fabric, 6 ft tall x 50 ft roll, 2 in mesh, for permanent site fencing.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "LF"
+    ],
+    "tags": [
+      "sitework",
+      "fencing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "id": "material-sitework-fencing-gate-hardware-kit-latch-hinges",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Fencing",
+    "csiDivision": "32",
+    "csiSection": "32 31 13",
+    "name": "Fence gate hardware kit, latch, hinges, and closer, per gate set",
+    "description": "Complete gate hardware kit, includes two heavy-duty hinges, spring closer, gate latch, for chain link walk gates.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "fencing",
+      "gate hardware"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "material-sitework-fencing-post-galv-2-3-8in-x-8ft",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Fencing",
+    "csiDivision": "32",
+    "csiSection": "32 31 13",
+    "name": "Fence post, galvanized steel, 2-3/8 in OD x 8 ft, line post type",
+    "description": "Galvanized steel chain link fence line post, 2-3/8 in OD x 8 ft, for permanent fence panel support.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "fencing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "id": "material-sitework-fencing-tie-wire-6ga-aluminum-25pk",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Fencing",
+    "csiDivision": "32",
+    "csiSection": "32 31 13",
+    "name": "Fence tie wire, 6 gauge aluminum, pre-formed loop, 25-pack",
+    "description": "Pre-formed aluminum tie wires, 6 gauge, 25-pack, for attaching chain link fabric to posts and rails.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "fencing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-sitework-fencing-top-rail-galv-1-5-8in-21ft",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Fencing",
+    "csiDivision": "32",
+    "csiSection": "32 31 13",
+    "name": "Fence top rail, galvanized, 1-5/8 in x 21 ft, chain link, snap-end",
+    "description": "Galvanized snap-end top rail for chain link fencing, 1-5/8 in OD x 21 ft, for 6 ft fence installations.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "fencing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "id": "material-sitework-fencing-privacy-slat-aluminum-50ft-roll",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Fencing",
+    "csiDivision": "32",
+    "csiSection": "32 31 13",
+    "name": "Privacy fence slat, aluminum, for chain link, 50 ft roll, brown",
+    "description": "Aluminum privacy slat insert, 50 ft roll, for 9-gauge 2 in chain link fence, brown powder coat finish.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "LF"
+    ],
+    "tags": [
+      "sitework",
+      "fencing",
+      "privacy"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-sitework-fencing-tension-band-3-8in-bolt-type-10pk",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Fencing",
+    "csiDivision": "32",
+    "csiSection": "32 31 13",
+    "name": "Tension band, 3/8 in bolt-type, galvanized, 10-pack, chain link",
+    "description": "Galvanized bolt-type chain link fence tension bands, 3/8 in, 10-pack, for terminal post fabric attachment.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "fencing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-sitework-irrigation-auto-valve-box-9x14-green",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Landscaping Irrigation",
+    "csiDivision": "32",
+    "csiSection": "32 84 23",
+    "name": "Automatic valve box, 9 in x 14 in, green, plastic, with cover",
+    "description": "Plastic irrigation valve box, 9 in x 14 in, green with black cover, for buried automatic control valves.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "irrigation"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "id": "material-sitework-irrigation-backflow-preventer-3-4in-double",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Landscaping Irrigation",
+    "csiDivision": "32",
+    "csiSection": "32 84 23",
+    "name": "Backflow preventer, 3/4 in, double-check, PVC, with isolation valves",
+    "description": "Double-check backflow preventer, 3/4 in, PVC body with isolation valves, for irrigation system cross-connection.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "irrigation",
+      "backflow"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1,
+    "id": "material-sitework-irrigation-drip-emitter-1gph-pressure-comp",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Landscaping Irrigation",
+    "csiDivision": "32",
+    "csiSection": "32 84 23",
+    "name": "Drip emitter, 1 GPH, pressure-compensating, barbed, each",
+    "description": "Pressure-compensating drip emitter, 1 GPH, barbed inlet for 1/4 in drip tubing, for individual plant watering.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "irrigation",
+      "drip emitter"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "id": "material-sitework-irrigation-controller-8zone-outdoor-120v",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Landscaping Irrigation",
+    "csiDivision": "32",
+    "csiSection": "32 84 23",
+    "name": "Irrigation controller, 8-zone, outdoor, 120V, with rain bypass port",
+    "description": "8-zone outdoor irrigation controller, 120V, with rain sensor bypass port and 3 program schedules.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "irrigation",
+      "controller"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-sitework-irrigation-isolation-ball-valve-1in-pvc",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Landscaping Irrigation",
+    "csiDivision": "32",
+    "csiSection": "32 84 23",
+    "name": "Isolation ball valve, 1 in, PVC, schedule 40, socket x socket",
+    "description": "PVC schedule 40 ball valve, 1 in, socket x socket, for irrigation system zone isolation and main shutoff.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "irrigation",
+      "valves"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-sitework-irrigation-poly-main-1in-class200-100ft",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Landscaping Irrigation",
+    "csiDivision": "32",
+    "csiSection": "32 84 23",
+    "name": "Poly irrigation main, 1 in, class 200, 100 ft coil, HDPE",
+    "description": "HDPE class 200 poly irrigation main line, 1 in, 100 ft coil, for subsurface mainline distribution.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "LF"
+    ],
+    "tags": [
+      "sitework",
+      "irrigation",
+      "poly pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-sitework-irrigation-popup-rotor-head-4in-adjustable",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Landscaping Irrigation",
+    "csiDivision": "32",
+    "csiSection": "32 84 23",
+    "name": "Pop-up rotor head, 4 in, adjustable 40-360°, 30 ft radius, plastic",
+    "description": "Plastic pop-up rotor sprinkler head, 4 in, adjustable arc 40-360°, 30 ft radius, for turf irrigation.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "irrigation",
+      "rotor head"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "id": "material-sitework-irrigation-popup-spray-head-4in-180deg",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Landscaping Irrigation",
+    "csiDivision": "32",
+    "csiSection": "32 84 23",
+    "name": "Pop-up spray head, 4 in, 180° pattern, plastic, 15 ft radius",
+    "description": "Plastic pop-up spray head, 4 in height, 180° pattern, 15 ft radius, for lawn and groundcover irrigation.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "irrigation",
+      "spray head"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 38,
+    "id": "material-sitework-irrigation-rain-sensor-wireless-bracket",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Landscaping Irrigation",
+    "csiDivision": "32",
+    "csiSection": "32 84 23",
+    "name": "Rain sensor, wireless, adjustable, with mounting bracket, WI-listed",
+    "description": "Wireless rain sensor for irrigation systems, adjustable 1/8-3/4 in rainfall shutoff, with bracket, WI-listed.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "irrigation",
+      "rain sensor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-sitework-irrigation-soaker-hose-1-2in-rubber-50ft",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Landscaping Irrigation",
+    "csiDivision": "32",
+    "csiSection": "32 84 23",
+    "name": "Soaker hose, 1/2 in, rubber, 50 ft coil, for drip irrigation",
+    "description": "Porous rubber soaker hose, 1/2 in, 50 ft coil, for slow deep watering in planting beds and vegetable gardens.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "irrigation",
+      "drip"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 45,
     "type": "material",
     "id": "material-sitework-paving-asphalt-base-course-per-ton",
@@ -20150,6 +25103,420 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
     "costConfidence": "placeholder",
     "pricingRequired": true,
     "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "id": "material-sitework-furnishings-bike-rack-powder-coat-5bike",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Site Furnishings",
+    "csiDivision": "32",
+    "csiSection": "32 93 43",
+    "name": "Bike rack, inverted-U, powder coat, 5-bike capacity, galvanized steel",
+    "description": "Galvanized steel inverted-U bike rack, powder coat finish, 5-bike capacity, surface-mount with anchor bolts.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "site furnishings",
+      "bike rack"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "id": "material-sitework-furnishings-bollard-steel-6in-42in-concrete",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Site Furnishings",
+    "csiDivision": "32",
+    "csiSection": "32 39 23",
+    "name": "Bollard, steel pipe, 6 in OD, 42 in, concrete-fill, powder coat",
+    "description": "Steel pipe bollard, 6 in OD, 42 in height above grade, concrete-filled, powder coat finish, embedded.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "site furnishings",
+      "bollard"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "id": "material-sitework-furnishings-dog-waste-station-with-bags",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Site Furnishings",
+    "csiDivision": "32",
+    "csiSection": "32 93 43",
+    "name": "Dog waste station, steel post-mount, with bag dispenser and lid",
+    "description": "Steel dog waste station, post-mount, with refillable bag dispenser, liner, and lid, powder coat brown.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "site furnishings",
+      "dog waste"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 685,
+    "id": "material-sitework-furnishings-flagpole-aluminum-25ft-internal",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Site Furnishings",
+    "csiDivision": "10",
+    "csiSection": "10 75 13",
+    "name": "Flagpole, aluminum, 25 ft, internal halyard, 5 in butt, direct-embed",
+    "description": "Sectional aluminum flagpole, 25 ft, 5 in butt diameter, internal halyard, for direct-embed foundation.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "site furnishings",
+      "flagpole"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 485,
+    "id": "material-sitework-furnishings-litter-receptacle-concrete-35gal",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Site Furnishings",
+    "csiDivision": "32",
+    "csiSection": "32 93 43",
+    "name": "Litter receptacle, precast concrete, 35 gal liner, ADA-height",
+    "description": "Precast concrete litter receptacle, 35 gal galvanized liner, ADA accessible height, for exterior public spaces.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "site furnishings",
+      "receptacle"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 485,
+    "id": "material-sitework-furnishings-park-bench-recycled-plastic-6ft",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Site Furnishings",
+    "csiDivision": "32",
+    "csiSection": "32 93 43",
+    "name": "Park bench, recycled plastic, 6 ft, hunter green, surface-anchor",
+    "description": "Recycled plastic lumber park bench, 6 ft, hunter green, surface-anchor mount with stainless anchor bolts.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "site furnishings",
+      "bench"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 850,
+    "id": "material-sitework-furnishings-picnic-table-precast-concrete-8ft",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Site Furnishings",
+    "csiDivision": "32",
+    "csiSection": "32 93 43",
+    "name": "Picnic table, precast concrete, 8 ft, standard, with benches",
+    "description": "Precast concrete picnic table, 8 ft, standard style with two attached benches, ground-anchor or set-in-place.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "site furnishings",
+      "picnic table"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 285,
+    "id": "material-sitework-furnishings-planter-box-concrete-24x48",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Site Furnishings",
+    "csiDivision": "32",
+    "csiSection": "32 93 43",
+    "name": "Planter box, precast concrete, 24 in x 48 in x 18 in, sealed",
+    "description": "Sealed precast concrete planter box, 24 in x 48 in x 18 in, with drainage holes, for exterior landscaping.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "site furnishings",
+      "planter"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "material-sitework-utilities-conduit-sleeve-pvc-4in-sch40-10ft",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Site Utilities",
+    "csiDivision": "33",
+    "csiSection": "33 05 29",
+    "name": "Conduit sleeve, PVC, 4 in, schedule 40, 10 ft length, for trenching",
+    "description": "Schedule 40 PVC conduit sleeve, 4 in, 10 ft, for underground electrical conduit in trench installations.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "site utilities",
+      "conduit"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "id": "material-sitework-utilities-curb-stop-1in-brass-with-key",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Site Utilities",
+    "csiDivision": "33",
+    "csiSection": "33 11 13",
+    "name": "Curb stop shutoff, 1 in, brass, with operating key, plug type",
+    "description": "Plug-type brass curb stop shutoff valve, 1 in, with T-bar operating key, for buried water service shutoff.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "site utilities",
+      "water"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-sitework-utilities-electrical-pull-tape-500ft-nylon",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Site Utilities",
+    "csiDivision": "33",
+    "csiSection": "33 05 17",
+    "name": "Electrical pull tape, 1/8 in x 500 ft, nylon, 250 lb tensile",
+    "description": "Nylon fish/pull tape, 1/8 in x 500 ft, 250 lb tensile strength, for conduit cable pulling in site utilities.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "site utilities",
+      "electrical"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-sitework-utilities-gas-service-main-2in-steel-lf",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Site Utilities",
+    "csiDivision": "33",
+    "csiSection": "33 51 23",
+    "name": "Gas service main, 2 in, steel, Schedule 40, coated, per LF",
+    "description": "Schedule 40 coated steel natural gas service main, 2 in, per LF including joints, for underground gas service.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF"
+    ],
+    "tags": [
+      "sitework",
+      "site utilities",
+      "gas"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "id": "material-sitework-utilities-hand-hole-cover-composite-12x18",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Site Utilities",
+    "csiDivision": "33",
+    "csiSection": "33 05 17",
+    "name": "Hand hole cover, composite, 12 in x 18 in, tier-15, traffic-rated",
+    "description": "Tier-15 traffic-rated composite hand hole cover, 12 in x 18 in, for utility vault and pull box access.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "site utilities"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 68,
+    "id": "material-sitework-utilities-junction-box-12x12-precast-concrete",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Site Utilities",
+    "csiDivision": "33",
+    "csiSection": "33 05 17",
+    "name": "Junction box, 12 in x 12 in x 6 in, precast concrete, with cover",
+    "description": "Precast concrete electrical junction box, 12 in x 12 in x 6 in, with cast iron knockout cover, for underground.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "site utilities",
+      "electrical"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 145,
+    "id": "material-sitework-utilities-meter-pit-precast-18in-dia",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Site Utilities",
+    "csiDivision": "33",
+    "csiSection": "33 11 13",
+    "name": "Meter pit, precast concrete, 18 in diameter, with cast iron lid",
+    "description": "Precast concrete water meter pit, 18 in diameter, with cast iron lid, for residential meter installation.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "site utilities",
+      "water meter"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 42,
+    "id": "material-sitework-utilities-poly-pipe-1in-hdpe-100psi-100ft",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Site Utilities",
+    "csiDivision": "33",
+    "csiSection": "33 11 19",
+    "name": "Poly pipe, 1 in, HDPE, 100 PSI, 100 ft coil, for water service",
+    "description": "HDPE poly water service pipe, 1 in, 100 PSI, 100 ft coil, NSF-certified for potable water underground service.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "LF"
+    ],
+    "tags": [
+      "sitework",
+      "site utilities",
+      "water service"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 38,
+    "id": "material-sitework-utilities-pull-box-polymer-6x10",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Site Utilities",
+    "csiDivision": "33",
+    "csiSection": "33 05 17",
+    "name": "Pull box, polymer concrete, 6 in x 10 in, with cover, stackable",
+    "description": "Polymer concrete pull box, 6 in x 10 in, stackable, with polymer cover, for underground electrical and telecom.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "site utilities",
+      "electrical"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "id": "material-sitework-utilities-valve-box-10in-round-cast-iron",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Site Utilities",
+    "csiDivision": "33",
+    "csiSection": "33 11 13",
+    "name": "Valve box, 10 in round, cast iron lid, adjustable, for water valves",
+    "description": "Cast iron top-section valve box, 10 in round, adjustable extension, with cast iron lid for water valve access.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "site utilities",
+      "water"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 65,
     "type": "material",
     "id": "material-sitework-bio-retention-soil-mix-per-cy",
@@ -20387,6 +25754,324 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
       "sitework",
       "utility",
       "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "id": "material-sitework-soil-monitor-helical-ground-anchor-6ft",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Soil Monitoring",
+    "csiDivision": "31",
+    "csiSection": "31 09 16",
+    "name": "Helical ground anchor, 6 ft, 2 in helix, galvanized, soil anchor",
+    "description": "Galvanized helical ground anchor, 6 ft shaft, 2 in helix plate, for temporary earth anchoring and monitoring.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "soil monitoring",
+      "geotechnical"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "id": "material-sitework-soil-monitor-inclinometer-casing-abs-5ft",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Soil Monitoring",
+    "csiDivision": "31",
+    "csiSection": "31 09 16",
+    "name": "Inclinometer casing, ABS, 2.5 in OD, 5 ft section, with grooves",
+    "description": "ABS inclinometer casing section, 2.5 in OD, 5 ft length with longitudinal grooves, for slope stability monitoring.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "soil monitoring",
+      "geotechnical"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "id": "material-sitework-soil-monitor-settlement-marker-rod-5ft",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Soil Monitoring",
+    "csiDivision": "31",
+    "csiSection": "31 09 16",
+    "name": "Settlement marker rod, galvanized steel, 5 ft, threaded coupling",
+    "description": "Galvanized steel settlement monitoring rod, 5 ft, threaded coupling for extension, for ground settlement tracking.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "soil monitoring",
+      "geotechnical"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "material-sitework-soil-monitor-survey-monument-disk-usgs",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Soil Monitoring",
+    "csiDivision": "31",
+    "csiSection": "31 09 16",
+    "name": "Survey monument disk, aluminum, 3.25 in, USGS type, cast-set",
+    "description": "Standard USGS-type aluminum survey monument disk, 3.25 in diameter, for embedding in concrete monuments.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "soil monitoring",
+      "surveying"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-sitework-traffic-control-channelizer-post-42in-weighted",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Traffic Control",
+    "csiDivision": "31",
+    "csiSection": "31 68 13",
+    "name": "Channelizer post, orange, 42 in, with 20 lb weighted rubber base",
+    "description": "Orange channelizer post, 42 in, with 20 lb rubber weighted base, for temporary lane channelization.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "traffic control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "id": "material-sitework-traffic-control-delineator-post-36in-orange",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Traffic Control",
+    "csiDivision": "31",
+    "csiSection": "31 68 13",
+    "name": "Delineator post, flexible, 36 in, orange, with reflective collar",
+    "description": "Flexible orange delineator post, 36 in tall, with 4 in reflective collar, for construction zone lane delineation.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "traffic control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "id": "material-sitework-traffic-control-drum-channelizer-36in-orange",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Traffic Control",
+    "csiDivision": "31",
+    "csiSection": "31 68 13",
+    "name": "Drum channelizer, orange, 36 in, with weighted base and reflectors",
+    "description": "Orange channelizer drum, 36 in, with weighted poly base and ASTM Type III reflective sheeting strips.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "traffic control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-sitework-traffic-control-flagger-paddle-stop-slow-18in",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Traffic Control",
+    "csiDivision": "31",
+    "csiSection": "31 68 13",
+    "name": "Flagger paddle, STOP/SLOW, aluminum, 18 in, OSHA-compliant",
+    "description": "OSHA-compliant aluminum STOP/SLOW flagger paddle, 18 in, with 6 ft orange stake for one-way traffic control.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "traffic control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "id": "material-sitework-traffic-control-rumble-strip-rubber-10ft",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Traffic Control",
+    "csiDivision": "31",
+    "csiSection": "31 68 13",
+    "name": "Rumble strip, portable rubber, 10 ft section, yellow, lane-mount",
+    "description": "Portable rubber rumble strip, 10 ft section, yellow, for speed reduction in construction zones, bolt-down.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "traffic control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "material-sitework-traffic-control-speed-limit-sign-25mph-temp",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Traffic Control",
+    "csiDivision": "31",
+    "csiSection": "31 68 13",
+    "name": "Speed limit sign, temporary, 25 MPH, orange, MUTCD-compliant",
+    "description": "MUTCD-compliant temporary orange speed limit sign, 25 MPH, 24 in x 24 in, for construction zone speed control.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "traffic control",
+      "signage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-sitework-traffic-control-lane-marking-stake-24in",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Traffic Control",
+    "csiDivision": "31",
+    "csiSection": "31 68 13",
+    "name": "Temporary lane-marking stake, aluminum, 24 in, reflective orange top",
+    "description": "Aluminum temporary lane-marking stake, 24 in, with fluorescent orange reflective top, for lane delineation.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "traffic control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-sitework-traffic-control-temp-pavement-marking-white-4in",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Traffic Control",
+    "csiDivision": "31",
+    "csiSection": "31 68 13",
+    "name": "Temporary pavement marking tape, white, 4 in x 100 ft, removable",
+    "description": "Removable white temporary pavement marking tape, 4 in x 100 ft, for construction zone lane markings.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "LF"
+    ],
+    "tags": [
+      "sitework",
+      "traffic control",
+      "pavement marking"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-sitework-traffic-control-temp-pavement-marking-yellow-4in",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Traffic Control",
+    "csiDivision": "31",
+    "csiSection": "31 68 13",
+    "name": "Temporary pavement marking tape, yellow, 4 in x 100 ft, removable",
+    "description": "Removable yellow temporary pavement marking tape, 4 in x 100 ft, for construction zone centerline marking.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "LF"
+    ],
+    "tags": [
+      "sitework",
+      "traffic control",
+      "pavement marking"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2850,
+    "id": "material-sitework-traffic-control-arrow-board-trailer-led-small",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Traffic Control",
+    "csiDivision": "31",
+    "csiSection": "31 68 13",
+    "name": "Traffic arrow board, trailer-mounted, LED, small, 3 x 5 matrix",
+    "description": "Solar-powered LED arrow board trailer, 3 x 5 matrix, 25+ mph visibility, for directional traffic control.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "traffic control",
+      "arrow board"
     ]
   },
   {
@@ -20758,6 +26443,2327 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
       "sitework",
       "utility",
       "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 52,
+    "id": "material-specialties-access-panels-ceiling-tile-lay-in-24x24",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Access Panels",
+    "csiDivision": "10",
+    "csiSection": "10 71 13",
+    "name": "Access panel, ceiling tile lay-in, 24 in x 24 in, steel frame",
+    "description": "Ceiling tile lay-in access panel, 24 in x 24 in, steel frame, hinged door, for suspended ceiling systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "access panels"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-specialties-access-panels-drywall-bead-in-12x12",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Access Panels",
+    "csiDivision": "10",
+    "csiSection": "10 71 13",
+    "name": "Access panel, drywall bead-in, 12 in x 12 in, hinged door",
+    "description": "Drywall bead-in access panel, 12 in x 12 in, hinged steel door, key or screwdriver latch, white primed.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "access panels"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 48,
+    "id": "material-specialties-access-panels-drywall-bead-in-24x24",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Access Panels",
+    "csiDivision": "10",
+    "csiSection": "10 71 13",
+    "name": "Access panel, drywall bead-in, 24 in x 24 in, hinged door",
+    "description": "Drywall bead-in access panel, 24 in x 24 in, hinged steel door, screwdriver latch, white primed finish.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "access panels"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 68,
+    "id": "material-specialties-access-panels-fire-rated-12x12-1hr",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Access Panels",
+    "csiDivision": "10",
+    "csiSection": "10 71 13",
+    "name": "Access panel, fire-rated, 12 in x 12 in, 1-hour UL-listed",
+    "description": "Fire-rated access panel, 12 in x 12 in opening, UL-listed 1-hour assembly, automatic self-closing hinge.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "access panels",
+      "fire rated"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 118,
+    "id": "material-specialties-access-panels-fire-rated-24x24-1hr",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Access Panels",
+    "csiDivision": "10",
+    "csiSection": "10 71 13",
+    "name": "Access panel, fire-rated, 24 in x 24 in, 1-hour UL-listed",
+    "description": "Fire-rated access panel, 24 in x 24 in opening, UL-listed 1-hour assembly, self-closing, key latch.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "access panels",
+      "fire rated"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 265,
+    "id": "material-specialties-access-panels-floor-access-door-steel-24x24",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Access Panels",
+    "csiDivision": "10",
+    "csiSection": "10 71 13",
+    "name": "Floor access door, recessed, steel, flush, 24 in x 24 in",
+    "description": "Steel flush floor access door, 24 in x 24 in, recessed for concrete pour-in, hinged with lift ring and key lock.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "access panels",
+      "floor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 485,
+    "id": "material-specialties-access-panels-roof-hatch-galv-30x36",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Access Panels",
+    "csiDivision": "10",
+    "csiSection": "10 71 16",
+    "name": "Roof hatch, galvanized steel, 30 in x 36 in, insulated cover",
+    "description": "Galvanized steel roof hatch, 30 in x 36 in, insulated aluminum cover, compression spring assist, hasp lock.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "access panels",
+      "roof hatch"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 245,
+    "id": "material-specialties-bathroom-accessories-baby-changing-station-hdpe",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Bathroom Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 28 13",
+    "name": "Baby changing station, HDPE, horizontal fold-down, wall-mount",
+    "description": "ADA-compliant fold-down baby changing station, horizontal type, HDPE, 200 lb capacity, with safety belt.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "bathroom accessories",
+      "ADA"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 82,
+    "id": "material-specialties-bathroom-accessories-grab-bar-stainless-36in-ada",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Bathroom Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 28 13",
+    "name": "Grab bar, stainless steel, 36 in, ADA-compliant, concealed mount",
+    "description": "Type 304 stainless satin-finish grab bar, 36 in, 1.5 in OD, ADA Z41.1 rated, concealed flange wall mount.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "bathroom accessories",
+      "ADA",
+      "grab bar"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 95,
+    "id": "material-specialties-bathroom-accessories-grab-bar-stainless-42in-ada",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Bathroom Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 28 13",
+    "name": "Grab bar, stainless steel, 42 in, ADA-compliant, concealed mount",
+    "description": "Type 304 stainless satin-finish grab bar, 42 in, 1.5 in OD, ADA Z41.1 rated, concealed flange wall mount.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "bathroom accessories",
+      "ADA",
+      "grab bar"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 385,
+    "id": "material-specialties-bathroom-accessories-hand-dryer-high-speed-110v",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Bathroom Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 28 13",
+    "name": "Hand dryer, high-speed electric, surface-mount, 110V, 1400 W",
+    "description": "High-speed jet hand dryer, ADA-compliant, 110V, 1400W, surface-mount with vandal-resistant cover, white/chrome.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "bathroom accessories",
+      "hand dryer"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 52,
+    "id": "material-specialties-toilet-accessories-mirror-frameless-18x36",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Bathroom Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 28 13",
+    "name": "Mirror, frameless, 18 in x 36 in, polished edge, wall-mount",
+    "description": "Commercial restroom mirror, frameless, 18 in x 36 in, 1/4 in float glass, polished beveled edge, clips mount.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "bathroom accessories",
+      "mirror"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 115,
+    "id": "material-specialties-bathroom-accessories-mirror-ss-frame-24x36",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Bathroom Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 28 13",
+    "name": "Mirror, stainless steel frame, 24 in x 36 in, surface-mount",
+    "description": "Commercial restroom mirror with stainless steel frame, 24 in x 36 in, 1/4 in float glass, concealed mount.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "bathroom accessories",
+      "mirror"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 24,
+    "id": "material-specialties-toilet-accessories-robe-hook-ss-dual",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Bathroom Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 28 13",
+    "name": "Robe hook, stainless steel, dual-prong, surface-mount, satin",
+    "description": "Dual-prong robe hook, Type 304 stainless satin finish, surface-mount with concealed screws, 10 lb capacity.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "bathroom accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 88,
+    "id": "material-specialties-bathroom-accessories-sanitary-napkin-disposal-ss",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Bathroom Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 28 13",
+    "name": "Sanitary napkin disposal, stainless steel, surface-mount",
+    "description": "Surface-mounted sanitary napkin disposal unit, Type 304 stainless, satin, hinged top, with plastic liner.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "bathroom accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 58,
+    "id": "material-specialties-bathroom-accessories-shower-curtain-rod-ss-60in",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Bathroom Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 28 13",
+    "name": "Shower curtain rod, stainless, 1 in OD, 60 in, surface-mount",
+    "description": "Fixed shower curtain rod, Type 304 stainless, 1 in OD, 60 in length, surface-mount flanges included.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "bathroom accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 72,
+    "id": "material-specialties-bathroom-accessories-soap-dispenser-liquid-ss-40oz",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Bathroom Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 28 13",
+    "name": "Soap dispenser, liquid, stainless steel, surface-mount, 40 oz",
+    "description": "Surface-mounted liquid soap dispenser, 40 oz capacity, Type 304 stainless, satin finish, push-button valve.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "bathroom accessories",
+      "soap dispenser"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 48,
+    "id": "material-specialties-bathroom-accessories-tp-holder-stainless-double-roll",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Bathroom Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 28 13",
+    "name": "Toilet paper holder, stainless steel, double-roll, surface-mount",
+    "description": "Surface-mounted double-roll toilet paper holder, Type 304 stainless, satin finish, concealed screw mount.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "bathroom accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 42,
+    "id": "material-specialties-bathroom-accessories-towel-bar-ss-24in",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Bathroom Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 28 13",
+    "name": "Towel bar, stainless steel, 24 in, concealed surface-mount",
+    "description": "Surface-mounted 24 in towel bar, Type 304 stainless satin, 1 in diameter, concealed wall anchor plates.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "bathroom accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-specialties-bathroom-accessories-towel-ring-ss",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Bathroom Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 28 13",
+    "name": "Towel ring, stainless steel, surface-mount, satin finish",
+    "description": "Stainless steel towel ring, 6 in projection, satin finish, surface-mount with concealed screw plate.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "bathroom accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "material-specialties-corner-guards-aluminum-2x2-48in",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Corner Guards",
+    "csiDivision": "10",
+    "csiSection": "10 26 00",
+    "name": "Corner guard, aluminum, 2 in x 2 in, 48 in, mill finish",
+    "description": "Extruded aluminum corner guard, 2 in x 2 in x 48 in, mill finish, screwed through face flanges.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "corner guards",
+      "wall protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-specialties-corner-guards-rubber-3x3-self-adhesive",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Corner Guards",
+    "csiDivision": "10",
+    "csiSection": "10 26 00",
+    "name": "Corner guard, rubber, 3 in x 3 in, 48 in, self-adhesive back",
+    "description": "Extruded rubber corner guard, 3 in x 3 in x 48 in, self-adhesive, black, for loading docks and warehouses.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "corner guards",
+      "wall protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "id": "material-specialties-corner-guards-stainless-2x2-48in",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Corner Guards",
+    "csiDivision": "10",
+    "csiSection": "10 26 00",
+    "name": "Corner guard, stainless steel, 2 in x 2 in, 48 in, satin finish",
+    "description": "Type 304 stainless steel corner guard, 2 in x 2 in x 48 in, satin finish, surface-mounted with screws.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "corner guards",
+      "wall protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 58,
+    "id": "material-specialties-corner-guards-stainless-4x4-48in",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Corner Guards",
+    "csiDivision": "10",
+    "csiSection": "10 26 00",
+    "name": "Corner guard, stainless steel, 4 in x 4 in, 48 in, high-impact",
+    "description": "Heavy-duty stainless steel corner guard, 4 in x 4 in x 48 in, 16-gauge, satin, for high-traffic corridors.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "corner guards",
+      "wall protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "id": "material-specialties-corner-guards-vinyl-2x2-48in",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Corner Guards",
+    "csiDivision": "10",
+    "csiSection": "10 26 00",
+    "name": "Corner guard, vinyl, 2 in x 2 in, 48 in length, surface-mount",
+    "description": "PVC vinyl corner guard, 2 in x 2 in x 48 in, self-adhesive or screw mount, beige or white standard colors.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "corner guards",
+      "wall protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "material-specialties-corner-guards-vinyl-2x2-96in",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Corner Guards",
+    "csiDivision": "10",
+    "csiSection": "10 26 00",
+    "name": "Corner guard, vinyl, 2 in x 2 in, 96 in length, surface-mount",
+    "description": "PVC vinyl corner guard, 2 in x 2 in x 96 in, surface-mounted, self-adhesive back, beige or custom color.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "corner guards",
+      "wall protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 68,
+    "id": "material-specialties-display-bulletin-board-cork-48x36-aluminum",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Display Boards",
+    "csiDivision": "10",
+    "csiSection": "10 11 00",
+    "name": "Bulletin board, cork, 48 in x 36 in, aluminum frame, wall-mount",
+    "description": "Cork bulletin board, 48 in x 36 in, 1/2 in natural cork, aluminum frame, wall-mount with keyhole hangers.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "display",
+      "bulletin board"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "id": "material-specialties-display-combination-board-36x24",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Display Boards",
+    "csiDivision": "10",
+    "csiSection": "10 11 00",
+    "name": "Combination board, cork/whiteboard, 36 in x 24 in, aluminum frame",
+    "description": "Half cork/half dry-erase combination board, 36 in x 24 in, aluminum frame, wall-mount with tray.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "display"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 112,
+    "id": "material-specialties-display-directory-board-alum-24x36",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Display Boards",
+    "csiDivision": "10",
+    "csiSection": "10 11 13",
+    "name": "Directory board, changeable letter, aluminum, 24 in x 36 in",
+    "description": "Changeable letter directory board, 24 in x 36 in, aluminum frame, 200 individual plastic letters included.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "display",
+      "directory"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 112,
+    "id": "material-specialties-display-changeable-letter-directory-24x36",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Display Boards",
+    "csiDivision": "10",
+    "csiSection": "10 11 13",
+    "name": "Directory sign board, aluminum frame, 24 in x 36 in, interchangeable",
+    "description": "Aluminum-framed changeable letter directory sign board, 24 in x 36 in, with 200 plastic letters included for suite listing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "display",
+      "directory"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 88,
+    "id": "material-specialties-display-whiteboard-magnetic-48x36-aluminum",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Display Boards",
+    "csiDivision": "10",
+    "csiSection": "10 11 00",
+    "name": "Whiteboard, magnetic, 48 in x 36 in, aluminum frame, wall-mount",
+    "description": "Magnetic whiteboard, 48 in x 36 in, porcelain-on-steel surface, aluminum frame, wall-mount keyhole pattern.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "display",
+      "whiteboard"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "id": "material-specialties-fire-blanket-fiberglass-5x5ft",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Fire Protection Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 44 13",
+    "name": "Fire blanket, fiberglass, 5 ft x 5 ft, wall-mount cabinet",
+    "description": "Woven fiberglass fire blanket, 5 ft x 5 ft, in quick-release wall-mount cabinet, OSHA-compliant.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "fire blanket",
+      "safety"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 145,
+    "id": "material-specialties-fire-extinguisher-cabinet-recessed-10lb",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Fire Protection Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 44 16",
+    "name": "Fire extinguisher cabinet, fully recessed, steel door, 10 lb cap",
+    "description": "Fully recessed fire extinguisher cabinet, 10 lb capacity, steel door with break glass panel, white enamel.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "fire extinguisher cabinet"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 115,
+    "id": "material-specialties-fire-extinguisher-cabinet-semi-recessed-steel",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Fire Protection Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 44 16",
+    "name": "Fire extinguisher cabinet, semi-recessed, steel door, 5 lb cap",
+    "description": "Semi-recessed fire extinguisher cabinet, steel body, steel door with window, primer finish, 5 lb capacity.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "fire extinguisher cabinet"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 98,
+    "id": "material-specialties-fire-extinguisher-cabinet-surface-mount-steel",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Fire Protection Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 44 16",
+    "name": "Fire extinguisher cabinet, surface-mount, steel door, 10 lb cap",
+    "description": "Surface-mounted fire extinguisher cabinet, steel body and door with viewing window, baked enamel, 10 lb cap.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "fire extinguisher cabinet"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-specialties-fire-extinguisher-hanger-bracket",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Fire Protection Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 44 16",
+    "name": "Fire extinguisher hanger bracket, steel, adjustable, wall-mount",
+    "description": "Adjustable steel hanger bracket for portable fire extinguishers, 2.5-20 lb capacity, wall-mount, zinc plate.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "fire extinguisher",
+      "safety"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "id": "material-specialties-fire-extinguisher-10lb-abc",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Fire Protection Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 44 13",
+    "name": "Fire extinguisher, 10 lb ABC dry chemical, wall-mount bracket",
+    "description": "Portable 10 lb ABC dry chemical fire extinguisher, UL-listed, with heavy-duty wall-mount bracket.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "fire extinguisher",
+      "safety"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-specialties-fire-extinguisher-2-5lb-abc",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Fire Protection Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 44 13",
+    "name": "Fire extinguisher, 2.5 lb ABC dry chemical, wall-mount",
+    "description": "Portable 2.5 lb ABC dry chemical fire extinguisher, UL-listed, with wall-mount bracket, pressure gauge.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "fire extinguisher",
+      "safety"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 42,
+    "id": "material-specialties-fire-extinguisher-5lb-abc",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Fire Protection Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 44 13",
+    "name": "Fire extinguisher, 5 lb ABC dry chemical, wall-mount bracket",
+    "description": "Portable 5 lb ABC dry chemical fire extinguisher, UL-listed, with wall-mount bracket and pressure gauge.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "fire extinguisher",
+      "safety"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 88,
+    "id": "material-specialties-fire-extinguisher-co2-5lb",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Fire Protection Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 44 13",
+    "name": "Fire extinguisher, CO2, 5 lb, chrome horn, wall-mount bracket",
+    "description": "Portable 5 lb CO2 fire extinguisher, UL-listed, chrome discharge horn, with wall-mount bracket.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "fire extinguisher",
+      "safety"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 42,
+    "id": "material-specialties-floor-mats-vinyl-antifatigue-24x36",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Floor Mats",
+    "csiDivision": "10",
+    "csiSection": "10 14 00",
+    "name": "Anti-fatigue mat, vinyl, 24 in x 36 in, ergonomic, black",
+    "description": "Commercial anti-fatigue vinyl mat, 24 in x 36 in, 5/8 in thick, beveled edges, black, ergonomic standing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "floor mats"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 48,
+    "id": "material-specialties-floor-mats-boot-scraper-cast-iron",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Floor Mats",
+    "csiDivision": "10",
+    "csiSection": "10 14 00",
+    "name": "Boot scraper, cast iron, surface-mount, 12 in x 8 in tray",
+    "description": "Heavy-duty cast-iron boot scraper, 12 in x 8 in drip tray, surface-mount with anchor bolts, for entries.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "floor mats"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "id": "material-specialties-floor-mats-drain-pan-stainless-24x24",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Floor Mats",
+    "csiDivision": "10",
+    "csiSection": "10 14 00",
+    "name": "Drain pan, stainless steel, 24 in x 24 in x 2 in, with drain",
+    "description": "Stainless steel drain pan, 24 in x 24 in x 2 in, with 1 in drain outlet, for water heater or HVAC condensate.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "floor mats",
+      "drain pan"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 285,
+    "id": "material-specialties-floor-mats-recessed-aluminum-frame-36x72",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Floor Mats",
+    "csiDivision": "10",
+    "csiSection": "10 14 00",
+    "name": "Entrance mat, recessed aluminum frame, 36 in x 72 in, with mat",
+    "description": "Recessed entrance mat system, aluminum frame, 36 in x 72 in x 5/8 in recess, with nylon insert mat.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "floor mats",
+      "recessed"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "id": "material-specialties-floor-mats-rubber-nylon-36x60",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Floor Mats",
+    "csiDivision": "10",
+    "csiSection": "10 14 00",
+    "name": "Entrance mat, rubber-backed nylon, 36 in x 60 in, charcoal",
+    "description": "Commercial rubber-backed nylon entrance mat, 36 in x 60 in, loop pile, charcoal, for heavy-traffic entries.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "floor mats"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 145,
+    "id": "material-specialties-floor-mats-matwell-frame-aluminum-36x60",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Floor Mats",
+    "csiDivision": "10",
+    "csiSection": "10 14 00",
+    "name": "Entrance matwell frame, aluminum, 36 in x 60 in, cut-in type",
+    "description": "Extruded aluminum matwell frame, 36 in x 60 in, for recessed entrance mat installation, angle-set type.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "floor mats",
+      "recessed"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-specialties-floor-mats-scraper-mat-brush-top-36x60",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Floor Mats",
+    "csiDivision": "10",
+    "csiSection": "10 14 00",
+    "name": "Scraper mat, brush-top, rubber-backed, 36 in x 60 in, black",
+    "description": "Commercial rubber-backed brush-top entrance scraper mat, 36 in x 60 in, for heavy-duty dirt removal at building entries.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "floor mats",
+      "entrance mat"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "id": "material-specialties-lockers-base-3-unit-72in-steel",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Lockers",
+    "csiDivision": "10",
+    "csiSection": "10 51 13",
+    "name": "Locker base, 3-unit wide, 72 in, steel, leveling feet",
+    "description": "Steel locker base, 3-unit module, 72 in wide, with leveling feet, for floor-mounted locker installation.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "lockers"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 48,
+    "id": "material-specialties-lockers-sloped-top-3-unit-12in",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Lockers",
+    "csiDivision": "10",
+    "csiSection": "10 51 13",
+    "name": "Locker sloped top, 3-unit wide, 12 in depth, steel gray",
+    "description": "Steel sloped-top cap for 3-unit locker bank, 12 in deep, gray, prevents shelf accumulation of items.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "lockers"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 345,
+    "id": "material-specialties-lockers-athletic-vented-24x24x72",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Lockers",
+    "csiDivision": "10",
+    "csiSection": "10 51 13",
+    "name": "Locker, athletic vented, steel, 24 in x 24 in x 72 in, gray",
+    "description": "Large athletic locker, vented steel, 24 in wide x 24 in deep x 72 in tall, gray powder coat, coat hooks.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "lockers"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 265,
+    "id": "material-specialties-lockers-box-4-high-steel-12x15x72",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Lockers",
+    "csiDivision": "10",
+    "csiSection": "10 51 13",
+    "name": "Locker, box-tier 4-high, steel, 12 in x 15 in x 72 in, gray",
+    "description": "Four-high box locker bank, steel, 12 in wide x 15 in deep x 72 in tall total, gray, four hasp doors.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "lockers"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 210,
+    "id": "material-specialties-lockers-double-tier-steel-12x12x72-gray",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Lockers",
+    "csiDivision": "10",
+    "csiSection": "10 51 13",
+    "name": "Locker, double-tier steel, 12 in x 12 in x 72 in, gray, 2-high",
+    "description": "Double-tier (2-high) steel locker, 12 in wide x 12 in deep x 72 in total, gray, padlock hasp, ventilated.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "lockers"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 245,
+    "id": "material-specialties-lockers-double-tier-steel-12x18x72-gray",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Lockers",
+    "csiDivision": "10",
+    "csiSection": "10 51 13",
+    "name": "Locker, double-tier steel, 12 in x 18 in x 72 in, gray, set of 2",
+    "description": "Double-tier (2-high) steel locker bank, 12 in x 18 in x 72 in total, gray powder coat, two doors per unit.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "lockers"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 155,
+    "id": "material-specialties-lockers-single-tier-steel-12x12x72-gray",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Lockers",
+    "csiDivision": "10",
+    "csiSection": "10 51 13",
+    "name": "Locker, single-tier steel, 12 in x 12 in x 72 in, gray",
+    "description": "Single-tier steel locker, 12 in wide x 12 in deep x 72 in tall, gray powder coat, padlock hasp, ventilated.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "lockers"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "id": "material-specialties-lockers-single-tier-steel-12x18x72-gray",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Lockers",
+    "csiDivision": "10",
+    "csiSection": "10 51 13",
+    "name": "Locker, single-tier steel, 12 in x 18 in x 72 in, gray",
+    "description": "Single-tier steel locker, 12 in wide x 18 in deep x 72 in tall, gray, with padlock hasp and number plate.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "lockers"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 24,
+    "id": "material-specialties-louvers-door-aluminum-8x12",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Louvers",
+    "csiDivision": "10",
+    "csiSection": "10 82 00",
+    "name": "Door louver, aluminum, 8 in x 12 in, door-mount, fixed-blade",
+    "description": "Aluminum fixed-blade door louver, 8 in x 12 in, mill finish, fixed louver blades, screw-on front frame.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "louvers"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "material-specialties-louvers-stair-soffit-8x16-aluminum",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Louvers",
+    "csiDivision": "10",
+    "csiSection": "10 82 00",
+    "name": "Foundation wall louver, aluminum, 8 in x 16 in, fixed-blade, mill",
+    "description": "Aluminum fixed-blade foundation wall louver, 8 in x 16 in, 45° blade, mill finish, with insect screen.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "louvers"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 38,
+    "id": "material-specialties-louvers-aluminum-fixed-12x12-mill",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Louvers",
+    "csiDivision": "10",
+    "csiSection": "10 82 00",
+    "name": "Louver, aluminum fixed-blade, 12 in x 12 in, mill finish, wall",
+    "description": "Extruded aluminum fixed-blade wall louver, 12 in x 12 in, 45° blade, mill finish, with bird screen and frame.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "louvers",
+      "ventilation"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 72,
+    "id": "material-specialties-louvers-aluminum-fixed-24x24-mill",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Louvers",
+    "csiDivision": "10",
+    "csiSection": "10 82 00",
+    "name": "Louver, aluminum fixed-blade, 24 in x 24 in, mill finish, wall",
+    "description": "Extruded aluminum fixed-blade wall louver, 24 in x 24 in, 45° blade, mill finish, with bird screen and frame.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "louvers",
+      "ventilation"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 145,
+    "id": "material-specialties-louvers-aluminum-operable-24x24",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Louvers",
+    "csiDivision": "10",
+    "csiSection": "10 82 00",
+    "name": "Louver, aluminum operable, 24 in x 24 in, with manual actuator",
+    "description": "Operable aluminum louver, 24 in x 24 in, adjustable blades with manual actuator rod, bronze anodized frame.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "louvers",
+      "ventilation"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 168,
+    "id": "material-specialties-louvers-decorative-aluminum-24x48-painted",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Louvers",
+    "csiDivision": "10",
+    "csiSection": "10 82 00",
+    "name": "Louver, decorative aluminum, 24 in x 48 in, painted, wall-mount",
+    "description": "Decorative aluminum louver, 24 in x 48 in, fixed blade, factory painted (dark bronze standard), with frame.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "louvers"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-specialties-louvers-transfer-grille-aluminum-10x10",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Louvers",
+    "csiDivision": "10",
+    "csiSection": "10 82 00",
+    "name": "Transfer air grille, aluminum, 10 in x 10 in, door-mount, fixed",
+    "description": "Aluminum door transfer grille, 10 in x 10 in, fixed louver blades, screw-mount front/back frame, white.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "louvers"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 68,
+    "id": "material-specialties-postal-key-box-wall-mount-master-keyed",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Postal",
+    "csiDivision": "10",
+    "csiSection": "10 55 00",
+    "name": "Key box, steel, wall-mount, master-keyed, 30-key capacity",
+    "description": "Steel key storage cabinet, wall-mount, 30-key capacity, master-keyed cylinder lock, powder coat, tags included.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "postal",
+      "key storage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-specialties-postal-mail-slot-aluminum-10x3-surface",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Postal",
+    "csiDivision": "10",
+    "csiSection": "10 55 00",
+    "name": "Mail slot, aluminum, 10 in x 3 in, surface-mount, with flap",
+    "description": "Extruded aluminum door mail slot, 10 in x 3 in opening, interior flip guard, mill finish, surface-mount.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "postal"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 145,
+    "id": "material-specialties-postal-multitenant-mailbox-4unit-usps",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Postal",
+    "csiDivision": "10",
+    "csiSection": "10 55 00",
+    "name": "Multi-tenant mailbox, aluminum, 4-unit, USPS-approved, horizontal",
+    "description": "Horizontal 4-unit aluminum USPS-approved mail center, with outgoing mail slot, 4 keyed doors, surface-mount.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "postal"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 225,
+    "id": "material-specialties-postal-package-drop-box-12x16x24",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Postal",
+    "csiDivision": "10",
+    "csiSection": "10 55 00",
+    "name": "Package drop box, powder coat, 12 in x 16 in x 24 in, surface",
+    "description": "Steel package drop box, 12 in x 16 in x 24 in, powder coat black, anti-retrieval slot, pad-lock hasp.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "postal"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "id": "material-specialties-postal-parcel-locker-powder-coat-15x18x15",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Postal",
+    "csiDivision": "10",
+    "csiSection": "10 55 00",
+    "name": "Parcel locker, single-unit, powder coat, 15 in x 18 in x 15 in",
+    "description": "Single-unit parcel delivery locker, powder-coated steel, 15 in x 18 in x 15 in, cylinder lock, black.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "postal",
+      "locker"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-specialties-shelving-closet-rod-chrome-72in",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Shelving",
+    "csiDivision": "10",
+    "csiSection": "10 57 00",
+    "name": "Closet rod, chrome-plated steel, 72 in, 1-1/4 in diameter",
+    "description": "Chrome-plated steel closet rod, 72 in length, 1-1/4 in diameter, with bracket flanges, 35 lb capacity.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "shelving",
+      "closet"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 148,
+    "id": "material-specialties-shelving-cubby-laminate-12x48x72-6comp",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Shelving",
+    "csiDivision": "10",
+    "csiSection": "10 57 00",
+    "name": "Cubby unit, laminate, 12 in x 48 in x 72 in, 6-compartment",
+    "description": "White laminate cubby storage unit, 12 in deep x 48 in wide x 72 in tall, 6 open compartments, cam assembly.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "shelving",
+      "cubby"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 68,
+    "id": "material-specialties-shelving-laminate-unit-12x36x72-white",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Shelving",
+    "csiDivision": "10",
+    "csiSection": "10 57 00",
+    "name": "Laminate shelving unit, 12 in x 36 in x 72 in, white, 5-shelf",
+    "description": "White laminate shelving unit, 12 in deep x 36 in wide x 72 in tall, 5 adjustable shelves, cam-lock assembly.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "shelving"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 118,
+    "id": "material-specialties-shelving-steel-industrial-18x48x72-5tier",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Shelving",
+    "csiDivision": "10",
+    "csiSection": "10 57 00",
+    "name": "Steel industrial shelving, 18 in x 48 in x 72 in, gray, 5-tier",
+    "description": "Heavy-duty boltless steel industrial shelving unit, 18 in x 48 in x 72 in, gray, 1,500 lb per shelf.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "shelving",
+      "steel shelving"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-specialties-shelving-steel-shelf-heavy-duty-18x48",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Shelving",
+    "csiDivision": "10",
+    "csiSection": "10 57 00",
+    "name": "Steel shelf, heavy-duty, 18 in x 48 in, 750 lb capacity each",
+    "description": "Individual heavy-duty steel shelf, 18 in deep x 48 in wide, 750 lb capacity, for industrial shelving uprights.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "shelving",
+      "steel shelving"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 16,
+    "id": "material-specialties-shelving-wall-bracket-steel-12in-pair",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Shelving",
+    "csiDivision": "10",
+    "csiSection": "10 57 00",
+    "name": "Wall-mount shelf bracket, steel, 12 in, heavy-duty, pair",
+    "description": "Heavy-duty steel shelf wall bracket, 12 in projection, 200 lb pair capacity, powder coat, screw-in.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "shelving"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "material-specialties-shelving-wire-shelf-18x48-chrome",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Shelving",
+    "csiDivision": "10",
+    "csiSection": "10 57 00",
+    "name": "Wire shelf, 18 in x 48 in, chrome-plated, 600 lb capacity",
+    "description": "Individual chrome-plated wire shelf, 18 in deep x 48 in wide, 600 lb capacity, for shelving post systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "shelving",
+      "wire shelving"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 88,
+    "id": "material-specialties-shelving-wire-unit-18x48x72-chrome-5tier",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Shelving",
+    "csiDivision": "10",
+    "csiSection": "10 57 00",
+    "name": "Wire shelving unit, 18 in x 48 in x 72 in, chrome, 5-tier",
+    "description": "Chrome-plated wire shelving unit, 5-tier, 18 in deep x 48 in wide x 72 in tall, adjustable shelf spacing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "shelving",
+      "wire shelving"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 38,
+    "id": "material-specialties-signage-ada-mens-restroom-tactile-6x9",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Signage",
+    "csiDivision": "10",
+    "csiSection": "10 14 23",
+    "name": "ADA room sign, men's restroom, tactile Braille, 6 in x 9 in",
+    "description": "ADA-compliant men's restroom sign, 6 in x 9 in, Grade 2 Braille, raised tactile characters, photoluminescent.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "signage",
+      "ADA"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 42,
+    "id": "material-specialties-signage-ada-unisex-restroom-tactile-6x9",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Signage",
+    "csiDivision": "10",
+    "csiSection": "10 14 23",
+    "name": "ADA room sign, unisex restroom, tactile Braille, 6 in x 9 in",
+    "description": "ADA-compliant unisex/gender-neutral restroom sign, tactile Braille, 6 in x 9 in, aluminum, anodized.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "signage",
+      "ADA"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 38,
+    "id": "material-specialties-signage-ada-womens-restroom-tactile-6x9",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Signage",
+    "csiDivision": "10",
+    "csiSection": "10 14 23",
+    "name": "ADA room sign, women's restroom, tactile Braille, 6 in x 9 in",
+    "description": "ADA-compliant women's restroom sign, 6 in x 9 in, Grade 2 Braille, raised tactile characters, photoluminescent.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "signage",
+      "ADA"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 38,
+    "id": "material-specialties-signage-directional-arrow-suspended-ceiling",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Signage",
+    "csiDivision": "10",
+    "csiSection": "10 14 00",
+    "name": "Directional sign, ceiling-suspended, arrow, 12 in x 4 in aluminum",
+    "description": "Double-sided ceiling-suspended directional sign with arrow, 12 in x 4 in aluminum, anodized, with cable kit.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "signage",
+      "directional"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "id": "material-specialties-signage-door-office-suite-ada-5x9",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Signage",
+    "csiDivision": "10",
+    "csiSection": "10 14 23",
+    "name": "Door sign, office/suite number, ADA-compliant, 5 in x 9 in",
+    "description": "ADA-compliant office/suite identification sign, 5 in x 9 in, raised tactile letters, Grade 2 Braille.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "signage",
+      "ADA"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-specialties-signage-emergency-egress-map-framed",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Signage",
+    "csiDivision": "10",
+    "csiSection": "10 14 00",
+    "name": "Emergency egress map, framed, 8.5 in x 11 in, IBC-compliant",
+    "description": "IBC-compliant emergency egress floor plan, 8.5 in x 11 in, aluminum frame, with \"YOU ARE HERE\" marking.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "signage",
+      "life safety"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 48,
+    "id": "material-specialties-signage-exit-sign-led-ac-dc-dual-voltage",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Signage",
+    "csiDivision": "10",
+    "csiSection": "10 14 00",
+    "name": "Exit sign, LED, AC/DC dual-voltage, green, surface or ceiling",
+    "description": "LED exit sign, AC/DC dual-voltage, green lettering on white, surface or ceiling mount, 90-min battery backup.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "signage",
+      "exit sign",
+      "life safety"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 72,
+    "id": "material-specialties-signage-exit-sign-led-combo-emergency-light",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Signage",
+    "csiDivision": "10",
+    "csiSection": "10 14 00",
+    "name": "Exit sign, LED, with dual-head emergency lights, combo unit",
+    "description": "Combination LED exit sign with dual adjustable emergency light heads, 90-min battery backup, wall or ceiling.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "signage",
+      "exit sign",
+      "emergency lighting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "id": "material-specialties-signage-no-smoking-osha-10x14",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Signage",
+    "csiDivision": "10",
+    "csiSection": "10 14 00",
+    "name": "No smoking sign, OSHA-compliant, 10 in x 14 in, aluminum",
+    "description": "OSHA-compliant no smoking sign, 10 in x 14 in, aluminum, ANSI Z535.2, reflective finish.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "signage",
+      "safety"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-specialties-signage-parking-handicap-aluminum-12x18",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Signage",
+    "csiDivision": "10",
+    "csiSection": "10 14 00",
+    "name": "Parking sign, handicap accessible, aluminum, 12 in x 18 in",
+    "description": "Reflective aluminum handicap accessible parking sign, 12 in x 18 in, DOT R7-8, with post hardware.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "signage",
+      "parking",
+      "ADA"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-specialties-signage-safety-electrical-hazard-aluminum",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Signage",
+    "csiDivision": "10",
+    "csiSection": "10 14 00",
+    "name": "Safety sign, electrical hazard warning, aluminum, 7 in x 10 in",
+    "description": "ANSI Z535.2 electrical hazard warning sign, aluminum, 7 in x 10 in, self-adhesive or screw mount.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "signage",
+      "safety"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "id": "material-specialties-toilet-partitions-door-plastic-laminate-inswing-24in",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Toilet Partitions",
+    "csiDivision": "10",
+    "csiSection": "10 21 13",
+    "name": "Toilet partition door, plastic laminate, inswing, 24 in width",
+    "description": "Plastic laminate toilet partition door, 24 in x 58 in, inswing with coat hook, occupancy indicator, strike.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "toilet partitions"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 235,
+    "id": "material-specialties-toilet-partitions-door-solid-plastic-ada-36in",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Toilet Partitions",
+    "csiDivision": "10",
+    "csiSection": "10 21 13",
+    "name": "Toilet partition door, solid plastic, ADA outswing, 36 in width",
+    "description": "Solid HDPE ADA-compliant partition door, 36 in x 58 in outswing, with full privacy hardware and slide bolt.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "toilet partitions",
+      "ADA"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "id": "material-specialties-toilet-partitions-hardware-kit-chrome",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Toilet Partitions",
+    "csiDivision": "10",
+    "csiSection": "10 21 13",
+    "name": "Toilet partition hardware kit, chrome, standard stall set",
+    "description": "Complete hardware kit for one toilet partition stall: hinges, door strike, coat hook, slide bolt, chrome finish.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "toilet partitions",
+      "hardware"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 25,
+    "id": "material-specialties-toilet-partitions-panel-plastic-laminate-55x82",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Toilet Partitions",
+    "csiDivision": "10",
+    "csiSection": "10 21 13",
+    "name": "Toilet partition panel, plastic laminate, 55 in x 82 in, standard",
+    "description": "Plastic laminate toilet partition division panel, 55 in wide x 82 in tall, for floor-to-ceiling stall dividers.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "toilet partitions",
+      "restroom"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 145,
+    "id": "material-specialties-toilet-partitions-pilaster-plastic-laminate-82in",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Toilet Partitions",
+    "csiDivision": "10",
+    "csiSection": "10 21 13",
+    "name": "Toilet partition pilaster, plastic laminate, 82 in tall",
+    "description": "Plastic laminate pilaster, 82 in tall with adjustable shoe, for toilet partition systems, with hardware.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "toilet partitions"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 680,
+    "id": "material-specialties-toilet-partitions-ada-solid-plastic-end-of-row",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Toilet Partitions",
+    "csiDivision": "10",
+    "csiSection": "10 21 13",
+    "name": "Toilet partition, ADA-compliant, solid plastic, end-of-row stall",
+    "description": "ADA-compliant solid plastic toilet partition, 60 in minimum width, with grab bar blocking and door hardware.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "toilet partitions",
+      "ADA",
+      "restroom"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 420,
+    "id": "material-specialties-toilet-partitions-plastic-laminate-floor-to-ceiling",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Toilet Partitions",
+    "csiDivision": "10",
+    "csiSection": "10 21 13",
+    "name": "Toilet partition, plastic laminate, floor-to-ceiling, single",
+    "description": "Plastic laminate toilet partition, floor-to-ceiling mount, single stall, standard hardware included.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "toilet partitions",
+      "restroom"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 560,
+    "id": "material-specialties-toilet-partitions-solid-plastic-overhead-braced",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Toilet Partitions",
+    "csiDivision": "10",
+    "csiSection": "10 21 13",
+    "name": "Toilet partition, solid plastic, overhead-braced, single stall",
+    "description": "High-density solid polyethylene partition, overhead-braced and floor-mounted, graffiti-resistant surface.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "toilet partitions",
+      "restroom"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 780,
+    "id": "material-specialties-toilet-partitions-stainless-steel-overhead-braced",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Toilet Partitions",
+    "csiDivision": "10",
+    "csiSection": "10 21 13",
+    "name": "Toilet partition, stainless steel, overhead-braced, single stall",
+    "description": "Type 304 stainless steel toilet partition with overhead brace and floor-anchored pilasters, satin finish.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "toilet partitions",
+      "restroom"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "id": "material-specialties-wall-protection-chair-rail-wood-composite-96in",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Wall Protection",
+    "csiDivision": "10",
+    "csiSection": "10 26 00",
+    "name": "Chair rail, wood composite, 2.5 in x 96 in, primed, paintable",
+    "description": "Primed wood-composite chair rail, 2.5 in tall x 96 in length, MDF core, paintable, nail or adhesive mount.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "wall protection",
+      "chair rail"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "id": "material-specialties-wall-protection-corner-bead-metal-105deg",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Wall Protection",
+    "csiDivision": "10",
+    "csiSection": "10 26 00",
+    "name": "Corner bead, metal, 105-degree, 8 ft, drywall corner protection",
+    "description": "Metal corner bead, 105-degree, 8 ft length, galvanized steel, for drywall corners, nail or clinch-on type.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "wall protection",
+      "corner bead"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-specialties-wall-protection-crash-rail-pvc-96in",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Wall Protection",
+    "csiDivision": "10",
+    "csiSection": "10 26 00",
+    "name": "Crash rail, PVC, 4 in wide, 96 in length, wall-mounted",
+    "description": "PVC wall crash rail, 4 in wide x 96 in length, hollow-back with continuous mounting channel, beige standard.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "wall protection",
+      "crash rail"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-specialties-wall-protection-crash-rail-stainless-96in",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Wall Protection",
+    "csiDivision": "10",
+    "csiSection": "10 26 00",
+    "name": "Crash rail, stainless steel, 4 in wide, 96 in, wall-mounted",
+    "description": "Stainless steel Type 304 crash/bumper rail, 4 in wide x 96 in, satin finish, continuous mounting bracket.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "wall protection",
+      "crash rail"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 42,
+    "id": "material-specialties-wall-protection-frp-wainscot-panel-4x8",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Wall Protection",
+    "csiDivision": "10",
+    "csiSection": "10 26 00",
+    "name": "FRP wall panel, 4 ft x 8 ft, smooth, 0.09 in, white",
+    "description": "Fiberglass reinforced plastic (FRP) wainscot panel, 4 ft x 8 ft x 0.09 in, smooth white, Type I adhesive.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "specialties",
+      "wall protection",
+      "FRP"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "id": "material-specialties-wall-protection-handrail-bumper-guard-vinyl",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Wall Protection",
+    "csiDivision": "10",
+    "csiSection": "10 26 00",
+    "name": "Handrail bumper guard, vinyl, 3 in wide, 96 in length, wall-mount",
+    "description": "Extruded vinyl handrail bumper guard, 3 in wide x 96 in, snap-on cover over continuous aluminum base channel.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "wall protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 68,
+    "id": "material-specialties-wall-protection-polycarbonate-panel-3x4",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Wall Protection",
+    "csiDivision": "10",
+    "csiSection": "10 26 00",
+    "name": "Wall panel protector, polycarbonate, 3 ft x 4 ft x 0.25 in clear",
+    "description": "Clear polycarbonate impact-resistant wall panel, 3 ft x 4 ft x 0.25 in, for column and wall protection.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "specialties",
+      "wall protection"
     ]
   },
   {

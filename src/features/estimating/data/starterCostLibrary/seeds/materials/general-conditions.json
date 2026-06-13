@@ -1,0 +1,2211 @@
+[
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 38,
+    "id": "material-gen-cond-temp-fencing-chainlink-panel-6x10",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Fencing",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Temporary fence panel, galvanized chain link, 6 ft x 10 ft",
+    "description": "Galvanized chain link temporary fence panel, 6 ft tall x 10 ft wide, with pipe frame for jobsite perimeter.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary fencing",
+      "site safety"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "id": "material-gen-cond-temp-fencing-t-post-5ft-galvanized",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Fencing",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Temporary fence T-post, galvanized, 5 ft, driven, per each",
+    "description": "Galvanized steel T-post, 5 ft, for temporary chain link fence support, step-in anchor base, 1.25 lb/ft.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary fencing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 145,
+    "id": "material-gen-cond-temp-fencing-gate-chain-link-10ft",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Fencing",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Temporary fence gate, chain link, 10 ft opening, with latch",
+    "description": "Temporary chain link swing gate, 10 ft opening, galvanized frame, with chain and padlock hasp latch.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary fencing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-gen-cond-temp-fencing-tension-wire-100ft-roll",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Fencing",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Temporary fence tension wire, galvanized, 12.5 gauge, 100 ft roll",
+    "description": "Galvanized high-tensile tension wire, 12.5 gauge, 100 ft roll, for chain link fence bottom and top tension.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "LF"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary fencing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-gen-cond-temp-fencing-post-cup-rubber-base",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Fencing",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Temporary fence post base cup, rubber, weighted, each",
+    "description": "Rubber weighted post base cup for temporary fence panels, compatible with standard 1-3/8 in OD posts.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary fencing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "id": "material-gen-cond-temp-fencing-privacy-screen-6x50-green",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Fencing",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Privacy screen, chain link, green mesh fabric, 6 ft x 50 ft roll",
+    "description": "Knitted polyethylene privacy screen, 6 ft x 50 ft, green, for chain link temporary fencing, UV-resistant.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary fencing",
+      "privacy"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-gen-cond-temp-fencing-barricade-post-orange-48in",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Fencing",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Barricade post, orange plastic, 48 in, delineator type, each",
+    "description": "Orange plastic delineator barricade post, 48 in, flexible, with weighted rubber base for temporary protection.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary fencing",
+      "barricade"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2,
+    "id": "material-gen-cond-temp-fencing-clamp-chainlink",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Fencing",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Temporary fence clamp, chain link panel, galvanized, bolt-type",
+    "description": "Galvanized bolt-type fence panel clamp for joining temporary chain link panels, 1-3/8 in OD fitting.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary fencing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 42,
+    "id": "material-gen-cond-erosion-silt-sock-8in-25ft-compost",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Erosion Control",
+    "csiDivision": "01",
+    "csiSection": "01 57 19",
+    "name": "Silt sock, 8 in diameter, compost-filled, 25 ft length",
+    "description": "Biodegradable compost silt sock, 8 in diameter x 25 ft, woven mesh casing for perimeter erosion control.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "erosion control",
+      "stormwater"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "id": "material-gen-cond-erosion-construction-entrance-stone-cy",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Erosion Control",
+    "csiDivision": "01",
+    "csiSection": "01 57 19",
+    "name": "Construction entrance stone pad, 3 in clean crushed, per CY",
+    "description": "Clean crushed stone, 3 in aggregate, for construction entrance stabilization pad per SWPPP requirements.",
+    "unit": "CY",
+    "commonUnits": [
+      "CY",
+      "TON"
+    ],
+    "tags": [
+      "general conditions",
+      "erosion control",
+      "stormwater"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-gen-cond-erosion-inlet-filter-bag-geotextile",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Erosion Control",
+    "csiDivision": "01",
+    "csiSection": "01 57 19",
+    "name": "Inlet protection filter bag, geotextile, standard curb inlet",
+    "description": "Geotextile curb inlet filter bag, standard size, for sediment capture at storm drain inlets, reusable frame.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "erosion control",
+      "stormwater"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "id": "material-gen-cond-erosion-silt-fence-36in-100ft-roll",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Erosion Control",
+    "csiDivision": "01",
+    "csiSection": "01 57 19",
+    "name": "Silt fence, 36 in geotextile, with posts, 100 ft roll",
+    "description": "Woven geotextile silt fence, 36 in tall, with pre-attached wooden stakes every 6 ft, 100 ft roll.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "LF"
+    ],
+    "tags": [
+      "general conditions",
+      "erosion control",
+      "stormwater"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 38,
+    "id": "material-gen-cond-erosion-control-blanket-straw-coconut-112ft",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Erosion Control",
+    "csiDivision": "01",
+    "csiSection": "01 57 19",
+    "name": "Erosion control blanket, straw/coconut fiber, 8 ft x 112 ft roll",
+    "description": "Biodegradable straw/coconut fiber erosion control blanket, 8 ft x 112 ft, for slopes and drainage channels.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "SF"
+    ],
+    "tags": [
+      "general conditions",
+      "erosion control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 52,
+    "id": "material-gen-cond-erosion-wattle-check-dam-straw-25ft",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Erosion Control",
+    "csiDivision": "01",
+    "csiSection": "01 57 19",
+    "name": "Wattle check dam, straw compost, 9 in diameter, 25 ft length",
+    "description": "Biodegradable straw-filled wattle check dam, 9 in x 25 ft, for channel and swale erosion control.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "erosion control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "id": "material-gen-cond-erosion-turbidity-curtain-4x50-floating",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Erosion Control",
+    "csiDivision": "01",
+    "csiSection": "01 57 19",
+    "name": "Turbidity curtain, 4 ft deep x 50 ft, floating, with anchor",
+    "description": "Floating turbidity silt curtain, Type 1, 4 ft depth x 50 ft length, PVC float boom with anchor weights.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "erosion control",
+      "stormwater"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-gen-cond-safety-sign-hard-hat-required-10x14",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Safety Signage",
+    "csiDivision": "01",
+    "csiSection": "01 55 00",
+    "name": "Safety sign, hard hat required, aluminum, 10 in x 14 in",
+    "description": "ANSI Z535.2 hard hat required safety sign, 10 in x 14 in aluminum, four-color, pre-drilled corners.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "safety signage",
+      "OSHA"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 10,
+    "id": "material-gen-cond-safety-sign-no-trespassing-10x14",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Safety Signage",
+    "csiDivision": "01",
+    "csiSection": "01 55 00",
+    "name": "Safety sign, no trespassing authorized personnel, 10 in x 14 in",
+    "description": "No trespassing / authorized personnel only sign, 10 in x 14 in aluminum, reflective finish, pre-drilled.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "safety signage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-gen-cond-safety-sign-confined-space-10x14",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Safety Signage",
+    "csiDivision": "01",
+    "csiSection": "01 55 00",
+    "name": "Safety sign, confined space entry, OSHA, 10 in x 14 in aluminum",
+    "description": "OSHA-compliant confined space entry sign, 10 in x 14 in aluminum, ANSI Z535.2, four-color print.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "safety signage",
+      "OSHA"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-gen-cond-safety-sign-fall-hazard-10x14",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Safety Signage",
+    "csiDivision": "01",
+    "csiSection": "01 55 00",
+    "name": "Safety sign, fall hazard, do not enter, aluminum, 10 in x 14 in",
+    "description": "Fall hazard / do not enter warning sign, 10 in x 14 in aluminum, ANSI Z535 color coding, pre-drilled.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "safety signage",
+      "OSHA"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "id": "material-gen-cond-safety-sign-wet-floor-folding-aframe",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Safety Signage",
+    "csiDivision": "01",
+    "csiSection": "01 55 00",
+    "name": "Wet floor sign, folding A-frame, plastic, bilingual, 28 in tall",
+    "description": "Bilingual wet floor / piso mojado folding A-frame sign, 28 in tall, yellow plastic, with non-slip feet.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "safety signage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-gen-cond-safety-sign-forklift-traffic-10x14",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Safety Signage",
+    "csiDivision": "01",
+    "csiSection": "01 55 00",
+    "name": "Safety sign, forklift traffic area, aluminum, 10 in x 14 in",
+    "description": "Forklift traffic warning sign, 10 in x 14 in aluminum, ANSI Z535.2, four-color, reflective, pre-drilled.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "safety signage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 10,
+    "id": "material-gen-cond-safety-sign-first-aid-station-10x14",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Safety Signage",
+    "csiDivision": "01",
+    "csiSection": "01 55 00",
+    "name": "Safety sign, first aid station location, aluminum, 10 in x 14 in",
+    "description": "First aid station location sign, green/white, 10 in x 14 in aluminum, ANSI Z535.2, pre-drilled corners.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "safety signage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-gen-cond-safety-sign-high-voltage-7x10",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Safety Signage",
+    "csiDivision": "01",
+    "csiSection": "01 55 00",
+    "name": "Safety sign, high voltage hazard, aluminum, 7 in x 10 in",
+    "description": "High voltage danger sign, 7 in x 10 in aluminum, ANSI Z535 danger header, yellow/black, pre-drilled.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "safety signage",
+      "OSHA"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "id": "material-gen-cond-temp-protection-door-frame-foam-8ft",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Protection",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Door frame protector, foam wrap, 8 ft length, adhesive-back",
+    "description": "Self-adhesive foam door frame protector, 8 ft length, 2 in wide, for construction phase door protection.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-gen-cond-temp-protection-column-wrap-cardboard",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Protection",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Column wrap, corrugated cardboard, 4 ft x 8 ft sheet, triple-wall",
+    "description": "Heavy-duty triple-wall corrugated cardboard column protection sheet, 4 ft x 8 ft, tape-on installation.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-gen-cond-temp-protection-stair-nosing-rubber-48in",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Protection",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Stair nosing cover, rubber, self-adhesive, 48 in strip, black",
+    "description": "Self-adhesive black rubber stair nosing protector, 48 in strip, 3/4 in overhang, for construction phase.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "material-gen-cond-temp-protection-countertop-film-24x100ft",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Protection",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Countertop protection film, self-adhesive, 24 in x 100 ft roll",
+    "description": "Self-adhesive polyethylene countertop protection film, 24 in x 100 ft, low-tack, removable, clear.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-gen-cond-temp-protection-handrail-foam-wrap-50ft",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Protection",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Handrail protection wrap, polyfoam, 1 in thick, 50 ft roll",
+    "description": "Polyethylene foam handrail wrap, 1 in thick, 50 ft roll, self-adhesive closure, for finish protection.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "LF"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 26,
+    "id": "material-gen-cond-temp-protection-window-film-poly-24x100ft",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Protection",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Window protection film, poly, self-adhesive, 24 in x 100 ft roll",
+    "description": "Low-tack self-adhesive polyethylene window protection film, 24 in x 100 ft, UV-resistant, removable.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-gen-cond-temp-protection-elevator-quilted-blanket",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Protection",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Elevator cab protection, quilted moving blanket panel, 72 in x 80 in",
+    "description": "Quilted moving blanket for elevator cab wall protection, 72 in x 80 in, industrial-grade cotton, velcro.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-gen-cond-temp-protection-floor-board-4x8-fluted",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Protection",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Floor protection board, fluted polypropylene, 4 ft x 8 ft sheet",
+    "description": "Fluted polypropylene construction floor protection sheet, 4 ft x 8 ft, 4 mm thick, reusable, gray.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary protection",
+      "floor protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-gen-cond-dust-control-zipper-door-kit-4x8",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Dust Control",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Dust barrier zipper door kit, poly, 4 ft x 8 ft, self-adhesive frame",
+    "description": "Poly dust containment zipper door kit, 4 ft x 8 ft, with adhesive frame and zip closure for dust control.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "dust control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 42,
+    "id": "material-gen-cond-dust-control-barrier-frame-telescoping",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Dust Control",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Dust barrier frame system, telescoping pole set, floor-to-ceiling",
+    "description": "Telescoping steel pole dust barrier frame system, adjusts 8-12 ft, for poly sheeting dust containment walls.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "dust control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-gen-cond-dust-control-hvac-filter-sock-16x16",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Dust Control",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "HVAC filter sock, poly mesh, 16 in x 16 in x 6 in, reusable",
+    "description": "Reusable polyester mesh HVAC duct filter sock, 16 in x 16 in x 6 in depth, for construction dust protection.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "dust control",
+      "HVAC"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 48,
+    "id": "material-gen-cond-dust-control-plastic-sheeting-6mil-20x100",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Dust Control",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Plastic sheeting, 6 mil poly, 20 ft x 100 ft roll, clear",
+    "description": "Heavy-duty 6 mil clear polyethylene sheeting, 20 ft x 100 ft, for dust barriers, concrete curing, and covers.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "SF"
+    ],
+    "tags": [
+      "general conditions",
+      "dust control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 38,
+    "id": "material-gen-cond-dust-control-plastic-sheeting-4mil-12x200",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Dust Control",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Plastic sheeting, 4 mil poly, 12 ft x 200 ft roll, clear",
+    "description": "Standard 4 mil clear polyethylene sheeting, 12 ft x 200 ft roll, for vapor barrier and dust control applications.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "SF"
+    ],
+    "tags": [
+      "general conditions",
+      "dust control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-gen-cond-dust-control-adhesive-carpet-mask-24x200ft",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Dust Control",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Adhesive carpet mask, low-tack, 24 in x 200 ft roll, blue poly",
+    "description": "Low-tack adhesive carpet protection film, 24 in x 200 ft, blue polyethylene, for temporary surface protection.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL"
+    ],
+    "tags": [
+      "general conditions",
+      "dust control",
+      "floor protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "id": "material-gen-cond-dust-control-containment-foam-board-4x8",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Dust Control",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Dust containment wall panel, foam board, 4 ft x 8 ft, 1 in thick",
+    "description": "Rigid foam board dust containment panel, 4 ft x 8 ft x 1 in, for temporary wall enclosures during renovation.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "general conditions",
+      "dust control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "id": "material-gen-cond-dust-control-neg-air-prefilter-20x20",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Dust Control",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Negative air machine pre-filter, 20 in x 20 in x 2 in, MERV 8",
+    "description": "MERV 8 pre-filter for negative air machines, 20 in x 20 in x 2 in, for construction dust containment.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "dust control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 285,
+    "id": "material-gen-cond-temp-power-spider-box-60a-6outlet",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Power",
+    "csiDivision": "01",
+    "csiSection": "01 51 13",
+    "name": "Spider box, temporary power distribution, 60A, 6-outlet GFCI",
+    "description": "Temporary power spider box, 60A 120/240V, 6 GFCI-protected outlets, weatherproof enclosure, OSHA-compliant.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary power"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 42,
+    "id": "material-gen-cond-temp-power-extension-cord-reel-12-3-50ft",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Power",
+    "csiDivision": "01",
+    "csiSection": "01 51 13",
+    "name": "Extension cord reel, 12/3 SJTW, 50 ft, single outlet, GFCI",
+    "description": "Heavy-duty 12/3 SJTW extension cord, 50 ft reel, single grounded outlet, for construction temporary power.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary power"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-gen-cond-temp-power-panel-cover-gfci-2gang-weatherproof",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Power",
+    "csiDivision": "01",
+    "csiSection": "01 51 13",
+    "name": "Temporary panel cover, GFCI, 2-gang, weatherproof, in-use cover",
+    "description": "Weatherproof in-use cover for 2-gang temporary power outlet box, GFCI-rated, for outdoor construction use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary power"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-gen-cond-temp-power-gfci-inline-15a",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Power",
+    "csiDivision": "01",
+    "csiSection": "01 51 13",
+    "name": "Ground fault circuit interrupter, inline GFCI adapter, 15A",
+    "description": "Inline GFCI plug adapter, 15A, 120V, with test/reset buttons, for temporary power tool protection.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary power"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "id": "material-gen-cond-temp-power-drop-cord-10-3-100ft",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Power",
+    "csiDivision": "01",
+    "csiSection": "01 51 13",
+    "name": "Drop cord, 10/3 SJTW, 100 ft, single grounded receptacle",
+    "description": "Heavy-duty 10/3 SJTW construction drop cord, 100 ft, single 20A grounded receptacle, for temporary power.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary power"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "id": "material-gen-cond-temp-power-generator-cord-l14-30-25ft",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Power",
+    "csiDivision": "01",
+    "csiSection": "01 51 13",
+    "name": "Generator cord, L14-30, 10/4 SJTW, 25 ft, 30A 125/250V",
+    "description": "Generator power cord, L14-30 plugs, 10/4 SJTW, 25 ft, 30A 125/250V for temporary power distribution.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary power"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 145,
+    "id": "material-gen-cond-temp-power-temporary-power-pole-12ft",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Power",
+    "csiDivision": "01",
+    "csiSection": "01 51 13",
+    "name": "Temporary power pole, wood, 12 ft, with meter socket bracket",
+    "description": "Wooden temporary power pole, 12 ft, treated, with meter socket and panel bracket for construction power.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary power"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "material-gen-cond-temp-power-power-strip-heavy-duty-6outlet",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Power",
+    "csiDivision": "01",
+    "csiSection": "01 51 13",
+    "name": "Power strip, heavy-duty, 6-outlet, 15A, 6 ft cord, surge protect",
+    "description": "Heavy-duty 6-outlet power strip, 15A, 6 ft cord, with surge protection and lighted power switch.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary power"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 38,
+    "id": "material-gen-cond-temp-water-garden-hose-3-4x50ft-rubber",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Water",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Garden hose assembly, 3/4 in x 50 ft, rubber, with couplings",
+    "description": "Commercial rubber garden hose, 3/4 in x 50 ft, with brass couplings, for construction temporary water use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary water"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "id": "material-gen-cond-temp-water-hose-bib-adapter-brass-3-4in",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Water",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Hose bib adapter, brass, 3/4 in male to swivel female, each",
+    "description": "Brass hose bib adapter fitting, 3/4 in male NPT to 3/4 in female garden hose swivel, for temporary water.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary water"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 42,
+    "id": "material-gen-cond-temp-water-backflow-preventer-portable-3-4in",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Water",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Backflow preventer, portable, 3/4 in, brass, double check type",
+    "description": "Portable brass double-check backflow preventer, 3/4 in, for construction temporary water supply connections.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary water"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-gen-cond-temp-water-manifold-splitter-3way-brass",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Water",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Manifold hose splitter, 3-way, 3/4 in, brass, with shutoffs",
+    "description": "Brass 3-way manifold hose splitter, 3/4 in FHT inlet, three 3/4 in MHT outlets with individual shutoff valves.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary water"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "id": "material-gen-cond-temp-water-hose-nozzle-pistol-9-pattern",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Water",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Hose nozzle, pistol-grip, 9-pattern, 3/4 in FHT, brass body",
+    "description": "Brass pistol-grip 9-pattern hose nozzle, 3/4 in female hose thread, adjustable from mist to jet.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary water"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 48,
+    "id": "material-gen-cond-temp-water-hose-1in-25ft-epdm",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Temporary Water",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Water supply hose, 1 in x 25 ft, EPDM rubber, with fittings",
+    "description": "Heavy-duty EPDM rubber water supply hose, 1 in x 25 ft, with quick-connect cam-lock fittings at each end.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "temporary water"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "id": "material-gen-cond-consumables-blue-tape-2in-60yd",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Jobsite Consumables",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Painter's tape, blue, 2 in x 60 yd roll, medium-tack, 14-day",
+    "description": "Medium-tack blue painter's masking tape, 2 in x 60 yd, 14-day clean removal, for jobsite masking tasks.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL"
+    ],
+    "tags": [
+      "general conditions",
+      "consumables"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "id": "material-gen-cond-consumables-marking-spray-orange-17oz",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Jobsite Consumables",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Marking spray paint, inverted tip, fluorescent orange, 17 oz can",
+    "description": "Fluorescent orange inverted marking paint, 17 oz aerosol can, for layout lines, utility marking, and surveying.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "consumables",
+      "layout"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-gen-cond-consumables-chalk-line-reel-100ft",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Jobsite Consumables",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Chalk line reel, 100 ft, with blue chalk powder, auto-rewind",
+    "description": "100 ft chalk line reel with auto-rewind, includes 2 oz blue chalk powder, for layout and alignment.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "consumables",
+      "layout"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "id": "material-gen-cond-consumables-utility-knife-blades-10pack",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Jobsite Consumables",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Utility knife blades, bi-metal, heavy-duty, 10-pack refill",
+    "description": "Heavy-duty bi-metal utility knife replacement blades, 10-pack, for standard snap-off and retractable knives.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "consumables"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "id": "material-gen-cond-consumables-carpenter-pencil-12pack",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Jobsite Consumables",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Carpenter pencils, flat, medium lead, 12-pack, for wood marking",
+    "description": "Flat-body carpenter pencils, medium lead, 12-pack, for marking lumber, masonry, and general construction layout.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "consumables",
+      "layout"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 10,
+    "id": "material-gen-cond-consumables-duct-tape-3in-60yd-silver",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Jobsite Consumables",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Duct tape, silver, 3 in x 60 yd roll, industrial multi-purpose",
+    "description": "Industrial silver duct tape, 3 in wide x 60 yd, high-adhesion, for temporary repair and bundling on jobsite.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL"
+    ],
+    "tags": [
+      "general conditions",
+      "consumables"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-gen-cond-consumables-zip-ties-11in-100pack-black",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Jobsite Consumables",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Zip ties, nylon, 11 in, UV-resistant, black, 100-pack bundle",
+    "description": "UV-resistant nylon cable ties, 11 in, 50 lb tensile, black, 100-pack, for bundling and securing on jobsite.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "consumables"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "id": "material-gen-cond-consumables-wire-nuts-assorted-100pack",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Jobsite Consumables",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Wire nuts, assorted sizes, plastic, 100-pack, indoor/outdoor",
+    "description": "Assorted-size plastic wire nuts, 100-pack, for temporary electrical connections on the jobsite, color-coded.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "consumables"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-gen-cond-consumables-sharpie-marker-12pack-black",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Jobsite Consumables",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Permanent marker, black, medium-tip, 12-pack, waterproof, fast-dry",
+    "description": "Waterproof fast-dry black permanent markers, medium-tip, 12-pack, for labeling and layout on the jobsite.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "consumables"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2,
+    "id": "material-gen-cond-consumables-rebar-marking-chalk-crayon",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Jobsite Consumables",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Rebar marking chalk crayon, jumbo, red, weather-resistant",
+    "description": "Jumbo weather-resistant red chalk crayon for marking rebar, concrete, masonry, and steel, bulk contractor pack.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "consumables",
+      "layout"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "id": "material-gen-cond-layout-batterboard-lumber-1x6x8ft",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Layout Materials",
+    "csiDivision": "01",
+    "csiSection": "01 71 23",
+    "name": "Batterboard lumber, 1 in x 6 in x 8 ft, pine, for site layout",
+    "description": "Standard pine batterboard lumber, 1 in x 6 in x 8 ft, for batter board construction and site layout grids.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "layout",
+      "surveying"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "id": "material-gen-cond-layout-masons-line-nylon-500ft",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Layout Materials",
+    "csiDivision": "01",
+    "csiSection": "01 71 23",
+    "name": "Mason's line, nylon twine, 500 ft roll, braided, yellow/white",
+    "description": "Braided nylon mason's line, 500 ft roll, UV-resistant, for layout lines, batter boards, and alignment control.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "LF"
+    ],
+    "tags": [
+      "general conditions",
+      "layout",
+      "surveying"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1,
+    "id": "material-gen-cond-layout-surveyor-stake-1x2x24in-sharpened",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Layout Materials",
+    "csiDivision": "01",
+    "csiSection": "01 71 23",
+    "name": "Surveyor stake, wooden, 1 in x 2 in x 24 in, machine-sharpened",
+    "description": "Machine-sharpened wooden surveyor stakes, 1 in x 2 in x 24 in, for site layout and survey monument marking.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "layout",
+      "surveying"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-gen-cond-layout-batter-board-clamp-metal-pair",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Layout Materials",
+    "csiDivision": "01",
+    "csiSection": "01 71 23",
+    "name": "Batter board clamp, metal, adjustable, pair, for layout boards",
+    "description": "Adjustable metal clamp pair for attaching batter boards to stakes, for site layout and foundation control.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "layout"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 38,
+    "id": "material-gen-cond-layout-grade-rod-aluminum-8ft-telescoping",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Layout Materials",
+    "csiDivision": "01",
+    "csiSection": "01 71 23",
+    "name": "Grade rod, aluminum, 8 ft, telescoping, for laser and optical level",
+    "description": "Telescoping aluminum grade rod, 8 ft, with graduations in feet/tenths, for use with laser and optical levels.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "layout",
+      "surveying"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "id": "material-gen-cond-layout-bricklayer-line-pin-pair",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Layout Materials",
+    "csiDivision": "01",
+    "csiSection": "01 71 23",
+    "name": "Bricklayer's line pin, steel, pair, for masonry course alignment",
+    "description": "Steel bricklayer line pins, pair, for anchoring mason's line to masonry for course alignment and leveling.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "layout"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "id": "material-gen-cond-layout-plumb-bob-8oz-steel-with-string",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Layout Materials",
+    "csiDivision": "01",
+    "csiSection": "01 71 23",
+    "name": "Plumb bob, 8 oz, steel, precision-tip, with 25 ft braided string",
+    "description": "Precision 8 oz steel plumb bob with replaceable tip and 25 ft braided string for vertical alignment control.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "layout",
+      "surveying"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "id": "material-gen-cond-layout-laser-target-card-6x6-fluorescent",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Layout Materials",
+    "csiDivision": "01",
+    "csiSection": "01 71 23",
+    "name": "Laser target card, fluorescent, 6 in x 6 in, for laser levels",
+    "description": "Fluorescent laser detector target card, 6 in x 6 in, for enhancing laser beam visibility at long distances.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "layout",
+      "surveying"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-gen-cond-layout-layout-adhesive-spray-temp-11oz",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Layout Materials",
+    "csiDivision": "01",
+    "csiSection": "01 71 23",
+    "name": "Layout adhesive, temporary, spray can, 11 oz, repositionable",
+    "description": "Temporary repositionable spray adhesive, 11 oz, for attaching layout templates and paper to surfaces.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "layout"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "id": "material-gen-cond-layout-corner-bracket-metal-batter-board",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Layout Materials",
+    "csiDivision": "01",
+    "csiSection": "01 71 23",
+    "name": "Corner bracket, metal, for batter board assembly, stake-mount",
+    "description": "Metal corner bracket for batter board layout assembly, stake-mounted, for right-angle layout corners.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "layout"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-gen-cond-cleaning-concrete-floor-sweep-50lb",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Cleaning Supplies",
+    "csiDivision": "01",
+    "csiSection": "01 74 23",
+    "name": "Concrete floor sweep compound, 50 lb bag, oil-absorbent",
+    "description": "Oil-absorbent concrete floor sweep compound, 50 lb bag, for general construction cleaning and spill control.",
+    "unit": "BAG",
+    "commonUnits": [
+      "BAG"
+    ],
+    "tags": [
+      "general conditions",
+      "cleaning"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-gen-cond-cleaning-shop-vac-filter-bag-5-8gal-3pack",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Cleaning Supplies",
+    "csiDivision": "01",
+    "csiSection": "01 74 23",
+    "name": "Shop vacuum filter bag, 5-8 gal, 3-pack, high-filtration type",
+    "description": "High-filtration shop vacuum filter bags, 3-pack, for standard 5-8 gallon wet/dry vacs in construction use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "cleaning"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "material-gen-cond-cleaning-trash-bag-55gal-50ct-heavy-duty",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Cleaning Supplies",
+    "csiDivision": "01",
+    "csiSection": "01 74 23",
+    "name": "Heavy-duty trash bag, 55 gal, 50-count box, 3-mil, black",
+    "description": "Black 3-mil heavy-duty trash bags, 55 gallon, 50-count box, for construction site waste collection.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "cleaning"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-gen-cond-cleaning-push-broom-36in-steel-hard-bristle",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Cleaning Supplies",
+    "csiDivision": "01",
+    "csiSection": "01 74 23",
+    "name": "Push broom, 36 in, steel frame, hard-bristle, long handle",
+    "description": "Commercial push broom, 36 in head with hard tampico bristles, threaded steel handle, for concrete and rough floors.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "cleaning"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "material-gen-cond-cleaning-floor-squeegee-24in-rubber",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Cleaning Supplies",
+    "csiDivision": "01",
+    "csiSection": "01 74 23",
+    "name": "Floor squeegee, 24 in, rubber blade, 60 in handle, heavy-duty",
+    "description": "Heavy-duty floor squeegee, 24 in wide rubber blade, with 60 in handle, for water and slurry removal on concrete.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "cleaning"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 42,
+    "id": "material-gen-cond-cleaning-mop-bucket-wringer-35qt",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Cleaning Supplies",
+    "csiDivision": "01",
+    "csiSection": "01 74 23",
+    "name": "Mop bucket with side-press wringer, 35 qt, yellow polypropylene",
+    "description": "Commercial 35 qt polypropylene mop bucket with side-press wringer, for construction phase cleaning.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "cleaning"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-gen-cond-cleaning-allpurpose-cleaner-concentrated-1gal",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Cleaning Supplies",
+    "csiDivision": "01",
+    "csiSection": "01 74 23",
+    "name": "All-purpose cleaner, concentrated, 1 gal jug, dilution 32:1 ratio",
+    "description": "Concentrated industrial all-purpose cleaner, 1 gal, 32:1 dilution ratio, biodegradable, for construction cleaning.",
+    "unit": "GAL",
+    "commonUnits": [
+      "GAL"
+    ],
+    "tags": [
+      "general conditions",
+      "cleaning"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "id": "material-gen-cond-cleaning-scrub-brush-poly-stiff-8in",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Cleaning Supplies",
+    "csiDivision": "01",
+    "csiSection": "01 74 23",
+    "name": "Scrub brush, polypropylene, stiff-bristle, 8 in, hand-held",
+    "description": "Stiff-bristle polypropylene hand scrub brush, 8 in, for concrete surface cleaning and grout scrubbing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "cleaning"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 62,
+    "id": "material-gen-cond-protection-ram-board-38x100ft-roll",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Protection Board",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Ram Board construction floor protection, 38 in x 100 ft roll",
+    "description": "Ram Board heavy-duty construction floor protection paper, 38 in x 100 ft, breathable, non-slip, 38 lbs.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "SF"
+    ],
+    "tags": [
+      "general conditions",
+      "floor protection",
+      "protection board"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-gen-cond-protection-cardboard-4x8-quarter-in",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Protection Board",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Cardboard protection sheet, 4 ft x 8 ft, 0.25 in, double-wall",
+    "description": "Double-wall corrugated cardboard protection sheet, 4 ft x 8 ft, 0.25 in thick, for floors during construction.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "general conditions",
+      "floor protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "material-gen-cond-protection-foam-underlayment-2x25ft-roll",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Protection Board",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Foam underlayment protection, 2 ft x 25 ft roll, 6 mm, blue",
+    "description": "Blue polyethylene foam underlayment, 2 ft wide x 25 ft roll, 6 mm thick, for finished floor protection.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "SF"
+    ],
+    "tags": [
+      "general conditions",
+      "floor protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "material-gen-cond-protection-gypsum-board-4x8-fire-resist",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Protection Board",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Fire-resistant protection board, gypsum, 4 ft x 8 ft, 5/8 in",
+    "description": "Fire-resistant 5/8 in gypsum board, 4 ft x 8 ft, for temporary fire protection barriers in construction.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "general conditions",
+      "fire protection",
+      "protection board"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 16,
+    "id": "material-gen-cond-protection-poly-corrugated-sheet-4x8",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Protection Board",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Corrugated plastic sheet, 4 ft x 8 ft, 4 mm, reusable, gray",
+    "description": "Reusable corrugated polypropylene protection sheet, 4 ft x 8 ft, 4 mm, for floor and stair protection.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "general conditions",
+      "floor protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 52,
+    "id": "material-gen-cond-tarps-poly-6mil-20x100ft-roll",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Tarps and Covers",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Poly tarp, 6 mil, 20 ft x 100 ft roll, clear, concrete curing",
+    "description": "Heavy-duty 6 mil clear polyethylene tarp, 20 ft x 100 ft, for concrete curing, weather protection, and covers.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "SF"
+    ],
+    "tags": [
+      "general conditions",
+      "tarps",
+      "concrete curing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-gen-cond-tarps-poly-standard-20x30-blue",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Tarps and Covers",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Poly tarp, standard, 20 ft x 30 ft, blue, with grommets, 5 mil",
+    "description": "Blue 5 mil polyethylene woven tarp, 20 ft x 30 ft, reinforced edges with brass grommets every 18 in.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "tarps"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 48,
+    "id": "material-gen-cond-tarps-canvas-12x16-heavy-duty",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Tarps and Covers",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Canvas tarp, 12 ft x 16 ft, heavy-duty, cotton duck, waterproof",
+    "description": "Heavy-duty cotton duck canvas tarp, 12 ft x 16 ft, waterproofed, reinforced edges, for equipment and material cover.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "tarps"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 32,
+    "id": "material-gen-cond-tarps-mesh-debris-10x20-orange",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Tarps and Covers",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Mesh debris tarp, 10 ft x 20 ft, safety-orange, scaffolding use",
+    "description": "Safety-orange woven mesh debris tarp, 10 ft x 20 ft, for scaffolding containment and debris catch applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "tarps",
+      "scaffolding"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-gen-cond-tarps-welding-blanket-4x6-fiberglass",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Tarps and Covers",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Welding blanket, fiberglass, 4 ft x 6 ft, 1500°F rated, grommet",
+    "description": "Fiberglass welding blanket, 4 ft x 6 ft, rated to 1500°F, with grommets for hanging, for hot work protection.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "tarps",
+      "welding"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 78,
+    "id": "material-gen-cond-tarps-waterproof-roof-30x50-reinforced",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Tarps and Covers",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Waterproof roof tarp, 30 ft x 50 ft, 6 mil reinforced, blue",
+    "description": "Reinforced 6 mil blue polyethylene roof tarp, 30 ft x 50 ft, with rope-reinforced edges and brass grommets.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "tarps",
+      "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "id": "material-gen-cond-barricade-a-frame-aluminum-28in",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Barricades",
+    "csiDivision": "01",
+    "csiSection": "01 55 26",
+    "name": "A-frame barricade, aluminum, 28 in, orange reflective sheeting",
+    "description": "Aluminum A-frame barricade, 28 in tall, with orange reflective sheeting, for construction zone traffic control.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "barricades",
+      "traffic control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "id": "material-gen-cond-barricade-stanchion-chrome-retractable",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Barricades",
+    "csiDivision": "01",
+    "csiSection": "01 55 26",
+    "name": "Crowd control stanchion, chrome, retractable belt, 7.5 ft reach",
+    "description": "Chrome crowd control stanchion with retractable belt, 7.5 ft reach, for temporary queue and access control.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "barricades"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-gen-cond-barricade-caution-tape-3in-1000ft",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Barricades",
+    "csiDivision": "01",
+    "csiSection": "01 55 26",
+    "name": "Caution tape, yellow/black, 3 in x 1000 ft roll, non-adhesive",
+    "description": "Non-adhesive caution barrier tape, yellow/black, 3 in x 1000 ft, for temporary hazard zone demarcation.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "LF"
+    ],
+    "tags": [
+      "general conditions",
+      "barricades",
+      "safety"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-gen-cond-barricade-traffic-cone-28in-orange-7lb",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Barricades",
+    "csiDivision": "01",
+    "csiSection": "01 55 26",
+    "name": "Traffic cone, 28 in, NCHRP 350, orange, 7 lb rubber base",
+    "description": "NCHRP 350-compliant orange traffic safety cone, 28 in tall, 7 lb weighted rubber base, reflective collar.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "barricades",
+      "traffic control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "id": "material-gen-cond-barricade-safety-flag-orange-18x18",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Barricades",
+    "csiDivision": "01",
+    "csiSection": "01 55 26",
+    "name": "Safety flag, orange, 18 in x 18 in, with 30 in PVC stake",
+    "description": "Fluorescent orange safety flag, 18 in x 18 in, on 30 in PVC stake, for construction zone hazard marking.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "barricades"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 485,
+    "id": "material-gen-cond-barricade-jersey-barrier-precast-12ft",
+    "type": "material",
+    "category": "General Conditions",
+    "subcategory": "Barricades",
+    "csiDivision": "01",
+    "csiSection": "01 55 26",
+    "name": "Jersey barrier, precast concrete, 12 ft, standard F-shape profile",
+    "description": "Precast concrete F-shape Jersey barrier, 12 ft section, 32 in tall, for construction traffic control.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "general conditions",
+      "barricades",
+      "traffic control"
+    ]
+  }
+]

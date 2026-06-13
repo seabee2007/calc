@@ -1,0 +1,2323 @@
+[
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 420,
+    "id": "material-specialties-toilet-partitions-plastic-laminate-floor-to-ceiling",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Toilet Partitions",
+    "csiDivision": "10",
+    "csiSection": "10 21 13",
+    "name": "Toilet partition, plastic laminate, floor-to-ceiling, single",
+    "description": "Plastic laminate toilet partition, floor-to-ceiling mount, single stall, standard hardware included.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "toilet partitions",
+      "restroom"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 560,
+    "id": "material-specialties-toilet-partitions-solid-plastic-overhead-braced",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Toilet Partitions",
+    "csiDivision": "10",
+    "csiSection": "10 21 13",
+    "name": "Toilet partition, solid plastic, overhead-braced, single stall",
+    "description": "High-density solid polyethylene partition, overhead-braced and floor-mounted, graffiti-resistant surface.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "toilet partitions",
+      "restroom"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 780,
+    "id": "material-specialties-toilet-partitions-stainless-steel-overhead-braced",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Toilet Partitions",
+    "csiDivision": "10",
+    "csiSection": "10 21 13",
+    "name": "Toilet partition, stainless steel, overhead-braced, single stall",
+    "description": "Type 304 stainless steel toilet partition with overhead brace and floor-anchored pilasters, satin finish.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "toilet partitions",
+      "restroom"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 680,
+    "id": "material-specialties-toilet-partitions-ada-solid-plastic-end-of-row",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Toilet Partitions",
+    "csiDivision": "10",
+    "csiSection": "10 21 13",
+    "name": "Toilet partition, ADA-compliant, solid plastic, end-of-row stall",
+    "description": "ADA-compliant solid plastic toilet partition, 60 in minimum width, with grab bar blocking and door hardware.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "toilet partitions",
+      "ADA",
+      "restroom"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 145,
+    "id": "material-specialties-toilet-partitions-pilaster-plastic-laminate-82in",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Toilet Partitions",
+    "csiDivision": "10",
+    "csiSection": "10 21 13",
+    "name": "Toilet partition pilaster, plastic laminate, 82 in tall",
+    "description": "Plastic laminate pilaster, 82 in tall with adjustable shoe, for toilet partition systems, with hardware.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "toilet partitions"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "id": "material-specialties-toilet-partitions-door-plastic-laminate-inswing-24in",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Toilet Partitions",
+    "csiDivision": "10",
+    "csiSection": "10 21 13",
+    "name": "Toilet partition door, plastic laminate, inswing, 24 in width",
+    "description": "Plastic laminate toilet partition door, 24 in x 58 in, inswing with coat hook, occupancy indicator, strike.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "toilet partitions"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 235,
+    "id": "material-specialties-toilet-partitions-door-solid-plastic-ada-36in",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Toilet Partitions",
+    "csiDivision": "10",
+    "csiSection": "10 21 13",
+    "name": "Toilet partition door, solid plastic, ADA outswing, 36 in width",
+    "description": "Solid HDPE ADA-compliant partition door, 36 in x 58 in outswing, with full privacy hardware and slide bolt.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "toilet partitions",
+      "ADA"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "id": "material-specialties-toilet-partitions-hardware-kit-chrome",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Toilet Partitions",
+    "csiDivision": "10",
+    "csiSection": "10 21 13",
+    "name": "Toilet partition hardware kit, chrome, standard stall set",
+    "description": "Complete hardware kit for one toilet partition stall: hinges, door strike, coat hook, slide bolt, chrome finish.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "toilet partitions",
+      "hardware"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 95,
+    "id": "material-specialties-bathroom-accessories-grab-bar-stainless-42in-ada",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Bathroom Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 28 13",
+    "name": "Grab bar, stainless steel, 42 in, ADA-compliant, concealed mount",
+    "description": "Type 304 stainless satin-finish grab bar, 42 in, 1.5 in OD, ADA Z41.1 rated, concealed flange wall mount.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "bathroom accessories",
+      "ADA",
+      "grab bar"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 82,
+    "id": "material-specialties-bathroom-accessories-grab-bar-stainless-36in-ada",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Bathroom Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 28 13",
+    "name": "Grab bar, stainless steel, 36 in, ADA-compliant, concealed mount",
+    "description": "Type 304 stainless satin-finish grab bar, 36 in, 1.5 in OD, ADA Z41.1 rated, concealed flange wall mount.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "bathroom accessories",
+      "ADA",
+      "grab bar"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 48,
+    "id": "material-specialties-bathroom-accessories-tp-holder-stainless-double-roll",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Bathroom Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 28 13",
+    "name": "Toilet paper holder, stainless steel, double-roll, surface-mount",
+    "description": "Surface-mounted double-roll toilet paper holder, Type 304 stainless, satin finish, concealed screw mount.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "bathroom accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 385,
+    "id": "material-specialties-bathroom-accessories-hand-dryer-high-speed-110v",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Bathroom Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 28 13",
+    "name": "Hand dryer, high-speed electric, surface-mount, 110V, 1400 W",
+    "description": "High-speed jet hand dryer, ADA-compliant, 110V, 1400W, surface-mount with vandal-resistant cover, white/chrome.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "bathroom accessories",
+      "hand dryer"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 72,
+    "id": "material-specialties-bathroom-accessories-soap-dispenser-liquid-ss-40oz",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Bathroom Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 28 13",
+    "name": "Soap dispenser, liquid, stainless steel, surface-mount, 40 oz",
+    "description": "Surface-mounted liquid soap dispenser, 40 oz capacity, Type 304 stainless, satin finish, push-button valve.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "bathroom accessories",
+      "soap dispenser"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 115,
+    "id": "material-specialties-bathroom-accessories-mirror-ss-frame-24x36",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Bathroom Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 28 13",
+    "name": "Mirror, stainless steel frame, 24 in x 36 in, surface-mount",
+    "description": "Commercial restroom mirror with stainless steel frame, 24 in x 36 in, 1/4 in float glass, concealed mount.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "bathroom accessories",
+      "mirror"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 42,
+    "id": "material-specialties-bathroom-accessories-towel-bar-ss-24in",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Bathroom Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 28 13",
+    "name": "Towel bar, stainless steel, 24 in, concealed surface-mount",
+    "description": "Surface-mounted 24 in towel bar, Type 304 stainless satin, 1 in diameter, concealed wall anchor plates.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "bathroom accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-specialties-bathroom-accessories-towel-ring-ss",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Bathroom Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 28 13",
+    "name": "Towel ring, stainless steel, surface-mount, satin finish",
+    "description": "Stainless steel towel ring, 6 in projection, satin finish, surface-mount with concealed screw plate.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "bathroom accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 88,
+    "id": "material-specialties-bathroom-accessories-sanitary-napkin-disposal-ss",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Bathroom Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 28 13",
+    "name": "Sanitary napkin disposal, stainless steel, surface-mount",
+    "description": "Surface-mounted sanitary napkin disposal unit, Type 304 stainless, satin, hinged top, with plastic liner.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "bathroom accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 245,
+    "id": "material-specialties-bathroom-accessories-baby-changing-station-hdpe",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Bathroom Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 28 13",
+    "name": "Baby changing station, HDPE, horizontal fold-down, wall-mount",
+    "description": "ADA-compliant fold-down baby changing station, horizontal type, HDPE, 200 lb capacity, with safety belt.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "bathroom accessories",
+      "ADA"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 58,
+    "id": "material-specialties-bathroom-accessories-shower-curtain-rod-ss-60in",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Bathroom Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 28 13",
+    "name": "Shower curtain rod, stainless, 1 in OD, 60 in, surface-mount",
+    "description": "Fixed shower curtain rod, Type 304 stainless, 1 in OD, 60 in length, surface-mount flanges included.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "bathroom accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-specialties-fire-extinguisher-2-5lb-abc",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Fire Protection Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 44 13",
+    "name": "Fire extinguisher, 2.5 lb ABC dry chemical, wall-mount",
+    "description": "Portable 2.5 lb ABC dry chemical fire extinguisher, UL-listed, with wall-mount bracket, pressure gauge.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "fire extinguisher",
+      "safety"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 42,
+    "id": "material-specialties-fire-extinguisher-5lb-abc",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Fire Protection Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 44 13",
+    "name": "Fire extinguisher, 5 lb ABC dry chemical, wall-mount bracket",
+    "description": "Portable 5 lb ABC dry chemical fire extinguisher, UL-listed, with wall-mount bracket and pressure gauge.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "fire extinguisher",
+      "safety"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "id": "material-specialties-fire-extinguisher-10lb-abc",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Fire Protection Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 44 13",
+    "name": "Fire extinguisher, 10 lb ABC dry chemical, wall-mount bracket",
+    "description": "Portable 10 lb ABC dry chemical fire extinguisher, UL-listed, with heavy-duty wall-mount bracket.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "fire extinguisher",
+      "safety"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 88,
+    "id": "material-specialties-fire-extinguisher-co2-5lb",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Fire Protection Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 44 13",
+    "name": "Fire extinguisher, CO2, 5 lb, chrome horn, wall-mount bracket",
+    "description": "Portable 5 lb CO2 fire extinguisher, UL-listed, chrome discharge horn, with wall-mount bracket.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "fire extinguisher",
+      "safety"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 115,
+    "id": "material-specialties-fire-extinguisher-cabinet-semi-recessed-steel",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Fire Protection Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 44 16",
+    "name": "Fire extinguisher cabinet, semi-recessed, steel door, 5 lb cap",
+    "description": "Semi-recessed fire extinguisher cabinet, steel body, steel door with window, primer finish, 5 lb capacity.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "fire extinguisher cabinet"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 98,
+    "id": "material-specialties-fire-extinguisher-cabinet-surface-mount-steel",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Fire Protection Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 44 16",
+    "name": "Fire extinguisher cabinet, surface-mount, steel door, 10 lb cap",
+    "description": "Surface-mounted fire extinguisher cabinet, steel body and door with viewing window, baked enamel, 10 lb cap.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "fire extinguisher cabinet"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 145,
+    "id": "material-specialties-fire-extinguisher-cabinet-recessed-10lb",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Fire Protection Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 44 16",
+    "name": "Fire extinguisher cabinet, fully recessed, steel door, 10 lb cap",
+    "description": "Fully recessed fire extinguisher cabinet, 10 lb capacity, steel door with break glass panel, white enamel.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "fire extinguisher cabinet"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "id": "material-specialties-fire-blanket-fiberglass-5x5ft",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Fire Protection Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 44 13",
+    "name": "Fire blanket, fiberglass, 5 ft x 5 ft, wall-mount cabinet",
+    "description": "Woven fiberglass fire blanket, 5 ft x 5 ft, in quick-release wall-mount cabinet, OSHA-compliant.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "fire blanket",
+      "safety"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 38,
+    "id": "material-specialties-signage-ada-mens-restroom-tactile-6x9",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Signage",
+    "csiDivision": "10",
+    "csiSection": "10 14 23",
+    "name": "ADA room sign, men's restroom, tactile Braille, 6 in x 9 in",
+    "description": "ADA-compliant men's restroom sign, 6 in x 9 in, Grade 2 Braille, raised tactile characters, photoluminescent.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "signage",
+      "ADA"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 38,
+    "id": "material-specialties-signage-ada-womens-restroom-tactile-6x9",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Signage",
+    "csiDivision": "10",
+    "csiSection": "10 14 23",
+    "name": "ADA room sign, women's restroom, tactile Braille, 6 in x 9 in",
+    "description": "ADA-compliant women's restroom sign, 6 in x 9 in, Grade 2 Braille, raised tactile characters, photoluminescent.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "signage",
+      "ADA"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 42,
+    "id": "material-specialties-signage-ada-unisex-restroom-tactile-6x9",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Signage",
+    "csiDivision": "10",
+    "csiSection": "10 14 23",
+    "name": "ADA room sign, unisex restroom, tactile Braille, 6 in x 9 in",
+    "description": "ADA-compliant unisex/gender-neutral restroom sign, tactile Braille, 6 in x 9 in, aluminum, anodized.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "signage",
+      "ADA"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 48,
+    "id": "material-specialties-signage-exit-sign-led-ac-dc-dual-voltage",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Signage",
+    "csiDivision": "10",
+    "csiSection": "10 14 00",
+    "name": "Exit sign, LED, AC/DC dual-voltage, green, surface or ceiling",
+    "description": "LED exit sign, AC/DC dual-voltage, green lettering on white, surface or ceiling mount, 90-min battery backup.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "signage",
+      "exit sign",
+      "life safety"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 72,
+    "id": "material-specialties-signage-exit-sign-led-combo-emergency-light",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Signage",
+    "csiDivision": "10",
+    "csiSection": "10 14 00",
+    "name": "Exit sign, LED, with dual-head emergency lights, combo unit",
+    "description": "Combination LED exit sign with dual adjustable emergency light heads, 90-min battery backup, wall or ceiling.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "signage",
+      "exit sign",
+      "emergency lighting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "id": "material-specialties-signage-door-office-suite-ada-5x9",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Signage",
+    "csiDivision": "10",
+    "csiSection": "10 14 23",
+    "name": "Door sign, office/suite number, ADA-compliant, 5 in x 9 in",
+    "description": "ADA-compliant office/suite identification sign, 5 in x 9 in, raised tactile letters, Grade 2 Braille.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "signage",
+      "ADA"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-specialties-signage-parking-handicap-aluminum-12x18",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Signage",
+    "csiDivision": "10",
+    "csiSection": "10 14 00",
+    "name": "Parking sign, handicap accessible, aluminum, 12 in x 18 in",
+    "description": "Reflective aluminum handicap accessible parking sign, 12 in x 18 in, DOT R7-8, with post hardware.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "signage",
+      "parking",
+      "ADA"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-specialties-signage-safety-electrical-hazard-aluminum",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Signage",
+    "csiDivision": "10",
+    "csiSection": "10 14 00",
+    "name": "Safety sign, electrical hazard warning, aluminum, 7 in x 10 in",
+    "description": "ANSI Z535.2 electrical hazard warning sign, aluminum, 7 in x 10 in, self-adhesive or screw mount.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "signage",
+      "safety"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "id": "material-specialties-signage-no-smoking-osha-10x14",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Signage",
+    "csiDivision": "10",
+    "csiSection": "10 14 00",
+    "name": "No smoking sign, OSHA-compliant, 10 in x 14 in, aluminum",
+    "description": "OSHA-compliant no smoking sign, 10 in x 14 in, aluminum, ANSI Z535.2, reflective finish.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "signage",
+      "safety"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-specialties-access-panels-drywall-bead-in-12x12",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Access Panels",
+    "csiDivision": "10",
+    "csiSection": "10 71 13",
+    "name": "Access panel, drywall bead-in, 12 in x 12 in, hinged door",
+    "description": "Drywall bead-in access panel, 12 in x 12 in, hinged steel door, key or screwdriver latch, white primed.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "access panels"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 48,
+    "id": "material-specialties-access-panels-drywall-bead-in-24x24",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Access Panels",
+    "csiDivision": "10",
+    "csiSection": "10 71 13",
+    "name": "Access panel, drywall bead-in, 24 in x 24 in, hinged door",
+    "description": "Drywall bead-in access panel, 24 in x 24 in, hinged steel door, screwdriver latch, white primed finish.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "access panels"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 52,
+    "id": "material-specialties-access-panels-ceiling-tile-lay-in-24x24",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Access Panels",
+    "csiDivision": "10",
+    "csiSection": "10 71 13",
+    "name": "Access panel, ceiling tile lay-in, 24 in x 24 in, steel frame",
+    "description": "Ceiling tile lay-in access panel, 24 in x 24 in, steel frame, hinged door, for suspended ceiling systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "access panels"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 68,
+    "id": "material-specialties-access-panels-fire-rated-12x12-1hr",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Access Panels",
+    "csiDivision": "10",
+    "csiSection": "10 71 13",
+    "name": "Access panel, fire-rated, 12 in x 12 in, 1-hour UL-listed",
+    "description": "Fire-rated access panel, 12 in x 12 in opening, UL-listed 1-hour assembly, automatic self-closing hinge.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "access panels",
+      "fire rated"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 118,
+    "id": "material-specialties-access-panels-fire-rated-24x24-1hr",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Access Panels",
+    "csiDivision": "10",
+    "csiSection": "10 71 13",
+    "name": "Access panel, fire-rated, 24 in x 24 in, 1-hour UL-listed",
+    "description": "Fire-rated access panel, 24 in x 24 in opening, UL-listed 1-hour assembly, self-closing, key latch.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "access panels",
+      "fire rated"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 485,
+    "id": "material-specialties-access-panels-roof-hatch-galv-30x36",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Access Panels",
+    "csiDivision": "10",
+    "csiSection": "10 71 16",
+    "name": "Roof hatch, galvanized steel, 30 in x 36 in, insulated cover",
+    "description": "Galvanized steel roof hatch, 30 in x 36 in, insulated aluminum cover, compression spring assist, hasp lock.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "access panels",
+      "roof hatch"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 265,
+    "id": "material-specialties-access-panels-floor-access-door-steel-24x24",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Access Panels",
+    "csiDivision": "10",
+    "csiSection": "10 71 13",
+    "name": "Floor access door, recessed, steel, flush, 24 in x 24 in",
+    "description": "Steel flush floor access door, 24 in x 24 in, recessed for concrete pour-in, hinged with lift ring and key lock.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "access panels",
+      "floor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "id": "material-specialties-corner-guards-vinyl-2x2-48in",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Corner Guards",
+    "csiDivision": "10",
+    "csiSection": "10 26 00",
+    "name": "Corner guard, vinyl, 2 in x 2 in, 48 in length, surface-mount",
+    "description": "PVC vinyl corner guard, 2 in x 2 in x 48 in, self-adhesive or screw mount, beige or white standard colors.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "corner guards",
+      "wall protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "material-specialties-corner-guards-vinyl-2x2-96in",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Corner Guards",
+    "csiDivision": "10",
+    "csiSection": "10 26 00",
+    "name": "Corner guard, vinyl, 2 in x 2 in, 96 in length, surface-mount",
+    "description": "PVC vinyl corner guard, 2 in x 2 in x 96 in, surface-mounted, self-adhesive back, beige or custom color.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "corner guards",
+      "wall protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "id": "material-specialties-corner-guards-stainless-2x2-48in",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Corner Guards",
+    "csiDivision": "10",
+    "csiSection": "10 26 00",
+    "name": "Corner guard, stainless steel, 2 in x 2 in, 48 in, satin finish",
+    "description": "Type 304 stainless steel corner guard, 2 in x 2 in x 48 in, satin finish, surface-mounted with screws.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "corner guards",
+      "wall protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "material-specialties-corner-guards-aluminum-2x2-48in",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Corner Guards",
+    "csiDivision": "10",
+    "csiSection": "10 26 00",
+    "name": "Corner guard, aluminum, 2 in x 2 in, 48 in, mill finish",
+    "description": "Extruded aluminum corner guard, 2 in x 2 in x 48 in, mill finish, screwed through face flanges.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "corner guards",
+      "wall protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 58,
+    "id": "material-specialties-corner-guards-stainless-4x4-48in",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Corner Guards",
+    "csiDivision": "10",
+    "csiSection": "10 26 00",
+    "name": "Corner guard, stainless steel, 4 in x 4 in, 48 in, high-impact",
+    "description": "Heavy-duty stainless steel corner guard, 4 in x 4 in x 48 in, 16-gauge, satin, for high-traffic corridors.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "corner guards",
+      "wall protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-specialties-corner-guards-rubber-3x3-self-adhesive",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Corner Guards",
+    "csiDivision": "10",
+    "csiSection": "10 26 00",
+    "name": "Corner guard, rubber, 3 in x 3 in, 48 in, self-adhesive back",
+    "description": "Extruded rubber corner guard, 3 in x 3 in x 48 in, self-adhesive, black, for loading docks and warehouses.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "corner guards",
+      "wall protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-specialties-wall-protection-crash-rail-pvc-96in",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Wall Protection",
+    "csiDivision": "10",
+    "csiSection": "10 26 00",
+    "name": "Crash rail, PVC, 4 in wide, 96 in length, wall-mounted",
+    "description": "PVC wall crash rail, 4 in wide x 96 in length, hollow-back with continuous mounting channel, beige standard.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "wall protection",
+      "crash rail"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-specialties-wall-protection-crash-rail-stainless-96in",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Wall Protection",
+    "csiDivision": "10",
+    "csiSection": "10 26 00",
+    "name": "Crash rail, stainless steel, 4 in wide, 96 in, wall-mounted",
+    "description": "Stainless steel Type 304 crash/bumper rail, 4 in wide x 96 in, satin finish, continuous mounting bracket.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "wall protection",
+      "crash rail"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "id": "material-specialties-wall-protection-chair-rail-wood-composite-96in",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Wall Protection",
+    "csiDivision": "10",
+    "csiSection": "10 26 00",
+    "name": "Chair rail, wood composite, 2.5 in x 96 in, primed, paintable",
+    "description": "Primed wood-composite chair rail, 2.5 in tall x 96 in length, MDF core, paintable, nail or adhesive mount.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "wall protection",
+      "chair rail"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "id": "material-specialties-wall-protection-handrail-bumper-guard-vinyl",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Wall Protection",
+    "csiDivision": "10",
+    "csiSection": "10 26 00",
+    "name": "Handrail bumper guard, vinyl, 3 in wide, 96 in length, wall-mount",
+    "description": "Extruded vinyl handrail bumper guard, 3 in wide x 96 in, snap-on cover over continuous aluminum base channel.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "wall protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 42,
+    "id": "material-specialties-wall-protection-frp-wainscot-panel-4x8",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Wall Protection",
+    "csiDivision": "10",
+    "csiSection": "10 26 00",
+    "name": "FRP wall panel, 4 ft x 8 ft, smooth, 0.09 in, white",
+    "description": "Fiberglass reinforced plastic (FRP) wainscot panel, 4 ft x 8 ft x 0.09 in, smooth white, Type I adhesive.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "specialties",
+      "wall protection",
+      "FRP"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 68,
+    "id": "material-specialties-wall-protection-polycarbonate-panel-3x4",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Wall Protection",
+    "csiDivision": "10",
+    "csiSection": "10 26 00",
+    "name": "Wall panel protector, polycarbonate, 3 ft x 4 ft x 0.25 in clear",
+    "description": "Clear polycarbonate impact-resistant wall panel, 3 ft x 4 ft x 0.25 in, for column and wall protection.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "specialties",
+      "wall protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "id": "material-specialties-lockers-single-tier-steel-12x18x72-gray",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Lockers",
+    "csiDivision": "10",
+    "csiSection": "10 51 13",
+    "name": "Locker, single-tier steel, 12 in x 18 in x 72 in, gray",
+    "description": "Single-tier steel locker, 12 in wide x 18 in deep x 72 in tall, gray, with padlock hasp and number plate.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "lockers"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 155,
+    "id": "material-specialties-lockers-single-tier-steel-12x12x72-gray",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Lockers",
+    "csiDivision": "10",
+    "csiSection": "10 51 13",
+    "name": "Locker, single-tier steel, 12 in x 12 in x 72 in, gray",
+    "description": "Single-tier steel locker, 12 in wide x 12 in deep x 72 in tall, gray powder coat, padlock hasp, ventilated.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "lockers"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 245,
+    "id": "material-specialties-lockers-double-tier-steel-12x18x72-gray",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Lockers",
+    "csiDivision": "10",
+    "csiSection": "10 51 13",
+    "name": "Locker, double-tier steel, 12 in x 18 in x 72 in, gray, set of 2",
+    "description": "Double-tier (2-high) steel locker bank, 12 in x 18 in x 72 in total, gray powder coat, two doors per unit.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "lockers"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 210,
+    "id": "material-specialties-lockers-double-tier-steel-12x12x72-gray",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Lockers",
+    "csiDivision": "10",
+    "csiSection": "10 51 13",
+    "name": "Locker, double-tier steel, 12 in x 12 in x 72 in, gray, 2-high",
+    "description": "Double-tier (2-high) steel locker, 12 in wide x 12 in deep x 72 in total, gray, padlock hasp, ventilated.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "lockers"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 265,
+    "id": "material-specialties-lockers-box-4-high-steel-12x15x72",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Lockers",
+    "csiDivision": "10",
+    "csiSection": "10 51 13",
+    "name": "Locker, box-tier 4-high, steel, 12 in x 15 in x 72 in, gray",
+    "description": "Four-high box locker bank, steel, 12 in wide x 15 in deep x 72 in tall total, gray, four hasp doors.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "lockers"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 345,
+    "id": "material-specialties-lockers-athletic-vented-24x24x72",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Lockers",
+    "csiDivision": "10",
+    "csiSection": "10 51 13",
+    "name": "Locker, athletic vented, steel, 24 in x 24 in x 72 in, gray",
+    "description": "Large athletic locker, vented steel, 24 in wide x 24 in deep x 72 in tall, gray powder coat, coat hooks.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "lockers"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "id": "material-specialties-lockers-base-3-unit-72in-steel",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Lockers",
+    "csiDivision": "10",
+    "csiSection": "10 51 13",
+    "name": "Locker base, 3-unit wide, 72 in, steel, leveling feet",
+    "description": "Steel locker base, 3-unit module, 72 in wide, with leveling feet, for floor-mounted locker installation.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "lockers"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 48,
+    "id": "material-specialties-lockers-sloped-top-3-unit-12in",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Lockers",
+    "csiDivision": "10",
+    "csiSection": "10 51 13",
+    "name": "Locker sloped top, 3-unit wide, 12 in depth, steel gray",
+    "description": "Steel sloped-top cap for 3-unit locker bank, 12 in deep, gray, prevents shelf accumulation of items.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "lockers"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 88,
+    "id": "material-specialties-shelving-wire-unit-18x48x72-chrome-5tier",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Shelving",
+    "csiDivision": "10",
+    "csiSection": "10 57 00",
+    "name": "Wire shelving unit, 18 in x 48 in x 72 in, chrome, 5-tier",
+    "description": "Chrome-plated wire shelving unit, 5-tier, 18 in deep x 48 in wide x 72 in tall, adjustable shelf spacing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "shelving",
+      "wire shelving"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "material-specialties-shelving-wire-shelf-18x48-chrome",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Shelving",
+    "csiDivision": "10",
+    "csiSection": "10 57 00",
+    "name": "Wire shelf, 18 in x 48 in, chrome-plated, 600 lb capacity",
+    "description": "Individual chrome-plated wire shelf, 18 in deep x 48 in wide, 600 lb capacity, for shelving post systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "shelving",
+      "wire shelving"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 68,
+    "id": "material-specialties-shelving-laminate-unit-12x36x72-white",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Shelving",
+    "csiDivision": "10",
+    "csiSection": "10 57 00",
+    "name": "Laminate shelving unit, 12 in x 36 in x 72 in, white, 5-shelf",
+    "description": "White laminate shelving unit, 12 in deep x 36 in wide x 72 in tall, 5 adjustable shelves, cam-lock assembly.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "shelving"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 118,
+    "id": "material-specialties-shelving-steel-industrial-18x48x72-5tier",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Shelving",
+    "csiDivision": "10",
+    "csiSection": "10 57 00",
+    "name": "Steel industrial shelving, 18 in x 48 in x 72 in, gray, 5-tier",
+    "description": "Heavy-duty boltless steel industrial shelving unit, 18 in x 48 in x 72 in, gray, 1,500 lb per shelf.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "shelving",
+      "steel shelving"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-specialties-shelving-steel-shelf-heavy-duty-18x48",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Shelving",
+    "csiDivision": "10",
+    "csiSection": "10 57 00",
+    "name": "Steel shelf, heavy-duty, 18 in x 48 in, 750 lb capacity each",
+    "description": "Individual heavy-duty steel shelf, 18 in deep x 48 in wide, 750 lb capacity, for industrial shelving uprights.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "shelving",
+      "steel shelving"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 16,
+    "id": "material-specialties-shelving-wall-bracket-steel-12in-pair",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Shelving",
+    "csiDivision": "10",
+    "csiSection": "10 57 00",
+    "name": "Wall-mount shelf bracket, steel, 12 in, heavy-duty, pair",
+    "description": "Heavy-duty steel shelf wall bracket, 12 in projection, 200 lb pair capacity, powder coat, screw-in.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "shelving"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-specialties-shelving-closet-rod-chrome-72in",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Shelving",
+    "csiDivision": "10",
+    "csiSection": "10 57 00",
+    "name": "Closet rod, chrome-plated steel, 72 in, 1-1/4 in diameter",
+    "description": "Chrome-plated steel closet rod, 72 in length, 1-1/4 in diameter, with bracket flanges, 35 lb capacity.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "shelving",
+      "closet"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 148,
+    "id": "material-specialties-shelving-cubby-laminate-12x48x72-6comp",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Shelving",
+    "csiDivision": "10",
+    "csiSection": "10 57 00",
+    "name": "Cubby unit, laminate, 12 in x 48 in x 72 in, 6-compartment",
+    "description": "White laminate cubby storage unit, 12 in deep x 48 in wide x 72 in tall, 6 open compartments, cam assembly.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "shelving",
+      "cubby"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 38,
+    "id": "material-specialties-louvers-aluminum-fixed-12x12-mill",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Louvers",
+    "csiDivision": "10",
+    "csiSection": "10 82 00",
+    "name": "Louver, aluminum fixed-blade, 12 in x 12 in, mill finish, wall",
+    "description": "Extruded aluminum fixed-blade wall louver, 12 in x 12 in, 45° blade, mill finish, with bird screen and frame.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "louvers",
+      "ventilation"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 72,
+    "id": "material-specialties-louvers-aluminum-fixed-24x24-mill",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Louvers",
+    "csiDivision": "10",
+    "csiSection": "10 82 00",
+    "name": "Louver, aluminum fixed-blade, 24 in x 24 in, mill finish, wall",
+    "description": "Extruded aluminum fixed-blade wall louver, 24 in x 24 in, 45° blade, mill finish, with bird screen and frame.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "louvers",
+      "ventilation"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 145,
+    "id": "material-specialties-louvers-aluminum-operable-24x24",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Louvers",
+    "csiDivision": "10",
+    "csiSection": "10 82 00",
+    "name": "Louver, aluminum operable, 24 in x 24 in, with manual actuator",
+    "description": "Operable aluminum louver, 24 in x 24 in, adjustable blades with manual actuator rod, bronze anodized frame.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "louvers",
+      "ventilation"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 24,
+    "id": "material-specialties-louvers-door-aluminum-8x12",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Louvers",
+    "csiDivision": "10",
+    "csiSection": "10 82 00",
+    "name": "Door louver, aluminum, 8 in x 12 in, door-mount, fixed-blade",
+    "description": "Aluminum fixed-blade door louver, 8 in x 12 in, mill finish, fixed louver blades, screw-on front frame.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "louvers"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 168,
+    "id": "material-specialties-louvers-decorative-aluminum-24x48-painted",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Louvers",
+    "csiDivision": "10",
+    "csiSection": "10 82 00",
+    "name": "Louver, decorative aluminum, 24 in x 48 in, painted, wall-mount",
+    "description": "Decorative aluminum louver, 24 in x 48 in, fixed blade, factory painted (dark bronze standard), with frame.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "louvers"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-specialties-louvers-transfer-grille-aluminum-10x10",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Louvers",
+    "csiDivision": "10",
+    "csiSection": "10 82 00",
+    "name": "Transfer air grille, aluminum, 10 in x 10 in, door-mount, fixed",
+    "description": "Aluminum door transfer grille, 10 in x 10 in, fixed louver blades, screw-mount front/back frame, white.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "louvers"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "id": "material-specialties-floor-mats-rubber-nylon-36x60",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Floor Mats",
+    "csiDivision": "10",
+    "csiSection": "10 14 00",
+    "name": "Entrance mat, rubber-backed nylon, 36 in x 60 in, charcoal",
+    "description": "Commercial rubber-backed nylon entrance mat, 36 in x 60 in, loop pile, charcoal, for heavy-traffic entries.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "floor mats"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 42,
+    "id": "material-specialties-floor-mats-vinyl-antifatigue-24x36",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Floor Mats",
+    "csiDivision": "10",
+    "csiSection": "10 14 00",
+    "name": "Anti-fatigue mat, vinyl, 24 in x 36 in, ergonomic, black",
+    "description": "Commercial anti-fatigue vinyl mat, 24 in x 36 in, 5/8 in thick, beveled edges, black, ergonomic standing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "floor mats"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 285,
+    "id": "material-specialties-floor-mats-recessed-aluminum-frame-36x72",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Floor Mats",
+    "csiDivision": "10",
+    "csiSection": "10 14 00",
+    "name": "Entrance mat, recessed aluminum frame, 36 in x 72 in, with mat",
+    "description": "Recessed entrance mat system, aluminum frame, 36 in x 72 in x 5/8 in recess, with nylon insert mat.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "floor mats",
+      "recessed"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 145,
+    "id": "material-specialties-floor-mats-matwell-frame-aluminum-36x60",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Floor Mats",
+    "csiDivision": "10",
+    "csiSection": "10 14 00",
+    "name": "Entrance matwell frame, aluminum, 36 in x 60 in, cut-in type",
+    "description": "Extruded aluminum matwell frame, 36 in x 60 in, for recessed entrance mat installation, angle-set type.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "floor mats",
+      "recessed"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 48,
+    "id": "material-specialties-floor-mats-boot-scraper-cast-iron",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Floor Mats",
+    "csiDivision": "10",
+    "csiSection": "10 14 00",
+    "name": "Boot scraper, cast iron, surface-mount, 12 in x 8 in tray",
+    "description": "Heavy-duty cast-iron boot scraper, 12 in x 8 in drip tray, surface-mount with anchor bolts, for entries.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "floor mats"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "id": "material-specialties-floor-mats-drain-pan-stainless-24x24",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Floor Mats",
+    "csiDivision": "10",
+    "csiSection": "10 14 00",
+    "name": "Drain pan, stainless steel, 24 in x 24 in x 2 in, with drain",
+    "description": "Stainless steel drain pan, 24 in x 24 in x 2 in, with 1 in drain outlet, for water heater or HVAC condensate.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "floor mats",
+      "drain pan"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-specialties-postal-mail-slot-aluminum-10x3-surface",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Postal",
+    "csiDivision": "10",
+    "csiSection": "10 55 00",
+    "name": "Mail slot, aluminum, 10 in x 3 in, surface-mount, with flap",
+    "description": "Extruded aluminum door mail slot, 10 in x 3 in opening, interior flip guard, mill finish, surface-mount.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "postal"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "id": "material-specialties-postal-parcel-locker-powder-coat-15x18x15",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Postal",
+    "csiDivision": "10",
+    "csiSection": "10 55 00",
+    "name": "Parcel locker, single-unit, powder coat, 15 in x 18 in x 15 in",
+    "description": "Single-unit parcel delivery locker, powder-coated steel, 15 in x 18 in x 15 in, cylinder lock, black.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "postal",
+      "locker"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 145,
+    "id": "material-specialties-postal-multitenant-mailbox-4unit-usps",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Postal",
+    "csiDivision": "10",
+    "csiSection": "10 55 00",
+    "name": "Multi-tenant mailbox, aluminum, 4-unit, USPS-approved, horizontal",
+    "description": "Horizontal 4-unit aluminum USPS-approved mail center, with outgoing mail slot, 4 keyed doors, surface-mount.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "postal"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 225,
+    "id": "material-specialties-postal-package-drop-box-12x16x24",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Postal",
+    "csiDivision": "10",
+    "csiSection": "10 55 00",
+    "name": "Package drop box, powder coat, 12 in x 16 in x 24 in, surface",
+    "description": "Steel package drop box, 12 in x 16 in x 24 in, powder coat black, anti-retrieval slot, pad-lock hasp.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "postal"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 68,
+    "id": "material-specialties-display-bulletin-board-cork-48x36-aluminum",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Display Boards",
+    "csiDivision": "10",
+    "csiSection": "10 11 00",
+    "name": "Bulletin board, cork, 48 in x 36 in, aluminum frame, wall-mount",
+    "description": "Cork bulletin board, 48 in x 36 in, 1/2 in natural cork, aluminum frame, wall-mount with keyhole hangers.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "display",
+      "bulletin board"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 88,
+    "id": "material-specialties-display-whiteboard-magnetic-48x36-aluminum",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Display Boards",
+    "csiDivision": "10",
+    "csiSection": "10 11 00",
+    "name": "Whiteboard, magnetic, 48 in x 36 in, aluminum frame, wall-mount",
+    "description": "Magnetic whiteboard, 48 in x 36 in, porcelain-on-steel surface, aluminum frame, wall-mount keyhole pattern.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "display",
+      "whiteboard"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "id": "material-specialties-display-combination-board-36x24",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Display Boards",
+    "csiDivision": "10",
+    "csiSection": "10 11 00",
+    "name": "Combination board, cork/whiteboard, 36 in x 24 in, aluminum frame",
+    "description": "Half cork/half dry-erase combination board, 36 in x 24 in, aluminum frame, wall-mount with tray.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "display"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 24,
+    "id": "material-specialties-toilet-accessories-robe-hook-ss-dual",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Bathroom Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 28 13",
+    "name": "Robe hook, stainless steel, dual-prong, surface-mount, satin",
+    "description": "Dual-prong robe hook, Type 304 stainless satin finish, surface-mount with concealed screws, 10 lb capacity.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "bathroom accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "material-specialties-louvers-stair-soffit-8x16-aluminum",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Louvers",
+    "csiDivision": "10",
+    "csiSection": "10 82 00",
+    "name": "Foundation wall louver, aluminum, 8 in x 16 in, fixed-blade, mill",
+    "description": "Aluminum fixed-blade foundation wall louver, 8 in x 16 in, 45° blade, mill finish, with insect screen.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "louvers"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-specialties-fire-extinguisher-hanger-bracket",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Fire Protection Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 44 16",
+    "name": "Fire extinguisher hanger bracket, steel, adjustable, wall-mount",
+    "description": "Adjustable steel hanger bracket for portable fire extinguishers, 2.5-20 lb capacity, wall-mount, zinc plate.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "fire extinguisher",
+      "safety"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-specialties-signage-emergency-egress-map-framed",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Signage",
+    "csiDivision": "10",
+    "csiSection": "10 14 00",
+    "name": "Emergency egress map, framed, 8.5 in x 11 in, IBC-compliant",
+    "description": "IBC-compliant emergency egress floor plan, 8.5 in x 11 in, aluminum frame, with \"YOU ARE HERE\" marking.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "signage",
+      "life safety"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 52,
+    "id": "material-specialties-toilet-accessories-mirror-frameless-18x36",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Bathroom Accessories",
+    "csiDivision": "10",
+    "csiSection": "10 28 13",
+    "name": "Mirror, frameless, 18 in x 36 in, polished edge, wall-mount",
+    "description": "Commercial restroom mirror, frameless, 18 in x 36 in, 1/4 in float glass, polished beveled edge, clips mount.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "bathroom accessories",
+      "mirror"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "id": "material-specialties-wall-protection-corner-bead-metal-105deg",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Wall Protection",
+    "csiDivision": "10",
+    "csiSection": "10 26 00",
+    "name": "Corner bead, metal, 105-degree, 8 ft, drywall corner protection",
+    "description": "Metal corner bead, 105-degree, 8 ft length, galvanized steel, for drywall corners, nail or clinch-on type.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "wall protection",
+      "corner bead"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 68,
+    "id": "material-specialties-postal-key-box-wall-mount-master-keyed",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Postal",
+    "csiDivision": "10",
+    "csiSection": "10 55 00",
+    "name": "Key box, steel, wall-mount, master-keyed, 30-key capacity",
+    "description": "Steel key storage cabinet, wall-mount, 30-key capacity, master-keyed cylinder lock, powder coat, tags included.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "postal",
+      "key storage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 112,
+    "id": "material-specialties-display-directory-board-alum-24x36",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Display Boards",
+    "csiDivision": "10",
+    "csiSection": "10 11 13",
+    "name": "Directory board, changeable letter, aluminum, 24 in x 36 in",
+    "description": "Changeable letter directory board, 24 in x 36 in, aluminum frame, 200 individual plastic letters included.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "display",
+      "directory"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 38,
+    "id": "material-specialties-signage-directional-arrow-suspended-ceiling",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Signage",
+    "csiDivision": "10",
+    "csiSection": "10 14 00",
+    "name": "Directional sign, ceiling-suspended, arrow, 12 in x 4 in aluminum",
+    "description": "Double-sided ceiling-suspended directional sign with arrow, 12 in x 4 in aluminum, anodized, with cable kit.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "signage",
+      "directional"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 112,
+    "id": "material-specialties-display-changeable-letter-directory-24x36",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Display Boards",
+    "csiDivision": "10",
+    "csiSection": "10 11 13",
+    "name": "Directory sign board, aluminum frame, 24 in x 36 in, interchangeable",
+    "description": "Aluminum-framed changeable letter directory sign board, 24 in x 36 in, with 200 plastic letters included for suite listing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "display",
+      "directory"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 25,
+    "id": "material-specialties-toilet-partitions-panel-plastic-laminate-55x82",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Toilet Partitions",
+    "csiDivision": "10",
+    "csiSection": "10 21 13",
+    "name": "Toilet partition panel, plastic laminate, 55 in x 82 in, standard",
+    "description": "Plastic laminate toilet partition division panel, 55 in wide x 82 in tall, for floor-to-ceiling stall dividers.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "toilet partitions",
+      "restroom"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-specialties-floor-mats-scraper-mat-brush-top-36x60",
+    "type": "material",
+    "category": "Specialties",
+    "subcategory": "Floor Mats",
+    "csiDivision": "10",
+    "csiSection": "10 14 00",
+    "name": "Scraper mat, brush-top, rubber-backed, 36 in x 60 in, black",
+    "description": "Commercial rubber-backed brush-top entrance scraper mat, 36 in x 60 in, for heavy-duty dirt removal at building entries.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "specialties",
+      "floor mats",
+      "entrance mat"
+    ]
+  }
+]

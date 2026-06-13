@@ -3333,6 +3333,651 @@ export const STARTER_EQUIPMENT_ITEMS: StarterCostLibraryItem[] = [
     "costConfidence": "placeholder",
     "pricingRequired": true,
     "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 95,
+    "id": "equipment-gen-cond-pressure-washer-cold-3500psi-gas",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Cleaning Equipment",
+    "csiDivision": "01",
+    "csiSection": "01 74 23",
+    "name": "Pressure washer, cold water, 3,500 PSI, gas engine, 4 GPM",
+    "description": "Cold-water gas-engine pressure washer, 3,500 PSI, 4 GPM, for construction site cleaning and concrete washing.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 95,
+    "tags": [
+      "general conditions",
+      "pressure washer",
+      "cleaning"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "id": "equipment-gen-cond-pressure-washer-hot-3000psi-diesel",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Cleaning Equipment",
+    "csiDivision": "01",
+    "csiSection": "01 74 23",
+    "name": "Pressure washer, hot water, 3,000 PSI, diesel, 4 GPM skid",
+    "description": "Diesel hot-water pressure washer skid, 3,000 PSI, 4 GPM, for grease removal and equipment cleaning.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 185,
+    "tags": [
+      "general conditions",
+      "pressure washer",
+      "cleaning"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 165,
+    "id": "equipment-gen-cond-air-compressor-185cfm-diesel-towable",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Compressed Air",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Air compressor, 185 CFM, diesel, towable, 100 PSI, for jackhammers",
+    "description": "Towable diesel air compressor, 185 CFM at 100 PSI, for pneumatic tools, jackhammers, and sandblasting.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 165,
+    "tags": [
+      "general conditions",
+      "air compressor",
+      "pneumatic"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "id": "equipment-gen-cond-dewatering-pump-2in-electric-submersible",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Dewatering",
+    "csiDivision": "01",
+    "csiSection": "01 57 23",
+    "name": "Dewatering pump, 2 in, electric submersible, 115V, 7,200 GPH",
+    "description": "Electric submersible dewatering pump, 2 in discharge, 115V, 7,200 GPH, for construction trench dewatering.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 55,
+    "tags": [
+      "general conditions",
+      "dewatering pump",
+      "earthwork"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 325,
+    "id": "equipment-gen-cond-fuel-tank-300gal-diesel-with-pump",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Fueling",
+    "csiDivision": "01",
+    "csiSection": "01 52 00",
+    "name": "Fuel tank, 300 gal, diesel, skid-mounted, with pump and meter",
+    "description": "UL-listed 300 gal diesel fuel storage tank, skid-mounted, with 12V pump, digital meter, and nozzle.",
+    "unit": "month",
+    "commonUnits": [
+      "month",
+      "week"
+    ],
+    "cost": 325,
+    "tags": [
+      "general conditions",
+      "fuel",
+      "site facilities"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 125,
+    "id": "equipment-gen-cond-light-tower-diesel-4head",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Lighting",
+    "csiDivision": "01",
+    "csiSection": "01 52 00",
+    "name": "Light tower, diesel, 4-head metal halide, towable, 6,000W total",
+    "description": "Diesel towable light tower, four 1500W metal halide heads, 30 ft mast, 6,000 W total, for nighttime work.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 125,
+    "tags": [
+      "general conditions",
+      "light tower",
+      "lighting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 245,
+    "id": "equipment-gen-cond-digital-weather-station-jobsite-solar",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Monitoring",
+    "csiDivision": "01",
+    "csiSection": "01 52 00",
+    "name": "Digital weather station, jobsite, solar-powered, wireless display",
+    "description": "Solar-powered jobsite weather station with wireless indoor display, monitors wind, temp, humidity, and rain.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 245,
+    "tags": [
+      "general conditions",
+      "weather station",
+      "monitoring"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1485,
+    "id": "equipment-gen-cond-aed-defibrillator-cabinet",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Safety Equipment",
+    "csiDivision": "01",
+    "csiSection": "01 35 29",
+    "name": "AED defibrillator, wall cabinet, OSHA-rated, with alarm, each",
+    "description": "Automatic External Defibrillator (AED) with alarmed wall cabinet, OSHA-rated, for construction site safety.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 1485,
+    "tags": [
+      "general conditions",
+      "AED",
+      "safety",
+      "first aid"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "id": "equipment-gen-cond-eye-wash-station-portable-16gal",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Safety Equipment",
+    "csiDivision": "01",
+    "csiSection": "01 35 29",
+    "name": "Eye wash station, portable, 16 gal, ANSI Z358.1, floor-mount",
+    "description": "ANSI Z358.1-compliant portable eyewash station, 16 gal capacity, floor-standing, for chemical exposure response.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 185,
+    "tags": [
+      "general conditions",
+      "eye wash",
+      "safety"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 245,
+    "id": "equipment-gen-cond-first-aid-station-large-floor-mount",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Safety Equipment",
+    "csiDivision": "01",
+    "csiSection": "01 35 29",
+    "name": "First aid station, large, floor-mounted, OSHA-compliant, steel",
+    "description": "Large floor-mounted steel first aid station, OSHA-compliant, stocked for 25 persons, with 16-unit cabinet.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 245,
+    "tags": [
+      "general conditions",
+      "first aid",
+      "safety"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "id": "equipment-gen-cond-portable-restroom-ada",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Site Facilities",
+    "csiDivision": "01",
+    "csiSection": "01 52 00",
+    "name": "Portable restroom, ADA-accessible, single unit, weekly serviced",
+    "description": "ADA-accessible portable restroom, larger floor plan, grab bar, ramp, with weekly cleaning service.",
+    "unit": "month",
+    "commonUnits": [
+      "month",
+      "week"
+    ],
+    "cost": 185,
+    "tags": [
+      "general conditions",
+      "portable restroom",
+      "sanitation",
+      "ADA"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 125,
+    "id": "equipment-gen-cond-portable-restroom-standard",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Site Facilities",
+    "csiDivision": "01",
+    "csiSection": "01 52 00",
+    "name": "Portable restroom, standard, single unit, weekly serviced",
+    "description": "Standard single-unit portable toilet with weekly cleaning service, ABS construction, for construction sites.",
+    "unit": "month",
+    "commonUnits": [
+      "month",
+      "week"
+    ],
+    "cost": 125,
+    "tags": [
+      "general conditions",
+      "portable restroom",
+      "sanitation"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 850,
+    "id": "equipment-gen-cond-site-office-trailer-8x20",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Site Facilities",
+    "csiDivision": "01",
+    "csiSection": "01 52 00",
+    "name": "Site office trailer, 8 ft x 20 ft, prefab, with electrical setup",
+    "description": "Prefabricated 8 ft x 20 ft site office trailer with electrical hookup, heat/AC, for construction site use.",
+    "unit": "month",
+    "commonUnits": [
+      "month",
+      "week"
+    ],
+    "cost": 850,
+    "tags": [
+      "general conditions",
+      "site office",
+      "temporary facilities"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "id": "equipment-gen-cond-storage-container-20ft-steel",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Site Facilities",
+    "csiDivision": "01",
+    "csiSection": "01 52 00",
+    "name": "Storage container, 20 ft, steel, weatherproof, lockable",
+    "description": "Standard 20 ft steel ISO shipping container for tool and material storage, weatherproof with lockbox door hasp.",
+    "unit": "month",
+    "commonUnits": [
+      "month",
+      "week"
+    ],
+    "cost": 185,
+    "tags": [
+      "general conditions",
+      "storage container",
+      "temporary facilities"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "id": "equipment-gen-cond-evaporative-cooler-1800cfm",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Temporary Climate",
+    "csiDivision": "01",
+    "csiSection": "01 52 00",
+    "name": "Evaporative cooler, portable, 1,800 CFM, 110V, construction type",
+    "description": "Portable evaporative cooler, 1,800 CFM, 110V, for construction site cooling in dry climates.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 65,
+    "tags": [
+      "general conditions",
+      "evaporative cooler",
+      "climate control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "equipment-gen-cond-industrial-fan-24in-portable",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Temporary Climate",
+    "csiDivision": "01",
+    "csiSection": "01 52 00",
+    "name": "Industrial fan, portable, 24 in, oscillating, 3-speed, 120V",
+    "description": "Portable 24 in industrial oscillating fan, 3-speed, 120V, for construction site air circulation and ventilation.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 28,
+    "tags": [
+      "general conditions",
+      "fan",
+      "ventilation"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "id": "equipment-gen-cond-electric-heater-240v-5kw",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Temporary Climate",
+    "csiDivision": "01",
+    "csiSection": "01 52 00",
+    "name": "Temporary electric heater, 240V, 5 kW, fan-forced, portable",
+    "description": "Portable fan-forced electric heater, 240V, 5 kW, for construction enclosures and temporary heating.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 55,
+    "tags": [
+      "general conditions",
+      "temporary heat",
+      "climate control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "id": "equipment-gen-cond-propane-heater-150k-btu",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Temporary Climate",
+    "csiDivision": "01",
+    "csiSection": "01 52 00",
+    "name": "Temporary propane heater, 150K BTU, forced-air, construction type",
+    "description": "Forced-air propane construction heater, 150,000 BTU output, for heating enclosed spaces during construction.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 85,
+    "tags": [
+      "general conditions",
+      "temporary heat",
+      "climate control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 485,
+    "id": "equipment-gen-cond-generator-diesel-100kw-portable",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Temporary Power",
+    "csiDivision": "01",
+    "csiSection": "01 51 13",
+    "name": "Generator, diesel, 100 kW, towable, 120/208V, three-phase",
+    "description": "Towable diesel generator, 100 kW, 120/208V three-phase, enclosed with sound attenuation and fuel tank.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 485,
+    "tags": [
+      "general conditions",
+      "generator",
+      "temporary power"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 145,
+    "id": "equipment-gen-cond-generator-diesel-20kw-portable",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Temporary Power",
+    "csiDivision": "01",
+    "csiSection": "01 51 13",
+    "name": "Generator, diesel, 20 kW, portable, 120/240V, single-phase",
+    "description": "Portable diesel generator, 20 kW, 120/240V single-phase, with weatherproof enclosure for construction power.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 145,
+    "tags": [
+      "general conditions",
+      "generator",
+      "temporary power"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 285,
+    "id": "equipment-gen-cond-generator-diesel-50kw-portable",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Temporary Power",
+    "csiDivision": "01",
+    "csiSection": "01 51 13",
+    "name": "Generator, diesel, 50 kW, portable, 120/208V, three-phase",
+    "description": "Portable diesel generator, 50 kW, 120/208V three-phase, with load bank and weatherproof housing.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 285,
+    "tags": [
+      "general conditions",
+      "generator",
+      "temporary power"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 285,
+    "id": "equipment-gen-cond-water-tank-500gal-potable",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Temporary Water",
+    "csiDivision": "01",
+    "csiSection": "01 51 00",
+    "name": "Potable water tank, 500 gal, poly, with pump and filtration",
+    "description": "Polyethylene potable water storage tank, 500 gal, with submersible pump and filtration, for construction water.",
+    "unit": "month",
+    "commonUnits": [
+      "month",
+      "week"
+    ],
+    "cost": 285,
+    "tags": [
+      "general conditions",
+      "water tank",
+      "temporary water"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 285,
+    "id": "equipment-gen-cond-concrete-washout-portable-8x10",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Waste Management",
+    "csiDivision": "01",
+    "csiSection": "01 57 19",
+    "name": "Concrete washout portable container, 8 ft x 10 ft, liner included",
+    "description": "Portable concrete washout container, 8 ft x 10 ft, with puncture-resistant liner for concrete washout compliance.",
+    "unit": "month",
+    "commonUnits": [
+      "month",
+      "week"
+    ],
+    "cost": 285,
+    "tags": [
+      "general conditions",
+      "concrete washout",
+      "stormwater"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 385,
+    "id": "equipment-gen-cond-dumpster-10cy-open-top",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Waste Management",
+    "csiDivision": "01",
+    "csiSection": "01 74 19",
+    "name": "Dumpster, 10 CY, open-top roll-off, construction debris",
+    "description": "Ten cubic yard open-top roll-off dumpster for construction debris, includes delivery, pickup, and one dump.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 385,
+    "tags": [
+      "general conditions",
+      "dumpster",
+      "waste management"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 485,
+    "id": "equipment-gen-cond-dumpster-20cy-open-top",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Waste Management",
+    "csiDivision": "01",
+    "csiSection": "01 74 19",
+    "name": "Dumpster, 20 CY, open-top roll-off, construction debris",
+    "description": "Twenty cubic yard open-top roll-off dumpster for construction debris, includes delivery, pickup, and one dump.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 485,
+    "tags": [
+      "general conditions",
+      "dumpster",
+      "waste management"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 40,
     "id": "equipment-boom-lift-telescopic-60-ft-platform-height",
     "type": "equipment",
@@ -4094,6 +4739,646 @@ export const STARTER_EQUIPMENT_ITEMS: StarterCostLibraryItem[] = [
       "lifting",
       "scaffolding",
       "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "equipment-safety-access-caution-tape-3in-1000ft-yellow",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Barricades",
+    "csiDivision": "01",
+    "csiSection": "01 55 26",
+    "name": "Caution barrier tape, 3 in x 1000 ft roll, yellow/black, non-adhesive",
+    "description": "Non-adhesive caution barrier tape, 3 in x 1000 ft roll, yellow/black, for construction hazard demarcation.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 8,
+    "tags": [
+      "safety and access",
+      "barricades",
+      "safety"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "equipment-safety-access-4gas-clip-monitor-o2-co-h2s-lel",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Confined Space",
+    "csiDivision": "01",
+    "csiSection": "01 35 29",
+    "name": "4-gas clip monitor, O2/CO/H2S/LEL detector, audible alarm, OSHA",
+    "description": "Personal 4-gas clip detector, monitors O2/CO/H2S/LEL, audible and visual alarm, for confined space entry per OSHA.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 28,
+    "tags": [
+      "safety and access",
+      "confined space",
+      "gas detection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "id": "equipment-safety-access-confined-space-blower-12in-electric",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Confined Space",
+    "csiDivision": "01",
+    "csiSection": "01 35 29",
+    "name": "Confined space blower, 12 in, electric, 1,650 CFM, OSHA-compliant",
+    "description": "OSHA 1926.1200-compliant confined space ventilation blower, 12 in, electric, 1,650 CFM with 25 ft flexible duct.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 45,
+    "tags": [
+      "safety and access",
+      "confined space",
+      "ventilation"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "id": "equipment-safety-access-debris-safety-net-per-sf",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Fall Protection",
+    "csiDivision": "01",
+    "csiSection": "01 35 29",
+    "name": "Debris safety net, fire-resistant, per SF, ANSI A10.11-compliant",
+    "description": "ANSI A10.11-compliant fire-resistant debris containment safety net, per SF, for scaffold and building perimeters.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 3,
+    "tags": [
+      "safety and access",
+      "fall protection",
+      "debris net"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "id": "equipment-safety-access-fall-harness-ansi-z359-full-body",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Fall Protection",
+    "csiDivision": "01",
+    "csiSection": "01 35 29",
+    "name": "Full-body fall arrest harness, ANSI Z359.1, 400 lb rated, universal",
+    "description": "ANSI Z359.1-compliant full-body fall arrest harness, 400 lb capacity, universal fit, back and chest D-rings.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 85,
+    "tags": [
+      "safety and access",
+      "fall protection",
+      "OSHA"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 545,
+    "id": "equipment-safety-access-horizontal-lifeline-50ft-2anchor",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Fall Protection",
+    "csiDivision": "01",
+    "csiSection": "01 35 29",
+    "name": "Horizontal lifeline system, 50 ft, cable, 2-anchor, OSHA-rated",
+    "description": "Horizontal lifeline fall arrest system, 50 ft stainless cable, with two anchor points, energy absorber, OSHA.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 545,
+    "tags": [
+      "safety and access",
+      "fall protection",
+      "lifeline"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 68,
+    "id": "equipment-safety-access-roof-anchor-osha-single-user",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Fall Protection",
+    "csiDivision": "01",
+    "csiSection": "01 35 29",
+    "name": "Roof anchor point, OSHA-rated, single-user, D-ring, bolt-down type",
+    "description": "OSHA-compliant bolt-down roof anchor, single-user, 5,000 lb rated D-ring, for temporary fall protection.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 68,
+    "tags": [
+      "safety and access",
+      "fall protection",
+      "roof anchor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 265,
+    "id": "equipment-safety-access-self-retracting-lifeline-30ft",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Fall Protection",
+    "csiDivision": "01",
+    "csiSection": "01 35 29",
+    "name": "Self-retracting lifeline, 30 ft, galvanized cable, snap hook, OSHA",
+    "description": "ANSI Z359.14-compliant self-retracting lifeline (SRL), 30 ft galvanized wire rope, with dual-action snap hook.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 265,
+    "tags": [
+      "safety and access",
+      "fall protection",
+      "SRL"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "id": "equipment-safety-access-guardrail-freestanding-post-counter",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Guardrails",
+    "csiDivision": "01",
+    "csiSection": "01 35 29",
+    "name": "Guardrail freestanding post, counterweight base, adjustable height",
+    "description": "Freestanding guardrail post with counterweight base, adjustable 36-42 in height, for roof and floor edge work.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 85,
+    "tags": [
+      "safety and access",
+      "guardrails",
+      "fall protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 145,
+    "id": "equipment-safety-access-portable-guardrail-10ft-steel",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Guardrails",
+    "csiDivision": "01",
+    "csiSection": "01 35 29",
+    "name": "Portable guardrail section, 10 ft, steel, OSHA 1926.502, freestanding",
+    "description": "OSHA 1926.502-compliant freestanding steel portable guardrail section, 10 ft, 42 in top rail height.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 145,
+    "tags": [
+      "safety and access",
+      "guardrails",
+      "fall protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "id": "equipment-safety-access-attic-ladder-aluminum-10ft-reach",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Ladders",
+    "csiDivision": "01",
+    "csiSection": "01 54 23",
+    "name": "Attic pull-down ladder, aluminum, 10 ft reach, 250 lb capacity",
+    "description": "Aluminum pull-down attic access ladder, 10 ft reach, 250 lb capacity, with insulated hatch door.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 185,
+    "tags": [
+      "safety and access",
+      "ladders",
+      "attic access"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "equipment-safety-access-extension-ladder-aluminum-24ft",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Ladders",
+    "csiDivision": "01",
+    "csiSection": "01 54 23",
+    "name": "Extension ladder, aluminum, 24 ft, Type IA, 300 lb capacity",
+    "description": "Aluminum extension ladder, 24 ft, Type IA, 300 lb capacity, non-conductive side rails, D-rung style.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 18,
+    "tags": [
+      "safety and access",
+      "ladders"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "equipment-safety-access-extension-ladder-fiberglass-32ft",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Ladders",
+    "csiDivision": "01",
+    "csiSection": "01 54 23",
+    "name": "Extension ladder, fiberglass, 32 ft, Type IA, 300 lb, non-conductive",
+    "description": "Fiberglass non-conductive extension ladder, 32 ft, Type IA, 300 lb capacity, for electrical work and heights.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 28,
+    "tags": [
+      "safety and access",
+      "ladders"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "equipment-safety-access-step-ladder-aluminum-8ft-type-ia",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Ladders",
+    "csiDivision": "01",
+    "csiSection": "01 54 23",
+    "name": "Step ladder, aluminum, 8 ft, Type IA, 300 lb, with pail shelf",
+    "description": "Aluminum step ladder, 8 ft, Type IA, 300 lb capacity, with tool tray/pail shelf, non-slip steps.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 12,
+    "tags": [
+      "safety and access",
+      "ladders"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "equipment-safety-access-aluminum-toe-board-4ft-osha",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Scaffolding",
+    "csiDivision": "01",
+    "csiSection": "01 54 23",
+    "name": "Aluminum toe board, 4 ft, OSHA 1926.502-compliant, with clips",
+    "description": "OSHA 1926.502-compliant aluminum scaffold toe board, 4 ft length, 3.5 in height, with swivel locking clips.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 22,
+    "tags": [
+      "safety and access",
+      "scaffolding",
+      "toe board"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "id": "equipment-safety-access-rolling-scaffold-tower-6ft-platform",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Scaffolding",
+    "csiDivision": "01",
+    "csiSection": "01 54 23",
+    "name": "Rolling scaffold tower, 6 ft platform height, steel, with casters",
+    "description": "Complete rolling scaffold tower, 6 ft working platform height, steel frame, with four locking casters.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 45,
+    "tags": [
+      "safety and access",
+      "scaffolding",
+      "rolling tower"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "id": "equipment-safety-access-scaffold-caster-8in-swivel-lock",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Scaffolding",
+    "csiDivision": "01",
+    "csiSection": "01 54 23",
+    "name": "Scaffold caster, 8 in, swivel-locking, steel, 1,500 lb capacity",
+    "description": "Heavy-duty swivel-locking scaffold caster, 8 in wheel, 1,500 lb capacity, with stem adapter for rolling towers.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 35,
+    "tags": [
+      "safety and access",
+      "scaffolding"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "equipment-safety-access-scaffold-cross-brace-7ft-pair",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Scaffolding",
+    "csiDivision": "01",
+    "csiSection": "01 54 23",
+    "name": "Scaffold cross brace, 7 ft, galvanized steel, with locking pins, pair",
+    "description": "Galvanized steel X cross braces for 5 ft wide scaffold frames, 7 ft span, with swivel-locking clevis pins.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 22,
+    "tags": [
+      "safety and access",
+      "scaffolding"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "id": "equipment-safety-access-scaffold-frame-5x5-galvanized",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Scaffolding",
+    "csiDivision": "01",
+    "csiSection": "01 54 23",
+    "name": "Scaffold frame, 5 ft x 5 ft, galvanized steel, standard walk-through",
+    "description": "Galvanized steel walk-through scaffold frame, 5 ft wide x 5 ft tall, 1-5/8 in OD tube, OSHA-compliant.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 45,
+    "tags": [
+      "safety and access",
+      "scaffolding"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 68,
+    "id": "equipment-safety-access-scaffold-board-10ft-aluminum",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Scaffolding",
+    "csiDivision": "01",
+    "csiSection": "01 54 23",
+    "name": "Scaffold plank, aluminum, 10 ft, OSHA-rated, with hooks",
+    "description": "OSHA-rated aluminum scaffold plank, 10 ft, with steel end hooks, 75 PSF capacity for scaffold platforms.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 68,
+    "tags": [
+      "safety and access",
+      "scaffolding"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "id": "equipment-safety-access-channelizer-drum-orange-36in",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Traffic Control",
+    "csiDivision": "01",
+    "csiSection": "01 55 26",
+    "name": "Channelizer drum, orange, 36 in, weighted base, reflective sheeting",
+    "description": "Orange channelizer traffic drum, 36 in tall, weighted blow-moldable base, with ASTM Type III reflective bands.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 55,
+    "tags": [
+      "safety and access",
+      "traffic control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "id": "equipment-safety-access-solar-message-board-trailer-led",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Traffic Control",
+    "csiDivision": "01",
+    "csiSection": "01 55 26",
+    "name": "Solar message board trailer, LED, 2-line, towable, programmable",
+    "description": "Solar-powered LED towable message board trailer, 2-line 15x7 matrix, 25+ miles visibility, programmable.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 185,
+    "tags": [
+      "safety and access",
+      "traffic control",
+      "message board"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "equipment-safety-access-traffic-cone-28in-nchrp-350",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Traffic Control",
+    "csiDivision": "01",
+    "csiSection": "01 55 26",
+    "name": "Traffic cone, 28 in, NCHRP 350-compliant, orange, 7 lb rubber base",
+    "description": "NCHRP 350-compliant orange traffic safety cone, 28 in tall, 7 lb rubber base, with 4 in reflective collar.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 12,
+    "tags": [
+      "safety and access",
+      "traffic control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "equipment-safety-access-traffic-cone-36in-with-collar",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Traffic Control",
+    "csiDivision": "01",
+    "csiSection": "01 55 26",
+    "name": "Traffic cone, 36 in, with reflective collar, orange, 10 lb base",
+    "description": "Tall 36 in orange traffic cone, 10 lb weighted base, with 4 in and 6 in reflective collars for roadway work.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 18,
+    "tags": [
+      "safety and access",
+      "traffic control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 285,
+    "id": "equipment-safety-access-steel-trench-plate-1in-4x8",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Trench Safety",
+    "csiDivision": "01",
+    "csiSection": "01 56 26",
+    "name": "Steel trench plate, 1 in x 4 ft x 8 ft, road plate, load-rated",
+    "description": "A36 steel road/trench plate, 1 in x 4 ft x 8 ft, HS-20 load rated, for spanning open excavations and trenches.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 285,
+    "tags": [
+      "safety and access",
+      "trench safety",
+      "road plate"
     ]
   },
   {

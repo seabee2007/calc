@@ -2477,5 +2477,583 @@
       "exterior",
       "roofing"
     ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "id": "material-roofing-mod-bitumen-cap-sheet-sbs-granulated",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Modified Bitumen",
+    "csiDivision": "07",
+    "csiSection": "07 55 63",
+    "name": "Modified bitumen cap sheet, SBS, granulated, 1 roofing square",
+    "description": "SBS-modified bitumen cap sheet, granulated surface, 1 roofing square, for torch or cold-adhesive application.",
+    "unit": "Sq",
+    "commonUnits": [
+      "Sq"
+    ],
+    "tags": [
+      "roofing",
+      "modified bitumen",
+      "membrane"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "id": "material-roofing-mod-bitumen-base-sheet-sbs-smooth",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Modified Bitumen",
+    "csiDivision": "07",
+    "csiSection": "07 55 63",
+    "name": "Modified bitumen base sheet, SBS, smooth face, 1 roofing square",
+    "description": "SBS-modified bitumen base/ply sheet, smooth face, 1 roofing square, for torch or cold-process underlayment.",
+    "unit": "Sq",
+    "commonUnits": [
+      "Sq"
+    ],
+    "tags": [
+      "roofing",
+      "modified bitumen",
+      "membrane"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-roofing-tpo-seam-roller-2in-silicone",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Membrane Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 54 23",
+    "name": "TPO seam roller, 2 in, silicone wheel, manual, for membrane seams",
+    "description": "Manual 2 in silicone seam roller for pressing TPO, EPDM, and PVC membrane seams after heat-welding.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "TPO",
+      "membrane"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-roofing-flashing-lead-sheet-3lb-12x12",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Flashing",
+    "csiDivision": "07",
+    "csiSection": "07 62 00",
+    "name": "Lead flashing sheet, 3 lb, 12 in x 12 in, for plumbing vents",
+    "description": "Three-pound lead flashing sheet, 12 in x 12 in, for custom pipe and vent base flashing on all roof types.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "flashing",
+      "lead"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "id": "material-roofing-flashing-copper-cap-10ft-coil-6in",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Flashing",
+    "csiDivision": "07",
+    "csiSection": "07 62 00",
+    "name": "Copper cap flashing, 16 oz, 10 ft coil, 6 in wide, for masonry",
+    "description": "Sixteen-ounce copper cap flashing coil, 10 ft, 6 in wide, for masonry parapet wall cap and through-wall flashing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "flashing",
+      "copper"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-roofing-flashing-z-flashing-aluminum-10ft",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Flashing",
+    "csiDivision": "07",
+    "csiSection": "07 62 00",
+    "name": "Z-flashing, aluminum, 10 ft, 4 in x 4 in x 1 in, mill finish",
+    "description": "Extruded aluminum Z-flashing, 10 ft, 4 in back leg x 4 in face x 1 in top, for horizontal siding transitions.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "flashing",
+      "aluminum"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 68,
+    "id": "material-roofing-gutter-copper-half-round-10ft-5in",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Gutters and Downspouts",
+    "csiDivision": "07",
+    "csiSection": "07 71 23",
+    "name": "Copper gutter, half-round, 5 in, 10 ft section, 16 oz",
+    "description": "Sixteen-ounce copper half-round gutter, 5 in width, 10 ft section, for traditional and historic roof systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "gutters",
+      "copper"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "id": "material-roofing-gutter-underground-leader-elbow-pvc-90",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Gutters and Downspouts",
+    "csiDivision": "07",
+    "csiSection": "07 71 23",
+    "name": "Underground downspout leader elbow, PVC, 90°, 4 in, with adapter",
+    "description": "PVC 90-degree underground leader elbow, 4 in, with aluminum downspout adapter for concealed drainage system.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "downspout",
+      "underground drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "id": "material-roofing-vent-cap-dryer-aluminum-4in-louvered",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Roof Vents",
+    "csiDivision": "07",
+    "csiSection": "07 72 00",
+    "name": "Dryer vent cap, aluminum, 4 in duct, louvered, with pest screen",
+    "description": "Aluminum dryer vent cap, 4 in duct size, louvered blades with pest screen, for exterior wall installation.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "vents",
+      "dryer vent"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 10,
+    "id": "material-roofing-vent-cap-bath-fan-plastic-4in",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Roof Vents",
+    "csiDivision": "07",
+    "csiSection": "07 72 00",
+    "name": "Bath fan cap, plastic, 4 in duct, with backdraft damper, exterior",
+    "description": "Plastic bathroom exhaust fan exterior cap, 4 in duct, with spring-loaded backdraft damper and bug screen.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "vents",
+      "bath fan"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-roofing-vent-cap-range-hood-aluminum-6in",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Roof Vents",
+    "csiDivision": "07",
+    "csiSection": "07 72 00",
+    "name": "Range hood cap, aluminum, 6 in duct, with damper, exterior wall",
+    "description": "Aluminum range hood exterior cap, 6 in duct, with backdraft damper and bird screen, for kitchen exhaust.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "vents",
+      "range hood"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-roofing-vent-foundation-screen-8x16-galv",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Roof Vents",
+    "csiDivision": "07",
+    "csiSection": "07 72 00",
+    "name": "Foundation vent screen, 8 in x 16 in, galvanized, with adjustable damper",
+    "description": "Galvanized steel foundation vent screen, 8 in x 16 in, with adjustable damper, for crawl space ventilation.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "vents",
+      "foundation vent"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "id": "material-roofing-shingles-ridge-cap-bundle-20lf-architectural",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Shingles",
+    "csiDivision": "07",
+    "csiSection": "07 31 13",
+    "name": "Ridge cap shingles, architectural, bundle, approx 20 LF coverage",
+    "description": "Architectural-grade ridge cap shingles, bundle covering approximately 20 LF, color-match to field shingles.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "shingles",
+      "ridge cap"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "id": "material-roofing-repair-cement-fibered-1gal-black",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Roofing Accessories",
+    "csiDivision": "07",
+    "csiSection": "07 99 00",
+    "name": "Roof repair cement, fibered asphalt, 1 gal, black, trowel-grade",
+    "description": "Fibered asphalt roof repair cement, 1 gal, trowel-grade, for flashing, crack, and leak repairs on all roofs.",
+    "unit": "GAL",
+    "commonUnits": [
+      "GAL"
+    ],
+    "tags": [
+      "roofing",
+      "repair",
+      "cement"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "id": "material-roofing-nails-galvanized-1-3-4in-50lb-box",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Roofing Fasteners",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Roofing nails, galvanized, 1-3/4 in, 11 gauge, 50 lb box",
+    "description": "Galvanized smooth-shank roofing nails, 1-3/4 in x 11 gauge, 50 lb box, for asphalt shingle installation.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "LB"
+    ],
+    "tags": [
+      "roofing",
+      "fasteners",
+      "nails"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-roofing-adhesive-deck-28oz-polyurethane",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Roofing Accessories",
+    "csiDivision": "07",
+    "csiSection": "07 92 00",
+    "name": "Roof deck adhesive, 28 oz cartridge, polyurethane, for OSB/plywood",
+    "description": "Polyurethane adhesive for roof deck OSB/plywood, 28 oz cartridge, for enhanced shear strength and squeak prevention.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "adhesive",
+      "deck"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "id": "material-roofing-ice-guard-rubberized-3x75ft-roll",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Underlayment",
+    "csiDivision": "07",
+    "csiSection": "07 26 00",
+    "name": "Eave ice and water guard, rubberized asphalt, 3 ft x 75 ft roll",
+    "description": "Rubberized asphalt self-adhering ice and water shield, 3 ft wide x 75 ft roll, for eave and valley protection.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "SF"
+    ],
+    "tags": [
+      "roofing",
+      "underlayment",
+      "ice guard"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-roofing-gutter-spike-ferrule-kit-7in-25pack",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Gutters and Downspouts",
+    "csiDivision": "07",
+    "csiSection": "07 71 23",
+    "name": "Gutter spike and ferrule kit, aluminum, 7 in spike, 25-pack",
+    "description": "Aluminum gutter spike and ferrule kit, 7 in spike with 4 in ferrule, 25-pack for aluminum gutter installation.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "gutters"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "id": "material-roofing-gutter-outlet-drop-3in-aluminum",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Gutters and Downspouts",
+    "csiDivision": "07",
+    "csiSection": "07 71 23",
+    "name": "Gutter outlet drop, 3 in, aluminum, with screen, each",
+    "description": "Aluminum gutter outlet drop, 3 in diameter, with mesh debris screen, for connecting gutter to downspout.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "gutters",
+      "downspout"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "id": "material-roofing-gutter-end-cap-aluminum-5in-pair",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Gutters and Downspouts",
+    "csiDivision": "07",
+    "csiSection": "07 71 23",
+    "name": "Gutter end cap, aluminum, 5 in, left/right pair, caulked",
+    "description": "Aluminum gutter end caps, 5 in, left and right pair, for sealing gutter ends, with butyl sealant applied.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "gutters"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "id": "material-roofing-downspout-elbow-3x4-aluminum-75deg",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Gutters and Downspouts",
+    "csiDivision": "07",
+    "csiSection": "07 71 23",
+    "name": "Downspout elbow, 3 in x 4 in, aluminum, 75°, for wall offsets",
+    "description": "Aluminum downspout elbow, 3 in x 4 in, 75-degree angle, for wall offset connections on rectangular downspouts.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "gutters",
+      "downspout"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-roofing-downspout-strap-aluminum-adjustable-25pk",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Gutters and Downspouts",
+    "csiDivision": "07",
+    "csiSection": "07 71 23",
+    "name": "Downspout strap, aluminum, adjustable, screw-mount, 25-pack",
+    "description": "Adjustable aluminum downspout mounting straps, 25-pack, for securing rectangular downspouts to wall fascia.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "gutters",
+      "downspout"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-roofing-soffit-vent-strip-aluminum-8ft",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Roof Vents",
+    "csiDivision": "07",
+    "csiSection": "07 72 00",
+    "name": "Soffit ventilation strip, 8 ft, aluminum, mill finish, 1 in wide slot",
+    "description": "Aluminum continuous soffit ventilation strip, 8 ft, 1 in wide vented slot, for rafter-bay air intake at eaves.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "roofing",
+      "vents",
+      "soffit"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "id": "material-roofing-fascia-cover-aluminum-8ft-prefinished-white",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Gutters and Downspouts",
+    "csiDivision": "07",
+    "csiSection": "07 71 23",
+    "name": "Fascia cover, aluminum, 8 ft, pre-bent, prefinished white",
+    "description": "Pre-bent aluminum fascia cover, 8 ft, prefinished white, for covering wood fascia boards on gutter systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "roofing",
+      "gutters",
+      "fascia"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "id": "material-roofing-rake-edge-trim-galvanized-10ft",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Flashing",
+    "csiDivision": "07",
+    "csiSection": "07 62 00",
+    "name": "Rake edge trim, galvanized steel, 10 ft, 2 in face, L-style drip edge",
+    "description": "Galvanized steel rake/eave drip edge trim, L-style, 10 ft, 2 in face, for shingle and felt edge termination.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "roofing",
+      "flashing",
+      "drip edge"
+    ]
   }
 ]

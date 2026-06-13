@@ -52,9 +52,9 @@ function assertItemQuality(item: StarterCostLibraryItem) {
 }
 
 describe('starterCostLibraryDataQuality', () => {
-  it('has at least 400 material items and 100 equipment items', () => {
-    expect(STARTER_MATERIALS.length).toBeGreaterThanOrEqual(750);
-    expect(STARTER_EQUIPMENT.length).toBeGreaterThanOrEqual(200);
+  it('has at least 1200 material items and 250 equipment items', () => {
+    expect(STARTER_MATERIALS.length).toBeGreaterThanOrEqual(1200);
+    expect(STARTER_EQUIPMENT.length).toBeGreaterThanOrEqual(250);
   });
 
   it('has unique ids across the full catalog', () => {

@@ -3685,5 +3685,1760 @@
       "electrical",
       "hvac"
     ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-mep-plumbing-valves-ball-valve-1-2in-brass-fpt",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Valves",
+    "csiDivision": "22",
+    "csiSection": "22 05 23",
+    "name": "Ball valve, 1/2 in, brass, full-port, FPT x FPT, 600 WOG",
+    "description": "Full-port brass ball valve, 1/2 in FPT x FPT, 600 WOG rating, chrome-plated ball, for domestic water shutoff.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "valves"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 16,
+    "id": "material-mep-plumbing-valves-ball-valve-3-4in-brass-fpt",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Valves",
+    "csiDivision": "22",
+    "csiSection": "22 05 23",
+    "name": "Ball valve, 3/4 in, brass, full-port, FPT x FPT, 600 WOG",
+    "description": "Full-port brass ball valve, 3/4 in FPT x FPT, 600 WOG, chrome-plated ball, for domestic water supply isolation.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "valves"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "material-mep-plumbing-valves-ball-valve-1in-brass-fpt",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Valves",
+    "csiDivision": "22",
+    "csiSection": "22 05 23",
+    "name": "Ball valve, 1 in, brass, full-port, FPT x FPT, 600 WOG",
+    "description": "Full-port brass ball valve, 1 in FPT x FPT, 600 WOG, for main shutoffs and branch isolation on water supply.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "valves"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 32,
+    "id": "material-mep-plumbing-valves-ball-valve-1-1-4in-brass-fpt",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Valves",
+    "csiDivision": "22",
+    "csiSection": "22 05 23",
+    "name": "Ball valve, 1-1/4 in, brass, full-port, FPT x FPT, 600 WOG",
+    "description": "Full-port brass ball valve, 1-1/4 in FPT x FPT, 600 WOG, for larger branch lines on domestic water systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "valves"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 42,
+    "id": "material-mep-plumbing-valves-ball-valve-1-1-2in-brass-fpt",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Valves",
+    "csiDivision": "22",
+    "csiSection": "22 05 23",
+    "name": "Ball valve, 1-1/2 in, brass, full-port, FPT x FPT, 600 WOG",
+    "description": "Full-port brass ball valve, 1-1/2 in FPT x FPT, 600 WOG, for building main shutoff and larger branch isolation.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "valves"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 58,
+    "id": "material-mep-plumbing-valves-ball-valve-2in-brass-fpt",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Valves",
+    "csiDivision": "22",
+    "csiSection": "22 05 23",
+    "name": "Ball valve, 2 in, brass, full-port, FPT x FPT, 600 WOG",
+    "description": "Full-port brass ball valve, 2 in FPT x FPT, 600 WOG, for building water mains and larger service lines.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "valves"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-mep-plumbing-valves-pressure-relief-valve-30psi",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Valves",
+    "csiDivision": "22",
+    "csiSection": "22 34 00",
+    "name": "Pressure relief valve, 30 PSI, 3/4 in, bronze, ASME-rated",
+    "description": "ASME-rated bronze pressure relief valve, 3/4 in, 30 PSI set point, for water heater and vessel protection.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "valves",
+      "safety"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "id": "material-mep-plumbing-valves-pressure-relief-valve-150psi",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Valves",
+    "csiDivision": "22",
+    "csiSection": "22 34 00",
+    "name": "Pressure relief valve, 150 PSI, 3/4 in, bronze, ASME-rated",
+    "description": "ASME-rated bronze pressure/temperature relief valve, 3/4 in, 150 PSI set, for heating systems and boilers.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "valves",
+      "safety"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 42,
+    "id": "material-mep-plumbing-valves-expansion-tank-2gal-potable",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Valves",
+    "csiDivision": "22",
+    "csiSection": "22 33 30",
+    "name": "Expansion tank, potable water, 2 gal, steel, bladder type, NSF",
+    "description": "NSF-certified bladder-type potable water expansion tank, 2 gal, for domestic hot water system pressure control.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "expansion tank"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "id": "material-mep-plumbing-valves-expansion-tank-4-5gal-potable",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Valves",
+    "csiDivision": "22",
+    "csiSection": "22 33 30",
+    "name": "Expansion tank, potable water, 4.5 gal, steel, bladder, NSF-rated",
+    "description": "NSF-certified bladder potable water expansion tank, 4.5 gal, for larger domestic hot water system installations.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "expansion tank"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-mep-plumbing-valves-water-hammer-arrestor-c-3-4in",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Valves",
+    "csiDivision": "22",
+    "csiSection": "22 05 29",
+    "name": "Water hammer arrestor, size C, 3/4 in FIP, ASSE 1010, PDI-rated",
+    "description": "ASSE 1010-listed PDI size C water hammer arrestor, 3/4 in FIP for 11-20 fixture unit branch lines.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "water hammer"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "material-mep-plumbing-valves-water-hammer-arrestor-d-1in",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Valves",
+    "csiDivision": "22",
+    "csiSection": "22 05 29",
+    "name": "Water hammer arrestor, size D, 1 in FIP, ASSE 1010, PDI-rated",
+    "description": "ASSE 1010-listed PDI size D water hammer arrestor, 1 in FIP for 21-45 fixture unit branch lines.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "water hammer"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "id": "material-mep-plumbing-valves-gate-valve-1-2in-brass-full-port",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Valves",
+    "csiDivision": "22",
+    "csiSection": "22 05 23",
+    "name": "Gate valve, 1/2 in, brass, full-port, FPT x FPT, non-rising stem",
+    "description": "Full-port brass gate valve, 1/2 in FPT x FPT, non-rising stem, for water supply system zone isolation.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "valves"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 16,
+    "id": "material-mep-plumbing-valves-check-valve-3-4in-brass-swing",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Valves",
+    "csiDivision": "22",
+    "csiSection": "22 05 23",
+    "name": "Check valve, 3/4 in, brass, swing-type, FPT x FPT, 200 WOG",
+    "description": "Swing-type brass check valve, 3/4 in FPT x FPT, 200 WOG, for backflow prevention on water supply lines.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "valves",
+      "backflow"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 68,
+    "id": "material-mep-plumbing-valves-pressure-reducing-3-4in-gauge",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Valves",
+    "csiDivision": "22",
+    "csiSection": "22 05 23",
+    "name": "Pressure reducing valve, 3/4 in, with gauge, 25-75 PSI adjust",
+    "description": "Bronze PRV, 3/4 in, with integral pressure gauge, adjustable 25-75 PSI, for domestic water service pressure control.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "valves",
+      "PRV"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "id": "material-mep-drains-floor-drain-cast-iron-6in-4in-round",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Drain Bodies",
+    "csiDivision": "22",
+    "csiSection": "22 13 19",
+    "name": "Floor drain, cast iron, 6 in body, 4 in round strainer, trap primer",
+    "description": "Cast iron floor drain, 6 in body, with 4 in round strainer, trap primer connection, and sediment bucket.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "floor drain"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 42,
+    "id": "material-mep-drains-shower-drain-chrome-4in-tile-flange",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Drain Bodies",
+    "csiDivision": "22",
+    "csiSection": "22 13 19",
+    "name": "Shower drain, chrome, 4 in, adjustable, with tile-in flange",
+    "description": "Adjustable chrome shower drain, 4 in outlet, with tile-in strainer and seepage collar, for shower bases.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "shower drain"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 125,
+    "id": "material-mep-drains-area-drain-cast-iron-12x12",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Drain Bodies",
+    "csiDivision": "22",
+    "csiSection": "22 13 19",
+    "name": "Area drain, cast iron, 12 in x 12 in, with grate, 4 in outlet",
+    "description": "Cast iron area drain body, 12 in x 12 in, with ductile iron grate, 4 in no-hub outlet for exterior drainage.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "area drain"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 145,
+    "id": "material-mep-drains-roof-drain-cast-iron-3in-dome",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Drain Bodies",
+    "csiDivision": "22",
+    "csiSection": "22 14 26",
+    "name": "Roof drain, cast iron, 3 in outlet, 8 in dome, with gravel stop",
+    "description": "Cast iron roof drain, 3 in no-hub outlet, 8 in diameter dome strainer, gravel stop, for flat roof applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "roof drain"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "id": "material-mep-drains-roof-drain-cast-iron-4in-12in-dome",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Drain Bodies",
+    "csiDivision": "22",
+    "csiSection": "22 14 26",
+    "name": "Roof drain, cast iron, 4 in outlet, 12 in dome, with sump receiver",
+    "description": "Cast iron roof drain, 4 in no-hub outlet, 12 in dome, integral sump receiver and gravel stop, flat roof use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "roof drain"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-mep-drains-cleanout-pvc-4in-plug-cover",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Drain Bodies",
+    "csiDivision": "22",
+    "csiSection": "22 13 16",
+    "name": "Cleanout, PVC, 4 in, plug-type, with cast iron access cover",
+    "description": "PVC 4 in cleanout body with plug-type cap and round cast iron floor access cover, for underground sanitary.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "cleanout"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-mep-drains-p-trap-abs-1-1-2in-with-cleanout",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Drain Bodies",
+    "csiDivision": "22",
+    "csiSection": "22 13 16",
+    "name": "P-trap, ABS, 1-1/2 in, with cleanout plug, standard pattern",
+    "description": "ABS standard P-trap, 1-1/2 in, with cleanout plug, for lavatory, bar sink, and 1-1/2 in fixture applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "P-trap"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "material-mep-drains-floor-drain-pvc-4in-square-top",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Drain Bodies",
+    "csiDivision": "22",
+    "csiSection": "22 13 19",
+    "name": "Floor drain body, PVC, 4 in outlet, square top, adjustable collar",
+    "description": "PVC floor drain with 4 in outlet, adjustable collar, square PVC grate top, for interior slab-on-grade use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "floor drain"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "id": "material-mep-drains-trap-primer-3-4in-auto",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Drain Bodies",
+    "csiDivision": "22",
+    "csiSection": "22 13 19",
+    "name": "Trap primer, 3/4 in supply line, automatic, pressure differential",
+    "description": "Automatic trap primer, 3/4 in supply connection, pressure-differential type, for floor drain trap maintenance.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "trap primer"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "id": "material-mep-drains-backwater-valve-pvc-4in-access-lid",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Drain Bodies",
+    "csiDivision": "22",
+    "csiSection": "22 13 16",
+    "name": "Backwater valve, PVC, 4 in, inline, with access frame and lid",
+    "description": "PVC inline backwater valve, 4 in, with removable access frame and lid for cleanout, for sanitary sewer protection.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "backwater valve"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-mep-fire-protection-upright-sprinkler-1-2in-155f",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Fire Protection",
+    "csiDivision": "21",
+    "csiSection": "21 13 13",
+    "name": "Upright sprinkler head, 1/2 in orifice, 155°F, chrome, standard",
+    "description": "UL-listed upright sprinkler head, 1/2 in orifice, 155°F fusible link, chrome finish, standard coverage.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "fire protection",
+      "sprinkler"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-mep-fire-protection-pendant-sprinkler-1-2in-155f",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Fire Protection",
+    "csiDivision": "21",
+    "csiSection": "21 13 13",
+    "name": "Pendant sprinkler head, 1/2 in orifice, 155°F, chrome, concealed",
+    "description": "UL-listed pendant sprinkler head, 1/2 in orifice, 155°F, with concealed cover plate, standard response.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "fire protection",
+      "sprinkler"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 48,
+    "id": "material-mep-fire-protection-dry-pendant-1-2in-165f",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Fire Protection",
+    "csiDivision": "21",
+    "csiSection": "21 13 13",
+    "name": "Dry pendant sprinkler head, 1/2 in, 165°F, for unheated spaces",
+    "description": "UL-listed dry pendant sprinkler, 1/2 in orifice, 165°F, for unheated attics and walk-in coolers, 4 in stem.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "fire protection",
+      "sprinkler"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-mep-fire-protection-cpvc-branch-3-4in-10ft",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Fire Protection",
+    "csiDivision": "21",
+    "csiSection": "21 13 13",
+    "name": "CPVC fire sprinkler branch pipe, 3/4 in, 10 ft length, listed",
+    "description": "UL-listed CPVC fire sprinkler branch pipe, 3/4 in, 10 ft length, orange, for wet-pipe systems, CTS type.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "fire protection",
+      "CPVC pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "id": "material-mep-fire-protection-cpvc-branch-1in-10ft",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Fire Protection",
+    "csiDivision": "21",
+    "csiSection": "21 13 13",
+    "name": "CPVC fire sprinkler branch pipe, 1 in, 10 ft length, UL-listed",
+    "description": "UL-listed CPVC fire sprinkler branch pipe, 1 in, 10 ft length, orange color-coded, for wet-pipe systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "fire protection",
+      "CPVC pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-mep-fire-protection-grooved-steel-main-2in-10ft",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Fire Protection",
+    "csiDivision": "21",
+    "csiSection": "21 13 13",
+    "name": "Grooved steel pipe, 2 in, schedule 10, 10 ft, fire sprinkler main",
+    "description": "Schedule 10 steel pipe, 2 in, 10 ft, roll-grooved ends, for grooved coupling fire sprinkler main systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "fire protection",
+      "steel pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "id": "material-mep-fire-protection-grooved-steel-main-4in-10ft",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Fire Protection",
+    "csiDivision": "21",
+    "csiSection": "21 13 13",
+    "name": "Grooved steel pipe, 4 in, schedule 10, 10 ft, fire sprinkler main",
+    "description": "Schedule 10 steel pipe, 4 in, 10 ft, roll-grooved ends, for larger fire sprinkler mains with grooved fittings.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "fire protection",
+      "steel pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-mep-fire-protection-grooved-coupling-2in-flexible",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Fire Protection",
+    "csiDivision": "21",
+    "csiSection": "21 13 13",
+    "name": "Grooved coupling, 2 in, flexible, with gasket and bolts, per pair",
+    "description": "Victaulic-style flexible grooved coupling, 2 in, with EPDM gasket and nuts/bolts, pair for pipe joining.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "fire protection",
+      "grooved coupling"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 38,
+    "id": "material-mep-fire-protection-grooved-coupling-4in-rigid",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Fire Protection",
+    "csiDivision": "21",
+    "csiSection": "21 13 13",
+    "name": "Grooved coupling, 4 in, rigid, with gasket and bolts, per pair",
+    "description": "Victaulic-style rigid grooved coupling, 4 in, with EPDM gasket and nuts/bolts, for rigid fire main joints.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "fire protection",
+      "grooved coupling"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 68,
+    "id": "material-mep-fire-protection-alarm-pull-station-red",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Fire Alarm",
+    "csiDivision": "28",
+    "csiSection": "28 31 11",
+    "name": "Fire alarm pull station, red, single-action, surface-mount, addressable",
+    "description": "Addressable single-action fire alarm pull station, red, surface-mount, UL-listed, for fire alarm systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "fire alarm",
+      "fire protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "id": "material-mep-fire-protection-smoke-detector-photoelectric-4wire",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Fire Alarm",
+    "csiDivision": "28",
+    "csiSection": "28 31 11",
+    "name": "Smoke detector, photoelectric, 4-wire, ceiling-mount, addressable",
+    "description": "Addressable photoelectric smoke detector, 4-wire, ceiling-mount, with base, UL-listed for fire alarm systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "fire alarm",
+      "smoke detector"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 48,
+    "id": "material-mep-fire-protection-heat-detector-135f-fixed",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Fire Alarm",
+    "csiDivision": "28",
+    "csiSection": "28 31 11",
+    "name": "Heat detector, 135°F fixed-temp, ceiling-mount, addressable, UL",
+    "description": "Addressable fixed-temperature heat detector, 135°F, ceiling-mount with base, UL-listed for fire alarm systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "fire alarm",
+      "heat detector"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "id": "material-mep-fire-protection-sprinkler-escutcheon-chrome",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Fire Protection",
+    "csiDivision": "21",
+    "csiSection": "21 13 13",
+    "name": "Sprinkler head escutcheon plate, chrome, recessed, 2-piece set",
+    "description": "Two-piece chrome recessed escutcheon plate for concealed pendant sprinkler heads, adjustable depth range.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "fire protection",
+      "sprinkler"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-mep-fire-protection-sprinkler-head-wrench-ss",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Fire Protection",
+    "csiDivision": "21",
+    "csiSection": "21 13 13",
+    "name": "Sprinkler head installation wrench, stainless steel, multi-pattern",
+    "description": "Stainless steel sprinkler head wrench, multi-pattern, for installation and removal without cracking sprinkler.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "fire protection",
+      "tools"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 38,
+    "id": "material-mep-fire-protection-bell-alarm-6in-chrome",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Fire Alarm",
+    "csiDivision": "28",
+    "csiSection": "28 31 11",
+    "name": "Bell alarm, 6 in, chrome, surface-mount, 24V DC, polarized",
+    "description": "Surface-mounted 24V DC polarized bell alarm, 6 in, chrome, for fire alarm annunciation in commercial buildings.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "fire alarm",
+      "notification"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "id": "material-mep-low-voltage-cat6-cable-1000ft-blue-plenum",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Low-Voltage",
+    "csiDivision": "27",
+    "csiSection": "27 15 00",
+    "name": "Cat6 network cable, 1,000 ft box, blue, plenum-rated, CMP",
+    "description": "CMP-rated plenum Cat6 Ethernet cable, 1,000 ft pull box, blue jacket, for in-ceiling data network runs.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX"
+    ],
+    "tags": [
+      "mep materials",
+      "low voltage",
+      "data",
+      "Cat6"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "id": "material-mep-low-voltage-rg6-coax-500ft-box-white",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Low-Voltage",
+    "csiDivision": "27",
+    "csiSection": "27 15 00",
+    "name": "RG6 coaxial cable, 500 ft box, white, quad-shielded, CL2 rated",
+    "description": "Quad-shielded RG6 coaxial cable, 500 ft box, white, CL2-rated, for cable TV and satellite distribution.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX"
+    ],
+    "tags": [
+      "mep materials",
+      "low voltage",
+      "coax",
+      "cable TV"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "material-mep-low-voltage-data-outlet-box-single-gang-keystone",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Low-Voltage",
+    "csiDivision": "27",
+    "csiSection": "27 15 00",
+    "name": "Data outlet box, single-gang, 1-port keystone, 20A, recessed",
+    "description": "Single-gang recessed data outlet box, 1-port keystone insert, 20A decorator power combo, white, low-voltage ring.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "low voltage",
+      "data outlet"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "id": "material-mep-low-voltage-structured-wiring-panel-14in",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Low-Voltage",
+    "csiDivision": "27",
+    "csiSection": "27 11 00",
+    "name": "Structured wiring panel, 14 in, with buss bar and mounting plate",
+    "description": "Structured media center panel, 14 in, with buss bar, cable management ring, for residential/light commercial.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "low voltage",
+      "structured wiring"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "id": "material-mep-low-voltage-keystone-jack-cat6-white-110",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Low-Voltage",
+    "csiDivision": "27",
+    "csiSection": "27 15 00",
+    "name": "Keystone jack, Cat6, white, 110-style punchdown, T568A/B wiring",
+    "description": "Cat6 keystone jack, 110-style punchdown, T568A/B dual-mode, white, for data outlet plate installation.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "low voltage",
+      "Cat6",
+      "keystone"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "id": "material-mep-low-voltage-patch-panel-24port-cat6-1u",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Low-Voltage",
+    "csiDivision": "27",
+    "csiSection": "27 11 00",
+    "name": "24-port Cat6 patch panel, 1U rackmount, with port labels, 110-type",
+    "description": "24-port Cat6 1U rackmount patch panel, 110-type punchdown, with numbered port labels, for data rooms.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "low voltage",
+      "patch panel",
+      "Cat6"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "id": "material-mep-low-voltage-hdmi-wall-plate-2port-white",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Low-Voltage",
+    "csiDivision": "27",
+    "csiSection": "27 15 00",
+    "name": "HDMI wall plate, 2-port keystone, single-gang, white, feed-through",
+    "description": "Single-gang white HDMI wall plate, 2-port feed-through keystone, for AV wall outlet installations.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "low voltage",
+      "AV",
+      "HDMI"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2,
+    "id": "material-mep-low-voltage-mounting-bracket-single-gang",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Low-Voltage",
+    "csiDivision": "27",
+    "csiSection": "27 15 00",
+    "name": "Low-voltage mounting bracket, single-gang, plastic, old-work, adjustable",
+    "description": "Old-work plastic single-gang low-voltage mounting bracket for cable pass-through plates, adjustable depth.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "low voltage",
+      "mounting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "id": "material-mep-low-voltage-cable-staple-1-4in-insulated-100pk",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Low-Voltage",
+    "csiDivision": "27",
+    "csiSection": "27 15 00",
+    "name": "Cable staple, 1/4 in, insulated, coaxial/Cat type, 100-pack",
+    "description": "Insulated cable staple, 1/4 in, 100-pack, for securing Cat5e/Cat6 and coax cables without damaging jacket.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "low voltage",
+      "cable management"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "id": "material-mep-low-voltage-cable-sleeve-split-1-2in-6ft",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Low-Voltage",
+    "csiDivision": "27",
+    "csiSection": "27 15 00",
+    "name": "Cable sleeve, 1/2 in, split-loom, black, 6 ft length, flexible",
+    "description": "Split-loom flexible cable sleeve, 1/2 in, black, 6 ft, for bundling and protecting low-voltage cable runs.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "low voltage",
+      "cable management"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 68,
+    "id": "material-mep-hvac-controls-zone-board-4zone-24v-hydronic",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "HVAC Controls",
+    "csiDivision": "23",
+    "csiSection": "23 09 23",
+    "name": "Zone control board, 4-zone, 24V, hydronic heating system",
+    "description": "Four-zone 24V hydronic heating zone control board with zone status LEDs and transformer terminal, wall-mount.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "HVAC",
+      "controls",
+      "zone"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "id": "material-mep-hvac-controls-damper-actuator-24v-spring-return",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "HVAC Controls",
+    "csiDivision": "23",
+    "csiSection": "23 09 23",
+    "name": "Damper actuator, 24V AC/DC, spring-return, 35 in-lb torque, auto",
+    "description": "Floating or on/off 24V AC/DC spring-return damper actuator, 35 in-lb torque, for HVAC zone damper control.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "HVAC",
+      "controls",
+      "damper actuator"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 145,
+    "id": "material-mep-hvac-controls-economizer-controller-24v",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "HVAC Controls",
+    "csiDivision": "23",
+    "csiSection": "23 09 23",
+    "name": "Economizer controller, 24V, 4-wire, enthalpy-based, outdoor reset",
+    "description": "Enthalpy-based economizer controller, 24V, 4-wire, with outdoor air and mixed air sensors for AHU economizers.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "HVAC",
+      "controls",
+      "economizer"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 285,
+    "id": "material-mep-hvac-controls-vfd-drive-1hp-208-230v-3phase",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "HVAC Controls",
+    "csiDivision": "23",
+    "csiSection": "23 05 13",
+    "name": "VFD drive, 1 HP, 208-230V, 3-phase, NEMA 1, for HVAC fans/pumps",
+    "description": "Variable frequency drive (VFD), 1 HP, 208-230V 3-phase, NEMA 1 enclosure, for HVAC fan and pump speed control.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "HVAC",
+      "controls",
+      "VFD"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "id": "material-mep-hvac-controls-duct-pressure-sensor-0-1in-wc",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "HVAC Controls",
+    "csiDivision": "23",
+    "csiSection": "23 09 23",
+    "name": "Duct static pressure sensor, 0-1.0 in WC, 24V, 4-20 mA output",
+    "description": "24V duct static pressure sensor, 0-1.0 in W.C. range, 4-20 mA output, for VAV and AHU pressure control.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "HVAC",
+      "controls",
+      "pressure sensor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "id": "material-mep-hvac-controls-thermostat-7day-programmable-24v",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "HVAC Controls",
+    "csiDivision": "23",
+    "csiSection": "23 09 23",
+    "name": "Room thermostat, 7-day programmable, 24V, heat/cool, backlit LCD",
+    "description": "24V 7-day programmable thermostat, heat/cool, backlit LCD, for residential and light commercial HVAC systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "HVAC",
+      "controls",
+      "thermostat"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "id": "material-mep-hvac-controls-oat-sensor-10k-thermistor",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "HVAC Controls",
+    "csiDivision": "23",
+    "csiSection": "23 09 23",
+    "name": "Outside air temperature sensor, 10K thermistor, weather-resistant",
+    "description": "Weather-resistant outdoor air temperature sensor, 10K ohm NTC thermistor, for HVAC outside air reset control.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "HVAC",
+      "controls",
+      "sensor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "id": "material-mep-hvac-controls-humidistat-duct-24v-adjustable",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "HVAC Controls",
+    "csiDivision": "23",
+    "csiSection": "23 09 23",
+    "name": "Humidistat, duct-mount, 24V, adjustable 20-90% RH, SPDT output",
+    "description": "Duct-mount humidistat, 24V, SPDT output, adjustable 20-90% RH setpoint, for dehumidification control.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "HVAC",
+      "controls",
+      "humidistat"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 75,
+    "id": "material-mep-hvac-controls-low-limit-freeze-stat-15ft",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "HVAC Controls",
+    "csiDivision": "23",
+    "csiSection": "23 09 23",
+    "name": "Low-limit freeze protection stat, duct, 15 ft capillary, 35°F trip",
+    "description": "Duct-mount freeze protection thermostat, 15 ft averaging capillary, 35°F trip point, for AHU coil protection.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "HVAC",
+      "controls",
+      "freeze protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-mep-hvac-controls-control-transformer-75va-120-24v",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "HVAC Controls",
+    "csiDivision": "23",
+    "csiSection": "23 05 13",
+    "name": "Control transformer, 75 VA, 120V primary / 24V secondary, HVAC",
+    "description": "HVAC control transformer, 75 VA, 120V primary to 24V secondary, with circuit breaker protection, Class 2.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "HVAC",
+      "controls",
+      "transformer"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 285,
+    "id": "material-mep-fixtures-floor-mount-urinal-vitreous-china",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Fixtures",
+    "csiDivision": "22",
+    "csiSection": "22 42 00",
+    "name": "Floor-mount urinal, vitreous china, white, standard flush valve",
+    "description": "Floor-mounted vitreous china urinal, white, standard siphon-jet with flushometer valve connection, ADA available.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "fixtures",
+      "urinal"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "id": "material-mep-fixtures-mop-sink-polypropylene-24x24x10",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Fixtures",
+    "csiDivision": "22",
+    "csiSection": "22 42 00",
+    "name": "Mop sink, polypropylene, 24 in x 24 in x 10 in, floor-mount",
+    "description": "Floor-mounted polypropylene mop sink, 24 in x 24 in x 10 in, with drain and hose bracket, no faucet.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "fixtures",
+      "mop sink"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 345,
+    "id": "material-mep-fixtures-service-sink-wall-hung-stainless",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Fixtures",
+    "csiDivision": "22",
+    "csiSection": "22 42 00",
+    "name": "Service sink, wall-hung, stainless, 24 in x 20 in, no faucet",
+    "description": "Wall-hung stainless steel service/slop sink, 24 in x 20 in, 16 gauge, with drain and wall brackets.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "fixtures",
+      "service sink"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-mep-fixtures-ice-maker-supply-line-braided-6ft",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Fixtures",
+    "csiDivision": "22",
+    "csiSection": "22 42 00",
+    "name": "Ice maker supply line, braided stainless, 6 ft, 1/4 in, with valve",
+    "description": "Braided stainless steel ice maker supply line, 6 ft, 1/4 in, with compression fitting and inline shutoff valve.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "fixtures",
+      "appliance"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "material-mep-fixtures-dishwasher-supply-kit-3-8in",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Fixtures",
+    "csiDivision": "22",
+    "csiSection": "22 42 00",
+    "name": "Dishwasher supply kit, 3/8 in angle stop and braided supply line set",
+    "description": "Dishwasher connection kit, 3/8 in compression angle stop valve with 72 in braided SS supply line, no drain hose.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "fixtures",
+      "dishwasher"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 95,
+    "id": "material-mep-fixtures-laundry-tub-polypropylene-23x18",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Fixtures",
+    "csiDivision": "22",
+    "csiSection": "22 42 00",
+    "name": "Laundry tub, polypropylene, 23 in x 18 in x 12 in, utility sink",
+    "description": "Freestanding polypropylene utility/laundry tub, 23 in x 18 in x 12 in, with legs and drain strainer.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "fixtures",
+      "laundry"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 38,
+    "id": "material-mep-fixtures-utility-faucet-lever-1-2in-chrome",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Fixtures",
+    "csiDivision": "22",
+    "csiSection": "22 42 00",
+    "name": "Utility faucet, lever handle, 1/2 in FIP, chrome, single-hole",
+    "description": "Chrome single-hole utility faucet, lever handle, 1/2 in FIP inlets, for laundry tubs and service sinks.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "fixtures",
+      "faucet"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "material-mep-fixtures-hose-bibb-brass-3-4in-vacuum-breaker",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Fixtures",
+    "csiDivision": "22",
+    "csiSection": "22 42 00",
+    "name": "Hose bibb, brass, 3/4 in FIP, with integral vacuum breaker, sillcock",
+    "description": "Brass sillcock with integral vacuum breaker, 3/4 in FIP connection, for exterior hose bibb installations.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "fixtures",
+      "hose bibb"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 68,
+    "id": "material-mep-fixtures-mixing-valve-thermostatic-1-2in-asse1016",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Fixtures",
+    "csiDivision": "22",
+    "csiSection": "22 42 00",
+    "name": "Thermostatic mixing valve, 1/2 in, ASSE 1016, for lavatory",
+    "description": "ASSE 1016-compliant thermostatic mixing valve, 1/2 in, adjustable 85-120°F, for ADA scald protection.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "fixtures",
+      "mixing valve"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 145,
+    "id": "material-mep-fixtures-backflow-rpz-3-4in-reduced-pressure",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing Fixtures",
+    "csiDivision": "22",
+    "csiSection": "22 11 23",
+    "name": "Backflow preventer, reduced-pressure zone, 3/4 in, USC listed",
+    "description": "USC FCCCHR-listed reduced pressure zone backflow preventer (RPZ), 3/4 in, for high-hazard cross connection.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "backflow",
+      "RPZ"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "id": "material-mep-pipe-fittings-ss-flex-connector-3-4x18in",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Pipe and Fittings",
+    "csiDivision": "22",
+    "csiSection": "22 11 16",
+    "name": "Stainless flex connector, 3/4 in FIP x FIP, 18 in, corrugated",
+    "description": "Corrugated stainless steel flexible connector, 3/4 in FIP x FIP, 18 in length, for water heater connections.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "flex connector"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-mep-pipe-fittings-press-fit-coupling-1in-copper",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Pipe and Fittings",
+    "csiDivision": "22",
+    "csiSection": "22 11 16",
+    "name": "Press-fit coupling, 1 in, copper, XL Press, full coupling",
+    "description": "XL Press-type copper press-fit full coupling, 1 in, EPDM O-ring, UL-listed, for tool-press plumbing joints.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "press fit",
+      "copper"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "id": "material-mep-pipe-fittings-push-connect-tee-1-2in",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Pipe and Fittings",
+    "csiDivision": "22",
+    "csiSection": "22 11 16",
+    "name": "Push-to-connect tee, 1/2 in, brass, for copper/CPVC/PEX, SharkBite",
+    "description": "SharkBite-compatible push-to-connect tee, 1/2 in, brass body, for copper, CPVC, or PEX pipe connections.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "push connect"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "id": "material-mep-pipe-fittings-copper-tee-1-2in-solder-type-l",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Pipe and Fittings",
+    "csiDivision": "22",
+    "csiSection": "22 11 16",
+    "name": "Copper tee, 1/2 in, solder-joint, type L, wrought copper, standard",
+    "description": "Wrought copper solder-joint tee, 1/2 in, type L, for domestic water branch connections per ASTM B75.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "copper fittings"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "id": "material-mep-pipe-fittings-copper-elbow-90-3-4in-type-l",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Pipe and Fittings",
+    "csiDivision": "22",
+    "csiSection": "22 11 16",
+    "name": "Copper elbow, 90 degree, 3/4 in, solder-joint, type L wrought",
+    "description": "Wrought copper 90-degree elbow, 3/4 in solder-joint, type L, for domestic water direction changes.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "copper fittings"
+    ]
   }
 ]

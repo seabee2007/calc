@@ -2575,5 +2575,1148 @@
       "utility",
       "drainage"
     ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "id": "material-sitework-traffic-control-delineator-post-36in-orange",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Traffic Control",
+    "csiDivision": "31",
+    "csiSection": "31 68 13",
+    "name": "Delineator post, flexible, 36 in, orange, with reflective collar",
+    "description": "Flexible orange delineator post, 36 in tall, with 4 in reflective collar, for construction zone lane delineation.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "traffic control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-sitework-traffic-control-channelizer-post-42in-weighted",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Traffic Control",
+    "csiDivision": "31",
+    "csiSection": "31 68 13",
+    "name": "Channelizer post, orange, 42 in, with 20 lb weighted rubber base",
+    "description": "Orange channelizer post, 42 in, with 20 lb rubber weighted base, for temporary lane channelization.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "traffic control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-sitework-traffic-control-temp-pavement-marking-white-4in",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Traffic Control",
+    "csiDivision": "31",
+    "csiSection": "31 68 13",
+    "name": "Temporary pavement marking tape, white, 4 in x 100 ft, removable",
+    "description": "Removable white temporary pavement marking tape, 4 in x 100 ft, for construction zone lane markings.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "LF"
+    ],
+    "tags": [
+      "sitework",
+      "traffic control",
+      "pavement marking"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-sitework-traffic-control-temp-pavement-marking-yellow-4in",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Traffic Control",
+    "csiDivision": "31",
+    "csiSection": "31 68 13",
+    "name": "Temporary pavement marking tape, yellow, 4 in x 100 ft, removable",
+    "description": "Removable yellow temporary pavement marking tape, 4 in x 100 ft, for construction zone centerline marking.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "LF"
+    ],
+    "tags": [
+      "sitework",
+      "traffic control",
+      "pavement marking"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "id": "material-sitework-traffic-control-rumble-strip-rubber-10ft",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Traffic Control",
+    "csiDivision": "31",
+    "csiSection": "31 68 13",
+    "name": "Rumble strip, portable rubber, 10 ft section, yellow, lane-mount",
+    "description": "Portable rubber rumble strip, 10 ft section, yellow, for speed reduction in construction zones, bolt-down.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "traffic control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "material-sitework-traffic-control-speed-limit-sign-25mph-temp",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Traffic Control",
+    "csiDivision": "31",
+    "csiSection": "31 68 13",
+    "name": "Speed limit sign, temporary, 25 MPH, orange, MUTCD-compliant",
+    "description": "MUTCD-compliant temporary orange speed limit sign, 25 MPH, 24 in x 24 in, for construction zone speed control.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "traffic control",
+      "signage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-sitework-traffic-control-flagger-paddle-stop-slow-18in",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Traffic Control",
+    "csiDivision": "31",
+    "csiSection": "31 68 13",
+    "name": "Flagger paddle, STOP/SLOW, aluminum, 18 in, OSHA-compliant",
+    "description": "OSHA-compliant aluminum STOP/SLOW flagger paddle, 18 in, with 6 ft orange stake for one-way traffic control.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "traffic control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "id": "material-sitework-traffic-control-drum-channelizer-36in-orange",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Traffic Control",
+    "csiDivision": "31",
+    "csiSection": "31 68 13",
+    "name": "Drum channelizer, orange, 36 in, with weighted base and reflectors",
+    "description": "Orange channelizer drum, 36 in, with weighted poly base and ASTM Type III reflective sheeting strips.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "traffic control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-sitework-traffic-control-lane-marking-stake-24in",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Traffic Control",
+    "csiDivision": "31",
+    "csiSection": "31 68 13",
+    "name": "Temporary lane-marking stake, aluminum, 24 in, reflective orange top",
+    "description": "Aluminum temporary lane-marking stake, 24 in, with fluorescent orange reflective top, for lane delineation.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "traffic control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2850,
+    "id": "material-sitework-traffic-control-arrow-board-trailer-led-small",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Traffic Control",
+    "csiDivision": "31",
+    "csiSection": "31 68 13",
+    "name": "Traffic arrow board, trailer-mounted, LED, small, 3 x 5 matrix",
+    "description": "Solar-powered LED arrow board trailer, 3 x 5 matrix, 25+ mph visibility, for directional traffic control.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "traffic control",
+      "arrow board"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-sitework-utilities-gas-service-main-2in-steel-lf",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Site Utilities",
+    "csiDivision": "33",
+    "csiSection": "33 51 23",
+    "name": "Gas service main, 2 in, steel, Schedule 40, coated, per LF",
+    "description": "Schedule 40 coated steel natural gas service main, 2 in, per LF including joints, for underground gas service.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF"
+    ],
+    "tags": [
+      "sitework",
+      "site utilities",
+      "gas"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 68,
+    "id": "material-sitework-utilities-junction-box-12x12-precast-concrete",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Site Utilities",
+    "csiDivision": "33",
+    "csiSection": "33 05 17",
+    "name": "Junction box, 12 in x 12 in x 6 in, precast concrete, with cover",
+    "description": "Precast concrete electrical junction box, 12 in x 12 in x 6 in, with cast iron knockout cover, for underground.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "site utilities",
+      "electrical"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 38,
+    "id": "material-sitework-utilities-pull-box-polymer-6x10",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Site Utilities",
+    "csiDivision": "33",
+    "csiSection": "33 05 17",
+    "name": "Pull box, polymer concrete, 6 in x 10 in, with cover, stackable",
+    "description": "Polymer concrete pull box, 6 in x 10 in, stackable, with polymer cover, for underground electrical and telecom.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "site utilities",
+      "electrical"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "id": "material-sitework-utilities-hand-hole-cover-composite-12x18",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Site Utilities",
+    "csiDivision": "33",
+    "csiSection": "33 05 17",
+    "name": "Hand hole cover, composite, 12 in x 18 in, tier-15, traffic-rated",
+    "description": "Tier-15 traffic-rated composite hand hole cover, 12 in x 18 in, for utility vault and pull box access.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "site utilities"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "id": "material-sitework-utilities-valve-box-10in-round-cast-iron",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Site Utilities",
+    "csiDivision": "33",
+    "csiSection": "33 11 13",
+    "name": "Valve box, 10 in round, cast iron lid, adjustable, for water valves",
+    "description": "Cast iron top-section valve box, 10 in round, adjustable extension, with cast iron lid for water valve access.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "site utilities",
+      "water"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 145,
+    "id": "material-sitework-utilities-meter-pit-precast-18in-dia",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Site Utilities",
+    "csiDivision": "33",
+    "csiSection": "33 11 13",
+    "name": "Meter pit, precast concrete, 18 in diameter, with cast iron lid",
+    "description": "Precast concrete water meter pit, 18 in diameter, with cast iron lid, for residential meter installation.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "site utilities",
+      "water meter"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "material-sitework-utilities-conduit-sleeve-pvc-4in-sch40-10ft",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Site Utilities",
+    "csiDivision": "33",
+    "csiSection": "33 05 29",
+    "name": "Conduit sleeve, PVC, 4 in, schedule 40, 10 ft length, for trenching",
+    "description": "Schedule 40 PVC conduit sleeve, 4 in, 10 ft, for underground electrical conduit in trench installations.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "site utilities",
+      "conduit"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 42,
+    "id": "material-sitework-utilities-poly-pipe-1in-hdpe-100psi-100ft",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Site Utilities",
+    "csiDivision": "33",
+    "csiSection": "33 11 19",
+    "name": "Poly pipe, 1 in, HDPE, 100 PSI, 100 ft coil, for water service",
+    "description": "HDPE poly water service pipe, 1 in, 100 PSI, 100 ft coil, NSF-certified for potable water underground service.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "LF"
+    ],
+    "tags": [
+      "sitework",
+      "site utilities",
+      "water service"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "id": "material-sitework-utilities-curb-stop-1in-brass-with-key",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Site Utilities",
+    "csiDivision": "33",
+    "csiSection": "33 11 13",
+    "name": "Curb stop shutoff, 1 in, brass, with operating key, plug type",
+    "description": "Plug-type brass curb stop shutoff valve, 1 in, with T-bar operating key, for buried water service shutoff.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "site utilities",
+      "water"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-sitework-utilities-electrical-pull-tape-500ft-nylon",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Site Utilities",
+    "csiDivision": "33",
+    "csiSection": "33 05 17",
+    "name": "Electrical pull tape, 1/8 in x 500 ft, nylon, 250 lb tensile",
+    "description": "Nylon fish/pull tape, 1/8 in x 500 ft, 250 lb tensile strength, for conduit cable pulling in site utilities.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "site utilities",
+      "electrical"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-sitework-irrigation-auto-valve-box-9x14-green",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Landscaping Irrigation",
+    "csiDivision": "32",
+    "csiSection": "32 84 23",
+    "name": "Automatic valve box, 9 in x 14 in, green, plastic, with cover",
+    "description": "Plastic irrigation valve box, 9 in x 14 in, green with black cover, for buried automatic control valves.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "irrigation"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-sitework-irrigation-isolation-ball-valve-1in-pvc",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Landscaping Irrigation",
+    "csiDivision": "32",
+    "csiSection": "32 84 23",
+    "name": "Isolation ball valve, 1 in, PVC, schedule 40, socket x socket",
+    "description": "PVC schedule 40 ball valve, 1 in, socket x socket, for irrigation system zone isolation and main shutoff.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "irrigation",
+      "valves"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "id": "material-sitework-irrigation-backflow-preventer-3-4in-double",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Landscaping Irrigation",
+    "csiDivision": "32",
+    "csiSection": "32 84 23",
+    "name": "Backflow preventer, 3/4 in, double-check, PVC, with isolation valves",
+    "description": "Double-check backflow preventer, 3/4 in, PVC body with isolation valves, for irrigation system cross-connection.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "irrigation",
+      "backflow"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "id": "material-sitework-irrigation-popup-spray-head-4in-180deg",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Landscaping Irrigation",
+    "csiDivision": "32",
+    "csiSection": "32 84 23",
+    "name": "Pop-up spray head, 4 in, 180° pattern, plastic, 15 ft radius",
+    "description": "Plastic pop-up spray head, 4 in height, 180° pattern, 15 ft radius, for lawn and groundcover irrigation.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "irrigation",
+      "spray head"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-sitework-irrigation-popup-rotor-head-4in-adjustable",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Landscaping Irrigation",
+    "csiDivision": "32",
+    "csiSection": "32 84 23",
+    "name": "Pop-up rotor head, 4 in, adjustable 40-360°, 30 ft radius, plastic",
+    "description": "Plastic pop-up rotor sprinkler head, 4 in, adjustable arc 40-360°, 30 ft radius, for turf irrigation.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "irrigation",
+      "rotor head"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-sitework-irrigation-soaker-hose-1-2in-rubber-50ft",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Landscaping Irrigation",
+    "csiDivision": "32",
+    "csiSection": "32 84 23",
+    "name": "Soaker hose, 1/2 in, rubber, 50 ft coil, for drip irrigation",
+    "description": "Porous rubber soaker hose, 1/2 in, 50 ft coil, for slow deep watering in planting beds and vegetable gardens.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "irrigation",
+      "drip"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1,
+    "id": "material-sitework-irrigation-drip-emitter-1gph-pressure-comp",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Landscaping Irrigation",
+    "csiDivision": "32",
+    "csiSection": "32 84 23",
+    "name": "Drip emitter, 1 GPH, pressure-compensating, barbed, each",
+    "description": "Pressure-compensating drip emitter, 1 GPH, barbed inlet for 1/4 in drip tubing, for individual plant watering.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "irrigation",
+      "drip emitter"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "id": "material-sitework-irrigation-controller-8zone-outdoor-120v",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Landscaping Irrigation",
+    "csiDivision": "32",
+    "csiSection": "32 84 23",
+    "name": "Irrigation controller, 8-zone, outdoor, 120V, with rain bypass port",
+    "description": "8-zone outdoor irrigation controller, 120V, with rain sensor bypass port and 3 program schedules.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "irrigation",
+      "controller"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 38,
+    "id": "material-sitework-irrigation-rain-sensor-wireless-bracket",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Landscaping Irrigation",
+    "csiDivision": "32",
+    "csiSection": "32 84 23",
+    "name": "Rain sensor, wireless, adjustable, with mounting bracket, WI-listed",
+    "description": "Wireless rain sensor for irrigation systems, adjustable 1/8-3/4 in rainfall shutoff, with bracket, WI-listed.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "irrigation",
+      "rain sensor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "material-sitework-irrigation-poly-main-1in-class200-100ft",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Landscaping Irrigation",
+    "csiDivision": "32",
+    "csiSection": "32 84 23",
+    "name": "Poly irrigation main, 1 in, class 200, 100 ft coil, HDPE",
+    "description": "HDPE class 200 poly irrigation main line, 1 in, 100 ft coil, for subsurface mainline distribution.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "LF"
+    ],
+    "tags": [
+      "sitework",
+      "irrigation",
+      "poly pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 485,
+    "id": "material-sitework-furnishings-park-bench-recycled-plastic-6ft",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Site Furnishings",
+    "csiDivision": "32",
+    "csiSection": "32 93 43",
+    "name": "Park bench, recycled plastic, 6 ft, hunter green, surface-anchor",
+    "description": "Recycled plastic lumber park bench, 6 ft, hunter green, surface-anchor mount with stainless anchor bolts.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "site furnishings",
+      "bench"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "id": "material-sitework-furnishings-bike-rack-powder-coat-5bike",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Site Furnishings",
+    "csiDivision": "32",
+    "csiSection": "32 93 43",
+    "name": "Bike rack, inverted-U, powder coat, 5-bike capacity, galvanized steel",
+    "description": "Galvanized steel inverted-U bike rack, powder coat finish, 5-bike capacity, surface-mount with anchor bolts.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "site furnishings",
+      "bike rack"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 485,
+    "id": "material-sitework-furnishings-litter-receptacle-concrete-35gal",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Site Furnishings",
+    "csiDivision": "32",
+    "csiSection": "32 93 43",
+    "name": "Litter receptacle, precast concrete, 35 gal liner, ADA-height",
+    "description": "Precast concrete litter receptacle, 35 gal galvanized liner, ADA accessible height, for exterior public spaces.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "site furnishings",
+      "receptacle"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 850,
+    "id": "material-sitework-furnishings-picnic-table-precast-concrete-8ft",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Site Furnishings",
+    "csiDivision": "32",
+    "csiSection": "32 93 43",
+    "name": "Picnic table, precast concrete, 8 ft, standard, with benches",
+    "description": "Precast concrete picnic table, 8 ft, standard style with two attached benches, ground-anchor or set-in-place.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "site furnishings",
+      "picnic table"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "id": "material-sitework-furnishings-bollard-steel-6in-42in-concrete",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Site Furnishings",
+    "csiDivision": "32",
+    "csiSection": "32 39 23",
+    "name": "Bollard, steel pipe, 6 in OD, 42 in, concrete-fill, powder coat",
+    "description": "Steel pipe bollard, 6 in OD, 42 in height above grade, concrete-filled, powder coat finish, embedded.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "site furnishings",
+      "bollard"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 685,
+    "id": "material-sitework-furnishings-flagpole-aluminum-25ft-internal",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Site Furnishings",
+    "csiDivision": "10",
+    "csiSection": "10 75 13",
+    "name": "Flagpole, aluminum, 25 ft, internal halyard, 5 in butt, direct-embed",
+    "description": "Sectional aluminum flagpole, 25 ft, 5 in butt diameter, internal halyard, for direct-embed foundation.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "site furnishings",
+      "flagpole"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 285,
+    "id": "material-sitework-furnishings-planter-box-concrete-24x48",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Site Furnishings",
+    "csiDivision": "32",
+    "csiSection": "32 93 43",
+    "name": "Planter box, precast concrete, 24 in x 48 in x 18 in, sealed",
+    "description": "Sealed precast concrete planter box, 24 in x 48 in x 18 in, with drainage holes, for exterior landscaping.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "site furnishings",
+      "planter"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "id": "material-sitework-furnishings-dog-waste-station-with-bags",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Site Furnishings",
+    "csiDivision": "32",
+    "csiSection": "32 93 43",
+    "name": "Dog waste station, steel post-mount, with bag dispenser and lid",
+    "description": "Steel dog waste station, post-mount, with refillable bag dispenser, liner, and lid, powder coat brown.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "site furnishings",
+      "dog waste"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "id": "material-sitework-fencing-chainlink-fabric-6x50-9ga-galv",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Fencing",
+    "csiDivision": "32",
+    "csiSection": "32 31 13",
+    "name": "Chain link fence fabric, 6 ft x 50 ft roll, 9 gauge, galvanized",
+    "description": "Galvanized 9-gauge chain link fence fabric, 6 ft tall x 50 ft roll, 2 in mesh, for permanent site fencing.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "LF"
+    ],
+    "tags": [
+      "sitework",
+      "fencing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "id": "material-sitework-fencing-barbed-wire-2strand-1320ft-galv",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Fencing",
+    "csiDivision": "32",
+    "csiSection": "32 31 13",
+    "name": "Barbed wire, 2-strand, 12.5 gauge galvanized, 1,320 ft spool",
+    "description": "Galvanized 2-strand barbed wire, 12.5 gauge, 1,320 ft (1/4 mile) spool, for fence top security applications.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "LF"
+    ],
+    "tags": [
+      "sitework",
+      "fencing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "id": "material-sitework-fencing-privacy-slat-aluminum-50ft-roll",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Fencing",
+    "csiDivision": "32",
+    "csiSection": "32 31 13",
+    "name": "Privacy fence slat, aluminum, for chain link, 50 ft roll, brown",
+    "description": "Aluminum privacy slat insert, 50 ft roll, for 9-gauge 2 in chain link fence, brown powder coat finish.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "LF"
+    ],
+    "tags": [
+      "sitework",
+      "fencing",
+      "privacy"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "id": "material-sitework-fencing-gate-hardware-kit-latch-hinges",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Fencing",
+    "csiDivision": "32",
+    "csiSection": "32 31 13",
+    "name": "Fence gate hardware kit, latch, hinges, and closer, per gate set",
+    "description": "Complete gate hardware kit, includes two heavy-duty hinges, spring closer, gate latch, for chain link walk gates.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "fencing",
+      "gate hardware"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-sitework-fencing-tension-band-3-8in-bolt-type-10pk",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Fencing",
+    "csiDivision": "32",
+    "csiSection": "32 31 13",
+    "name": "Tension band, 3/8 in bolt-type, galvanized, 10-pack, chain link",
+    "description": "Galvanized bolt-type chain link fence tension bands, 3/8 in, 10-pack, for terminal post fabric attachment.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "fencing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "material-sitework-fencing-post-galv-2-3-8in-x-8ft",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Fencing",
+    "csiDivision": "32",
+    "csiSection": "32 31 13",
+    "name": "Fence post, galvanized steel, 2-3/8 in OD x 8 ft, line post type",
+    "description": "Galvanized steel chain link fence line post, 2-3/8 in OD x 8 ft, for permanent fence panel support.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "fencing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-sitework-fencing-top-rail-galv-1-5-8in-21ft",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Fencing",
+    "csiDivision": "32",
+    "csiSection": "32 31 13",
+    "name": "Fence top rail, galvanized, 1-5/8 in x 21 ft, chain link, snap-end",
+    "description": "Galvanized snap-end top rail for chain link fencing, 1-5/8 in OD x 21 ft, for 6 ft fence installations.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "fencing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "id": "material-sitework-fencing-tie-wire-6ga-aluminum-25pk",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Fencing",
+    "csiDivision": "32",
+    "csiSection": "32 31 13",
+    "name": "Fence tie wire, 6 gauge aluminum, pre-formed loop, 25-pack",
+    "description": "Pre-formed aluminum tie wires, 6 gauge, 25-pack, for attaching chain link fabric to posts and rails.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "fencing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "id": "material-sitework-soil-monitor-settlement-marker-rod-5ft",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Soil Monitoring",
+    "csiDivision": "31",
+    "csiSection": "31 09 16",
+    "name": "Settlement marker rod, galvanized steel, 5 ft, threaded coupling",
+    "description": "Galvanized steel settlement monitoring rod, 5 ft, threaded coupling for extension, for ground settlement tracking.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "soil monitoring",
+      "geotechnical"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "material-sitework-soil-monitor-survey-monument-disk-usgs",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Soil Monitoring",
+    "csiDivision": "31",
+    "csiSection": "31 09 16",
+    "name": "Survey monument disk, aluminum, 3.25 in, USGS type, cast-set",
+    "description": "Standard USGS-type aluminum survey monument disk, 3.25 in diameter, for embedding in concrete monuments.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "soil monitoring",
+      "surveying"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "id": "material-sitework-soil-monitor-helical-ground-anchor-6ft",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Soil Monitoring",
+    "csiDivision": "31",
+    "csiSection": "31 09 16",
+    "name": "Helical ground anchor, 6 ft, 2 in helix, galvanized, soil anchor",
+    "description": "Galvanized helical ground anchor, 6 ft shaft, 2 in helix plate, for temporary earth anchoring and monitoring.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "soil monitoring",
+      "geotechnical"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "id": "material-sitework-soil-monitor-inclinometer-casing-abs-5ft",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Soil Monitoring",
+    "csiDivision": "31",
+    "csiSection": "31 09 16",
+    "name": "Inclinometer casing, ABS, 2.5 in OD, 5 ft section, with grooves",
+    "description": "ABS inclinometer casing section, 2.5 in OD, 5 ft length with longitudinal grooves, for slope stability monitoring.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "sitework",
+      "soil monitoring",
+      "geotechnical"
+    ]
   }
 ]

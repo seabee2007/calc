@@ -1,0 +1,647 @@
+[
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 850,
+    "id": "equipment-gen-cond-site-office-trailer-8x20",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Site Facilities",
+    "csiDivision": "01",
+    "csiSection": "01 52 00",
+    "name": "Site office trailer, 8 ft x 20 ft, prefab, with electrical setup",
+    "description": "Prefabricated 8 ft x 20 ft site office trailer with electrical hookup, heat/AC, for construction site use.",
+    "unit": "month",
+    "commonUnits": [
+      "month",
+      "week"
+    ],
+    "cost": 850,
+    "tags": [
+      "general conditions",
+      "site office",
+      "temporary facilities"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "id": "equipment-gen-cond-storage-container-20ft-steel",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Site Facilities",
+    "csiDivision": "01",
+    "csiSection": "01 52 00",
+    "name": "Storage container, 20 ft, steel, weatherproof, lockable",
+    "description": "Standard 20 ft steel ISO shipping container for tool and material storage, weatherproof with lockbox door hasp.",
+    "unit": "month",
+    "commonUnits": [
+      "month",
+      "week"
+    ],
+    "cost": 185,
+    "tags": [
+      "general conditions",
+      "storage container",
+      "temporary facilities"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 145,
+    "id": "equipment-gen-cond-generator-diesel-20kw-portable",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Temporary Power",
+    "csiDivision": "01",
+    "csiSection": "01 51 13",
+    "name": "Generator, diesel, 20 kW, portable, 120/240V, single-phase",
+    "description": "Portable diesel generator, 20 kW, 120/240V single-phase, with weatherproof enclosure for construction power.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 145,
+    "tags": [
+      "general conditions",
+      "generator",
+      "temporary power"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 285,
+    "id": "equipment-gen-cond-generator-diesel-50kw-portable",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Temporary Power",
+    "csiDivision": "01",
+    "csiSection": "01 51 13",
+    "name": "Generator, diesel, 50 kW, portable, 120/208V, three-phase",
+    "description": "Portable diesel generator, 50 kW, 120/208V three-phase, with load bank and weatherproof housing.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 285,
+    "tags": [
+      "general conditions",
+      "generator",
+      "temporary power"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 485,
+    "id": "equipment-gen-cond-generator-diesel-100kw-portable",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Temporary Power",
+    "csiDivision": "01",
+    "csiSection": "01 51 13",
+    "name": "Generator, diesel, 100 kW, towable, 120/208V, three-phase",
+    "description": "Towable diesel generator, 100 kW, 120/208V three-phase, enclosed with sound attenuation and fuel tank.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 485,
+    "tags": [
+      "general conditions",
+      "generator",
+      "temporary power"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 125,
+    "id": "equipment-gen-cond-light-tower-diesel-4head",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Lighting",
+    "csiDivision": "01",
+    "csiSection": "01 52 00",
+    "name": "Light tower, diesel, 4-head metal halide, towable, 6,000W total",
+    "description": "Diesel towable light tower, four 1500W metal halide heads, 30 ft mast, 6,000 W total, for nighttime work.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 125,
+    "tags": [
+      "general conditions",
+      "light tower",
+      "lighting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 285,
+    "id": "equipment-gen-cond-water-tank-500gal-potable",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Temporary Water",
+    "csiDivision": "01",
+    "csiSection": "01 51 00",
+    "name": "Potable water tank, 500 gal, poly, with pump and filtration",
+    "description": "Polyethylene potable water storage tank, 500 gal, with submersible pump and filtration, for construction water.",
+    "unit": "month",
+    "commonUnits": [
+      "month",
+      "week"
+    ],
+    "cost": 285,
+    "tags": [
+      "general conditions",
+      "water tank",
+      "temporary water"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 385,
+    "id": "equipment-gen-cond-dumpster-10cy-open-top",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Waste Management",
+    "csiDivision": "01",
+    "csiSection": "01 74 19",
+    "name": "Dumpster, 10 CY, open-top roll-off, construction debris",
+    "description": "Ten cubic yard open-top roll-off dumpster for construction debris, includes delivery, pickup, and one dump.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 385,
+    "tags": [
+      "general conditions",
+      "dumpster",
+      "waste management"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 485,
+    "id": "equipment-gen-cond-dumpster-20cy-open-top",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Waste Management",
+    "csiDivision": "01",
+    "csiSection": "01 74 19",
+    "name": "Dumpster, 20 CY, open-top roll-off, construction debris",
+    "description": "Twenty cubic yard open-top roll-off dumpster for construction debris, includes delivery, pickup, and one dump.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 485,
+    "tags": [
+      "general conditions",
+      "dumpster",
+      "waste management"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 125,
+    "id": "equipment-gen-cond-portable-restroom-standard",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Site Facilities",
+    "csiDivision": "01",
+    "csiSection": "01 52 00",
+    "name": "Portable restroom, standard, single unit, weekly serviced",
+    "description": "Standard single-unit portable toilet with weekly cleaning service, ABS construction, for construction sites.",
+    "unit": "month",
+    "commonUnits": [
+      "month",
+      "week"
+    ],
+    "cost": 125,
+    "tags": [
+      "general conditions",
+      "portable restroom",
+      "sanitation"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "id": "equipment-gen-cond-portable-restroom-ada",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Site Facilities",
+    "csiDivision": "01",
+    "csiSection": "01 52 00",
+    "name": "Portable restroom, ADA-accessible, single unit, weekly serviced",
+    "description": "ADA-accessible portable restroom, larger floor plan, grab bar, ramp, with weekly cleaning service.",
+    "unit": "month",
+    "commonUnits": [
+      "month",
+      "week"
+    ],
+    "cost": 185,
+    "tags": [
+      "general conditions",
+      "portable restroom",
+      "sanitation",
+      "ADA"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "id": "equipment-gen-cond-propane-heater-150k-btu",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Temporary Climate",
+    "csiDivision": "01",
+    "csiSection": "01 52 00",
+    "name": "Temporary propane heater, 150K BTU, forced-air, construction type",
+    "description": "Forced-air propane construction heater, 150,000 BTU output, for heating enclosed spaces during construction.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 85,
+    "tags": [
+      "general conditions",
+      "temporary heat",
+      "climate control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "id": "equipment-gen-cond-electric-heater-240v-5kw",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Temporary Climate",
+    "csiDivision": "01",
+    "csiSection": "01 52 00",
+    "name": "Temporary electric heater, 240V, 5 kW, fan-forced, portable",
+    "description": "Portable fan-forced electric heater, 240V, 5 kW, for construction enclosures and temporary heating.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 55,
+    "tags": [
+      "general conditions",
+      "temporary heat",
+      "climate control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "equipment-gen-cond-industrial-fan-24in-portable",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Temporary Climate",
+    "csiDivision": "01",
+    "csiSection": "01 52 00",
+    "name": "Industrial fan, portable, 24 in, oscillating, 3-speed, 120V",
+    "description": "Portable 24 in industrial oscillating fan, 3-speed, 120V, for construction site air circulation and ventilation.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 28,
+    "tags": [
+      "general conditions",
+      "fan",
+      "ventilation"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "id": "equipment-gen-cond-evaporative-cooler-1800cfm",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Temporary Climate",
+    "csiDivision": "01",
+    "csiSection": "01 52 00",
+    "name": "Evaporative cooler, portable, 1,800 CFM, 110V, construction type",
+    "description": "Portable evaporative cooler, 1,800 CFM, 110V, for construction site cooling in dry climates.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 65,
+    "tags": [
+      "general conditions",
+      "evaporative cooler",
+      "climate control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 165,
+    "id": "equipment-gen-cond-air-compressor-185cfm-diesel-towable",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Compressed Air",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Air compressor, 185 CFM, diesel, towable, 100 PSI, for jackhammers",
+    "description": "Towable diesel air compressor, 185 CFM at 100 PSI, for pneumatic tools, jackhammers, and sandblasting.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 165,
+    "tags": [
+      "general conditions",
+      "air compressor",
+      "pneumatic"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 95,
+    "id": "equipment-gen-cond-pressure-washer-cold-3500psi-gas",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Cleaning Equipment",
+    "csiDivision": "01",
+    "csiSection": "01 74 23",
+    "name": "Pressure washer, cold water, 3,500 PSI, gas engine, 4 GPM",
+    "description": "Cold-water gas-engine pressure washer, 3,500 PSI, 4 GPM, for construction site cleaning and concrete washing.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 95,
+    "tags": [
+      "general conditions",
+      "pressure washer",
+      "cleaning"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "id": "equipment-gen-cond-pressure-washer-hot-3000psi-diesel",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Cleaning Equipment",
+    "csiDivision": "01",
+    "csiSection": "01 74 23",
+    "name": "Pressure washer, hot water, 3,000 PSI, diesel, 4 GPM skid",
+    "description": "Diesel hot-water pressure washer skid, 3,000 PSI, 4 GPM, for grease removal and equipment cleaning.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 185,
+    "tags": [
+      "general conditions",
+      "pressure washer",
+      "cleaning"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 325,
+    "id": "equipment-gen-cond-fuel-tank-300gal-diesel-with-pump",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Fueling",
+    "csiDivision": "01",
+    "csiSection": "01 52 00",
+    "name": "Fuel tank, 300 gal, diesel, skid-mounted, with pump and meter",
+    "description": "UL-listed 300 gal diesel fuel storage tank, skid-mounted, with 12V pump, digital meter, and nozzle.",
+    "unit": "month",
+    "commonUnits": [
+      "month",
+      "week"
+    ],
+    "cost": 325,
+    "tags": [
+      "general conditions",
+      "fuel",
+      "site facilities"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "id": "equipment-gen-cond-dewatering-pump-2in-electric-submersible",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Dewatering",
+    "csiDivision": "01",
+    "csiSection": "01 57 23",
+    "name": "Dewatering pump, 2 in, electric submersible, 115V, 7,200 GPH",
+    "description": "Electric submersible dewatering pump, 2 in discharge, 115V, 7,200 GPH, for construction trench dewatering.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 55,
+    "tags": [
+      "general conditions",
+      "dewatering pump",
+      "earthwork"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 285,
+    "id": "equipment-gen-cond-concrete-washout-portable-8x10",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Waste Management",
+    "csiDivision": "01",
+    "csiSection": "01 57 19",
+    "name": "Concrete washout portable container, 8 ft x 10 ft, liner included",
+    "description": "Portable concrete washout container, 8 ft x 10 ft, with puncture-resistant liner for concrete washout compliance.",
+    "unit": "month",
+    "commonUnits": [
+      "month",
+      "week"
+    ],
+    "cost": 285,
+    "tags": [
+      "general conditions",
+      "concrete washout",
+      "stormwater"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 245,
+    "id": "equipment-gen-cond-first-aid-station-large-floor-mount",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Safety Equipment",
+    "csiDivision": "01",
+    "csiSection": "01 35 29",
+    "name": "First aid station, large, floor-mounted, OSHA-compliant, steel",
+    "description": "Large floor-mounted steel first aid station, OSHA-compliant, stocked for 25 persons, with 16-unit cabinet.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 245,
+    "tags": [
+      "general conditions",
+      "first aid",
+      "safety"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1485,
+    "id": "equipment-gen-cond-aed-defibrillator-cabinet",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Safety Equipment",
+    "csiDivision": "01",
+    "csiSection": "01 35 29",
+    "name": "AED defibrillator, wall cabinet, OSHA-rated, with alarm, each",
+    "description": "Automatic External Defibrillator (AED) with alarmed wall cabinet, OSHA-rated, for construction site safety.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 1485,
+    "tags": [
+      "general conditions",
+      "AED",
+      "safety",
+      "first aid"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "id": "equipment-gen-cond-eye-wash-station-portable-16gal",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Safety Equipment",
+    "csiDivision": "01",
+    "csiSection": "01 35 29",
+    "name": "Eye wash station, portable, 16 gal, ANSI Z358.1, floor-mount",
+    "description": "ANSI Z358.1-compliant portable eyewash station, 16 gal capacity, floor-standing, for chemical exposure response.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 185,
+    "tags": [
+      "general conditions",
+      "eye wash",
+      "safety"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 245,
+    "id": "equipment-gen-cond-digital-weather-station-jobsite-solar",
+    "type": "equipment",
+    "category": "General Conditions Equipment",
+    "subcategory": "Monitoring",
+    "csiDivision": "01",
+    "csiSection": "01 52 00",
+    "name": "Digital weather station, jobsite, solar-powered, wireless display",
+    "description": "Solar-powered jobsite weather station with wireless indoor display, monitors wind, temp, humidity, and rain.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 245,
+    "tags": [
+      "general conditions",
+      "weather station",
+      "monitoring"
+    ]
+  }
+]

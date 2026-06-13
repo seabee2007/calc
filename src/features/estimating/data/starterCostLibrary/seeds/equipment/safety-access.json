@@ -1,0 +1,642 @@
+[
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "id": "equipment-safety-access-scaffold-frame-5x5-galvanized",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Scaffolding",
+    "csiDivision": "01",
+    "csiSection": "01 54 23",
+    "name": "Scaffold frame, 5 ft x 5 ft, galvanized steel, standard walk-through",
+    "description": "Galvanized steel walk-through scaffold frame, 5 ft wide x 5 ft tall, 1-5/8 in OD tube, OSHA-compliant.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 45,
+    "tags": [
+      "safety and access",
+      "scaffolding"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "equipment-safety-access-scaffold-cross-brace-7ft-pair",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Scaffolding",
+    "csiDivision": "01",
+    "csiSection": "01 54 23",
+    "name": "Scaffold cross brace, 7 ft, galvanized steel, with locking pins, pair",
+    "description": "Galvanized steel X cross braces for 5 ft wide scaffold frames, 7 ft span, with swivel-locking clevis pins.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 22,
+    "tags": [
+      "safety and access",
+      "scaffolding"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 68,
+    "id": "equipment-safety-access-scaffold-board-10ft-aluminum",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Scaffolding",
+    "csiDivision": "01",
+    "csiSection": "01 54 23",
+    "name": "Scaffold plank, aluminum, 10 ft, OSHA-rated, with hooks",
+    "description": "OSHA-rated aluminum scaffold plank, 10 ft, with steel end hooks, 75 PSF capacity for scaffold platforms.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 68,
+    "tags": [
+      "safety and access",
+      "scaffolding"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "id": "equipment-safety-access-scaffold-caster-8in-swivel-lock",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Scaffolding",
+    "csiDivision": "01",
+    "csiSection": "01 54 23",
+    "name": "Scaffold caster, 8 in, swivel-locking, steel, 1,500 lb capacity",
+    "description": "Heavy-duty swivel-locking scaffold caster, 8 in wheel, 1,500 lb capacity, with stem adapter for rolling towers.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 35,
+    "tags": [
+      "safety and access",
+      "scaffolding"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "id": "equipment-safety-access-rolling-scaffold-tower-6ft-platform",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Scaffolding",
+    "csiDivision": "01",
+    "csiSection": "01 54 23",
+    "name": "Rolling scaffold tower, 6 ft platform height, steel, with casters",
+    "description": "Complete rolling scaffold tower, 6 ft working platform height, steel frame, with four locking casters.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 45,
+    "tags": [
+      "safety and access",
+      "scaffolding",
+      "rolling tower"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "equipment-safety-access-extension-ladder-aluminum-24ft",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Ladders",
+    "csiDivision": "01",
+    "csiSection": "01 54 23",
+    "name": "Extension ladder, aluminum, 24 ft, Type IA, 300 lb capacity",
+    "description": "Aluminum extension ladder, 24 ft, Type IA, 300 lb capacity, non-conductive side rails, D-rung style.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 18,
+    "tags": [
+      "safety and access",
+      "ladders"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "equipment-safety-access-extension-ladder-fiberglass-32ft",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Ladders",
+    "csiDivision": "01",
+    "csiSection": "01 54 23",
+    "name": "Extension ladder, fiberglass, 32 ft, Type IA, 300 lb, non-conductive",
+    "description": "Fiberglass non-conductive extension ladder, 32 ft, Type IA, 300 lb capacity, for electrical work and heights.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 28,
+    "tags": [
+      "safety and access",
+      "ladders"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "equipment-safety-access-step-ladder-aluminum-8ft-type-ia",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Ladders",
+    "csiDivision": "01",
+    "csiSection": "01 54 23",
+    "name": "Step ladder, aluminum, 8 ft, Type IA, 300 lb, with pail shelf",
+    "description": "Aluminum step ladder, 8 ft, Type IA, 300 lb capacity, with tool tray/pail shelf, non-slip steps.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 12,
+    "tags": [
+      "safety and access",
+      "ladders"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "id": "equipment-safety-access-attic-ladder-aluminum-10ft-reach",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Ladders",
+    "csiDivision": "01",
+    "csiSection": "01 54 23",
+    "name": "Attic pull-down ladder, aluminum, 10 ft reach, 250 lb capacity",
+    "description": "Aluminum pull-down attic access ladder, 10 ft reach, 250 lb capacity, with insulated hatch door.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 185,
+    "tags": [
+      "safety and access",
+      "ladders",
+      "attic access"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "id": "equipment-safety-access-fall-harness-ansi-z359-full-body",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Fall Protection",
+    "csiDivision": "01",
+    "csiSection": "01 35 29",
+    "name": "Full-body fall arrest harness, ANSI Z359.1, 400 lb rated, universal",
+    "description": "ANSI Z359.1-compliant full-body fall arrest harness, 400 lb capacity, universal fit, back and chest D-rings.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 85,
+    "tags": [
+      "safety and access",
+      "fall protection",
+      "OSHA"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 265,
+    "id": "equipment-safety-access-self-retracting-lifeline-30ft",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Fall Protection",
+    "csiDivision": "01",
+    "csiSection": "01 35 29",
+    "name": "Self-retracting lifeline, 30 ft, galvanized cable, snap hook, OSHA",
+    "description": "ANSI Z359.14-compliant self-retracting lifeline (SRL), 30 ft galvanized wire rope, with dual-action snap hook.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 265,
+    "tags": [
+      "safety and access",
+      "fall protection",
+      "SRL"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 545,
+    "id": "equipment-safety-access-horizontal-lifeline-50ft-2anchor",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Fall Protection",
+    "csiDivision": "01",
+    "csiSection": "01 35 29",
+    "name": "Horizontal lifeline system, 50 ft, cable, 2-anchor, OSHA-rated",
+    "description": "Horizontal lifeline fall arrest system, 50 ft stainless cable, with two anchor points, energy absorber, OSHA.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 545,
+    "tags": [
+      "safety and access",
+      "fall protection",
+      "lifeline"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 68,
+    "id": "equipment-safety-access-roof-anchor-osha-single-user",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Fall Protection",
+    "csiDivision": "01",
+    "csiSection": "01 35 29",
+    "name": "Roof anchor point, OSHA-rated, single-user, D-ring, bolt-down type",
+    "description": "OSHA-compliant bolt-down roof anchor, single-user, 5,000 lb rated D-ring, for temporary fall protection.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 68,
+    "tags": [
+      "safety and access",
+      "fall protection",
+      "roof anchor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 145,
+    "id": "equipment-safety-access-portable-guardrail-10ft-steel",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Guardrails",
+    "csiDivision": "01",
+    "csiSection": "01 35 29",
+    "name": "Portable guardrail section, 10 ft, steel, OSHA 1926.502, freestanding",
+    "description": "OSHA 1926.502-compliant freestanding steel portable guardrail section, 10 ft, 42 in top rail height.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 145,
+    "tags": [
+      "safety and access",
+      "guardrails",
+      "fall protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "id": "equipment-safety-access-guardrail-freestanding-post-counter",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Guardrails",
+    "csiDivision": "01",
+    "csiSection": "01 35 29",
+    "name": "Guardrail freestanding post, counterweight base, adjustable height",
+    "description": "Freestanding guardrail post with counterweight base, adjustable 36-42 in height, for roof and floor edge work.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 85,
+    "tags": [
+      "safety and access",
+      "guardrails",
+      "fall protection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 285,
+    "id": "equipment-safety-access-steel-trench-plate-1in-4x8",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Trench Safety",
+    "csiDivision": "01",
+    "csiSection": "01 56 26",
+    "name": "Steel trench plate, 1 in x 4 ft x 8 ft, road plate, load-rated",
+    "description": "A36 steel road/trench plate, 1 in x 4 ft x 8 ft, HS-20 load rated, for spanning open excavations and trenches.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 285,
+    "tags": [
+      "safety and access",
+      "trench safety",
+      "road plate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "equipment-safety-access-traffic-cone-28in-nchrp-350",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Traffic Control",
+    "csiDivision": "01",
+    "csiSection": "01 55 26",
+    "name": "Traffic cone, 28 in, NCHRP 350-compliant, orange, 7 lb rubber base",
+    "description": "NCHRP 350-compliant orange traffic safety cone, 28 in tall, 7 lb rubber base, with 4 in reflective collar.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 12,
+    "tags": [
+      "safety and access",
+      "traffic control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "equipment-safety-access-traffic-cone-36in-with-collar",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Traffic Control",
+    "csiDivision": "01",
+    "csiSection": "01 55 26",
+    "name": "Traffic cone, 36 in, with reflective collar, orange, 10 lb base",
+    "description": "Tall 36 in orange traffic cone, 10 lb weighted base, with 4 in and 6 in reflective collars for roadway work.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 18,
+    "tags": [
+      "safety and access",
+      "traffic control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "id": "equipment-safety-access-channelizer-drum-orange-36in",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Traffic Control",
+    "csiDivision": "01",
+    "csiSection": "01 55 26",
+    "name": "Channelizer drum, orange, 36 in, weighted base, reflective sheeting",
+    "description": "Orange channelizer traffic drum, 36 in tall, weighted blow-moldable base, with ASTM Type III reflective bands.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 55,
+    "tags": [
+      "safety and access",
+      "traffic control"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "id": "equipment-safety-access-solar-message-board-trailer-led",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Traffic Control",
+    "csiDivision": "01",
+    "csiSection": "01 55 26",
+    "name": "Solar message board trailer, LED, 2-line, towable, programmable",
+    "description": "Solar-powered LED towable message board trailer, 2-line 15x7 matrix, 25+ miles visibility, programmable.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 185,
+    "tags": [
+      "safety and access",
+      "traffic control",
+      "message board"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "id": "equipment-safety-access-confined-space-blower-12in-electric",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Confined Space",
+    "csiDivision": "01",
+    "csiSection": "01 35 29",
+    "name": "Confined space blower, 12 in, electric, 1,650 CFM, OSHA-compliant",
+    "description": "OSHA 1926.1200-compliant confined space ventilation blower, 12 in, electric, 1,650 CFM with 25 ft flexible duct.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 45,
+    "tags": [
+      "safety and access",
+      "confined space",
+      "ventilation"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "id": "equipment-safety-access-4gas-clip-monitor-o2-co-h2s-lel",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Confined Space",
+    "csiDivision": "01",
+    "csiSection": "01 35 29",
+    "name": "4-gas clip monitor, O2/CO/H2S/LEL detector, audible alarm, OSHA",
+    "description": "Personal 4-gas clip detector, monitors O2/CO/H2S/LEL, audible and visual alarm, for confined space entry per OSHA.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 28,
+    "tags": [
+      "safety and access",
+      "confined space",
+      "gas detection"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "id": "equipment-safety-access-debris-safety-net-per-sf",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Fall Protection",
+    "csiDivision": "01",
+    "csiSection": "01 35 29",
+    "name": "Debris safety net, fire-resistant, per SF, ANSI A10.11-compliant",
+    "description": "ANSI A10.11-compliant fire-resistant debris containment safety net, per SF, for scaffold and building perimeters.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 3,
+    "tags": [
+      "safety and access",
+      "fall protection",
+      "debris net"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "id": "equipment-safety-access-aluminum-toe-board-4ft-osha",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Scaffolding",
+    "csiDivision": "01",
+    "csiSection": "01 54 23",
+    "name": "Aluminum toe board, 4 ft, OSHA 1926.502-compliant, with clips",
+    "description": "OSHA 1926.502-compliant aluminum scaffold toe board, 4 ft length, 3.5 in height, with swivel locking clips.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 22,
+    "tags": [
+      "safety and access",
+      "scaffolding",
+      "toe board"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "equipment-safety-access-caution-tape-3in-1000ft-yellow",
+    "type": "equipment",
+    "category": "Safety and Access Equipment",
+    "subcategory": "Barricades",
+    "csiDivision": "01",
+    "csiSection": "01 55 26",
+    "name": "Caution barrier tape, 3 in x 1000 ft roll, yellow/black, non-adhesive",
+    "description": "Non-adhesive caution barrier tape, 3 in x 1000 ft roll, yellow/black, for construction hazard demarcation.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "cost": 8,
+    "tags": [
+      "safety and access",
+      "barricades",
+      "safety"
+    ]
+  }
+]
