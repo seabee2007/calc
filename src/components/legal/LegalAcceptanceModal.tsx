@@ -51,7 +51,7 @@ const LegalAcceptanceModal: React.FC<LegalAcceptanceModalProps> = ({
     await signOut();
   };
 
-  const openLegalDocument = (path: '/terms' | '/privacy') => {
+  const openLegalDocument = (path: '/terms' | '/privacy-policy') => {
     window.open(path, '_blank', 'noopener,noreferrer');
   };
 
@@ -109,7 +109,7 @@ const LegalAcceptanceModal: React.FC<LegalAcceptanceModalProps> = ({
           </button>
           <button
             type="button"
-            onClick={() => openLegalDocument('/privacy')}
+            onClick={() => openLegalDocument('/privacy-policy')}
             className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/60 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700/80"
           >
             <Shield className="h-4 w-4 shrink-0 text-cyan-600 dark:text-cyan-400" />

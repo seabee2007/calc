@@ -11,6 +11,7 @@ import SiteBackground from './SiteBackground';
 import PageErrorBoundary from './PageErrorBoundary';
 import { COLOR_CANVAS_DARK, COLOR_CANVAS_LIGHT } from '../../theme/appTheme';
 import { usesPremiumCanvas } from '../../utils/premiumCanvasRoutes';
+import { isPublicLegalPath, usesPublicMarketingShell } from '../../utils/publicMarketingRoutes';
 
 const Layout: React.FC = () => {
   const location = useLocation();
@@ -34,6 +35,8 @@ const Layout: React.FC = () => {
     isPublicClientPortal;
 
   const isLoggedOutLanding = location.pathname === '/' && !user;
+  const isPublicLegalPage = isPublicLegalPath(location.pathname);
+  const useMarketingShell = usesPublicMarketingShell(location.pathname, isLoggedOutLanding);
   const premiumCanvas = usesPremiumCanvas(location.pathname);
 
   const showBottomNav =
@@ -113,17 +116,17 @@ const Layout: React.FC = () => {
   return (
     <div
       className={
-        isLoggedOutLanding
+        useMarketingShell
           ? 'auth-page-bg relative min-h-screen w-screen overflow-x-hidden text-white'
           : 'min-h-screen w-screen overflow-x-hidden bg-slate-50 dark:bg-slate-950'
       }
       style={{ paddingTop: 'env(safe-area-inset-top)' }}
     >
-      {!isLoggedOutLanding && (
+      {!useMarketingShell && (
         <SiteBackground forceDark={isLoggedOutLanding} solidCanvas={premiumCanvas} />
       )}
 
-      {isLoggedOutLanding ? (
+      {useMarketingShell ? (
         <div
           className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_75%_20%,rgba(27,166,181,0.18),transparent_34%)]"
           aria-hidden="true"
@@ -132,12 +135,15 @@ const Layout: React.FC = () => {
 
       {/* App content */}
       <div className="relative z-10 flex min-h-screen flex-col">
-        <Navbar showThemeToggle={!isLoggedOutLanding} softHeader={isLoggedOutLanding} />
+        <Navbar
+          showThemeToggle={!useMarketingShell}
+          softHeader={isLoggedOutLanding || (isPublicLegalPage && !user)}
+        />
 
         <main
           className={`relative mx-auto w-full flex-grow px-4 py-8 sm:px-6 lg:px-8 ${
             premiumCanvas ? 'max-w-[88rem]' : 'max-w-7xl'
-          }${isLoggedOutLanding ? ' text-white' : ''}`}
+          }${useMarketingShell ? ' text-white' : ''}`}
           style={{
             paddingLeft: 'max(env(safe-area-inset-left), 1rem)',
             paddingRight: 'max(env(safe-area-inset-right), 1rem)',

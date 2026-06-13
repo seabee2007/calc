@@ -20,6 +20,7 @@ import LegalAcceptanceGate from './components/legal/LegalAcceptanceGate';
 import { isLegalGateBypassRoute } from './utils/legalGateRoutes';
 import TermsPage from './pages/legal/TermsPage';
 import PrivacyPage from './pages/legal/PrivacyPage';
+import ContactPage from './pages/legal/ContactPage';
 import { ProposalService } from './lib/proposalService';
 import { seedTrackedProposalsCache } from './hooks/useTrackedProposals';
 import { soundService } from './services/soundService';
@@ -493,6 +494,10 @@ function App() {
               path="resources/external-resources"
               element={<LazyRoute Page={LazyExternalResources} />}
             />
+            <Route path="terms" element={<TermsPage />} />
+            <Route path="privacy-policy" element={<PrivacyPage />} />
+            <Route path="privacy" element={<PrivacyPage />} />
+            <Route path="contact" element={<ContactPage />} />
           </Route>
           <Route
             element={
@@ -557,8 +562,6 @@ function App() {
             <Route path="/employee/messages" element={<LazyRoute Page={LazyEmployeeMessagesPage} />} />
             <Route path="/employee/uploads" element={<LazyRoute Page={LazyEmployeeUploadsPage} />} />
           </Route>
-          <Route path="/terms" element={<TermsPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/proposal/:token" element={<LazyRoute Page={LazyPublicProposal} />} />
           <Route path="/change-order/:token" element={<LazyRoute Page={LazyPublicChangeOrder} />} />
           <Route path="/contract/:token" element={<LazyRoute Page={LazyPublicContract} />} />

@@ -4,7 +4,9 @@
  */
 const LEGAL_GATE_BYPASS_PREFIXES = [
   '/terms',
+  '/privacy-policy',
   '/privacy',
+  '/contact',
   '/proposal/',
   '/change-order/',
   '/contract/',

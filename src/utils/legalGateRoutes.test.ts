@@ -4,7 +4,9 @@ import { isLegalGateBypassRoute } from './legalGateRoutes';
 describe('isLegalGateBypassRoute', () => {
   it('allows public legal document routes without legal acceptance', () => {
     expect(isLegalGateBypassRoute('/terms')).toBe(true);
+    expect(isLegalGateBypassRoute('/privacy-policy')).toBe(true);
     expect(isLegalGateBypassRoute('/privacy')).toBe(true);
+    expect(isLegalGateBypassRoute('/contact')).toBe(true);
   });
 
   it('allows public proposal and client routes without legal acceptance', () => {

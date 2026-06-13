@@ -1,8 +1,4 @@
-import React, { useState } from 'react';
-import Modal from '../ui/Modal';
-import TermsOfService from '../legal/TermsOfService';
-import PrivacyPolicy from '../legal/PrivacyPolicy';
-import ContactUs from '../legal/ContactUs';
+import React from 'react';
 import { BRAND_NAME } from '../../config/brand';
 
 const legalLinkClassName =
@@ -10,9 +6,6 @@ const legalLinkClassName =
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
-  const [showTerms, setShowTerms] = useState(false);
-  const [showPrivacy, setShowPrivacy] = useState(false);
-  const [showContact, setShowContact] = useState(false);
 
   return (
     <footer
@@ -31,43 +24,35 @@ const Footer: React.FC = () => {
       <div className="relative mx-auto max-w-4xl">
         <img
           src="/images/ARDEN-removebg-preview.png"
-          alt="Arden Project OS"
+          alt={`${BRAND_NAME} logo`}
           className="mx-auto h-auto w-[240px] max-w-[80vw] object-contain drop-shadow-[0_8px_24px_rgba(0,0,0,0.45)] sm:w-[260px]"
         />
 
-        <p className="mt-3 text-sm text-slate-400 sm:text-base">Built for construction professionals.</p>
+        <p className="mt-3 text-sm text-slate-400 sm:text-base">
+          Built for construction professionals.
+        </p>
 
         <nav
           className="mt-6 flex flex-wrap items-center justify-center gap-x-10 gap-y-3 text-sm text-slate-400"
           aria-label="Legal"
         >
-          <button type="button" onClick={() => setShowTerms(true)} className={legalLinkClassName}>
+          <a href="/terms" className={legalLinkClassName}>
             Terms of Service
-          </button>
-          <button type="button" onClick={() => setShowPrivacy(true)} className={legalLinkClassName}>
+          </a>
+
+          <a href="/privacy-policy" className={legalLinkClassName}>
             Privacy Policy
-          </button>
-          <button type="button" onClick={() => setShowContact(true)} className={legalLinkClassName}>
+          </a>
+
+          <a href="/contact" className={legalLinkClassName}>
             Contact Us
-          </button>
+          </a>
         </nav>
 
         <div className="mt-6 border-t border-white/10 pt-4 text-xs text-slate-500">
           © {currentYear} {BRAND_NAME}. All rights reserved.
         </div>
       </div>
-
-      <Modal isOpen={showTerms} onClose={() => setShowTerms(false)} title="Terms of Service" size="lg">
-        <TermsOfService />
-      </Modal>
-
-      <Modal isOpen={showPrivacy} onClose={() => setShowPrivacy(false)} title="Privacy Policy" size="lg">
-        <PrivacyPolicy />
-      </Modal>
-
-      <Modal isOpen={showContact} onClose={() => setShowContact(false)} title="Contact Us" size="md">
-        <ContactUs />
-      </Modal>
     </footer>
   );
 };
