@@ -114,16 +114,25 @@ const Layout: React.FC = () => {
     <div
       className={
         isLoggedOutLanding
-          ? 'min-h-screen w-screen overflow-x-hidden bg-slate-950 text-white'
+          ? 'auth-page-bg relative min-h-screen w-screen overflow-x-hidden text-white'
           : 'min-h-screen w-screen overflow-x-hidden bg-slate-50 dark:bg-slate-950'
       }
       style={{ paddingTop: 'env(safe-area-inset-top)' }}
     >
-      <SiteBackground forceDark={isLoggedOutLanding} solidCanvas={premiumCanvas} />
+      {!isLoggedOutLanding && (
+        <SiteBackground forceDark={isLoggedOutLanding} solidCanvas={premiumCanvas} />
+      )}
+
+      {isLoggedOutLanding ? (
+        <div
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_75%_20%,rgba(27,166,181,0.18),transparent_34%)]"
+          aria-hidden="true"
+        />
+      ) : null}
 
       {/* App content */}
       <div className="relative z-10 flex min-h-screen flex-col">
-        <Navbar showThemeToggle={!isLoggedOutLanding} />
+        <Navbar showThemeToggle={!isLoggedOutLanding} softHeader={isLoggedOutLanding} />
 
         <main
           className={`relative mx-auto w-full flex-grow px-4 py-8 sm:px-6 lg:px-8 ${

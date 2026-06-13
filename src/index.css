@@ -25,6 +25,40 @@
 }
 
 @layer components {
+  .auth-page-bg {
+    background-color: #050b13;
+    background-image:
+      linear-gradient(90deg, rgba(5, 11, 19, 0.96) 0%, rgba(5, 11, 19, 0.76) 38%, rgba(5, 11, 19, 0.42) 72%, rgba(5, 11, 19, 0.48) 100%),
+      linear-gradient(180deg, rgba(5, 11, 19, 0.72) 0%, rgba(5, 11, 19, 0.12) 45%, rgba(5, 11, 19, 0.90) 100%),
+      linear-gradient(135deg, #0b1220 0%, #111827 42%, #0f172a 100%),
+      url('/images/arden-construction-bg.jpg');
+    background-repeat: no-repeat;
+    background-size: auto 110%;
+    background-position: right top;
+    background-attachment: fixed;
+  }
+
+  @media (min-width: 1536px) {
+    .auth-page-bg {
+      background-size: auto 105%;
+      background-position: right top;
+    }
+  }
+
+  @media (max-width: 1023px) {
+    .auth-page-bg {
+      background-attachment: scroll;
+      background-size: cover;
+      background-position: 72% top;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .auth-page-bg {
+      background-attachment: scroll;
+    }
+  }
+
   .auth-page input:-webkit-autofill,
   .auth-page input:-webkit-autofill:hover,
   .auth-page input:-webkit-autofill:focus,

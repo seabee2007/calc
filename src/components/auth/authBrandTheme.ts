@@ -16,7 +16,7 @@ export const AUTH_ACCENT = {
   glowOverlay:
     'bg-[radial-gradient(circle_at_70%_45%,rgba(34,211,238,0.18),transparent_30%),radial-gradient(circle_at_15%_20%,rgba(34,211,238,0.14),transparent_35%)]',
   authCard:
-    'relative rounded-[2rem] border border-white/10 bg-slate-950/70 p-8 shadow-2xl shadow-cyan-950/30 backdrop-blur-xl sm:p-10',
+    'relative rounded-[2rem] border border-white/10 bg-slate-900/65 p-8 shadow-2xl shadow-cyan-950/30 backdrop-blur-md sm:p-10',
   authCardGlow:
     'pointer-events-none absolute -inset-10 -z-10 rounded-[2rem] bg-cyan-500/10 blur-3xl',
   warningAlert: 'border-cyan-400/30 bg-cyan-500/10 text-cyan-100',

@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../ui/Button';
-import AuthPageBackground from './AuthPageBackground';
 import {
   AUTH_ACCENT,
   authInputClassName,
@@ -69,9 +68,11 @@ export default function AuthLayout({ title, subtitle, children }: AuthLayoutProp
   const navigate = useNavigate();
 
   return (
-    <main className="auth-page relative min-h-[100dvh] overflow-x-hidden overflow-y-auto text-white">
-      <AuthPageBackground />
-
+    <main className="auth-page auth-page-bg relative min-h-[100dvh] overflow-x-hidden overflow-y-auto text-white">
+      <div
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_75%_20%,rgba(27,166,181,0.18),transparent_34%)]"
+        aria-hidden="true"
+      />
       <div
         className="relative z-10 px-4 pb-10 pt-[max(1.25rem,env(safe-area-inset-top))] sm:px-6 lg:px-8"
         style={{

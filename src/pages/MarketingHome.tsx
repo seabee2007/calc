@@ -30,7 +30,7 @@ export default function MarketingHome() {
   return (
     <div className="mx-auto min-h-screen w-full max-w-6xl space-y-12 overflow-x-hidden pb-8 sm:space-y-16 sm:pb-12">
       <motion.section
-        className="relative overflow-hidden rounded-3xl border border-white/10 bg-slate-900/55 px-4 py-10 text-center shadow-2xl backdrop-blur-md sm:px-8 sm:py-14"
+        className="relative overflow-hidden rounded-3xl border border-white/10 bg-slate-900/65 px-4 py-10 text-center shadow-2xl backdrop-blur-md sm:px-8 sm:py-14"
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}

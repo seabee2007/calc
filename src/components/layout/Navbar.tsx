@@ -54,9 +54,10 @@ function sectionLabelForPath(pathname: string, search = ''): string {
 
 interface NavbarProps {
   showThemeToggle?: boolean;
+  softHeader?: boolean;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ showThemeToggle = true }) => {
+const Navbar: React.FC<NavbarProps> = ({ showThemeToggle = true, softHeader = false }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, profile, signOut, isOwner, isEmployee } = useAuth();
@@ -99,7 +100,11 @@ const Navbar: React.FC<NavbarProps> = ({ showThemeToggle = true }) => {
   return (
     <>
     <nav
-      className={`${APP_NAV_HEADER} fixed left-0 right-0 top-0 z-50 w-full`}
+      className={`${
+        softHeader
+          ? 'flex h-12 shrink-0 items-center justify-between gap-2 border-b border-white/10 bg-black/80 px-2 text-white backdrop-blur-md sm:gap-3 sm:px-4'
+          : APP_NAV_HEADER
+      } fixed left-0 right-0 top-0 z-50 w-full`}
       style={{ paddingTop: 'env(safe-area-inset-top)' }}
     >
       <div className="flex min-w-0 flex-1 items-center gap-1 sm:gap-2">
