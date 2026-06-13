@@ -27,8 +27,10 @@ const TAX_APPLICATION_OPTIONS: { value: TaxApplication; label: string }[] = [
   { value: 'entire_project', label: 'Entire Project' },
 ];
 
-const selectClass =
-  'w-full rounded-lg border border-slate-700 bg-slate-950/50 px-3 py-2 text-sm text-slate-100';
+const fieldLabelClass = 'mb-2 block text-sm font-medium text-slate-200';
+
+const fieldControlClass =
+  'no-number-spinner w-full h-12 rounded-lg border border-slate-700 bg-slate-950/50 px-3 text-sm text-slate-100 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50';
 
 const groupClass = 'rounded-xl border border-slate-700/70 bg-slate-950/40 p-4';
 const groupTitleClass = 'mb-3 text-sm font-semibold text-slate-100';
@@ -71,13 +73,11 @@ export default function PricingParamsEditor({
         <>
           <section className={groupClass}>
             <h4 className={groupTitleClass}>Cost adjustments</h4>
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-200">
-                  Waste factor
-                </label>
+                <label className={fieldLabelClass}>Waste factor</label>
                 <select
-                  className={selectClass}
+                  className={fieldControlClass}
                   value={String(params.wasteFactorPercent)}
                   onChange={(e) =>
                     set('wasteFactorPercent', Math.max(0, Number(e.target.value) || 0))
@@ -96,15 +96,13 @@ export default function PricingParamsEditor({
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-200">
-                  Contingency %
-                </label>
-                <div className="mb-2 flex flex-wrap gap-2">
+                <label className={fieldLabelClass}>Contingency %</label>
+                <div className="flex min-h-12 flex-wrap items-center gap-2">
                   {CONTINGENCY_PRESETS.map((p) => (
                     <button
                       key={p}
                       type="button"
-                      className={`rounded-md border px-3 py-1 text-sm font-medium ${
+                      className={`h-11 rounded-md border px-3 text-sm font-medium ${
                         params.contingencyPercent === p
                           ? 'border-cyan-500 bg-cyan-500 text-slate-950'
                           : 'border-slate-700 bg-slate-900 text-slate-100 hover:border-cyan-500/60'
@@ -115,17 +113,26 @@ export default function PricingParamsEditor({
                     </button>
                   ))}
                 </div>
-                <Input
-                  label="Custom contingency %"
+              </div>
+
+              <div>
+                <label className={fieldLabelClass} htmlFor="custom-contingency-percent">
+                  Custom contingency %
+                </label>
+                <input
+                  id="custom-contingency-percent"
                   type="number"
                   min={0}
                   step={0.5}
+                  className={fieldControlClass}
                   value={params.contingencyPercent}
                   onChange={(e) =>
                     set('contingencyPercent', Math.max(0, Number(e.target.value) || 0))
                   }
-                  fullWidth
                 />
+                <p className="mt-1 text-xs text-slate-500">
+                  Overrides the selected contingency preset when entered.
+                </p>
               </div>
             </div>
           </section>

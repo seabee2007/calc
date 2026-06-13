@@ -58,7 +58,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(({
   const widthStyle = fullWidth ? 'w-full' : '';
   
   // Combine all styles
-  const inputStyles = `${baseInputStyles} ${conditionalStyles} ${widthStyle} ${className}`;
+  const spinnerStyles = type === 'number' ? 'no-number-spinner' : '';
+  const inputStyles = `${baseInputStyles} ${conditionalStyles} ${widthStyle} ${spinnerStyles} ${className}`;
   
   // Label and container styles
   const containerStyles = `${fullWidth ? 'w-full' : ''} ${error ? 'text-red-900 dark:text-red-100' : TEXT_FOREGROUND}`;
