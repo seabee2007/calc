@@ -155,11 +155,15 @@ export function rollupConstructionActivity(
 
 /** Whether a line item lacks production-rate or man-hour data needed to price labor. */
 export function isLineItemUnpricedForLabor(item: ProjectActivityLineItem): boolean {
-  const hasProductionRateLink =
-    (typeof item.productionRateId === 'string' && item.productionRateId.length > 0) ||
-    (typeof item.sourceProductionRateKey === 'string' && item.sourceProductionRateKey.length > 0);
-  const hasManHoursRate = Number.isFinite(item.manHoursPerUnit) && item.manHoursPerUnit > 0;
-  return !hasProductionRateLink && !hasManHoursRate;
+  const hasSourceRateKey =
+    typeof item.sourceProductionRateKey === 'string' &&
+    item.sourceProductionRateKey.trim().length > 0;
+
+  const hasPositiveManHoursPerUnit =
+    Number.isFinite(item.manHoursPerUnit) &&
+    item.manHoursPerUnit > 0;
+
+  return !hasSourceRateKey || !hasPositiveManHoursPerUnit;
 }
 
 /** Specific validation messages for line item estimate completeness. */

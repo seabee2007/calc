@@ -98,3 +98,91 @@ export function scopeTextImpliesConcrete(scopeText: string): boolean {
     lower,
   );
 }
+
+const DIRECT_MATCHES: Record<string, string[]> = {
+  '03': ['concrete', 'slab', 'footing concrete', 'foundation concrete', 'rebar', 'formwork', 'sidewalk', 'driveway', 'curb', 'pad', 'anchor bolt', 'sill plate'],
+  '04': ['masonry', 'cmu', 'block', 'brick'],
+  '05': ['metal', 'steel', 'metal roof', 'structural steel'],
+  '06': ['wood', 'framing', 'carpentry', 'studs', 'sheathing', 'truss'],
+  '07': ['roof', 'insulation', 'waterproofing', 'moisture', 'flashing', 'house wrap', 'shingle'],
+  '08': ['doors', 'door', 'windows', 'window', 'openings', 'glazing'],
+  '09': ['paint', 'drywall', 'flooring', 'ceiling', 'finishes', 'finish', 'trim', 'texture'],
+  '22': ['plumbing', 'water line', 'sewer', 'toilet', 'sink'],
+  '23': ['hvac', 'air conditioning', 'duct', 'ventilation'],
+  '26': ['electrical', 'power', 'lighting', 'panel'],
+  '31': ['grading', 'excavation', 'excavate', 'earthwork', 'backfill', 'trenching', 'cleanup', 'debris', 'haul', 'cut', 'fill', 'subgrade', 'compaction', 'site prep', 'aggregate base', 'haul-off', 'spoil'],
+  '32': ['paving', 'sidewalk', 'curb', 'fence', 'landscaping', 'parking'],
+  '33': ['utility', 'utilities', 'storm', 'water service', 'sewer service'],
+};
+
+const BUILDING_SCOPE_PATTERN =
+  /\b(building|office|house|facility|structure|single-story|new build|residence|residential)\b/i;
+
+function findDirectMatch(code: string, scopeText: string): string | null {
+  const scope = scopeText.toLowerCase();
+  return DIRECT_MATCHES[code]?.find((term) => scope.includes(term)) ?? null;
+}
+
+/**
+ * Deterministic keyword inference for scope division suggestions.
+ * Mirrors supabase/functions/suggest-divisions-from-scope keyword fallback.
+ */
+export function inferDivisionsFromScopeKeywords(scopeText: string): string[] {
+  const lower = scopeText.toLowerCase();
+  const codes = new Set<string>(['01']);
+
+  if (/\b(remodel|renovation|renovate|addition|demolition|demo|existing|repair|replacement)\b/.test(lower)) {
+    codes.add('02');
+  }
+  if (scopeTextImpliesConcrete(scopeText)) {
+    codes.add('03');
+  }
+  if (/\b(masonry|cmu|block|brick|stone)\b/.test(lower)) {
+    codes.add('04');
+  }
+  if (/\b(metal|steel|structural steel)\b/.test(lower)) {
+    codes.add('05');
+  }
+  if (/\b(wood|framing|lumber|composite|sheathing|truss)\b/.test(lower)) {
+    codes.add('06');
+  }
+  if (/\b(roof|roofing|waterproof|insulation|thermal|moisture|house wrap|shingle)\b/.test(lower)) {
+    codes.add('07');
+  }
+  if (/\b(door|window|opening|glazing)\b/.test(lower)) {
+    codes.add('08');
+  }
+  if (/\b(finish|paint|flooring|tile|drywall|interior|trim|hardware|texture)\b/.test(lower)) {
+    codes.add('09');
+  }
+  if (/\b(plumb|plumbing|fixture|sewer|water line)\b/.test(lower)) {
+    codes.add('22');
+  }
+  if (/\b(hvac|mechanical|air condition|ventilation)\b/.test(lower)) {
+    codes.add('23');
+  }
+  if (/\b(electric|electrical|lighting|power)\b/.test(lower)) {
+    codes.add('26');
+  }
+  if (scopeTextImpliesEarthwork(scopeText)) {
+    codes.add('31');
+  }
+  if (/\b(paving|landscap|fence|parking|curb|sidewalk|site work|exterior)\b/.test(lower)) {
+    codes.add('32');
+  }
+  if (/\b(utilit|storm|sewer|water main|gas line|underground)\b/.test(lower)) {
+    codes.add('33');
+  }
+
+  for (const code of Object.keys(DIRECT_MATCHES)) {
+    if (findDirectMatch(code, scopeText)) codes.add(code);
+  }
+
+  if (BUILDING_SCOPE_PATTERN.test(scopeText)) {
+    for (const code of ['07', '08', '09', '22', '23', '26']) {
+      codes.add(code);
+    }
+  }
+
+  return [...codes].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+}

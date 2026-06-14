@@ -9,7 +9,7 @@
  *  - Only ProjectConstructionActivity can be schedule-enabled.
  *  - Does not modify CPM, Logic Network, or existing estimate tables.
  */
-import { lazy, Suspense, useCallback, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Plus, RefreshCw, AlertTriangle, CheckCircle2, Sparkles, ClipboardList } from 'lucide-react';
 import ConstructionActivityCard from './ConstructionActivityCard';
 import EditConstructionActivityModal from './EditConstructionActivityModal';
@@ -22,6 +22,7 @@ import type {
 import type { ProjectActivityLineItem, ProjectConstructionActivity } from '../../domain/constructionActivityTypes';
 import type { UpdateProjectActivityInput } from '../../application/constructionActivityService';
 import type { ImportFromScopeProjectContext } from './ImportFromScopeModal';
+import type { EstimateSelectedDivision } from '../../domain/estimateTypes';
 
 const AssemblyPickerModal = lazy(() => import('./AssemblyPickerModal'));
 const ImportFromScopeModal = lazy(() => import('./ImportFromScopeModal'));
@@ -33,26 +34,47 @@ interface Props {
   onChooseEstimateType?: () => void;
   projectContext?: ImportFromScopeProjectContext | null;
   acceptedDivisionCodes?: readonly string[];
+  selectedDivisions?: readonly EstimateSelectedDivision[];
+  importCollapseDivisionCodesKey?: string | null;
   onEnsureDivisionsSelected?: (divisionCodes: string[]) => Promise<void>;
   /** Called after any add/delete so the workspace can refresh its schedule source. */
   onActivitiesChanged?: () => void;
 }
 
-/** Group activities by divisionCode for the accordion. */
-function groupByDivision(
+export type DivisionActivityGroup = {
+  divisionCode: string;
+  divisionName: string;
+  items: ProjectConstructionActivity[];
+};
+
+/** Merge selected division shells with activity-backed divisions for the accordion. */
+export function buildDivisionActivityGroups(
+  selectedDivisions: readonly EstimateSelectedDivision[],
   activities: ProjectConstructionActivity[],
-): Array<{ divisionCode: string; divisionName: string; items: ProjectConstructionActivity[] }> {
+): DivisionActivityGroup[] {
   const map = new Map<string, { divisionName: string; items: ProjectConstructionActivity[] }>();
-  for (const a of activities) {
-    const code = a.divisionCode;
-    if (!map.has(code)) {
-      map.set(code, { divisionName: a.divisionName, items: [] });
+
+  for (const division of selectedDivisions) {
+    if (!map.has(division.code)) {
+      map.set(division.code, { divisionName: division.name, items: [] });
     }
-    map.get(code)!.items.push(a);
   }
+
+  for (const activity of activities) {
+    const code = activity.divisionCode;
+    if (!map.has(code)) {
+      map.set(code, { divisionName: activity.divisionName, items: [] });
+    }
+    const group = map.get(code)!;
+    if (!group.divisionName.trim()) {
+      group.divisionName = activity.divisionName;
+    }
+    group.items.push(activity);
+  }
+
   return Array.from(map.entries())
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([divisionCode, v]) => ({ divisionCode, ...v }));
+    .map(([divisionCode, value]) => ({ divisionCode, ...value }));
 }
 
 export default function ConstructionActivityBuilderPanel({
@@ -62,6 +84,8 @@ export default function ConstructionActivityBuilderPanel({
   onChooseEstimateType,
   projectContext = null,
   acceptedDivisionCodes = [],
+  selectedDivisions = [],
+  importCollapseDivisionCodesKey = null,
   onEnsureDivisionsSelected,
   onActivitiesChanged,
 }: Props) {
@@ -80,6 +104,7 @@ export default function ConstructionActivityBuilderPanel({
   } = useConstructionActivities(projectId, estimateId);
 
   const [showPicker, setShowPicker] = useState(false);
+  const [pickerInitialDivisionCode, setPickerInitialDivisionCode] = useState<string | undefined>();
   const [showScopeImport, setShowScopeImport] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [editingActivity, setEditingActivity] = useState<{
@@ -87,7 +112,10 @@ export default function ConstructionActivityBuilderPanel({
     lineItems: ProjectActivityLineItem[];
   } | null>(null);
 
-  const groups = useMemo(() => groupByDivision(activities), [activities]);
+  const groups = useMemo(
+    () => buildDivisionActivityGroups(selectedDivisions, activities),
+    [activities, selectedDivisions],
+  );
 
   const totalMH = useMemo(
     () => activities.reduce((sum, a) => sum + (a.calculatedManHours ?? 0), 0),
@@ -104,22 +132,32 @@ export default function ConstructionActivityBuilderPanel({
     [activities],
   );
 
+  const closePicker = useCallback(() => {
+    setShowPicker(false);
+    setPickerInitialDivisionCode(undefined);
+  }, []);
+
+  const openPicker = useCallback((divisionCode?: string) => {
+    setPickerInitialDivisionCode(divisionCode);
+    setShowPicker(true);
+  }, []);
+
   const handleAddProductionRate = useCallback(
     async (params: AddFromProductionRateAssemblyParams) => {
       await addFromProductionRateAssembly(params);
-      setShowPicker(false);
+      closePicker();
       onActivitiesChanged?.();
     },
-    [addFromProductionRateAssembly, onActivitiesChanged],
+    [addFromProductionRateAssembly, closePicker, onActivitiesChanged],
   );
 
   const handleAddManual = useCallback(
     async (params: AddManualActivityParams) => {
       await addManualActivity(params);
-      setShowPicker(false);
+      closePicker();
       onActivitiesChanged?.();
     },
-    [addManualActivity, onActivitiesChanged],
+    [addManualActivity, closePicker, onActivitiesChanged],
   );
 
   const handleAddSelectedDivisions = useCallback(
@@ -136,7 +174,8 @@ export default function ConstructionActivityBuilderPanel({
     setShowScopeImport(false);
   }, []);
 
-  const hasSelectedDivisionsOnly = acceptedDivisionCodes.length > 0;
+  const hasSelectedDivisions = selectedDivisions.length > 0;
+  const hasActivities = activities.length > 0;
 
   const effectiveProjectContext = useMemo(
     () =>
@@ -171,6 +210,17 @@ export default function ConstructionActivityBuilderPanel({
   const [expandedDivisionCodes, setExpandedDivisionCodes] = useState<Set<string>>(
     () => new Set(),
   );
+  const consumedImportCollapseKeyRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (
+      importCollapseDivisionCodesKey &&
+      consumedImportCollapseKeyRef.current !== importCollapseDivisionCodesKey
+    ) {
+      consumedImportCollapseKeyRef.current = importCollapseDivisionCodesKey;
+      setExpandedDivisionCodes(new Set());
+    }
+  }, [importCollapseDivisionCodesKey]);
 
   const toggleDivisionExpanded = useCallback((divisionCode: string) => {
     setExpandedDivisionCodes((prev) => {
@@ -184,8 +234,8 @@ export default function ConstructionActivityBuilderPanel({
     });
   }, []);
 
-  const isEmptyState = !loading && activities.length === 0 && !error;
-  const isScopeDivisionsOnlyState = isEmptyState && hasSelectedDivisionsOnly;
+  const showGenericEmptyState = !loading && !hasActivities && !hasSelectedDivisions && !error;
+  const showDivisionShellsOnly = !loading && !hasActivities && hasSelectedDivisions && !error;
 
   if (!hasEstimateTypeSelected) {
     return (
@@ -195,41 +245,34 @@ export default function ConstructionActivityBuilderPanel({
 
   return (
     <div className="space-y-4">
-      {isEmptyState ? (
+      {showGenericEmptyState ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <div className="mb-4 rounded-full bg-cyan-100 dark:bg-cyan-900/30 p-4">
             <Plus size={28} className="text-cyan-600 dark:text-cyan-400" />
           </div>
           <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100 mb-2">
-            {isScopeDivisionsOnlyState
-              ? 'Divisions Imported from Scope'
-              : 'No Construction Activities Yet'}
+            No Construction Activities Yet
           </h3>
           <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 max-w-md">
-            {isScopeDivisionsOnlyState
-              ? 'Divisions imported from scope. Add activities from the Production Rate Library to begin pricing.'
-              : 'Add activities from the production-rate assembly library. Each activity includes pre-built line items (work elements).'}
+            Add activities from the production-rate assembly library. Each activity includes
+            pre-built line items (work elements).
           </p>
           <div className="flex flex-col items-center gap-3 sm:flex-row">
             <button
               type="button"
-              onClick={() => setShowPicker(true)}
+              onClick={() => openPicker()}
               className="flex items-center gap-2 rounded-lg bg-cyan-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-cyan-700 transition-colors"
             >
               <Plus size={16} />
-              {isScopeDivisionsOnlyState
-                ? 'Add Activity from Production Rate Library'
-                : 'Add First Activity'}
+              Add First Activity
             </button>
-            {!isScopeDivisionsOnlyState ? (
-              <button
-                type="button"
-                onClick={() => setShowScopeImport(true)}
-                className="flex items-center gap-2 rounded-lg border border-cyan-600 px-5 py-2.5 text-sm font-medium text-cyan-700 hover:bg-cyan-50 transition-colors dark:border-cyan-500 dark:text-cyan-300 dark:hover:bg-cyan-950/30"
-              >
-                <Sparkles size={16} /> Import from Scope
-              </button>
-            ) : null}
+            <button
+              type="button"
+              onClick={() => setShowScopeImport(true)}
+              className="flex items-center gap-2 rounded-lg border border-cyan-600 px-5 py-2.5 text-sm font-medium text-cyan-700 hover:bg-cyan-50 transition-colors dark:border-cyan-500 dark:text-cyan-300 dark:hover:bg-cyan-950/30"
+            >
+              <Sparkles size={16} /> Import from Scope
+            </button>
           </div>
         </div>
       ) : (
@@ -239,11 +282,11 @@ export default function ConstructionActivityBuilderPanel({
               <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                 Construction Activities
               </h2>
-              {activities.length > 0 && (
+              {hasActivities ? (
                 <span className="rounded-full bg-slate-100 dark:bg-slate-700 px-2 py-0.5 text-xs text-slate-600 dark:text-slate-400">
                   {activities.length}
                 </span>
-              )}
+              ) : null}
             </div>
 
             <div className="flex items-center gap-2">
@@ -272,7 +315,7 @@ export default function ConstructionActivityBuilderPanel({
               </button>
               <button
                 type="button"
-                onClick={() => setShowPicker(true)}
+                onClick={() => openPicker()}
                 disabled={saving}
                 className="flex items-center gap-1.5 rounded-md bg-cyan-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-cyan-700 disabled:opacity-60 transition-colors"
               >
@@ -281,11 +324,18 @@ export default function ConstructionActivityBuilderPanel({
             </div>
           </div>
 
-          {activities.length > 0 && (
-            <ActivitiesReadinessSummary activities={activities} lineItemsMap={lineItemsMap} />
-          )}
+          {showDivisionShellsOnly ? (
+            <div className="rounded-lg border border-cyan-200 bg-cyan-50/70 px-4 py-3 text-sm text-cyan-900 dark:border-cyan-900/50 dark:bg-cyan-950/30 dark:text-cyan-100">
+              Divisions imported from scope. Add production-rate-backed activities from the library
+              to begin pricing.
+            </div>
+          ) : null}
 
-          {activities.length > 0 && (
+          {hasActivities ? (
+            <ActivitiesReadinessSummary activities={activities} lineItemsMap={lineItemsMap} />
+          ) : null}
+
+          {hasActivities ? (
             <div className="flex flex-wrap items-center gap-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 px-4 py-3">
               <SummaryChip label="Total Activities" value={`${activities.length}`} />
               <SummaryChip label="Total Man-Hours" value={`${totalMH.toFixed(1)} MH`} accent />
@@ -299,7 +349,7 @@ export default function ConstructionActivityBuilderPanel({
                 icon={<CheckCircle2 size={12} className="text-blue-500" />}
               />
             </div>
-          )}
+          ) : null}
 
           {loading ? (
             <div className="space-y-3">
@@ -322,6 +372,7 @@ export default function ConstructionActivityBuilderPanel({
                 onToggleExpanded={() => toggleDivisionExpanded(group.divisionCode)}
                 onDelete={handleDeleteRequest}
                 onEdit={(activity, lineItems) => setEditingActivity({ activity, lineItems })}
+                onAddActivity={() => openPicker(group.divisionCode)}
               />
             ))
           )}
@@ -334,10 +385,11 @@ export default function ConstructionActivityBuilderPanel({
             projectId={projectId}
             onConfirmProductionRate={handleAddProductionRate}
             onConfirmManual={handleAddManual}
-            onCancel={() => setShowPicker(false)}
+            onCancel={closePicker}
             saving={saving}
             existingActivities={activities}
             projectLaborRates={projectRates}
+            initialDivisionCode={pickerInitialDivisionCode}
           />
         </Suspense>
       ) : null}
@@ -449,6 +501,7 @@ function DivisionSection({
   onToggleExpanded,
   onDelete,
   onEdit,
+  onAddActivity,
 }: {
   divisionCode: string;
   divisionName: string;
@@ -458,6 +511,7 @@ function DivisionSection({
   onToggleExpanded: () => void;
   onDelete: (id: string) => void;
   onEdit: (activity: ProjectConstructionActivity, lineItems: ProjectActivityLineItem[]) => void;
+  onAddActivity: () => void;
 }) {
   const divMH = activities.reduce((s, a) => s + (a.calculatedManHours ?? 0), 0);
 
@@ -475,23 +529,41 @@ function DivisionSection({
         <span className="flex-1 text-sm font-semibold text-slate-700 dark:text-slate-200">
           {divisionName}
         </span>
-        <span className="text-xs text-slate-400">{activities.length} activit{activities.length === 1 ? 'y' : 'ies'}</span>
-        <span className="text-xs font-semibold text-cyan-700 dark:text-cyan-400">{divMH.toFixed(1)} MH</span>
+        <span className="text-xs text-slate-400">
+          {activities.length} activit{activities.length === 1 ? 'y' : 'ies'}
+        </span>
+        <span className="text-xs font-semibold text-cyan-700 dark:text-cyan-400">
+          {divMH.toFixed(1)} MH
+        </span>
         <span className="text-[10px] text-slate-400">{isExpanded ? '▲' : '▼'}</span>
       </button>
 
-      {/* Activity cards */}
+      {/* Activity cards or empty division shell */}
       {isExpanded && (
         <div className="divide-y divide-slate-200 dark:divide-slate-700/60 bg-slate-50/50 dark:bg-slate-900/40 p-3 space-y-2">
-          {activities.map((activity) => (
-            <ConstructionActivityCard
-              key={activity.id}
-              activity={activity}
-              lineItems={lineItemsMap.get(activity.id) ?? []}
-              onDelete={onDelete}
-              onEdit={onEdit}
-            />
-          ))}
+          {activities.length === 0 ? (
+            <div className="flex flex-col items-center gap-3 py-6 text-center">
+              <p className="text-sm text-slate-500 dark:text-slate-400">No activities added yet.</p>
+              <button
+                type="button"
+                onClick={onAddActivity}
+                className="flex items-center gap-2 rounded-lg bg-cyan-600 px-4 py-2 text-sm font-medium text-white hover:bg-cyan-700 transition-colors"
+              >
+                <Plus size={14} />
+                Add Activity from Production Rate Library
+              </button>
+            </div>
+          ) : (
+            activities.map((activity) => (
+              <ConstructionActivityCard
+                key={activity.id}
+                activity={activity}
+                lineItems={lineItemsMap.get(activity.id) ?? []}
+                onDelete={onDelete}
+                onEdit={onEdit}
+              />
+            ))
+          )}
         </div>
       )}
     </div>

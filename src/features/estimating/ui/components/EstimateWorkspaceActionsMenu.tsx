@@ -31,6 +31,7 @@ interface Props {
   onCollapseAll?: () => void;
   onResetForm?: () => void;
   onConvertToDetailed?: () => void;
+  onActionsMenuOpenChange?: (open: boolean) => void;
 }
 
 function menuIcon(key: EstimateWorkspaceActionsMenuItemKey) {
@@ -65,6 +66,7 @@ export default function EstimateWorkspaceActionsMenu({
   onCollapseAll,
   onResetForm,
   onConvertToDetailed,
+  onActionsMenuOpenChange,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
@@ -126,6 +128,10 @@ export default function EstimateWorkspaceActionsMenu({
       document.removeEventListener('keydown', onKeyDown);
     };
   }, [open]);
+
+  useEffect(() => {
+    onActionsMenuOpenChange?.(open);
+  }, [open, onActionsMenuOpenChange]);
 
   if (items.length === 0) return null;
 

@@ -23,10 +23,12 @@ export interface SuggestDivisionsFromScopeRequest {
   filterMode?: SuggestEstimateActivitiesFilterMode;
   projectName?: string;
   location?: string;
+  estimateType?: string;
 }
 
 export interface SuggestDivisionsFromScopeResponse {
   divisions: ScopeDivisionSuggestion[];
+  notes?: string[];
   warnings?: string[];
   fallbackUsed?: boolean;
 }

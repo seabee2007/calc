@@ -37,6 +37,7 @@ function makeLineItem(overrides: Partial<ProjectActivityLineItem> = {}): Project
     name: 'Place concrete',
     quantity: 100,
     unit: 'SF',
+    sourceProductionRateKey: '03-31-05.70-0320',
     manHoursPerUnit: 0.1,
     calculatedManHours: 10,
     laborCost: 500,

@@ -7,8 +7,10 @@ import {
   type EstimateBuilderToolbarHandlers,
 } from '../estimateWorkspaceToolbar';
 import type { EstimateWorkspaceSaveStatusValue } from '../estimateWorkspaceSaveStatus';
+import { useEstimateWorkspaceHeaderCollapse } from '../EstimateWorkspaceHeaderCollapseContext';
 import EstimateWorkspaceActionsMenu from './EstimateWorkspaceActionsMenu';
 import EstimateWorkspaceSaveStatusControl from './EstimateWorkspaceSaveStatusControl';
+import EstimateWorkspaceHeaderPinButton from './EstimateWorkspaceHeaderPinButton';
 
 interface Props {
   showAddDivision: boolean;
@@ -35,6 +37,7 @@ interface Props {
   onDownloadImportTemplate: () => void;
   onOpenHelp: () => void;
   onConvertToDetailed?: () => void;
+  onActionsMenuOpenChange?: (open: boolean) => void;
 }
 
 const COMPACT_ICON_BUTTON_CLASS = 'h-10 w-10 px-0';
@@ -64,7 +67,11 @@ export default function EstimateWorkspaceToolbarActions({
   onDownloadImportTemplate,
   onOpenHelp,
   onConvertToDetailed,
+  onActionsMenuOpenChange,
 }: Props) {
+  const headerCollapse = useEstimateWorkspaceHeaderCollapse();
+  const showHeaderPin = Boolean(headerCollapse?.enabled && !headerCollapse.isMobile);
+
   const desktopMenuItems = buildEstimateWorkspaceActionsMenuItems({
     showCollapseAll,
     showReset,
@@ -85,6 +92,7 @@ export default function EstimateWorkspaceToolbarActions({
   const showMobileActionsDropdown = mobileMenuItems.length > 0;
 
   const hasActions =
+    showHeaderPin ||
     showAddDivision ||
     showCollapseAll ||
     showReset ||
@@ -148,6 +156,7 @@ export default function EstimateWorkspaceToolbarActions({
           onRetry={onRetrySave}
         />
       ) : null}
+      <EstimateWorkspaceHeaderPinButton />
       {showDesktopActionsDropdown ? (
         <div className="hidden sm:block">
           <EstimateWorkspaceActionsMenu
@@ -161,6 +170,7 @@ export default function EstimateWorkspaceToolbarActions({
             onCollapseAll={() => handlers?.collapseAll()}
             onResetForm={onReset}
             onConvertToDetailed={onConvertToDetailed}
+            onActionsMenuOpenChange={onActionsMenuOpenChange}
           />
         </div>
       ) : null}
@@ -177,6 +187,7 @@ export default function EstimateWorkspaceToolbarActions({
             onCollapseAll={() => handlers?.collapseAll()}
             onResetForm={onReset}
             onConvertToDetailed={onConvertToDetailed}
+            onActionsMenuOpenChange={onActionsMenuOpenChange}
           />
         </div>
       ) : null}

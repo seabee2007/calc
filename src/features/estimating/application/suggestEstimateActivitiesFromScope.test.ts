@@ -67,20 +67,21 @@ describe('normalizeSuggestDivisionsResponse', () => {
     expect(result.divisions).toEqual([]);
   });
 
-  it('drops low-confidence divisions', () => {
+  it('keeps low-confidence divisions at or above 0.35', () => {
     const result = normalizeSuggestDivisionsResponse(
       {
         divisions: [
           {
             divisionCode: '06',
             confidence: 0.4,
-            reason: 'Below threshold.',
+            reason: 'Wood framing.',
           },
         ],
       },
       'Wood framing project.',
     );
 
-    expect(result.divisions).toEqual([]);
+    expect(result.divisions).toHaveLength(1);
+    expect(result.divisions[0]?.confidence).toBe('low');
   });
 });

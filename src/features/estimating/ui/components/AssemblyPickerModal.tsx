@@ -45,6 +45,7 @@ import {
   ProductionRateSourceDetails,
   ProductionRateVariantSelector,
 } from './ProductionRateCanonicalControls';
+import { useEstimateWorkspaceHeaderOverlay } from '../hooks/useEstimateWorkspaceHeaderOverlay';
 
 const DEFAULT_CREW_SIZE = 4;
 const DEFAULT_HOURS_PER_DAY = 8;
@@ -61,6 +62,8 @@ interface Props {
   saving?: boolean;
   existingActivities?: ProjectConstructionActivity[];
   projectLaborRates?: ProjectLaborRate[];
+  /** Preselect a CSI division when opening from an empty division shell. */
+  initialDivisionCode?: string;
 }
 
 interface ManualLineDraft {
@@ -91,7 +94,10 @@ export default function AssemblyPickerModal({
   saving,
   existingActivities = [],
   projectLaborRates: projectLaborRatesProp = [],
+  initialDivisionCode,
 }: Props) {
+  useEstimateWorkspaceHeaderOverlay('assembly-picker-modal', true);
+
   const library = useProductionRateLibrary(true);
   const {
     projectRates: loadedProjectRates,
@@ -130,6 +136,16 @@ export default function AssemblyPickerModal({
 
   const [manualDivisionCode, setManualDivisionCode] = useState('03');
   const [manualLines, setManualLines] = useState<ManualLineDraft[]>([emptyManualLine()]);
+
+  useEffect(() => {
+    const code = initialDivisionCode?.trim();
+    if (!code) return;
+    setSourceMode('production_rate');
+    setStep('configure');
+    setWizardStep(1);
+    setDivisionCode(code);
+    setCategory('');
+  }, [initialDivisionCode]);
 
   const [activityName, setActivityName] = useState('');
   const [instanceLabel, setInstanceLabel] = useState('');

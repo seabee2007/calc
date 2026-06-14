@@ -146,9 +146,9 @@ describe('professionalizeProjectScope service', () => {
 });
 
 describe('Project form professionalize scope UI', () => {
-  it('exposes Professionalize scope action with loading and toast messages', () => {
-    expect(projectFormSource).toContain('Professionalize scope');
-    expect(projectFormSource).toContain('Improving…');
+  it('exposes Clean up scope action with loading and toast messages', () => {
+    expect(projectFormSource).toContain('Clean up scope');
+    expect(projectFormSource).toContain('Cleaning up…');
     expect(projectFormSource).toContain('professionalizeProjectScope');
     expect(PROFESSIONALIZE_SCOPE_SUCCESS_MESSAGE).toBe('Scope improved');
     expect(projectFormSource).toContain('PROFESSIONALIZE_SCOPE_SUCCESS_MESSAGE');

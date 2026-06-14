@@ -24,6 +24,7 @@ describe('PlannerHubProjectCard', () => {
     expect(link).toHaveAttribute('href', '/projects/proj-1/planner/board');
     fireEvent.click(link);
     expect(onOpen).toHaveBeenCalledWith('proj-1');
-    expect(screen.getByText('Open plan')).toBeInTheDocument();
+    expect(screen.getByText('Open')).toBeInTheDocument();
+    expect(screen.queryByText('Open plan')).not.toBeInTheDocument();
   });
 });

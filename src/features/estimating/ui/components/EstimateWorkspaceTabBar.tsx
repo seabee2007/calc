@@ -69,7 +69,7 @@ export default function EstimateWorkspaceTabBar({
   estimateTypeControl,
 }: Props) {
   return (
-    <div className="sticky top-0 z-20 border-b border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
+    <div className="border-b border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
       {estimateTypeControl ? (
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-slate-100 px-2 py-2 sm:px-4 dark:border-slate-800">
           {estimateTypeControl}

@@ -10,6 +10,7 @@ import {
   type SuggestDivisionsFromScopeResponse,
 } from '../../application/suggestEstimateActivitiesFromScope';
 import { PLANNER_MUTED, TEXT_BODY, TEXT_FOREGROUND } from '../estimateWorkspaceTheme';
+import { useEstimateWorkspaceHeaderOverlay } from '../hooks/useEstimateWorkspaceHeaderOverlay';
 import type { SuggestEstimateActivitiesFilterMode } from '../../domain/aiActivitySuggestionTypes';
 
 export interface ImportFromScopeProjectContext {
@@ -17,6 +18,7 @@ export interface ImportFromScopeProjectContext {
   projectName: string;
   projectDescription?: string;
   locationLabel?: string;
+  estimateType?: string;
 }
 
 interface Props {
@@ -62,6 +64,8 @@ export default function ImportFromScopeModal({
   onAddSelectedDivisions,
   saving = false,
 }: Props) {
+  useEstimateWorkspaceHeaderOverlay('import-from-scope-modal', isOpen);
+
   const [step, setStep] = useState<WizardStep>('input');
   const [scopeText, setScopeText] = useState('');
   const [filterMode, setFilterMode] = useState<SuggestEstimateActivitiesFilterMode>('allFromScope');
@@ -106,7 +110,8 @@ export default function ImportFromScopeModal({
     (divisions: ScopeDivisionSuggestion[]): ReviewDivision[] =>
       divisions.map((division) => ({
         ...division,
-        selected: !existingDivisionSet.has(division.divisionCode),
+        selected:
+          !existingDivisionSet.has(division.divisionCode) && division.confidence !== 'low',
         alreadyOnEstimate: existingDivisionSet.has(division.divisionCode),
         status: existingDivisionSet.has(division.divisionCode) ? 'suggested' : 'suggested',
       })),
@@ -127,6 +132,7 @@ export default function ImportFromScopeModal({
         filterMode,
         projectName: projectContext.projectName,
         location: projectContext.locationLabel,
+        estimateType: projectContext.estimateType,
       });
 
       setSuggestResult(result);
@@ -281,11 +287,16 @@ export default function ImportFromScopeModal({
 
         {step === 'review' && (
           <>
-            {(suggestResult?.fallbackUsed || (suggestResult?.warnings?.length ?? 0) > 0) && (
+            {(suggestResult?.fallbackUsed ||
+              (suggestResult?.notes?.length ?? 0) > 0 ||
+              (suggestResult?.warnings?.length ?? 0) > 0) && (
               <div className="rounded-lg border border-amber-300/80 bg-amber-50/80 px-3 py-2 text-sm text-amber-900 dark:border-amber-700/60 dark:bg-amber-950/30 dark:text-amber-100">
                 {suggestResult?.fallbackUsed ? (
                   <p>Keyword-based fallback was used — review suggestions carefully.</p>
                 ) : null}
+                {suggestResult?.notes?.map((note) => (
+                  <p key={note}>{note}</p>
+                ))}
                 {suggestResult?.warnings?.map((warning) => (
                   <p key={warning}>{warning}</p>
                 ))}

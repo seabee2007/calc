@@ -69,8 +69,7 @@ export default function PlannerHubProjectCard({
         </div>
       </div>
 
-      <div className="mt-5 flex items-center justify-between border-t border-slate-200/70 pt-4 dark:border-slate-700/70">
-        <span className={`text-sm font-medium text-cyan-700 dark:text-cyan-400`}>Open plan</span>
+      <div className="mt-5 flex items-center justify-end border-t border-slate-200/70 pt-4 dark:border-slate-700/70">
         <span
           className="inline-flex items-center gap-1 text-sm font-semibold text-cyan-700 transition-transform group-hover:translate-x-0.5 dark:text-cyan-400"
           aria-hidden

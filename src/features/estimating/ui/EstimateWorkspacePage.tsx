@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { buildEstimateSchedulePlan } from '../application/buildEstimateSchedulePlan';
 import { buildConstructionActivitySchedulePlan } from '../application/buildConstructionActivitySchedulePlan';
 import {
@@ -78,6 +79,7 @@ import type { EstimateSchedulePlanControlValues } from './components/EstimateSch
 import {
   ROUGH_SCHEDULE_PREVIEW_NOTE,
   shouldShowRoughSchedulePreviewNote,
+  formatEstimateMethodLabel,
 } from './estimateMethodDisplay';
 import { useEstimateLineItemDraft } from './hooks/useEstimateLineItemDraft';
 import { useEstimateSetupSession } from './hooks/useEstimateSetupSession';
@@ -118,7 +120,7 @@ import {
   EstimateWorkspaceSaveStatusProvider,
   useEstimateWorkspaceSaveStatus,
 } from './hooks/useEstimateWorkspaceSaveStatus';
-import { friendlyEstimateWorkspaceSaveError } from './estimateWorkspaceSaveStatus';
+import { friendlyEstimateWorkspaceSaveError, resolveEstimateWorkspaceSaveControl } from './estimateWorkspaceSaveStatus';
 import { quickFeasibilityInputsFromSnapshot } from '../application/estimateQuickFeasibility';
 import { applyImportedEstimate } from '../importExport/estimateImportApply';
 import type { ImportedEstimateData } from '../importExport/estimateImportParser';
@@ -136,6 +138,11 @@ import {
 } from '../schedule/ganttExportValidation';
 import type { BuildGanttScheduleResult } from '../schedule/buildGanttSchedule';
 import { useProjectConstructionActivitiesForSchedule } from './hooks/useProjectConstructionActivitiesForSchedule';
+import {
+  ESTIMATE_WORKSPACE_HEADER_PORTAL_ID,
+  useEstimateWorkspaceHeaderCollapse,
+} from './EstimateWorkspaceHeaderCollapseContext';
+import { useEstimateWorkspaceHeaderOverlay } from './hooks/useEstimateWorkspaceHeaderOverlay';
 import { useProjectActivityResourceTotals } from './hooks/useProjectActivityResourceTotals';
 import { runCpmCalculation } from '../scheduling/cpm/calculateCpm';
 import type {
@@ -315,6 +322,7 @@ export default function EstimateWorkspacePage() {
     null,
   );
   const [changingEstimateType, setChangingEstimateType] = useState(false);
+  const [actionsMenuOpen, setActionsMenuOpen] = useState(false);
   const [builderToolbarHandlers, setBuilderToolbarHandlers] =
     useState<EstimateBuilderToolbarHandlers | null>(null);
   const [schedulePlanControls, setSchedulePlanControls] = useState<EstimateSchedulePlanControlValues>(
@@ -682,9 +690,10 @@ export default function EstimateWorkspacePage() {
             projectName: project.name,
             projectDescription: project.description,
             locationLabel: project.locationLabel,
+            estimateType: resolvedEstimateType,
           }
         : null,
-    [project],
+    [project, resolvedEstimateType],
   );
 
   const handleSchedulePlanControlsChange = useCallback(
@@ -1173,6 +1182,9 @@ export default function EstimateWorkspacePage() {
       const additions = buildSelectedDivisionsFromCodes(missingCodes, { source: 'ai' });
       await handleSaveSelectedDivisions(
         appendSelectedDivisions(currentEstimate.selectedDivisions, additions),
+      );
+      setSaveToastMessage(
+        `Estimate saved — ${missingCodes.length} division${missingCodes.length === 1 ? '' : 's'} imported.`,
       );
       setImportCollapseDivisionCodesKey(
         `import-${Date.now()}-${missingCodes.join(',')}`,
@@ -2140,58 +2152,112 @@ export default function EstimateWorkspacePage() {
     setSaveToastMessage('Select at least one new division');
   }, []);
 
+  const headerCollapse = useEstimateWorkspaceHeaderCollapse();
+
+  useEstimateWorkspaceHeaderOverlay('estimate-type-modal', estimateTypeModalOpen);
+  useEstimateWorkspaceHeaderOverlay('estimate-type-change-modal', estimateTypeChangeConfirmOpen);
+  useEstimateWorkspaceHeaderOverlay('reset-modal', resetModalOpen);
+  useEstimateWorkspaceHeaderOverlay('import-modal', importModalOpen);
+  useEstimateWorkspaceHeaderOverlay('convert-modal', convertToDetailedModalOpen);
+  useEstimateWorkspaceHeaderOverlay('actions-menu', actionsMenuOpen);
+  useEstimateWorkspaceHeaderOverlay('leveling-modal', Boolean(levelingModalResult));
+
+  useEffect(() => {
+    if (!headerCollapse?.enabled) return;
+    const saveControl = resolveEstimateWorkspaceSaveControl({
+      status: workspaceSaveStatus.status,
+      activeOperations: workspaceSaveStatus.activeOperations,
+      hasPendingEstimateChanges,
+      errorMessage: workspaceSaveStatus.errorMessage ?? saveError,
+      saveBlockedReason,
+    });
+    headerCollapse.setMiniStatus({
+      estimateTypeLabel: hasEstimate
+        ? formatEstimateMethodLabel(resolvedEstimateType)
+        : 'No estimate type selected',
+      saveStatus: workspaceSaveStatus.status,
+      saveStatusLabel: saveControl.label,
+      hasPendingEstimateChanges,
+    });
+  }, [
+    headerCollapse,
+    hasEstimate,
+    resolvedEstimateType,
+    workspaceSaveStatus.status,
+    workspaceSaveStatus.activeOperations,
+    workspaceSaveStatus.errorMessage,
+    hasPendingEstimateChanges,
+    saveError,
+    saveBlockedReason,
+  ]);
+
+  const estimateWorkspaceTabBar = (
+    <EstimateWorkspaceTabBar
+      activeTabId={activeTab}
+      visibleTabs={visibleWorkspaceTabs}
+      onTabChange={handleTabChange}
+      estimateTypeControl={
+        <EstimateTypeHeaderControl
+          hasEstimate={hasEstimate}
+          estimateType={resolvedEstimateType}
+          schedulingEnabled={schedulingEnabled}
+          onActionClick={() => setEstimateTypeModalOpen(true)}
+          disabled={saving || changingEstimateType || dataLoading || creating}
+        />
+      }
+      rightActions={
+        <EstimateWorkspaceToolbarActions
+          showAddDivision={showAddDivision}
+          showCollapseAll={showCollapseAll}
+          showReset={showResetForm}
+          showSaveBucket={showSaveBucket}
+          showSaveQuick={showSaveQuick}
+          showImportExport={showImportExport}
+          showConvertToDetailed={showConvertToDetailed}
+          canEdit={canEditEstimate || activeEstimateType != null}
+          canSaveQuick={builderToolbarHandlers?.canSaveQuick ?? false}
+          saving={saving}
+          saveStatus={workspaceSaveStatus.status}
+          saveStatusActiveOperations={workspaceSaveStatus.activeOperations}
+          hasPendingEstimateChanges={hasPendingEstimateChanges}
+          saveStatusErrorMessage={workspaceSaveStatus.errorMessage ?? saveError}
+          saveBlockedReason={saveBlockedReason}
+          handlers={builderToolbarHandlers}
+          onReset={() => {
+            if (activeTab === 'settings') {
+              estimateSettings.resetSettings();
+              return;
+            }
+            setResetModalOpen(true);
+          }}
+          onSave={() => void handleSaveEstimate()}
+          onRetrySave={handleRetrySave}
+          onImportEstimate={() => setImportModalOpen(true)}
+          onExportEstimate={handleExportEstimate}
+          onDownloadImportTemplate={handleDownloadImportTemplate}
+          onOpenHelp={handleOpenHelp}
+          onConvertToDetailed={() => setConvertToDetailedModalOpen(true)}
+          onActionsMenuOpenChange={setActionsMenuOpen}
+        />
+      }
+    />
+  );
+
+  const headerPortalTarget =
+    headerCollapse?.portalTargetRef.current ??
+    (typeof document !== 'undefined'
+      ? document.getElementById(ESTIMATE_WORKSPACE_HEADER_PORTAL_ID)
+      : null);
+
   return (
     <EstimateWorkspaceSaveStatusProvider value={workspaceSaveStatus}>
     <>
       <div className={`${PLANNER_PAGE_BG} flex min-h-0 flex-1 flex-col overflow-hidden`}>
-        <EstimateWorkspaceTabBar
-          activeTabId={activeTab}
-          visibleTabs={visibleWorkspaceTabs}
-          onTabChange={handleTabChange}
-          estimateTypeControl={
-            <EstimateTypeHeaderControl
-              hasEstimate={hasEstimate}
-              estimateType={resolvedEstimateType}
-              schedulingEnabled={schedulingEnabled}
-              onActionClick={() => setEstimateTypeModalOpen(true)}
-              disabled={saving || changingEstimateType || dataLoading || creating}
-            />
-          }
-          rightActions={
-            <EstimateWorkspaceToolbarActions
-              showAddDivision={showAddDivision}
-              showCollapseAll={showCollapseAll}
-              showReset={showResetForm}
-              showSaveBucket={showSaveBucket}
-              showSaveQuick={showSaveQuick}
-              showImportExport={showImportExport}
-              showConvertToDetailed={showConvertToDetailed}
-              canEdit={canEditEstimate || activeEstimateType != null}
-              canSaveQuick={builderToolbarHandlers?.canSaveQuick ?? false}
-              saving={saving}
-              saveStatus={workspaceSaveStatus.status}
-              saveStatusActiveOperations={workspaceSaveStatus.activeOperations}
-              hasPendingEstimateChanges={hasPendingEstimateChanges}
-              saveStatusErrorMessage={workspaceSaveStatus.errorMessage ?? saveError}
-              saveBlockedReason={saveBlockedReason}
-              handlers={builderToolbarHandlers}
-              onReset={() => {
-                if (activeTab === 'settings') {
-                  estimateSettings.resetSettings();
-                  return;
-                }
-                setResetModalOpen(true);
-              }}
-              onSave={() => void handleSaveEstimate()}
-              onRetrySave={handleRetrySave}
-              onImportEstimate={() => setImportModalOpen(true)}
-              onExportEstimate={handleExportEstimate}
-              onDownloadImportTemplate={handleDownloadImportTemplate}
-              onOpenHelp={handleOpenHelp}
-              onConvertToDetailed={() => setConvertToDetailedModalOpen(true)}
-            />
-          }
-        />
+        {headerCollapse?.enabled && headerCollapse.portalReady && headerPortalTarget
+          ? createPortal(estimateWorkspaceTabBar, headerPortalTarget)
+          : !headerCollapse?.enabled
+            ? estimateWorkspaceTabBar
+            : null}
 
         <div className="flex-1 overflow-y-auto p-4 sm:p-6">
         {loadError ? (
@@ -2640,6 +2706,8 @@ export default function EstimateWorkspacePage() {
               onChooseEstimateType={() => setEstimateTypeModalOpen(true)}
               projectContext={projectScopeContext}
               acceptedDivisionCodes={acceptedDivisionCodes}
+              selectedDivisions={currentEstimate?.selectedDivisions ?? EMPTY_SELECTED_DIVISIONS}
+              importCollapseDivisionCodesKey={importCollapseDivisionCodesKey}
               onEnsureDivisionsSelected={handleEnsureDivisionsSelected}
               onActivitiesChanged={reloadConstructionActivities}
             />

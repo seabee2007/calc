@@ -13,6 +13,7 @@ import UserAvatar from './UserAvatar';
 import Button from '../ui/Button';
 import { isPlannerNavTabActive } from '../../utils/plannerRoutes';
 import { PLANNER_NAV_TAB_LABEL, PLANNER_NAV_TAB_LABEL_ACTIVE } from './plannerTheme';
+import { useEstimateWorkspaceHeaderOverlay } from '../../features/estimating/ui/hooks/useEstimateWorkspaceHeaderOverlay';
 
 type TabCountKey = keyof ProjectTabCounts;
 
@@ -50,6 +51,8 @@ export default function PlannerPlanHeader() {
   const menuWrapRef = useRef<HTMLDivElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const menuId = useId();
+
+  useEstimateWorkspaceHeaderOverlay('planner-plan-actions-menu', menuOpen);
 
   const updateMenuPosition = () => {
     const anchor = menuWrapRef.current;
