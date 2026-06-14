@@ -26,6 +26,8 @@ const publicDir = join(root, 'public');
 const BG_DARK = '#020617';
 
 // ── Square icon with padded mark on dark background ──────────────────────────
+// Two-pass approach: composite first, then strip alpha in a second sharp call.
+// iOS apple-touch-icon must be fully opaque (no alpha channel).
 async function renderIcon(size, outPath, { paddingRatio = 0.14 } = {}) {
   const padding = Math.max(1, Math.round(size * paddingRatio));
   const inner = size - padding * 2;
@@ -35,10 +37,17 @@ async function renderIcon(size, outPath, { paddingRatio = 0.14 } = {}) {
     .png()
     .toBuffer();
 
-  await sharp({
+  // Pass 1: composite the mark onto a dark canvas
+  const composited = await sharp({
     create: { width: size, height: size, channels: 4, background: BG_DARK },
   })
     .composite([{ input: mark, gravity: 'center' }])
+    .png()
+    .toBuffer();
+
+  // Pass 2: read the buffer, flatten (removes alpha), write opaque PNG
+  await sharp(composited)
+    .flatten({ background: BG_DARK })
     .png()
     .toFile(outPath);
 }
@@ -96,11 +105,12 @@ function writeFaviconSvg(outPath) {
 // ── Run ───────────────────────────────────────────────────────────────────────
 
 const squareIcons = [
-  ['favicon-16x16.png',   16,  { paddingRatio: 0.10 }],
-  ['favicon-32x32.png',   32,  { paddingRatio: 0.12 }],
-  ['apple-touch-icon.png', 180, { paddingRatio: 0.14 }],
-  ['icon-192.png',         192, { paddingRatio: 0.14 }],
-  ['icon-512.png',         512, { paddingRatio: 0.14 }],
+  ['favicon-16x16.png',          16,  { paddingRatio: 0.10 }],
+  ['favicon-32x32.png',          32,  { paddingRatio: 0.12 }],
+  ['apple-touch-icon.png',       180, { paddingRatio: 0.14 }],
+  ['apple-touch-icon-180x180.png', 180, { paddingRatio: 0.14 }],
+  ['icon-192.png',               192, { paddingRatio: 0.14 }],
+  ['icon-512.png',               512, { paddingRatio: 0.14 }],
 ];
 
 for (const [name, size, opts] of squareIcons) {
