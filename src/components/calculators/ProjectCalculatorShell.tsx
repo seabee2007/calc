@@ -12,14 +12,20 @@ import Toast from '../ui/Toast';
 import Select from '../ui/Select';
 import ProjectForm, { type ProjectFormData } from '../projects/ProjectForm';
 import { formatUSAddress, hasProjectJobsite } from '../../types/address';
-import { CC_PAGE_HERO_SUBTITLE, CC_PAGE_HERO_TITLE } from '../../theme/pageTypography';
-import { PREMIUM_PAGE_MAX_WIDTH, PREMIUM_PANEL } from '../../theme/appTheme';
+import { PREMIUM_PANEL } from '../../theme/appTheme';
+import AppPage from '../ui/AppPage';
+import PageHeader from '../ui/PageHeader';
+import CalculatorToolNotice, { type CalculatorToolKind } from './CalculatorToolNotice';
+
+const PAGE_HEADER_CLASS =
+  '[&_h1]:text-slate-900 dark:[&_h1]:text-slate-50 [&_p]:text-slate-600 dark:[&_p]:text-slate-300';
 
 interface ProjectCalculatorShellProps {
   title: string;
   description: string;
   children: React.ReactNode;
   footer?: React.ReactNode;
+  toolKind?: CalculatorToolKind;
 }
 
 const ProjectCalculatorShell: React.FC<ProjectCalculatorShellProps> = ({
@@ -27,6 +33,7 @@ const ProjectCalculatorShell: React.FC<ProjectCalculatorShellProps> = ({
   description,
   children,
   footer,
+  toolKind = 'helper',
 }) => {
   const location = useLocation();
   const workflowState = location.state as WorkflowLocationState | null;
@@ -59,15 +66,22 @@ const ProjectCalculatorShell: React.FC<ProjectCalculatorShellProps> = ({
   };
 
   return (
-    <div className={`${PREMIUM_PAGE_MAX_WIDTH} pb-8`}>
+    <AppPage
+      className="w-full !max-w-none pt-6"
+      data-testid="calculator-tool-page"
+      header={
+        <PageHeader
+          title={title}
+          subtitle={description}
+          className={PAGE_HEADER_CLASS}
+        />
+      }
+    >
       <WorkflowStepHeader />
-      <div className="mb-6">
-        <h1 className={CC_PAGE_HERO_TITLE}>{title}</h1>
-        <p className={CC_PAGE_HERO_SUBTITLE}>{description}</p>
-      </div>
+      <CalculatorToolNotice kind={toolKind} projectId={currentProject?.id ?? workflowProjectId} />
 
       <div className={`mb-6 p-4 ${PREMIUM_PANEL}`}>
-        <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
           <div className="flex-1">
             <Select
               label="Select Project"
@@ -90,8 +104,8 @@ const ProjectCalculatorShell: React.FC<ProjectCalculatorShellProps> = ({
           </Button>
         </div>
         {!currentProject && (
-          <p className="mt-4 text-sm text-amber-600 dark:text-amber-400 flex items-center">
-            <FolderOpen className="h-4 w-4 mr-2" />
+          <p className="mt-4 flex items-center text-sm text-amber-600 dark:text-amber-400">
+            <FolderOpen className="mr-2 h-4 w-4" />
             Select a project to save estimates
           </p>
         )}
@@ -127,7 +141,7 @@ const ProjectCalculatorShell: React.FC<ProjectCalculatorShellProps> = ({
           hidePourDate
         />
       )}
-    </div>
+    </AppPage>
   );
 };
 

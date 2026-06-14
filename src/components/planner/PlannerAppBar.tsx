@@ -5,15 +5,11 @@ import {
   LayoutDashboard,
   LayoutGrid,
   Menu,
-  Settings,
   User,
-  Wrench,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
-import { useToolsModalStore } from '../../store/toolsModalStore';
 import FieldNotificationsBell from '../field/FieldNotificationsBell';
-import HelpButton from '../../features/help/HelpButton';
-import ThemeToggle from '../layout/ThemeToggle';
+import AppProfileMenu from '../layout/AppProfileMenu';
 import { APP_NAV_HEADER, appNavIconButtonClass } from '../layout/appNavStyles';
 
 interface PlannerAppBarProps {
@@ -24,8 +20,7 @@ interface PlannerAppBarProps {
 export default function PlannerAppBar({ onMenuClick, projectName }: PlannerAppBarProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, profile, signOut, isOwner, isEmployee } = useAuth();
-  const openTools = useToolsModalStore((s) => s.open);
+  const { user, isOwner, isEmployee } = useAuth();
   const [profileOpen, setProfileOpen] = useState(false);
 
   const dashboardHref = isEmployee && !isOwner ? '/employee/dashboard' : '/';
@@ -45,32 +40,7 @@ export default function PlannerAppBar({ onMenuClick, projectName }: PlannerAppBa
     navigate('/projects', { state: { openCreate: true } });
   };
 
-  const mobilePlannerActions: ReactNode[] = isOwner
-    ? [
-        <button
-          key="start-project"
-          type="button"
-          onClick={startProject}
-          className={appNavIconButtonClass()}
-          aria-label="Start new project"
-          title="Start new project"
-        >
-          <FolderPlus className="h-5 w-5" />
-        </button>,
-        <button
-          key="tools"
-          type="button"
-          onClick={openTools}
-          className={appNavIconButtonClass()}
-          aria-label="Tools"
-          title="Tools"
-        >
-          <Wrench className="h-5 w-5" />
-        </button>,
-      ]
-    : [];
-
-  const desktopOwnerActions: ReactNode[] = isOwner
+  const ownerActions: ReactNode[] = isOwner
     ? [
         <Link
           key="planner-hub"
@@ -86,20 +56,10 @@ export default function PlannerAppBar({ onMenuClick, projectName }: PlannerAppBa
           type="button"
           onClick={startProject}
           className={appNavIconButtonClass()}
-          aria-label="Start new project"
-          title="Start new project"
+          aria-label="Quick create"
+          title="Quick create"
         >
           <FolderPlus className="h-5 w-5" />
-        </button>,
-        <button
-          key="tools"
-          type="button"
-          onClick={openTools}
-          className={appNavIconButtonClass()}
-          aria-label="Tools"
-          title="Tools"
-        >
-          <Wrench className="h-5 w-5" />
         </button>,
       ]
     : [];
@@ -137,22 +97,16 @@ export default function PlannerAppBar({ onMenuClick, projectName }: PlannerAppBa
       </div>
 
       <div className="flex shrink-0 items-center gap-0.5">
-        {mobilePlannerActions.length > 0 && (
-          <div className="flex shrink-0 items-center gap-0.5 lg:hidden">
-            {mobilePlannerActions}
-          </div>
-        )}
-
-        {desktopOwnerActions.length > 0 && (
-          <div className="hidden shrink-0 items-center gap-0.5 lg:flex">
-            {desktopOwnerActions}
+        {ownerActions.length > 0 && (
+          <div className="flex shrink-0 items-center gap-0.5">
+            {ownerActions}
           </div>
         )}
 
         {isEmployee && !isOwner && (
           <Link
             to="/employee/tasks"
-            className={`hidden lg:inline-flex ${appNavIconButtonClass(location.pathname.startsWith('/employee/tasks'))}`}
+            className={appNavIconButtonClass(location.pathname.startsWith('/employee/tasks'))}
             aria-label="My tasks"
             title="My tasks"
           >
@@ -160,25 +114,8 @@ export default function PlannerAppBar({ onMenuClick, projectName }: PlannerAppBa
           </Link>
         )}
 
-        <HelpButton className={appNavIconButtonClass()} showLabel={false} />
-
-        <Link
-          to="/settings"
-          className={`hidden lg:inline-flex ${appNavIconButtonClass(location.pathname === '/settings')}`}
-          aria-label="Settings"
-          title="Settings"
-        >
-          <Settings className="h-5 w-5" />
-        </Link>
-
-        <div className="[&_button]:!min-h-0 [&_button]:!p-2 [&_button]:!text-slate-300 [&_button]:hover:!bg-white/10 [&_button]:hover:!text-white">
-          <ThemeToggle />
-        </div>
-
         {isOwner && (
-          <span className="hidden lg:inline-flex">
-            <FieldNotificationsBell />
-          </span>
+          <FieldNotificationsBell buttonClassName={appNavIconButtonClass()} />
         )}
 
         <div className="relative">
@@ -186,8 +123,8 @@ export default function PlannerAppBar({ onMenuClick, projectName }: PlannerAppBa
             type="button"
             onClick={() => setProfileOpen((o) => !o)}
             className={appNavIconButtonClass(profileOpen)}
-            aria-label="Profile"
-            title="Profile"
+            aria-label="Profile menu"
+            title="Profile menu"
           >
             <User className="h-5 w-5" />
           </button>
@@ -199,46 +136,7 @@ export default function PlannerAppBar({ onMenuClick, projectName }: PlannerAppBa
                 aria-label="Close profile menu"
                 onClick={() => setProfileOpen(false)}
               />
-              <div className="absolute right-0 top-full z-50 mt-1 w-48 rounded-lg border border-slate-700 bg-slate-900 py-1 shadow-xl">
-                <p className="truncate px-3 py-2 text-xs text-slate-400">
-                  {profile?.displayName ?? user?.email}
-                </p>
-                {!isOwner && (
-                  <Link
-                    to="/employee/dashboard"
-                    className="block w-full px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800"
-                    onClick={() => setProfileOpen(false)}
-                  >
-                    Employee portal
-                  </Link>
-                )}
-                {isOwner && (
-                  <Link
-                    to="/employees"
-                    className="block w-full px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800"
-                    onClick={() => setProfileOpen(false)}
-                  >
-                    Team & employees
-                  </Link>
-                )}
-                <Link
-                  to="/projects"
-                  className="block w-full px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800"
-                  onClick={() => setProfileOpen(false)}
-                >
-                  Projects
-                </Link>
-                <button
-                  type="button"
-                  className="w-full px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800"
-                  onClick={() => {
-                    setProfileOpen(false);
-                    void signOut().then(() => navigate('/login'));
-                  }}
-                >
-                  Sign out
-                </button>
-              </div>
+              <AppProfileMenu onClose={() => setProfileOpen(false)} />
             </>
           )}
         </div>

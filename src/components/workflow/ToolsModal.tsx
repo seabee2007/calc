@@ -112,18 +112,6 @@ const ToolsModal: React.FC = () => {
           icon: Users,
         },
         {
-          title: 'General trade labor',
-          description: 'Hours and labor cost for non-concrete trades',
-          path: '/calculator/general-trade-labor',
-          icon: HardHat,
-        },
-        {
-          title: 'Custom estimate',
-          description: 'Manual labor, material, and equipment lines',
-          path: '/calculator/custom',
-          icon: PenLine,
-        },
-        {
           title: 'Mix Design Advisor',
           description: 'Admixtures and spec guidance for placements',
           path: '/mix-design-advisor',
@@ -134,6 +122,23 @@ const ToolsModal: React.FC = () => {
           description: 'Weather, dispatch, and placement call sheets',
           path: '/pour-planner',
           icon: CloudSun,
+        },
+      ],
+    },
+    {
+      heading: 'Legacy estimating tools',
+      cards: [
+        {
+          title: 'General trade labor',
+          description: 'Legacy labor helper — use Estimate Workspace instead',
+          path: '/calculator/general-trade-labor',
+          icon: HardHat,
+        },
+        {
+          title: 'Custom estimate',
+          description: 'Legacy manual lines — use Estimate Workspace instead',
+          path: '/calculator/custom',
+          icon: PenLine,
         },
       ],
     },

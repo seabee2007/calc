@@ -69,6 +69,9 @@ describe('proposalProjectImport', () => {
     expect(imported.clientPhone).toBe('(555) 111-2222');
     expect(imported.projectTitle).toBe('Riverfront Slab');
     expect(imported.scope).toBe('Pour 4-inch slab with vapor barrier and finish.');
+    expect(imported.introduction).toContain('Riverfront Slab');
+    expect(imported.introduction).not.toContain('Pour 4-inch slab');
+    expect(imported.introduction).toContain('scope of work');
   });
 
   it('falls back to estimate source summary when project scope is empty', () => {

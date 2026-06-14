@@ -12,6 +12,8 @@ const PREMIUM_CANVAS_PREFIXES = [
   '/mix-design-advisor',
   '/pour-planner',
   '/settings',
+  '/accounting-tax',
+  '/employees',
   '/owner/review',
 ] as const;
 

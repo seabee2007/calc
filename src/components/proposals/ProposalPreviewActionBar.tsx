@@ -1,21 +1,19 @@
 import React from 'react';
-import { ArrowLeft, Download, Edit, Send } from 'lucide-react';
+import { ArrowLeft, Download, Send } from 'lucide-react';
 import Button from '../ui/Button';
 
 export interface ProposalPreviewActionBarProps {
-  isPreviewMode: boolean;
   saving: boolean;
-  onBack: () => void;
-  onEdit?: () => void;
+  onBackToEditor: () => void;
+  onBackToProposals?: () => void;
   onSend: () => void;
   onDownload: () => void;
 }
 
 const ProposalPreviewActionBar: React.FC<ProposalPreviewActionBarProps> = ({
-  isPreviewMode,
   saving,
-  onBack,
-  onEdit,
+  onBackToEditor,
+  onBackToProposals,
   onSend,
   onDownload,
 }) => {
@@ -27,24 +25,23 @@ const ProposalPreviewActionBar: React.FC<ProposalPreviewActionBarProps> = ({
       <Button
         variant="outline"
         size="sm"
-        onClick={onBack}
+        onClick={onBackToEditor}
         icon={<ArrowLeft size={18} />}
         data-testid="proposal-preview-back-button"
       >
-        {isPreviewMode ? 'Back' : 'Back to Editor'}
+        Back to Editor
       </Button>
 
-      {isPreviewMode && onEdit && (
+      {onBackToProposals ? (
         <Button
           variant="outline"
           size="sm"
-          onClick={onEdit}
-          icon={<Edit size={18} />}
-          data-testid="proposal-preview-edit-button"
+          onClick={onBackToProposals}
+          data-testid="proposal-preview-back-to-proposals-button"
         >
-          Edit
+          Back to Proposals
         </Button>
-      )}
+      ) : null}
 
       <Button
         variant="primary"

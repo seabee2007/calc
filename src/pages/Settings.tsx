@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { replaceLogo, deleteLogo } from '../services/storageService';
@@ -23,15 +23,23 @@ import {
   Camera,
   Volume,
   BookOpen,
-  ChevronRight,
+  Users,
 } from 'lucide-react';
-import Card from '../components/ui/Card';
-import { CC_PAGE_HERO_SUBTITLE, CC_PAGE_HERO_TITLE, CC_PAGE_META } from '../theme/pageTypography';
-import { PREMIUM_INNER_PANEL, PREMIUM_PAGE_MAX_WIDTH, PREMIUM_PANEL } from '../theme/appTheme';
+import AppPage from '../components/ui/AppPage';
+import PageHeader from '../components/ui/PageHeader';
+import { PREMIUM_INNER_PANEL } from '../theme/appTheme';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import Select from '../components/ui/Select';
 import TaxRatePercentInput from '../components/pricing/TaxRatePercentInput';
+import {
+  SettingsCollapsibleSection,
+  SettingsLinkSection,
+  readExpandedSettingsSections,
+  persistExpandedSettingsSections,
+  type SettingsSectionId,
+} from '../components/settings/SettingsCollapsibleSection';
+import { useCompanyLaborRates } from '../features/estimating/ui/hooks/useCompanyLaborRates';
 import { useThemeStore } from '../store/themeStore';
 import { useSettingsStore, usePreferencesStore } from '../store';
 import USAddressFields from '../components/address/USAddressFields';
@@ -44,6 +52,13 @@ import {
 } from '../types/address';
 import { formatUsPhoneNumber } from '../utils/phoneFormatting';
 
+const TAX_SYSTEM_LABELS: Record<string, string> = {
+  none: 'None',
+  sales_tax: 'Sales tax',
+  gross_receipts_tax: 'Gross receipts tax',
+  vat: 'VAT',
+};
+
 const Settings: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -55,7 +70,11 @@ const Settings: React.FC = () => {
     loading: settingsLoading,
   } = useSettingsStore();
   const { preferences, updatePreferences, loading: preferencesLoading } = usePreferencesStore();
+  const { rates: laborRates } = useCompanyLaborRates();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [expandedSections, setExpandedSections] = useState<Set<SettingsSectionId>>(
+    () => readExpandedSettingsSections(),
+  );
   
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
@@ -263,6 +282,70 @@ const Settings: React.FC = () => {
     handleCompanyTextChange('phone', formatUsPhoneNumber(value));
   };
 
+  const toggleSection = useCallback((id: SettingsSectionId) => {
+    setExpandedSections((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      persistExpandedSettingsSections(next);
+      return next;
+    });
+  }, []);
+
+  const companyHasUnsavedChanges = useMemo(() => {
+    if (!isLocalStateInitialized || preferences.autoSave) return false;
+    const formattedAddress = formatUSAddress(businessAddress);
+    return (
+      localCompanySettings.companyName !== (companySettings.companyName || '') ||
+      localCompanySettings.licenseNumber !== (companySettings.licenseNumber || '') ||
+      localCompanySettings.phone !== formatUsPhoneNumber(companySettings.phone || '') ||
+      localCompanySettings.email !== (companySettings.email || '') ||
+      localCompanySettings.motto !== (companySettings.motto || '') ||
+      formattedAddress !== (companySettings.address || '')
+    );
+  }, [
+    businessAddress,
+    companySettings,
+    isLocalStateInitialized,
+    localCompanySettings,
+    preferences.autoSave,
+  ]);
+
+  const companySummary = useMemo(() => {
+    const name = localCompanySettings.companyName.trim() || companySettings.companyName?.trim();
+    return name || 'Not set';
+  }, [companySettings.companyName, localCompanySettings.companyName]);
+
+  const taxSummary = useMemo(() => {
+    if (companySettings.taxSystem === 'none') return 'No tax configured';
+    const label = TAX_SYSTEM_LABELS[companySettings.taxSystem] ?? companySettings.taxSystem;
+    return `${label} · ${companySettings.taxRatePercent}%`;
+  }, [companySettings.taxRatePercent, companySettings.taxSystem]);
+
+  const laborSummary = useMemo(() => {
+    const activeCount = laborRates.filter((rate) => rate.isActive).length;
+    return activeCount === 1 ? '1 active role' : `${activeCount} active roles`;
+  }, [laborRates]);
+
+  const preferencesSummary = useMemo(
+    () =>
+      `${isDark ? 'Dark' : 'Light'} · ${
+        preferences.measurementSystem === 'metric' ? 'Metric' : 'Imperial'
+      }`,
+    [isDark, preferences.measurementSystem],
+  );
+
+  const notificationsSummary = useMemo(() => {
+    const enabledCount = Object.entries(preferences.notifications).filter(
+      ([key, value]) =>
+        ['emailUpdates', 'projectReminders', 'weatherAlerts'].includes(key) && value,
+    ).length;
+    return `${enabledCount} enabled`;
+  }, [preferences.notifications]);
+
   // Force save function for manual save or when auto-save is disabled
   const forceSaveChanges = async () => {
     if (!companySettingsHydrated) {
@@ -390,27 +473,7 @@ const Settings: React.FC = () => {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.3 }}
-      className={`${PREMIUM_PAGE_MAX_WIDTH} space-y-6`}
-    >
-      <div className="mb-6">
-        <h1 className={CC_PAGE_HERO_TITLE}>Settings</h1>
-        <p className={CC_PAGE_HERO_SUBTITLE}>
-          Customize your account and application preferences.
-        </p>
-        {preferences.autoSave && (
-          <p className={CC_PAGE_META}>
-            <span className="inline-flex items-center rounded-md bg-emerald-500/15 px-2 py-0.5 text-xs font-semibold text-emerald-800 dark:text-emerald-300">
-              Auto-save enabled
-            </span>
-          </p>
-        )}
-      </div>
-
+    <>
       {/* Save Message - Fixed Overlay Toast */}
       {saveMessage && (
         <motion.div 
@@ -443,16 +506,45 @@ const Settings: React.FC = () => {
         </motion.div>
       )}
 
-      {/* Company Information */}
-      <Card className={`p-6 ${PREMIUM_PANEL}`}>
-        <div className="flex items-center gap-3 mb-6">
-          <Building2 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-            Company Information
-          </h2>
-        </div>
-
-        <div className="space-y-6">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <AppPage
+          className="w-full !max-w-none pt-6"
+          data-testid="settings-page"
+          header={
+            <>
+              <PageHeader
+                title="Settings"
+                subtitle="Customize your account and application preferences."
+                className="[&_h1]:text-slate-900 dark:[&_h1]:text-slate-50 [&_p]:text-slate-600 dark:[&_p]:text-slate-300"
+              />
+              {preferences.autoSave ? (
+                <p className="mt-2">
+                  <span className="inline-flex items-center rounded-md bg-emerald-500/15 px-2 py-0.5 text-xs font-semibold text-emerald-800 dark:text-emerald-300">
+                    Auto-save enabled
+                  </span>
+                </p>
+              ) : null}
+            </>
+          }
+        >
+          <div className="space-y-4">
+            <SettingsCollapsibleSection
+              id="company"
+              testId="settings-section-company"
+              icon={<Building2 className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />}
+              title="Company Information"
+              description="Logo, business identity, address, contact information, and license details."
+              summaryChip={companySummary}
+              unsaved={companyHasUnsavedChanges}
+              expanded={expandedSections.has('company')}
+              onToggle={toggleSection}
+            >
+              <div className="space-y-6">
           {/* Logo Upload */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -568,21 +660,24 @@ const Settings: React.FC = () => {
             placeholder="Building Excellence, One Project at a Time"
             icon={<Quote size={16} />}
           />
-        </div>
-      </Card>
+              </div>
+            </SettingsCollapsibleSection>
 
-      {/* Company tax defaults for proposals & change orders */}
-      <Card className={`p-6 ${PREMIUM_PANEL}`}>
-        <div className="flex items-center gap-3 mb-6">
-          <Calculator className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-            Company Tax Settings
-          </h2>
-        </div>
-        <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
-          Default tax applied to new proposals and change orders. You can override per document.
-        </p>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <SettingsCollapsibleSection
+              id="tax"
+              testId="settings-section-tax"
+              icon={<Calculator className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />}
+              title="Company Tax Settings"
+              description="Default tax system, rate, and tax application rules for new proposals."
+              summaryChip={taxSummary}
+              expanded={expandedSections.has('tax')}
+              onToggle={toggleSection}
+            >
+              <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+                Default tax applied to new proposals and change orders. You can override per
+                document.
+              </p>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <Select
             label="Tax system"
             value={companySettings.taxSystem}
@@ -610,23 +705,33 @@ const Settings: React.FC = () => {
               { value: 'entire_project', label: 'Entire pre-tax amount' },
             ]}
           />
-        </div>
-      </Card>
+              </div>
+            </SettingsCollapsibleSection>
 
-      <Card className={`p-6 ${PREMIUM_PANEL}`}>
-        <LaborRateLibrarySection />
-      </Card>
+            <SettingsCollapsibleSection
+              id="labor"
+              testId="settings-section-labor"
+              icon={<Users className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />}
+              title="Labor Rate Library"
+              description="Company labor roles, burden, billing rates, and starter defaults."
+              summaryChip={laborSummary}
+              expanded={expandedSections.has('labor')}
+              onToggle={toggleSection}
+            >
+              <LaborRateLibrarySection hideTitle />
+            </SettingsCollapsibleSection>
 
-      {/* User Preferences */}
-      <Card className={`p-6 ${PREMIUM_PANEL}`}>
-        <div className="flex items-center gap-3 mb-6">
-          <User className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-            User Preferences
-          </h2>
-        </div>
-
-        <div className="space-y-6">
+            <SettingsCollapsibleSection
+              id="preferences"
+              testId="settings-section-preferences"
+              icon={<User className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />}
+              title="User Preferences"
+              description="Theme, units, currency, sound, haptics, and auto-save behavior."
+              summaryChip={preferencesSummary}
+              expanded={expandedSections.has('preferences')}
+              onToggle={toggleSection}
+            >
+              <div className="space-y-6">
           {/* Theme Toggle */}
           <div className={`flex items-center justify-between p-4 ${PREMIUM_INNER_PANEL}`}>
             <div className="flex items-center gap-3">
@@ -787,19 +892,20 @@ const Settings: React.FC = () => {
               <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
             </label>
           </div>
-        </div>
-      </Card>
+              </div>
+            </SettingsCollapsibleSection>
 
-      {/* Notifications */}
-      <Card className={`p-6 ${PREMIUM_PANEL}`}>
-        <div className="flex items-center gap-3 mb-6">
-          <Bell className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-            Notifications
-          </h2>
-        </div>
-
-        <div className="space-y-4">
+            <SettingsCollapsibleSection
+              id="notifications"
+              testId="settings-section-notifications"
+              icon={<Bell className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />}
+              title="Notifications"
+              description="Email updates, project reminders, and weather alerts."
+              summaryChip={notificationsSummary}
+              expanded={expandedSections.has('notifications')}
+              onToggle={toggleSection}
+            >
+              <div className="space-y-4">
         {Object.entries(preferences.notifications)
   .filter(([key]) =>
     ['emailUpdates', 'projectReminders', 'weatherAlerts'].includes(key)
@@ -831,36 +937,19 @@ const Settings: React.FC = () => {
               </label>
             </div>
           ))}
-        </div>
-      </Card>
+              </div>
+            </SettingsCollapsibleSection>
 
+            <SettingsLinkSection
+              testId="settings-accounting-tax-link"
+              icon={<BookOpen className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />}
+              title="Accounting & Tax"
+              description="Generate year-end export packages for CPAs, QuickBooks, and tax preparation."
+              summaryChip="Open package"
+              onNavigate={() => navigate('/accounting-tax')}
+            />
 
-
-      {/* Accounting & Tax link card */}
-      <Card className="p-6">
-        <button
-          type="button"
-          onClick={() => navigate('/accounting-tax')}
-          className="flex w-full items-center justify-between text-left"
-          data-testid="settings-accounting-tax-link"
-        >
-          <div className="flex items-center gap-4">
-            <BookOpen className="h-6 w-6 shrink-0 text-cyan-600 dark:text-cyan-400" />
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Accounting &amp; Tax
-              </h2>
-              <p className="mt-0.5 text-sm text-gray-600 dark:text-gray-400">
-                Generate year-end export packages for CPAs, QuickBooks, and tax preparation.
-              </p>
-            </div>
-          </div>
-          <ChevronRight className="h-5 w-5 shrink-0 text-gray-400 dark:text-gray-500" aria-hidden />
-        </button>
-      </Card>
-
-      {/* Save Button - now shows unsaved changes indicator */}
-      <div className="flex justify-between items-center">
+            <div className="flex flex-col gap-4 pt-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="text-sm text-gray-600 dark:text-gray-400">
           {preferences.autoSave ? (
             <span className="flex items-center gap-2">
@@ -880,8 +969,11 @@ const Settings: React.FC = () => {
         >
           {isSaving ? 'Saving...' : 'Save All Settings'}
         </Button>
-      </div>
-    </motion.div>
+            </div>
+          </div>
+        </AppPage>
+      </motion.div>
+    </>
   );
 };
 

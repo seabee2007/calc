@@ -1,5 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { Pin, PinOff } from 'lucide-react';
+import type { ReactNode } from 'react';
 import type { EstimateWorkspaceSaveStatusValue } from '../estimateWorkspaceSaveStatus';
 import {
   ESTIMATE_WORKSPACE_HEADER_COLLAPSE_MARKER,
@@ -8,89 +7,60 @@ import {
   type EstimateWorkspaceHeaderMiniStatus,
 } from '../EstimateWorkspaceHeaderCollapseContext';
 
-const REVEAL_HEIGHT_PX = 12;
-const COLLAPSED_BAR_HEIGHT_PX = 40;
+const COMPACT_BAR_HEIGHT_PX = 44;
+const HEADER_TRANSITION_CLASS = 'transition-[max-height,opacity] duration-300 ease-out';
 
 interface Props {
   plannerHeader: ReactNode;
 }
 
 export default function EstimateWorkspaceCollapsibleHeader({ plannerHeader }: Props) {
-  const collapse = useEstimateWorkspaceHeaderCollapse();
-  const headerInnerRef = useRef<HTMLDivElement | null>(null);
-  const [headerHeight, setHeaderHeight] = useState<number | null>(null);
+  const header = useEstimateWorkspaceHeaderCollapse();
 
-  const enabled = collapse?.enabled ?? false;
-  const isCollapsed = collapse?.isCollapsed ?? false;
-  const isMobile = collapse?.isMobile ?? false;
+  const enabled = header?.enabled ?? false;
+  const focusMode = header?.focusMode ?? false;
 
-  useEffect(() => {
-    if (!enabled || !headerInnerRef.current) return;
-    const node = headerInnerRef.current;
-    const observer = new ResizeObserver((entries) => {
-      const entry = entries[0];
-      if (entry) {
-        setHeaderHeight(Math.ceil(entry.contentRect.height));
-      }
-    });
-    observer.observe(node);
-    setHeaderHeight(Math.ceil(node.getBoundingClientRect().height));
-    return () => observer.disconnect();
-  }, [enabled, isCollapsed]);
-
-  if (!enabled || !collapse) {
+  if (!enabled || !header) {
     return (
       <>
         {plannerHeader}
-        <div id={ESTIMATE_WORKSPACE_HEADER_PORTAL_ID} ref={collapse?.attachPortalTarget} />
+        <div id={ESTIMATE_WORKSPACE_HEADER_PORTAL_ID} ref={header?.attachPortalTarget} />
       </>
     );
   }
 
-  const showCollapsedChrome = isCollapsed && !isMobile;
-  const shellHeight =
-    showCollapsedChrome && headerHeight != null ? COLLAPSED_BAR_HEIGHT_PX : headerHeight ?? undefined;
-
   return (
-    <div
-      className="relative shrink-0 overflow-hidden transition-[height] duration-500 ease-out will-change-[height]"
-      style={{ height: shellHeight }}
-      data-testid={ESTIMATE_WORKSPACE_HEADER_COLLAPSE_MARKER}
-      onMouseEnter={collapse.handlePointerEnter}
-      onMouseLeave={collapse.handlePointerLeave}
-      onFocusCapture={() => collapse.setIsFocusedWithin(true)}
-      onBlurCapture={(event) => {
-        const next = event.currentTarget;
-        if (!next.contains(event.relatedTarget as Node | null)) {
-          collapse.setIsFocusedWithin(false);
-        }
-      }}
-    >
+    <div className="shrink-0" data-testid={ESTIMATE_WORKSPACE_HEADER_COLLAPSE_MARKER}>
       <div
-        ref={headerInnerRef}
-        className="transition-transform duration-500 ease-out will-change-transform"
-        style={{
-          transform: showCollapsedChrome
-            ? `translateY(calc(-100% + ${REVEAL_HEIGHT_PX}px))`
-            : 'translateY(0)',
-        }}
+        className={[
+          HEADER_TRANSITION_CLASS,
+          'overflow-hidden',
+          focusMode ? 'max-h-0 opacity-0 pointer-events-none' : 'max-h-[2400px] opacity-100',
+        ].join(' ')}
+        aria-hidden={focusMode}
       >
         {plannerHeader}
         <div
           id={ESTIMATE_WORKSPACE_HEADER_PORTAL_ID}
-          ref={collapse.attachPortalTarget}
+          ref={header.attachPortalTarget}
           data-testid="estimate-workspace-header-portal"
         />
       </div>
 
-      {showCollapsedChrome ? (
-        <EstimateWorkspaceCollapsedStatusBar
-          miniStatus={collapse.miniStatus}
-          isPinned={collapse.isPinned}
-          onExpand={collapse.expand}
-          onTogglePinned={() => collapse.setPinned(!collapse.isPinned)}
+      <div
+        className={[
+          HEADER_TRANSITION_CLASS,
+          'overflow-hidden',
+          focusMode ? 'opacity-100' : 'max-h-0 opacity-0 pointer-events-none',
+        ].join(' ')}
+        style={{ maxHeight: focusMode ? COMPACT_BAR_HEIGHT_PX : 0 }}
+        aria-hidden={!focusMode}
+      >
+        <EstimateWorkspaceFocusHeaderBar
+          miniStatus={header.miniStatus}
+          onExpand={() => header.setFocusMode(false)}
         />
-      ) : null}
+      </div>
     </div>
   );
 }
@@ -111,35 +81,32 @@ function saveStatusTone(
   return 'text-emerald-700 dark:text-emerald-300';
 }
 
-function EstimateWorkspaceCollapsedStatusBar({
+function EstimateWorkspaceFocusHeaderBar({
   miniStatus,
-  isPinned,
   onExpand,
-  onTogglePinned,
 }: {
   miniStatus: EstimateWorkspaceHeaderMiniStatus | null;
-  isPinned: boolean;
   onExpand: () => void;
-  onTogglePinned: () => void;
 }) {
   return (
     <div
-      className="absolute inset-x-0 bottom-0 z-10 flex h-10 items-center gap-2 border-t border-cyan-500/30 bg-white/95 px-3 text-xs shadow-sm backdrop-blur-sm dark:bg-slate-900/95"
-      data-testid="estimate-workspace-collapsed-header-bar"
+      className="relative flex h-11 items-center gap-2 border-b border-cyan-500/30 bg-white px-3 text-xs shadow-sm dark:bg-slate-900"
+      data-testid="estimate-workspace-focus-header-bar"
     >
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-cyan-500/80 via-cyan-400/60 to-cyan-500/80" />
-      <button
-        type="button"
-        className="group flex min-w-0 flex-1 items-center gap-2 text-left"
-        onClick={onExpand}
-        title="Show estimate controls"
-      >
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-cyan-500/70 via-cyan-400/50 to-cyan-500/70" />
+      <div className="flex min-w-0 flex-1 items-center gap-2">
         <span className="truncate font-medium text-slate-700 dark:text-slate-200">
           {miniStatus?.estimateTypeLabel ?? 'Estimate workspace'}
         </span>
+        <span className="hidden text-slate-300 sm:inline" aria-hidden>
+          •
+        </span>
+        <span className="hidden truncate text-slate-500 dark:text-slate-400 sm:inline">
+          {miniStatus?.activeTabLabel ?? 'Workspace'}
+        </span>
         <span
           className={[
-            'hidden truncate sm:inline',
+            'ml-auto truncate font-medium sm:ml-0',
             saveStatusTone(
               miniStatus?.saveStatus ?? 'saved',
               miniStatus?.hasPendingEstimateChanges ?? false,
@@ -148,25 +115,13 @@ function EstimateWorkspaceCollapsedStatusBar({
         >
           {miniStatus?.saveStatusLabel ?? 'Saved'}
         </span>
-        <span className="hidden truncate text-slate-400 opacity-0 transition-opacity group-hover:opacity-100 md:inline">
-          Show estimate controls
-        </span>
-      </button>
+      </div>
       <button
         type="button"
-        className="shrink-0 rounded-md border border-slate-200 px-2 py-1 text-[11px] font-medium text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
+        className="shrink-0 rounded-md border border-slate-200 px-2.5 py-1 text-[11px] font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
         onClick={onExpand}
       >
         Expand
-      </button>
-      <button
-        type="button"
-        className="shrink-0 rounded-md border border-slate-200 p-1.5 text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
-        aria-label={isPinned ? 'Keep header visible' : 'Auto-hide header'}
-        title={isPinned ? 'Keep header visible' : 'Auto-hide header'}
-        onClick={onTogglePinned}
-      >
-        {isPinned ? <Pin className="h-3.5 w-3.5" aria-hidden /> : <PinOff className="h-3.5 w-3.5" aria-hidden />}
       </button>
     </div>
   );

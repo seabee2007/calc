@@ -44,6 +44,7 @@ function makeExportData(overrides: Partial<AccountingExportData> = {}): Accounti
     projectSummaries: [],
     warnings: [],
     hasMissingCashTimestamps: false,
+    company: {},
     ...overrides,
   };
 }
@@ -112,10 +113,16 @@ describe('buildQuickBooksInvoicesCsvContent', () => {
     expect(header).not.toContain('expense');
   });
 
-  it('includes recognized proposal revenue', () => {
+  it('includes recognized proposal revenue with two decimal places', () => {
     const csv = buildQuickBooksInvoicesCsvContent(makeExportData());
-    expect(csv).toContain('12000');
+    expect(csv).toContain('12000.00');
     expect(csv).toContain('Bob Builder');
+  });
+
+  it('uses date-only invoice dates', () => {
+    const csv = buildQuickBooksInvoicesCsvContent(makeExportData());
+    expect(csv).toContain('2025-04-01');
+    expect(csv).not.toContain('2025-04-01T');
   });
 });
 

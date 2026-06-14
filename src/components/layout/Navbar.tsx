@@ -9,22 +9,18 @@ import {
   LayoutGrid,
   LogIn,
   Menu,
-  Settings,
   Share2,
   User,
   UserPlus,
   Users,
-  Wrench,
   X,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
-import { useToolsModalStore } from '../../store/toolsModalStore';
 import FieldNotificationsBell from '../field/FieldNotificationsBell';
-import HelpButton from '../../features/help/HelpButton';
-import ThemeToggle from './ThemeToggle';
 import ShareInviteModal from '../share/ShareInviteModal';
 import PilotSurveyModal from '../survey/PilotSurveyModal';
 import Button from '../ui/Button';
+import AppProfileMenu from './AppProfileMenu';
 import { APP_NAV_HEADER, APP_NAV_MOBILE_MENU, appNavIconButtonClass } from './appNavStyles';
 import {
   BRAND_NAME,
@@ -60,8 +56,7 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = ({ showThemeToggle = true, softHeader = false }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, profile, signOut, isOwner, isEmployee } = useAuth();
-  const openTools = useToolsModalStore((s) => s.open);
+  const { user, isOwner, isEmployee } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [shareInviteOpen, setShareInviteOpen] = useState(false);
@@ -77,11 +72,6 @@ const Navbar: React.FC<NavbarProps> = ({ showThemeToggle = true, softHeader = fa
   const startProject = () => {
     setMobileOpen(false);
     navigate('/projects', { state: { openCreate: true } });
-  };
-
-  const handleTools = () => {
-    setMobileOpen(false);
-    openTools();
   };
 
   const isActive = (path: string) => {
@@ -151,39 +141,8 @@ const Navbar: React.FC<NavbarProps> = ({ showThemeToggle = true, softHeader = fa
           <>
             <Link
               to="/planner/hub"
-              className={`hidden md:inline-flex ${appNavIconButtonClass(isActive('/planner'))}`}
-              aria-label="Planner Hub"
-              title="Planner Hub"
-            >
-              <LayoutGrid className="h-5 w-5" />
-            </Link>
-            <button
-              type="button"
-              onClick={startProject}
-              className={`hidden md:inline-flex ${appNavIconButtonClass()}`}
-              aria-label="Start new project"
-              title="Start new project"
-            >
-              <FolderPlus className="h-5 w-5" />
-            </button>
-            <button
-              type="button"
-              onClick={handleTools}
-              className={`hidden md:inline-flex ${appNavIconButtonClass()}`}
-              aria-label="Tools"
-              title="Tools"
-            >
-              <Wrench className="h-5 w-5" />
-            </button>
-          </>
-        )}
-
-        {user && isOwner && (
-          <div className="flex shrink-0 items-center gap-0.5 md:hidden">
-            <Link
-              to="/planner/hub"
               className={appNavIconButtonClass(isActive('/planner'))}
-              aria-label="Open Planner Hub"
+              aria-label="Planner Hub"
               title="Planner Hub"
               onClick={() => setMobileOpen(false)}
             >
@@ -193,27 +152,18 @@ const Navbar: React.FC<NavbarProps> = ({ showThemeToggle = true, softHeader = fa
               type="button"
               onClick={startProject}
               className={appNavIconButtonClass()}
-              aria-label="Start new project"
-              title="Start new project"
+              aria-label="Quick create"
+              title="Quick create"
             >
               <FolderPlus className="h-5 w-5" />
             </button>
-            <button
-              type="button"
-              onClick={handleTools}
-              className={appNavIconButtonClass()}
-              aria-label="Tools"
-              title="Tools"
-            >
-              <Wrench className="h-5 w-5" />
-            </button>
-          </div>
+          </>
         )}
 
         {user && isEmployee && !isOwner && (
           <Link
             to="/employee/tasks"
-            className={`hidden md:inline-flex ${appNavIconButtonClass(isActive('/employee/tasks'))}`}
+            className={appNavIconButtonClass(isActive('/employee/tasks'))}
             aria-label="My tasks"
             title="My tasks"
           >
@@ -221,29 +171,8 @@ const Navbar: React.FC<NavbarProps> = ({ showThemeToggle = true, softHeader = fa
           </Link>
         )}
 
-        {user && <HelpButton className={appNavIconButtonClass()} showLabel={false} />}
-
-        {user && (
-          <Link
-            to="/settings"
-            className={`hidden md:inline-flex ${appNavIconButtonClass(isActive('/settings'))}`}
-            aria-label="Settings"
-            title="Settings"
-          >
-            <Settings className="h-5 w-5" />
-          </Link>
-        )}
-
-        {showThemeToggle ? (
-          <div className="[&_button]:!min-h-0 [&_button]:!p-2 [&_button]:!text-slate-300 [&_button]:hover:!bg-white/10 [&_button]:hover:!text-white">
-            <ThemeToggle />
-          </div>
-        ) : null}
-
         {user && isOwner && (
-          <span className="hidden md:inline-flex">
-            <FieldNotificationsBell />
-          </span>
+          <FieldNotificationsBell buttonClassName={appNavIconButtonClass()} />
         )}
 
         {user ? (
@@ -252,8 +181,8 @@ const Navbar: React.FC<NavbarProps> = ({ showThemeToggle = true, softHeader = fa
               type="button"
               onClick={() => setProfileOpen((o) => !o)}
               className={appNavIconButtonClass(profileOpen)}
-              aria-label="Profile"
-              title="Profile"
+              aria-label="Profile menu"
+              title="Profile menu"
             >
               <User className="h-5 w-5" />
             </button>
@@ -265,59 +194,14 @@ const Navbar: React.FC<NavbarProps> = ({ showThemeToggle = true, softHeader = fa
                   aria-label="Close profile menu"
                   onClick={() => setProfileOpen(false)}
                 />
-                <div className="absolute right-0 top-full z-50 mt-1 w-48 rounded-lg border border-slate-700 bg-slate-900 py-1 shadow-xl">
-                  <p className="truncate px-3 py-2 text-xs text-slate-400">
-                    {profile?.displayName ?? user.email}
-                  </p>
-                  {isOwner && (
-                    <Link
-                      to="/employees"
-                      className="block w-full px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800"
-                      onClick={() => setProfileOpen(false)}
-                    >
-                      Team & employees
-                    </Link>
-                  )}
-                  <Link
-                    to="/projects"
-                    className="block w-full px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800"
-                    onClick={() => setProfileOpen(false)}
-                  >
-                    Projects
-                  </Link>
-                  <button
-                    type="button"
-                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800"
-                    onClick={() => {
-                      setProfileOpen(false);
-                      setShareInviteOpen(true);
-                    }}
-                  >
-                    <Share2 className="h-4 w-4 text-cyan-400" aria-hidden />
-                    Share / Invite Client
-                  </button>
-                  <button
-                    type="button"
-                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800"
-                    onClick={() => {
-                      setProfileOpen(false);
-                      setSurveyOpen(true);
-                    }}
-                  >
-                    <ClipboardList className="h-4 w-4 text-cyan-400" aria-hidden />
-                    Survey
-                  </button>
-                  <button
-                    type="button"
-                    className="w-full px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800"
-                    onClick={() => {
-                      setProfileOpen(false);
-                      void signOut().then(() => navigate('/login'));
-                    }}
-                  >
-                    Sign out
-                  </button>
-                </div>
+                <AppProfileMenu
+                  onClose={() => setProfileOpen(false)}
+                  showThemeToggle={showThemeToggle}
+                  showShareInvite
+                  onShareInvite={() => setShareInviteOpen(true)}
+                  showSurvey
+                  onSurvey={() => setSurveyOpen(true)}
+                />
               </>
             )}
           </div>
@@ -396,11 +280,7 @@ const Navbar: React.FC<NavbarProps> = ({ showThemeToggle = true, softHeader = fa
                   </Link>
                   <button type="button" onClick={startProject} className={mobileLinkClass(false)}>
                     <FolderPlus className="h-5 w-5" />
-                    Start new project
-                  </button>
-                  <button type="button" onClick={handleTools} className={mobileLinkClass(false)}>
-                    <Wrench className="h-5 w-5" />
-                    Tools
+                    Quick create
                   </button>
                   <Link
                     to="/resources"
@@ -432,15 +312,6 @@ const Navbar: React.FC<NavbarProps> = ({ showThemeToggle = true, softHeader = fa
                 </Link>
               )}
 
-              <Link
-                to="/settings"
-                className={mobileLinkClass(isActive('/settings'))}
-                onClick={() => setMobileOpen(false)}
-              >
-                <Settings className="h-5 w-5" />
-                Settings
-              </Link>
-
               <button
                 type="button"
                 className={mobileLinkClass(false)}
@@ -465,19 +336,16 @@ const Navbar: React.FC<NavbarProps> = ({ showThemeToggle = true, softHeader = fa
                 Survey
               </button>
 
-              <div className="px-3 py-2">
-                <ThemeToggle />
-              </div>
-
               <button
                 type="button"
                 className={`${mobileLinkClass(false)} text-red-300`}
                 onClick={() => {
                   setMobileOpen(false);
-                  void signOut().then(() => navigate('/login'));
+                  setProfileOpen(true);
                 }}
               >
-                Sign out
+                <User className="h-5 w-5" />
+                Account & settings
               </button>
             </div>
           </motion.div>

@@ -10,6 +10,13 @@
  */
 
 import type { AccountingExportData } from './accountingExport';
+import {
+  exportCompanyInfoPairs,
+  formatDateOnly,
+  formatMoneyCsv,
+  formatMoneyOrNotTracked,
+  toAsciiExportText,
+} from './accountingExportFormatting';
 
 // ---------------------------------------------------------------------------
 // CSV helper
@@ -48,6 +55,12 @@ function downloadCsv(content: string, fileName: string): void {
  */
 export function buildQuickBooksCustomersCsvContent(data: AccountingExportData): string {
   let csv = '';
+  for (const [label, value] of exportCompanyInfoPairs(data.company)) {
+    csv += csvRow(label, value);
+  }
+  if (exportCompanyInfoPairs(data.company).length > 0) {
+    csv += csvRow('');
+  }
   // QuickBooks customer import columns (common subset)
   csv += csvRow('Name', 'Company', 'Email', 'Phone', 'Billing Address');
 
@@ -81,6 +94,12 @@ export function downloadQuickBooksCustomersCsv(
  */
 export function buildQuickBooksInvoicesCsvContent(data: AccountingExportData): string {
   let csv = '';
+  for (const [label, value] of exportCompanyInfoPairs(data.company)) {
+    csv += csvRow(label, value);
+  }
+  if (exportCompanyInfoPairs(data.company).length > 0) {
+    csv += csvRow('');
+  }
   csv += csvRow(
     'Invoice No',
     'Customer',
@@ -96,9 +115,9 @@ export function buildQuickBooksInvoicesCsvContent(data: AccountingExportData): s
     csv += csvRow(
       row.id.slice(0, 8).toUpperCase(),
       row.clientName || 'Unknown',
-      row.recognitionDate ?? row.acceptedAt ?? '',
+      formatDateOnly(row.recognitionDate ?? row.acceptedAt),
       '',
-      row.totalRevenue,
+      formatMoneyCsv(row.totalRevenue),
       row.status,
       row.title,
       'Arden Project OS proposal',
@@ -128,6 +147,12 @@ export function downloadQuickBooksInvoicesCsv(
  */
 export function buildJobCostSummaryCsvContent(data: AccountingExportData): string {
   let csv = '';
+  for (const [label, value] of exportCompanyInfoPairs(data.company)) {
+    csv += csvRow(label, value);
+  }
+  if (exportCompanyInfoPairs(data.company).length > 0) {
+    csv += csvRow('');
+  }
   csv += csvRow(
     'Proposal',
     'Client',
@@ -146,11 +171,11 @@ export function buildJobCostSummaryCsvContent(data: AccountingExportData): strin
       row.title,
       row.clientName || 'Unknown',
       data.taxYear,
-      row.recognitionDate ?? '',
-      row.totalRevenue,
-      row.laborCostEstimate ?? 'Not tracked',
-      row.materialCostEstimate ?? 'Not tracked',
-      row.grossProfit ?? 'Not tracked',
+      formatDateOnly(row.recognitionDate),
+      formatMoneyCsv(row.totalRevenue),
+      formatMoneyOrNotTracked(row.laborCostEstimate),
+      formatMoneyOrNotTracked(row.materialCostEstimate),
+      formatMoneyOrNotTracked(row.grossProfit),
       row.grossMarginPercent !== null ? `${row.grossMarginPercent.toFixed(1)}%` : 'Not tracked',
       'Job-cost estimate from proposal. Not a vendor expense record.',
     );
@@ -182,25 +207,28 @@ export const TURBOTAX_HELPER_DISCLAIMER =
 export function buildTurboTaxHelperCsvContent(data: AccountingExportData): string {
   let csv = '';
   csv += csvRow('Arden Project OS — TurboTax Helper Export');
+  for (const [label, value] of exportCompanyInfoPairs(data.company)) {
+    csv += csvRow(label, value);
+  }
   csv += csvRow(`Tax Year: ${data.taxYear}`);
   csv += csvRow('');
   csv += csvRow('NOTICE', TURBOTAX_HELPER_DISCLAIMER);
   csv += csvRow('');
   csv += csvRow('Category', 'Amount (USD)', 'Notes');
-  csv += csvRow('Gross Business Income', data.grossReceipts, 'From accepted proposals');
+  csv += csvRow('Gross Business Income', formatMoneyCsv(data.grossReceipts), 'From accepted proposals');
   csv += csvRow(
     'Contract Labor / Labor Costs',
-    data.totalLaborEstimate ?? 'Not tracked',
+    formatMoneyOrNotTracked(data.totalLaborEstimate),
     'Job-cost estimate. Review with CPA.',
   );
   csv += csvRow(
     'Materials / Supplies',
-    data.totalMaterialEstimate ?? 'Not tracked',
+    formatMoneyOrNotTracked(data.totalMaterialEstimate),
     'Job-cost estimate. Review with CPA.',
   );
   csv += csvRow(
     'Gross Profit',
-    data.totalGrossProfit ?? 'Not tracked',
+    formatMoneyOrNotTracked(data.totalGrossProfit),
     'From proposal records',
   );
   csv += csvRow('');

@@ -15,6 +15,10 @@
 import type { TrackedProposalRow } from '../types/proposalTracking';
 import type { ChangeOrder } from '../types/changeOrder';
 import type { Project } from '../types';
+import type { ExportCompanyInfo } from './accountingExportFormatting';
+import { roundMoney } from './accountingExportFormatting';
+
+export type { ExportCompanyInfo };
 
 export type AccountingMethod = 'cash' | 'accrual';
 
@@ -46,6 +50,7 @@ export interface AccountingExportSettings {
   entityType: BusinessEntityType;
   accountingMethod: AccountingMethod;
   taxCategoryMap: TaxCategoryMap;
+  company?: ExportCompanyInfo;
 }
 
 export const DEFAULT_TAX_YEAR = new Date().getFullYear();
@@ -273,6 +278,9 @@ export interface AccountingExportData {
 
   /** True if any accepted proposals lack a cash-method timestamp. */
   hasMissingCashTimestamps: boolean;
+
+  /** Company profile for export headers (from Settings). */
+  company: ExportCompanyInfo;
 }
 
 export interface ProjectSummaryRow {
@@ -296,7 +304,7 @@ export function buildAccountingExportData(
   projects: Project[],
   settings: AccountingExportSettings,
 ): AccountingExportData {
-  const { taxYear, accountingMethod, entityType, taxCategoryMap } = settings;
+  const { taxYear, accountingMethod, entityType, taxCategoryMap, company = {} } = settings;
 
   // --- Filter proposals by accounting method and tax year ---
   const wonProposals = proposals.filter(isWon);
@@ -328,12 +336,18 @@ export function buildAccountingExportData(
     .map(toChangeOrderSummaryRow);
 
   // --- Revenue totals ---
-  const grossReceipts = recognizedProposals.reduce((s, r) => s + r.totalRevenue, 0);
-  const pendingRevenue = pendingProposals.reduce(
-    (s, p) => s + (proposals.find((x) => x.id === p.id)?.total_amount ?? 0),
-    0,
+  const grossReceipts = roundMoney(
+    recognizedProposals.reduce((s, r) => s + r.totalRevenue, 0),
   );
-  const changeOrderRevenue = acceptedChangeOrders.reduce((s, c) => s + c.totalRevenue, 0);
+  const pendingRevenue = roundMoney(
+    pendingProposals.reduce(
+      (s, p) => s + (proposals.find((x) => x.id === p.id)?.total_amount ?? 0),
+      0,
+    ),
+  );
+  const changeOrderRevenue = roundMoney(
+    acceptedChangeOrders.reduce((s, c) => s + c.totalRevenue, 0),
+  );
 
   // --- Cost totals (null when nothing tracked) ---
   const laborValues = recognizedProposals
@@ -347,13 +361,13 @@ export function buildAccountingExportData(
     .filter((v): v is number => v !== null);
 
   const totalLaborEstimate = laborValues.length > 0
-    ? laborValues.reduce((s, v) => s + v, 0)
+    ? roundMoney(laborValues.reduce((s, v) => s + v, 0))
     : null;
   const totalMaterialEstimate = materialValues.length > 0
-    ? materialValues.reduce((s, v) => s + v, 0)
+    ? roundMoney(materialValues.reduce((s, v) => s + v, 0))
     : null;
   const totalGrossProfit = profitValues.length > 0
-    ? profitValues.reduce((s, v) => s + v, 0)
+    ? roundMoney(profitValues.reduce((s, v) => s + v, 0))
     : null;
 
   // --- Per-project rollup ---
@@ -442,6 +456,7 @@ export function buildAccountingExportData(
     projectSummaries,
     warnings,
     hasMissingCashTimestamps,
+    company,
   };
 }
 

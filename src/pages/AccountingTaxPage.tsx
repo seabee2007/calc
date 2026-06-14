@@ -6,11 +6,12 @@ import {
   FileSpreadsheet,
   ArrowLeft,
   BookOpen,
-  AlertTriangle,
+  Calculator,
+  Tags,
+  Receipt,
 } from 'lucide-react';
 import AppPage from '../components/ui/AppPage';
 import PageHeader from '../components/ui/PageHeader';
-import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Select from '../components/ui/Select';
 import InlineNotice from '../components/ui/InlineNotice';
@@ -46,6 +47,15 @@ import {
   TURBOTAX_HELPER_DISCLAIMER,
 } from '../utils/quickbooksExport';
 import type { ChangeOrder } from '../types/changeOrder';
+import {
+  BORDER_DEFAULT,
+  TEXT_FOREGROUND,
+  TEXT_MUTED,
+  TEXT_SUBTLE,
+} from '../theme/appTheme';
+
+const KPI_CARD =
+  'rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/80';
 
 const YEAR_OPTIONS = Array.from({ length: 7 }, (_, i) => {
   const y = DEFAULT_TAX_YEAR - i;
@@ -61,6 +71,20 @@ const METHOD_OPTIONS: { value: AccountingMethod; label: string }[] = [
   { value: 'cash', label: 'Cash (uses paid / deposit timestamps)' },
 ];
 
+const SECTION_CARD =
+  'rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900';
+
+const FIELD_LABEL = 'mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300';
+const FIELD_HELPER = `mt-1.5 text-xs ${TEXT_SUBTLE}`;
+
+function formatCurrency(value: number): string {
+  return value.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+}
+
+function accountingMethodLabel(method: AccountingMethod): string {
+  return method === 'accrual' ? 'Accrual' : 'Cash';
+}
+
 // ---------------------------------------------------------------------------
 // Page
 // ---------------------------------------------------------------------------
@@ -72,7 +96,6 @@ const AccountingTaxPage: React.FC = () => {
   const { companySettings } = useSettingsStore();
   const [changeOrders, setChangeOrders] = useState<ChangeOrder[]>([]);
 
-  // Settings
   const [taxYear, setTaxYear] = useState<number>(DEFAULT_TAX_YEAR);
   const [entityType, setEntityType] = useState<BusinessEntityType>('sole_proprietor');
   const [accountingMethod, setAccountingMethod] = useState<AccountingMethod>('accrual');
@@ -93,8 +116,20 @@ const AccountingTaxPage: React.FC = () => {
   }, [projects]);
 
   const settings: AccountingExportSettings = useMemo(
-    () => ({ taxYear, entityType, accountingMethod, taxCategoryMap }),
-    [taxYear, entityType, accountingMethod, taxCategoryMap],
+    () => ({
+      taxYear,
+      entityType,
+      accountingMethod,
+      taxCategoryMap,
+      company: {
+        name: companySettings?.companyName,
+        address: companySettings?.address,
+        phone: companySettings?.phone,
+        email: companySettings?.email,
+        licenseNumber: companySettings?.licenseNumber,
+      },
+    }),
+    [taxYear, entityType, accountingMethod, taxCategoryMap, companySettings],
   );
 
   const exportData = useMemo(
@@ -105,14 +140,26 @@ const AccountingTaxPage: React.FC = () => {
     [proposals, changeOrders, projects, settings, proposalsLoading],
   );
 
-  const showEntityWarning =
-    NON_SCHEDULE_C_ENTITIES.includes(entityType);
-
+  const showEntityWarning = NON_SCHEDULE_C_ENTITIES.includes(entityType);
   const businessName = companySettings?.companyName;
 
-  // ---------------------------------------------------------------------------
-  // Export actions
-  // ---------------------------------------------------------------------------
+  const recognizedRevenueDisplay = exportData
+    ? formatCurrency(exportData.grossReceipts + exportData.changeOrderRevenue)
+    : proposalsLoading
+      ? '…'
+      : 'Not tracked';
+
+  const proposalsIncludedDisplay = exportData
+    ? String(exportData.recognizedProposals.length)
+    : proposalsLoading
+      ? '…'
+      : 'Not tracked';
+
+  const changeOrdersIncludedDisplay = exportData
+    ? String(exportData.acceptedChangeOrders.length)
+    : proposalsLoading
+      ? '…'
+      : 'Not tracked';
 
   function handleScheduleCSummaryCsv() {
     if (!exportData) return;
@@ -149,10 +196,6 @@ const AccountingTaxPage: React.FC = () => {
     downloadTurboTaxHelperCsv(exportData);
   }
 
-  // ---------------------------------------------------------------------------
-  // Render
-  // ---------------------------------------------------------------------------
-
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -163,7 +206,7 @@ const AccountingTaxPage: React.FC = () => {
         data-testid="accounting-tax-page"
         header={
           <PageHeader
-            title="Accounting &amp; Tax Prep Package"
+            title="Accounting & Tax Prep Package"
             subtitle="Year-end export package for CPAs, QuickBooks, and tax preparation."
             actions={
               <Button
@@ -180,29 +223,42 @@ const AccountingTaxPage: React.FC = () => {
         }
       >
         <div className="space-y-6">
-          {/* Validation checklist */}
-          {exportData && (
+          <section
+            className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5"
+            aria-label="Export summary"
+            data-testid="accounting-summary-row"
+          >
+            <SummaryStat label="Tax year" value={String(taxYear)} />
+            <SummaryStat label="Recognized revenue" value={recognizedRevenueDisplay} />
+            <SummaryStat label="Accepted proposals" value={proposalsIncludedDisplay} />
+            <SummaryStat label="Change orders" value={changeOrdersIncludedDisplay} />
+            <SummaryStat
+              label="Accounting method"
+              value={accountingMethodLabel(accountingMethod)}
+            />
+          </section>
+
+          {exportData ? (
             <ExportValidationChecklist
               data={exportData}
               businessName={businessName}
               data-testid="export-validation-checklist"
             />
-          )}
+          ) : null}
 
-          {/* Report settings */}
-          <Card className="p-6" data-testid="accounting-settings-card">
-            <div className="mb-5 flex items-center gap-3">
-              <BookOpen className="h-5 w-5 text-cyan-600 dark:text-cyan-400" aria-hidden />
-              <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                Report Settings
-              </h2>
-            </div>
-            <div className="grid gap-5 sm:grid-cols-3">
+          <section className={SECTION_CARD} data-testid="accounting-settings-card">
+            <SectionHeader
+              icon={<BookOpen className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />}
+              title="Report Settings"
+              description="Configure labels and recognition method for export files. These settings do not change underlying project calculations."
+            />
+            <div className="mt-6 grid gap-6 md:grid-cols-3">
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                <label className={FIELD_LABEL} htmlFor="tax-year-selector">
                   Tax Year
                 </label>
                 <Select
+                  id="tax-year-selector"
                   value={String(taxYear)}
                   onChange={(v) => setTaxYear(Number(v))}
                   options={YEAR_OPTIONS}
@@ -210,83 +266,80 @@ const AccountingTaxPage: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                <label className={FIELD_LABEL} htmlFor="entity-type-selector">
                   Business Entity Type
                 </label>
                 <Select
+                  id="entity-type-selector"
                   value={entityType}
                   onChange={(v) => setEntityType(v as BusinessEntityType)}
                   options={ENTITY_OPTIONS}
                   data-testid="entity-type-selector"
                 />
-                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                <p className={FIELD_HELPER}>
                   Used as a report label only. Does not change calculations.
                 </p>
+                {showEntityWarning ? (
+                  <div className="mt-3" data-testid="entity-type-warning">
+                    <InlineNotice
+                      variant="warning"
+                      title="Schedule C style layout may not apply to every entity type. Review with your CPA or tax preparer."
+                    />
+                  </div>
+                ) : null}
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                <label className={FIELD_LABEL} htmlFor="accounting-method-selector">
                   Accounting Method
                 </label>
                 <Select
+                  id="accounting-method-selector"
                   value={accountingMethod}
                   onChange={(v) => setAccountingMethod(v as AccountingMethod)}
                   options={METHOD_OPTIONS}
                   data-testid="accounting-method-selector"
                 />
-                {accountingMethod === 'cash' && (
+                {accountingMethod === 'cash' ? (
                   <p
-                    className="mt-1 text-xs text-amber-700 dark:text-amber-400"
+                    className={`${FIELD_HELPER} text-amber-700 dark:text-amber-400`}
                     data-testid="cash-method-note"
                   >
-                    Based on paid_at / deposit_paid_at timestamps. Review with your CPA if
-                    payment records are incomplete.
+                    Based on paid_at / deposit_paid_at timestamps. Review with your CPA if payment
+                    records are incomplete.
                   </p>
-                )}
-                {accountingMethod === 'accrual' && (
-                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                    Based on accepted proposal / change order dates.
-                  </p>
+                ) : (
+                  <p className={FIELD_HELPER}>Based on accepted proposal / change order dates.</p>
                 )}
               </div>
             </div>
-          </Card>
+          </section>
 
-          {/* Year-End Tax Package */}
-          <Card className="p-6" data-testid="tax-package-card">
-            <div className="mb-5 flex items-center gap-3">
-              <FileSpreadsheet className="h-5 w-5 text-cyan-600 dark:text-cyan-400" aria-hidden />
-              <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                Year-End Tax Prep Package
-              </h2>
-            </div>
-
-            {/* Always-visible disclaimer */}
+          <ExportCard
+            testId="tax-package-card"
+            icon={<FileSpreadsheet className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />}
+            title="Year-End Tax Prep Package"
+            description={
+              <>
+                <strong className={TEXT_FOREGROUND}>{SCHEDULE_C_LABEL}</strong> — not an official
+                IRS form.
+                {exportData ? (
+                  <>
+                    {' '}
+                    {exportData.recognizedProposals.length} proposal(s) recognized for {taxYear}.
+                  </>
+                ) : null}
+              </>
+            }
+          >
             <div
-              className="mb-5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200"
+              className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-800/80 dark:bg-amber-950/30 dark:text-amber-100"
               data-testid="tax-disclaimer"
             >
-              <p className="font-medium">Important</p>
-              <p className="mt-1">{SCHEDULE_C_DISCLAIMER}</p>
+              <p className="font-semibold">Important</p>
+              <p className="mt-1 leading-relaxed">{SCHEDULE_C_DISCLAIMER}</p>
             </div>
 
-            {/* Entity-type warning (shown if entity ≠ Sole Proprietor) */}
-            {showEntityWarning && (
-              <div data-testid="entity-type-warning" className="mb-5">
-                <InlineNotice
-                  variant="warning"
-                  title="Schedule C style layout may not apply to every entity type. Review with your CPA or tax preparer."
-                />
-              </div>
-            )}
-
-            <p className="mb-4 text-sm text-slate-600 dark:text-slate-400">
-              <strong>{SCHEDULE_C_LABEL}</strong> — not an official IRS form.
-              {exportData && (
-                <> {exportData.recognizedProposals.length} proposal(s) recognized for {taxYear}.</>
-              )}
-            </p>
-
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-2">
               <Button
                 variant="outline"
                 size="sm"
@@ -318,22 +371,16 @@ const AccountingTaxPage: React.FC = () => {
                 CPA Workbook XLSX
               </Button>
             </div>
-          </Card>
+          </ExportCard>
 
-          {/* QuickBooks Export */}
-          <Card className="p-6" data-testid="quickbooks-card">
-            <div className="mb-5 flex items-center gap-3">
-              <Download className="h-5 w-5 text-cyan-600 dark:text-cyan-400" aria-hidden />
-              <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                QuickBooks Export (CSV)
-              </h2>
-            </div>
-
-            <p className="mb-4 text-sm text-slate-600 dark:text-slate-400">
-              Export CSV files for QuickBooks import workflows. Phase 1 is CSV-only.
-            </p>
-
-            <div className="flex flex-wrap gap-3">
+          <ExportCard
+            testId="quickbooks-card"
+            icon={<Receipt className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />}
+            title="QuickBooks Export (CSV)"
+            description="Export CSV files for QuickBooks import workflows. Phase 1 is CSV-only."
+            footer="Direct QuickBooks Online sync will be added in a later phase."
+          >
+            <div className="flex flex-wrap gap-2">
               <Button
                 variant="outline"
                 size="sm"
@@ -354,45 +401,31 @@ const AccountingTaxPage: React.FC = () => {
               >
                 Invoices / Sales Receipts CSV
               </Button>
-              <div className="flex flex-col gap-1">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  icon={<Download size={16} />}
-                  onClick={handleJobCostSummary}
-                  disabled={!exportData}
-                  data-testid="download-job-cost-summary"
-                >
-                  Job Cost Summary CSV
-                </Button>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Exports job-cost categories from proposal data. This is not a full vendor
-                  expense ledger.
-                </p>
-              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                icon={<Download size={16} />}
+                onClick={handleJobCostSummary}
+                disabled={!exportData}
+                data-testid="download-job-cost-summary"
+              >
+                Job Cost Summary CSV
+              </Button>
             </div>
-
-            <p className="mt-4 text-xs text-slate-500 dark:text-slate-400">
-              Direct QuickBooks Online sync will be added in a later phase.
+            <p className={`text-xs leading-relaxed ${TEXT_SUBTLE}`}>
+              Exports job-cost categories from proposal data. This is not a full vendor expense
+              ledger.
             </p>
-          </Card>
+          </ExportCard>
 
-          {/* TurboTax Helper */}
-          <Card className="p-6" data-testid="turbotax-card">
-            <div className="mb-5 flex items-center gap-3">
-              <Download className="h-5 w-5 text-cyan-600 dark:text-cyan-400" aria-hidden />
-              <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                TurboTax Helper Export
-              </h2>
-            </div>
-
-            <p
-              className="mb-4 text-sm text-slate-600 dark:text-slate-400"
-              data-testid="turbotax-note"
-            >
-              {TURBOTAX_HELPER_DISCLAIMER}
-            </p>
-
+          <ExportCard
+            testId="turbotax-card"
+            icon={<Calculator className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />}
+            title="TurboTax Helper Export"
+            description={
+              <span data-testid="turbotax-note">{TURBOTAX_HELPER_DISCLAIMER}</span>
+            }
+          >
             <Button
               variant="outline"
               size="sm"
@@ -403,26 +436,82 @@ const AccountingTaxPage: React.FC = () => {
             >
               TurboTax Helper CSV
             </Button>
-          </Card>
+          </ExportCard>
 
-          {/* Tax Category Mapping */}
-          <Card className="p-6" data-testid="tax-category-card">
-            <div className="mb-5 flex items-center gap-3">
-              <BookOpen className="h-5 w-5 text-cyan-600 dark:text-cyan-400" aria-hidden />
-              <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                Tax Category Mapping
-              </h2>
+          <section className={SECTION_CARD} data-testid="tax-category-card">
+            <SectionHeader
+              icon={<Tags className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />}
+              title="Tax Category Mapping"
+              description="Customize how Arden Project OS categories map to tax/accounting labels in your exports."
+            />
+            <div className="mt-6">
+              <TaxCategoryMapping onChange={setTaxCategoryMap} />
             </div>
-            <p className="mb-4 text-sm text-slate-600 dark:text-slate-400">
-              Customize how Arden Project OS categories map to tax/accounting labels in your
-              exports.
-            </p>
-            <TaxCategoryMapping onChange={setTaxCategoryMap} />
-          </Card>
+          </section>
         </div>
       </AppPage>
     </motion.div>
   );
 };
+
+function SummaryStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className={KPI_CARD}>
+      <p className={`text-xs font-medium uppercase tracking-wide ${TEXT_SUBTLE}`}>{label}</p>
+      <p className={`mt-1 text-lg font-semibold ${TEXT_FOREGROUND}`}>{value}</p>
+    </div>
+  );
+}
+
+function SectionHeader({
+  icon,
+  title,
+  description,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-start gap-3">
+      <div
+        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${BORDER_DEFAULT} bg-slate-50 dark:bg-slate-800/80`}
+        aria-hidden
+      >
+        {icon}
+      </div>
+      <div className="min-w-0">
+        <h2 className={`text-lg font-semibold ${TEXT_FOREGROUND}`}>{title}</h2>
+        {description ? (
+          <p className={`mt-1 text-sm leading-relaxed ${TEXT_MUTED}`}>{description}</p>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function ExportCard({
+  testId,
+  icon,
+  title,
+  description,
+  children,
+  footer,
+}: {
+  testId: string;
+  icon: React.ReactNode;
+  title: string;
+  description: React.ReactNode;
+  children: React.ReactNode;
+  footer?: string;
+}) {
+  return (
+    <section className={`${SECTION_CARD} space-y-4`} data-testid={testId}>
+      <SectionHeader icon={icon} title={title} description={description} />
+      {children}
+      {footer ? <p className={`text-xs leading-relaxed ${TEXT_SUBTLE}`}>{footer}</p> : null}
+    </section>
+  );
+}
 
 export default AccountingTaxPage;

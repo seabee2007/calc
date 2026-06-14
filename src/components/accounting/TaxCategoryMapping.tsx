@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   AppCostCategory,
   DEFAULT_TAX_CATEGORY_MAP,
@@ -8,6 +8,7 @@ import {
 } from '../../utils/accountingExport';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
+import { BORDER_DEFAULT, TEXT_FOREGROUND, TEXT_MUTED, TEXT_SUBTLE } from '../../theme/appTheme';
 
 const CATEGORY_DISPLAY: Record<AppCostCategory, string> = {
   labor: 'Labor (incl. subcontractors)',
@@ -33,7 +34,6 @@ const TaxCategoryMapping: React.FC<TaxCategoryMappingProps> = ({ onChange }) => 
       ...map,
       [cat]: trimmed !== '' && trimmed !== DEFAULT_TAX_CATEGORY_MAP[cat] ? trimmed : undefined,
     };
-    // Remove undefined keys
     for (const k of Object.keys(next) as AppCostCategory[]) {
       if (next[k] === undefined) delete next[k];
     }
@@ -56,36 +56,33 @@ const TaxCategoryMapping: React.FC<TaxCategoryMappingProps> = ({ onChange }) => 
   }
 
   return (
-    <div className="space-y-4" data-testid="tax-category-mapping">
-      <p className="text-sm text-slate-600 dark:text-slate-400">
+    <div className="space-y-5" data-testid="tax-category-mapping">
+      <p className={`text-sm leading-relaxed ${TEXT_MUTED}`}>
         Map Arden Project OS cost categories to tax/accounting labels. Leave blank to use the
         default label.
       </p>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+
+      <div className="hidden overflow-x-auto md:block">
+        <table className="w-full min-w-[640px] text-sm">
           <thead>
-            <tr className="border-b border-slate-200 dark:border-slate-700 text-left">
-              <th className="pb-2 pr-4 font-medium text-slate-700 dark:text-slate-300 w-1/3">
+            <tr className={`border-b ${BORDER_DEFAULT} text-left`}>
+              <th className={`sticky top-0 bg-white pb-3 pr-4 font-semibold ${TEXT_FOREGROUND} dark:bg-slate-900`}>
                 App Category
               </th>
-              <th className="pb-2 pr-4 font-medium text-slate-700 dark:text-slate-300 w-1/3">
+              <th className={`sticky top-0 bg-white pb-3 pr-4 font-semibold ${TEXT_FOREGROUND} dark:bg-slate-900`}>
                 Default Label
               </th>
-              <th className="pb-2 font-medium text-slate-700 dark:text-slate-300 w-1/3">
+              <th className={`sticky top-0 bg-white pb-3 font-semibold ${TEXT_FOREGROUND} dark:bg-slate-900`}>
                 Custom Override
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+          <tbody className={`divide-y ${BORDER_DEFAULT}`}>
             {categories.map((cat) => (
-              <tr key={cat}>
-                <td className="py-2 pr-4 text-slate-800 dark:text-slate-200">
-                  {CATEGORY_DISPLAY[cat]}
-                </td>
-                <td className="py-2 pr-4 text-slate-500 dark:text-slate-400">
-                  {DEFAULT_TAX_CATEGORY_MAP[cat]}
-                </td>
-                <td className="py-2">
+              <tr key={cat} className="align-top">
+                <td className={`py-3 pr-4 ${TEXT_FOREGROUND}`}>{CATEGORY_DISPLAY[cat]}</td>
+                <td className={`py-3 pr-4 ${TEXT_MUTED}`}>{DEFAULT_TAX_CATEGORY_MAP[cat]}</td>
+                <td className="py-3">
                   <Input
                     value={map[cat] ?? ''}
                     onChange={(e) => handleChange(cat, e.target.value)}
@@ -99,7 +96,34 @@ const TaxCategoryMapping: React.FC<TaxCategoryMappingProps> = ({ onChange }) => 
           </tbody>
         </table>
       </div>
-      <div className="flex items-center gap-3">
+
+      <div className="space-y-3 md:hidden">
+        {categories.map((cat) => (
+          <div
+            key={cat}
+            className={`rounded-xl border ${BORDER_DEFAULT} bg-slate-50 p-4 dark:bg-slate-800/50`}
+          >
+            <p className={`text-sm font-semibold ${TEXT_FOREGROUND}`}>{CATEGORY_DISPLAY[cat]}</p>
+            <p className={`mt-1 text-xs ${TEXT_SUBTLE}`}>
+              Default: {DEFAULT_TAX_CATEGORY_MAP[cat]}
+            </p>
+            <div className="mt-3">
+              <label className={`mb-1 block text-xs font-medium ${TEXT_MUTED}`}>
+                Custom override
+              </label>
+              <Input
+                value={map[cat] ?? ''}
+                onChange={(e) => handleChange(cat, e.target.value)}
+                placeholder={DEFAULT_TAX_CATEGORY_MAP[cat]}
+                aria-label={`Custom tax label for ${CATEGORY_DISPLAY[cat]}`}
+                data-testid={`tax-category-input-mobile-${cat}`}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3">
         <Button
           type="button"
           variant="primary"

@@ -11,6 +11,11 @@
 import * as XLSX from 'xlsx';
 import type { AccountingExportData, ProposalSummaryRow } from './accountingExport';
 import { ENTITY_TYPE_LABELS, formatMoney, formatPercent, DEFAULT_TAX_CATEGORY_MAP, resolvedTaxLabel } from './accountingExport';
+import {
+  exportCompanyInfoPairs,
+  roundMoney,
+  toAsciiExportText,
+} from './accountingExportFormatting';
 import { SCHEDULE_C_DISCLAIMER } from './scheduleCExport';
 
 export const CPA_WORKBOOK_SHEET_NAMES = [
@@ -34,10 +39,26 @@ function mkSheet(rows: (string | number | null)[][]): XLSX.WorkSheet {
   return XLSX.utils.aoa_to_sheet(rows);
 }
 
+function costCell(value: number | null | undefined): string | number {
+  if (value === null || value === undefined) return 'Not tracked';
+  return roundMoney(value);
+}
+
 function buildSummarySheet(data: AccountingExportData): XLSX.WorkSheet {
+  const companyRows = exportCompanyInfoPairs(data.company).map(([label, value]) => [
+    label,
+    value,
+  ] as (string | number | null)[]);
+
+  const directCostTotal =
+    data.totalLaborEstimate !== null || data.totalMaterialEstimate !== null
+      ? roundMoney((data.totalLaborEstimate ?? 0) + (data.totalMaterialEstimate ?? 0))
+      : 'Not tracked';
+
   const rows: (string | number | null)[][] = [
     ['Arden Project OS — CPA Workbook'],
     ['Schedule C style summary — not an official IRS form'],
+    ...companyRows,
     [],
     ['Tax Year', data.taxYear],
     ['Entity Type', ENTITY_TYPE_LABELS[data.entityType]],
@@ -50,22 +71,17 @@ function buildSummarySheet(data: AccountingExportData): XLSX.WorkSheet {
     [],
     ['DISCLAIMER', SCHEDULE_C_DISCLAIMER],
     [],
-    ['— Revenue —', ''],
-    ['Gross Receipts (accepted proposals)', data.grossReceipts],
-    ['Change Order Revenue (accepted)', data.changeOrderRevenue > 0 ? data.changeOrderRevenue : 'Not tracked'],
-    ['Pipeline Revenue (not yet accepted)', data.pendingRevenue],
+    [toAsciiExportText('— Revenue —'), ''],
+    ['Gross Receipts (accepted proposals)', roundMoney(data.grossReceipts)],
+    ['Change Order Revenue (accepted)', roundMoney(data.changeOrderRevenue)],
+    ['Pipeline Revenue (not yet accepted)', roundMoney(data.pendingRevenue)],
     [],
-    ['— Direct Job Costs (estimates) —', ''],
-    ['Labor / Contract Labor', data.totalLaborEstimate ?? 'Not tracked'],
-    ['Materials / Supplies', data.totalMaterialEstimate ?? 'Not tracked'],
-    [
-      'Total Direct Costs',
-      data.totalLaborEstimate !== null || data.totalMaterialEstimate !== null
-        ? (data.totalLaborEstimate ?? 0) + (data.totalMaterialEstimate ?? 0)
-        : 'Not tracked',
-    ],
+    [toAsciiExportText('— Direct Job Costs (estimates) —'), ''],
+    ['Labor / Contract Labor', costCell(data.totalLaborEstimate)],
+    ['Materials / Supplies', costCell(data.totalMaterialEstimate)],
+    ['Total Direct Costs', directCostTotal],
     [],
-    ['Gross Profit', data.totalGrossProfit ?? 'Not tracked'],
+    ['Gross Profit', costCell(data.totalGrossProfit)],
     [],
     ['Recognized proposals', data.recognizedProposals.length],
     ['Excluded / outside tax year', data.excludedProposals.length],
@@ -77,11 +93,11 @@ function buildRevenueByProjectSheet(data: AccountingExportData): XLSX.WorkSheet 
   const header = ['Project', 'Proposal Revenue', 'Labor Estimate', 'Material Estimate', 'Base Contract', 'CO Total'];
   const dataRows = data.projectSummaries.map((p) => [
     p.projectName,
-    p.proposalRevenue,
-    p.proposalLaborEstimate ?? 'Not tracked',
-    p.proposalMaterialEstimate ?? 'Not tracked',
-    p.baseContractValue ?? 'Not tracked',
-    p.approvedChangeOrderTotal ?? 'Not tracked',
+    roundMoney(p.proposalRevenue),
+    costCell(p.proposalLaborEstimate),
+    costCell(p.proposalMaterialEstimate),
+    costCell(p.baseContractValue),
+    costCell(p.approvedChangeOrderTotal),
   ]);
   return mkSheet([header, ...dataRows]);
 }
@@ -106,17 +122,30 @@ function buildProposalRevenueSheet(data: AccountingExportData): XLSX.WorkSheet {
     r.clientName || 'N/A',
     r.projectTitle || 'N/A',
     r.status,
-    r.totalRevenue,
-    r.laborCostEstimate ?? 'Not tracked',
-    r.materialCostEstimate ?? 'Not tracked',
-    r.grossProfit ?? 'Not tracked',
+    roundMoney(r.totalRevenue),
+    costCell(r.laborCostEstimate),
+    costCell(r.materialCostEstimate),
+    costCell(r.grossProfit),
     r.grossMarginPercent != null ? r.grossMarginPercent / 100 : 'Not tracked',
     r.recognitionDate ?? 'N/A',
     r.acceptedAt ?? 'N/A',
     r.paidAt ?? 'N/A',
   ];
   const recognized = data.recognizedProposals.map(toRow);
-  const separator = ['— Excluded / outside tax year —', '', '', '', '', '', '', '', '', '', '', ''];
+  const separator = [
+    toAsciiExportText('— Excluded / outside tax year —'),
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+  ];
   const excluded = data.excludedProposals.map(toRow);
   return mkSheet([header, ...recognized, separator, ...excluded]);
 }
@@ -125,10 +154,10 @@ function buildProjectCostsSheet(data: AccountingExportData): XLSX.WorkSheet {
   const header = ['Project', 'Labor Estimate', 'Material Estimate', 'Total Job Cost Estimate', 'Gross Profit'];
   const dataRows = data.projectSummaries.map((p) => [
     p.projectName,
-    p.proposalLaborEstimate ?? 'Not tracked',
-    p.proposalMaterialEstimate ?? 'Not tracked',
+    costCell(p.proposalLaborEstimate),
+    costCell(p.proposalMaterialEstimate),
     p.proposalLaborEstimate !== null || p.proposalMaterialEstimate !== null
-      ? (p.proposalLaborEstimate ?? 0) + (p.proposalMaterialEstimate ?? 0)
+      ? roundMoney((p.proposalLaborEstimate ?? 0) + (p.proposalMaterialEstimate ?? 0))
       : 'Not tracked',
     'See Proposal Revenue sheet',
   ]);
@@ -145,7 +174,7 @@ function buildLaborCostsSheet(data: AccountingExportData): XLSX.WorkSheet {
   const dataRows = data.recognizedProposals.map((r) => [
     r.title,
     r.clientName || 'N/A',
-    r.laborCostEstimate ?? 'Not tracked',
+    costCell(r.laborCostEstimate),
     r.status,
   ]);
   const note = [
@@ -161,9 +190,9 @@ function buildChangeOrdersSheet(data: AccountingExportData): XLSX.WorkSheet {
     co.title,
     co.projectId ?? 'N/A',
     co.status,
-    co.totalRevenue,
-    co.laborCostEstimate ?? 'Not tracked',
-    co.materialCostEstimate ?? 'Not tracked',
+    roundMoney(co.totalRevenue),
+    costCell(co.laborCostEstimate),
+    costCell(co.materialCostEstimate),
   ]);
   if (dataRows.length === 0) {
     return mkSheet([header, ['No accepted change orders found for this period.']]);
@@ -183,9 +212,12 @@ function buildTaxCategoryMappingSheet(data: AccountingExportData): XLSX.WorkShee
 }
 
 function buildNotesSheet(data: AccountingExportData): XLSX.WorkSheet {
+  const companyRows = exportCompanyInfoPairs(data.company).map(([label, value]) => [label, value]);
+
   const rows: (string | number)[][] = [
     ['Arden Project OS — Accounting & Tax Prep Package'],
     ['Notes & Assumptions'],
+    ...companyRows,
     [],
     ['Generated', new Date().toISOString()],
     ['Tax Year', data.taxYear],

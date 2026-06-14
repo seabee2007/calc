@@ -74,7 +74,7 @@ function buildSaveInput(rate: CompanyLaborRate, draft: DraftRow): CompanyLaborRa
 
 const TABLE_INPUT_CLASS = `${FORM_INPUT_PLANNER} py-1.5`;
 
-export default function LaborRateLibrarySection() {
+export default function LaborRateLibrarySection({ hideTitle = false }: { hideTitle?: boolean }) {
   const { rates, loading, saving, error, saveRate, disableRate, seedDefaults } = useCompanyLaborRates();
   const [drafts, setDrafts] = useState<Record<string, DraftRow>>({});
   const [adding, setAdding] = useState(false);
@@ -174,13 +174,15 @@ export default function LaborRateLibrarySection() {
   return (
     <section className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 className={`text-lg font-semibold ${TEXT_FOREGROUND}`}>Labor Rate Library</h2>
-          <p className={`mt-1 text-sm ${TEXT_MUTED}`}>
-            Company default labor roles and fully burdened rates copied into new projects.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
+        {!hideTitle ? (
+          <div>
+            <h2 className={`text-lg font-semibold ${TEXT_FOREGROUND}`}>Labor Rate Library</h2>
+            <p className={`mt-1 text-sm ${TEXT_MUTED}`}>
+              Company default labor roles and fully burdened rates copied into new projects.
+            </p>
+          </div>
+        ) : null}
+        <div className={`flex flex-wrap gap-2 ${hideTitle ? 'w-full justify-end' : ''}`}>
           {dirtyRateIds.length > 0 ? (
             <Button variant="primary" onClick={() => void handleSaveAll()} disabled={saving || loading}>
               Save {dirtyRateIds.length} change{dirtyRateIds.length === 1 ? '' : 's'}

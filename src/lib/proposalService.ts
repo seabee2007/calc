@@ -2,8 +2,12 @@ import { supabase } from './supabase';
 import { ProposalData } from '../types/proposal';
 import type { ProposalStatus } from '../types/proposalTracking';
 import type { TrackedProposalRow } from '../types/proposalTracking';
-import { computeProposalFinancials } from '../utils/proposalFinancials';
 import { useTrackedProposalsStore } from '../store/trackedProposalsStore';
+import {
+  buildProposalCreatePayload,
+  buildProposalUpdatePayload,
+  formatSupabasePersistenceError,
+} from './proposalSavePayload';
 
 export type SavedProposal = TrackedProposalRow;
 
@@ -97,14 +101,6 @@ function parseTemplateType(value: unknown): 'classic' | 'modern' | 'minimal' {
   return 'classic';
 }
 
-function withFinancials(
-  data: ProposalData,
-  extra?: Partial<UpdateProposalData>,
-): Record<string, unknown> {
-  const financials = computeProposalFinancials(data);
-  return { ...extra, ...financials };
-}
-
 export class ProposalService {
   static async create(proposalData: CreateProposalData): Promise<SavedProposal> {
     const {
@@ -115,27 +111,21 @@ export class ProposalService {
       throw new Error('User must be authenticated to save proposals');
     }
 
-    const financials = computeProposalFinancials(proposalData.data);
+    const insertPayload = buildProposalCreatePayload(user.id, proposalData);
 
     const { data, error } = await supabase
       .from('proposals')
-      .insert([
-        {
-          user_id: user.id,
-          project_id: proposalData.project_id ?? null,
-          title: proposalData.title,
-          template_type: proposalData.template_type,
-          data: proposalData.data,
-          status: 'draft',
-          ...financials,
-        },
-      ])
+      .insert([insertPayload])
       .select()
       .single();
 
     if (error) {
       console.error('Error saving proposal:', error);
-      throw new Error('Failed to save proposal');
+      throw new Error(
+        import.meta.env.DEV
+          ? `Failed to save proposal: ${formatSupabasePersistenceError(error)}`
+          : 'Failed to save proposal',
+      );
     }
 
     const saved = normalizeProposal(data as Record<string, unknown>);
@@ -152,10 +142,7 @@ export class ProposalService {
       throw new Error('User must be authenticated to update proposals');
     }
 
-    const payload: Record<string, unknown> = { ...updates };
-    if (updates.data) {
-      Object.assign(payload, withFinancials(updates.data));
-    }
+    const payload = buildProposalUpdatePayload(updates);
 
     const { data, error } = await supabase
       .from('proposals')
@@ -167,7 +154,11 @@ export class ProposalService {
 
     if (error) {
       console.error('Error updating proposal:', error);
-      throw new Error('Failed to update proposal');
+      throw new Error(
+        import.meta.env.DEV
+          ? `Failed to update proposal: ${formatSupabasePersistenceError(error)}`
+          : 'Failed to update proposal',
+      );
     }
 
     const saved = normalizeProposal(data as Record<string, unknown>);

@@ -10,7 +10,7 @@ import type { EstimateWorkspaceSaveStatusValue } from '../estimateWorkspaceSaveS
 import { useEstimateWorkspaceHeaderCollapse } from '../EstimateWorkspaceHeaderCollapseContext';
 import EstimateWorkspaceActionsMenu from './EstimateWorkspaceActionsMenu';
 import EstimateWorkspaceSaveStatusControl from './EstimateWorkspaceSaveStatusControl';
-import EstimateWorkspaceHeaderPinButton from './EstimateWorkspaceHeaderPinButton';
+import EstimateWorkspaceFocusModeButton from './EstimateWorkspaceFocusModeButton';
 
 interface Props {
   showAddDivision: boolean;
@@ -70,7 +70,7 @@ export default function EstimateWorkspaceToolbarActions({
   onActionsMenuOpenChange,
 }: Props) {
   const headerCollapse = useEstimateWorkspaceHeaderCollapse();
-  const showHeaderPin = Boolean(headerCollapse?.enabled && !headerCollapse.isMobile);
+  const showHeaderFocus = Boolean(headerCollapse?.enabled && !headerCollapse.isMobile);
 
   const desktopMenuItems = buildEstimateWorkspaceActionsMenuItems({
     showCollapseAll,
@@ -92,7 +92,7 @@ export default function EstimateWorkspaceToolbarActions({
   const showMobileActionsDropdown = mobileMenuItems.length > 0;
 
   const hasActions =
-    showHeaderPin ||
+    showHeaderFocus ||
     showAddDivision ||
     showCollapseAll ||
     showReset ||
@@ -156,7 +156,7 @@ export default function EstimateWorkspaceToolbarActions({
           onRetry={onRetrySave}
         />
       ) : null}
-      <EstimateWorkspaceHeaderPinButton />
+      <EstimateWorkspaceFocusModeButton />
       {showDesktopActionsDropdown ? (
         <div className="hidden sm:block">
           <EstimateWorkspaceActionsMenu

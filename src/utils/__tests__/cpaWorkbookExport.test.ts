@@ -21,6 +21,7 @@ function makeExportData(overrides: Partial<AccountingExportData> = {}): Accounti
     projectSummaries: [],
     warnings: [],
     hasMissingCashTimestamps: false,
+    company: {},
     ...overrides,
   };
 }
@@ -61,12 +62,27 @@ describe('buildCpaWorkbook', () => {
     expect(combined).toContain('not an official irs form');
   });
 
-  it('shows "Not tracked" when labor cost is null', () => {
-    const wb = buildCpaWorkbook(makeExportData({ totalLaborEstimate: null }));
+  it('shows zero change order revenue as 0, not Not tracked', () => {
+    const wb = buildCpaWorkbook(makeExportData({ changeOrderRevenue: 0 }));
+    const summarySheet = wb.Sheets['Summary'];
+    const cellValues = Object.values(summarySheet)
+      .filter((c): c is { v: unknown } => typeof c === 'object' && c !== null && 'v' in c)
+      .map((c) => c.v);
+    expect(cellValues).toContain(0);
+    const coRow = Object.values(summarySheet).find(
+      (c) => typeof c === 'object' && c !== null && 'v' in c && c.v === 'Change Order Revenue (accepted)',
+    );
+    expect(coRow).toBeDefined();
+  });
+
+  it('includes company name on Summary sheet when provided', () => {
+    const wb = buildCpaWorkbook(
+      makeExportData({ company: { name: 'Summit Builders' } }),
+    );
     const summarySheet = wb.Sheets['Summary'];
     const cellValues = Object.values(summarySheet)
       .filter((c): c is { v: unknown } => typeof c === 'object' && c !== null && 'v' in c)
       .map((c) => String(c.v));
-    expect(cellValues).toContain('Not tracked');
+    expect(cellValues.join(' ')).toContain('Summit Builders');
   });
 });

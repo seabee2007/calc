@@ -6,7 +6,6 @@ import {
   SCHEDULE_C_LABEL,
 } from '../scheduleCExport';
 import type { AccountingExportData } from '../accountingExport';
-import { DEFAULT_ACCOUNTING_SETTINGS } from '../accountingExport';
 
 function makeExportData(overrides: Partial<AccountingExportData> = {}): AccountingExportData {
   return {
@@ -27,6 +26,7 @@ function makeExportData(overrides: Partial<AccountingExportData> = {}): Accounti
     projectSummaries: [],
     warnings: [],
     hasMissingCashTimestamps: false,
+    company: {},
     ...overrides,
   };
 }
@@ -68,7 +68,7 @@ describe('buildScheduleCSummary', () => {
     expect(summary.directCosts.materials.amount).toBeNull();
   });
 
-  it('computes net profit when costs are available', () => {
+  it('computes job-cost margin when costs are available', () => {
     const summary = buildScheduleCSummary(
       makeExportData({
         grossReceipts: 50000,
@@ -76,14 +76,15 @@ describe('buildScheduleCSummary', () => {
         totalMaterialEstimate: 8000,
       }),
     );
-    expect(summary.netProfitEstimate.amount).toBe(22000);
+    expect(summary.jobCostMarginEstimate.amount).toBe(22000);
+    expect(summary.jobCostMarginEstimate.label.toLowerCase()).toContain('job-cost margin');
   });
 
-  it('returns null net profit when labor is null', () => {
+  it('returns null job-cost margin when labor is null', () => {
     const summary = buildScheduleCSummary(
       makeExportData({ totalLaborEstimate: null }),
     );
-    expect(summary.netProfitEstimate.amount).toBeNull();
+    expect(summary.jobCostMarginEstimate.amount).toBeNull();
   });
 });
 
@@ -99,11 +100,27 @@ describe('buildScheduleCSummaryCsvContent', () => {
     expect(csv.toLowerCase()).toContain('not an official irs form');
   });
 
+  it('shows $0.00 for zero change order revenue, not Not tracked', () => {
+    const csv = buildScheduleCSummaryCsvContent(
+      buildScheduleCSummary(makeExportData({ changeOrderRevenue: 0 })),
+    );
+    expect(csv).toContain('0.00');
+    expect(csv).not.toContain('"Accepted change order revenue","Not tracked"');
+  });
+
   it('shows "Not tracked" for null labor cost, not "$0"', () => {
     const csv = buildScheduleCSummaryCsvContent(
       buildScheduleCSummary(makeExportData({ totalLaborEstimate: null })),
     );
     expect(csv).toContain('Not tracked');
     expect(csv).not.toMatch(/"\$0\.00"/);
+  });
+
+  it('includes company info when provided', () => {
+    const csv = buildScheduleCSummaryCsvContent(
+      buildScheduleCSummary(makeExportData({ company: { name: 'Test Co LLC' } })),
+      [['Company Name', 'Test Co LLC']],
+    );
+    expect(csv).toContain('Test Co LLC');
   });
 });

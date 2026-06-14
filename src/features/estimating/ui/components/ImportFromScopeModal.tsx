@@ -10,7 +10,6 @@ import {
   type SuggestDivisionsFromScopeResponse,
 } from '../../application/suggestEstimateActivitiesFromScope';
 import { PLANNER_MUTED, TEXT_BODY, TEXT_FOREGROUND } from '../estimateWorkspaceTheme';
-import { useEstimateWorkspaceHeaderOverlay } from '../hooks/useEstimateWorkspaceHeaderOverlay';
 import type { SuggestEstimateActivitiesFilterMode } from '../../domain/aiActivitySuggestionTypes';
 
 export interface ImportFromScopeProjectContext {
@@ -64,8 +63,6 @@ export default function ImportFromScopeModal({
   onAddSelectedDivisions,
   saving = false,
 }: Props) {
-  useEstimateWorkspaceHeaderOverlay('import-from-scope-modal', isOpen);
-
   const [step, setStep] = useState<WizardStep>('input');
   const [scopeText, setScopeText] = useState('');
   const [filterMode, setFilterMode] = useState<SuggestEstimateActivitiesFilterMode>('allFromScope');

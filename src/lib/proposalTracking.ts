@@ -7,6 +7,7 @@ import type { TrackedProposalRow } from '../types/proposalTracking';
 import { computeProposalFinancials } from '../utils/proposalFinancials';
 import type { ProposalData } from '../types/proposal';
 import { getAppUrl, isMarketingHost } from '../config/brand';
+import { createProposalNotification } from '../services/proposalNotificationService';
 
 function trackProposalRow(row: Record<string, unknown>): TrackedProposalRow {
   const normalized = normalizeProposal(row);
@@ -69,8 +70,12 @@ export async function syncProposalFinancials(
 }
 
 export async function markProposalSent(proposalId: string): Promise<TrackedProposalRow> {
+  const prior = await fetchProposalById(proposalId);
   const { data, error } = await updateProposalStatus(proposalId, 'sent');
   if (error || !data) throw error ?? new Error('Failed to mark proposal sent');
+  if (prior && !prior.sent_at) {
+    void createProposalNotification({ proposal: data, type: 'proposal_sent' });
+  }
   return data;
 }
 
@@ -79,44 +84,68 @@ function trackRpcProposalRow(data: unknown): TrackedProposalRow {
 }
 
 export async function markProposalViewed(publicToken: string): Promise<TrackedProposalRow> {
+  const prior = await fetchProposalByPublicToken(publicToken);
   const { data, error } = await supabase.rpc('record_proposal_client_action', {
     p_token: publicToken,
     p_action: 'viewed',
   });
   if (error) throw new Error(error.message);
-  return trackRpcProposalRow(data);
+  const normalized = trackRpcProposalRow(data);
+  if (prior && !prior.viewed_at) {
+    void createProposalNotification({ proposal: normalized, type: 'proposal_viewed' });
+  }
+  return normalized;
 }
 
 export async function markProposalOpened(publicToken: string): Promise<TrackedProposalRow> {
+  const prior = await fetchProposalByPublicToken(publicToken);
   const { data, error } = await supabase.rpc('record_proposal_client_action', {
     p_token: publicToken,
     p_action: 'opened',
   });
   if (error) throw new Error(error.message);
-  return trackRpcProposalRow(data);
+  const normalized = trackRpcProposalRow(data);
+  if (prior && !prior.opened_at && !prior.viewed_at) {
+    void createProposalNotification({ proposal: normalized, type: 'proposal_viewed' });
+  }
+  return normalized;
 }
 
 export async function acceptProposal(publicToken: string): Promise<TrackedProposalRow> {
+  const prior = await fetchProposalByPublicToken(publicToken);
   const { data, error } = await supabase.rpc('record_proposal_client_action', {
     p_token: publicToken,
     p_action: 'accepted',
   });
   if (error) throw new Error(error.message);
-  return trackRpcProposalRow(data);
+  const normalized = trackRpcProposalRow(data);
+  if (prior?.status !== 'accepted' && normalized.status === 'accepted') {
+    void createProposalNotification({ proposal: normalized, type: 'proposal_accepted' });
+  }
+  return normalized;
 }
 
 export async function declineProposal(publicToken: string): Promise<TrackedProposalRow> {
+  const prior = await fetchProposalByPublicToken(publicToken);
   const { data, error } = await supabase.rpc('record_proposal_client_action', {
     p_token: publicToken,
     p_action: 'declined',
   });
   if (error) throw new Error(error.message);
-  return trackRpcProposalRow(data);
+  const normalized = trackRpcProposalRow(data);
+  if (prior?.status !== 'declined' && normalized.status === 'declined') {
+    void createProposalNotification({ proposal: normalized, type: 'proposal_declined' });
+  }
+  return normalized;
 }
 
 export async function markDepositPaid(proposalId: string): Promise<TrackedProposalRow> {
+  const prior = await fetchProposalById(proposalId);
   const { data, error } = await updateProposalStatus(proposalId, 'deposit_paid');
   if (error || !data) throw error ?? new Error('Failed to mark deposit paid');
+  if (prior && prior.status !== 'deposit_paid') {
+    void createProposalNotification({ proposal: data, type: 'proposal_deposit_paid' });
+  }
   return data;
 }
 
@@ -143,4 +172,14 @@ export async function fetchProposalByPublicToken(
     return null;
   }
   return (data as TrackedProposalRow) ?? null;
+}
+
+async function fetchProposalById(proposalId: string): Promise<TrackedProposalRow | null> {
+  const { data, error } = await supabase
+    .from('proposals')
+    .select('*')
+    .eq('id', proposalId)
+    .maybeSingle();
+  if (error || !data) return null;
+  return normalizeProposal(data as Record<string, unknown>);
 }

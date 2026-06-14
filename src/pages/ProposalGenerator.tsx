@@ -79,6 +79,7 @@ import {
   mergeProjectJobsiteIntoClientAddress,
   syncProposalAddressesForSave,
 } from '../utils/proposalAddress';
+import { resolveProposalIntroductionForDisplay } from '../utils/proposalIntroText';
 import {
   FORM_LABEL,
   FORM_TEXTAREA,
@@ -233,6 +234,16 @@ const ProposalGenerator: React.FC = () => {
 
     loadProposal();
   }, [editId, previewId, navigate]);
+
+  useEffect(() => {
+    if (previewId) {
+      setShowPreview(true);
+      return;
+    }
+    if (editId) {
+      setShowPreview(false);
+    }
+  }, [editId, previewId]);
 
   useEffect(() => {
     void loadProjects().catch((err) => {
@@ -782,7 +793,9 @@ const ProposalGenerator: React.FC = () => {
       showImportFeedback(
         'Save failed',
         'error',
-        'Could not save proposal',
+        error instanceof Error && import.meta.env.DEV
+          ? error.message
+          : 'Could not save proposal',
       );
     } finally {
       setSaving(false);
@@ -878,6 +891,13 @@ const ProposalGenerator: React.FC = () => {
   };
 
 
+  const handleBackToEditor = () => {
+    if (isPreviewMode && previewId) {
+      navigate(`/proposal-generator?edit=${previewId}`, { replace: true });
+    }
+    setShowPreview(false);
+  };
+
   const handleDownloadPDF = async () => {
     if (!printRef.current) {
       showImportFeedback(
@@ -894,7 +914,14 @@ const ProposalGenerator: React.FC = () => {
       );
       const htmlContent = printRef.current.innerHTML;
 
-      await generateProposalPDF(htmlContent, title, undefined, selectedTemplate, proposalData);
+      await generateProposalPDF(htmlContent, title, undefined, selectedTemplate, {
+        ...proposalData,
+        introduction: resolveProposalIntroductionForDisplay(
+          proposalData.introduction,
+          proposalData.scope,
+          proposalData.projectTitle,
+        ),
+      });
       showImportFeedback('Proposal PDF downloaded.', 'success');
     } catch (error) {
       console.error('Error generating proposal PDF:', error);
@@ -962,7 +989,9 @@ const ProposalGenerator: React.FC = () => {
       showImportFeedback(
         'Could not send proposal. Please try again.',
         'error',
-        error instanceof Error ? error.message : undefined,
+        error instanceof Error && import.meta.env.DEV
+          ? error.message
+          : undefined,
       );
     } finally {
       setSaving(false);
@@ -1049,7 +1078,14 @@ const ProposalGenerator: React.FC = () => {
         '456 Client St, Client City, ST 12345, United States',
       ),
       projectTitle: getDisplayValue(proposalData.projectTitle, 'Project Title'),
-      introduction: getDisplayValue(proposalData.introduction, 'Thank you for considering our team for your project. This proposal outlines the scope, schedule, pricing, and assumptions needed for a clear client-ready decision.'),
+      introduction: resolveProposalIntroductionForDisplay(
+        getDisplayValue(
+          proposalData.introduction,
+          'Thank you for considering our team for your project. This proposal outlines the scope, schedule, pricing, and assumptions needed for a clear client-ready decision.',
+        ),
+        proposalData.scope,
+        proposalData.projectTitle,
+      ),
       scope: getDisplayValue(proposalData.scope, 'Complete the project scope described in the estimate, including labor, materials, equipment, coordination, quality control, and closeout requirements.'),
       timeline: proposalData.timeline.map(item => ({
         phase: getDisplayValue(item.phase, 'Project Phase'),
@@ -1116,19 +1152,10 @@ const ProposalGenerator: React.FC = () => {
               {templatePreviews[selectedTemplate].name} template
             </p>
             <ProposalPreviewActionBar
-              isPreviewMode={isPreviewMode}
               saving={saving}
-              onBack={() => {
-                if (isPreviewMode) {
-                  navigate('/proposals');
-                  return;
-                }
-                setShowPreview(false);
-              }}
-              onEdit={
-                isPreviewMode && previewId
-                  ? () => navigate(`/proposal-generator?edit=${previewId}`)
-                  : undefined
+              onBackToEditor={handleBackToEditor}
+              onBackToProposals={
+                isPreviewMode && previewId ? () => navigate('/proposals') : undefined
               }
               onSend={handleSendProposal}
               onDownload={handleDownloadPDF}

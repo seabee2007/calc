@@ -1,7 +1,7 @@
 import React from 'react';
 import { AlertTriangle, CheckCircle, Info } from 'lucide-react';
 import type { AccountingExportData, AccountingExportWarning } from '../../utils/accountingExport';
-import { NON_SCHEDULE_C_ENTITIES } from '../../utils/accountingExport';
+import InlineNotice from '../ui/InlineNotice';
 
 interface ExportValidationChecklistProps {
   data: AccountingExportData | null;
@@ -49,30 +49,23 @@ const ExportValidationChecklist: React.FC<ExportValidationChecklistProps> = ({
           : 'No cost data found — cost fields will show "Not tracked" in exports.',
       passed: data.totalLaborEstimate !== null || data.totalMaterialEstimate !== null,
       severity:
-        data.totalLaborEstimate !== null || data.totalMaterialEstimate !== null
-          ? 'ok'
-          : 'info',
+        data.totalLaborEstimate !== null || data.totalMaterialEstimate !== null ? 'ok' : 'info',
     },
   ];
 
-  // Render data warnings (cash timestamps, entity type, etc.)
   const warnings = data.warnings;
 
   if (checks.every((c) => c.passed) && warnings.length === 0) {
     return (
-      <div
-        className={`flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200 ${className}`}
-        data-testid="export-checklist-ok"
-      >
-        <CheckCircle className="h-5 w-5 shrink-0" aria-hidden />
-        <span>All checks passed. Ready to export.</span>
+      <div data-testid="export-checklist-ok" className={className}>
+        <InlineNotice variant="success" title="All checks passed. Ready to export." />
       </div>
     );
   }
 
   return (
     <div
-      className={`space-y-2 ${className}`}
+      className={`space-y-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 ${className}`}
       data-testid="export-checklist"
       role="list"
       aria-label="Export readiness checks"
@@ -91,7 +84,7 @@ function ChecklistRow({ item }: { item: CheckItem }) {
   if (item.passed) {
     return (
       <div
-        className="flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200"
+        className="flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm text-emerald-900 dark:border-emerald-800/80 dark:bg-emerald-950/30 dark:text-emerald-100"
         role="listitem"
       >
         <CheckCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
@@ -103,7 +96,7 @@ function ChecklistRow({ item }: { item: CheckItem }) {
   if (item.severity === 'warning') {
     return (
       <div
-        className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200"
+        className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-900 dark:border-amber-800/80 dark:bg-amber-950/30 dark:text-amber-100"
         role="listitem"
       >
         <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
@@ -114,7 +107,7 @@ function ChecklistRow({ item }: { item: CheckItem }) {
 
   return (
     <div
-      className="flex items-start gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm text-blue-800 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-200"
+      className="flex items-start gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm text-blue-900 dark:border-blue-800/80 dark:bg-blue-950/30 dark:text-blue-100"
       role="listitem"
     >
       <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
@@ -126,7 +119,7 @@ function ChecklistRow({ item }: { item: CheckItem }) {
 function WarningRow({ warning }: { warning: AccountingExportWarning }) {
   return (
     <div
-      className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200"
+      className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-900 dark:border-amber-800/80 dark:bg-amber-950/30 dark:text-amber-100"
       role="listitem"
       data-testid={`export-warning-${warning.key}`}
     >

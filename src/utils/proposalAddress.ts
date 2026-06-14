@@ -10,6 +10,7 @@ import {
   type USAddress,
 } from '../types/address';
 import { resolveClientAddressForProposal } from '../types/projectClient';
+import { buildProposalIntroduction } from './proposalIntroText';
 
 function formattedLine(parts: USAddress | undefined, legacy?: string): string {
   if (parts && isUSAddressGeocodable(parts)) {
@@ -104,14 +105,11 @@ export function mergeProjectIntoProposalFields(
   next = mergeProjectJobsiteIntoClientAddress(next, clientAddr);
 
   const scopeText = project.description?.trim();
-  if (scopeText) {
-    if (!next.scope?.trim()) {
-      next.scope = scopeText;
-    }
-    if (!next.introduction?.trim()) {
-      const title = project.name?.trim() || 'your project';
-      next.introduction = `We are pleased to submit this proposal for ${title}. ${scopeText}`;
-    }
+  if (scopeText && !next.scope?.trim()) {
+    next.scope = scopeText;
+  }
+  if (!next.introduction?.trim()) {
+    next.introduction = buildProposalIntroduction(project.name);
   }
 
   return next;

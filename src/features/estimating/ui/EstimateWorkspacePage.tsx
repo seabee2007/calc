@@ -142,7 +142,6 @@ import {
   ESTIMATE_WORKSPACE_HEADER_PORTAL_ID,
   useEstimateWorkspaceHeaderCollapse,
 } from './EstimateWorkspaceHeaderCollapseContext';
-import { useEstimateWorkspaceHeaderOverlay } from './hooks/useEstimateWorkspaceHeaderOverlay';
 import { useProjectActivityResourceTotals } from './hooks/useProjectActivityResourceTotals';
 import { runCpmCalculation } from '../scheduling/cpm/calculateCpm';
 import type {
@@ -322,7 +321,6 @@ export default function EstimateWorkspacePage() {
     null,
   );
   const [changingEstimateType, setChangingEstimateType] = useState(false);
-  const [actionsMenuOpen, setActionsMenuOpen] = useState(false);
   const [builderToolbarHandlers, setBuilderToolbarHandlers] =
     useState<EstimateBuilderToolbarHandlers | null>(null);
   const [schedulePlanControls, setSchedulePlanControls] = useState<EstimateSchedulePlanControlValues>(
@@ -2154,13 +2152,8 @@ export default function EstimateWorkspacePage() {
 
   const headerCollapse = useEstimateWorkspaceHeaderCollapse();
 
-  useEstimateWorkspaceHeaderOverlay('estimate-type-modal', estimateTypeModalOpen);
-  useEstimateWorkspaceHeaderOverlay('estimate-type-change-modal', estimateTypeChangeConfirmOpen);
-  useEstimateWorkspaceHeaderOverlay('reset-modal', resetModalOpen);
-  useEstimateWorkspaceHeaderOverlay('import-modal', importModalOpen);
-  useEstimateWorkspaceHeaderOverlay('convert-modal', convertToDetailedModalOpen);
-  useEstimateWorkspaceHeaderOverlay('actions-menu', actionsMenuOpen);
-  useEstimateWorkspaceHeaderOverlay('leveling-modal', Boolean(levelingModalResult));
+  const activeTabLabel =
+    visibleWorkspaceTabs.find((tab) => tab.id === activeTab)?.label ?? 'Workspace';
 
   useEffect(() => {
     if (!headerCollapse?.enabled) return;
@@ -2175,6 +2168,7 @@ export default function EstimateWorkspacePage() {
       estimateTypeLabel: hasEstimate
         ? formatEstimateMethodLabel(resolvedEstimateType)
         : 'No estimate type selected',
+      activeTabLabel,
       saveStatus: workspaceSaveStatus.status,
       saveStatusLabel: saveControl.label,
       hasPendingEstimateChanges,
@@ -2183,6 +2177,7 @@ export default function EstimateWorkspacePage() {
     headerCollapse,
     hasEstimate,
     resolvedEstimateType,
+    activeTabLabel,
     workspaceSaveStatus.status,
     workspaceSaveStatus.activeOperations,
     workspaceSaveStatus.errorMessage,
@@ -2237,7 +2232,6 @@ export default function EstimateWorkspacePage() {
           onDownloadImportTemplate={handleDownloadImportTemplate}
           onOpenHelp={handleOpenHelp}
           onConvertToDetailed={() => setConvertToDetailedModalOpen(true)}
-          onActionsMenuOpenChange={setActionsMenuOpen}
         />
       }
     />

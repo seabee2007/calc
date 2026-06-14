@@ -15,6 +15,7 @@ import type { ProposalImportFromCurrentEstimate } from './proposalCurrentEstimat
 import { hydrateProposalPricing } from './proposalPricing';
 import { proposalIndirectFromData } from '../components/proposals/ProposalPricingEditor';
 import { formatUSPhoneNumber } from './phoneFormat';
+import { buildProposalIntroduction } from './proposalIntroText';
 
 type CompanyTaxSettings = {
   taxSystem?: string;
@@ -44,12 +45,7 @@ export function resolveProjectDateLabel(project: Pick<Project, 'pourDate'>): str
 }
 
 export function buildIntroductionFromProject(project: Project): string {
-  const projectName = project.name?.trim() || 'your project';
-  const scopeText = project.description?.trim();
-  if (scopeText) {
-    return `We are pleased to submit this proposal for ${projectName}. ${scopeText}`;
-  }
-  return `We are pleased to submit this proposal for ${projectName}.`;
+  return buildProposalIntroduction(project.name);
 }
 
 export interface ImportProjectIntoProposalOptions {

@@ -45,7 +45,6 @@ import {
   ProductionRateSourceDetails,
   ProductionRateVariantSelector,
 } from './ProductionRateCanonicalControls';
-import { useEstimateWorkspaceHeaderOverlay } from '../hooks/useEstimateWorkspaceHeaderOverlay';
 
 const DEFAULT_CREW_SIZE = 4;
 const DEFAULT_HOURS_PER_DAY = 8;
@@ -96,8 +95,6 @@ export default function AssemblyPickerModal({
   projectLaborRates: projectLaborRatesProp = [],
   initialDivisionCode,
 }: Props) {
-  useEstimateWorkspaceHeaderOverlay('assembly-picker-modal', true);
-
   const library = useProductionRateLibrary(true);
   const {
     projectRates: loadedProjectRates,

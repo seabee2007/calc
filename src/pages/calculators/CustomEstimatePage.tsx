@@ -106,6 +106,7 @@ export default function CustomEstimatePage() {
     <ProjectCalculatorShell
       title="Custom estimate"
       description="Enter labor, material, and equipment line items manually. Saved totals import into your proposal like the other estimates."
+      toolKind="legacy"
       footer={
         inWorkflow && hubProject ? (
           <div className="flex flex-wrap gap-2">

@@ -4,8 +4,23 @@ import { BRAND_NAME } from '../../config/brand';
 const legalLinkClassName =
   'text-slate-400 transition-colors hover:text-cyan-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#07111d]';
 
-const Footer: React.FC = () => {
+const Footer: React.FC<{ hideMarketingChrome?: boolean }> = ({ hideMarketingChrome = false }) => {
   const currentYear = new Date().getFullYear();
+
+  if (hideMarketingChrome) {
+    return (
+      <footer
+        className="mt-auto w-full border-t border-slate-200 px-6 py-4 text-center text-xs text-slate-500 dark:border-slate-800 dark:text-slate-400"
+        style={{
+          paddingLeft: 'max(env(safe-area-inset-left), 1.5rem)',
+          paddingRight: 'max(env(safe-area-inset-right), 1.5rem)',
+          paddingBottom: 'max(env(safe-area-inset-bottom), 1rem)',
+        }}
+      >
+        © {currentYear} {BRAND_NAME}
+      </footer>
+    );
+  }
 
   return (
     <footer

@@ -38,6 +38,9 @@ const Layout: React.FC = () => {
   const isPublicLegalPage = isPublicLegalPath(location.pathname);
   const useMarketingShell = usesPublicMarketingShell(location.pathname, isLoggedOutLanding);
   const premiumCanvas = usesPremiumCanvas(location.pathname);
+  const hideMarketingFooter =
+    Boolean(user) &&
+    (location.pathname === '/calculator' || location.pathname.startsWith('/calculator/'));
 
   const showBottomNav =
     Boolean(user) &&
@@ -156,7 +159,7 @@ const Layout: React.FC = () => {
           </PageErrorBoundary>
         </main>
 
-        <Footer />
+        <Footer hideMarketingChrome={hideMarketingFooter} />
 
         {showBottomNav && <BottomNav />}
 

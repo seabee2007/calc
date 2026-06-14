@@ -74,6 +74,9 @@ describe('ProposalGenerator preview actions', () => {
     expect(proposalGeneratorSource).toContain('Save Draft');
     expect(proposalGeneratorSource).toContain('Preview');
     expect(proposalGeneratorSource).toContain('Send to Client');
+    expect(proposalGeneratorSource).toContain('handleBackToEditor');
+    expect(proposalGeneratorSource).toContain('onBackToEditor={handleBackToEditor}');
+    expect(proposalGeneratorSource).not.toContain('onEdit=');
   });
 
   it('keeps the compact setup and pricing summary sections visible', () => {

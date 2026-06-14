@@ -26,6 +26,7 @@ const GeneralTradeLaborCalculatorPage: React.FC = () => {
       <ProjectCalculatorShell
         title="General Trade Labor Calculator"
         description="Estimate labor hours, crew days, and labor cost for non-concrete trades."
+        toolKind="legacy"
       >
         <GeneralTradeLaborCalculatorPanel
           onToast={(msg, type) => {

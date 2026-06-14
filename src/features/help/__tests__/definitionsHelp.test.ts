@@ -22,6 +22,10 @@ const plannerAppBarSource = readFileSync(
   resolve(dirname(fileURLToPath(import.meta.url)), '../../../components/planner/PlannerAppBar.tsx'),
   'utf8',
 );
+const appProfileMenuSource = readFileSync(
+  resolve(dirname(fileURLToPath(import.meta.url)), '../../../components/layout/AppProfileMenu.tsx'),
+  'utf8',
+);
 const navbarSource = readFileSync(
   resolve(dirname(fileURLToPath(import.meta.url)), '../../../components/layout/Navbar.tsx'),
   'utf8',
@@ -120,8 +124,9 @@ describe('definitions help UI wiring', () => {
   it('wires help buttons in app headers and estimate workspace actions menu', () => {
     expect(helpButtonSource).toContain('useDefinitionsHelpStore');
     expect(helpButtonSource).toContain('open(focusTerm)');
-    expect(plannerAppBarSource).toContain('HelpButton');
-    expect(navbarSource).toContain('HelpButton');
+    expect(appProfileMenuSource).toContain('useDefinitionsHelpStore');
+    expect(plannerAppBarSource).not.toContain('HelpButton');
+    expect(navbarSource).not.toContain('HelpButton');
     expect(estimateWorkspaceSource).not.toContain('HelpButton');
     expect(estimateWorkspaceSource).toContain('useDefinitionsHelpStore');
     expect(estimateWorkspaceSource).toContain('handleOpenHelp');

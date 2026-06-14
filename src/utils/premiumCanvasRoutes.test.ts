@@ -18,11 +18,12 @@ describe('usesPremiumCanvas', () => {
     expect(usesPremiumCanvas('/mix-design-advisor')).toBe(true);
     expect(usesPremiumCanvas('/pour-planner')).toBe(true);
     expect(usesPremiumCanvas('/settings')).toBe(true);
+    expect(usesPremiumCanvas('/accounting-tax')).toBe(true);
+    expect(usesPremiumCanvas('/employees')).toBe(true);
     expect(usesPremiumCanvas('/owner/review')).toBe(true);
   });
 
   it('excludes out-of-scope routes', () => {
-    expect(usesPremiumCanvas('/employees')).toBe(false);
     expect(usesPremiumCanvas('/login')).toBe(false);
     expect(usesPremiumCanvas('/planner/schedule')).toBe(false);
     expect(usesPremiumCanvas('/projects/x/planner/board')).toBe(false);

@@ -252,3 +252,23 @@ describe('proposalRecognitionDate', () => {
     expect(proposalRecognitionDate(p, 'cash')).toBeNull();
   });
 });
+
+describe('buildAccountingExportData — company settings', () => {
+  it('passes company block through to export data', () => {
+    const settings: AccountingExportSettings = {
+      ...settings2025,
+      company: { name: 'Arden Concrete LLC', email: 'ops@arden.test' },
+    };
+    const result = buildAccountingExportData([], NO_COS, NO_PROJECTS, settings);
+    expect(result.company).toEqual({
+      name: 'Arden Concrete LLC',
+      email: 'ops@arden.test',
+    });
+  });
+
+  it('rounds aggregate revenue totals to two decimals', () => {
+    const p = makeProposal({ total_amount: 10000.555 });
+    const result = buildAccountingExportData([p], NO_COS, NO_PROJECTS, settings2025);
+    expect(result.grossReceipts).toBe(10000.56);
+  });
+});

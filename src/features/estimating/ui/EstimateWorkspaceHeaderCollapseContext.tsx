@@ -10,10 +10,9 @@ import {
 } from 'react';
 import type { EstimateWorkspaceSaveStatusValue } from '../estimateWorkspaceSaveStatus';
 import {
-  readEstimateWorkspaceHeaderPinned,
-  writeEstimateWorkspaceHeaderPinned,
+  readEstimateWorkspaceFocusMode,
+  writeEstimateWorkspaceFocusMode,
 } from './estimateWorkspaceHeaderCollapseStorage';
-import { useAutoCollapseHeader } from './hooks/useAutoCollapseHeader';
 import { usePrefersTouchLayout } from './hooks/usePrefersTouchLayout';
 
 export const ESTIMATE_WORKSPACE_HEADER_PORTAL_ID = 'estimate-workspace-header-portal';
@@ -21,6 +20,7 @@ export const ESTIMATE_WORKSPACE_HEADER_COLLAPSE_MARKER = 'estimate-workspace-col
 
 export interface EstimateWorkspaceHeaderMiniStatus {
   estimateTypeLabel: string;
+  activeTabLabel: string;
   saveStatus: EstimateWorkspaceSaveStatusValue;
   saveStatusLabel: string;
   hasPendingEstimateChanges: boolean;
@@ -28,19 +28,14 @@ export interface EstimateWorkspaceHeaderMiniStatus {
 
 export interface EstimateWorkspaceHeaderCollapseContextValue {
   enabled: boolean;
-  isCollapsed: boolean;
-  isPinned: boolean;
+  focusMode: boolean;
   isMobile: boolean;
   portalReady: boolean;
   portalTargetRef: RefObject<HTMLDivElement | null>;
   miniStatus: EstimateWorkspaceHeaderMiniStatus | null;
-  setPinned: (pinned: boolean) => void;
-  expand: () => void;
+  setFocusMode: (enabled: boolean) => void;
+  toggleFocusMode: () => void;
   setMiniStatus: (status: EstimateWorkspaceHeaderMiniStatus | null) => void;
-  registerOverlay: (key: string, open: boolean) => void;
-  handlePointerEnter: () => void;
-  handlePointerLeave: () => void;
-  setIsFocusedWithin: (focused: boolean) => void;
   attachPortalTarget: (node: HTMLDivElement | null) => void;
 }
 
@@ -61,75 +56,50 @@ export function EstimateWorkspaceHeaderCollapseProvider({
   children,
 }: ProviderProps) {
   const prefersTouchLayout = usePrefersTouchLayout();
-  const [isPinned, setIsPinnedState] = useState(() => readEstimateWorkspaceHeaderPinned());
+  const [focusMode, setFocusModeState] = useState(() => readEstimateWorkspaceFocusMode());
   const [miniStatus, setMiniStatus] = useState<EstimateWorkspaceHeaderMiniStatus | null>(null);
   const [portalReady, setPortalReady] = useState(false);
-  const [overlayOpenCount, setOverlayOpenCount] = useState(0);
   const portalTargetRef = useRef<HTMLDivElement | null>(null);
-  const overlayRegistryRef = useRef(new Map<string, boolean>());
 
-  const setPinned = useCallback((pinned: boolean) => {
-    setIsPinnedState(pinned);
-    writeEstimateWorkspaceHeaderPinned(pinned);
-  }, []);
+  const setFocusMode = useCallback(
+    (next: boolean) => {
+      if (prefersTouchLayout) return;
+      setFocusModeState(next);
+      writeEstimateWorkspaceFocusMode(next);
+    },
+    [prefersTouchLayout],
+  );
 
-  const registerOverlay = useCallback((key: string, open: boolean) => {
-    overlayRegistryRef.current.set(key, open);
-    let count = 0;
-    overlayRegistryRef.current.forEach((value) => {
-      if (value) count += 1;
-    });
-    setOverlayOpenCount(count);
-  }, []);
+  const toggleFocusMode = useCallback(() => {
+    setFocusMode(!focusMode);
+  }, [focusMode, setFocusMode]);
 
   const attachPortalTarget = useCallback((node: HTMLDivElement | null) => {
     portalTargetRef.current = node;
     setPortalReady(Boolean(node));
   }, []);
 
-  const autoCollapseDisabled = !enabled || prefersTouchLayout || isPinned;
-
-  const {
-    isCollapsed,
-    setIsFocusedWithin,
-    expand,
-    handlePointerEnter,
-    handlePointerLeave,
-  } = useAutoCollapseHeader({
-    disabled: autoCollapseDisabled,
-    overlayOpen: overlayOpenCount > 0,
-  });
-
   const value = useMemo<EstimateWorkspaceHeaderCollapseContextValue>(
     () => ({
       enabled,
-      isCollapsed: enabled && !prefersTouchLayout && isCollapsed,
-      isPinned,
+      focusMode: enabled && !prefersTouchLayout && focusMode,
       isMobile: prefersTouchLayout,
       portalReady,
       portalTargetRef,
       miniStatus,
-      setPinned,
-      expand,
+      setFocusMode,
+      toggleFocusMode,
       setMiniStatus,
-      registerOverlay,
-      handlePointerEnter,
-      handlePointerLeave,
-      setIsFocusedWithin,
       attachPortalTarget,
     }),
     [
       enabled,
       prefersTouchLayout,
-      isCollapsed,
-      isPinned,
+      focusMode,
       portalReady,
       miniStatus,
-      setPinned,
-      expand,
-      registerOverlay,
-      handlePointerEnter,
-      handlePointerLeave,
+      setFocusMode,
+      toggleFocusMode,
       attachPortalTarget,
     ],
   );

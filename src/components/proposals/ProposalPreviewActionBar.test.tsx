@@ -5,47 +5,11 @@ import userEvent from '@testing-library/user-event';
 import ProposalPreviewActionBar from './ProposalPreviewActionBar';
 
 describe('ProposalPreviewActionBar', () => {
-  it('renders Send to Client and Download PDF', () => {
+  it('renders Back to Editor, Send to Client, and Download PDF', () => {
     render(
       <ProposalPreviewActionBar
-        isPreviewMode={false}
         saving={false}
-        onBack={vi.fn()}
-        onSend={vi.fn()}
-        onDownload={vi.fn()}
-      />,
-    );
-
-    expect(screen.getByTestId('proposal-preview-send-button')).toHaveTextContent(
-      'Send to Client',
-    );
-    expect(screen.getByTestId('proposal-preview-download-button')).toHaveTextContent(
-      'Download PDF',
-    );
-    expect(screen.queryByRole('button', { name: 'Email' })).not.toBeInTheDocument();
-  });
-
-  it('does not render Email button', () => {
-    render(
-      <ProposalPreviewActionBar
-        isPreviewMode
-        saving={false}
-        onBack={vi.fn()}
-        onEdit={vi.fn()}
-        onSend={vi.fn()}
-        onDownload={vi.fn()}
-      />,
-    );
-
-    expect(screen.queryByText(/^Email$/)).not.toBeInTheDocument();
-  });
-
-  it('shows Back to Editor when not in preview-only mode', () => {
-    render(
-      <ProposalPreviewActionBar
-        isPreviewMode={false}
-        saving={false}
-        onBack={vi.fn()}
+        onBackToEditor={vi.fn()}
         onSend={vi.fn()}
         onDownload={vi.fn()}
       />,
@@ -54,43 +18,53 @@ describe('ProposalPreviewActionBar', () => {
     expect(screen.getByTestId('proposal-preview-back-button')).toHaveTextContent(
       'Back to Editor',
     );
+    expect(screen.getByTestId('proposal-preview-send-button')).toHaveTextContent(
+      'Send to Client',
+    );
+    expect(screen.getByTestId('proposal-preview-download-button')).toHaveTextContent(
+      'Download PDF',
+    );
     expect(screen.queryByTestId('proposal-preview-edit-button')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Email' })).not.toBeInTheDocument();
   });
 
-  it('shows Back and Edit when opened from proposal list preview', () => {
+  it('shows optional Back to Proposals when opened from proposal list', () => {
     render(
       <ProposalPreviewActionBar
-        isPreviewMode
         saving={false}
-        onBack={vi.fn()}
-        onEdit={vi.fn()}
+        onBackToEditor={vi.fn()}
+        onBackToProposals={vi.fn()}
         onSend={vi.fn()}
         onDownload={vi.fn()}
       />,
     );
 
-    expect(screen.getByTestId('proposal-preview-back-button')).toHaveTextContent('Back');
-    expect(screen.getByTestId('proposal-preview-edit-button')).toBeInTheDocument();
+    expect(screen.getByTestId('proposal-preview-back-to-proposals-button')).toHaveTextContent(
+      'Back to Proposals',
+    );
+    expect(screen.queryByTestId('proposal-preview-edit-button')).not.toBeInTheDocument();
   });
 
-  it('calls send and download handlers without duplicate edit/back actions', async () => {
+  it('calls back-to-editor, send, and download handlers', async () => {
     const user = userEvent.setup();
+    const onBackToEditor = vi.fn();
     const onSend = vi.fn();
     const onDownload = vi.fn();
 
     render(
       <ProposalPreviewActionBar
-        isPreviewMode={false}
         saving={false}
-        onBack={vi.fn()}
+        onBackToEditor={onBackToEditor}
         onSend={onSend}
         onDownload={onDownload}
       />,
     );
 
+    await user.click(screen.getByTestId('proposal-preview-back-button'));
     await user.click(screen.getByTestId('proposal-preview-send-button'));
     await user.click(screen.getByTestId('proposal-preview-download-button'));
 
+    expect(onBackToEditor).toHaveBeenCalledTimes(1);
     expect(onSend).toHaveBeenCalledTimes(1);
     expect(onDownload).toHaveBeenCalledTimes(1);
     expect(screen.getAllByRole('button')).toHaveLength(3);
