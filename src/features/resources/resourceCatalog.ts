@@ -46,10 +46,10 @@ export const RESOURCE_HUB_CATEGORIES: ResourceCategory[] = [
     id: 'estimating',
     title: 'Estimating Tables',
     description:
-      'Production references, cost breakdown tables, quantity takeoff helpers, and estimating checklists.',
+      'Reference tables, takeoff helpers, cost breakdowns, and bid review checklists.',
     route: '/resources/estimating',
     icon: 'calculator',
-    status: 'coming-soon',
+    status: 'available',
     tags: ['estimating', 'tables'],
   },
   {
@@ -66,10 +66,10 @@ export const RESOURCE_HUB_CATEGORIES: ResourceCategory[] = [
     id: 'conversions',
     title: 'Conversion Tables',
     description:
-      'Unit conversions, fraction charts, volume tables, area tables, and material quantity references.',
+      'Field-ready unit conversions, measurement formulas, slope references, and material ordering checks.',
     route: '/resources/conversions',
     icon: 'arrow-left-right',
-    status: 'coming-soon',
+    status: 'available',
     tags: ['calculations', 'tables'],
   },
   {

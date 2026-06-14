@@ -60,6 +60,8 @@ import {
   LazyCommonProblems,
   LazyAdmixtures,
   LazyExternalResources,
+  LazyEstimatingResources,
+  LazyConversionResources,
   LazyOwnerReviewPage,
   LazyEmployeeManagementPage,
   LazyPlannerWorkspaceLayout,
@@ -494,6 +496,14 @@ function App() {
                   <LazyConcreteResources chatStore={chatStore} />
                 </Suspense>
               }
+            />
+            <Route
+              path="resources/estimating"
+              element={<LazyRoute Page={LazyEstimatingResources} />}
+            />
+            <Route
+              path="resources/conversions"
+              element={<LazyRoute Page={LazyConversionResources} />}
             />
             <Route path="resources/mix-designs" element={<LazyRoute Page={LazyMixDesigns} />} />
             <Route

@@ -94,6 +94,12 @@ export const LazyAdmixtures = lazyPage(() => import('../pages/resources/Admixtur
 export const LazyExternalResources = lazyPage(
   () => import('../pages/resources/ExternalResources'),
 );
+export const LazyEstimatingResources = lazyPage(
+  () => import('../pages/resources/EstimatingResourcesPage'),
+);
+export const LazyConversionResources = lazyPage(
+  () => import('../pages/resources/ConversionResourcesPage'),
+);
 
 // Owner
 export const LazyOwnerReviewPage = lazyPage(() => import('../pages/owner/OwnerReviewPage'));
