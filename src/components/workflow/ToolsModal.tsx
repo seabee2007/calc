@@ -82,12 +82,7 @@ const ToolsModal: React.FC = () => {
           path: '/proposals',
           icon: FileText,
         },
-        {
-          title: 'Resources',
-          description: 'Field guides and references',
-          path: '/resources',
-          icon: BookOpen,
-        },
+       
       ],
     },
     {
@@ -123,25 +118,15 @@ const ToolsModal: React.FC = () => {
           path: '/pour-planner',
           icon: CloudSun,
         },
-      ],
-    },
-    {
-      heading: 'Legacy estimating tools',
-      cards: [
         {
-          title: 'General trade labor',
-          description: 'Legacy labor helper — use Estimate Workspace instead',
-          path: '/calculator/general-trade-labor',
-          icon: HardHat,
-        },
-        {
-          title: 'Custom estimate',
-          description: 'Legacy manual lines — use Estimate Workspace instead',
-          path: '/calculator/custom',
-          icon: PenLine,
+          title: 'Resources',
+          description: 'Field guides and references',
+          path: '/resources',
+          icon: BookOpen,
         },
       ],
     },
+    
     {
       heading: 'Field & safety',
       cards: [
@@ -187,10 +172,7 @@ const ToolsModal: React.FC = () => {
 
   return (
     <Modal isOpen={isOpen} onClose={close} title="Tools" size="lg">
-      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 -mt-2">
-        Jump to any area of your project workspace. The guided workflow is Project → Estimates →
-        Proposal.
-      </p>
+      
       {projectId && currentProject && (
         <p className="text-sm text-cyan-700 dark:text-cyan-300/90 mb-4 font-medium">
           Active project: {currentProject.name}

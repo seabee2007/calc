@@ -1,7 +1,7 @@
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { format } from 'date-fns';
-import type { SafetyMeeting } from '../types/fieldTools';
+import { normalizeSafetyMeeting } from './normalizeToolboxTalk';
 import { savePDFWithPlatformSupport } from './pdf';
 import {
   addCompanyHeader,
@@ -22,6 +22,7 @@ export async function exportSafetyMeetingPdf(
   meeting: SafetyMeeting,
   company: FieldToolCompanyHeader,
 ): Promise<void> {
+  const normalized = normalizeSafetyMeeting(meeting);
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.width;
   const pageHeight = doc.internal.pageSize.height;
@@ -31,16 +32,16 @@ export async function exportSafetyMeetingPdf(
   addCompanyHeader(doc, y, margin, pageWidth, company, 'Daily Safety Meeting');
 
   addTextSection(doc, y, margin, pageWidth, pageHeight, 'Project information', [
-    `Project: ${meeting.projectName || '—'}`,
-    `Address: ${meeting.projectAddress || '—'}`,
-    `Date: ${formatDate(meeting.meetingDate)}`,
-    `Foreman / supervisor: ${meeting.supervisor || '—'}`,
-    `Company: ${meeting.companyName || '—'}`,
-    `Weather: ${meeting.weather || '—'}`,
-    `Work activity: ${meeting.workActivity || '—'}`,
+    `Project: ${normalized.projectName || '—'}`,
+    `Address: ${normalized.projectAddress || '—'}`,
+    `Date: ${formatDate(normalized.meetingDate)}`,
+    `Foreman / supervisor: ${normalized.supervisor || '—'}`,
+    `Company: ${normalized.companyName || '—'}`,
+    `Weather: ${normalized.weather || '—'}`,
+    `Work activity: ${normalized.workActivity || '—'}`,
   ]);
 
-  const jhaBody = meeting.jhaRows.map((r) => [
+  const jhaBody = normalized.jhaRows.map((r) => [
     r.task || '—',
     r.hazards || '—',
     r.controls || '—',
@@ -69,16 +70,18 @@ export async function exportSafetyMeetingPdf(
     y.value = doc.lastAutoTable.finalY + 8;
   }
 
-  const talk = meeting.toolboxContent;
+  const talk = normalized.toolboxContent;
   if (talk?.title) {
+    const keyHazards = talk.keyHazards;
+    const safePractices = talk.safePractices;
     addTextSection(doc, y, margin, pageWidth, pageHeight, `Toolbox talk — ${talk.title}`, [
       talk.explanation,
       '',
       'Key hazards:',
-      ...talk.keyHazards.map((h) => `• ${h}`),
+      ...(keyHazards.length > 0 ? keyHazards.map((h) => `• ${h}`) : ['• None listed']),
       '',
       'Safe work practices:',
-      ...talk.safePractices.map((p) => `• ${p}`),
+      ...(safePractices.length > 0 ? safePractices.map((p) => `• ${p}`) : ['• None listed']),
       '',
       `Crew reminder: ${talk.crewReminder}`,
       '',
@@ -86,7 +89,7 @@ export async function exportSafetyMeetingPdf(
     ]);
   }
 
-  const attBody = meeting.attendees.map((a) => [
+  const attBody = normalized.attendees.map((a) => [
     a.workerName || '—',
     a.company || '—',
     a.signature?.trim() ? '(signed)' : '—',
@@ -124,11 +127,11 @@ export async function exportSafetyMeetingPdf(
   y.value += 8;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
-  doc.text(`Supervisor: ${meeting.supervisor || '_________________________'}`, margin, y.value);
+  doc.text(`Supervisor: ${normalized.supervisor || '_________________________'}`, margin, y.value);
   y.value += 12;
   doc.text('Signature: _________________________   Date: _______________', margin, y.value);
 
-  const slug = (meeting.projectName || 'safety-meeting').replace(/\s+/g, '-').slice(0, 40);
+  const slug = (normalized.projectName || 'safety-meeting').replace(/\s+/g, '-').slice(0, 40);
   const filename = `safety-meeting-${slug}-${Date.now()}.pdf`;
   await savePDFWithPlatformSupport(doc, filename, 'Daily Safety Meeting');
 }

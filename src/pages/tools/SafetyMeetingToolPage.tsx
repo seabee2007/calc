@@ -17,13 +17,14 @@ import FieldToolStickyActions from '../../components/tools/FieldToolStickyAction
 import Input from '../../components/ui/Input';
 import Toast from '../../components/ui/Toast';
 import { emptySafetyMeeting } from './safetyMeetingDefaults';
+import { normalizeSafetyMeeting } from '../../utils/normalizeToolboxTalk';
 
 export default function SafetyMeetingToolPage() {
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const { currentProject, setCurrentProject } = useProjectStore();
   const { companySettings } = useSettingsStore();
-  const [meeting, setMeeting] = useState<SafetyMeeting>(emptySafetyMeeting);
+  const [meeting, setMeeting] = useState<SafetyMeeting>(() => normalizeSafetyMeeting(emptySafetyMeeting()));
   const [saving, setSaving] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [toast, setToast] = useState<{ title: string; message: string; type: 'success' | 'error' } | null>(
@@ -36,7 +37,7 @@ export default function SafetyMeetingToolPage() {
     if (!recordId) return;
     void fetchSafetyMeeting(recordId).then((row) => {
       if (!row) return;
-      setMeeting(row);
+      setMeeting(normalizeSafetyMeeting(row));
       if (row.projectId) setCurrentProject(row.projectId);
     });
   }, [recordId]);
@@ -44,20 +45,22 @@ export default function SafetyMeetingToolPage() {
   const applyProjectPrefill = useCallback(
     (projectId: string | null) => {
       if (!projectId) {
-        setMeeting((m) => ({ ...m, projectId: null }));
+        setMeeting((m) => normalizeSafetyMeeting({ ...m, projectId: null }));
         return;
       }
       const project = useProjectStore.getState().projects.find((p) => p.id === projectId);
       if (!project) return;
-      setMeeting((m) => ({
-        ...m,
-        projectId,
-        projectName: project.name,
-        projectAddress: hasProjectJobsite(project.jobsiteAddress)
-          ? formatUSAddress(project.jobsiteAddress)
-          : m.projectAddress,
-        companyName: m.companyName || companySettings.companyName || '',
-      }));
+      setMeeting((m) =>
+        normalizeSafetyMeeting({
+          ...m,
+          projectId,
+          projectName: project.name,
+          projectAddress: hasProjectJobsite(project.jobsiteAddress)
+            ? formatUSAddress(project.jobsiteAddress)
+            : m.projectAddress,
+          companyName: m.companyName || companySettings.companyName || '',
+        }),
+      );
     },
     [companySettings.companyName],
   );
@@ -66,7 +69,8 @@ export default function SafetyMeetingToolPage() {
     if (currentProject?.id) applyProjectPrefill(currentProject.id);
   }, [currentProject?.id, applyProjectPrefill]);
 
-  const patch = (patch: Partial<SafetyMeeting>) => setMeeting((m) => ({ ...m, ...patch }));
+  const patch = (patch: Partial<SafetyMeeting>) =>
+    setMeeting((m) => normalizeSafetyMeeting({ ...m, ...patch }));
 
   const companyHeader = {
     companyName: companySettings.companyName || meeting.companyName,
@@ -91,7 +95,10 @@ export default function SafetyMeetingToolPage() {
     }
     setSaving(true);
     try {
-      const saved = await upsertSafetyMeeting({ ...meeting, projectId }, user.id);
+      const saved = await upsertSafetyMeeting(
+        normalizeSafetyMeeting({ ...meeting, projectId }),
+        user.id,
+      );
       setMeeting(saved);
       if (saved.id) {
         const next = new URLSearchParams();
@@ -127,7 +134,7 @@ export default function SafetyMeetingToolPage() {
 
   const handleClear = () => {
     if (!window.confirm('Clear all fields on this form?')) return;
-    setMeeting(emptySafetyMeeting());
+    setMeeting(normalizeSafetyMeeting(emptySafetyMeeting()));
     setSearchParams({}, { replace: true });
     if (currentProject?.id) applyProjectPrefill(currentProject.id);
   };
@@ -138,6 +145,7 @@ export default function SafetyMeetingToolPage() {
         title="Safety Meeting Tool"
         subtitle="Daily JHA, toolbox talks, and attendance sheet"
         icon={ShieldCheck}
+        plannerReturn={{ tab: 'safety-meetings', label: 'Safety meetings' }}
         onProjectPrefill={applyProjectPrefill}
         actions={
           <FieldToolStickyActions

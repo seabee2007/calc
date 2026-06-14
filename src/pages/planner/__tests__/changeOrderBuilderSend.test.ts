@@ -34,11 +34,9 @@ describe('ChangeOrderBuilderPage send workflow', () => {
     expect(source).toContain('setSendModalOpen(true)');
     expect(source).toContain('Enter contractor printed name before sending.');
     expect(source).toContain('contractorValidationError');
-    expect(source).toContain('[ChangeOrder] Send clicked');
-    expect(source).toContain('[ChangeOrder] validating before send');
-    expect(source).toContain('[ChangeOrder] saving before send');
-    expect(source).toContain('[ChangeOrder] ensuring public change order URL');
-    expect(source).toContain('[ChangeOrder] opening send modal');
+    expect(source).toContain('persistChangeOrder({ replaceRoute: false, skipReload: true })');
+    expect(source).toContain('Could not save change order before sending.');
+    expect(source).toContain('Could not create client review link.');
   });
 
   it('defers route replace and planner reload during send so modal state is not lost', () => {

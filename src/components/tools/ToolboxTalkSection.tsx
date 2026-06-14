@@ -5,6 +5,7 @@ import {
   getToolboxTalk,
   type ToolboxTalkTopicKey,
 } from '../../data/toolboxTalkTopics';
+import { normalizeToolboxTalkContent } from '../../utils/normalizeToolboxTalk';
 import Select from '../ui/Select';
 import { FIELD_TOOL_MUTED } from './fieldToolTheme';
 
@@ -19,6 +20,8 @@ export default function ToolboxTalkSection({
   content,
   onTopicChange,
 }: ToolboxTalkSectionProps) {
+  const talk = content ? normalizeToolboxTalkContent(content) : null;
+
   return (
     <div className="space-y-4">
       <Select
@@ -29,8 +32,8 @@ export default function ToolboxTalkSection({
             onTopicChange('', null);
             return;
           }
-          const talk = getToolboxTalk(v as ToolboxTalkTopicKey);
-          onTopicChange(v, talk);
+          const selected = normalizeToolboxTalkContent(getToolboxTalk(v as ToolboxTalkTopicKey));
+          onTopicChange(v, selected);
         }}
         options={[
           { value: '', label: 'Select a topic…' },
@@ -39,40 +42,52 @@ export default function ToolboxTalkSection({
         fullWidth
       />
 
-      {content ? (
+      {talk?.title ? (
         <div className="rounded-lg border border-cyan-500/30 bg-cyan-50/50 p-4 dark:border-cyan-500/25 dark:bg-cyan-950/20">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{content.title}</h3>
-          <p className={`mt-2 ${FIELD_TOOL_MUTED}`}>{content.explanation}</p>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{talk.title}</h3>
+          <p className={`mt-2 ${FIELD_TOOL_MUTED}`}>{talk.explanation}</p>
 
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-cyan-700 dark:text-cyan-400">
                 Key hazards
               </p>
-              <ul className="mt-1 list-disc pl-4 text-sm text-gray-700 dark:text-slate-300">
-                {content.keyHazards.map((h) => (
-                  <li key={h}>{h}</li>
-                ))}
-              </ul>
+              {talk.keyHazards.length > 0 ? (
+                <ul className="mt-1 list-disc pl-4 text-sm text-gray-700 dark:text-slate-300">
+                  {talk.keyHazards.map((h) => (
+                    <li key={h}>{h}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className={`mt-1 text-sm ${FIELD_TOOL_MUTED}`}>None listed.</p>
+              )}
             </div>
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-cyan-700 dark:text-cyan-400">
                 Safe work practices
               </p>
-              <ul className="mt-1 list-disc pl-4 text-sm text-gray-700 dark:text-slate-300">
-                {content.safePractices.map((p) => (
-                  <li key={p}>{p}</li>
-                ))}
-              </ul>
+              {talk.safePractices.length > 0 ? (
+                <ul className="mt-1 list-disc pl-4 text-sm text-gray-700 dark:text-slate-300">
+                  {talk.safePractices.map((p) => (
+                    <li key={p}>{p}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className={`mt-1 text-sm ${FIELD_TOOL_MUTED}`}>None listed.</p>
+              )}
             </div>
           </div>
 
-          <p className="mt-4 text-sm font-medium text-amber-800 dark:text-amber-200">
-            Crew reminder: {content.crewReminder}
-          </p>
-          <p className="mt-2 text-sm text-gray-700 dark:text-slate-300">
-            <span className="font-semibold">Supervisor question:</span> {content.supervisorQuestion}
-          </p>
+          {talk.crewReminder ? (
+            <p className="mt-4 text-sm font-medium text-amber-800 dark:text-amber-200">
+              Crew reminder: {talk.crewReminder}
+            </p>
+          ) : null}
+          {talk.supervisorQuestion ? (
+            <p className="mt-2 text-sm text-gray-700 dark:text-slate-300">
+              <span className="font-semibold">Supervisor question:</span> {talk.supervisorQuestion}
+            </p>
+          ) : null}
         </div>
       ) : (
         <p className={FIELD_TOOL_MUTED}>Select a topic to generate the toolbox talk for today&apos;s meeting.</p>

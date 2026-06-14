@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { ArrowLeft } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
+import type { DocumentsTabId } from '../planner/documents/documentsTabConfig';
 import { plannerDocumentsHref } from '../../utils/plannerRoutes';
 import { useProjectStore } from '../../store';
 import { formatUSAddress, hasProjectJobsite } from '../../types/address';
@@ -16,6 +17,11 @@ import {
   FIELD_TOOL_PRINT_ROOT,
 } from './fieldToolTheme';
 
+export type FieldToolPlannerReturn = {
+  tab: DocumentsTabId;
+  label: string;
+};
+
 interface FieldToolPageLayoutProps {
   title: string;
   subtitle: string;
@@ -24,6 +30,8 @@ interface FieldToolPageLayoutProps {
   actions: React.ReactNode;
   onProjectPrefill?: (projectId: string | null) => void;
   maxWidthClassName?: string;
+  /** When set, back link targets this Documents sub-tab and hides generic save-location copy. */
+  plannerReturn?: FieldToolPlannerReturn;
 }
 
 export default function FieldToolPageLayout({
@@ -34,10 +42,17 @@ export default function FieldToolPageLayout({
   actions,
   onProjectPrefill,
   maxWidthClassName = FIELD_TOOL_PAGE_WIDTH,
+  plannerReturn,
 }: FieldToolPageLayoutProps) {
   const [searchParams] = useSearchParams();
   const { projects, currentProject, setCurrentProject } = useProjectStore();
   const plannerProjectId = searchParams.get('project') ?? currentProject?.id ?? null;
+  const backHref = plannerProjectId
+    ? plannerDocumentsHref(
+        plannerProjectId,
+        plannerReturn ? { tab: plannerReturn.tab } : undefined,
+      )
+    : null;
 
   useEffect(() => {
     const projectId = searchParams.get('project');
@@ -59,13 +74,13 @@ export default function FieldToolPageLayout({
         }
       `}</style>
 
-      {plannerProjectId && (
+      {backHref && (
         <Link
-          to={plannerDocumentsHref(plannerProjectId)}
+          to={backHref}
           className="mb-4 inline-flex items-center gap-1 text-sm font-medium text-cyan-700 hover:text-cyan-800 dark:text-cyan-400 print:hidden"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden />
-          Back to documents
+          {plannerReturn ? `Back to ${plannerReturn.label}` : 'Back to documents'}
         </Link>
       )}
 
@@ -81,7 +96,7 @@ export default function FieldToolPageLayout({
 
       <div className={`mb-6 p-4 ${PREMIUM_PANEL} print:hidden`}>
         <Select
-          label="Project (saved to Planner → Documents)"
+          label={plannerReturn ? 'Project' : 'Project (saved to Planner → Documents)'}
           options={[
             { value: '', label: 'Select a project…' },
             ...projects.map((p) => ({ value: p.id, label: p.name })),
@@ -95,18 +110,20 @@ export default function FieldToolPageLayout({
         />
         {currentProject && (
           <>
-            <p className="mt-2 text-sm text-cyan-700 dark:text-cyan-300">
-              Saves appear under{' '}
-              <Link
-                to={plannerDocumentsHref(currentProject.id)}
-                className="font-medium underline hover:text-cyan-800 dark:hover:text-cyan-200"
-              >
-                Planner → Documents
-              </Link>{' '}
-              for {currentProject.name}.
-            </p>
+            {!plannerReturn && (
+              <p className="mt-2 text-sm text-cyan-700 dark:text-cyan-300">
+                Saves appear under{' '}
+                <Link
+                  to={plannerDocumentsHref(currentProject.id)}
+                  className="font-medium underline hover:text-cyan-800 dark:hover:text-cyan-200"
+                >
+                  Planner → Documents
+                </Link>{' '}
+                for {currentProject.name}.
+              </p>
+            )}
             {hasProjectJobsite(currentProject.jobsiteAddress) && (
-              <p className={`mt-1 ${FIELD_TOOL_MUTED}`}>
+              <p className={`${plannerReturn ? 'mt-2' : 'mt-1'} ${FIELD_TOOL_MUTED}`}>
                 Jobsite: {formatUSAddress(currentProject.jobsiteAddress!)}
               </p>
             )}

@@ -149,18 +149,6 @@ const ChangeOrderSendEmailModal: React.FC<ChangeOrderSendEmailModalProps> = ({
       companyName,
     });
 
-    if (import.meta.env.DEV) {
-      console.info('[ChangeOrderEmail] Sending change order email', {
-        to,
-        subject: resolvedSubject,
-        projectName,
-        changeOrderTitle,
-        changeOrderTotal: formattedTotal,
-        hasChangeOrderUrl: Boolean(changeOrderUrl),
-        hasMessage: Boolean(resolvedMessage),
-      });
-    }
-
     setSending(true);
     setLocalError(null);
 

@@ -4,6 +4,7 @@ import {
   buildProjectSwitchHref,
   changeOrderEditHref,
   isPlannerNavTabActive,
+  plannerDocumentsHref,
   plannerProjectSwitchHref,
 } from './plannerRoutes';
 
@@ -181,6 +182,14 @@ describe('plannerProjectSwitchHref', () => {
     expect(
       buildProjectSwitchHref('/projects/project-a/planner/estimate/totals', PROJECT_B),
     ).toBe('/projects/project-b/planner/board');
+  });
+});
+
+describe('plannerDocumentsHref', () => {
+  it('links to the safety meetings documents tab', () => {
+    expect(
+      plannerDocumentsHref('project-1', { tab: 'safety-meetings' }),
+    ).toBe('/projects/project-1/planner/documents?tab=safety-meetings');
   });
 });
 

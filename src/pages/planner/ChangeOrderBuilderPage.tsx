@@ -457,7 +457,6 @@ export default function ChangeOrderBuilderPage() {
         if (shouldReplaceRoute) {
           navigate(changeOrderEditHref(projectId, saved.id), { replace: true });
         }
-        console.log('[Change Order Save] refresh planner side panels');
         dispatchPlannerRecordsChanged({ kind: 'change_order', projectId, id: saved.id });
         if (!options?.skipReload) {
           void reload();
@@ -477,17 +476,7 @@ export default function ChangeOrderBuilderPage() {
   }, []);
 
   const handleSend = async () => {
-    console.info('[ChangeOrder] Send clicked', {
-      changeOrderId: coId ?? changeOrderId ?? null,
-      projectId,
-      hasContractorPrintedName: Boolean(contractorName.trim()),
-      clientEmail: clientEmail?.trim() || null,
-      isSaving: busy,
-      isSending,
-    });
-
     if (isSending) {
-      console.info('[ChangeOrder] Send ignored — send already in progress');
       return;
     }
 
@@ -507,9 +496,6 @@ export default function ChangeOrderBuilderPage() {
     setIsSending(true);
     setBusy(true);
     try {
-      console.info('[ChangeOrder] validating before send');
-
-      console.info('[ChangeOrder] saving before send');
       let saved: ChangeOrder;
       try {
         saved = await persistChangeOrder({ replaceRoute: false, skipReload: true });
@@ -521,7 +507,6 @@ export default function ChangeOrderBuilderPage() {
         return;
       }
 
-      console.info('[ChangeOrder] ensuring public change order URL');
       let prepared: { changeOrder: ChangeOrder; url: string };
       try {
         prepared = await ensurePublicChangeOrderLink(saved.id);
@@ -534,11 +519,6 @@ export default function ChangeOrderBuilderPage() {
       }
 
       const highlightEmail = !clientEmail?.trim();
-      console.info('[ChangeOrder] opening send modal', {
-        changeOrderId: prepared.changeOrder.id,
-        highlightEmail,
-        reviewUrl: prepared.url,
-      });
       openSendModal(prepared.changeOrder, highlightEmail);
 
       const needsRouteUpdate =
@@ -570,7 +550,6 @@ export default function ChangeOrderBuilderPage() {
           signature: sig,
         });
         applyCoToState(sent);
-        console.log('[Change Order Send] refresh planner side panels');
         dispatchPlannerRecordsChanged({ kind: 'change_order', projectId, id: sent.id });
         void reload();
       }

@@ -5,9 +5,10 @@ import type {
   SafetyMeeting,
   ToolboxTalk,
 } from '../types/fieldTools';
+import { normalizeSafetyMeeting } from '../utils/normalizeToolboxTalk';
 
 function mapSafetyMeeting(row: Record<string, unknown>): SafetyMeeting {
-  return {
+  return normalizeSafetyMeeting({
     id: row.id as string,
     userId: row.user_id as string,
     projectId: (row.project_id as string) ?? null,
@@ -19,29 +20,30 @@ function mapSafetyMeeting(row: Record<string, unknown>): SafetyMeeting {
     weather: (row.weather as string) ?? '',
     workActivity: (row.work_activity as string) ?? '',
     toolboxTopic: (row.toolbox_topic as string) ?? '',
-    toolboxContent: (row.toolbox_content as ToolboxTalk) ?? null,
+    toolboxContent: (row.toolbox_content as Partial<ToolboxTalk> | null) ?? null,
     jhaRows: (row.jha_rows as SafetyJhaRow[]) ?? [],
     attendees: (row.attendees as AttendanceRow[]) ?? [],
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
-  };
+  });
 }
 
 function toDbRow(meeting: SafetyMeeting, userId: string) {
+  const normalized = normalizeSafetyMeeting(meeting);
   return {
     user_id: userId,
-    project_id: meeting.projectId || null,
-    project_name: meeting.projectName || null,
-    project_address: meeting.projectAddress || null,
-    meeting_date: meeting.meetingDate || null,
-    supervisor: meeting.supervisor || null,
-    company_name: meeting.companyName || null,
-    weather: meeting.weather || null,
-    work_activity: meeting.workActivity || null,
-    toolbox_topic: meeting.toolboxTopic || null,
-    toolbox_content: meeting.toolboxContent ?? {},
-    jha_rows: meeting.jhaRows ?? [],
-    attendees: meeting.attendees ?? [],
+    project_id: normalized.projectId || null,
+    project_name: normalized.projectName || null,
+    project_address: normalized.projectAddress || null,
+    meeting_date: normalized.meetingDate || null,
+    supervisor: normalized.supervisor || null,
+    company_name: normalized.companyName || null,
+    weather: normalized.weather || null,
+    work_activity: normalized.workActivity || null,
+    toolbox_topic: normalized.toolboxTopic || null,
+    toolbox_content: normalized.toolboxContent,
+    jha_rows: normalized.jhaRows,
+    attendees: normalized.attendees,
   };
 }
 
