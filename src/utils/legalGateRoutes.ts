@@ -14,6 +14,7 @@ const LEGAL_GATE_BYPASS_PREFIXES = [
   '/invite/',
   '/login',
   '/signup',
+  '/complete-profile',
   '/auth/callback',
   '/reset-password',
 ] as const;

@@ -13,7 +13,7 @@ import {
 } from '../lib/authSession';
 import type { User } from '@supabase/supabase-js';
 import type { Profile } from '../types/fieldPlanner';
-import { fetchProfile } from '../services/profileService';
+import { createOwnerProfile, fetchProfile } from '../services/profileService';
 import { isEmployeeRole, isOwnerRole } from '../types/fieldPlanner';
 
 interface AuthContextValue {
@@ -26,7 +26,23 @@ interface AuthContextValue {
   profileLoading: boolean;
   refreshProfile: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
+  signUp: (
+    email: string,
+    password: string,
+    profileData: {
+      firstName: string;
+      lastName: string;
+      phone?: string;
+      businessAddress?: {
+        street?: string;
+        street2?: string;
+        city?: string;
+        state?: string;
+        postalCode?: string;
+      };
+      acceptedAgreement: boolean;
+    },
+  ) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -126,10 +142,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) throw error;
   }, []);
 
-  const signUp = useCallback(async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({ email, password });
-    if (error) throw error;
-  }, []);
+  const signUp = useCallback(
+    async (
+      email: string,
+      password: string,
+      profileData: {
+        firstName: string;
+        lastName: string;
+        phone?: string;
+        businessAddress?: {
+          street?: string;
+          street2?: string;
+          city?: string;
+          state?: string;
+          postalCode?: string;
+        };
+        acceptedAgreement: boolean;
+      },
+    ) => {
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      if (error) throw error;
+
+      const userId = data.user?.id;
+      if (userId) {
+        try {
+          await createOwnerProfile(userId, {
+            firstName: profileData.firstName,
+            lastName: profileData.lastName,
+            email,
+            phone: profileData.phone,
+            businessAddress: profileData.businessAddress,
+            acceptedAgreement: profileData.acceptedAgreement,
+          });
+        } catch {
+          // Profile creation can fail silently — the user is already created.
+          // postAuthRouting will create a minimal profile on first login if missing.
+        }
+      }
+    },
+    [],
+  );
 
   const signOut = useCallback(async () => {
     try {
@@ -164,18 +216,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signUp,
       signOut,
     }),
-    [
-      user,
-      profile,
-      isOwner,
-      isEmployee,
-      loading,
-      profileLoading,
-      refreshProfile,
-      signIn,
-      signUp,
-      signOut,
-    ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [user, profile, isOwner, isEmployee, loading, profileLoading, refreshProfile, signIn, signOut],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

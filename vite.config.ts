@@ -21,7 +21,18 @@ export default defineConfig({
     productionRateReviewDevServer(repoRoot),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
+      manifestFilename: 'site.webmanifest',
+      includeAssets: [
+        'favicon.ico',
+        'favicon.svg',
+        'favicon-16x16.png',
+        'favicon-32x32.png',
+        'apple-touch-icon.png',
+        'icon-192.png',
+        'icon-512.png',
+        'og-image.png',
+        'site.webmanifest',
+      ],
       workbox: {
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/assets\//],
@@ -31,37 +42,31 @@ export default defineConfig({
       manifest: {
         name: 'Arden Project OS',
         short_name: 'Arden',
-        description: 'Professional construction project management software',
+          description: 'Construction project software for estimates, proposals, schedules, and field tracking.',
         start_url: '/',
         scope: '/',
-        theme_color: '#ffffff',
-        background_color: '#ffffff',
+        theme_color: '#020617',
+        background_color: '#020617',
         display: 'standalone',
         icons: [
           {
-            src: 'pwa-64x64.png',
-            sizes: '64x64',
-            type: 'image/png'
-          },
-          {
-            src: 'pwa-192x192.png',
+            src: 'icon-192.png',
             sizes: '192x192',
-            type: 'image/png'
+            type: 'image/png',
           },
           {
-            src: 'pwa-512x512.png',
+            src: 'icon-512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any'
           },
           {
-            src: 'maskable-icon-512x512.png',
+            src: 'icon-512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'maskable'
-          }
-        ]
-      }
+            purpose: 'maskable',
+          },
+        ],
+      },
     })
   ],
   build: {

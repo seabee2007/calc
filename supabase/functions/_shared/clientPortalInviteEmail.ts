@@ -4,11 +4,11 @@ export function buildClientPortalInviteMessageTemplate(): string {
   return [
     "Hi {clientName},",
     "",
-    "Your project portal is ready. Use the link below to view progress updates, documents, and milestones — no login required.",
+    "Your project portal is ready. Use the secure button below to review project updates, documents, RFIs, proposals, and shared project information.",
     "",
-    "{portalLink}",
+    "Please keep this link private.",
     "",
-    "Best regards,",
+    "Thank you,",
     "{companyName}",
   ].join("\n");
 }

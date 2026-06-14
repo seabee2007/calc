@@ -72,13 +72,14 @@ describe('ClientPortalCreatedModal', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('includes the portal link in the expanded message preview', async () => {
+  it('shows message preview without exposing the raw portal URL', async () => {
     const user = userEvent.setup();
     renderModal();
     await user.click(screen.getByRole('button', { name: 'Email preview' }));
-    expect(screen.getByLabelText('Email message preview')).toHaveTextContent(
-      'https://app.example.com/client/project/portal-token-123',
-    );
+    const preview = screen.getByLabelText('Email message preview');
+    expect(preview).toHaveTextContent('Hi Jane Client,');
+    expect(preview).toHaveTextContent('Please keep this link private.');
+    expect(preview).not.toHaveTextContent('https://app.example.com/client/project/portal-token-123');
   });
 
   it('requires a client email before sending', async () => {
@@ -112,7 +113,18 @@ describe('ClientPortalCreatedModal', () => {
 
   it('sends the invite email with subject and message template', async () => {
     const user = userEvent.setup();
-    renderModal();
+    const onClose = vi.fn();
+    const onSent = vi.fn();
+    render(
+      <ClientPortalCreatedModal
+        clientName="Jane Client"
+        clientEmail="jane@client.com"
+        token="portal-token-123"
+        projectId="project-1"
+        onClose={onClose}
+        onSent={onSent}
+      />,
+    );
 
     await user.click(screen.getByRole('button', { name: 'Send invite email' }));
 
@@ -121,9 +133,11 @@ describe('ClientPortalCreatedModal', () => {
       projectId: 'project-1',
       recipientEmail: 'jane@client.com',
       emailSubject: 'Your project portal is ready',
-      messageBody: expect.stringContaining('{portalLink}'),
+      messageBody: expect.not.stringContaining('{portalLink}'),
     });
-    expect(await screen.findByText('Client portal invite sent.')).toBeInTheDocument();
+    expect(onClose).toHaveBeenCalled();
+    expect(onSent).toHaveBeenCalled();
+    expect(screen.queryByText('Client portal invite sent.')).not.toBeInTheDocument();
   });
 
   it('keeps the portal link visible after a failed send', async () => {

@@ -16,6 +16,22 @@ function escapeHtml(value: string): string {
     .replace(/'/g, "&#39;");
 }
 
+function stripPortalUrlFromMessageBody(messageBody: string, portalUrl: string): string {
+  if (!messageBody || !portalUrl) return messageBody;
+  return messageBody
+    .split("\n")
+    .filter((line) => {
+      const trimmed = line.trim();
+      if (!trimmed) return true;
+      if (trimmed === portalUrl || trimmed.includes(portalUrl)) return false;
+      if (/^Open your portal:/i.test(trimmed)) return false;
+      return true;
+    })
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 function layout(input: {
   title: string;
   heading?: string;
@@ -23,24 +39,28 @@ function layout(input: {
   bodyText: string;
   ctaLabel?: string;
   ctaUrl?: string;
+  textLinkMode?: "cta-and-fallback" | "fallback-only";
 }): RenderedEmail {
   const heading = input.heading ?? input.title;
   const ctaHtml =
     input.ctaLabel && input.ctaUrl
-      ? `<table role="presentation" cellspacing="0" cellpadding="0" style="margin:24px 0;"><tr><td align="center" style="border-radius:8px;background:#0891b2;"><a href="${escapeHtml(input.ctaUrl)}" style="display:inline-block;background:#0891b2;color:#ffffff;text-decoration:none;padding:14px 24px;border-radius:8px;font-weight:600;font-size:16px;line-height:1.2;">${escapeHtml(input.ctaLabel)}</a></td></tr></table>`
+      ? `<table role="presentation" cellspacing="0" cellpadding="0" width="100%" style="margin:24px 0;"><tr><td align="center" style="border-radius:10px;background:#0891b2;"><a href="${escapeHtml(input.ctaUrl)}" style="display:inline-block;width:100%;max-width:100%;box-sizing:border-box;background:#0891b2;color:#ffffff !important;text-decoration:none;padding:14px 22px;border-radius:10px;font-weight:700;font-size:16px;line-height:1.2;text-align:center;">${escapeHtml(input.ctaLabel)}</a></td></tr></table>`
       : "";
   const fallbackHtml = input.ctaUrl
-    ? `<p style="margin:16px 0 0;font-size:13px;color:#64748b;">If the button does not work, copy and paste this link into your browser:</p><p style="margin:8px 0 0;font-size:13px;line-height:1.5;word-break:break-all;"><a href="${escapeHtml(input.ctaUrl)}" style="color:#0891b2;text-decoration:underline;">${escapeHtml(input.ctaUrl)}</a></p>`
+    ? `<hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0;" /><p style="margin:24px 0 0;font-size:13px;color:#94a3b8;">If the button does not work, copy and paste this link into your browser:</p><p style="margin:8px 0 0;font-size:13px;line-height:1.5;color:#94a3b8;word-break:break-word;overflow-wrap:anywhere;"><a href="${escapeHtml(input.ctaUrl)}" style="color:#22d3ee;text-decoration:underline;word-break:break-word;overflow-wrap:anywhere;">${escapeHtml(input.ctaUrl)}</a></p>`
     : "";
+  const textLinkMode = input.textLinkMode ?? "cta-and-fallback";
   const ctaText =
     input.ctaLabel && input.ctaUrl
-      ? `\n\n${input.ctaLabel}: ${input.ctaUrl}\n\nIf the button does not work, copy and paste this link into your browser:\n${input.ctaUrl}\n`
+      ? textLinkMode === "fallback-only"
+        ? `\n\nIf the button does not work, copy and paste this link into your browser:\n${input.ctaUrl}\n`
+        : `\n\n${input.ctaLabel}: ${input.ctaUrl}\n\nIf the button does not work, copy and paste this link into your browser:\n${input.ctaUrl}\n`
       : "";
 
   return {
     subject: input.title,
-    html: `<!DOCTYPE html><html><body style="margin:0;padding:0;background:#f8fafc;font-family:Arial,sans-serif;color:#0f172a;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f8fafc;padding:24px 0;"><tr><td align="center"><table role="presentation" width="600" cellspacing="0" cellpadding="0" style="max-width:600px;background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;"><tr><td style="padding:20px 24px;background:#0f172a;color:#ffffff;font-size:18px;font-weight:700;">Arden Project OS</td></tr><tr><td style="padding:24px;"><h1 style="margin:0 0 16px;font-size:22px;line-height:1.3;">${escapeHtml(heading)}</h1>${input.bodyHtml}${ctaHtml}${fallbackHtml}<p style="margin:24px 0 0;font-size:13px;color:#64748b;">Arden Project OS — estimating, scheduling, and project management for contractors.</p></td></tr></table></td></tr></table></body></html>`,
-    text: `${input.title}\n\n${input.bodyText}${ctaText}\nArden Project OS — estimating, scheduling, and project management for contractors.`,
+    html: `<!DOCTYPE html><html><body style="margin:0;padding:0;background:#f8fafc;font-family:Arial,sans-serif;color:#0f172a;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f8fafc;padding:24px 0;"><tr><td align="center"><table role="presentation" width="600" cellspacing="0" cellpadding="0" style="max-width:600px;background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;"><tr><td style="padding:20px 24px;background:#0f172a;color:#ffffff;font-size:18px;font-weight:700;">Arden Project OS</td></tr><tr><td style="padding:24px;"><h1 style="margin:0 0 16px;font-size:22px;line-height:1.3;">${escapeHtml(heading)}</h1>${input.bodyHtml}${ctaHtml}${fallbackHtml}<p style="margin:24px 0 0;font-size:13px;color:#64748b;">Arden Project OS — estimating, scheduling, and project control for contractors.</p></td></tr></table></td></tr></table></body></html>`,
+    text: `${input.title}\n\n${input.bodyText}${ctaText}\nArden Project OS — estimating, scheduling, and project control for contractors.`,
   };
 }
 
@@ -98,8 +118,11 @@ export function renderEmailTemplate(
       const contactText = contactParts.length
         ? `\n\nQuestions? Contact ${companyName}${contactSuffix}.`
         : "";
-      const bodyParagraphs = messageBody
-        ? messageBody
+      const sanitizedMessageBody = portalUrl
+        ? stripPortalUrlFromMessageBody(messageBody, portalUrl)
+        : messageBody;
+      const bodyParagraphs = sanitizedMessageBody
+        ? sanitizedMessageBody
             .split("\n")
             .map((line) =>
               line.trim()
@@ -107,14 +130,17 @@ export function renderEmailTemplate(
                 : `<p style="margin:0 0 12px;">&nbsp;</p>`
             )
             .join("")
-        : `<p style="margin:0 0 12px;">Your project portal is ready.</p>`;
-      const bodyText = messageBody || "Your project portal is ready.";
+        : `<p style="margin:0 0 12px;">Your project portal is ready. Use the secure button below to review project updates, documents, RFIs, proposals, and shared project information.</p>`;
+      const bodyText =
+        sanitizedMessageBody ||
+        "Your project portal is ready. Use the secure button below to review project updates, documents, RFIs, proposals, and shared project information.";
       return layout({
         title: emailSubject,
         bodyHtml: `${bodyParagraphs}${contactHtml}`,
         bodyText: `${bodyText}${contactText}`,
         ctaLabel: portalUrl ? "View project portal" : undefined,
         ctaUrl: portalUrl || undefined,
+        textLinkMode: "fallback-only",
       });
     }
     case "proposalSent": {

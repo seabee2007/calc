@@ -9,6 +9,7 @@ import {
 } from '../../services/clientPortalService';
 import type { ClientPortalRecord } from '../../types/clientPortal';
 import ClientPortalCreatedModal from './ClientPortalCreatedModal';
+import EstimateWorkspaceToast from '../../features/estimating/ui/components/EstimateWorkspaceToast';
 import {
   OPS_MUTED,
   OPS_OUTLINE_BTN,
@@ -33,6 +34,7 @@ const ClientPortalActions: React.FC<ClientPortalActionsProps> = ({
   const [creating, setCreating] = useState(false);
   const [copied, setCopied] = useState(false);
   const [inviteModalRecord, setInviteModalRecord] = useState<ClientPortalRecord | null>(null);
+  const [sentToast, setSentToast] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -182,8 +184,15 @@ const ClientPortalActions: React.FC<ClientPortalActionsProps> = ({
           token={inviteModalRecord.token}
           projectId={inviteModalRecord.projectId}
           onClose={() => setInviteModalRecord(null)}
+          onSent={() => setSentToast('Sent')}
         />
       )}
+
+      <EstimateWorkspaceToast
+        message={sentToast}
+        onDismiss={() => setSentToast(null)}
+        zIndexClass="z-[10060]"
+      />
     </>
   );
 };

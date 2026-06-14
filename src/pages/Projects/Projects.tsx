@@ -8,6 +8,7 @@ import ProjectDetails from './ProjectDetails';
 import ProjectForm from '../../components/projects/ProjectForm';
 import ToastManager from './ToastManager';
 import ClientPortalCreatedModal from '../../components/projects/ClientPortalCreatedModal';
+import EstimateWorkspaceToast from '../../features/estimating/ui/components/EstimateWorkspaceToast';
 import AppPage from '../../components/ui/AppPage';
 import PageHeader from '../../components/ui/PageHeader';
 import Button from '../../components/ui/Button';
@@ -91,6 +92,7 @@ const ProjectsContent: React.FC = () => {
   const [projectFolder, setProjectFolder] = useState<ProjectFolder>(() =>
     parseProjectFolder(searchParams.get('folder')),
   );
+  const [portalSentToast, setPortalSentToast] = useState<string | null>(null);
 
   useEffect(() => {
     setProjectFolder(parseProjectFolder(searchParams.get('folder')));
@@ -242,6 +244,12 @@ const ProjectsContent: React.FC = () => {
 
       <ToastManager {...ui.toast} />
 
+      <EstimateWorkspaceToast
+        message={portalSentToast}
+        onDismiss={() => setPortalSentToast(null)}
+        zIndexClass="z-[10060]"
+      />
+
       {ui.createdPortal && (
         <ClientPortalCreatedModal
           clientName={ui.createdPortal.clientName}
@@ -249,6 +257,7 @@ const ProjectsContent: React.FC = () => {
           token={ui.createdPortal.token}
           projectId={ui.createdPortal.projectId}
           onClose={() => handlers.dismissCreatedPortal()}
+          onSent={() => setPortalSentToast('Sent')}
         />
       )}
     </>

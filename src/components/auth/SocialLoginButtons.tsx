@@ -7,7 +7,8 @@ interface SocialLoginButtonsProps {
   disabled?: boolean;
   onError?: (message: string) => void;
   appearance?: 'default' | 'auth-dark';
-  onBeforeSignIn?: () => void;
+  /** Return false to cancel the sign-in (e.g. agreement not accepted). */
+  onBeforeSignIn?: () => boolean | void;
 }
 
 export default function SocialLoginButtons({
@@ -20,9 +21,10 @@ export default function SocialLoginButtons({
   const buttonClassName = appearance === 'auth-dark' ? AUTH_ACCENT.socialButtonDark : undefined;
 
   const handleProviderClick = async (provider: OAuthProvider) => {
+    const proceed = onBeforeSignIn?.();
+    if (proceed === false) return;
     try {
       setLoadingProvider(provider);
-      onBeforeSignIn?.();
       await signInWithProvider(provider);
     } catch {
       onError?.('Social login failed. Please try again.');

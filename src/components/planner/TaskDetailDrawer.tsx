@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -16,7 +16,14 @@ import {
   fetchTaskAttachments,
   fetchTaskComments,
 } from '../../services/taskActivityService';
-import { DEFAULT_PROFILE_DISPLAY_NAME } from '../../services/profileService';
+import { useAuth } from '../../hooks/useAuth';
+import {
+  buildTaskAssigneeMultiSelectOptions,
+  isUserAssignedToTask,
+  resolveSelectedAssignees,
+} from '../../utils/taskAssigneeOptions';
+import { applyTaskPatchOptimistic } from '../../utils/taskPatchOptimistic';
+import TaskAssigneeSelector, { SelectedAssigneesList } from './TaskAssigneeSelector';
 import TaskChecklist from './TaskChecklist';
 import TaskComments from './TaskComments';
 import TaskAttachments from './TaskAttachments';
@@ -40,6 +47,8 @@ import {
 } from './plannerTheme';
 import { openNewChangeOrder } from '../../utils/plannerRoutes';
 
+type SaveState = 'idle' | 'saving' | 'saved' | 'error';
+
 interface TaskDetailDrawerProps {
   taskId: string | null;
   projectName: string;
@@ -49,13 +58,10 @@ interface TaskDetailDrawerProps {
   team: Profile[];
   buckets: { id: string; title: string }[];
   onClose: () => void;
-  onUpdated: () => void;
+  onUpdated: (updated?: PlannerTask) => void;
   fullPage?: boolean;
-  /** Close drawer and open create RFI at parent (board page). */
   onRequestCreateRfi?: (taskId: string, projectId: string) => void;
-  /** Close drawer and open create FAR at parent (board page). */
   onRequestCreateFar?: (taskId: string, projectId: string) => void;
-  /** Fires after close exit animation (e.g. open RFI/FAR modal). */
   onExitComplete?: () => void;
 }
 
@@ -75,6 +81,11 @@ export default function TaskDetailDrawer({
   onExitComplete,
 }: TaskDetailDrawerProps) {
   const navigate = useNavigate();
+  const { user, profile } = useAuth();
+  const assigneeOptions = useMemo(
+    () => buildTaskAssigneeMultiSelectOptions(team, user, profile),
+    [team, user, profile],
+  );
   const [task, setTask] = useState<PlannerTask | null>(null);
   const [comments, setComments] = useState<Awaited<ReturnType<typeof fetchTaskComments>>>([]);
   const [checklist, setChecklist] = useState<Awaited<ReturnType<typeof fetchChecklistItems>>>([]);
@@ -84,6 +95,9 @@ export default function TaskDetailDrawer({
   const [rfiOpen, setRfiOpen] = useState(false);
   const [adjustmentOpen, setAdjustmentOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [saveState, setSaveState] = useState<SaveState>('idle');
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const savedTimerRef = useRef<number | null>(null);
 
   const reload = useCallback(async () => {
     if (!taskId) return;
@@ -97,31 +111,61 @@ export default function TaskDetailDrawer({
     setComments(c);
     setChecklist(cl);
     setAttachments(a);
+    return t;
   }, [taskId]);
 
   useEffect(() => {
     void reload();
   }, [reload]);
 
+  useEffect(
+    () => () => {
+      if (savedTimerRef.current != null) {
+        window.clearTimeout(savedTimerRef.current);
+      }
+    },
+    [],
+  );
+
+  const markSaved = useCallback(() => {
+    setSaveState('saved');
+    if (savedTimerRef.current != null) {
+      window.clearTimeout(savedTimerRef.current);
+    }
+    savedTimerRef.current = window.setTimeout(() => setSaveState('idle'), 2000);
+  }, []);
+
   const handlePatch = async (patch: Parameters<typeof updateTask>[1]) => {
     if (!task) return;
-    setBusy(true);
+    const previous = task;
+    const optimistic = applyTaskPatchOptimistic(task, patch, assigneeOptions);
+    setTask(optimistic);
+    setSaveState('saving');
+    setSaveError(null);
     try {
       const updated = await updateTask(task.id, patch);
       setTask(updated);
-      onUpdated();
-    } finally {
-      setBusy(false);
+      onUpdated(updated);
+      markSaved();
+    } catch {
+      setTask(previous);
+      setSaveState('error');
+      setSaveError('Could not save changes. Please try again.');
     }
   };
 
   const handleSubmitForReview = async () => {
     if (!task) return;
     setBusy(true);
+    setSaveState('saving');
     try {
       await submitTaskForReview(task.id);
-      await reload();
-      onUpdated();
+      const updated = await reload();
+      if (updated) onUpdated(updated);
+      markSaved();
+    } catch {
+      setSaveState('error');
+      setSaveError('Could not submit task for review.');
     } finally {
       setBusy(false);
     }
@@ -130,16 +174,27 @@ export default function TaskDetailDrawer({
   const handleReview = async (decision: 'Approved' | 'Needs Revision' | 'Completed') => {
     if (!task) return;
     setBusy(true);
+    setSaveState('saving');
     try {
       await reviewTask(task.id, decision);
-      await reload();
-      onUpdated();
+      const updated = await reload();
+      if (updated) onUpdated(updated);
+      markSaved();
+    } catch {
+      setSaveState('error');
+      setSaveError('Could not update task review status.');
     } finally {
       setBusy(false);
     }
   };
 
-  const canEditTask = isOwner || (isEmployee && task?.assignedTo === userId);
+  const selectedAssignees = useMemo(
+    () => (task ? resolveSelectedAssignees(task.assignedToIds, assigneeOptions) : []),
+    [task, assigneeOptions],
+  );
+
+  const canEditTask =
+    isOwner || (isEmployee && task != null && isUserAssignedToTask(task, userId));
   const canComment = canEditTask;
   const useParentFieldModals = Boolean(onRequestCreateRfi ?? onRequestCreateFar);
   const showFieldActions = isOwner || isEmployee;
@@ -161,6 +216,15 @@ export default function TaskDetailDrawer({
     }
     setAdjustmentOpen(true);
   };
+
+  const saveStatusLabel =
+    saveState === 'saving'
+      ? 'Saving…'
+      : saveState === 'saved'
+        ? 'Saved'
+        : saveState === 'error'
+          ? saveError
+          : null;
 
   const panel = (
     <AnimatePresence onExitComplete={onExitComplete}>
@@ -185,9 +249,24 @@ export default function TaskDetailDrawer({
             onClick={(e) => e.stopPropagation()}
           >
             <header className={PLANNER_DRAWER_HEADER}>
-              <div>
+              <div className="min-w-0 flex-1">
                 <p className={PLANNER_EYEBROW}>{projectName}</p>
                 <h2 className={PLANNER_DRAWER_TITLE}>{task?.title ?? 'Loading…'}</h2>
+                {saveStatusLabel && (
+                  <p
+                    className={`mt-1 text-xs ${
+                      saveState === 'error'
+                        ? 'text-red-400'
+                        : saveState === 'saved'
+                          ? 'text-cyan-400'
+                          : 'text-slate-400'
+                    }`}
+                    role="status"
+                    aria-live="polite"
+                  >
+                    {saveStatusLabel}
+                  </p>
+                )}
               </div>
               <button
                 type="button"
@@ -208,42 +287,59 @@ export default function TaskDetailDrawer({
                   </div>
 
                   {isOwner && (
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <Select
-                        label="Status"
-                        value={task.status}
-                        onChange={(v) => void handlePatch({ status: v as TaskStatus })}
-                        options={TASK_STATUSES.map((s) => ({ value: s, label: s }))}
-                      />
-                      <Select
-                        label="Priority"
-                        value={task.priority}
-                        onChange={(v) =>
+                    <>
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div className="min-w-0">
+                          <Select
+                            label="Status"
+                            value={task.status}
+                            onChange={(v) => void handlePatch({ status: v as TaskStatus })}
+                            options={TASK_STATUSES.map((s) => ({ value: s, label: s }))}
+                            fullWidth
+                          />
+                        </div>
+                        <div className="min-w-0">
+                          <Select
+                            label="Priority"
+                            value={task.priority}
+                            onChange={(v) =>
+                              void handlePatch({
+                                priority: v as import('../../types/fieldPlanner').TaskPriority,
+                              })
+                            }
+                            options={TASK_PRIORITIES.map((p) => ({ value: p, label: p }))}
+                            fullWidth
+                          />
+                        </div>
+                        <div className="min-w-0">
+                          <Select
+                            label="Bucket"
+                            value={task.bucketId}
+                            onChange={(v) => void handlePatch({ bucketId: v })}
+                            options={buckets.map((b) => ({ value: b.id, label: b.title }))}
+                            fullWidth
+                          />
+                        </div>
+                        <TaskAssigneeSelector
+                          options={assigneeOptions}
+                          value={task.assignedToIds}
+                          onChange={(next) => void handlePatch({ assignedToIds: next })}
+                          showSelectedList={false}
+                        />
+                      </div>
+                      <SelectedAssigneesList
+                        assignees={selectedAssignees}
+                        onRemove={(id) =>
                           void handlePatch({
-                            priority: v as import('../../types/fieldPlanner').TaskPriority,
+                            assignedToIds: task.assignedToIds.filter((entry) => entry !== id),
                           })
                         }
-                        options={TASK_PRIORITIES.map((p) => ({ value: p, label: p }))}
                       />
-                      <Select
-                        label="Bucket"
-                        value={task.bucketId}
-                        onChange={(v) => void handlePatch({ bucketId: v })}
-                        options={buckets.map((b) => ({ value: b.id, label: b.title }))}
-                      />
-                      <Select
-                        label="Assigned to"
-                        value={task.assignedTo ?? ''}
-                        onChange={(v) => void handlePatch({ assignedTo: v || null })}
-                        options={[
-                          { value: '', label: 'Unassigned' },
-                          ...team.map((m) => ({
-                            value: m.id,
-                            label: m.displayName ?? DEFAULT_PROFILE_DISPLAY_NAME,
-                          })),
-                        ]}
-                      />
-                    </div>
+                    </>
+                  )}
+
+                  {!isOwner && selectedAssignees.length > 0 && (
+                    <SelectedAssigneesList assignees={selectedAssignees} readOnly />
                   )}
 
                   {task.description && (

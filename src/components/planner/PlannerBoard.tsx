@@ -65,7 +65,7 @@ export default function PlannerBoard({
   const handleAddTask = async (data: {
     title: string;
     description?: string;
-    assignedTo?: string | null;
+    assignedToIds?: string[];
     priority: import('../../types/fieldPlanner').TaskPriority;
     dueDate?: string | null;
   }) => {
@@ -76,7 +76,7 @@ export default function PlannerBoard({
       projectId,
       title: data.title,
       description: data.description,
-      assignedTo: data.assignedTo,
+      assignedToIds: data.assignedToIds,
       createdBy: userId,
       priority: data.priority,
       dueDate: data.dueDate,

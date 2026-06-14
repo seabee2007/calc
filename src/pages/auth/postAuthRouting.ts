@@ -54,7 +54,44 @@ export async function loadAuthenticatedUserProfile(
   const { data } = await supabase.auth.getUser();
   const user = data.user;
   if (!user) return null;
-  return await resolveProfileAfterAuth(user.id, user.email, loginIntent);
+  const profile = await resolveProfileAfterAuth(user.id, user.email, loginIntent);
+
+  // For OAuth owner accounts: if first+last name are missing, try to backfill from
+  // provider metadata so the profile is complete before the user reaches the app.
+  if (profile && !profile.firstName && !profile.lastName && loginIntent !== 'field') {
+    const meta = user.user_metadata ?? {};
+    const firstName: string | undefined =
+      meta.given_name ?? meta.first_name ?? null;
+    const lastName: string | undefined =
+      meta.family_name ?? meta.last_name ?? null;
+    const fullName: string | undefined = meta.full_name ?? meta.name ?? null;
+
+    let first = firstName ?? '';
+    let last = lastName ?? '';
+
+    if ((!first || !last) && fullName) {
+      const parts = fullName.trim().split(/\s+/);
+      if (!first) first = parts[0] ?? '';
+      if (!last) last = parts.slice(1).join(' ') || '';
+    }
+
+    if (first || last) {
+      const { updateProfile } = await import('../../services/profileService');
+      try {
+        return await updateProfile(profile.id, { firstName: first, lastName: last });
+      } catch {
+        // Non-fatal — profile name will be collected on ProfileCompletePage
+      }
+    }
+  }
+
+  return profile;
+}
+
+/** True when an authenticated user profile is missing required first+last name. */
+export function profileNeedsCompletion(profile: Profile | null): boolean {
+  if (!profile) return false;
+  return !profile.firstName?.trim() && !profile.lastName?.trim();
 }
 
 export function resolveFieldPortalLoginError(

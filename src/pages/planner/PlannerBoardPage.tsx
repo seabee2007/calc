@@ -20,7 +20,8 @@ type PendingFieldModal =
 
 export default function PlannerBoardPage() {
   const { user, isEmployee } = useAuth();
-  const { projectId, project, bundle, team, loading, reload, isOwner } = usePlannerProject();
+  const { projectId, project, bundle, team, loading, refreshBundle, patchTaskInBundle, isOwner } =
+    usePlannerProject();
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(searchParams.get('task'));
   const [rfiContext, setRfiContext] = useState<FieldRecordContext | null>(null);
@@ -59,7 +60,7 @@ export default function PlannerBoardPage() {
         userId={user.id}
         isOwner={isOwner}
         team={team}
-        onRefresh={() => void reload()}
+        onRefresh={() => void refreshBundle()}
         onTaskClick={openTask}
       />
 
@@ -72,7 +73,9 @@ export default function PlannerBoardPage() {
         team={team}
         buckets={bundle.buckets.map((b) => ({ id: b.id, title: b.title }))}
         onClose={closeTask}
-        onUpdated={() => void reload()}
+        onUpdated={(updated) => {
+          if (updated) patchTaskInBundle(updated);
+        }}
         fullPage={typeof window !== 'undefined' && window.innerWidth < 768}
         onRequestCreateRfi={(taskId, projectId) => {
           setPendingFieldModal({ type: 'rfi', taskId, projectId });
@@ -103,7 +106,7 @@ export default function PlannerBoardPage() {
         userId={user.id}
         onCreated={() => {
           setRfiContext(null);
-          void reload();
+          void refreshBundle();
         }}
       />
 
@@ -115,7 +118,7 @@ export default function PlannerBoardPage() {
         userId={user.id}
         onCreated={() => {
           setFarContext(null);
-          void reload();
+          void refreshBundle();
         }}
       />
     </div>

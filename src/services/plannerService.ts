@@ -34,6 +34,7 @@ function mapBucket(row: Record<string, unknown>): PlannerBucket {
 }
 
 function mapTask(row: Record<string, unknown>): PlannerTask {
+  const assignedTo = (row.assigned_to as string) ?? null;
   return {
     id: row.id as string,
     boardId: row.board_id as string,
@@ -41,7 +42,8 @@ function mapTask(row: Record<string, unknown>): PlannerTask {
     projectId: row.project_id as string,
     title: row.title as string,
     description: (row.description as string) ?? null,
-    assignedTo: (row.assigned_to as string) ?? null,
+    assignedTo,
+    assignedToIds: assignedTo ? [assignedTo] : [],
     createdBy: (row.created_by as string) ?? null,
     status: row.status as TaskStatus,
     priority: row.priority as TaskPriority,
@@ -110,10 +112,86 @@ export async function ensurePlannerBoard(
   return mapBoard(board as Record<string, unknown>);
 }
 
+async function fetchAssigneesByTaskIds(
+  taskIds: string[],
+): Promise<Map<string, string[]>> {
+  const map = new Map<string, string[]>();
+  if (taskIds.length === 0) return map;
+
+  const { data, error } = await supabase
+    .from('planner_task_assignees')
+    .select('task_id, user_id')
+    .in('task_id', taskIds);
+
+  if (error) {
+    if (error.code === 'PGRST205' || error.message?.includes('planner_task_assignees')) {
+      return map;
+    }
+    throw error;
+  }
+
+  for (const row of data ?? []) {
+    const taskId = row.task_id as string;
+    const userId = row.user_id as string;
+    const list = map.get(taskId) ?? [];
+    list.push(userId);
+    map.set(taskId, list);
+  }
+  return map;
+}
+
+async function replaceTaskAssignees(taskId: string, userIds: string[]): Promise<void> {
+  const unique = [...new Set(userIds.filter(Boolean))];
+
+  const { error: deleteError } = await supabase
+    .from('planner_task_assignees')
+    .delete()
+    .eq('task_id', taskId);
+
+  if (deleteError) {
+    if (deleteError.code === 'PGRST205' || deleteError.message?.includes('planner_task_assignees')) {
+      return;
+    }
+    throw deleteError;
+  }
+
+  if (unique.length === 0) return;
+
+  const { error: insertError } = await supabase.from('planner_task_assignees').insert(
+    unique.map((userId) => ({
+      task_id: taskId,
+      user_id: userId,
+    })),
+  );
+
+  if (insertError) throw insertError;
+}
+
+function mergeTaskAssigneeIds(task: PlannerTask, assigneesByTask: Map<string, string[]>): string[] {
+  const fromJunction = assigneesByTask.get(task.id) ?? [];
+  const merged = [...fromJunction];
+  if (task.assignedTo && !merged.includes(task.assignedTo)) {
+    merged.unshift(task.assignedTo);
+  }
+  return [...new Set(merged)];
+}
+
 async function enrichTasks(tasks: PlannerTask[]): Promise<PlannerTask[]> {
   if (tasks.length === 0) return tasks;
   const taskIds = tasks.map((t) => t.id);
-  const assigneeIds = tasks.map((t) => t.assignedTo).filter(Boolean) as string[];
+  const assigneesByTask = await fetchAssigneesByTaskIds(taskIds);
+  const tasksWithAssignees = tasks.map((t) => {
+    const assignedToIds = mergeTaskAssigneeIds(t, assigneesByTask);
+    return {
+      ...t,
+      assignedToIds,
+      assignedTo: assignedToIds[0] ?? null,
+    };
+  });
+
+  const assigneeIds = [
+    ...new Set(tasksWithAssignees.flatMap((t) => t.assignedToIds)),
+  ];
 
   const [commentsRes, attachmentsRes, checklistRes, rfiRes, adjRes, profileNames] = await Promise.all([
     supabase.from('task_comments').select('task_id').in('task_id', taskIds),
@@ -186,18 +264,22 @@ async function enrichTasks(tasks: PlannerTask[]): Promise<PlannerTask[]> {
     adjustmentCounts.set(tid, (adjustmentCounts.get(tid) ?? 0) + 1);
   }
 
-  return tasks.map((t) => ({
-    ...t,
-    commentCount: commentCounts.get(t.id) ?? 0,
-    attachmentCount: attachmentCounts.get(t.id) ?? 0,
-    checklistTotal: checklistTotal.get(t.id) ?? 0,
-    checklistDone: checklistDone.get(t.id) ?? 0,
-    previewImageUrl: previewByTask.get(t.id) ?? null,
-    checklistPreview: checklistPreviewMap.get(t.id) ?? [],
-    rfiCount: rfiCounts.get(t.id) ?? 0,
-    adjustmentCount: adjustmentCounts.get(t.id) ?? 0,
-    assigneeName: t.assignedTo ? nameFromMap(profileNames, t.assignedTo) : null,
-  }));
+  return tasksWithAssignees.map((t) => {
+    const assigneeNames = t.assignedToIds.map((id) => nameFromMap(profileNames, id));
+    return {
+      ...t,
+      commentCount: commentCounts.get(t.id) ?? 0,
+      attachmentCount: attachmentCounts.get(t.id) ?? 0,
+      checklistTotal: checklistTotal.get(t.id) ?? 0,
+      checklistDone: checklistDone.get(t.id) ?? 0,
+      previewImageUrl: previewByTask.get(t.id) ?? null,
+      checklistPreview: checklistPreviewMap.get(t.id) ?? [],
+      rfiCount: rfiCounts.get(t.id) ?? 0,
+      adjustmentCount: adjustmentCounts.get(t.id) ?? 0,
+      assigneeNames,
+      assigneeName: assigneeNames.length > 0 ? assigneeNames.join(', ') : null,
+    };
+  });
 }
 
 export async function fetchPlannerBoardBundle(projectId: string): Promise<PlannerBoardBundle | null> {
@@ -296,11 +378,19 @@ export async function createTask(input: {
   title: string;
   description?: string;
   assignedTo?: string | null;
+  assignedToIds?: string[];
   createdBy: string;
   priority?: TaskPriority;
   dueDate?: string | null;
   position?: number;
 }) {
+  const assigneeIds =
+    input.assignedToIds !== undefined
+      ? [...new Set(input.assignedToIds.filter(Boolean))]
+      : input.assignedTo
+        ? [input.assignedTo]
+        : [];
+
   const { data: maxPos } = await supabase
     .from('planner_tasks')
     .select('position')
@@ -319,7 +409,7 @@ export async function createTask(input: {
       project_id: input.projectId,
       title: input.title,
       description: input.description ?? null,
-      assigned_to: input.assignedTo ?? null,
+      assigned_to: assigneeIds[0] ?? null,
       created_by: input.createdBy,
       priority: input.priority ?? 'Normal',
       due_date: input.dueDate ?? null,
@@ -329,7 +419,9 @@ export async function createTask(input: {
     .single();
 
   if (error) throw error;
-  const [enriched] = await enrichTasks([mapTask(data)]);
+  const task = mapTask(data);
+  await replaceTaskAssignees(task.id, assigneeIds);
+  const [enriched] = await enrichTasks([task]);
   return enriched;
 }
 
@@ -340,6 +432,7 @@ export async function updateTask(
     description: string | null;
     bucketId: string;
     assignedTo: string | null;
+    assignedToIds: string[];
     status: TaskStatus;
     priority: TaskPriority;
     startDate: string | null;
@@ -352,7 +445,12 @@ export async function updateTask(
   if (patch.title !== undefined) payload.title = patch.title;
   if (patch.description !== undefined) payload.description = patch.description;
   if (patch.bucketId !== undefined) payload.bucket_id = patch.bucketId;
-  if (patch.assignedTo !== undefined) payload.assigned_to = patch.assignedTo;
+  if (patch.assignedToIds !== undefined) {
+    const assigneeIds = [...new Set(patch.assignedToIds.filter(Boolean))];
+    payload.assigned_to = assigneeIds[0] ?? null;
+  } else if (patch.assignedTo !== undefined) {
+    payload.assigned_to = patch.assignedTo;
+  }
   if (patch.status !== undefined) payload.status = patch.status;
   if (patch.priority !== undefined) payload.priority = patch.priority;
   if (patch.startDate !== undefined) payload.start_date = patch.startDate;
@@ -370,7 +468,13 @@ export async function updateTask(
     .single();
 
   if (error) throw error;
-  const [enriched] = await enrichTasks([mapTask(data)]);
+  const task = mapTask(data);
+  if (patch.assignedToIds !== undefined) {
+    await replaceTaskAssignees(task.id, patch.assignedToIds);
+  } else if (patch.assignedTo !== undefined) {
+    await replaceTaskAssignees(task.id, patch.assignedTo ? [patch.assignedTo] : []);
+  }
+  const [enriched] = await enrichTasks([task]);
   return enriched;
 }
 
@@ -439,10 +543,39 @@ export async function reviewTask(
 }
 
 export async function fetchTasksForEmployee(employeeId: string): Promise<PlannerTask[]> {
+  const taskIds = new Set<string>();
+
+  const { data: assigneeLinks, error: linkError } = await supabase
+    .from('planner_task_assignees')
+    .select('task_id')
+    .eq('user_id', employeeId);
+
+  if (linkError) {
+    if (linkError.code !== 'PGRST205' && !linkError.message?.includes('planner_task_assignees')) {
+      throw linkError;
+    }
+  } else {
+    for (const row of assigneeLinks ?? []) {
+      taskIds.add(row.task_id as string);
+    }
+  }
+
+  const { data: legacyTasks, error: legacyError } = await supabase
+    .from('planner_tasks')
+    .select('id')
+    .eq('assigned_to', employeeId);
+
+  if (legacyError) throw legacyError;
+  for (const row of legacyTasks ?? []) {
+    taskIds.add(row.id as string);
+  }
+
+  if (taskIds.size === 0) return [];
+
   const { data, error } = await supabase
     .from('planner_tasks')
     .select('*')
-    .eq('assigned_to', employeeId)
+    .in('id', [...taskIds])
     .order('due_date', { ascending: true, nullsFirst: false });
 
   if (error) throw error;

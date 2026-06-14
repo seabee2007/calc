@@ -29,6 +29,7 @@ interface ClientPortalCreatedModalProps {
   token: string;
   projectId: string;
   onClose: () => void;
+  onSent?: () => void;
 }
 
 const ClientPortalCreatedModal: React.FC<ClientPortalCreatedModalProps> = ({
@@ -37,6 +38,7 @@ const ClientPortalCreatedModal: React.FC<ClientPortalCreatedModalProps> = ({
   token,
   projectId,
   onClose,
+  onSent,
 }) => {
   const companySettings = useSettingsStore((state) => state.companySettings);
   const companyName = companySettings.companyName?.trim() || 'Your contractor';
@@ -130,11 +132,8 @@ const ClientPortalCreatedModal: React.FC<ClientPortalCreatedModalProps> = ({
         throw new Error(result.error ?? 'Could not send client portal invite.');
       }
 
-      setToast({
-        show: true,
-        message: 'Client portal invite sent.',
-        type: 'success',
-      });
+      onClose();
+      onSent?.();
     } catch (error) {
       const message =
         error instanceof Error

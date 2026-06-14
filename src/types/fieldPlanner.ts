@@ -34,7 +34,16 @@ export interface Profile {
   role: UserRole;
   employerId: string | null;
   displayName: string | null;
+  firstName: string | null;
+  lastName: string | null;
   phone: string | null;
+  businessAddressStreet: string | null;
+  businessAddressStreet2: string | null;
+  businessAddressCity: string | null;
+  businessAddressState: string | null;
+  businessAddressPostalCode: string | null;
+  agreementAcceptedAt: string | null;
+  agreementVersion: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -85,6 +94,8 @@ export interface PlannerTask {
   title: string;
   description: string | null;
   assignedTo: string | null;
+  /** All assignee user ids (includes assignedTo when set). */
+  assignedToIds: string[];
   createdBy: string | null;
   status: TaskStatus;
   priority: TaskPriority;
@@ -103,6 +114,7 @@ export interface PlannerTask {
   checklistTotal?: number;
   checklistDone?: number;
   assigneeName?: string | null;
+  assigneeNames?: string[];
   previewImageUrl?: string | null;
   checklistPreview?: { title: string; isCompleted: boolean }[];
   rfiCount?: number;

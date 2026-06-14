@@ -149,8 +149,24 @@ export default function PlannerTaskCard({
               </span>
             )}
           </div>
-          {task.assigneeName && (
-            <UserAvatar name={task.assigneeName} className="shrink-0" />
+          {(task.assigneeNames?.length ?? 0) > 0 && (
+            <div
+              className="flex -space-x-1.5 shrink-0"
+              title={task.assigneeName ?? undefined}
+            >
+              {(task.assignedToIds ?? []).slice(0, 3).map((id, index) => (
+                <UserAvatar
+                  key={id}
+                  name={task.assigneeNames?.[index] ?? 'Assignee'}
+                  className="ring-2 ring-white dark:ring-slate-900"
+                />
+              ))}
+              {(task.assignedToIds?.length ?? 0) > 3 && (
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-200 text-[10px] font-semibold text-slate-700 ring-2 ring-white dark:bg-slate-700 dark:text-slate-200 dark:ring-slate-900">
+                  +{(task.assignedToIds?.length ?? 0) - 3}
+                </span>
+              )}
+            </div>
           )}
         </div>
       </button>

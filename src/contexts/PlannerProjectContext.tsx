@@ -21,7 +21,7 @@ import {
 } from '../utils/projectWorkflow';
 import { formatUSAddress, usAddressFromFields } from '../types/address';
 import type { Project } from '../types';
-import type { PlannerBoardBundle, Profile } from '../types/fieldPlanner';
+import type { PlannerBoardBundle, PlannerTask, Profile } from '../types/fieldPlanner';
 import type { ProjectWorkflowStage } from '../utils/projectWorkflow';
 import { DEFAULT_PROJECT_CREW_SIZE } from '../features/estimating/scheduling/resources/projectAvailableCrewSize';
 
@@ -60,6 +60,10 @@ interface PlannerProjectContextValue {
   loading: boolean;
   accessDenied: boolean;
   reload: () => Promise<void>;
+  /** Refetch board tasks/buckets without full-page loading state. */
+  refreshBundle: () => Promise<void>;
+  /** Merge a single updated task into the in-memory board bundle. */
+  patchTaskInBundle: (updated: PlannerTask) => void;
   isOwner: boolean;
 }
 
@@ -170,6 +174,22 @@ export function PlannerProjectProvider({ children }: { children: React.ReactNode
     }
   }, [projectId, user, isOwner, isEmployee]);
 
+  const refreshBundle = useCallback(async () => {
+    if (!projectId) return;
+    const b = await fetchPlannerBoardBundle(projectId);
+    if (b) setBundle(b);
+  }, [projectId]);
+
+  const patchTaskInBundle = useCallback((updated: PlannerTask) => {
+    setBundle((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        tasks: prev.tasks.map((task) => (task.id === updated.id ? updated : task)),
+      };
+    });
+  }, []);
+
   useEffect(() => {
     void reload();
   }, [reload]);
@@ -189,9 +209,11 @@ export function PlannerProjectProvider({ children }: { children: React.ReactNode
       loading,
       accessDenied,
       reload,
+      refreshBundle,
+      patchTaskInBundle,
       isOwner,
     }),
-    [projectId, project, bundle, team, loading, accessDenied, reload, isOwner],
+    [projectId, project, bundle, team, loading, accessDenied, reload, refreshBundle, patchTaskInBundle, isOwner],
   );
 
   if (!projectId) return null;

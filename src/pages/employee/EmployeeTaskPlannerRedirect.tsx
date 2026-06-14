@@ -3,6 +3,7 @@ import { Navigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { fetchTaskById } from '../../services/plannerService';
 import { supabase } from '../../lib/supabase';
+import { isUserAssignedToTask } from '../../utils/taskAssigneeOptions';
 import { plannerBoardHref } from '../../utils/plannerRoutes';
 
 export default function EmployeeTaskPlannerRedirect() {
@@ -27,7 +28,7 @@ export default function EmployeeTaskPlannerRedirect() {
         .eq('employee_id', user.id)
         .maybeSingle();
 
-      if (!assignment && task.assignedTo !== user.id) {
+      if (!assignment && task && !isUserAssignedToTask(task, user.id)) {
         setDenied(true);
         return;
       }

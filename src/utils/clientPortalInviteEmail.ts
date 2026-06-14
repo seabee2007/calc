@@ -4,10 +4,7 @@ export function buildClientPortalInviteMessageTemplate(): string {
   return [
     'Hi {clientName},',
     '',
-    'Your project portal is ready. You can use the secure link below to review project updates, documents, RFIs, proposals, and other shared project information.',
-    '',
-    'Open your portal:',
-    '{portalLink}',
+    'Your project portal is ready. Use the secure button below to review project updates, documents, RFIs, proposals, and shared project information.',
     '',
     'Please keep this link private.',
     '',

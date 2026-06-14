@@ -131,10 +131,11 @@ describe('email templates', () => {
   });
 
   it('renders subject, html, and text for clientPortalInvite', () => {
+    const portalUrl = 'https://app.example.com/client/project/abc';
     const rendered = renderEmailTemplate('clientPortalInvite', {
       emailSubject: 'Your project portal is ready',
-      messageBody: 'Hi Jane,\n\nhttps://app.example.com/client/project/abc',
-      portalUrl: 'https://app.example.com/client/project/abc',
+      messageBody: `Hi Jane,\n\nOpen your portal:\n${portalUrl}\n\nPlease keep this link private.`,
+      portalUrl,
       companyName: 'Concrete Co',
       companyEmail: 'office@concrete.com',
       companyPhone: '(555) 111-2222',
@@ -142,8 +143,15 @@ describe('email templates', () => {
 
     expect(rendered.subject).toBe('Your project portal is ready');
     expect(rendered.html).toContain('View project portal');
-    expect(rendered.html).toContain('https://app.example.com/client/project/abc');
+    expect(rendered.html).toContain('color:#ffffff !important');
+    expect(rendered.html).toContain('overflow-wrap:anywhere');
+    expect(rendered.html).not.toContain('Open your portal:');
+    const messageParagraphs = [...rendered.html.matchAll(/<p style="margin:0 0 12px;">([\s\S]*?)<\/p>/g)]
+      .map((match) => match[1])
+      .join('');
+    expect(messageParagraphs).not.toContain(portalUrl);
     expect(rendered.text).toContain('office@concrete.com');
+    expect(rendered.text.split(portalUrl).length - 1).toBe(1);
   });
 
   it('renders subject, html, and text for changeOrderSent', () => {

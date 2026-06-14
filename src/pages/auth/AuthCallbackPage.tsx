@@ -7,6 +7,7 @@ import { resolvePostLoginDest } from './Login';
 import {
   applyFieldEmployeeProfileLinking,
   loadAuthenticatedUserProfile,
+  profileNeedsCompletion,
   resolveFieldPortalLoginError,
 } from './postAuthRouting';
 
@@ -34,6 +35,12 @@ async function navigateAfterAuth(
       replace: true,
       state: { message: fieldPortalError },
     });
+    return;
+  }
+
+  // OAuth users who didn't provide first/last name (and metadata was empty) must complete profile.
+  if (loginIntent !== 'field' && profileNeedsCompletion(profile)) {
+    navigate('/complete-profile', { replace: true });
     return;
   }
 

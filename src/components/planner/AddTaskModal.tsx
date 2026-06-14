@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import Modal from '../ui/Modal';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
 import Button from '../ui/Button';
 import { TASK_PRIORITIES, type TaskPriority } from '../../types/fieldPlanner';
 import type { Profile } from '../../types/fieldPlanner';
-import { DEFAULT_PROFILE_DISPLAY_NAME } from '../../services/profileService';
+import { useAuth } from '../../hooks/useAuth';
+import { buildTaskAssigneeMultiSelectOptions } from '../../utils/taskAssigneeOptions';
+import TaskAssigneeSelector from './TaskAssigneeSelector';
 import { PLANNER_INPUT } from './plannerTheme';
 
 interface AddTaskModalProps {
@@ -15,19 +17,25 @@ interface AddTaskModalProps {
   onSubmit: (data: {
     title: string;
     description?: string;
-    assignedTo?: string | null;
+    assignedToIds?: string[];
     priority: TaskPriority;
     dueDate?: string | null;
   }) => Promise<void>;
 }
 
 export default function AddTaskModal({ isOpen, onClose, team, onSubmit }: AddTaskModalProps) {
+  const { user, profile } = useAuth();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [assignedTo, setAssignedTo] = useState('');
+  const [assignedToIds, setAssignedToIds] = useState<string[]>([]);
   const [priority, setPriority] = useState<TaskPriority>('Normal');
   const [dueDate, setDueDate] = useState('');
   const [busy, setBusy] = useState(false);
+
+  const assigneeOptions = useMemo(
+    () => buildTaskAssigneeMultiSelectOptions(team, user, profile),
+    [team, user, profile],
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,13 +45,13 @@ export default function AddTaskModal({ isOpen, onClose, team, onSubmit }: AddTas
       await onSubmit({
         title: title.trim(),
         description: description.trim() || undefined,
-        assignedTo: assignedTo || null,
+        assignedToIds,
         priority,
         dueDate: dueDate || null,
       });
       setTitle('');
       setDescription('');
-      setAssignedTo('');
+      setAssignedToIds([]);
       setDueDate('');
       onClose();
     } finally {
@@ -66,23 +74,17 @@ export default function AddTaskModal({ isOpen, onClose, team, onSubmit }: AddTas
             className={PLANNER_INPUT}
           />
         </div>
-        <Select
-          label="Assign to"
-          value={assignedTo}
-          onChange={(v) => setAssignedTo(v)}
-          options={[
-            { value: '', label: 'Unassigned' },
-            ...team.map((m) => ({
-              value: m.id,
-              label: m.displayName ?? DEFAULT_PROFILE_DISPLAY_NAME,
-            })),
-          ]}
+        <TaskAssigneeSelector
+          options={assigneeOptions}
+          value={assignedToIds}
+          onChange={setAssignedToIds}
         />
         <Select
           label="Priority"
           value={priority}
           onChange={(v) => setPriority(v as TaskPriority)}
           options={TASK_PRIORITIES.map((p) => ({ value: p, label: p }))}
+          fullWidth
         />
         <Input
           label="Due date"
