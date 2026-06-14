@@ -2151,12 +2151,14 @@ export default function EstimateWorkspacePage() {
   }, []);
 
   const headerCollapse = useEstimateWorkspaceHeaderCollapse();
+  const headerCollapseEnabled = headerCollapse?.enabled ?? false;
+  const setHeaderMiniStatus = headerCollapse?.setMiniStatus;
 
   const activeTabLabel =
     visibleWorkspaceTabs.find((tab) => tab.id === activeTab)?.label ?? 'Workspace';
 
   useEffect(() => {
-    if (!headerCollapse?.enabled) return;
+    if (!headerCollapseEnabled || !setHeaderMiniStatus) return;
     const saveControl = resolveEstimateWorkspaceSaveControl({
       status: workspaceSaveStatus.status,
       activeOperations: workspaceSaveStatus.activeOperations,
@@ -2164,7 +2166,7 @@ export default function EstimateWorkspacePage() {
       errorMessage: workspaceSaveStatus.errorMessage ?? saveError,
       saveBlockedReason,
     });
-    headerCollapse.setMiniStatus({
+    setHeaderMiniStatus({
       estimateTypeLabel: hasEstimate
         ? formatEstimateMethodLabel(resolvedEstimateType)
         : 'No estimate type selected',
@@ -2174,7 +2176,8 @@ export default function EstimateWorkspacePage() {
       hasPendingEstimateChanges,
     });
   }, [
-    headerCollapse,
+    headerCollapseEnabled,
+    setHeaderMiniStatus,
     hasEstimate,
     resolvedEstimateType,
     activeTabLabel,

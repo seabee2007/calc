@@ -22,7 +22,6 @@ export function isPlannerNavTabActive(
 /** True when the route should use PlannerWorkspaceLayout (no photo bg, footer, bottom nav). */
 export function isPlannerWorkspacePath(pathname: string): boolean {
   if (pathname.includes('/planner') || pathname.startsWith('/planner')) return true;
-  if (pathname.startsWith('/employee/tasks')) return true;
   return false;
 }
 

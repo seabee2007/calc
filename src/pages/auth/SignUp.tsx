@@ -8,6 +8,7 @@ import {
   fetchEmployeeInvitePreview,
 } from '../../services/employeeService';
 import { supabase } from '../../lib/supabase';
+import { setLoginIntent } from '../../lib/loginIntent';
 import SocialLoginButtons from '../../components/auth/SocialLoginButtons';
 import AuthLayout, {
   AuthAlert,
@@ -206,6 +207,9 @@ const SignUp: React.FC = () => {
           appearance="auth-dark"
           disabled={isLoading}
           onError={(message) => setSocialLoginError(message)}
+          onBeforeSignIn={() => {
+            setLoginIntent(inviteToken ? 'field' : 'admin');
+          }}
         />
 
         <AuthDivider label="or create an account with email" />

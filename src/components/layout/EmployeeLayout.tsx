@@ -13,13 +13,16 @@ const EmployeeLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
-      <header className="sticky top-0 z-40 border-b border-slate-800 bg-slate-950/95 px-4 py-3 backdrop-blur">
+      <header
+        className="sticky top-0 z-40 border-b border-slate-800 bg-slate-950/95 px-4 py-3 backdrop-blur"
+        style={{ paddingTop: 'max(env(safe-area-inset-top), 0.75rem)' }}
+      >
         <p className="text-xs font-semibold uppercase tracking-wider text-cyan-400">
           Field portal
         </p>
         <p className="text-sm text-slate-400 truncate">{user?.email}</p>
       </header>
-      <main className="mx-auto max-w-lg px-4 py-4 pb-24">
+      <main className="mx-auto max-w-lg px-4 py-4 pb-24 pb-[calc(env(safe-area-inset-bottom)+6rem)]">
         <Outlet />
       </main>
       <EmployeeBottomNav />

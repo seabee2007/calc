@@ -153,6 +153,33 @@ export async function acceptInviteForCurrentUser(
   if (error) throw error;
 }
 
+export async function syncEmployeeProfileFromInvites(): Promise<{
+  ok: boolean;
+  role?: string;
+  reason?: string;
+}> {
+  const { data, error } = await supabase.rpc('sync_employee_profile_from_invites');
+  if (error) {
+    const code = (error as { code?: string }).code;
+    const message = error.message ?? '';
+    const rpcUnavailable =
+      code === 'PGRST202' ||
+      code === '42883' ||
+      /sync_employee_profile_from_invites/i.test(message);
+    if (rpcUnavailable) {
+      return { ok: false, reason: 'rpc_unavailable' };
+    }
+    throw error;
+  }
+  if (!data || typeof data !== 'object') return { ok: false, reason: 'empty_response' };
+  const row = data as Record<string, unknown>;
+  return {
+    ok: row.ok === true,
+    role: typeof row.role === 'string' ? row.role : undefined,
+    reason: typeof row.reason === 'string' ? row.reason : undefined,
+  };
+}
+
 export async function fetchAssignmentsForProject(
   projectId: string,
 ): Promise<EmployeeProjectAssignment[]> {

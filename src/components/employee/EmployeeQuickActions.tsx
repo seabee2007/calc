@@ -8,6 +8,8 @@ import {
   Wrench,
   Calculator,
   Calendar,
+  ShieldCheck,
+  FilePlus,
 } from 'lucide-react';
 import CreateRfiModal from '../field/CreateRfiModal';
 import CreateFieldAdjustmentModal from '../field/CreateFieldAdjustmentModal';
@@ -53,6 +55,17 @@ export default function EmployeeQuickActions({
       label: 'Field Adjustment',
       icon: Wrench,
       onClick: () => setAdjOpen(true),
+      disabled: !defaultProjectId,
+    },
+    {
+      label: 'Safety Meeting',
+      icon: ShieldCheck,
+      onClick: () => navigate('/employee/safety-meeting'),
+    },
+    {
+      label: 'Draft Change Order',
+      icon: FilePlus,
+      onClick: () => navigate('/employee/draft-change-order'),
       disabled: !defaultProjectId,
     },
     {

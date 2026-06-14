@@ -323,15 +323,9 @@ const OperationsDashboard: React.FC = () => {
       </section>
 
       <section
-        data-testid="dashboard-placement-qc-grid"
-        className={`grid grid-cols-1 gap-5 ${hasAnyConcreteWork ? 'lg:grid-cols-2' : ''}`}
+        data-testid="dashboard-controls-risk-grid"
+        className="grid grid-cols-1 gap-5 xl:grid-cols-2 xl:items-stretch"
       >
-        {hasAnyConcreteWork ? (
-          <FeaturedPlacementConditions
-            snapshot={snapshot}
-            hasPlacementsToday={snapshot.hasPlacementsToday}
-          />
-        ) : null}
         <ProjectControlsCard
           testsDue={qcStats.qcTestsDue}
           testsOverdue={qcStats.qcTestsOverdue}
@@ -343,13 +337,26 @@ const OperationsDashboard: React.FC = () => {
           proposals={proposals}
           fieldNotesProject={fieldNotesProject}
         />
+        <ProjectHealthCard
+          review={projectRiskReview}
+          emptyMessage={allProjectsClosedOut ? QUEUE_EMPTY_MESSAGE : undefined}
+        />
       </section>
 
-      <section
-        data-testid="dashboard-lower-three-grid"
-        className={`grid grid-cols-1 gap-5 ${hasAnyConcreteWork ? 'sm:grid-cols-2 lg:grid-cols-3' : ''}`}
-      >
-        {hasAnyConcreteWork ? (
+      {hasAnyConcreteWork ? (
+        <section data-testid="dashboard-placement-conditions">
+          <FeaturedPlacementConditions
+            snapshot={snapshot}
+            hasPlacementsToday={snapshot.hasPlacementsToday}
+          />
+        </section>
+      ) : null}
+
+      {hasAnyConcreteWork ? (
+        <section
+          data-testid="dashboard-lower-concrete-grid"
+          className="grid grid-cols-1 gap-5 sm:grid-cols-2"
+        >
           <SmartPourAssistant
             projectId={prePlacement.projectId}
             projectName={prePlacement.projectName}
@@ -358,12 +365,6 @@ const OperationsDashboard: React.FC = () => {
             attention={prePlacement.attention}
             emptyMessage={allProjectsClosedOut ? QUEUE_EMPTY_MESSAGE : undefined}
           />
-        ) : null}
-        <ProjectHealthCard
-          review={projectRiskReview}
-          emptyMessage={allProjectsClosedOut ? QUEUE_EMPTY_MESSAGE : undefined}
-        />
-        {hasAnyConcreteWork ? (
           <ConcreteDeliveryScheduleCard
             schedule={snapshot.deliverySchedule}
             timeline={snapshot.timeline}
@@ -372,8 +373,8 @@ const OperationsDashboard: React.FC = () => {
             primaryProjectId={primaryPourToday?.id}
             emptyMessage={allProjectsClosedOut ? QUEUE_EMPTY_MESSAGE : undefined}
           />
-        ) : null}
-      </section>
+        </section>
+      ) : null}
 
       {projects.length === 0 && (
         <EmptyState

@@ -13,7 +13,6 @@ import {
 } from './opsTheme';
 import {
   plannerDocumentsHref,
-  plannerScheduleHubHref,
 } from '../../utils/plannerRoutes';
 import { getProjectFolder, summarizeQcBreakAlerts } from '../../utils/projectFolders';
 import { resolveProjectWorkflow } from '../../utils/projectWorkflow';
@@ -35,8 +34,6 @@ interface ProjectControlsCardProps {
   proposals?: TrackedProposalRow[];
   fieldNotesProject?: ControlProjectRef | null;
 }
-
-const SCHEDULE_MONTH_HREF = plannerScheduleHubHref({ view: 'calendar', cal: 'month' });
 
 function resolveQcReviewProject(
   projects: Project[],
@@ -147,6 +144,17 @@ const ProjectControlsCard: React.FC<ProjectControlsCardProps> = ({
   const actionsNeeded =
     (hasQcAlerts ? 1 : 0) + (fieldNotesProject ? 1 : 0);
 
+  const statusLines: string[] = [];
+  if (showDeadlines) {
+    if (deadlineCount > 0) {
+      statusLines.push(
+        `${deadlineCount} deadline${deadlineCount === 1 ? '' : 's'} in the next two weeks.`,
+      );
+    } else {
+      statusLines.push('No upcoming deadlines in the next two weeks.');
+    }
+  }
+
   const actionRows: React.ReactNode[] = [];
 
   if (hasQcAlerts) {
@@ -181,32 +189,8 @@ const ProjectControlsCard: React.FC<ProjectControlsCardProps> = ({
     );
   }
 
-  if (showDeadlines) {
-    if (deadlineCount > 0) {
-      actionRows.push(
-        <ActionRow
-          key="deadlines"
-          description={`${deadlineCount} deadline${deadlineCount === 1 ? '' : 's'} in the next two weeks.`}
-          ctaLabel="Open planner"
-          onClick={() => navigate(SCHEDULE_MONTH_HREF)}
-        />,
-      );
-    } else {
-      actionRows.push(
-        <ActionRow
-          key="no-deadlines"
-          description="No upcoming deadlines in the next two weeks."
-          ctaLabel="Open planner"
-          onClick={() => navigate(SCHEDULE_MONTH_HREF)}
-        />,
-      );
-    }
-  }
-
-  const isEmpty = actionRows.length === 0;
-
   return (
-    <OpsCard>
+    <OpsCard className="flex h-full flex-col">
       <div className="mb-3 flex items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
           <SlidersHorizontal className="h-5 w-5 shrink-0 text-cyan-600 dark:text-cyan-400" />
@@ -216,11 +200,12 @@ const ProjectControlsCard: React.FC<ProjectControlsCardProps> = ({
           to="/planner/hub"
           className="inline-flex shrink-0 items-center gap-1 text-sm text-cyan-700 hover:underline dark:text-cyan-400"
         >
-          View controls <ArrowRight className="h-4 w-4" />
+          Open planner <ArrowRight className="h-4 w-4" />
         </Link>
       </div>
 
-      <div className="mb-3 flex flex-wrap gap-2">
+      <div className="mt-3 flex flex-1 flex-col justify-between">
+        <div className="mb-3 flex flex-wrap gap-2">
         <MetricChip
           value={testsDue}
           label={testsOverdue > 0 ? 'Due / overdue' : 'QC due'}
@@ -249,29 +234,24 @@ const ProjectControlsCard: React.FC<ProjectControlsCardProps> = ({
             valueClassName="text-cyan-700 dark:text-cyan-400"
           />
         ) : null}
-      </div>
-
-      {isEmpty ? (
-        <div className="space-y-2">
-          <p className={`text-sm ${OPS_MUTED}`}>No project control issues right now.</p>
-          <div className="flex flex-wrap gap-2">
-            <Link
-              to="/planner/hub"
-              className="inline-flex items-center rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-800 transition-colors hover:bg-slate-100 dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-800"
-            >
-              Open Planner Hub
-            </Link>
-            <Link
-              to={`/projects?folder=${QC_CLOSEOUT_FOLDER}`}
-              className="inline-flex items-center rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-800 transition-colors hover:bg-slate-100 dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-800"
-            >
-              QC docs
-            </Link>
-          </div>
         </div>
-      ) : (
-        <ul className="space-y-2">{actionRows}</ul>
-      )}
+
+        {statusLines.length > 0 ? (
+          <div className="space-y-1">
+            {statusLines.map((line) => (
+              <p key={line} className={`text-sm ${OPS_MUTED}`}>
+                {line}
+              </p>
+            ))}
+          </div>
+        ) : null}
+
+        {actionRows.length > 0 ? (
+          <ul className={`space-y-2 ${statusLines.length > 0 ? 'mt-3' : ''}`}>{actionRows}</ul>
+        ) : statusLines.length === 0 ? (
+          <p className={`text-sm ${OPS_MUTED}`}>No project control issues right now.</p>
+        ) : null}
+      </div>
     </OpsCard>
   );
 };

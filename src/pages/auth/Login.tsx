@@ -1,12 +1,19 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Lock, Mail } from 'lucide-react';
+import { Building2, HardHat, Lock, Mail } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import { supabase } from '../../lib/supabase';
+import { setLoginIntent, type LoginIntent } from '../../lib/loginIntent';
 import SocialLoginButtons from '../../components/auth/SocialLoginButtons';
+import { isEmployeeRole } from '../../types/fieldPlanner';
+import {
+  applyFieldEmployeeProfileLinking,
+  loadAuthenticatedUserProfile,
+  resolveFieldPortalLoginError,
+} from './postAuthRouting';
 import AuthLayout, {
   AuthAlert,
   AuthDivider,
@@ -18,6 +25,14 @@ import AuthLayout, {
 interface LoginForm {
   email: string;
   password: string;
+}
+
+type LoginPath = 'admin' | 'field' | null;
+
+export function resolvePostLoginDest(role: string | undefined, returnTo?: string): string {
+  if (isEmployeeRole(role)) return '/employee/dashboard';
+  if (returnTo && returnTo.startsWith('/') && !returnTo.startsWith('//')) return returnTo;
+  return '/';
 }
 
 const Login: React.FC = () => {
@@ -32,6 +47,9 @@ const Login: React.FC = () => {
   const loginMessage = (location.state as { message?: string } | null)?.message;
   const oauthError = new URLSearchParams(location.search).get('error') === 'oauth';
   const [socialLoginError, setSocialLoginError] = React.useState<string | null>(null);
+  const [loginPath, setLoginPath] = React.useState<LoginPath>(
+    inviteToken ? 'field' : null,
+  );
   const { register, handleSubmit, formState: { errors }, setError, watch } = useForm<LoginForm>();
   const [isLoading, setIsLoading] = React.useState(false);
   const [resetEmailSent, setResetEmailSent] = React.useState(false);
@@ -44,22 +62,36 @@ const Login: React.FC = () => {
       setIsLoading(true);
       await signIn(data.email, data.password);
       const { data: session } = await supabase.auth.getUser();
-      if (inviteToken && session.user) {
-        const { acceptInviteForCurrentUser } = await import('../../services/employeeService');
-        try {
-          await acceptInviteForCurrentUser(inviteToken);
-          await refreshProfile();
-          navigate('/employee/dashboard', { replace: true });
-          return;
-        } catch (err) {
-          const msg = err instanceof Error ? err.message : 'Could not accept invite';
+      const loginIntent: LoginIntent | null =
+        loginPath === 'field' ? 'field' : loginPath === 'admin' ? 'admin' : inviteToken ? 'field' : null;
+
+      try {
+        await applyFieldEmployeeProfileLinking({ inviteToken, loginIntent });
+      } catch (linkErr) {
+        if (inviteToken) {
+          const msg = linkErr instanceof Error ? linkErr.message : 'Could not accept invite';
           setError('root', {
             message: `Signed in, but invite could not be applied: ${msg}`,
           });
           return;
         }
+        console.warn('[Login] Field employee profile sync failed:', linkErr);
       }
-      navigate(returnTo && returnTo.startsWith('/') ? returnTo : '/', { replace: true });
+
+      await refreshProfile();
+
+      const profile = session.user
+        ? await loadAuthenticatedUserProfile(loginIntent)
+        : null;
+
+      const fieldPortalError = resolveFieldPortalLoginError(profile, loginIntent);
+      if (fieldPortalError) {
+        setError('root', { message: fieldPortalError });
+        return;
+      }
+
+      const dest = resolvePostLoginDest(profile?.role, returnTo);
+      navigate(dest, { replace: true });
     } catch {
       setError('root', {
         message: 'Invalid email or password',
@@ -97,11 +129,78 @@ const Login: React.FC = () => {
     }
   };
 
+  const subtitle =
+    loginPath === 'field'
+      ? 'Sign in to access the Field Portal and your assigned project work.'
+      : loginPath === 'admin'
+        ? 'Sign in to continue to your project workspace.'
+        : 'Sign in to continue to your project workspace.';
+
   return (
-    <AuthLayout
-      title="Welcome back"
-      subtitle="Sign in to continue to your project workspace."
-    >
+    <AuthLayout title="Welcome back" subtitle={subtitle}>
+      {/* Path selector — shown when no path chosen and no invite token */}
+      {loginPath === null && !inviteToken && (
+        <div className="mb-6 grid gap-3 sm:grid-cols-2" data-testid="login-path-selector">
+          <button
+            type="button"
+            onClick={() => setLoginPath('admin')}
+            className="flex flex-col items-start gap-2 rounded-2xl border border-slate-700 bg-slate-800/60 p-4 text-left hover:border-cyan-500/60 hover:bg-slate-800 transition-colors"
+            data-testid="login-path-admin"
+          >
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-700">
+              <Building2 className="h-4 w-4 text-cyan-400" aria-hidden />
+            </span>
+            <span className="text-sm font-semibold text-white">Company / Admin Login</span>
+            <span className="text-xs leading-relaxed text-slate-400">
+              For owners, project managers, estimators, and office staff.
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setLoginPath('field')}
+            className="flex flex-col items-start gap-2 rounded-2xl border border-slate-700 bg-slate-800/60 p-4 text-left hover:border-cyan-500/60 hover:bg-slate-800 transition-colors"
+            data-testid="login-path-field"
+          >
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-700">
+              <HardHat className="h-4 w-4 text-cyan-400" aria-hidden />
+            </span>
+            <span className="text-sm font-semibold text-white">Field Portal Login</span>
+            <span className="text-xs leading-relaxed text-slate-400">
+              For field employees submitting photos, notes, RFIs, FARs, and task updates.
+            </span>
+          </button>
+        </div>
+      )}
+
+      {loginPath === 'field' && !inviteToken && (
+        <div className="mb-4 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setLoginPath(null)}
+            className="text-xs text-slate-400 hover:text-slate-200 underline"
+          >
+            ← Back
+          </button>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 px-2.5 py-0.5 text-xs font-medium text-cyan-300">
+            <HardHat className="h-3 w-3" aria-hidden />
+            Field Portal
+          </span>
+        </div>
+      )}
+
+      {loginPath === 'admin' && (
+        <div className="mb-4">
+          <button
+            type="button"
+            onClick={() => setLoginPath(null)}
+            className="text-xs text-slate-400 hover:text-slate-200 underline"
+          >
+            ← Back
+          </button>
+        </div>
+      )}
+
       {inviteToken && (
         <AuthAlert variant="info">
           Sign in with the email address that received the team invite to join your company.
@@ -116,12 +215,20 @@ const Login: React.FC = () => {
         </AuthAlert>
       )}
 
-      {!resetEmailSent && (
+      {/* Show the form only after a path is chosen (or when an invite token is present) */}
+      {(loginPath !== null || inviteToken) && !resetEmailSent && (
         <>
           <SocialLoginButtons
             appearance="auth-dark"
             disabled={isLoading}
             onError={(message) => setSocialLoginError(message)}
+            onBeforeSignIn={() => {
+              if (loginPath === 'field' || inviteToken) {
+                setLoginIntent('field');
+              } else if (loginPath === 'admin') {
+                setLoginIntent('admin');
+              }
+            }}
           />
           <AuthDivider label="or continue with email" />
         </>
@@ -132,7 +239,7 @@ const Login: React.FC = () => {
           If an account exists with {emailValue}, password reset instructions have been sent.
           Please check your email inbox.
         </AuthAlert>
-      ) : (
+      ) : (loginPath !== null || inviteToken) ? (
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="auth-page-inputs space-y-6 [&_label]:text-slate-300"
@@ -213,7 +320,7 @@ const Login: React.FC = () => {
             </button>
           </p>
         </form>
-      )}
+      ) : null}
     </AuthLayout>
   );
 };

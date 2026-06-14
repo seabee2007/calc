@@ -18,9 +18,7 @@ const Layout: React.FC = () => {
   const { user, isEmployee } = useAuth();
 
   const isPlannerWorkspace = isPlannerWorkspacePath(location.pathname);
-  const isEmployeeRoute =
-    location.pathname.startsWith('/employee') &&
-    !location.pathname.startsWith('/employee/tasks');
+  const isEmployeeRoute = location.pathname.startsWith('/employee');
 
   const isPublicProposal = location.pathname.startsWith('/proposal/');
   const isPublicClientPortal = location.pathname.startsWith('/client/project/');

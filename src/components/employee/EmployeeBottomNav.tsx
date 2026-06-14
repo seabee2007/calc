@@ -15,23 +15,24 @@ export default function EmployeeBottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-800 bg-slate-950/95 backdrop-blur-md"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-800 bg-slate-950/95 backdrop-blur-md pb-[calc(env(safe-area-inset-bottom)+0.75rem)]"
       aria-label="Employee navigation"
     >
-      <div className="flex justify-around items-center h-16">
+      <div className="flex items-stretch justify-around min-h-16">
         {items.map(({ path, label, icon: Icon }) => {
           const active = location.pathname === path || location.pathname.startsWith(`${path}/`);
           return (
             <Link
               key={path}
               to={path}
-              className={`flex min-w-[56px] flex-col items-center justify-center gap-0.5 px-1 py-2 text-xs ${
-                active ? 'text-cyan-400' : 'text-slate-500'
+              className={`flex min-h-[56px] min-w-[64px] flex-1 flex-col items-center justify-center gap-1 px-1 py-2 text-xs font-medium touch-manipulation ${
+                active
+                  ? 'text-cyan-400'
+                  : 'text-slate-500 hover:text-slate-300 active:text-cyan-300'
               }`}
             >
-              <Icon className="h-5 w-5" />
-              <span>{label}</span>
+              <Icon className={`h-6 w-6 ${active ? 'text-cyan-400' : ''}`} aria-hidden />
+              <span className="leading-tight">{label}</span>
             </Link>
           );
         })}

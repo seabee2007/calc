@@ -234,8 +234,30 @@ describe('OperationsDashboard layout', () => {
     assertFollowsDocumentOrder(container, 'dashboard-operations-schedule', 'dashboard-field-activity');
     assertFollowsDocumentOrder(container, 'dashboard-field-activity', 'dashboard-business-snapshot');
     assertFollowsDocumentOrder(container, 'dashboard-business-snapshot', 'dashboard-active-proposals-grid');
-    assertFollowsDocumentOrder(container, 'dashboard-active-proposals-grid', 'dashboard-placement-qc-grid');
-    assertFollowsDocumentOrder(container, 'dashboard-placement-qc-grid', 'dashboard-lower-three-grid');
+    assertFollowsDocumentOrder(container, 'dashboard-active-proposals-grid', 'dashboard-controls-risk-grid');
+  });
+
+  it('renders Project Controls and Project Risk Review side-by-side on xl', () => {
+    const { container } = render(
+      <MemoryRouter>
+        <OperationsDashboard />
+      </MemoryRouter>,
+    );
+    const grid = container.querySelector('[data-testid="dashboard-controls-risk-grid"]');
+    expect(grid).toHaveClass('xl:grid-cols-2');
+    expect(grid).toHaveClass('xl:items-stretch');
+    expect(within(grid as HTMLElement).getByText(/Project Controls/i)).toBeInTheDocument();
+    expect(within(grid as HTMLElement).getByText(/Project risk review/i)).toBeInTheDocument();
+  });
+
+  it('renders Project Controls below Active Projects / Proposal Pipeline', () => {
+    const { container } = render(
+      <MemoryRouter>
+        <OperationsDashboard />
+      </MemoryRouter>,
+    );
+    assertFollowsDocumentOrder(container, 'dashboard-active-proposals-grid', 'dashboard-controls-risk-grid');
+    expect(screen.getByText(/Project Controls/i)).toBeInTheDocument();
   });
 
   it('renders Active Projects and Proposal Pipeline side-by-side on desktop', () => {
@@ -248,16 +270,6 @@ describe('OperationsDashboard layout', () => {
     expect(grid).toHaveClass('lg:items-stretch');
     expect(within(grid as HTMLElement).getByText('Proposal pipeline')).toBeInTheDocument();
     expect(within(grid as HTMLElement).getByText('Active projects')).toBeInTheDocument();
-  });
-
-  it('renders Project Controls below Active Projects / Proposal Pipeline', () => {
-    const { container } = render(
-      <MemoryRouter>
-        <OperationsDashboard />
-      </MemoryRouter>,
-    );
-    assertFollowsDocumentOrder(container, 'dashboard-active-proposals-grid', 'dashboard-placement-qc-grid');
-    expect(screen.getByText(/Project Controls/i)).toBeInTheDocument();
   });
 
   it('hides concrete-only widgets when there is no placement work', () => {
@@ -285,7 +297,7 @@ describe('OperationsDashboard layout', () => {
       ],
     };
 
-    render(
+    const { container } = render(
       <MemoryRouter>
         <OperationsDashboard />
       </MemoryRouter>,
@@ -293,6 +305,8 @@ describe('OperationsDashboard layout', () => {
     expect(screen.getByText(/Today's placement conditions/i)).toBeInTheDocument();
     expect(screen.getByText(/Pre-placement review/i)).toBeInTheDocument();
     expect(screen.getByText(/Concrete delivery schedule/i)).toBeInTheDocument();
+    assertFollowsDocumentOrder(container, 'dashboard-controls-risk-grid', 'dashboard-placement-conditions');
+    assertFollowsDocumentOrder(container, 'dashboard-placement-conditions', 'dashboard-lower-concrete-grid');
   });
 
   it('renders lower row with project risk review when no concrete work', () => {

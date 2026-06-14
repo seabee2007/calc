@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { UserPlus, Mail, Users, Clock, FolderKanban, Link2, Trash2 } from 'lucide-react';
+import { UserPlus, Mail, Users, Clock, FolderKanban, Link2, Trash2, Smartphone, Copy, Check } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import {
   assignEmployeeToProject,
@@ -71,6 +71,7 @@ export default function EmployeeManagement() {
   const [message, setMessage] = useState<string | null>(null);
   const [messageTone, setMessageTone] = useState<'info' | 'success' | 'warning'>('info');
   const [busy, setBusy] = useState(false);
+  const [copiedMemberId, setCopiedMemberId] = useState<string | null>(null);
 
   useEffect(() => {
     void loadProjects();
@@ -80,6 +81,15 @@ export default function EmployeeManagement() {
     () => new Set(assignments.map((row) => row.projectId)).size,
     [assignments],
   );
+
+  const memberProjectNames = useMemo(() => {
+    const map: Record<string, string[]> = {};
+    for (const row of assignments) {
+      if (!map[row.employeeId]) map[row.employeeId] = [];
+      map[row.employeeId].push(row.projectName);
+    }
+    return map;
+  }, [assignments]);
 
   const reload = async () => {
     if (!user) return;
@@ -183,6 +193,17 @@ export default function EmployeeManagement() {
       showMessage(err instanceof Error ? err.message : 'Could not remove assignment', 'warning');
     } finally {
       setBusy(false);
+    }
+  };
+
+  const handleCopyFieldLinkByToken = async (memberId: string, token: string) => {
+    const link = employeeInviteLoginHref(token);
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopiedMemberId(memberId);
+      setTimeout(() => setCopiedMemberId(null), 2000);
+    } catch {
+      showMessage(`Field login link: ${link}`, 'info');
     }
   };
 
@@ -403,6 +424,129 @@ export default function EmployeeManagement() {
                 </li>
               ))}
             </ul>
+          )}
+        </div>
+      </section>
+
+      <section className={SECTION_CARD} data-testid="field-portal-access-card">
+        <SectionHeader
+          icon={<Smartphone className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />}
+          title="Field Portal access"
+          description="Each team member below has access to the Field Portal for submitting photos, notes, RFIs, FARs, and task updates from the jobsite."
+        />
+        <div className="mt-6">
+          {team.length === 0 ? (
+            <p className={`rounded-xl border border-dashed ${BORDER_DEFAULT} px-4 py-8 text-center text-sm ${TEXT_MUTED}`}>
+              Invite team members above to manage Field Portal access.
+            </p>
+          ) : (
+            <ul className={`divide-y ${BORDER_DEFAULT}`}>
+              {team.map((member) => {
+                const memberProjects = memberProjectNames[member.id] ?? [];
+                const isCopied = copiedMemberId === member.id;
+                // Match pending invite to member by checking if any pending invite
+                // was created around the same time as the profile (best-effort)
+                return (
+                  <li
+                    key={member.id}
+                    className="flex flex-col gap-3 py-4 sm:flex-row sm:items-start sm:justify-between"
+                    data-testid={`field-portal-member-${member.id}`}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className={`font-medium ${TEXT_FOREGROUND}`}>
+                        {member.displayName ?? DEFAULT_PROFILE_DISPLAY_NAME}
+                      </p>
+                      <p className={`mt-0.5 text-sm ${TEXT_MUTED}`}>{formatRoleLabel(member.role)}</p>
+                      {memberProjects.length > 0 ? (
+                        <p className={`mt-1 text-xs ${TEXT_SUBTLE}`}>
+                          Assigned: {memberProjects.join(', ')}
+                        </p>
+                      ) : (
+                        <p className={`mt-1 text-xs ${TEXT_SUBTLE}`}>No projects assigned yet</p>
+                      )}
+                      <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                        Active
+                      </span>
+                    </div>
+                    <div className="flex shrink-0 flex-col items-end gap-2">
+                      {/* Copy the Field Portal login URL for this employer's portal */}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        icon={
+                          isCopied ? (
+                            <Check className="h-3.5 w-3.5 text-emerald-400" />
+                          ) : (
+                            <Copy className="h-3.5 w-3.5" />
+                          )
+                        }
+                        onClick={() => {
+                          const fieldPortalUrl = `${window.location.origin}/login?path=field`;
+                          void navigator.clipboard
+                            .writeText(fieldPortalUrl)
+                            .then(() => {
+                              setCopiedMemberId(member.id);
+                              setTimeout(() => setCopiedMemberId(null), 2000);
+                            })
+                            .catch(() =>
+                              showMessage(`Field Portal login: ${fieldPortalUrl}`, 'info'),
+                            );
+                        }}
+                        data-testid={`copy-field-link-${member.id}`}
+                      >
+                        {isCopied ? 'Copied!' : 'Copy Field Portal Link'}
+                      </Button>
+                      <p className={`text-right text-xs ${TEXT_SUBTLE}`}>
+                        To re-invite, use "Invite team member" above.
+                      </p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+
+          {/* Pending invite links */}
+          {invites.length > 0 && (
+            <div className="mt-6 border-t pt-4 border-slate-200 dark:border-slate-800">
+              <h3 className={`text-sm font-semibold ${TEXT_FOREGROUND} mb-3`}>
+                Pending Field Portal invites
+              </h3>
+              <ul className={`divide-y ${BORDER_DEFAULT}`}>
+                {invites.map((inv) => {
+                  const isCopied = copiedMemberId === `inv-${inv.id}`;
+                  return (
+                    <li key={inv.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <p className={`text-sm font-medium ${TEXT_FOREGROUND}`}>{inv.email}</p>
+                        <p className={`text-xs ${TEXT_MUTED}`}>
+                          {formatRoleLabel(inv.role)} · Sent {formatSentDate(inv.createdAt)}
+                        </p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        icon={
+                          isCopied ? (
+                            <Check className="h-3.5 w-3.5 text-emerald-400" />
+                          ) : (
+                            <Copy className="h-3.5 w-3.5" />
+                          )
+                        }
+                        onClick={() =>
+                          void handleCopyFieldLinkByToken(`inv-${inv.id}`, inv.token)
+                        }
+                        data-testid={`copy-invite-link-${inv.id}`}
+                      >
+                        {isCopied ? 'Copied!' : 'Copy Invite Link'}
+                      </Button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
           )}
         </div>
       </section>

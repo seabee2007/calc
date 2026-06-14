@@ -11,7 +11,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-    detectSessionInUrl: false,
+    detectSessionInUrl: true,
     flowType: 'pkce',
   },
   global: {
@@ -22,5 +22,5 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 });
 
 if (import.meta.env.DEV) {
-  console.log('[SupabaseClient] detectSessionInUrl false');
+  console.log('[SupabaseClient] detectSessionInUrl true');
 }

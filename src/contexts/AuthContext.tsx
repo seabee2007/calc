@@ -13,7 +13,7 @@ import {
 } from '../lib/authSession';
 import type { User } from '@supabase/supabase-js';
 import type { Profile } from '../types/fieldPlanner';
-import { ensureOwnerProfile, fetchProfile } from '../services/profileService';
+import { fetchProfile } from '../services/profileService';
 import { isEmployeeRole, isOwnerRole } from '../types/fieldPlanner';
 
 interface AuthContextValue {
@@ -45,11 +45,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     setProfileLoading(true);
     try {
-      let p = await fetchProfile(sessionUser.id);
-      if (!p) {
-        p = await ensureOwnerProfile(sessionUser.id, sessionUser.email);
-      }
-      setProfile(p);
+      const p = await fetchProfile(sessionUser.id);
+      setProfile(p ?? null);
     } catch {
       setProfile(null);
     } finally {
@@ -58,8 +55,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const refreshProfile = useCallback(async () => {
-    await loadProfile(user);
-  }, [loadProfile, user]);
+    const { data } = await supabase.auth.getUser();
+    await loadProfile(data.user ?? null);
+  }, [loadProfile]);
 
   const handleStaleSession = useCallback(async () => {
     await clearStaleAuthSession();

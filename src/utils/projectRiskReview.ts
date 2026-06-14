@@ -151,7 +151,7 @@ export function buildProjectRiskReview(
   if (!project) {
     return {
       riskLevel: 'low',
-      riskLabel: 'NO ACTIVE PLACEMENT',
+      riskLabel: 'NO ACTIVE FIELD WORK',
       attention: [
         'No projects scheduled — closed jobs are out of the queue.',
       ],

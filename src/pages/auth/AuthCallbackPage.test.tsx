@@ -3,17 +3,35 @@ import { render, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import AuthCallbackPage from './AuthCallbackPage';
 
-const { exchangeCodeForSession, navigate } = vi.hoisted(() => ({
+const { exchangeCodeForSession, getSession, getUser, navigate } = vi.hoisted(() => ({
   exchangeCodeForSession: vi.fn(),
+  getSession: vi.fn(),
+  getUser: vi.fn(),
   navigate: vi.fn(),
+}));
+
+const { applyFieldEmployeeProfileLinking, loadAuthenticatedUserProfile } = vi.hoisted(() => ({
+  applyFieldEmployeeProfileLinking: vi.fn().mockResolvedValue(undefined),
+  loadAuthenticatedUserProfile: vi.fn(),
 }));
 
 vi.mock('../../lib/supabase', () => ({
   supabase: {
     auth: {
       exchangeCodeForSession,
+      getSession,
+      getUser,
     },
   },
+}));
+
+vi.mock('../../lib/loginIntent', () => ({
+  consumeLoginIntent: vi.fn(() => 'field'),
+}));
+
+vi.mock('./postAuthRouting', () => ({
+  applyFieldEmployeeProfileLinking,
+  loadAuthenticatedUserProfile,
 }));
 
 vi.mock('react-router-dom', async () => {
@@ -27,6 +45,9 @@ vi.mock('react-router-dom', async () => {
 describe('AuthCallbackPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    getSession.mockResolvedValue({ data: { session: null }, error: null });
+    getUser.mockResolvedValue({ data: { user: { id: 'user-1', email: 'emp@example.com' } } });
+    loadAuthenticatedUserProfile.mockResolvedValue({ id: 'user-1', role: 'employee' });
     Object.defineProperty(window, 'location', {
       value: {
         origin: 'http://localhost:5173',
@@ -36,7 +57,26 @@ describe('AuthCallbackPage', () => {
     });
   });
 
-  it('exchanges code and navigates to home on success', async () => {
+  it('uses existing session without re-exchanging code (StrictMode-safe)', async () => {
+    getSession.mockResolvedValue({
+      data: { session: { user: { id: 'user-1' } } },
+      error: null,
+    });
+
+    render(
+      <MemoryRouter>
+        <AuthCallbackPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(exchangeCodeForSession).not.toHaveBeenCalled();
+      expect(applyFieldEmployeeProfileLinking).toHaveBeenCalled();
+      expect(navigate).toHaveBeenCalledWith('/employee/dashboard', { replace: true });
+    });
+  });
+
+  it('exchanges code and routes employees to field portal', async () => {
     exchangeCodeForSession.mockResolvedValue({ error: null });
 
     render(
@@ -47,7 +87,7 @@ describe('AuthCallbackPage', () => {
 
     await waitFor(() => {
       expect(exchangeCodeForSession).toHaveBeenCalledWith('abc');
-      expect(navigate).toHaveBeenCalledWith('/', { replace: true });
+      expect(navigate).toHaveBeenCalledWith('/employee/dashboard', { replace: true });
     });
   });
 

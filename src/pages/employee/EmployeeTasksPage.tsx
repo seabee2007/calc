@@ -16,7 +16,6 @@ export default function EmployeeTasksPage() {
   const load = useCallback(async () => {
     if (!user) return;
     const loaded = await fetchTasksForEmployee(user.id);
-    console.log('[My Tasks] loaded', loaded.length, 'planner tasks', loaded);
     setTasks(loaded);
   }, [user]);
 
@@ -33,8 +32,8 @@ export default function EmployeeTasksPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-3xl flex-1 p-4 sm:p-6">
-      <h1 className="mb-4 text-xl font-bold text-gray-900 dark:text-white">My tasks</h1>
+    <div>
+      <h1 className="mb-4 text-xl font-bold text-white">My tasks</h1>
       <div className="mb-4 flex gap-2">
         {tabs.map((t) => (
           <Button

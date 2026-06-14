@@ -67,10 +67,9 @@ export async function getCompanySettings(): Promise<CompanySettings> {
     .from('company_settings')
     .select('*')
     .eq('user_id', user.id)
-    .single();
+    .maybeSingle();
 
-  if (error && error.code !== 'PGRST116') {
-    // PGRST116 is "not found" error, which is expected for new users
+  if (error) {
     throw error;
   }
 

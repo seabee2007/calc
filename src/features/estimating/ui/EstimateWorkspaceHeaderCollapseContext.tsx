@@ -15,6 +15,21 @@ import {
 } from './estimateWorkspaceHeaderCollapseStorage';
 import { usePrefersTouchLayout } from './hooks/usePrefersTouchLayout';
 
+function miniStatusEqual(
+  a: EstimateWorkspaceHeaderMiniStatus | null,
+  b: EstimateWorkspaceHeaderMiniStatus | null,
+): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  return (
+    a.estimateTypeLabel === b.estimateTypeLabel &&
+    a.activeTabLabel === b.activeTabLabel &&
+    a.saveStatus === b.saveStatus &&
+    a.saveStatusLabel === b.saveStatusLabel &&
+    a.hasPendingEstimateChanges === b.hasPendingEstimateChanges
+  );
+}
+
 export const ESTIMATE_WORKSPACE_HEADER_PORTAL_ID = 'estimate-workspace-header-portal';
 export const ESTIMATE_WORKSPACE_HEADER_COLLAPSE_MARKER = 'estimate-workspace-collapsible-header';
 
@@ -57,9 +72,13 @@ export function EstimateWorkspaceHeaderCollapseProvider({
 }: ProviderProps) {
   const prefersTouchLayout = usePrefersTouchLayout();
   const [focusMode, setFocusModeState] = useState(() => readEstimateWorkspaceFocusMode());
-  const [miniStatus, setMiniStatus] = useState<EstimateWorkspaceHeaderMiniStatus | null>(null);
+  const [miniStatus, setMiniStatusState] = useState<EstimateWorkspaceHeaderMiniStatus | null>(null);
   const [portalReady, setPortalReady] = useState(false);
   const portalTargetRef = useRef<HTMLDivElement | null>(null);
+
+  const setMiniStatus = useCallback((status: EstimateWorkspaceHeaderMiniStatus | null) => {
+    setMiniStatusState((prev) => (miniStatusEqual(prev, status) ? prev : status));
+  }, []);
 
   const setFocusMode = useCallback(
     (next: boolean) => {
@@ -76,7 +95,8 @@ export function EstimateWorkspaceHeaderCollapseProvider({
 
   const attachPortalTarget = useCallback((node: HTMLDivElement | null) => {
     portalTargetRef.current = node;
-    setPortalReady(Boolean(node));
+    const nextReady = Boolean(node);
+    setPortalReady((prev) => (prev === nextReady ? prev : nextReady));
   }, []);
 
   const value = useMemo<EstimateWorkspaceHeaderCollapseContextValue>(
