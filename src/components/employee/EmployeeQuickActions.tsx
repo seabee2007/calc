@@ -71,7 +71,7 @@ export default function EmployeeQuickActions({
     {
       label: 'Calculator',
       icon: Calculator,
-      onClick: () => navigate('/calculator'),
+      onClick: () => navigate('/employee/calculator'),
     },
     {
       label: 'Schedule',

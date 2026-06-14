@@ -87,6 +87,8 @@ import {
   LazyEmployeeUploadsPage,
   LazyEmployeeDraftChangeOrderPage,
   LazyEmployeeProfilePage,
+  LazyEmployeeCalculatorPage,
+  LazyArdenFieldCalculatorPage,
   LazyOnboardingFlow,
   LazyConcreteChat,
   LazyActivityEstimatePreview,
@@ -449,6 +451,14 @@ function App() {
               }
             />
             <Route
+              path="tools/field-calculator"
+              element={
+                <AuthGuard>
+                  <LazyRoute Page={LazyArdenFieldCalculatorPage} />
+                </AuthGuard>
+              }
+            />
+            <Route
               path="tools/safety-meeting"
               element={
                 <AuthGuard>
@@ -559,6 +569,7 @@ function App() {
               element={<LazyRoute Page={LazyEmployeeDraftChangeOrderPage} />}
             />
             <Route path="profile" element={<LazyRoute Page={LazyEmployeeProfilePage} />} />
+            <Route path="calculator" element={<LazyRoute Page={LazyEmployeeCalculatorPage} />} />
             <Route path="safety-meeting" element={<LazyRoute Page={LazySafetyMeetingToolPage} />} />
           </Route>
           <Route path="/proposal/:token" element={<LazyRoute Page={LazyPublicProposal} />} />

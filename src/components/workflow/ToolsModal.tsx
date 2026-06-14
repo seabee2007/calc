@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   ClipboardList,
   FileSignature,
+  Ruler,
   type LucideIcon,
 } from 'lucide-react';
 import Modal from '../ui/Modal';
@@ -130,6 +131,12 @@ const ToolsModal: React.FC = () => {
     {
       heading: 'Field & safety',
       cards: [
+        {
+          title: 'Arden Field Calculator',
+          description: 'Feet-inch-fraction math, conversions, and trade calculators',
+          path: '/tools/field-calculator',
+          icon: Ruler,
+        },
         {
           title: 'Safety Meeting Tool',
           description: 'Daily JHA, toolbox talks, and attendance sheet',

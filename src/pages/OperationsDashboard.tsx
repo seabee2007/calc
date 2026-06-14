@@ -285,7 +285,7 @@ const OperationsDashboard: React.FC = () => {
 
       {isOwner ? (
         <div data-testid="dashboard-field-activity">
-          <OwnerActivityFeed limit={8} />
+          <OwnerActivityFeed />
         </div>
       ) : null}
 

@@ -168,6 +168,13 @@ export const LazyEmployeeProfilePage = lazyPage(
   () => import('../pages/employee/EmployeeProfilePage'),
 );
 
+export const LazyEmployeeCalculatorPage = lazyPage(
+  () => import('../pages/employee/EmployeeCalculatorPage'),
+);
+export const LazyArdenFieldCalculatorPage = lazyPage(
+  () => import('../pages/tools/ArdenFieldCalculatorPage'),
+);
+
 // Dev-only routes (never rendered in production builds)
 export const LazyActivityEstimatePreview = lazyPage(
   () => import('../features/estimating/ui/dev/ActivityEstimatePreview'),

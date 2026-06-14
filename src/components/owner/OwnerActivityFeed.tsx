@@ -16,6 +16,10 @@ import {
   OPS_TITLE,
 } from '../dashboard/opsTheme';
 
+const DEFAULT_VISIBLE_ACTIVITY_COUNT = 5;
+const MOBILE_VISIBLE_ACTIVITY_COUNT = 3;
+const DEFAULT_FETCH_LIMIT = 30;
+
 const linkClass = 'text-sm font-medium text-cyan-400 hover:text-cyan-300';
 
 const itemExit = (staggerIndex: number) => ({
@@ -33,12 +37,28 @@ const itemExit = (staggerIndex: number) => ({
   },
 });
 
-export default function OwnerActivityFeed({ limit = 8 }: { limit?: number }) {
+function useIsSmallScreen(): boolean {
+  const [isSmallScreen, setIsSmallScreen] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 639px)');
+    const update = () => setIsSmallScreen(media.matches);
+    update();
+    media.addEventListener('change', update);
+    return () => media.removeEventListener('change', update);
+  }, []);
+
+  return isSmallScreen;
+}
+
+export default function OwnerActivityFeed({ limit = DEFAULT_FETCH_LIMIT }: { limit?: number }) {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const isSmallScreen = useIsSmallScreen();
   const [items, setItems] = useState<FieldActivityItem[]>([]);
   const [displayItems, setDisplayItems] = useState<FieldActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [isClearingAll, setIsClearingAll] = useState(false);
   const clearTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dismiss = useFieldActivityDismissStore((s) => s.dismiss);
@@ -50,7 +70,6 @@ export default function OwnerActivityFeed({ limit = 8 }: { limit?: number }) {
     setLoading(true);
     try {
       const loaded = await getOwnerFieldActivity(user.id, limit);
-      console.log('[Field Activity] loaded', loaded.length, 'items', loaded);
       setItems(loaded);
     } finally {
       setLoading(false);
@@ -69,11 +88,28 @@ export default function OwnerActivityFeed({ limit = 8 }: { limit?: number }) {
     return items.filter((item) => !dismissed.has(item.id));
   }, [items, user, dismissedByOwner]);
 
+  const defaultVisibleCount = isSmallScreen
+    ? MOBILE_VISIBLE_ACTIVITY_COUNT
+    : DEFAULT_VISIBLE_ACTIVITY_COUNT;
+
+  const hasMoreActivity = visibleItems.length > defaultVisibleCount;
+
+  const previewItems = useMemo(() => {
+    if (isExpanded) return visibleItems;
+    return visibleItems.slice(0, defaultVisibleCount);
+  }, [defaultVisibleCount, isExpanded, visibleItems]);
+
   useEffect(() => {
     if (!isClearingAll) {
       setDisplayItems(visibleItems);
     }
   }, [visibleItems, isClearingAll]);
+
+  useEffect(() => {
+    if (!hasMoreActivity) {
+      setIsExpanded(false);
+    }
+  }, [hasMoreActivity]);
 
   useEffect(
     () => () => {
@@ -106,8 +142,9 @@ export default function OwnerActivityFeed({ limit = 8 }: { limit?: number }) {
     }, exitMs);
   };
 
-  const showList = !loading && displayItems.length > 0;
-  const showEmpty = !loading && displayItems.length === 0 && !isClearingAll;
+  const listItems = isClearingAll ? displayItems : previewItems;
+  const showList = !loading && listItems.length > 0;
+  const showEmpty = !loading && visibleItems.length === 0 && !isClearingAll;
 
   return (
     <OpsCard className="p-4">
@@ -136,9 +173,14 @@ export default function OwnerActivityFeed({ limit = 8 }: { limit?: number }) {
       )}
 
       {(showList || isClearingAll) && (
-        <motion.ul layout className="space-y-2 overflow-hidden">
+        <motion.ul
+          layout
+          className={`space-y-2 overflow-hidden ${
+            isExpanded && !isClearingAll ? 'max-h-[520px] overflow-y-auto pr-1' : ''
+          }`}
+        >
           <AnimatePresence initial={false}>
-            {displayItems.map((item, index) => (
+            {listItems.map((item, index) => (
               <motion.li
                 key={item.id}
                 layout
@@ -169,7 +211,16 @@ export default function OwnerActivityFeed({ limit = 8 }: { limit?: number }) {
         </motion.ul>
       )}
 
-      <div className="mt-3 flex items-center justify-end gap-4">
+      <div className="mt-3 flex flex-wrap items-center justify-end gap-x-4 gap-y-2">
+        {hasMoreActivity && !loading && !isClearingAll && (
+          <button
+            type="button"
+            onClick={() => setIsExpanded((value) => !value)}
+            className={linkClass}
+          >
+            {isExpanded ? 'Show less' : 'Show all'}
+          </button>
+        )}
         {!loading && visibleItems.length > 0 && !isClearingAll && (
           <button type="button" onClick={handleClearAll} className={linkClass}>
             Clear all
@@ -186,3 +237,9 @@ export default function OwnerActivityFeed({ limit = 8 }: { limit?: number }) {
     </OpsCard>
   );
 }
+
+export {
+  DEFAULT_FETCH_LIMIT,
+  DEFAULT_VISIBLE_ACTIVITY_COUNT,
+  MOBILE_VISIBLE_ACTIVITY_COUNT,
+};
