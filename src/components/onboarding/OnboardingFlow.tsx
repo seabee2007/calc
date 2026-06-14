@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import WelcomeScreen from './WelcomeScreen';
@@ -8,6 +8,8 @@ import { isValidUsPhoneNumber } from '../../utils/phoneFormatting';
 import OnboardingStep from './OnboardingStep';
 import OnboardingShell from './OnboardingShell';
 import ThemeSelector from './ThemeSelector';
+import { useAuth } from '../../hooks/useAuth';
+import type { Profile } from '../../types/fieldPlanner';
 
 type OnboardingStepType = 'welcome' | 'company-name' | 'email' | 'phone' | 'address' | 'license' | 'motto' | 'theme';
 
@@ -23,10 +25,24 @@ interface StepConfig {
   type: string;
 }
 
+/** Build a pipe-delimited address string from the signup-captured profile address fields. */
+function profileAddressToPipe(profile: Profile | null | undefined): string {
+  if (!profile) return '';
+  const street = profile.businessAddressStreet?.trim() ?? '';
+  const street2 = profile.businessAddressStreet2?.trim() ?? '';
+  const city = profile.businessAddressCity?.trim() ?? '';
+  const state = profile.businessAddressState?.trim() ?? '';
+  const zip = profile.businessAddressPostalCode?.trim() ?? '';
+  if (!street && !city && !state && !zip) return '';
+  return [street, street2, city, state, zip].join('|');
+}
+
 const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
   const navigate = useNavigate();
-  const { updateCompanySettings } = useSettingsStore();
+  const { updateCompanySettings, companySettings, companySettingsHydrated } = useSettingsStore();
   const { isDark, toggleTheme } = useThemeStore();
+  const { user, profile, profileLoading } = useAuth();
+
   const [currentStep, setCurrentStep] = useState<OnboardingStepType>('welcome');
   const [phoneError, setPhoneError] = useState<string | undefined>();
   const [formData, setFormData] = useState({
@@ -36,8 +52,35 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
     address: '',
     licenseNumber: '',
     motto: '',
-    theme: isDark ? 'dark' : 'light'
+    theme: isDark ? 'dark' : 'light',
   });
+
+  // Hydrate form defaults once — after both companySettings store and profile are loaded.
+  // Precedence: existing companySettings data → signup profile data → empty string.
+  const initializedRef = useRef(false);
+
+  useEffect(() => {
+    if (initializedRef.current) return;
+    if (!companySettingsHydrated || profileLoading) return;
+
+    // Address: prefer already-saved company address; fall back to structured signup address.
+    const savedAddress = companySettings.address?.trim() ?? '';
+    const defaultAddress = savedAddress || profileAddressToPipe(profile);
+
+    setFormData({
+      companyName: companySettings.companyName?.trim() || '',
+      // Company email defaults to auth email for new accounts that haven't set one yet.
+      email: companySettings.email?.trim() || user?.email?.trim() || '',
+      // Company phone defaults to the phone entered at signup (personal/business is often the same).
+      phone: companySettings.phone?.trim() || profile?.phone?.trim() || '',
+      address: defaultAddress,
+      licenseNumber: companySettings.licenseNumber?.trim() || '',
+      motto: companySettings.motto?.trim() || '',
+      theme: isDark ? 'dark' : 'light',
+    });
+
+    initializedRef.current = true;
+  }, [companySettingsHydrated, profileLoading, companySettings, profile, user, isDark]);
 
   const handleInputChange = (value: string) => {
     if (currentStep === 'phone') {
