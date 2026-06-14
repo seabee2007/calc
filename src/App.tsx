@@ -25,6 +25,7 @@ import ContactPage from './pages/legal/ContactPage';
 import { ProposalService } from './lib/proposalService';
 import { seedTrackedProposalsCache } from './hooks/useTrackedProposals';
 import { soundService } from './services/soundService';
+import RouteFallback from './routes/RouteFallback';
 import {
   markOnboardingCompletedLocally,
   readLocalOnboardingCompleted,
