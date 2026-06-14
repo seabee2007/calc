@@ -53,7 +53,8 @@ describe('Projects page layout', () => {
 });
 
 describe('Projects authenticated shell', () => {
-  it('hides the marketing footer on premium canvas app routes', () => {
-    expect(layoutSource).toContain('const hideMarketingFooter = Boolean(user) && premiumCanvas');
+  it('renders the shared footer with mobile nav spacing when bottom nav is visible', () => {
+    expect(layoutSource).toContain('<Footer reserveMobileNavSpace={showBottomNav} />');
+    expect(layoutSource).not.toContain('hideMarketingFooter');
   });
 });

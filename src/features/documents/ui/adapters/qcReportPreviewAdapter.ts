@@ -3,7 +3,7 @@ import type { Project } from '../../../../types/index';
 import { formatUSAddress } from '../../../../types/address';
 import { resolveClientAddressForProposal } from '../../../../types/projectClient';
 import type { DocumentCompany, DocumentProject } from '../components/professionalDocumentTypes';
-import { cleanDocumentBody, displayValue } from '../previewDisplay';
+import { cleanDocumentBody, displayDateValue, displayValue } from '../previewDisplay';
 import { INSPECTION_TYPE_OPTIONS, STATUS_OPTIONS } from '../../packs/qcReport/questions';
 import type { DocumentCompanySettings } from '../documentCompanySettings';
 
@@ -78,6 +78,10 @@ function cleanField(v: unknown): string {
 
 function displayField(v: unknown): string {
   return displayValue(cleanField(v) || undefined);
+}
+
+function displayDateField(v: unknown): string {
+  return displayDateValue(cleanField(v) || undefined);
 }
 
 function formatSelectLabel(
@@ -217,13 +221,9 @@ export function buildQcReportPreviewFromDocumentAnswers(input: {
     { label: 'Prepared By', value: preparedBy },
   ];
 
-  let signatureDate = displayField(answers.signatureDate);
+  let signatureDate = displayDateField(answers.signatureDate);
   if (signatureDate === '—' && reportDateRaw) {
-    try {
-      signatureDate = format(new Date(reportDateRaw), 'MMMM d, yyyy');
-    } catch {
-      signatureDate = reportDateRaw;
-    }
+    signatureDate = displayDateField(reportDateRaw);
   }
 
   return {
@@ -249,10 +249,10 @@ export function buildQcReportPreviewFromDocumentAnswers(input: {
     correctiveActions: displayField(answers.correctiveActions),
     responsibleParty: displayField(answers.responsibleParty),
     followUpRequired: displayField(answers.followUpRequired),
-    followUpDate: displayField(answers.followUpDate),
+    followUpDate: displayDateField(answers.followUpDate),
     reinspectionRequired: displayField(answers.reinspectionRequired),
-    reinspectionDate: displayField(answers.reinspectionDate),
-    concretePlacementDate: displayField(answers.concretePlacementDate),
+    reinspectionDate: displayDateField(answers.reinspectionDate),
+    concretePlacementDate: displayDateField(answers.concretePlacementDate),
     mixDesignReference: displayField(answers.mixDesignReference),
     truckTicketNumbers: displayField(answers.truckTicketNumbers),
     slump: displayField(answers.slump),

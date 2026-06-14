@@ -3,7 +3,7 @@ import type { Project } from '../../../../types/index';
 import { formatUSAddress } from '../../../../types/address';
 import { resolveClientAddressForProposal } from '../../../../types/projectClient';
 import type { DocumentCompany, DocumentProject } from '../components/professionalDocumentTypes';
-import { cleanDocumentBody, displayValue } from '../previewDisplay';
+import { cleanDocumentBody, displayDateValue, displayValue } from '../previewDisplay';
 import type { DocumentCompanySettings } from '../documentCompanySettings';
 
 export interface FarDocumentView {
@@ -51,6 +51,10 @@ function cleanField(v: unknown): string {
 
 function displayField(v: unknown): string {
   return displayValue(cleanField(v) || undefined);
+}
+
+function displayDateField(v: unknown): string {
+  return displayDateValue(cleanField(v) || undefined);
 }
 
 function projectAddress(project: Project | null): string {
@@ -136,10 +140,10 @@ export function buildFarPreviewFromDocumentAnswers(input: {
     costImpact: displayField(answers.costImpact),
     scheduleImpact: displayField(answers.scheduleImpact),
     priority: displayField(answers.priority),
-    dueDate: displayField(answers.dueDate),
+    dueDate: displayDateField(answers.dueDate),
     reviewerResponse: displayField(answers.reviewerResponse),
     reviewedBy: displayField(answers.reviewedBy),
-    responseDate: displayField(answers.responseDate),
+    responseDate: displayDateField(answers.responseDate),
     approvalDecision: displayField(answers.approvalDecision),
     drawingReference: displayField(answers.drawingReference),
     specReference: displayField(answers.specReference),

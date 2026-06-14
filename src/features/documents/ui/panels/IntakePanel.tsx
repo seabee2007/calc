@@ -20,7 +20,7 @@ import {
 } from '../../../../utils/currencyInput';
 import { formatUSPhoneInput } from '../../../../utils/phoneFormat';
 import type { DocumentQuestion, IntakeGroup, QuestionnaireMode } from '../../types';
-import { isDateQuestionKey } from '../../../../utils/dateInput';
+import { isDateDocumentField } from '../../../../utils/dateInput';
 import { GROUP_LABELS, MODES } from '../contractBuilderConstants';
 import type { ContractPrefillSource } from '../contractPrefill';
 
@@ -305,7 +305,7 @@ export default function IntakePanel({
       );
     }
 
-    const isDateField = q.type === 'date' || isDateQuestionKey(q.questionKey);
+    const isDateField = isDateDocumentField(q);
     if (isDateField) {
       const meta = fieldMeta(q.questionKey, q.helperText);
       return (

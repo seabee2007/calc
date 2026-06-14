@@ -96,7 +96,12 @@ export default function FieldToolPageLayout({
 
       <div className={`mb-6 p-4 ${PREMIUM_PANEL} print:hidden`}>
         <Select
-          label={plannerReturn ? 'Project' : 'Project (saved to Planner → Documents)'}
+          label="Project"
+          helperText={
+            plannerReturn
+              ? undefined
+              : 'Saved documents appear under Planner → Documents.'
+          }
           options={[
             { value: '', label: 'Select a project…' },
             ...projects.map((p) => ({ value: p.id, label: p.name })),
@@ -108,26 +113,10 @@ export default function FieldToolPageLayout({
           }}
           fullWidth
         />
-        {currentProject && (
-          <>
-            {!plannerReturn && (
-              <p className="mt-2 text-sm text-cyan-700 dark:text-cyan-300">
-                Saves appear under{' '}
-                <Link
-                  to={plannerDocumentsHref(currentProject.id)}
-                  className="font-medium underline hover:text-cyan-800 dark:hover:text-cyan-200"
-                >
-                  Planner → Documents
-                </Link>{' '}
-                for {currentProject.name}.
-              </p>
-            )}
-            {hasProjectJobsite(currentProject.jobsiteAddress) && (
-              <p className={`${plannerReturn ? 'mt-2' : 'mt-1'} ${FIELD_TOOL_MUTED}`}>
-                Jobsite: {formatUSAddress(currentProject.jobsiteAddress!)}
-              </p>
-            )}
-          </>
+        {currentProject && hasProjectJobsite(currentProject.jobsiteAddress) && (
+          <p className={`mt-2 ${FIELD_TOOL_MUTED}`}>
+            Jobsite: {formatUSAddress(currentProject.jobsiteAddress!)}
+          </p>
         )}
       </div>
 

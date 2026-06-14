@@ -3,7 +3,7 @@ import type { Project } from '../../../../types/index';
 import { formatUSAddress } from '../../../../types/address';
 import { resolveClientAddressForProposal } from '../../../../types/projectClient';
 import type { DocumentCompany, DocumentProject } from '../components/professionalDocumentTypes';
-import { cleanDocumentBody, displayValue } from '../previewDisplay';
+import { cleanDocumentBody, displayDateValue, displayValue } from '../previewDisplay';
 import {
   FINAL_INSPECTION_RESULT_OPTIONS,
   PUNCH_LIST_STATUS_OPTIONS,
@@ -72,6 +72,10 @@ function cleanField(v: unknown): string {
 
 function displayField(v: unknown): string {
   return displayValue(cleanField(v) || undefined);
+}
+
+function displayDateField(v: unknown): string {
+  return displayDateValue(cleanField(v) || undefined);
 }
 
 function formatSelectLabel(
@@ -182,13 +186,9 @@ export function buildWarrantyCloseoutPreviewFromDocumentAnswers(input: {
       ? displayField(answers.reviewedBy)
       : displayField(answers.ownerRepresentative);
 
-  let signatureDate = displayField(answers.signatureDate);
+  let signatureDate = displayDateField(answers.signatureDate);
   if (signatureDate === '—' && letterDateRaw) {
-    try {
-      signatureDate = format(new Date(letterDateRaw), 'MMMM d, yyyy');
-    } catch {
-      signatureDate = letterDateRaw;
-    }
+    signatureDate = displayDateField(letterDateRaw);
   }
 
   const projectRows = [
@@ -210,8 +210,8 @@ export function buildWarrantyCloseoutPreviewFromDocumentAnswers(input: {
     projectRows,
     preparedBy,
     recipientName,
-    projectCompletionDate: displayField(answers.projectCompletionDate),
-    warrantyStartDate: displayField(answers.warrantyStartDate),
+    projectCompletionDate: displayDateField(answers.projectCompletionDate),
+    warrantyStartDate: displayDateField(answers.warrantyStartDate),
     warrantyPeriod:
       formatSelectLabel(answers.warrantyPeriod, WARRANTY_PERIOD_OPTIONS) ||
       displayField(answers.warrantyPeriod),
@@ -220,7 +220,7 @@ export function buildWarrantyCloseoutPreviewFromDocumentAnswers(input: {
     punchListStatus:
       formatSelectLabel(answers.punchListStatus, PUNCH_LIST_STATUS_OPTIONS) ||
       displayField(answers.punchListStatus),
-    finalInspectionDate: displayField(answers.finalInspectionDate),
+    finalInspectionDate: displayDateField(answers.finalInspectionDate),
     finalInspectionResult:
       formatSelectLabel(answers.finalInspectionResult, FINAL_INSPECTION_RESULT_OPTIONS) ||
       displayField(answers.finalInspectionResult),
@@ -240,7 +240,7 @@ export function buildWarrantyCloseoutPreviewFromDocumentAnswers(input: {
     finalPaymentStatus: displayField(answers.finalPaymentStatus),
     unresolvedItems: displayField(answers.unresolvedItems),
     followUpRequired: displayField(answers.followUpRequired),
-    followUpDate: displayField(answers.followUpDate),
+    followUpDate: displayDateField(answers.followUpDate),
     additionalTerms: displayField(answers.additionalTerms),
     contractorContactName: displayField(answers.contractorContactName),
     contractorContactPhone: displayField(answers.contractorContactPhone),

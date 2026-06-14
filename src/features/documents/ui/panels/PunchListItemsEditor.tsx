@@ -1,6 +1,10 @@
 import { useState } from 'react';
-import { ChevronDown, ChevronUp, Copy, Plus, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Copy, Trash2 } from 'lucide-react';
+import {
+  DocumentRepeatingSectionHeader,
+} from '../components/DocumentRepeatingSection';
 import Input from '../../../../components/ui/Input';
+import DatePickerField from '../../../../components/ui/DatePickerField';
 import Select from '../../../../components/ui/Select';
 import Button from '../../../../components/ui/Button';
 import {
@@ -55,29 +59,16 @@ export default function PunchListItemsEditor({ mode, items, onChange }: Props) {
 
   return (
     <div className={APP_SECTION_CARD}>
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className={`text-sm font-semibold ${TEXT_FOREGROUND}`}>
-            Punch List Items / Discrepancies
-          </h2>
-          <p className={`mt-1 text-xs ${TEXT_MUTED}`}>
-            Add each deficiency or punch item. All items save with the document draft.
-          </p>
-        </div>
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          icon={<Plus className="h-4 w-4" />}
-          onClick={() => onChange([...items, emptyPunchListItem()])}
-        >
-          Add Discrepancy
-        </Button>
-      </div>
+      <DocumentRepeatingSectionHeader
+        title="Punch List Items / Discrepancies"
+        description="Add each deficiency or punch item. All items save with the document draft."
+        addButtonLabel="Add discrepancy"
+        onAdd={() => onChange([...items, emptyPunchListItem()])}
+      />
 
       {items.length === 0 ? (
         <p className={`text-sm ${TEXT_MUTED}`}>
-          No discrepancies yet. Use Add Discrepancy to record punch items.
+          No discrepancies yet. Use Add discrepancy to record punch items.
         </p>
       ) : null}
 
@@ -148,11 +139,13 @@ export default function PunchListItemsEditor({ mode, items, onChange }: Props) {
                       onChange={(v) => update(index, { status: v })}
                       fullWidth
                     />
-                    <Input
+                    <DatePickerField
+                      id={`punch-item-${item.id}-due-date`}
                       label="Due Date"
                       value={item.dueDate}
-                      onChange={(e) => update(index, { dueDate: e.target.value })}
+                      onChange={(v) => update(index, { dueDate: v })}
                       fullWidth
+                      allowClear
                     />
                   </div>
 
@@ -180,11 +173,13 @@ export default function PunchListItemsEditor({ mode, items, onChange }: Props) {
                         fullWidth
                       />
                       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                        <Input
+                        <DatePickerField
+                          id={`punch-item-${item.id}-completion-date`}
                           label="Completion Date"
                           value={item.completionDate}
-                          onChange={(e) => update(index, { completionDate: e.target.value })}
+                          onChange={(v) => update(index, { completionDate: v })}
                           fullWidth
+                          allowClear
                         />
                         <Input
                           label="Verified By"
@@ -192,11 +187,13 @@ export default function PunchListItemsEditor({ mode, items, onChange }: Props) {
                           onChange={(e) => update(index, { verifiedBy: e.target.value })}
                           fullWidth
                         />
-                        <Input
+                        <DatePickerField
+                          id={`punch-item-${item.id}-verification-date`}
                           label="Verification Date"
                           value={item.verificationDate}
-                          onChange={(e) => update(index, { verificationDate: e.target.value })}
+                          onChange={(v) => update(index, { verificationDate: v })}
                           fullWidth
+                          allowClear
                         />
                       </div>
                     </>

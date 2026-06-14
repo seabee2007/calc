@@ -3,7 +3,7 @@ import type { Project } from '../../../../types/index';
 import { formatUSAddress } from '../../../../types/address';
 import { resolveClientAddressForProposal } from '../../../../types/projectClient';
 import type { DocumentCompany, DocumentProject } from '../components/professionalDocumentTypes';
-import { cleanDocumentBody, displayValue } from '../previewDisplay';
+import { cleanDocumentBody, displayDateValue, displayValue } from '../previewDisplay';
 import type { DocumentCompanySettings } from '../documentCompanySettings';
 
 // ─── View model ───────────────────────────────────────────────────────────────
@@ -52,6 +52,10 @@ function cleanField(v: unknown): string {
 
 function displayField(v: unknown): string {
   return displayValue(cleanField(v) || undefined);
+}
+
+function displayDateField(v: unknown): string {
+  return displayDateValue(cleanField(v) || undefined);
 }
 
 function formatImpact(v: unknown): string {
@@ -195,18 +199,18 @@ export function buildRfiPreviewFromDocumentAnswers(input: {
     drawingSpecReference: combineDrawingSpec(answers),
     submittedBy: displayField(answers.submittedBy),
     submittedTo: displayField(answers.submittedTo),
-    dueDate: displayField(answers.dueDate),
+    dueDate: displayDateField(answers.dueDate),
     costImpact: formatImpact(answers.costImpact),
     scheduleImpact: formatImpact(answers.scheduleImpact),
     response: displayField(answers.response),
     respondedBy: displayField(answers.respondedBy),
-    responseDate: displayField(answers.responseDate),
+    responseDate: displayDateField(answers.responseDate),
     attachmentDrawings: displayField(answers.attachmentDrawings),
     attachmentPhotos: displayField(answers.attachmentPhotos),
     attachmentSpecSections: displayField(answers.attachmentSpecSections),
     attachmentOtherReferences: displayField(answers.attachmentOtherReferences),
     signatureSubmittedBy: displayField(answers.submittedBy),
     signatureReviewedBy: displayField(answers.reviewedBy),
-    signatureDate: displayField(answers.signatureDate),
+    signatureDate: displayDateField(answers.signatureDate),
   };
 }

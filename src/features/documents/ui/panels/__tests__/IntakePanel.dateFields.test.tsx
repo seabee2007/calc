@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import IntakePanel from '../IntakePanel';
 import { qcReportQuestions } from '../../../packs/qcReport/questions';
+import { punchListQuestions } from '../../../packs/punchList/questions';
 
 vi.mock('../../../../services/rfiService', () => ({
   fetchRfisForProject: vi.fn().mockResolvedValue([]),
@@ -75,5 +76,35 @@ describe('IntakePanel date fields', () => {
 
     await user.click(screen.getByRole('button', { name: 'Clear date' }));
     expect(onAnswerChange).toHaveBeenCalledWith('reportDate', '');
+  });
+
+  it('renders punch list date fields as date inputs', () => {
+    render(
+      <IntakePanel
+        packOptions={[{ value: 'punch_list', label: 'Punch List' }]}
+        packKey="punch_list"
+        mode="advanced"
+        groupedQuestions={[
+          {
+            group: 'schedule',
+            questions: punchListQuestions.filter((q) =>
+              ['listDate', 'inspectionDate', 'finalAcceptanceDate', 'signatureDate'].includes(
+                q.questionKey,
+              ),
+            ),
+          },
+        ]}
+        answers={{ listDate: 'June 3, 2026' }}
+        onPackChange={vi.fn()}
+        onModeChange={vi.fn()}
+        onAnswerChange={onAnswerChange}
+      />,
+    );
+
+    expect(screen.getByLabelText('List date')).toHaveAttribute('type', 'date');
+    expect(screen.getByLabelText('Inspection date')).toHaveAttribute('type', 'date');
+    expect(screen.getByLabelText('Final acceptance date')).toHaveAttribute('type', 'date');
+    expect(screen.getByLabelText('Signature date')).toHaveAttribute('type', 'date');
+    expect((screen.getByLabelText('List date') as HTMLInputElement).value).toBe('2026-06-03');
   });
 });

@@ -3,7 +3,7 @@ import type { Project } from '../../../../types/index';
 import { formatUSAddress } from '../../../../types/address';
 import { resolveClientAddressForProposal } from '../../../../types/projectClient';
 import type { DocumentCompany, DocumentProject } from '../components/professionalDocumentTypes';
-import { cleanDocumentBody, displayValue } from '../previewDisplay';
+import { cleanDocumentBody, displayDateValue, displayValue } from '../previewDisplay';
 import type { DocumentCompanySettings } from '../documentCompanySettings';
 
 const DEFAULT_CONTRACTOR_STATEMENT =
@@ -60,6 +60,10 @@ function cleanField(v: unknown): string {
 
 function displayField(v: unknown): string {
   return displayValue(cleanField(v) || undefined);
+}
+
+function displayDateField(v: unknown): string {
+  return displayDateValue(cleanField(v) || undefined);
 }
 
 function formatSelectLabel(v: unknown, options: { value: string; label: string }[]): string {
@@ -207,7 +211,7 @@ export function buildSubmittalPreviewFromDocumentAnswers(input: {
     reviewer: displayField(answers.reviewer),
     submittedBy: displayField(answers.submittedBy),
     submittedTo: displayField(answers.submittedTo),
-    dueDate: displayField(answers.dueDate),
+    dueDate: displayDateField(answers.dueDate),
     reviewStatus: reviewStatus === '—' ? '—' : reviewStatus,
     reviewerComments: displayField(answers.reviewerComments),
     contractorStatement,
@@ -221,6 +225,6 @@ export function buildSubmittalPreviewFromDocumentAnswers(input: {
     signatureReviewedBy: displayField(answers.reviewedBy) !== '—'
       ? displayField(answers.reviewedBy)
       : displayField(answers.reviewer),
-    signatureDate: displayField(answers.signatureDate),
+    signatureDate: displayDateField(answers.signatureDate),
   };
 }

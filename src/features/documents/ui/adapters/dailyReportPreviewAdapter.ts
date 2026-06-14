@@ -3,7 +3,7 @@ import type { Project } from '../../../../types/index';
 import { formatUSAddress } from '../../../../types/address';
 import { resolveClientAddressForProposal } from '../../../../types/projectClient';
 import type { DocumentCompany, DocumentProject } from '../components/professionalDocumentTypes';
-import { cleanDocumentBody, displayValue } from '../previewDisplay';
+import { cleanDocumentBody, displayDateValue, displayValue } from '../previewDisplay';
 import type { DocumentCompanySettings } from '../documentCompanySettings';
 
 // ─── View model ───────────────────────────────────────────────────────────────
@@ -97,6 +97,10 @@ function cleanField(v: unknown): string {
 
 function displayField(v: unknown): string {
   return displayValue(cleanField(v) || undefined);
+}
+
+function displayDateField(v: unknown): string {
+  return displayDateValue(cleanField(v) || undefined);
 }
 
 function formatSelectLabel(
@@ -275,6 +279,6 @@ export function buildDailyReportPreviewFromDocumentAnswers(input: {
     attachmentNotes: displayField(answers.attachmentNotes),
     signaturePreparedBy: preparedBy,
     signatureReviewedBy: displayField(answers.reviewedBy),
-    signatureDate: displayField(answers.signatureDate),
+    signatureDate: displayDateField(answers.signatureDate),
   };
 }

@@ -1,3 +1,5 @@
+import { formatDateForDocument } from '../../../utils/dateInput';
+
 const PLACEHOLDER_TOKEN = /\[[\w.]+\]/g;
 const HANDLEBARS_TOKEN = /\{\{[^}]+\}\}/g;
 
@@ -28,4 +30,11 @@ export function isMissingDisplayValue(value: string | undefined | null): boolean
 /** Format a display value, using fallback when missing. */
 export function displayValue(value: string | undefined | null, fallback = '—'): string {
   return isMissingDisplayValue(value) ? fallback : value!.trim();
+}
+
+/** Format a date answer for document preview/PDF (e.g. June 3, 2026). */
+export function displayDateValue(value: string | undefined | null, fallback = '—'): string {
+  if (isMissingDisplayValue(value)) return fallback;
+  const formatted = formatDateForDocument(value!.trim());
+  return isMissingDisplayValue(formatted) ? fallback : formatted;
 }

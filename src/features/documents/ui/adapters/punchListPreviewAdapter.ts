@@ -5,7 +5,7 @@ import { resolveClientAddressForProposal } from '../../../../types/projectClient
 import type { PunchListItemAnswer } from '../../packs/punchList/punchListItemTypes';
 import { parsePunchListItems } from '../../packs/punchList/punchListItemTypes';
 import type { DocumentCompany, DocumentProject } from '../components/professionalDocumentTypes';
-import { cleanDocumentBody, displayValue } from '../previewDisplay';
+import { cleanDocumentBody, displayDateValue, displayValue } from '../previewDisplay';
 import {
   CATEGORY_OPTIONS,
   ITEM_STATUS_OPTIONS,
@@ -80,6 +80,10 @@ function cleanField(v: unknown): string {
 
 function displayField(v: unknown): string {
   return displayValue(cleanField(v) || undefined);
+}
+
+function displayDateField(v: unknown): string {
+  return displayDateValue(cleanField(v) || undefined);
 }
 
 function formatSelectLabel(
@@ -160,11 +164,11 @@ function mapPunchListItemAnswer(row: PunchListItemAnswer, index: number): PunchL
     priority:
       formatSelectLabel(row.priority, PRIORITY_OPTIONS) || displayField(row.priority),
     itemStatus: itemStatusRaw === '—' ? 'Open' : itemStatusRaw,
-    dueDate: displayField(row.dueDate),
+    dueDate: displayDateField(row.dueDate),
     correctiveAction: displayField(row.correctiveAction),
-    completionDate: displayField(row.completionDate),
+    completionDate: displayDateField(row.completionDate),
     verifiedBy: displayField(row.verifiedBy),
-    verificationDate: displayField(row.verificationDate),
+    verificationDate: displayDateField(row.verificationDate),
     notes: displayField(row.attachmentNotes),
     ownerComment: displayField(row.ownerComment),
     contractorResponse: displayField(row.contractorResponse),
@@ -203,11 +207,11 @@ function buildPrimaryItem(answers: Record<string, unknown>): PunchListItemView |
     priority:
       formatSelectLabel(answers.priority, PRIORITY_OPTIONS) || displayField(answers.priority),
     itemStatus: itemStatusRaw === '—' ? 'Open' : itemStatusRaw,
-    dueDate: displayField(answers.dueDate),
+    dueDate: displayDateField(answers.dueDate),
     correctiveAction: displayField(answers.correctiveAction),
-    completionDate: displayField(answers.completionDate),
+    completionDate: displayDateField(answers.completionDate),
     verifiedBy: displayField(answers.verifiedBy),
-    verificationDate: displayField(answers.verificationDate),
+    verificationDate: displayDateField(answers.verificationDate),
     notes: displayField(answers.notes),
     ownerComment: displayField(answers.ownerComment),
     contractorResponse: displayField(answers.contractorResponse),
@@ -283,13 +287,9 @@ export function buildPunchListPreviewFromDocumentAnswers(input: {
   const ownerSig =
     finalAcceptanceBy !== '—' ? finalAcceptanceBy : projectClientName(selectedProject);
 
-  let signatureDate = displayField(answers.signatureDate);
+  let signatureDate = displayDateField(answers.signatureDate);
   if (signatureDate === '—' && listDateRaw) {
-    try {
-      signatureDate = format(new Date(listDateRaw), 'MMMM d, yyyy');
-    } catch {
-      signatureDate = listDateRaw;
-    }
+    signatureDate = displayDateField(listDateRaw);
   }
 
   const projectRows = [
@@ -311,7 +311,7 @@ export function buildPunchListPreviewFromDocumentAnswers(input: {
     project,
     projectRows,
     preparedBy,
-    inspectionDate: displayField(answers.inspectionDate),
+    inspectionDate: displayDateField(answers.inspectionDate),
     inspectionLocation: displayField(answers.inspectionLocation),
     summary: displayField(answers.summary),
     items,
@@ -322,7 +322,7 @@ export function buildPunchListPreviewFromDocumentAnswers(input: {
     photoReferences: legacyDocLevel ? displayField(answers.photoReferences) : '—',
     attachmentNotes: legacyDocLevel ? displayField(answers.attachmentNotes) : '—',
     finalAcceptanceBy,
-    finalAcceptanceDate: displayField(answers.finalAcceptanceDate),
+    finalAcceptanceDate: displayDateField(answers.finalAcceptanceDate),
     signaturePreparedBy: preparedBy,
     signatureVerifiedBy: resolveSignatureVerifiedBy(items),
     signatureOwner: ownerSig,
