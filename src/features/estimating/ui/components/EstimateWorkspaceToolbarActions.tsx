@@ -3,6 +3,7 @@ import Button from '../../../../components/ui/Button';
 import {
   ADD_DIVISION_TOOLBAR_LABEL,
   ESTIMATE_WORKSPACE_TOOLBAR_MARKER,
+  SAVE_QUICK_ESTIMATE_TOOLBAR_LABEL,
   buildEstimateWorkspaceActionsMenuItems,
   type EstimateBuilderToolbarHandlers,
 } from '../estimateWorkspaceToolbar';
@@ -78,6 +79,7 @@ export default function EstimateWorkspaceToolbarActions({
     showSaveBucket,
     showImportExport,
     showConvertToDetailed,
+    showSaveQuick,
     includeMobileOverflow: false,
   });
   const mobileMenuItems = buildEstimateWorkspaceActionsMenuItems({
@@ -86,6 +88,7 @@ export default function EstimateWorkspaceToolbarActions({
     showSaveBucket,
     showImportExport,
     showConvertToDetailed,
+    showSaveQuick,
     includeMobileOverflow: true,
   });
   const showDesktopActionsDropdown = desktopMenuItems.length > 0;
@@ -139,9 +142,10 @@ export default function EstimateWorkspaceToolbarActions({
           icon={<Save className="h-4 w-4" />}
           disabled={!canEdit || !canSaveQuick}
           isLoading={saving}
+          data-testid="estimate-workspace-save-quick-button"
           onClick={() => handlers?.saveQuick()}
         >
-          {saving ? 'Saving...' : 'Save quick estimate'}
+          {saving ? 'Saving...' : SAVE_QUICK_ESTIMATE_TOOLBAR_LABEL}
         </Button>
       ) : null}
       {showSaveBucket ? (
@@ -170,6 +174,7 @@ export default function EstimateWorkspaceToolbarActions({
             onCollapseAll={() => handlers?.collapseAll()}
             onResetForm={onReset}
             onConvertToDetailed={onConvertToDetailed}
+            onSaveQuick={() => handlers?.saveQuick()}
             onActionsMenuOpenChange={onActionsMenuOpenChange}
           />
         </div>
@@ -187,6 +192,7 @@ export default function EstimateWorkspaceToolbarActions({
             onCollapseAll={() => handlers?.collapseAll()}
             onResetForm={onReset}
             onConvertToDetailed={onConvertToDetailed}
+            onSaveQuick={() => handlers?.saveQuick()}
             onActionsMenuOpenChange={onActionsMenuOpenChange}
           />
         </div>

@@ -42,6 +42,8 @@ async function recordClientAction(
     p_client_signature: client?.signature ?? null,
   });
   if (error) throw error;
+  const bundle = parseChangeOrderPublicBundle(data);
+  if (bundle?.order) return bundle.order;
   return mapChangeOrder(data as Record<string, unknown>);
 }
 

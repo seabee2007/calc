@@ -417,7 +417,9 @@ function App() {
               path="proposal-generator"
               element={
                 <AuthGuard>
-                  <LazyRoute Page={LazyProposalGenerator} />
+                  <OwnerGuard>
+                    <LazyRoute Page={LazyProposalGenerator} />
+                  </OwnerGuard>
                 </AuthGuard>
               }
             />
@@ -425,7 +427,9 @@ function App() {
               path="proposals"
               element={
                 <AuthGuard>
-                  <LazyRoute Page={LazyProposals} />
+                  <OwnerGuard>
+                    <LazyRoute Page={LazyProposals} />
+                  </OwnerGuard>
                 </AuthGuard>
               }
             />
@@ -433,7 +437,9 @@ function App() {
               path="financials"
               element={
                 <AuthGuard>
-                  <LazyRoute Page={LazyFinancialDetailsPage} />
+                  <OwnerGuard>
+                    <LazyRoute Page={LazyFinancialDetailsPage} />
+                  </OwnerGuard>
                 </AuthGuard>
               }
             />
@@ -441,7 +447,9 @@ function App() {
               path="accounting-tax"
               element={
                 <AuthGuard>
-                  <LazyRoute Page={LazyAccountingTaxPage} />
+                  <OwnerGuard>
+                    <LazyRoute Page={LazyAccountingTaxPage} />
+                  </OwnerGuard>
                 </AuthGuard>
               }
             />
@@ -449,7 +457,9 @@ function App() {
               path="settings"
               element={
                 <AuthGuard>
-                  <LazyRoute Page={LazySettings} />
+                  <OwnerGuard>
+                    <LazyRoute Page={LazySettings} />
+                  </OwnerGuard>
                 </AuthGuard>
               }
             />

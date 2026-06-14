@@ -66,7 +66,11 @@ import EstimateWorkspaceTabBar, {
 import EstimateWorkspaceLoading from './components/EstimateWorkspaceLoading';
 import EstimateWorkspaceEmptyState from './components/EstimateWorkspaceEmptyState';
 import EstimateWorkspaceToast from './components/EstimateWorkspaceToast';
-import { createEstimateSaveSuccessToast } from './estimateBuilderUi';
+import {
+  createEstimateSaveSuccessToast,
+  QUICK_ESTIMATE_SAVE_ERROR_MESSAGE,
+  QUICK_ESTIMATE_SAVE_SUCCESS_MESSAGE,
+} from './estimateBuilderUi';
 import EstimateLineItemsBuilderPanel from './components/EstimateLineItemsBuilderPanel';
 import EstimateResetSetupConfirmModal from './components/EstimateResetSetupConfirmModal';
 import { useDefinitionsHelpStore } from '../../help/definitionsHelpStore';
@@ -323,6 +327,13 @@ export default function EstimateWorkspacePage() {
   const [changingEstimateType, setChangingEstimateType] = useState(false);
   const [builderToolbarHandlers, setBuilderToolbarHandlers] =
     useState<EstimateBuilderToolbarHandlers | null>(null);
+  const [quickFeasibilityPreview, setQuickFeasibilityPreview] = useState<{
+    inputs: QuickFeasibilityInputs;
+    result: QuickFeasibilityResult;
+  } | null>(null);
+  const [quickEstimateSavedAt, setQuickEstimateSavedAt] = useState<number | null>(null);
+  const quickFeasibilityPreviewRef = useRef(quickFeasibilityPreview);
+  quickFeasibilityPreviewRef.current = quickFeasibilityPreview;
   const [schedulePlanControls, setSchedulePlanControls] = useState<EstimateSchedulePlanControlValues>(
     () => ({
       projectStartDate: getTodayScheduleDateYmd(),
@@ -1408,18 +1419,52 @@ export default function EstimateWorkspacePage() {
       });
 
       if (result.error || !result.data) {
-        setSaveError(result.error ?? 'Failed to save quick feasibility estimate.');
+        setSaveError(result.error ?? QUICK_ESTIMATE_SAVE_ERROR_MESSAGE);
+        setSaveToastMessage(QUICK_ESTIMATE_SAVE_ERROR_MESSAGE);
         setSaving(false);
         return;
       }
 
-      setSaveToastMessage(createEstimateSaveSuccessToast().message);
+      setSaveToastMessage(QUICK_ESTIMATE_SAVE_SUCCESS_MESSAGE);
+      setQuickEstimateSavedAt(Date.now());
       setCurrentEstimate(result.data);
       rehydrateDraftFromVersion(currentEstimateToDomainVersion(result.data));
       setSaving(false);
     },
     [estimate, rehydrateDraftFromVersion, saving, user?.id],
   );
+
+  const handleQuickFeasibilityPreviewChange = useCallback(
+    (inputs: QuickFeasibilityInputs, result: QuickFeasibilityResult) => {
+      setQuickFeasibilityPreview({ inputs, result });
+    },
+    [],
+  );
+
+  const handleQuickTabSave = useCallback(() => {
+    const preview = quickFeasibilityPreviewRef.current;
+    if (preview) void handleSaveQuickEstimate(preview);
+  }, [handleSaveQuickEstimate]);
+
+  const savedQuickFeasibilityInputs = useMemo(
+    () =>
+      estimateAdapter ? quickFeasibilityInputsFromSnapshot(estimateAdapter.snapshot) : null,
+    [estimateAdapter],
+  );
+
+  const isQuickFeasibilityDirty = useMemo(() => {
+    if (!quickFeasibilityPreview || !savedQuickFeasibilityInputs) return false;
+    return (
+      JSON.stringify(quickFeasibilityPreview.inputs) !==
+      JSON.stringify(savedQuickFeasibilityInputs)
+    );
+  }, [quickFeasibilityPreview, savedQuickFeasibilityInputs]);
+
+  const quickSaveStatusHint = useMemo(() => {
+    if (isQuickFeasibilityDirty) return 'Unsaved changes';
+    if (quickEstimateSavedAt != null) return 'Saved just now';
+    return null;
+  }, [isQuickFeasibilityDirty, quickEstimateSavedAt]);
 
   const handleResetEstimate = useCallback(async (): Promise<boolean> => {
     if (!resolvedProjectId || saving) return false;
@@ -2112,8 +2157,25 @@ export default function EstimateWorkspacePage() {
   );
   const showSaveQuick = shouldShowQuickSaveAction(
     activeTab,
-    builderToolbarHandlers?.showSaveQuick ?? false,
+    (builderToolbarHandlers?.showSaveQuick ?? false) ||
+      (activeTab === 'quick-estimate' && isQuickFeasibilityEstimate && hasEstimate),
   );
+  const quickTabToolbarHandlers = useMemo<EstimateBuilderToolbarHandlers>(
+    () => ({
+      showCollapseAll: false,
+      showSaveQuick: true,
+      canSaveQuick: Boolean(quickFeasibilityPreview?.result.isValid) && !saving,
+      showAddDivision: false,
+      collapseAll: () => {},
+      saveQuick: handleQuickTabSave,
+      openAddDivision: () => {},
+    }),
+    [quickFeasibilityPreview?.result.isValid, saving, handleQuickTabSave],
+  );
+  const workspaceToolbarHandlers =
+    activeTab === 'quick-estimate' && isQuickFeasibilityEstimate && hasEstimate
+      ? quickTabToolbarHandlers
+      : builderToolbarHandlers;
   const showAddDivision = shouldShowAddDivisionAction(
     activeTab,
     hasEstimate,
@@ -2213,14 +2275,14 @@ export default function EstimateWorkspacePage() {
           showImportExport={showImportExport}
           showConvertToDetailed={showConvertToDetailed}
           canEdit={canEditEstimate || activeEstimateType != null}
-          canSaveQuick={builderToolbarHandlers?.canSaveQuick ?? false}
+          canSaveQuick={workspaceToolbarHandlers?.canSaveQuick ?? false}
           saving={saving}
           saveStatus={workspaceSaveStatus.status}
           saveStatusActiveOperations={workspaceSaveStatus.activeOperations}
           hasPendingEstimateChanges={hasPendingEstimateChanges}
           saveStatusErrorMessage={workspaceSaveStatus.errorMessage ?? saveError}
           saveBlockedReason={saveBlockedReason}
-          handlers={builderToolbarHandlers}
+          handlers={workspaceToolbarHandlers}
           onReset={() => {
             if (activeTab === 'settings') {
               estimateSettings.resetSettings();
@@ -2641,6 +2703,11 @@ export default function EstimateWorkspacePage() {
                 : null
             }
             initialInputsKey={estimateAdapter?.id ?? null}
+            onPreviewChange={handleQuickFeasibilityPreviewChange}
+            onSave={handleQuickTabSave}
+            canSave={Boolean(quickFeasibilityPreview?.result.isValid) && !saving}
+            saving={saving}
+            saveStatusHint={quickSaveStatusHint}
           />
         ) : null}
 

@@ -7,6 +7,7 @@ import {
   FileSpreadsheet,
   HelpCircle,
   RotateCcw,
+  Save,
   Upload,
   ArrowRightLeft,
 } from 'lucide-react';
@@ -31,6 +32,7 @@ interface Props {
   onCollapseAll?: () => void;
   onResetForm?: () => void;
   onConvertToDetailed?: () => void;
+  onSaveQuick?: () => void;
   onActionsMenuOpenChange?: (open: boolean) => void;
 }
 
@@ -50,6 +52,8 @@ function menuIcon(key: EstimateWorkspaceActionsMenuItemKey) {
       return <RotateCcw className="h-4 w-4 shrink-0" aria-hidden />;
     case 'convert-to-detailed':
       return <ArrowRightLeft className="h-4 w-4 shrink-0" aria-hidden />;
+    case 'save-quick-estimate':
+      return <Save className="h-4 w-4 shrink-0" aria-hidden />;
     default:
       return null;
   }
@@ -66,6 +70,7 @@ export default function EstimateWorkspaceActionsMenu({
   onCollapseAll,
   onResetForm,
   onConvertToDetailed,
+  onSaveQuick,
   onActionsMenuOpenChange,
 }: Props) {
   const [open, setOpen] = useState(false);
@@ -82,6 +87,7 @@ export default function EstimateWorkspaceActionsMenu({
     onCollapseAll,
     onResetForm,
     onConvertToDetailed,
+    onSaveQuick,
   };
 
   const updateMenuPosition = () => {

@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
+import { requireAuth } from "../_shared/requireAuth.ts";
 
 const BASE_URL = "https://api.weatherapi.com/v1";
 
@@ -76,6 +77,9 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
+
+  const authResult = await requireAuth(req, corsHeaders);
+  if (!authResult.ok) return authResult.response;
 
   const apiKey = Deno.env.get("WEATHER_API_KEY");
   if (!apiKey) {

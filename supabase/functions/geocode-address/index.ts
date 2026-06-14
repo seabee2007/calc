@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 import { geocodeAddressSmart } from "../_shared/mapboxGeocode.ts";
 import { formatUSAddress, validateUSAddressParts } from "../_shared/usAddress.ts";
+import { requireAuth } from "../_shared/requireAuth.ts";
 
 const MAPBOX_TOKEN = Deno.env.get("MAPBOX_ACCESS_TOKEN");
 
@@ -16,6 +17,9 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
+
+  const authResult = await requireAuth(req, corsHeaders);
+  if (!authResult.ok) return authResult.response;
 
   try {
     if (!MAPBOX_TOKEN) {

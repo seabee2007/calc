@@ -1,6 +1,7 @@
 // supabase/functions/askConcrete/index.ts
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
+import { requireAuth } from "../_shared/requireAuth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -42,6 +43,9 @@ serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: corsHeaders });
   }
+
+  const authResult = await requireAuth(req, corsHeaders);
+  if (!authResult.ok) return authResult.response;
 
   try {
     const { question, pageLabel, projectContext } = await req.json();

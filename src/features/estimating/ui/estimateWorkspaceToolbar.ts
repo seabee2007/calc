@@ -19,7 +19,11 @@ export const ESTIMATE_WORKSPACE_ACTIONS_MENU_LABELS = {
   collapseAll: 'Collapse all',
   resetForm: 'Reset form',
   convertToDetailed: 'Convert to Detailed Estimate',
+  saveQuickEstimate: 'Save',
 } as const;
+
+export const SAVE_QUICK_ESTIMATE_TOOLBAR_LABEL =
+  ESTIMATE_WORKSPACE_ACTIONS_MENU_LABELS.saveQuickEstimate;
 
 export const REMOVED_ESTIMATE_WORKSPACE_INLINE_TOOLBAR_BUTTONS = [
   ESTIMATE_WORKSPACE_ACTIONS_MENU_LABELS.importEstimate,
@@ -35,7 +39,8 @@ export type EstimateWorkspaceActionsMenuItemKey =
   | 'help-definitions'
   | 'collapse-all'
   | 'reset-form'
-  | 'convert-to-detailed';
+  | 'convert-to-detailed'
+  | 'save-quick-estimate';
 
 export interface EstimateWorkspaceActionsMenuItem {
   key: EstimateWorkspaceActionsMenuItemKey;
@@ -51,6 +56,7 @@ export interface ResolveEstimateWorkspaceToolbarLayoutInput {
   showSaveBucket: boolean;
   showImportExport: boolean;
   showConvertToDetailed?: boolean;
+  showSaveQuick?: boolean;
   includeMobileOverflow?: boolean;
 }
 
@@ -72,6 +78,7 @@ export interface EstimateWorkspaceMenuActionHandlers {
   onCollapseAll?: () => void;
   onResetForm?: () => void;
   onConvertToDetailed?: () => void;
+  onSaveQuick?: () => void;
 }
 
 export function runEstimateWorkspaceMenuAction(
@@ -100,6 +107,9 @@ export function runEstimateWorkspaceMenuAction(
     case 'convert-to-detailed':
       handlers.onConvertToDetailed?.();
       return;
+    case 'save-quick-estimate':
+      handlers.onSaveQuick?.();
+      return;
     default:
       return;
   }
@@ -109,6 +119,13 @@ export function buildEstimateWorkspaceActionsMenuItems(
   input: ResolveEstimateWorkspaceToolbarLayoutInput,
 ): EstimateWorkspaceActionsMenuItem[] {
   const items: EstimateWorkspaceActionsMenuItem[] = [];
+
+  if (input.showSaveQuick) {
+    items.push({
+      key: 'save-quick-estimate',
+      label: ESTIMATE_WORKSPACE_ACTIONS_MENU_LABELS.saveQuickEstimate,
+    });
+  }
 
   if (input.includeMobileOverflow && input.showCollapseAll) {
     items.push({
@@ -285,7 +302,8 @@ export function shouldShowQuickSaveAction(
   activeTab: EstimateWorkspaceTabId,
   showSaveQuick: boolean,
 ): boolean {
-  return activeTab === 'line-items' && showSaveQuick;
+  if (!showSaveQuick) return false;
+  return activeTab === 'line-items' || activeTab === 'quick-estimate';
 }
 
 export function shouldShowBidImportExportActions(

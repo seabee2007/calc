@@ -28,6 +28,8 @@ import {
 } from '../../application/estimateQuickFeasibility';
 import { parseEstimateFormNumber } from '../estimateFormDefaults';
 import EstimateSummaryCard from './EstimateSummaryCard';
+import Button from '../../../../components/ui/Button';
+import { SAVE_QUICK_ESTIMATE_TOOLBAR_LABEL } from '../estimateWorkspaceToolbar';
 import {
   formatEstimateCurrency,
   formatEstimateNumber,
@@ -50,6 +52,10 @@ interface Props {
   initialInputs?: QuickFeasibilityInputs | null;
   initialInputsKey?: string | null;
   onPreviewChange?: (input: QuickFeasibilityInputs, result: QuickFeasibilityResult) => void;
+  onSave?: () => void;
+  canSave?: boolean;
+  saving?: boolean;
+  saveStatusHint?: string | null;
 }
 
 function FieldGrid({ children }: { children: React.ReactNode }) {
@@ -84,6 +90,10 @@ export default function EstimateQuickFeasibilityPanel({
   initialInputs = null,
   initialInputsKey = null,
   onPreviewChange,
+  onSave,
+  canSave = false,
+  saving = false,
+  saveStatusHint = null,
 }: Props) {
   const [inputs, setInputs] = useState<QuickFeasibilityInputs>(() =>
     initialInputs ?? createInitialQuickFeasibilityInputs(projectContext),
@@ -387,6 +397,54 @@ export default function EstimateQuickFeasibilityPanel({
           ))}
         </ul>
       </div>
+
+      {onSave ? (
+        <div
+          className="mt-6 flex flex-col gap-3 border-t border-slate-200 pt-4 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between"
+          data-testid="quick-feasibility-save-footer"
+        >
+          <div className="space-y-1">
+            <p className={`text-sm ${PLANNER_MUTED}`}>
+              Save this quick estimate before generating proposals or comparing versions.
+            </p>
+            {saveStatusHint ? (
+              <p
+                className="text-xs text-slate-500 dark:text-slate-400"
+                data-testid="quick-save-status-hint"
+              >
+                {saveStatusHint}
+              </p>
+            ) : null}
+          </div>
+          <Button
+            type="button"
+            variant="accent"
+            className="hidden w-full sm:inline-flex sm:w-auto"
+            disabled={disabled || !canSave}
+            isLoading={saving}
+            data-testid="quick-feasibility-save-button"
+            onClick={onSave}
+          >
+            {saving ? 'Saving...' : SAVE_QUICK_ESTIMATE_TOOLBAR_LABEL}
+          </Button>
+        </div>
+      ) : null}
+
+      {onSave ? (
+        <div className="sticky bottom-0 z-10 border-t border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-950 sm:hidden">
+          <Button
+            type="button"
+            variant="accent"
+            className="w-full"
+            disabled={disabled || !canSave}
+            isLoading={saving}
+            data-testid="quick-feasibility-save-button-mobile"
+            onClick={onSave}
+          >
+            {saving ? 'Saving...' : SAVE_QUICK_ESTIMATE_TOOLBAR_LABEL}
+          </Button>
+        </div>
+      ) : null}
 
       {result.warnings.some(
         (warning) =>

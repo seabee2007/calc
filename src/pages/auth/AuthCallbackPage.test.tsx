@@ -32,6 +32,7 @@ vi.mock('../../lib/loginIntent', () => ({
 vi.mock('./postAuthRouting', () => ({
   applyFieldEmployeeProfileLinking,
   loadAuthenticatedUserProfile,
+  resolveFieldPortalLoginError: vi.fn(() => null),
 }));
 
 vi.mock('react-router-dom', async () => {

@@ -116,10 +116,12 @@ describe('estimateWorkspaceToolbar', () => {
     ).toBe(false);
   });
 
-  it('shows quick save only on the estimate tab when quick feasibility is active', () => {
+  it('shows quick save on the quick estimate tab and line-items when quick feasibility is active', () => {
+    expect(shouldShowQuickSaveAction('quick-estimate', true)).toBe(true);
     expect(shouldShowQuickSaveAction('line-items', true)).toBe(true);
     expect(shouldShowQuickSaveAction('line-items', false)).toBe(false);
     expect(shouldShowQuickSaveAction('overview', true)).toBe(false);
+    expect(shouldShowQuickSaveAction('quick-estimate', false)).toBe(false);
   });
 
   it('shows bid import/export actions only on the estimate tab for bid estimates', () => {
@@ -237,6 +239,32 @@ describe('estimateWorkspaceToolbar', () => {
       'Collapse all',
     ]);
     expect(mobileItems.at(-1)?.showDividerBefore).toBe(true);
+  });
+
+  it('includes save quick estimate in the Actions menu when quick save is visible', () => {
+    const menuItems = buildEstimateWorkspaceActionsMenuItems({
+      showCollapseAll: false,
+      showReset: false,
+      showSaveBucket: false,
+      showImportExport: false,
+      showSaveQuick: true,
+    });
+
+    expect(menuItems.map((item) => item.label)).toContain(
+      ESTIMATE_WORKSPACE_ACTIONS_MENU_LABELS.saveQuickEstimate,
+    );
+    expect(menuItems[0]?.key).toBe('save-quick-estimate');
+  });
+
+  it('routes save quick estimate through the shared menu handler', () => {
+    const calls: string[] = [];
+    runEstimateWorkspaceMenuAction('save-quick-estimate', {
+      onImportEstimate: () => calls.push('import'),
+      onExportEstimate: () => calls.push('export'),
+      onDownloadTemplate: () => calls.push('template'),
+      onSaveQuick: () => calls.push('save-quick'),
+    });
+    expect(calls).toEqual(['save-quick']);
   });
 
   it('routes reset and import/export actions through the shared menu handler', () => {

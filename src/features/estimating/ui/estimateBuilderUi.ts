@@ -1,5 +1,9 @@
 export const ESTIMATE_SAVE_TOAST_MESSAGE = 'Estimate saved';
 
+export const QUICK_ESTIMATE_SAVE_SUCCESS_MESSAGE = 'Quick estimate saved';
+
+export const QUICK_ESTIMATE_SAVE_ERROR_MESSAGE = 'Could not save quick estimate';
+
 export const REMOVED_ESTIMATE_BUILDER_LABELS = [
   'Filters',
   'Division of Work',
