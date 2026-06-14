@@ -1,0 +1,33 @@
+export const CLIENT_PORTAL_INVITE_SUBJECT = 'Your project portal is ready';
+
+export function buildClientPortalInviteMessageTemplate(): string {
+  return [
+    'Hi {clientName},',
+    '',
+    'Your project portal is ready. You can use the secure link below to review project updates, documents, RFIs, proposals, and other shared project information.',
+    '',
+    'Open your portal:',
+    '{portalLink}',
+    '',
+    'Please keep this link private.',
+    '',
+    'Thank you,',
+    '{companyName}',
+  ].join('\n');
+}
+
+export function applyClientPortalInvitePlaceholders(
+  template: string,
+  values: { clientName: string; portalLink: string; companyName: string },
+): string {
+  return template
+    .replaceAll('{clientName}', values.clientName)
+    .replaceAll('{portalLink}', values.portalLink)
+    .replaceAll('{companyName}', values.companyName);
+}
+
+export function isTransactionalEmailEnabled(): boolean {
+  const env = import.meta.env.VITE_EMAIL_SENDING_ENABLED;
+  if (env == null || String(env).trim() === '') return true;
+  return !['false', '0', 'no', 'off'].includes(String(env).trim().toLowerCase());
+}

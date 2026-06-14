@@ -8,6 +8,8 @@ import ProjectDetails from './ProjectDetails';
 import ProjectForm from '../../components/projects/ProjectForm';
 import ToastManager from './ToastManager';
 import ClientPortalCreatedModal from '../../components/projects/ClientPortalCreatedModal';
+import AppPage from '../../components/ui/AppPage';
+import PageHeader from '../../components/ui/PageHeader';
 import Button from '../../components/ui/Button';
 import { useTrackedProposals } from '../../hooks/useTrackedProposals';
 import type { Project } from '../../types';
@@ -19,7 +21,6 @@ import {
   type ProjectFolder,
   type ProjectFolderContext,
 } from '../../utils/projectFolders';
-import { CC_PAGE_HERO_SUBTITLE, CC_PAGE_HERO_TITLE } from '../../theme/pageTypography';
 import { OPS_OUTLINE_BTN } from '../../components/dashboard/opsTheme';
 
 function matchProposal(
@@ -122,45 +123,52 @@ const ProjectsContent: React.FC = () => {
     [projects, projectFolder, resolveCtx],
   );
 
+  const headerActions =
+    !ui.showCreate && !ui.showDetails ? (
+      <Button
+        onClick={() => setUi((s) => ({ ...s, showCreate: true }))}
+        icon={<Plus size={18} />}
+        className="shadow-lg transition-shadow hover:shadow-xl"
+        data-testid="projects-new-button"
+      >
+        <span className="hidden sm:inline">New Project</span>
+        <span className="sm:hidden">New</span>
+      </Button>
+    ) : ui.showDetails ? (
+      <Button
+        onClick={() => handlers.backToProjectList()}
+        icon={<ArrowLeftCircle size={20} />}
+        size="lg"
+        variant="outline"
+        className={OPS_OUTLINE_BTN}
+        data-testid="projects-back-button"
+      >
+        <span className="hidden sm:inline">Back to Projects</span>
+        <span className="sm:hidden">Back</span>
+      </Button>
+    ) : undefined;
+
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.3 }}
-    >
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className={CC_PAGE_HERO_TITLE}>Projects</h1>
-          <p className={CC_PAGE_HERO_SUBTITLE}>
-            Track active jobs, next actions, readiness, and financials
-          </p>
-        </div>
-
-        {!ui.showCreate && !ui.showDetails && (
-          <Button 
-            onClick={() => setUi(s => ({ ...s, showCreate: true }))}
-            icon={<Plus size={18} />}
-            className="shadow-lg hover:shadow-xl transition-shadow"
-          >
-            <span className="hidden sm:inline">New Project</span>
-          </Button>
-        )}
-
-        {ui.showDetails && (
-          <Button
-            onClick={() => handlers.backToProjectList()}
-            icon={<ArrowLeftCircle size={20} />}
-            size="lg"
-            variant="outline"
-            className={OPS_OUTLINE_BTN}
-          >
-            <span className="hidden sm:inline">Back to Projects</span>
-          </Button>
-        )}
-      </div>
-
-      <AnimatePresence mode="wait" initial={false}>
+    <>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <AppPage
+          className="w-full !max-w-none pt-6"
+          data-testid="projects-page"
+          header={
+            <PageHeader
+              title="Projects"
+              subtitle="Track active jobs, next actions, readiness, and financials."
+              className="[&_h1]:text-slate-900 dark:[&_h1]:text-slate-50 [&_p]:text-slate-600 dark:[&_p]:text-slate-300"
+              actions={headerActions}
+            />
+          }
+        >
+          <AnimatePresence mode="wait" initial={false}>
         {ui.showCreate && (
           <motion.div key="create" {...viewMotion}>
             <ProjectForm 
@@ -228,18 +236,22 @@ const ProjectsContent: React.FC = () => {
             />
           </motion.div>
         )}
-      </AnimatePresence>
+          </AnimatePresence>
+        </AppPage>
+      </motion.div>
 
       <ToastManager {...ui.toast} />
 
       {ui.createdPortal && (
         <ClientPortalCreatedModal
           clientName={ui.createdPortal.clientName}
+          clientEmail={ui.createdPortal.clientEmail}
           token={ui.createdPortal.token}
+          projectId={ui.createdPortal.projectId}
           onClose={() => handlers.dismissCreatedPortal()}
         />
       )}
-    </motion.div>
+    </>
   );
 };
 

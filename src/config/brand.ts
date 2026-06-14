@@ -31,6 +31,17 @@ export function getAppUrl(path = ''): string {
   return `${base}${normalizedPath}`;
 }
 
+/** Public app URL for shareable links — uses current origin on the app host, configured APP_URL elsewhere. */
+export function getPublicAppUrl(path = ''): string {
+  const origin =
+    typeof window !== 'undefined' && !isMarketingHost()
+      ? window.location.origin
+      : getAppUrl();
+  if (!path) return origin;
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  return `${origin}${normalizedPath}`;
+}
+
 export function getMarketingUrl(path = ''): string {
   const base = normalizeUrlBase(MARKETING_URL);
   if (!path) return base;

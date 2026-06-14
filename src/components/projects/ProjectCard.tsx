@@ -1,29 +1,44 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { format, parseISO } from 'date-fns';
-import { Folder, Clock, Trash2, AlertTriangle, CheckCircle2, ArrowRight } from 'lucide-react';
+import {
+  Folder,
+  Clock,
+  AlertTriangle,
+  CheckCircle2,
+  ArrowRight,
+  MoreVertical,
+  Trash2,
+} from 'lucide-react';
 import Card from '../ui/Card';
-import { PREMIUM_PANEL } from '../../theme/appTheme';
-import Button from '../ui/Button';
+import { PREMIUM_PANEL, TEXT_FOREGROUND, TEXT_MUTED, TEXT_SUBTLE } from '../../theme/appTheme';
 import type { Project } from '../../types';
 import { soundService } from '../../services/soundService';
 import { hapticService } from '../../services/hapticService';
 import {
   resolveProjectWorkflow,
-  PROJECT_LIFECYCLE_LABELS,
-  normalizeWorkflowStageForDisplay,
   getProjectCardPresentation,
 } from '../../utils/projectWorkflow';
 import {
   getQcBreakStatus,
   type ProjectFolder,
 } from '../../utils/projectFolders';
-import {
-  PLACEMENT_ORDER_STATUS_LABELS,
-  type PlacementOrderStatus,
-} from '../../types/placementOrder';
 import { useTrackedProposals } from '../../hooks/useTrackedProposals';
 import type { TrackedProposalRow } from '../../types/proposalTracking';
+import {
+  formatProjectCardCreatedDate,
+  formatProjectCardEstimateLine,
+  formatProjectCardOpenItemsLine,
+  formatProjectCardScheduleLine,
+  formatProjectCardTargetDate,
+  getProjectCardEstimateState,
+  getProjectCardFinancialLine,
+  getProjectCardRiskIndicator,
+  getProjectCardScheduleState,
+  getProjectCardStatusBadge,
+  getProjectCardWorkflowReadiness,
+  inferProjectCardScopeChip,
+  resolveProjectCardNextActionLabel,
+} from '../../utils/projectCardDisplay';
 
 interface ProjectCardProps {
   project: Project;
@@ -38,7 +53,7 @@ function breakStatusLabel(complete: boolean, overdue?: boolean): string {
   return 'Pending';
 }
 
-function parsePourDate(iso?: string): Date | null {
+function parseTargetDate(iso?: string): Date | null {
   if (!iso) return null;
   const d = new Date(iso);
   return Number.isNaN(d.getTime()) ? null : d;
@@ -50,31 +65,18 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
   onClick,
   onDelete,
 }) => {
-  const p = project as any;
+  const [menuOpen, setMenuOpen] = useState(false);
   const { proposals } = useTrackedProposals();
+
   const stopCardOpen = (e: React.SyntheticEvent) => {
     e.preventDefault();
     e.stopPropagation();
   };
+
   const handleCardClick = async () => {
     await hapticService.selection();
     onClick();
   };
-
-  const formattedDate = (() => {
-    try {
-      if (!project.updatedAt) return '—';
-      const date = parseISO(project.updatedAt);
-      if (isNaN(date.getTime())) {
-        console.error('Invalid date:', project.updatedAt);
-        return '—';
-      }
-      return format(date, 'MMM d, yyyy');
-    } catch (error) {
-      console.error('Error formatting date:', error);
-      return '—';
-    }
-  })();
 
   const matchedProposal: TrackedProposalRow | undefined = useMemo(() => {
     const direct = proposals.find((proposal) => proposal.project_id === project.id);
@@ -89,7 +91,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
     );
   }, [proposals, project.id, project.name]);
 
-  const workflow = resolveProjectWorkflow(project as any, {
+  const workflow = resolveProjectWorkflow(project, {
     hasProposalDraft: Boolean(matchedProposal),
     proposalStatus: matchedProposal?.status,
     windRisk: 'unknown',
@@ -98,9 +100,8 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
     now: new Date(),
   });
 
-  const displayStage = normalizeWorkflowStageForDisplay(workflow.stage);
-  const pourDate = parsePourDate(p.pourDate);
-  const hasPourDate = Boolean(p.pourDate);
+  const targetDate = parseTargetDate(project.pourDate);
+  const hasTargetDate = Boolean(project.pourDate);
   const folderCtx = {
     hasProposalDraft: Boolean(matchedProposal),
     proposalStatus: matchedProposal?.status,
@@ -111,154 +112,208 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
   const presentation = getProjectCardPresentation(
     workflow.stage,
     workflow.nextAction.label,
-    hasPourDate,
-    pourDate,
+    hasTargetDate,
+    targetDate,
   );
 
-  const badgeLabel =
-    folder === 'qc_closeout'
-      ? 'QC Closeout'
-      : folder === 'archived'
-        ? 'Archived'
-        : presentation.priorityLabel;
-
-  const badgeClass =
-    folder === 'qc_closeout'
-      ? 'bg-violet-500/15 text-violet-800 border-violet-500/40 dark:text-violet-200'
-      : folder === 'archived'
-        ? 'bg-slate-600/20 text-slate-700 border-slate-500/50 dark:text-slate-200'
-        : presentation.priorityBadgeClass;
-
-  const ringClass =
-    folder === 'qc_closeout'
-      ? 'ring-1 ring-violet-500/35'
-      : presentation.priorityRingClass;
-
-  const nextActionLabel =
-    folder === 'archived'
-      ? 'View project'
-      : folder === 'qc_closeout'
-        ? qcStatus.qcComplete
-          ? 'View project'
-          : `Enter ${qcStatus.nextDueLabel}`
-        : presentation.nextActionLabel;
-
-  const showPlacementOrder =
-    folder === 'active' && !presentation.hidePlacementOrder;
-
-  const volumeYd = (p.calculations ?? []).reduce(
-    (s: number, c: any) => s + ((c.result?.volume as number) ?? 0),
-    0,
+  const statusBadge = getProjectCardStatusBadge(folder, presentation);
+  const readiness = getProjectCardWorkflowReadiness(workflow.stage);
+  const estimateState = getProjectCardEstimateState(
+    project,
+    workflow.stage,
+    Boolean(matchedProposal),
+    matchedProposal?.status,
   );
-  const psiFromCalc =
-    p.calculations?.[0]?.psi ??
-    p.calculations?.[0]?.mixDesign?.psi ??
-    '';
-  const psi = psiFromCalc ? `${psiFromCalc} PSI` : 'Mix: —';
-  const plant = p.placementOrder?.batchPlantName?.trim()
-    ? p.placementOrder.batchPlantName
-    : 'Plant: —';
-  const orderStatusKey = (p.placementOrder?.status ?? 'draft') as PlacementOrderStatus;
-  const orderStatusLabel = PLACEMENT_ORDER_STATUS_LABELS[orderStatusKey];
+  const scheduleState = getProjectCardScheduleState(
+    workflow.stage,
+    project.pourDate,
+  );
+  const financialLine = getProjectCardFinancialLine(matchedProposal);
+  const openItemsLine = formatProjectCardOpenItemsLine();
+  const nextActionLabel = resolveProjectCardNextActionLabel({
+    folder,
+    rawNextActionLabel: presentation.nextActionLabel,
+    qcNextDueLabel: qcStatus.nextDueLabel,
+    qcComplete: qcStatus.qcComplete,
+  });
+  const riskIndicator = getProjectCardRiskIndicator({
+    folder,
+    stage: workflow.stage,
+    project,
+    proposalStatus: matchedProposal?.status,
+    hasProposalDraft: Boolean(matchedProposal),
+    qcOverdue: qcStatus.isOverdue,
+  });
+  const scopeChip = inferProjectCardScopeChip(project.name, project.description);
+  const createdLabel = formatProjectCardCreatedDate(project.createdAt);
+  const targetDateLabel = formatProjectCardTargetDate(project.pourDate);
+
+  const riskTone =
+    riskIndicator === 'QC overdue' || riskIndicator === 'Deposit due'
+      ? 'text-amber-600 dark:text-amber-400'
+      : riskIndicator === 'Needs estimate' || riskIndicator === 'Follow up'
+        ? 'text-amber-600 dark:text-amber-400'
+        : riskIndicator === 'Closeout pending'
+          ? 'text-violet-600 dark:text-violet-400'
+          : riskIndicator === 'Archived'
+            ? 'text-slate-500 dark:text-slate-400'
+            : 'text-emerald-600 dark:text-emerald-400';
 
   return (
     <motion.div
       whileHover={{ y: -5 }}
       whileTap={{ scale: 0.98 }}
+      onClick={() => void handleCardClick()}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          void handleCardClick();
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      data-testid={`project-card-${project.id}`}
     >
-      <Card 
-        className={`cursor-pointer h-full ${PREMIUM_PANEL} ${ringClass}`}
+      <Card
+        className={`cursor-pointer h-full ${PREMIUM_PANEL} ${statusBadge.ringClass}`}
         shadow="md"
       >
         <div className="p-5">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center min-w-0" onClick={handleCardClick}>
-              <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+          <div className="flex items-start justify-between gap-2 mb-4">
+            <div className="flex items-center min-w-0">
+              <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg shrink-0">
                 <Folder className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
-              <h3 className="ml-3 text-lg font-semibold text-gray-900 dark:text-white truncate">
-                {project.name}
-              </h3>
+              <div className="ml-3 min-w-0">
+                <h3
+                  className={`text-lg font-semibold truncate ${TEXT_FOREGROUND}`}
+                  title={project.name}
+                >
+                  {project.name}
+                </h3>
+                {scopeChip ? (
+                  <span className="mt-0.5 inline-block text-[10px] font-medium uppercase tracking-wide text-cyan-700 dark:text-cyan-400">
+                    {scopeChip}
+                  </span>
+                ) : null}
+              </div>
             </div>
-            <div
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
-              onPointerDownCapture={stopCardOpen}
-              onMouseDownCapture={stopCardOpen}
-              onTouchStartCapture={stopCardOpen}
-            >
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  soundService.play('trash');
-                  onDelete();
-                }}
-                icon={<Trash2 size={16} />}
-                className="text-gray-400 hover:text-red-600 dark:text-gray-500 dark:hover:text-red-400"
-              />
+
+            <div className="flex items-center gap-2 shrink-0">
+              <span
+                className={`inline-block text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded border ${statusBadge.badgeClass}`}
+              >
+                {statusBadge.label}
+              </span>
+              <div
+                className="relative"
+                onClick={stopCardOpen}
+                onPointerDownCapture={stopCardOpen}
+                onMouseDownCapture={stopCardOpen}
+                onTouchStartCapture={stopCardOpen}
+              >
+                <button
+                  type="button"
+                  aria-label="Project actions"
+                  aria-expanded={menuOpen}
+                  aria-haspopup="menu"
+                  className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-500 dark:hover:bg-gray-800 dark:hover:text-gray-200"
+                  onClick={() => setMenuOpen((open) => !open)}
+                >
+                  <MoreVertical className="h-4 w-4" />
+                </button>
+                {menuOpen ? (
+                  <>
+                    <button
+                      type="button"
+                      className="fixed inset-0 z-10"
+                      aria-label="Close menu"
+                      onClick={() => setMenuOpen(false)}
+                    />
+                    <div
+                      role="menu"
+                      className="absolute right-0 top-full z-20 mt-1 w-44 rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800"
+                    >
+                      <button
+                        type="button"
+                        role="menuitem"
+                        className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setMenuOpen(false);
+                          soundService.play('trash');
+                          onDelete();
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Delete project
+                      </button>
+                    </div>
+                  </>
+                ) : null}
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center justify-between gap-2 mb-3" onClick={handleCardClick}>
-            <span
-              className={`inline-block text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded border ${badgeClass}`}
-            >
-              {badgeLabel}
-            </span>
-            <span className="text-xs text-gray-500 dark:text-gray-400 text-right shrink-0 max-w-[50%] truncate">
-              {presentation.cornerDateLabel}
-            </span>
-          </div>
-
-          <div
-            className="rounded-lg border border-gray-200/60 dark:border-gray-700/70 bg-white/40 dark:bg-gray-900/20 p-3 mb-3"
-            onClick={handleCardClick}
-          >
-            <p className="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400">Status</p>
-            <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5">
-              {PROJECT_LIFECYCLE_LABELS[displayStage]}
+          {targetDateLabel && folder === 'active' ? (
+            <p className={`text-xs ${TEXT_SUBTLE} mb-3 text-right`}>
+              Target {targetDateLabel}
             </p>
+          ) : null}
 
-            <p className="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400 mt-2">Next action</p>
-            <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5 flex items-center gap-2">
-              <ArrowRight className="h-4 w-4 text-cyan-500" />
-              <span className="truncate">{nextActionLabel}</span>
-            </p>
-            {showPlacementOrder && (
-              <>
-                <p className="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400 mt-2">
-                  Placement order
+          <div className="rounded-lg border border-gray-200/60 dark:border-gray-700/70 bg-white/40 dark:bg-gray-900/20 p-3 mb-3 space-y-3">
+            <div>
+              <p className={`text-[10px] uppercase tracking-wide ${TEXT_SUBTLE}`}>
+                Next action
+              </p>
+              <p
+                className={`text-sm font-semibold mt-0.5 flex items-center gap-2 ${TEXT_FOREGROUND}`}
+              >
+                <ArrowRight className="h-4 w-4 text-cyan-500 shrink-0" />
+                <span className="truncate">{nextActionLabel}</span>
+              </p>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between gap-2 mb-1">
+                <p className={`text-[10px] uppercase tracking-wide ${TEXT_SUBTLE}`}>
+                  Workflow readiness
                 </p>
-                <p className="text-xs text-gray-700 dark:text-gray-300 mt-0.5 truncate" title={orderStatusLabel}>
-                  {orderStatusLabel}
-                </p>
-              </>
-            )}
-            {folder === 'active' &&
-              workflow.mixDesign &&
-              workflow.mixDesign.totalPlacements > 0 && (
-                <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">
-                  Mix designs: {workflow.mixDesign.approvedCount}/
-                  {workflow.mixDesign.totalPlacements} approved
-                </p>
-              )}
+                <span className={`text-xs font-semibold ${TEXT_FOREGROUND}`}>
+                  {readiness.label}
+                </span>
+              </div>
+              <div className="h-1.5 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div
+                  className={`h-1.5 rounded-full ${
+                    folder === 'archived' || workflow.stage === 'closed'
+                      ? 'bg-slate-500'
+                      : 'bg-gradient-to-r from-emerald-500 to-cyan-500'
+                  }`}
+                  style={{ width: `${folder === 'archived' ? 100 : readiness.percent}%` }}
+                />
+              </div>
+            </div>
+
+            <div className={`space-y-1 text-xs ${TEXT_MUTED}`}>
+              <p>{formatProjectCardEstimateLine(estimateState)}</p>
+              <p>{formatProjectCardScheduleLine(scheduleState)}</p>
+              <p>{financialLine}</p>
+              <p>
+                <span className={TEXT_SUBTLE}>Open items: </span>
+                {openItemsLine}
+              </p>
+            </div>
           </div>
 
           {folder === 'qc_closeout' && (
-            <div
-              className="rounded-lg border border-violet-500/25 bg-violet-500/5 dark:bg-violet-950/20 p-3 mb-3 space-y-2"
-              onClick={handleCardClick}
-            >
+            <div className="rounded-lg border border-violet-500/25 bg-violet-500/5 dark:bg-violet-950/20 p-3 mb-3 space-y-2">
               <p className="text-[10px] uppercase tracking-wide text-violet-400/90">
                 QC closeout
               </p>
               <p className="text-xs text-gray-600 dark:text-gray-300">
-                Placed:{' '}
+                Work completed:{' '}
                 <span className="font-semibold text-gray-900 dark:text-white">
                   {qcStatus.placedDateLabel}
                 </span>
@@ -315,7 +370,10 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
               </div>
               <div className="flex items-center justify-between text-xs pt-1 border-t border-violet-500/15">
                 <span className="text-gray-500 dark:text-gray-400">
-                  Next: <span className="font-medium text-gray-800 dark:text-gray-200">{qcStatus.nextDueLabel}</span>
+                  Next:{' '}
+                  <span className="font-medium text-gray-800 dark:text-gray-200">
+                    {qcStatus.nextDueLabel}
+                  </span>
                 </span>
                 <span
                   className={
@@ -342,79 +400,19 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
             </div>
           )}
 
-          {folder !== 'qc_closeout' && (
-            <div className="mb-3" onClick={handleCardClick}>
-              <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
-                <span>{folder === 'archived' ? 'Job progress' : 'Progress'}</span>
-                <span className="font-semibold text-gray-700 dark:text-gray-200">
-                  {folder === 'archived' ? 100 : presentation.progressPct}%
-                </span>
-              </div>
-              <div className="h-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                <div
-                  className={`h-2 rounded-full ${
-                    folder === 'archived' || workflow.stage === 'closed'
-                      ? 'bg-slate-500'
-                      : 'bg-gradient-to-r from-emerald-500 to-cyan-500'
-                  }`}
-                  style={{
-                    width: `${folder === 'archived' ? 100 : presentation.progressPct}%`,
-                  }}
-                />
-              </div>
-            </div>
-          )}
-
-          {folder === 'active' && (
-            <div
-              className="grid grid-cols-3 gap-2 text-[11px] text-gray-600 dark:text-gray-300"
-              onClick={handleCardClick}
-            >
-              <div className="truncate">{volumeYd > 0 ? `${volumeYd.toFixed(0)} CY` : 'Vol: —'}</div>
-              <div className="truncate">{psi}</div>
-              <div className="truncate">{plant}</div>
-            </div>
-          )}
-
-          <div
-            className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mt-3"
-            onClick={handleCardClick}
-          >
+          <div className={`flex items-center justify-between text-xs ${TEXT_SUBTLE} mt-3`}>
             <div className="flex items-center">
-              <Clock className="h-4 w-4 mr-1" />
-              <span>{formattedDate}</span>
+              <Clock className="h-4 w-4 mr-1 shrink-0" />
+              <span>{createdLabel}</span>
             </div>
-            {folder === 'archived' ? (
-              <div className="flex items-center gap-1.5">
-                <CheckCircle2 className="h-4 w-4 text-slate-400" />
-                <span>Archived</span>
-              </div>
-            ) : folder === 'qc_closeout' ? (
-              <div className="flex items-center gap-1.5">
-                {qcStatus.isOverdue ? (
-                  <AlertTriangle className="h-4 w-4 text-red-500" />
-                ) : (
-                  <CheckCircle2 className="h-4 w-4 text-violet-400" />
-                )}
-                <span>{qcStatus.daysUntilOrOverdueLabel}</span>
-              </div>
-            ) : presentation.scheduleFooterComplete ? (
-              <div className="flex items-center gap-1.5">
-                <CheckCircle2
-                  className={`h-4 w-4 ${
-                    workflow.stage === 'closed'
-                      ? 'text-slate-400'
-                      : 'text-emerald-500'
-                  }`}
-                />
-                <span>{presentation.scheduleFooterLabel}</span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-1.5">
-                <AlertTriangle className="h-4 w-4 text-amber-500" />
-                <span>{presentation.scheduleFooterLabel}</span>
-              </div>
-            )}
+            <div className={`flex items-center gap-1.5 font-medium ${riskTone}`}>
+              {riskIndicator === 'On track' ? (
+                <CheckCircle2 className="h-4 w-4 shrink-0" />
+              ) : (
+                <AlertTriangle className="h-4 w-4 shrink-0" />
+              )}
+              <span>{riskIndicator}</span>
+            </div>
           </div>
         </div>
       </Card>

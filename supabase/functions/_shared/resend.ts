@@ -155,4 +155,10 @@ export function getPublicProposalUrl(siteUrl: string, publicToken: string): stri
   return `${base}/proposal/${publicToken}`;
 }
 
+export function getPublicClientPortalUrl(siteUrl: string, token: string): string {
+  const base = siteUrl.replace(/\/$/, "");
+  if (!base) return `/client/project/${token}`;
+  return `${base}/client/project/${token}`;
+}
+
 export type { EmailEnvConfig };

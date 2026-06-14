@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Copy, Link2, Loader2, Plus } from 'lucide-react';
+import { Copy, ExternalLink, Link2, Loader2, Mail, Plus } from 'lucide-react';
 import Button from '../ui/Button';
 import {
+  buildClientPortalUrl,
   copyClientPortalLink,
   createClientPortal,
   fetchClientPortalByProjectId,
-  getClientPortalUrl,
 } from '../../services/clientPortalService';
 import type { ClientPortalRecord } from '../../types/clientPortal';
 import ClientPortalCreatedModal from './ClientPortalCreatedModal';
@@ -32,7 +32,7 @@ const ClientPortalActions: React.FC<ClientPortalActionsProps> = ({
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [createdModal, setCreatedModal] = useState<ClientPortalRecord | null>(null);
+  const [inviteModalRecord, setInviteModalRecord] = useState<ClientPortalRecord | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -72,7 +72,7 @@ const ClientPortalActions: React.FC<ClientPortalActionsProps> = ({
         clientEmail: email,
       });
       setPortal(row);
-      setCreatedModal(row);
+      setInviteModalRecord(row);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not create client portal.');
     } finally {
@@ -87,6 +87,16 @@ const ClientPortalActions: React.FC<ClientPortalActionsProps> = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleOpenPortal = () => {
+    if (!portal) return;
+    window.open(buildClientPortalUrl(portal.token), '_blank', 'noopener,noreferrer');
+  };
+
+  const handleSendInvite = () => {
+    if (!portal) return;
+    setInviteModalRecord(portal);
+  };
+
   if (loading) {
     return (
       <div className={`flex items-center gap-2 text-sm ${OPS_MUTED}`}>
@@ -99,28 +109,54 @@ const ClientPortalActions: React.FC<ClientPortalActionsProps> = ({
   return (
     <>
       <div className={OPS_SECTION}>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <p className={`${OPS_SECTION_TITLE} flex items-center gap-2`}>
-              <Link2 className={`h-4 w-4 ${TEXT_ACCENT}`} />
-              Client project portal
-            </p>
-            <p className={`text-xs ${OPS_MUTED} mt-1`}>
-              Share a read-only progress dashboard with your client — no login required.
-            </p>
-          </div>
+        <div>
+          <p className={`${OPS_SECTION_TITLE} flex items-center gap-2`}>
+            <Link2 className={`h-4 w-4 ${TEXT_ACCENT}`} />
+            Client project portal
+          </p>
+          <p className={`text-xs ${OPS_MUTED} mt-1`}>
+            Share a read-only project dashboard with your client — no login required.
+          </p>
+        </div>
 
-          {portal ? (
-            <Button
-              size="sm"
-              variant="outline"
-              className={OPS_OUTLINE_BTN}
-              icon={<Copy size={16} />}
-              onClick={() => void handleCopy()}
-            >
-              {copied ? 'Link copied' : 'Copy Client Portal Link'}
-            </Button>
-          ) : (
+        {portal ? (
+          <>
+            <p className={`text-xs ${OPS_MUTED} mt-3`}>Secure portal link ready</p>
+            <p className={`text-xs ${OPS_MUTED} mt-2`}>
+              Anyone with this link may access the shared client portal. Only send it to authorized
+              project contacts.
+            </p>
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+              <Button
+                size="sm"
+                variant="accent"
+                icon={<Mail size={16} />}
+                onClick={handleSendInvite}
+              >
+                Send Invite Email
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className={OPS_OUTLINE_BTN}
+                icon={<Copy size={16} />}
+                onClick={() => void handleCopy()}
+              >
+                {copied ? 'Link copied' : 'Copy Link'}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className={OPS_OUTLINE_BTN}
+                icon={<ExternalLink size={16} />}
+                onClick={handleOpenPortal}
+              >
+                Open Portal
+              </Button>
+            </div>
+          </>
+        ) : (
+          <div className="mt-4">
             <Button
               size="sm"
               variant="outline"
@@ -131,13 +167,7 @@ const ClientPortalActions: React.FC<ClientPortalActionsProps> = ({
             >
               Create Client Portal
             </Button>
-          )}
-        </div>
-
-        {portal && (
-          <p className={`text-xs ${OPS_MUTED} mt-3 break-all`}>
-            {getClientPortalUrl(portal.token)}
-          </p>
+          </div>
         )}
 
         {error && (
@@ -145,11 +175,13 @@ const ClientPortalActions: React.FC<ClientPortalActionsProps> = ({
         )}
       </div>
 
-      {createdModal && (
+      {inviteModalRecord && (
         <ClientPortalCreatedModal
-          clientName={createdModal.clientName}
-          token={createdModal.token}
-          onClose={() => setCreatedModal(null)}
+          clientName={inviteModalRecord.clientName || clientName || ''}
+          clientEmail={inviteModalRecord.clientEmail || clientEmail || ''}
+          token={inviteModalRecord.token}
+          projectId={inviteModalRecord.projectId}
+          onClose={() => setInviteModalRecord(null)}
         />
       )}
     </>

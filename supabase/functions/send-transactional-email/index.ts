@@ -16,9 +16,14 @@ import {
 import { renderEmailTemplate } from "../_shared/emailTemplates.ts";
 import {
   getPublicProposalUrl,
+  getPublicClientPortalUrl,
   prepareTransactionalEmail,
   sendTransactionalEmail,
 } from "../_shared/resend.ts";
+import {
+  applyClientPortalInvitePlaceholders,
+  buildClientPortalInviteMessageTemplate,
+} from "../_shared/clientPortalInviteEmail.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -250,6 +255,63 @@ serve(async (req) => {
         inviteUrl,
         companyName: typeof data.companyName === "string" ? data.companyName : "your team",
         inviterName: typeof data.inviterName === "string" ? data.inviterName : user.email ?? "Team owner",
+      };
+    }
+
+    if (templateKey === "clientPortalInvite") {
+      const portalToken = typeof data.portalToken === "string" ? data.portalToken.trim() : "";
+      if (!portalToken) {
+        return jsonResponse({ error: "portalToken is required." }, 400);
+      }
+
+      const { data: portal, error: portalError } = await admin
+        .from("client_portals")
+        .select("id, project_id, client_name, token")
+        .eq("token", portalToken)
+        .eq("contractor_user_id", user.id)
+        .eq("is_active", true)
+        .maybeSingle();
+
+      if (portalError || !portal) {
+        return jsonResponse({ error: "Client portal not found." }, 404);
+      }
+
+      projectId = String(portal.project_id);
+
+      const { data: company } = await admin
+        .from("company_settings")
+        .select("company_name, email, phone, logo_url")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      const companyName =
+        typeof company?.company_name === "string" && company.company_name.trim()
+          ? company.company_name.trim()
+          : "Your contractor";
+      const portalUrl = getPublicClientPortalUrl(config.siteUrl, portalToken);
+      const rawMessage =
+        typeof data.messageBody === "string" && data.messageBody.trim()
+          ? data.messageBody.trim()
+          : buildClientPortalInviteMessageTemplate();
+      const messageBody = applyClientPortalInvitePlaceholders(rawMessage, {
+        clientName: String(portal.client_name ?? "there"),
+        portalLink: portalUrl,
+        companyName,
+      });
+
+      templateData = {
+        ...templateData,
+        clientName: String(portal.client_name ?? "there"),
+        portalUrl,
+        companyName,
+        companyEmail: typeof company?.email === "string" ? company.email.trim() : "",
+        companyPhone: typeof company?.phone === "string" ? company.phone.trim() : "",
+        companyLogoUrl: typeof company?.logo_url === "string" ? company.logo_url.trim() : "",
+        emailSubject:
+          typeof data.emailSubject === "string" && data.emailSubject.trim()
+            ? data.emailSubject.trim()
+            : "Your project portal is ready",
+        messageBody,
       };
     }
 

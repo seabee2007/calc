@@ -4,9 +4,9 @@ import { AnimatePresence, motion } from 'framer-motion';
 import {
   BookOpen,
   ClipboardList,
-  FolderPlus,
   LayoutDashboard,
   LayoutGrid,
+  SquareChartGantt,
   LogIn,
   Menu,
   Share2,
@@ -68,11 +68,6 @@ const Navbar: React.FC<NavbarProps> = ({ showThemeToggle = true, softHeader = fa
     [location.pathname],
   );
   const mobileSectionLabel = location.pathname === '/' ? 'Dashboard' : sectionLabel;
-
-  const startProject = () => {
-    setMobileOpen(false);
-    navigate('/projects', { state: { openCreate: true } });
-  };
 
   const isActive = (path: string) => {
     if (path === '/') return location.pathname === '/';
@@ -138,26 +133,15 @@ const Navbar: React.FC<NavbarProps> = ({ showThemeToggle = true, softHeader = fa
 
       <div className="flex shrink-0 items-center gap-1 sm:gap-1.5">
         {user && isOwner && (
-          <>
-            <Link
-              to="/planner/hub"
-              className={appNavIconButtonClass(isActive('/planner'))}
-              aria-label="Planner Hub"
-              title="Planner Hub"
-              onClick={() => setMobileOpen(false)}
-            >
-              <LayoutGrid className="h-5 w-5" />
-            </Link>
-            <button
-              type="button"
-              onClick={startProject}
-              className={appNavIconButtonClass()}
-              aria-label="Quick create"
-              title="Quick create"
-            >
-              <FolderPlus className="h-5 w-5" />
-            </button>
-          </>
+          <Link
+            to="/planner/hub"
+            className={appNavIconButtonClass(isActive('/planner'))}
+            aria-label="Planner Hub"
+            title="Planner Hub"
+            onClick={() => setMobileOpen(false)}
+          >
+            <LayoutGrid className="h-5 w-5" />
+          </Link>
         )}
 
         {user && isEmployee && !isOwner && (
@@ -168,6 +152,18 @@ const Navbar: React.FC<NavbarProps> = ({ showThemeToggle = true, softHeader = fa
             title="My tasks"
           >
             <LayoutGrid className="h-5 w-5" />
+          </Link>
+        )}
+
+        {user && (
+          <Link
+            to="/projects"
+            className={appNavIconButtonClass(isActive('/projects'))}
+            aria-label="Projects"
+            title="Projects"
+            onClick={() => setMobileOpen(false)}
+          >
+            <SquareChartGantt className="h-5 w-5" />
           </Link>
         )}
 
@@ -278,10 +274,14 @@ const Navbar: React.FC<NavbarProps> = ({ showThemeToggle = true, softHeader = fa
                     <LayoutGrid className="h-5 w-5" />
                     Planner Hub
                   </Link>
-                  <button type="button" onClick={startProject} className={mobileLinkClass(false)}>
-                    <FolderPlus className="h-5 w-5" />
-                    Quick create
-                  </button>
+                  <Link
+                    to="/projects"
+                    className={mobileLinkClass(isActive('/projects'))}
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    <SquareChartGantt className="h-5 w-5" />
+                    Projects
+                  </Link>
                   <Link
                     to="/resources"
                     className={mobileLinkClass(isActive('/resources'))}
@@ -302,14 +302,24 @@ const Navbar: React.FC<NavbarProps> = ({ showThemeToggle = true, softHeader = fa
               )}
 
               {isEmployee && !isOwner && (
-                <Link
-                  to="/employee/tasks"
-                  className={mobileLinkClass(isActive('/employee/tasks'))}
-                  onClick={() => setMobileOpen(false)}
-                >
-                  <LayoutGrid className="h-5 w-5" />
-                  My tasks
-                </Link>
+                <>
+                  <Link
+                    to="/employee/tasks"
+                    className={mobileLinkClass(isActive('/employee/tasks'))}
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    <LayoutGrid className="h-5 w-5" />
+                    My tasks
+                  </Link>
+                  <Link
+                    to="/projects"
+                    className={mobileLinkClass(isActive('/projects'))}
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    <SquareChartGantt className="h-5 w-5" />
+                    Projects
+                  </Link>
+                </>
               )}
 
               <button

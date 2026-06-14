@@ -62,6 +62,42 @@ export function renderEmailTemplate(
         ctaLabel: "Accept invite",
         ctaUrl: str(data, "inviteUrl"),
       });
+    case "clientPortalInvite": {
+      const emailSubject = str(data, "emailSubject", "Your project portal is ready");
+      const messageBody = str(data, "messageBody");
+      const companyName = str(data, "companyName", "Your contractor");
+      const companyEmail = str(data, "companyEmail");
+      const companyPhone = str(data, "companyPhone");
+      const portalUrl = str(data, "portalUrl");
+      const contactParts = [companyEmail, companyPhone].filter(Boolean);
+      const contactSuffix = contactParts.length
+        ? ` at ${contactParts.join(" or ")}`
+        : "";
+      const contactHtml = contactParts.length
+        ? `<p style="margin:16px 0 0;font-size:13px;color:#64748b;">Questions? Contact ${escapeHtml(companyName)}${escapeHtml(contactSuffix)}.</p>`
+        : "";
+      const contactText = contactParts.length
+        ? `\n\nQuestions? Contact ${companyName}${contactSuffix}.`
+        : "";
+      const bodyParagraphs = messageBody
+        ? messageBody
+            .split("\n")
+            .map((line) =>
+              line.trim()
+                ? `<p style="margin:0 0 12px;">${escapeHtml(line)}</p>`
+                : `<p style="margin:0 0 12px;">&nbsp;</p>`
+            )
+            .join("")
+        : `<p style="margin:0 0 12px;">Your project portal is ready.</p>`;
+      const bodyText = messageBody || "Your project portal is ready.";
+      return layout({
+        title: emailSubject,
+        bodyHtml: `${bodyParagraphs}${contactHtml}`,
+        bodyText: `${bodyText}${contactText}`,
+        ctaLabel: portalUrl ? "View project portal" : undefined,
+        ctaUrl: portalUrl || undefined,
+      });
+    }
     case "proposalSent": {
       const projectName = str(data, "projectName", str(data, "proposalTitle", "your project"));
       const messageNote = str(data, "messageNote").trim();

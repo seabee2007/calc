@@ -22,7 +22,7 @@ export default function ProjectList({
 }: ProjectListProps) {
   if (!projects.length) {
     return (
-      <div className="col-span-3 text-center py-12 bg-gray-50 dark:bg-gray-900/70 backdrop-blur-sm rounded-lg">
+      <div className="rounded-lg bg-gray-50 py-12 text-center backdrop-blur-sm dark:bg-gray-900/70">
         <FolderOpen className="h-12 w-12 text-gray-300 mx-auto mb-4" />
         <h3 className="text-lg font-medium text-gray-900 mb-2 dark:text-white">
           {folder === 'active' ? 'No Projects in This Tab' : 'Nothing Here'}
@@ -41,7 +41,7 @@ export default function ProjectList({
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid gap-6 lg:grid-cols-2">
       {projects.map((project) => (
         <ProjectCard
           key={project.id}

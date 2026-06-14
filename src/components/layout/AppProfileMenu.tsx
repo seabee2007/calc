@@ -148,10 +148,6 @@ export default function AppProfileMenu({
           Team & employees
         </Link>
       )}
-      <Link to="/projects" className={menuItemClass} onClick={onClose}>
-        Projects
-      </Link>
-
       {showShareInvite && onShareInvite ? (
         <button
           type="button"

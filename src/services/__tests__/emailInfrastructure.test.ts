@@ -15,7 +15,7 @@ import {
   validateOptionalEmailList,
 } from '../../../supabase/functions/_shared/emailValidation.ts';
 import { renderEmailTemplate } from '../../../supabase/functions/_shared/emailTemplates.ts';
-import { getPublicProposalUrl, prepareTransactionalEmail } from '../../../supabase/functions/_shared/resend.ts';
+import { getPublicProposalUrl, getPublicClientPortalUrl, prepareTransactionalEmail } from '../../../supabase/functions/_shared/resend.ts';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 
@@ -94,6 +94,31 @@ describe('email templates', () => {
     );
   });
 
+  it('uses a public client portal URL path without localhost', () => {
+    expect(getPublicClientPortalUrl('https://app.example.com', 'portal-token')).toBe(
+      'https://app.example.com/client/project/portal-token',
+    );
+    expect(getPublicClientPortalUrl('https://app.example.com', 'portal-token')).not.toContain(
+      'localhost',
+    );
+  });
+
+  it('renders subject, html, and text for clientPortalInvite', () => {
+    const rendered = renderEmailTemplate('clientPortalInvite', {
+      emailSubject: 'Your project portal is ready',
+      messageBody: 'Hi Jane,\n\nhttps://app.example.com/client/project/abc',
+      portalUrl: 'https://app.example.com/client/project/abc',
+      companyName: 'Concrete Co',
+      companyEmail: 'office@concrete.com',
+      companyPhone: '(555) 111-2222',
+    });
+
+    expect(rendered.subject).toBe('Your project portal is ready');
+    expect(rendered.html).toContain('View project portal');
+    expect(rendered.html).toContain('https://app.example.com/client/project/abc');
+    expect(rendered.text).toContain('office@concrete.com');
+  });
+
   it('renders subject, html, and text for proposalFollowUp', () => {
     const rendered = renderEmailTemplate('proposalFollowUp', {
       proposalTitle: 'Riverfront Slab',
@@ -164,6 +189,7 @@ describe('email validation', () => {
     expect(isAllowedTemplateKey('proposalFollowUp')).toBe(true);
     expect(isAllowedTemplateKey('depositRequest')).toBe(true);
     expect(isAllowedTemplateKey('clientCheckIn')).toBe(true);
+    expect(isAllowedTemplateKey('clientPortalInvite')).toBe(true);
   });
 
   it('maps Resend webhook events to email event statuses', () => {
@@ -179,6 +205,7 @@ describe('frontend security', () => {
     expect(source).not.toMatch(/from ['"]resend['"]/i);
     expect(source).not.toContain('RESEND_API_KEY');
     expect(source).toContain('/functions/v1/send-transactional-email');
+    expect(source).toContain('sendClientPortalInviteEmail');
   });
 
   it('does not mark proposals sent inside emailService', () => {

@@ -64,7 +64,12 @@ function useProjectsState() {
     mixProfile: (currentProject?.mixProfile || 'standard') as MixProfileType,
     isSaving: false,
     toast: { show: false, msg: '', type: 'success' as 'success'|'error'|'warning' },
-    createdPortal: null as { clientName: string; token: string } | null,
+    createdPortal: null as {
+      clientName: string;
+      clientEmail: string;
+      token: string;
+      projectId: string;
+    } | null,
   });
 
   const openProjectDetails = useCallback(
@@ -191,7 +196,12 @@ function useProjectsState() {
               });
               setUi((s) => ({
                 ...s,
-                createdPortal: { clientName: portal.clientName, token: portal.token },
+                createdPortal: {
+                  clientName: portal.clientName,
+                  clientEmail: portal.clientEmail,
+                  token: portal.token,
+                  projectId: newProject.id,
+                },
               }));
             } catch (portalErr) {
               console.error('Error creating client portal:', portalErr);
@@ -231,7 +241,12 @@ function useProjectsState() {
               });
               setUi((s) => ({
                 ...s,
-                createdPortal: { clientName: portal.clientName, token: portal.token },
+                createdPortal: {
+                  clientName: portal.clientName,
+                  clientEmail: portal.clientEmail,
+                  token: portal.token,
+                  projectId: currentProject.id,
+                },
               }));
             } catch (portalErr) {
               console.error('Error creating client portal:', portalErr);

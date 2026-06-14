@@ -1,10 +1,10 @@
 import { useMemo, useState, type ReactNode } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import {
-  FolderPlus,
   LayoutDashboard,
   LayoutGrid,
   Menu,
+  SquareChartGantt,
   User,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
@@ -19,7 +19,6 @@ interface PlannerAppBarProps {
 
 export default function PlannerAppBar({ onMenuClick, projectName }: PlannerAppBarProps) {
   const location = useLocation();
-  const navigate = useNavigate();
   const { user, isOwner, isEmployee } = useAuth();
   const [profileOpen, setProfileOpen] = useState(false);
 
@@ -36,9 +35,7 @@ export default function PlannerAppBar({ onMenuClick, projectName }: PlannerAppBa
     return 'Field Planner';
   }, [location.pathname, projectName]);
 
-  const startProject = () => {
-    navigate('/projects', { state: { openCreate: true } });
-  };
+  const isProjectsActive = location.pathname.startsWith('/projects');
 
   const ownerActions: ReactNode[] = isOwner
     ? [
@@ -51,16 +48,15 @@ export default function PlannerAppBar({ onMenuClick, projectName }: PlannerAppBa
         >
           <LayoutGrid className="h-5 w-5" />
         </Link>,
-        <button
-          key="start-project"
-          type="button"
-          onClick={startProject}
-          className={appNavIconButtonClass()}
-          aria-label="Quick create"
-          title="Quick create"
+        <Link
+          key="projects"
+          to="/projects"
+          className={appNavIconButtonClass(isProjectsActive)}
+          aria-label="Projects"
+          title="Projects"
         >
-          <FolderPlus className="h-5 w-5" />
-        </button>,
+          <SquareChartGantt className="h-5 w-5" />
+        </Link>,
       ]
     : [];
 
@@ -104,14 +100,24 @@ export default function PlannerAppBar({ onMenuClick, projectName }: PlannerAppBa
         )}
 
         {isEmployee && !isOwner && (
-          <Link
-            to="/employee/tasks"
-            className={appNavIconButtonClass(location.pathname.startsWith('/employee/tasks'))}
-            aria-label="My tasks"
-            title="My tasks"
-          >
-            <LayoutGrid className="h-5 w-5" />
-          </Link>
+          <>
+            <Link
+              to="/employee/tasks"
+              className={appNavIconButtonClass(location.pathname.startsWith('/employee/tasks'))}
+              aria-label="My tasks"
+              title="My tasks"
+            >
+              <LayoutGrid className="h-5 w-5" />
+            </Link>
+            <Link
+              to="/projects"
+              className={appNavIconButtonClass(isProjectsActive)}
+              aria-label="Projects"
+              title="Projects"
+            >
+              <SquareChartGantt className="h-5 w-5" />
+            </Link>
+          </>
         )}
 
         {isOwner && (

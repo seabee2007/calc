@@ -143,6 +143,25 @@ export async function sendPaymentRequestEmail(input: {
   });
 }
 
+export async function sendClientPortalInviteEmail(input: {
+  portalToken: string;
+  projectId: string;
+  recipientEmail: string;
+  emailSubject?: string;
+  messageBody?: string;
+}): Promise<SendTransactionalEmailResponse> {
+  return invokeSendTransactionalEmail({
+    templateKey: 'clientPortalInvite',
+    to: input.recipientEmail.trim(),
+    data: {
+      portalToken: input.portalToken,
+      projectId: input.projectId,
+      emailSubject: input.emailSubject?.trim(),
+      messageBody: input.messageBody?.trim(),
+    },
+  });
+}
+
 export async function getProjectEmailEvents(projectId: string): Promise<EmailEventRow[]> {
   const { data, error } = await supabase
     .from('email_events')

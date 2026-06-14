@@ -1,6 +1,7 @@
 export const EMAIL_TEMPLATE_KEYS = [
   "welcome",
   "teamInvite",
+  "clientPortalInvite",
   "proposalSent",
   "proposalFollowUp",
   "depositRequest",

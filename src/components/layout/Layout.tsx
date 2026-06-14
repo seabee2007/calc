@@ -38,9 +38,7 @@ const Layout: React.FC = () => {
   const isPublicLegalPage = isPublicLegalPath(location.pathname);
   const useMarketingShell = usesPublicMarketingShell(location.pathname, isLoggedOutLanding);
   const premiumCanvas = usesPremiumCanvas(location.pathname);
-  const hideMarketingFooter =
-    Boolean(user) &&
-    (location.pathname === '/calculator' || location.pathname.startsWith('/calculator/'));
+  const hideMarketingFooter = Boolean(user) && premiumCanvas;
 
   const showBottomNav =
     Boolean(user) &&

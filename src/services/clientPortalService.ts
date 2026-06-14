@@ -1,3 +1,4 @@
+import { getPublicAppUrl } from '../config/brand';
 import { supabase } from '../lib/supabase';
 import type { ClientPortalRecord, ClientPortalViewData } from '../types/clientPortal';
 
@@ -25,9 +26,12 @@ function generatePortalToken(): string {
   return `${crypto.randomUUID().replace(/-/g, '')}${hex}`;
 }
 
-export function getClientPortalUrl(token: string): string {
-  return `${window.location.origin}/client/project/${token}`;
+export function buildClientPortalUrl(token: string): string {
+  return getPublicAppUrl(`/client/project/${token}`);
 }
+
+/** @deprecated Use buildClientPortalUrl — kept for existing imports. */
+export const getClientPortalUrl = buildClientPortalUrl;
 
 export async function fetchClientPortalByProjectId(
   projectId: string,
@@ -121,6 +125,6 @@ export async function fetchClientPortalView(token: string): Promise<ClientPortal
 }
 
 export async function copyClientPortalLink(token: string): Promise<void> {
-  const url = getClientPortalUrl(token);
+  const url = buildClientPortalUrl(token);
   await navigator.clipboard.writeText(url);
 }
