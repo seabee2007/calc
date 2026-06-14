@@ -80,10 +80,11 @@ export const LazyOnboardingFlow = lazyWithProps<{ onComplete: () => void }>(
 );
 export const LazyConcreteChat = lazyPage(() => import('../components/ConcreteChat'));
 
-// Resources (accepts chatStore from App)
-export const LazyResources = lazyWithProps<{
+// Resources hub and concrete library
+export const LazyResourcesHub = lazyPage(() => import('../pages/ResourcesHubPage'));
+export const LazyConcreteResources = lazyWithProps<{
   chatStore: { isVisible: boolean; setIsVisible: Dispatch<SetStateAction<boolean>> };
-}>(() => import('../pages/Resources'));
+}>(() => import('../pages/resources/ConcreteResourcesPage'));
 export const LazyMixDesigns = lazyPage(() => import('../pages/resources/MixDesigns'));
 export const LazyWeatherEffects = lazyPage(() => import('../pages/resources/WeatherEffects'));
 export const LazyReinforcement = lazyPage(() => import('../pages/resources/Reinforcement'));

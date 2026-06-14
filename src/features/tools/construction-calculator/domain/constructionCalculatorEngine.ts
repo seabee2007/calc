@@ -6,6 +6,7 @@ import type {
   FractionPrecision,
 } from './constructionCalculatorTypes';
 import { buildDimensionFromDecimal } from './constructionCalculatorFormatters';
+import { MIXED_DIMENSION_SCALAR_ERROR } from './calculatorFractions';
 import { safeDivide, sanitizeFinite } from './constructionCalculatorValidators';
 
 export function applyOperator(
@@ -38,7 +39,7 @@ function addResults(left: EvaluationResult, right: EvaluationResult): Evaluation
   if (left.kind === 'scalar' && right.kind === 'scalar') {
     return { kind: 'scalar', value: left.value + right.value };
   }
-  throw new Error('Cannot add mixed dimension and scalar');
+  throw new Error(MIXED_DIMENSION_SCALAR_ERROR);
 }
 
 function subtractResults(left: EvaluationResult, right: EvaluationResult): EvaluationResult {
@@ -51,7 +52,7 @@ function subtractResults(left: EvaluationResult, right: EvaluationResult): Evalu
   if (left.kind === 'scalar' && right.kind === 'scalar') {
     return { kind: 'scalar', value: left.value - right.value };
   }
-  throw new Error('Cannot subtract mixed dimension and scalar');
+  throw new Error(MIXED_DIMENSION_SCALAR_ERROR);
 }
 
 function multiplyResults(left: EvaluationResult, right: EvaluationResult): EvaluationResult {

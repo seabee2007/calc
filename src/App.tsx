@@ -51,7 +51,8 @@ import {
   LazyPublicContract,
   LazyClientPortal,
   LazyClientInvitePage,
-  LazyResources,
+  LazyResourcesHub,
+  LazyConcreteResources,
   LazyMixDesigns,
   LazyWeatherEffects,
   LazyReinforcement,
@@ -484,9 +485,13 @@ function App() {
             />
             <Route
               path="resources"
+              element={<LazyRoute Page={LazyResourcesHub} />}
+            />
+            <Route
+              path="resources/concrete"
               element={
                 <Suspense fallback={<RouteFallback />}>
-                  <LazyResources chatStore={chatStore} />
+                  <LazyConcreteResources chatStore={chatStore} />
                 </Suspense>
               }
             />

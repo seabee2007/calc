@@ -1,5 +1,6 @@
 import React from 'react';
 import type { CalculatorFunctionTab } from '../domain/constructionCalculatorTypes';
+import { CALCULATOR_MODULES } from '../domain/constructionCalculatorModules';
 
 interface ConstructionFunctionTabsProps {
   activeTab: CalculatorFunctionTab;
@@ -7,19 +8,11 @@ interface ConstructionFunctionTabsProps {
   layout: 'desktop' | 'field';
 }
 
-const TABS: { id: CalculatorFunctionTab; label: string }[] = [
-  { id: 'core', label: 'Core' },
-  { id: 'area', label: 'Area' },
-  { id: 'volume', label: 'Volume' },
-  { id: 'board-feet', label: 'Board Ft' },
-  { id: 'concrete', label: 'Concrete' },
-  { id: 'blocks', label: 'Blocks' },
-  { id: 'drywall', label: 'Drywall' },
-  { id: 'stairs', label: 'Stairs' },
-  { id: 'triangle', label: 'Triangle' },
-  { id: 'circle', label: 'Circle' },
-  { id: 'conversions', label: 'Convert' },
-];
+// Derived from the shared module registry so tabs and help cannot drift apart.
+const TABS: { id: CalculatorFunctionTab; label: string }[] = CALCULATOR_MODULES.map((m) => ({
+  id: m.tab,
+  label: m.label,
+}));
 
 export default function ConstructionFunctionTabs({
   activeTab,

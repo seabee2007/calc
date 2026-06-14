@@ -4,6 +4,7 @@ import { DEFAULT_FRACTION_PRECISION } from '../domain/constructionCalculatorType
 import {
   createInitialKeypadState,
   getCommittedExpression,
+  getModeHint,
   keypadReducer,
   mapKeyboardToKeypad,
 } from '../domain/keypadInputReducer';
@@ -20,6 +21,10 @@ export function useConstructionCalculator(options?: { enableKeyboard?: boolean }
 
   const pressKey = useCallback((key: KeypadKey) => {
     dispatch(key);
+  }, []);
+
+  const pickFraction = useCallback((numerator: number, denominator: number) => {
+    dispatch({ type: 'pick-fraction', numerator, denominator });
   }, []);
 
   const setPrecision = useCallback((precision: FractionPrecision) => {
@@ -64,6 +69,8 @@ export function useConstructionCalculator(options?: { enableKeyboard?: boolean }
   return {
     state,
     pressKey,
+    pickFraction,
     setPrecision,
+    modeHint: getModeHint(state),
   };
 }

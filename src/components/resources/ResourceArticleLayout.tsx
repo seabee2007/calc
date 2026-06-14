@@ -30,11 +30,11 @@ const ResourceArticleLayout: React.FC<ResourceArticleLayoutProps> = ({
         <div className="mb-8">
           <Button
             variant="ghost"
-            onClick={() => navigate('/resources')}
+            onClick={() => navigate('/resources/concrete')}
             icon={<ArrowLeft size={20} />}
             className="mb-4 text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
           >
-            Back to Resources
+            Back to Concrete Resources
           </Button>
           <h1 className={CC_PAGE_HERO_TITLE}>{title}</h1>
           <p className={CC_PAGE_HERO_SUBTITLE}>{subtitle}</p>

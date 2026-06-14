@@ -121,7 +121,7 @@ const ToolsModal: React.FC = () => {
         },
         {
           title: 'Resources',
-          description: 'Field guides and references',
+          description: 'Forms, guides, tables, and construction references',
           path: '/resources',
           icon: BookOpen,
         },

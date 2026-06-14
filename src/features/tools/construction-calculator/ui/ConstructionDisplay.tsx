@@ -5,7 +5,7 @@ import { TEXT_MUTED } from '../../../../theme/appTheme';
 
 interface ConstructionDisplayProps {
   display: string;
-  expression?: string;
+  modeHint?: string | null;
   error?: string | null;
   precision: FractionPrecision;
   onPrecisionChange: (precision: FractionPrecision) => void;
@@ -14,7 +14,7 @@ interface ConstructionDisplayProps {
 
 export default function ConstructionDisplay({
   display,
-  expression,
+  modeHint,
   error,
   precision,
   onPrecisionChange,
@@ -30,9 +30,14 @@ export default function ConstructionDisplay({
           : 'mb-4'
       }
     >
-      {expression && (
-        <p className={`truncate text-right text-sm ${TEXT_MUTED} ${isField ? 'text-slate-400' : ''}`}>
-          {expression}
+      {modeHint && (
+        <p
+          className={`truncate text-right text-xs font-medium ${
+            isField ? 'text-cyan-400/90' : 'text-cyan-700 dark:text-cyan-400'
+          }`}
+          data-testid="calculator-mode-hint"
+        >
+          {modeHint}
         </p>
       )}
       <p
