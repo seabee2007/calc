@@ -82,42 +82,46 @@ const mockFinancial = {
   materialCost: 35000,
 };
 
+const baseOperationsSnapshot = {
+  activeProjectCount: 2,
+  todayPourCount: 0,
+  proposalsSentCount: 4,
+  projects: [],
+  proposalMetrics: {
+    pipeline: {
+      draft: 1,
+      sent: 2,
+      viewed: 0,
+      opened: 0,
+      accepted: 1,
+      deposit_paid: 0,
+      scheduled: 0,
+      declined: 0,
+      paid: 0,
+    },
+    financial: mockFinancial,
+  },
+  changeOrderMetrics: {
+    financial: { weightedForecast: 0 },
+  },
+  todayPours: [],
+  upcomingPlacements: [],
+  hasPlacementsToday: false,
+  deliverySchedule: null,
+  timeline: [],
+  mitigations: [],
+  recommendedStartWindow: '6:00 AM',
+  heatRisk: 'low',
+  rainRisk: 'low',
+  windRisk: 'low',
+  evaporationRisk: 'low',
+  weatherRisk: 'low',
+};
+
+let mockOperationsSnapshot = { ...baseOperationsSnapshot };
+
 vi.mock('../utils/operationsDashboard', () => ({
-  buildOperationsSnapshot: () => ({
-    activeProjectCount: 2,
-    todayPourCount: 1,
-    proposalsSentCount: 4,
-    projects: [],
-    proposalMetrics: {
-      pipeline: {
-        draft: 1,
-        sent: 2,
-        viewed: 0,
-        opened: 0,
-        accepted: 1,
-        deposit_paid: 0,
-        scheduled: 0,
-        declined: 0,
-        paid: 0,
-      },
-      financial: mockFinancial,
-    },
-    changeOrderMetrics: {
-      financial: { weightedForecast: 0 },
-    },
-    todayPours: [],
-    upcomingPlacements: [],
-    hasPlacementsToday: false,
-    deliverySchedule: null,
-    timeline: [],
-    mitigations: [],
-    recommendedStartWindow: '6:00 AM',
-    heatRisk: 'low',
-    rainRisk: 'low',
-    windRisk: 'low',
-    evaporationRisk: 'low',
-    weatherRisk: 'low',
-  }),
+  buildOperationsSnapshot: () => mockOperationsSnapshot,
   buildQcDashboardStats: () => ({
     qcTestsDue: 1,
     qcTestsOverdue: 0,
@@ -204,6 +208,7 @@ function assertFollowsDocumentOrder(container: HTMLElement, earlierId: string, l
 describe('OperationsDashboard layout', () => {
   beforeEach(() => {
     mockNavigate.mockReset();
+    mockOperationsSnapshot = { ...baseOperationsSnapshot };
   });
 
   it("renders Today's Operations first", () => {
@@ -245,26 +250,60 @@ describe('OperationsDashboard layout', () => {
     expect(within(grid as HTMLElement).getByText('Active projects')).toBeInTheDocument();
   });
 
-  it('renders Placement Conditions and Project Controls below Active Projects / Proposal Pipeline', () => {
+  it('renders Project Controls below Active Projects / Proposal Pipeline', () => {
     const { container } = render(
       <MemoryRouter>
         <OperationsDashboard />
       </MemoryRouter>,
     );
     assertFollowsDocumentOrder(container, 'dashboard-active-proposals-grid', 'dashboard-placement-qc-grid');
-    expect(screen.getByText(/Today's placement conditions/i)).toBeInTheDocument();
     expect(screen.getByText(/Project Controls/i)).toBeInTheDocument();
   });
 
-  it('renders lower three-card row with pre-placement, risk, and delivery cards', () => {
+  it('hides concrete-only widgets when there is no placement work', () => {
     render(
       <MemoryRouter>
         <OperationsDashboard />
       </MemoryRouter>,
     );
-    expect(screen.getByText(/Pre-placement review/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Today's placement conditions/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Pre-placement review/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Concrete delivery schedule/i)).not.toBeInTheDocument();
     expect(screen.getByText(/Project risk review/i)).toBeInTheDocument();
+  });
+
+  it('shows concrete widgets when upcoming placements exist', () => {
+    mockOperationsSnapshot = {
+      ...baseOperationsSnapshot,
+      upcomingPlacements: [
+        {
+          projectId: 'p1',
+          projectName: 'Pour Project',
+          pourDateLabel: 'Jun 15',
+          sortTime: Date.now(),
+        },
+      ],
+    };
+
+    render(
+      <MemoryRouter>
+        <OperationsDashboard />
+      </MemoryRouter>,
+    );
+    expect(screen.getByText(/Today's placement conditions/i)).toBeInTheDocument();
+    expect(screen.getByText(/Pre-placement review/i)).toBeInTheDocument();
     expect(screen.getByText(/Concrete delivery schedule/i)).toBeInTheDocument();
+  });
+
+  it('renders lower row with project risk review when no concrete work', () => {
+    render(
+      <MemoryRouter>
+        <OperationsDashboard />
+      </MemoryRouter>,
+    );
+    expect(screen.getByText(/Project risk review/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Pre-placement review/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Concrete delivery schedule/i)).not.toBeInTheDocument();
   });
 
   it('renders simplified Business Snapshot metrics only', () => {

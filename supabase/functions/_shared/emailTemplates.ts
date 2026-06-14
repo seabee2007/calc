@@ -1,4 +1,5 @@
 import type { EmailTemplateKey } from "./emailValidation.ts";
+import { buildDefaultChangeOrderEmailText } from "./changeOrderEmail.ts";
 
 export interface RenderedEmail {
   subject: string;
@@ -17,21 +18,28 @@ function escapeHtml(value: string): string {
 
 function layout(input: {
   title: string;
+  heading?: string;
   bodyHtml: string;
   bodyText: string;
   ctaLabel?: string;
   ctaUrl?: string;
 }): RenderedEmail {
+  const heading = input.heading ?? input.title;
   const ctaHtml =
     input.ctaLabel && input.ctaUrl
-      ? `<p style="margin:24px 0;"><a href="${escapeHtml(input.ctaUrl)}" style="display:inline-block;background:#0891b2;color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:600;">${escapeHtml(input.ctaLabel)}</a></p>`
+      ? `<table role="presentation" cellspacing="0" cellpadding="0" style="margin:24px 0;"><tr><td align="center" style="border-radius:8px;background:#0891b2;"><a href="${escapeHtml(input.ctaUrl)}" style="display:inline-block;background:#0891b2;color:#ffffff;text-decoration:none;padding:14px 24px;border-radius:8px;font-weight:600;font-size:16px;line-height:1.2;">${escapeHtml(input.ctaLabel)}</a></td></tr></table>`
       : "";
+  const fallbackHtml = input.ctaUrl
+    ? `<p style="margin:16px 0 0;font-size:13px;color:#64748b;">If the button does not work, copy and paste this link into your browser:</p><p style="margin:8px 0 0;font-size:13px;line-height:1.5;word-break:break-all;"><a href="${escapeHtml(input.ctaUrl)}" style="color:#0891b2;text-decoration:underline;">${escapeHtml(input.ctaUrl)}</a></p>`
+    : "";
   const ctaText =
-    input.ctaLabel && input.ctaUrl ? `\n\n${input.ctaLabel}: ${input.ctaUrl}\n` : "";
+    input.ctaLabel && input.ctaUrl
+      ? `\n\n${input.ctaLabel}: ${input.ctaUrl}\n\nIf the button does not work, copy and paste this link into your browser:\n${input.ctaUrl}\n`
+      : "";
 
   return {
     subject: input.title,
-    html: `<!DOCTYPE html><html><body style="margin:0;padding:0;background:#f8fafc;font-family:Arial,sans-serif;color:#0f172a;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f8fafc;padding:24px 0;"><tr><td align="center"><table role="presentation" width="600" cellspacing="0" cellpadding="0" style="max-width:600px;background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;"><tr><td style="padding:20px 24px;background:#0f172a;color:#ffffff;font-size:18px;font-weight:700;">Arden Project OS</td></tr><tr><td style="padding:24px;"><h1 style="margin:0 0 16px;font-size:22px;line-height:1.3;">${escapeHtml(input.title)}</h1>${input.bodyHtml}${ctaHtml}<p style="margin:24px 0 0;font-size:13px;color:#64748b;">Arden Project OS — estimating, scheduling, and project management for contractors.</p></td></tr></table></td></tr></table></body></html>`,
+    html: `<!DOCTYPE html><html><body style="margin:0;padding:0;background:#f8fafc;font-family:Arial,sans-serif;color:#0f172a;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f8fafc;padding:24px 0;"><tr><td align="center"><table role="presentation" width="600" cellspacing="0" cellpadding="0" style="max-width:600px;background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;"><tr><td style="padding:20px 24px;background:#0f172a;color:#ffffff;font-size:18px;font-weight:700;">Arden Project OS</td></tr><tr><td style="padding:24px;"><h1 style="margin:0 0 16px;font-size:22px;line-height:1.3;">${escapeHtml(heading)}</h1>${input.bodyHtml}${ctaHtml}${fallbackHtml}<p style="margin:24px 0 0;font-size:13px;color:#64748b;">Arden Project OS — estimating, scheduling, and project management for contractors.</p></td></tr></table></td></tr></table></body></html>`,
     text: `${input.title}\n\n${input.bodyText}${ctaText}\nArden Project OS — estimating, scheduling, and project management for contractors.`,
   };
 }
@@ -39,6 +47,17 @@ function layout(input: {
 function str(data: Record<string, unknown>, key: string, fallback = ""): string {
   const value = data[key];
   return typeof value === "string" ? value : fallback;
+}
+
+function textToEmailParagraphs(text: string): string {
+  return text
+    .split("\n")
+    .map((line) =>
+      line.trim()
+        ? `<p style="margin:0 0 12px;">${escapeHtml(line)}</p>`
+        : `<p style="margin:0 0 12px;">&nbsp;</p>`,
+    )
+    .join("");
 }
 
 export function renderEmailTemplate(
@@ -212,14 +231,43 @@ export function renderEmailTemplate(
         ctaLabel: "Update billing",
         ctaUrl: str(data, "billingUrl"),
       });
-    case "changeOrderSent":
-      return layout({
-        title: `Change order: ${str(data, "changeOrderTitle", "Project update")}`,
-        bodyHtml: `<p style="margin:0;">Review the change order for ${escapeHtml(str(data, "projectName", "your project"))}.</p>`,
-        bodyText: `Review the change order for ${str(data, "projectName", "your project")}.`,
-        ctaLabel: "Review change order",
-        ctaUrl: str(data, "changeOrderUrl"),
+    case "changeOrderSent": {
+      const projectName = str(data, "projectName", "your project");
+      const emailSubject =
+        str(data, "emailSubject") || `Change Order for ${projectName}`;
+      const clientName = str(data, "clientName", "there");
+      const changeOrderTitle = str(data, "changeOrderTitle", "Change order");
+      const changeOrderNumber = str(data, "changeOrderNumber").trim();
+      const changeOrderTotal = str(data, "changeOrderTotal").trim();
+      const changeOrderUrl = str(data, "changeOrderUrl");
+      const companyName = str(data, "companyName", "Your contractor");
+      const messageBody = str(data, "messageBody").trim();
+
+      const changeOrderLabel = changeOrderNumber
+        ? `${changeOrderTitle} (${changeOrderNumber})`
+        : changeOrderTitle;
+
+      const defaultBodyText = buildDefaultChangeOrderEmailText({
+        clientName,
+        projectName,
+        changeOrderLabel,
+        changeOrderTotal,
+        changeOrderUrl,
+        companyName,
       });
+
+      const bodyText = messageBody || defaultBodyText;
+      const bodyHtml = textToEmailParagraphs(bodyText);
+
+      return layout({
+        title: emailSubject,
+        heading: "Change Order Ready for Review",
+        bodyHtml,
+        bodyText,
+        ctaLabel: changeOrderUrl ? "Review Change Order" : undefined,
+        ctaUrl: changeOrderUrl || undefined,
+      });
+    }
     case "rfiAssigned":
       return layout({
         title: `RFI assigned: ${str(data, "rfiTitle", "Request for information")}`,

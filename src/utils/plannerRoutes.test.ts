@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { buildProjectSwitchHref, isPlannerNavTabActive, plannerProjectSwitchHref } from './plannerRoutes';
+import {
+  assertValidChangeOrderRouteId,
+  buildProjectSwitchHref,
+  changeOrderEditHref,
+  isPlannerNavTabActive,
+  plannerProjectSwitchHref,
+} from './plannerRoutes';
 
 const PROJECT_B = 'project-b';
 
@@ -107,6 +113,14 @@ describe('plannerProjectSwitchHref', () => {
         loc('/projects/project-a/planner/change-orders/new', 'far=f1&rfi=r1&task=t1'),
       ),
     ).toBe('/projects/project-b/planner/change-orders/new');
+  });
+
+  it('rejects invalid change order route ids', () => {
+    expect(() => assertValidChangeOrderRouteId(() => {})).toThrow('must be a string');
+    expect(() => changeOrderEditHref('proj-1', '<anonymous code>')).toThrow('Invalid change order id');
+    expect(changeOrderEditHref('proj-1', 'co-uuid-123')).toBe(
+      '/projects/proj-1/planner/change-orders/co-uuid-123',
+    );
   });
 
   it('preserves estimate line-items tab when switching projects', () => {

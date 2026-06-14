@@ -15,6 +15,7 @@ import {
   normalizeLineItems,
   type ChangeOrderPricingBreakdown,
 } from '../utils/changeOrderFinancials';
+import { getPublicAppUrl } from '../config/brand';
 import { linkFarToChangeOrder } from './fieldAdjustmentService';
 import { fetchAdjustmentById } from './fieldAdjustmentService';
 import { fetchRfiById } from './rfiService';
@@ -252,6 +253,24 @@ export async function fetchChangeOrderById(id: string): Promise<ChangeOrder | nu
   return data ? mapChangeOrder(data) : null;
 }
 
+export async function ensurePublicChangeOrderLink(
+  changeOrderId: string,
+): Promise<{ changeOrder: ChangeOrder; url: string }> {
+  const changeOrder = await fetchChangeOrderById(changeOrderId);
+  if (!changeOrder) {
+    throw new Error('Change order not found after save');
+  }
+  const token = changeOrder.publicToken?.trim();
+  if (!token || token === 'null' || token === 'undefined') {
+    throw new Error('Public review token is missing for this change order');
+  }
+  const url = getPublicAppUrl(`/change-order/${token}`);
+  if (!/^https?:\/\//i.test(url)) {
+    throw new Error('Invalid public review link');
+  }
+  return { changeOrder, url };
+}
+
 function normalizeInputItems(input: ChangeOrderInput): {
   labor: ChangeOrderLineItem[];
   material: ChangeOrderLineItem[];
@@ -398,6 +417,84 @@ export async function createChangeOrderManual(
   });
 }
 
+export interface ChangeOrderDraftPrefill {
+  linkedFarId: string | null;
+  linkedRfiId: string | null;
+  linkedTaskId: string | null;
+  title: string;
+  scopeDescription: string;
+  reasonForChange: string;
+  scheduleImpact: string | null;
+}
+
+export type ChangeOrderNewDraftResolution =
+  | { kind: 'existing'; changeOrderId: string }
+  | { kind: 'draft'; prefill: ChangeOrderDraftPrefill };
+
+/** Resolve /change-orders/new without inserting a DB row (except redirect to existing linked CO). */
+export async function resolveChangeOrderNewDraft(input: {
+  projectId: string;
+  farId?: string | null;
+  rfiId?: string | null;
+  taskId?: string | null;
+}): Promise<ChangeOrderNewDraftResolution> {
+  if (input.farId) {
+    const far = await fetchAdjustmentById(input.farId);
+    if (!far) throw new Error('Field adjustment not found');
+    if (far.changeOrderId) {
+      return { kind: 'existing', changeOrderId: far.changeOrderId };
+    }
+    const scope = [
+      far.conditionDescription ?? far.description,
+      far.proposedAdjustment ? `Proposed: ${far.proposedAdjustment}` : '',
+    ]
+      .filter(Boolean)
+      .join('\n\n');
+    return {
+      kind: 'draft',
+      prefill: {
+        linkedFarId: far.id,
+        linkedRfiId: null,
+        linkedTaskId: far.taskId,
+        title: `CO — ${far.title}`,
+        scopeDescription: scope,
+        reasonForChange: far.reason ?? 'Field adjustment',
+        scheduleImpact: far.scheduleImpact ?? null,
+      },
+    };
+  }
+
+  if (input.rfiId) {
+    const rfi = await fetchRfiById(input.rfiId);
+    if (!rfi) throw new Error('RFI not found');
+    return {
+      kind: 'draft',
+      prefill: {
+        linkedFarId: null,
+        linkedRfiId: rfi.id,
+        linkedTaskId: rfi.taskId,
+        title: `CO — ${rfi.title}`,
+        scopeDescription: rfi.question,
+        reasonForChange: rfi.title,
+        scheduleImpact: rfi.impactSchedule ? 'Schedule impact noted on RFI' : null,
+      },
+    };
+  }
+
+  return {
+    kind: 'draft',
+    prefill: {
+      linkedFarId: null,
+      linkedRfiId: null,
+      linkedTaskId: input.taskId ?? null,
+      title: 'Change order',
+      scopeDescription: '',
+      reasonForChange: '',
+      scheduleImpact: null,
+    },
+  };
+}
+
 export async function markChangeOrderSent(
   id: string,
   contractor?: { name: string; signature: string },
@@ -421,20 +518,6 @@ export async function markChangeOrderSent(
     .single();
   if (error) throw error;
   return mapChangeOrder(data);
-}
-
-/** Client email from project record for mailto prefill. */
-export async function fetchProjectClientEmail(projectId: string): Promise<string | null> {
-  const { data, error } = await supabase
-    .from('projects')
-    .select('client_info, client_portal_access')
-    .eq('id', projectId)
-    .maybeSingle();
-  if (error || !data) return null;
-  const portal = data.client_portal_access as { clientEmail?: string } | null;
-  const info = data.client_info as { clientEmail?: string } | null;
-  const email = portal?.clientEmail?.trim() || info?.clientEmail?.trim();
-  return email || null;
 }
 
 export async function voidChangeOrder(id: string): Promise<void> {

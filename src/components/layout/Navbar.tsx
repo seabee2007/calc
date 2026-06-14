@@ -13,15 +13,17 @@ import {
   User,
   UserPlus,
   Users,
+  Wrench,
   X,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { useToolsModalStore } from '../../store/toolsModalStore';
 import FieldNotificationsBell from '../field/FieldNotificationsBell';
 import ShareInviteModal from '../share/ShareInviteModal';
 import PilotSurveyModal from '../survey/PilotSurveyModal';
 import Button from '../ui/Button';
 import AppProfileMenu from './AppProfileMenu';
-import { APP_NAV_HEADER, APP_NAV_MOBILE_MENU, appNavIconButtonClass } from './appNavStyles';
+import { APP_NAV_HEADER, APP_NAV_MOBILE_MENU, appNavIconButtonClass, isToolsPath } from './appNavStyles';
 import {
   BRAND_NAME,
   getAppLoginUrl,
@@ -61,8 +63,11 @@ const Navbar: React.FC<NavbarProps> = ({ showThemeToggle = true, softHeader = fa
   const [profileOpen, setProfileOpen] = useState(false);
   const [shareInviteOpen, setShareInviteOpen] = useState(false);
   const [surveyOpen, setSurveyOpen] = useState(false);
+  const openTools = useToolsModalStore((s) => s.open);
+  const toolsModalOpen = useToolsModalStore((s) => s.isOpen);
 
   const dashboardHref = isEmployee && !isOwner ? '/employee/dashboard' : '/';
+  const toolsActive = toolsModalOpen || isToolsPath(location.pathname);
   const sectionLabel = useMemo(
     () => sectionLabelForPath(location.pathname, location.search),
     [location.pathname],
@@ -165,6 +170,21 @@ const Navbar: React.FC<NavbarProps> = ({ showThemeToggle = true, softHeader = fa
           >
             <SquareChartGantt className="h-5 w-5" />
           </Link>
+        )}
+
+        {user && isOwner && (
+          <button
+            type="button"
+            className={appNavIconButtonClass(toolsActive)}
+            aria-label="Tools"
+            title="Tools"
+            onClick={() => {
+              setMobileOpen(false);
+              openTools();
+            }}
+          >
+            <Wrench className="h-5 w-5" />
+          </button>
         )}
 
         {user && isOwner && (
@@ -282,6 +302,17 @@ const Navbar: React.FC<NavbarProps> = ({ showThemeToggle = true, softHeader = fa
                     <SquareChartGantt className="h-5 w-5" />
                     Projects
                   </Link>
+                  <button
+                    type="button"
+                    className={mobileLinkClass(toolsActive)}
+                    onClick={() => {
+                      setMobileOpen(false);
+                      openTools();
+                    }}
+                  >
+                    <Wrench className="h-5 w-5" />
+                    Tools
+                  </button>
                   <Link
                     to="/resources"
                     className={mobileLinkClass(isActive('/resources'))}

@@ -5,6 +5,7 @@ import { fetchChangeOrdersForProject } from '../../services/changeOrderService';
 import { listProjectChangeOrderBuilderDocuments } from '../../services/projectDocumentService';
 import type { ProjectDocumentRow } from '../../services/projectDocumentService';
 import type { ChangeOrder } from '../../types/changeOrder';
+import { filterVisibleChangeOrders } from '../../utils/changeOrderListUtils';
 import ChangeOrdersDocumentsPanel from '../../components/planner/documents/panels/ChangeOrdersDocumentsPanel';
 import { PLANNER_PAGE_BG, PLANNER_SECTION_TITLE } from '../../components/planner/plannerTheme';
 
@@ -22,7 +23,7 @@ export default function PlannerChangeOrdersPage() {
         fetchChangeOrdersForProject(projectId),
         listProjectChangeOrderBuilderDocuments(projectId),
       ]);
-      setOrders(list);
+      setOrders(filterVisibleChangeOrders(list));
       setBuilderCoDrafts(drafts);
     } finally {
       setLoading(false);

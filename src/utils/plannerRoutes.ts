@@ -256,8 +256,21 @@ export function contractBuilderToolHref(
   return `/tools/contract-builder?${q.toString()}`;
 }
 
+/** Rejects non-string route ids (e.g. functions) before they reach react-router. */
+export function assertValidChangeOrderRouteId(changeOrderId: unknown): string {
+  if (typeof changeOrderId !== 'string') {
+    throw new Error('Change order id must be a string');
+  }
+  const id = changeOrderId.trim();
+  if (!id || id === 'new' || /[<>\s]/.test(id) || id.includes('function')) {
+    throw new Error(`Invalid change order id: ${id || '(empty)'}`);
+  }
+  return id;
+}
+
 export function changeOrderEditHref(projectId: string, changeOrderId: string): string {
-  return `/projects/${projectId}/planner/change-orders/${changeOrderId}`;
+  const id = assertValidChangeOrderRouteId(changeOrderId);
+  return `/projects/${projectId}/planner/change-orders/${id}`;
 }
 
 export function changeOrderNewHref(

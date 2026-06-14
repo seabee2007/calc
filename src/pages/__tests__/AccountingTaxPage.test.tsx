@@ -114,15 +114,15 @@ describe('AccountingTaxPage', () => {
     expect(screen.queryByTestId('cash-method-note')).not.toBeInTheDocument();
   });
 
-  it('renders TurboTax helper card with "later phase" note', () => {
+  it('renders Tax Prep Helper card with "later phase" note', () => {
     renderPage();
-    expect(screen.getByTestId('turbotax-card')).toBeInTheDocument();
-    expect(screen.getByTestId('turbotax-note').textContent).toContain('later phase');
+    expect(screen.getByTestId('tax-prep-card')).toBeInTheDocument();
+    expect(screen.getByTestId('tax-prep-note').textContent).toContain('later phase');
   });
 
-  it('does NOT claim direct TurboTax import works', () => {
+  it('does NOT claim direct import', () => {
     renderPage();
-    const note = screen.getByTestId('turbotax-note').textContent ?? '';
+    const note = screen.getByTestId('tax-prep-note').textContent ?? '';
     expect(note).not.toMatch(/direct.*import.*works/i);
     expect(note).not.toMatch(/guaranteed/i);
   });

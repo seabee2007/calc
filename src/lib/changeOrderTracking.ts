@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { getPublicAppUrl } from '../config/brand';
 import { mapChangeOrder } from '../services/changeOrderService';
 import type { ChangeOrder } from '../types/changeOrder';
 import {
@@ -7,7 +8,7 @@ import {
 } from '../utils/changeOrderDocumentContext';
 
 export function getPublicChangeOrderUrl(publicToken: string): string {
-  return `${window.location.origin}/change-order/${publicToken}`;
+  return getPublicAppUrl(`/change-order/${publicToken}`);
 }
 
 export async function fetchChangeOrderPublicBundle(

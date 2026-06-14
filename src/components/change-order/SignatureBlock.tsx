@@ -11,6 +11,7 @@ interface SignatureBlockProps {
   onSignatureChange: (value: string) => void;
   readOnly?: boolean;
   helperText?: string;
+  nameError?: string;
 }
 
 function formatSignedAt(iso: string | null | undefined): string {
@@ -34,6 +35,7 @@ export default function SignatureBlock({
   onSignatureChange,
   readOnly = false,
   helperText,
+  nameError,
 }: SignatureBlockProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawingRef = useRef(false);
@@ -159,6 +161,7 @@ export default function SignatureBlock({
             value={name}
             onChange={(e) => onNameChange(e.target.value)}
             fullWidth
+            error={nameError}
           />
           <p className="text-xs font-medium text-gray-600 dark:text-slate-400">Signature</p>
           <canvas

@@ -419,11 +419,11 @@ const AccountingTaxPage: React.FC = () => {
           </ExportCard>
 
           <ExportCard
-            testId="turbotax-card"
+            testId="tax-prep-card"
             icon={<Calculator className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />}
-            title="TurboTax Helper Export"
+            title="Tax Prep Helper Export"
             description={
-              <span data-testid="turbotax-note">{TURBOTAX_HELPER_DISCLAIMER}</span>
+              <span data-testid="tax-prep-note">{TURBOTAX_HELPER_DISCLAIMER}</span>
             }
           >
             <Button
@@ -432,9 +432,9 @@ const AccountingTaxPage: React.FC = () => {
               icon={<Download size={16} />}
               onClick={handleTurboTaxHelper}
               disabled={!exportData}
-              data-testid="download-turbotax-helper"
+              data-testid="download-tax-prep-helper"
             >
-              TurboTax Helper CSV
+              Tax Prep Helper CSV
             </Button>
           </ExportCard>
 

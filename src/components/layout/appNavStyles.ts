@@ -9,5 +9,14 @@ export function appNavIconButtonClass(active = false): string {
   ].join(' ');
 }
 
+export function isToolsPath(pathname: string): boolean {
+  return (
+    pathname.startsWith('/tools') ||
+    pathname.startsWith('/calculator') ||
+    pathname.startsWith('/mix-design') ||
+    pathname.startsWith('/pour-planner')
+  );
+}
+
 export const APP_NAV_MOBILE_MENU =
   'md:hidden fixed left-0 right-0 z-[100] border-t border-slate-800 bg-slate-900 shadow-xl';

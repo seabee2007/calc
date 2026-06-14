@@ -162,6 +162,37 @@ export async function sendClientPortalInviteEmail(input: {
   });
 }
 
+export async function sendChangeOrderEmail(input: {
+  changeOrderId: string;
+  changeOrderToken: string;
+  projectId: string;
+  recipientEmail: string;
+  emailSubject?: string;
+  messageBody?: string;
+  clientName?: string;
+  projectName?: string;
+  changeOrderTitle?: string;
+  changeOrderNumber?: string;
+  changeOrderTotal?: string;
+}): Promise<SendTransactionalEmailResponse> {
+  return invokeSendTransactionalEmail({
+    templateKey: 'changeOrderSent',
+    to: input.recipientEmail.trim(),
+    data: {
+      changeOrderId: input.changeOrderId,
+      changeOrderToken: input.changeOrderToken,
+      projectId: input.projectId,
+      emailSubject: input.emailSubject?.trim(),
+      messageBody: input.messageBody?.trim(),
+      clientName: input.clientName?.trim(),
+      projectName: input.projectName?.trim(),
+      changeOrderTitle: input.changeOrderTitle?.trim(),
+      changeOrderNumber: input.changeOrderNumber?.trim(),
+      changeOrderTotal: input.changeOrderTotal?.trim(),
+    },
+  });
+}
+
 export async function getProjectEmailEvents(projectId: string): Promise<EmailEventRow[]> {
   const { data, error } = await supabase
     .from('email_events')

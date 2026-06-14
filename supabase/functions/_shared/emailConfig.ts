@@ -60,7 +60,8 @@ export function resolveFromEmail(
     templateKey === "depositRequest" ||
     templateKey === "clientCheckIn" ||
     templateKey === "proposalAccepted" ||
-    templateKey === "clientPortalInvite"
+    templateKey === "clientPortalInvite" ||
+    templateKey === "changeOrderSent"
   ) {
     return config.proposalsFromEmail || config.fromEmail;
   }

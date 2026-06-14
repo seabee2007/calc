@@ -17,6 +17,8 @@ import { renderEmailTemplate } from "../_shared/emailTemplates.ts";
 import {
   getPublicProposalUrl,
   getPublicClientPortalUrl,
+  getPublicChangeOrderUrl,
+  isAbsolutePublicUrl,
   prepareTransactionalEmail,
   sendTransactionalEmail,
 } from "../_shared/resend.ts";
@@ -24,6 +26,12 @@ import {
   applyClientPortalInvitePlaceholders,
   buildClientPortalInviteMessageTemplate,
 } from "../_shared/clientPortalInviteEmail.ts";
+import {
+  applyChangeOrderInvitePlaceholders,
+  buildChangeOrderInviteMessageTemplate,
+  buildChangeOrderInviteSubject,
+} from "../_shared/changeOrderInviteEmail.ts";
+import { validateChangeOrderSentPayload } from "../_shared/changeOrderEmail.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -313,6 +321,151 @@ serve(async (req) => {
             : "Your project portal is ready",
         messageBody,
       };
+    }
+
+    if (templateKey === "changeOrderSent") {
+      const changeOrderToken =
+        typeof data.changeOrderToken === "string" ? data.changeOrderToken.trim() : "";
+      const changeOrderId =
+        typeof data.changeOrderId === "string" ? data.changeOrderId.trim() : "";
+
+      if (!changeOrderToken && !changeOrderId) {
+        return jsonResponse({ error: "changeOrderToken or changeOrderId is required." }, 400);
+      }
+
+      let changeOrderQuery = admin
+        .from("change_orders")
+        .select("id, project_id, title, public_token, status, total, display_number, scope_description")
+        .eq("user_id", user.id);
+
+      if (changeOrderToken) {
+        changeOrderQuery = changeOrderQuery.eq("public_token", changeOrderToken);
+      } else {
+        changeOrderQuery = changeOrderQuery.eq("id", changeOrderId);
+      }
+
+      const { data: changeOrder, error: changeOrderError } = await changeOrderQuery.maybeSingle();
+
+      if (changeOrderError || !changeOrder) {
+        return jsonResponse({ error: "Change order not found." }, 404);
+      }
+
+      projectId = String(changeOrder.project_id);
+
+      const { data: project } = await admin
+        .from("projects")
+        .select("name, client_info")
+        .eq("id", projectId)
+        .maybeSingle();
+
+      const projectName =
+        (typeof data.projectName === "string" && data.projectName.trim()) ||
+        (typeof project?.name === "string" && project.name.trim()) ||
+        "your project";
+
+      const clientInfo = project?.client_info as { clientName?: string } | null;
+      const clientName =
+        (typeof data.clientName === "string" && data.clientName.trim()) ||
+        (typeof clientInfo?.clientName === "string" && clientInfo.clientName.trim()) ||
+        "there";
+
+      const { data: company } = await admin
+        .from("company_settings")
+        .select("company_name, email, phone, logo_url")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      const companyName =
+        typeof company?.company_name === "string" && company.company_name.trim()
+          ? company.company_name.trim()
+          : "Your contractor";
+
+      const publicToken = String(changeOrder.public_token ?? "").trim();
+      if (!publicToken) {
+        return jsonResponse({ error: "Change order public link is not available yet." }, 400);
+      }
+
+      const changeOrderUrl = getPublicChangeOrderUrl(config.siteUrl, publicToken);
+      if (!isAbsolutePublicUrl(changeOrderUrl)) {
+        return jsonResponse(
+          {
+            error:
+              "Change order review link is not configured. Set SITE_URL or PUBLIC_APP_URL for transactional email.",
+          },
+          400,
+        );
+      }
+
+      const changeOrderTitle =
+        (typeof data.changeOrderTitle === "string" && data.changeOrderTitle.trim()) ||
+        (typeof changeOrder.title === "string" && changeOrder.title.trim()) ||
+        "Change order";
+      const changeOrderNumber =
+        (typeof data.changeOrderNumber === "string" && data.changeOrderNumber.trim()) ||
+        (typeof changeOrder.display_number === "string" && changeOrder.display_number.trim()) ||
+        "";
+      const totalAmount =
+        typeof changeOrder.total === "number"
+          ? changeOrder.total
+          : Number(changeOrder.total) || 0;
+      const changeOrderTotal =
+        typeof data.changeOrderTotal === "string" && data.changeOrderTotal.trim()
+          ? data.changeOrderTotal.trim()
+          : new Intl.NumberFormat("en-US", {
+              style: "currency",
+              currency: "USD",
+            }).format(totalAmount);
+      const scopeDescription =
+        typeof changeOrder.scope_description === "string"
+          ? changeOrder.scope_description.trim()
+          : "";
+
+      const rawMessage =
+        typeof data.messageBody === "string" && data.messageBody.trim()
+          ? data.messageBody.trim()
+          : buildChangeOrderInviteMessageTemplate();
+      const messageBody = applyChangeOrderInvitePlaceholders(rawMessage, {
+        clientName,
+        projectName,
+        changeOrderTitle,
+        changeOrderUrl,
+        companyName,
+      });
+
+      templateData = {
+        ...templateData,
+        changeOrderTitle,
+        changeOrderNumber,
+        changeOrderTotal,
+        scopeDescription,
+        projectName,
+        clientName,
+        changeOrderUrl,
+        companyName,
+        companyEmail: typeof company?.email === "string" ? company.email.trim() : "",
+        companyPhone: typeof company?.phone === "string" ? company.phone.trim() : "",
+        companyLogoUrl: typeof company?.logo_url === "string" ? company.logo_url.trim() : "",
+        emailSubject:
+          typeof data.emailSubject === "string" && data.emailSubject.trim()
+            ? data.emailSubject.trim()
+            : buildChangeOrderInviteSubject(projectName),
+        messageBody,
+      };
+
+      const validationError = validateChangeOrderSentPayload(templateData);
+      if (validationError) {
+        return jsonResponse({ error: validationError }, 400);
+      }
+
+      console.info("[ChangeOrderEmail] Payload received", {
+        to: recipient,
+        subject: templateData.emailSubject,
+        projectName: templateData.projectName,
+        changeOrderTitle: templateData.changeOrderTitle,
+        changeOrderTotal: templateData.changeOrderTotal,
+        hasChangeOrderUrl: Boolean(templateData.changeOrderUrl),
+        hasMessage: Boolean(templateData.messageBody),
+      });
     }
 
     const rendered = renderEmailTemplate(templateKey, templateData);

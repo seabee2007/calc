@@ -149,16 +149,35 @@ export async function sendTransactionalEmail(
   }
 }
 
+export function resolveEmailSiteUrl(configSiteUrl: string): string {
+  const trimmed = configSiteUrl.replace(/\/$/, "").trim();
+  if (trimmed) return trimmed;
+  const fromEnv =
+    (typeof Deno !== "undefined"
+      ? Deno.env.get("PUBLIC_APP_URL") ?? Deno.env.get("VITE_APP_URL")
+      : undefined) ?? "";
+  const envTrimmed = fromEnv.replace(/\/$/, "").trim();
+  if (envTrimmed) return envTrimmed;
+  return "https://app.ardenprojectos.com";
+}
+
 export function getPublicProposalUrl(siteUrl: string, publicToken: string): string {
-  const base = siteUrl.replace(/\/$/, "");
-  if (!base) return `/proposal/${publicToken}`;
+  const base = resolveEmailSiteUrl(siteUrl);
   return `${base}/proposal/${publicToken}`;
 }
 
 export function getPublicClientPortalUrl(siteUrl: string, token: string): string {
-  const base = siteUrl.replace(/\/$/, "");
-  if (!base) return `/client/project/${token}`;
+  const base = resolveEmailSiteUrl(siteUrl);
   return `${base}/client/project/${token}`;
+}
+
+export function getPublicChangeOrderUrl(siteUrl: string, publicToken: string): string {
+  const base = resolveEmailSiteUrl(siteUrl);
+  return `${base}/change-order/${publicToken}`;
+}
+
+export function isAbsolutePublicUrl(url: string): boolean {
+  return /^https?:\/\//i.test(url.trim());
 }
 
 export type { EmailEnvConfig };

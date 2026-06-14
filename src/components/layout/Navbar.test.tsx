@@ -10,8 +10,11 @@ vi.mock('../../hooks/useAuth', () => ({
   useAuth: () => mockUseAuth(),
 }));
 
-vi.mock('../store/toolsModalStore', () => ({
-  useToolsModalStore: () => ({ open: vi.fn() }),
+const mockOpenTools = vi.fn();
+
+vi.mock('../../store/toolsModalStore', () => ({
+  useToolsModalStore: (selector: (state: { open: () => void; isOpen: boolean }) => unknown) =>
+    selector({ open: mockOpenTools, isOpen: false }),
 }));
 
 vi.mock('../field/FieldNotificationsBell', () => ({
@@ -95,5 +98,48 @@ describe('Navbar logged-in owner', () => {
 
     expect(screen.getAllByRole('link', { name: 'Projects' })).toHaveLength(1);
     expect(screen.getByText('Company settings')).toBeInTheDocument();
+  });
+
+  it('renders Tools in the top navbar and opens the tools modal', async () => {
+    const user = userEvent.setup();
+    mockOpenTools.mockClear();
+
+    render(
+      <MemoryRouter>
+        <Navbar />
+      </MemoryRouter>,
+    );
+
+    const toolsButton = screen.getByRole('button', { name: 'Tools' });
+    expect(toolsButton).toBeInTheDocument();
+
+    await user.click(toolsButton);
+    expect(mockOpenTools).toHaveBeenCalledTimes(1);
+  });
+
+  it('highlights Tools when on a calculator route', () => {
+    render(
+      <MemoryRouter initialEntries={['/calculator/concrete']}>
+        <Navbar />
+      </MemoryRouter>,
+    );
+
+    const toolsButton = screen.getByRole('button', { name: 'Tools' });
+    expect(toolsButton.className).toContain('bg-white/15');
+  });
+
+  it('does not show Tools in the profile dropdown', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <MemoryRouter>
+        <Navbar />
+      </MemoryRouter>,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Profile menu' }));
+
+    expect(screen.queryByText('Tools')).not.toBeInTheDocument();
+    expect(screen.getByText('Help')).toBeInTheDocument();
   });
 });

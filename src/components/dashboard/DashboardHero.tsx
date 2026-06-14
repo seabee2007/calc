@@ -13,7 +13,7 @@ import {
 
 interface DashboardHeroProps {
   activeProjects: number;
-  placementsToday: number;
+  placementsToday?: number;
   proposalsSent: number;
   onStartProject: () => void;
   onQuickQuote: () => void;
@@ -60,16 +60,18 @@ const DashboardHero: React.FC<DashboardHeroProps> = ({
       </div>
     </div>
 
-    <div className="mt-4 grid grid-cols-3 gap-3">
+    <div className={`mt-4 grid gap-3 ${placementsToday !== undefined ? 'grid-cols-3' : 'grid-cols-2'}`}>
       <div className={`${OPS_HERO_STAT_INNER} p-3`}>
         <p className={`text-xs ${OPS_HERO_STAT_LABEL}`}>Active Projects</p>
         <p className={`mt-1 text-2xl font-bold ${OPS_HERO_STAT_VALUE}`}>{activeProjects}</p>
       </div>
 
-      <div className={`${OPS_HERO_STAT_INNER} p-3`}>
-        <p className={`text-xs ${OPS_HERO_STAT_LABEL}`}>Placements Today</p>
-        <p className={`mt-1 text-2xl font-bold ${OPS_HERO_STAT_VALUE}`}>{placementsToday}</p>
-      </div>
+      {placementsToday !== undefined ? (
+        <div className={`${OPS_HERO_STAT_INNER} p-3`}>
+          <p className={`text-xs ${OPS_HERO_STAT_LABEL}`}>Placements Today</p>
+          <p className={`mt-1 text-2xl font-bold ${OPS_HERO_STAT_VALUE}`}>{placementsToday}</p>
+        </div>
+      ) : null}
 
       <div className={`${OPS_HERO_STAT_INNER} p-3`}>
         <p className={`text-xs ${OPS_HERO_STAT_LABEL}`}>Proposals Sent</p>

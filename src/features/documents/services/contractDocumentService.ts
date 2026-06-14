@@ -1,4 +1,5 @@
 import { supabase } from '../../../lib/supabase';
+import { getPublicAppUrl } from '../../../config/brand';
 import type { SaveContractVersionPayload } from '../ui/contractVersionState';
 import type {
   ContractDocumentRow,
@@ -113,7 +114,7 @@ export async function deleteContractDocument(documentId: string): Promise<void> 
 
 /** Shareable public URL for the client signing page. */
 export function getPublicContractUrl(token: string): string {
-  return `${window.location.origin}/contract/${token}`;
+  return getPublicAppUrl(`/contract/${token}`);
 }
 
 export interface SendContractForSignatureInput {

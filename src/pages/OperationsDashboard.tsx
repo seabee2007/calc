@@ -146,6 +146,10 @@ const OperationsDashboard: React.FC = () => {
     return actions;
   }, [navigate, qcStats.qcTestsOverdue, scheduleSnapshot?.todayEvents.length]);
   const primaryPourToday = snapshot.todayPours[0];
+  const hasAnyConcreteWork =
+    snapshot.hasPlacementsToday ||
+    snapshot.todayPourCount > 0 ||
+    snapshot.upcomingPlacements.length > 0;
   const nextUpcomingPlacement = resolveNextUpcomingPlacement(
     snapshot.upcomingPlacements,
     snapshot.hasPlacementsToday,
@@ -266,7 +270,7 @@ const OperationsDashboard: React.FC = () => {
       <div data-testid="dashboard-todays-operations">
         <DashboardHero
           activeProjects={snapshot.activeProjectCount}
-          placementsToday={snapshot.todayPourCount}
+          placementsToday={hasAnyConcreteWork ? snapshot.todayPourCount : undefined}
           proposalsSent={snapshot.proposalsSentCount}
           onStartProject={() => navigate('/projects', { state: { openCreate: true } })}
           onQuickQuote={() => navigate('/proposal-generator')}
@@ -320,12 +324,14 @@ const OperationsDashboard: React.FC = () => {
 
       <section
         data-testid="dashboard-placement-qc-grid"
-        className="grid grid-cols-1 gap-5 lg:grid-cols-2"
+        className={`grid grid-cols-1 gap-5 ${hasAnyConcreteWork ? 'lg:grid-cols-2' : ''}`}
       >
-        <FeaturedPlacementConditions
-          snapshot={snapshot}
-          hasPlacementsToday={snapshot.hasPlacementsToday}
-        />
+        {hasAnyConcreteWork ? (
+          <FeaturedPlacementConditions
+            snapshot={snapshot}
+            hasPlacementsToday={snapshot.hasPlacementsToday}
+          />
+        ) : null}
         <ProjectControlsCard
           testsDue={qcStats.qcTestsDue}
           testsOverdue={qcStats.qcTestsOverdue}
@@ -341,28 +347,32 @@ const OperationsDashboard: React.FC = () => {
 
       <section
         data-testid="dashboard-lower-three-grid"
-        className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
+        className={`grid grid-cols-1 gap-5 ${hasAnyConcreteWork ? 'sm:grid-cols-2 lg:grid-cols-3' : ''}`}
       >
-        <SmartPourAssistant
-          projectId={prePlacement.projectId}
-          projectName={prePlacement.projectName}
-          pourDateLabel={prePlacement.pourDateLabel}
-          checks={prePlacement.checks}
-          attention={prePlacement.attention}
-          emptyMessage={allProjectsClosedOut ? QUEUE_EMPTY_MESSAGE : undefined}
-        />
+        {hasAnyConcreteWork ? (
+          <SmartPourAssistant
+            projectId={prePlacement.projectId}
+            projectName={prePlacement.projectName}
+            pourDateLabel={prePlacement.pourDateLabel}
+            checks={prePlacement.checks}
+            attention={prePlacement.attention}
+            emptyMessage={allProjectsClosedOut ? QUEUE_EMPTY_MESSAGE : undefined}
+          />
+        ) : null}
         <ProjectHealthCard
           review={projectRiskReview}
           emptyMessage={allProjectsClosedOut ? QUEUE_EMPTY_MESSAGE : undefined}
         />
-        <ConcreteDeliveryScheduleCard
-          schedule={snapshot.deliverySchedule}
-          timeline={snapshot.timeline}
-          hasPlacementsToday={snapshot.hasPlacementsToday}
-          nextPlacement={nextUpcomingPlacement}
-          primaryProjectId={primaryPourToday?.id}
-          emptyMessage={allProjectsClosedOut ? QUEUE_EMPTY_MESSAGE : undefined}
-        />
+        {hasAnyConcreteWork ? (
+          <ConcreteDeliveryScheduleCard
+            schedule={snapshot.deliverySchedule}
+            timeline={snapshot.timeline}
+            hasPlacementsToday={snapshot.hasPlacementsToday}
+            nextPlacement={nextUpcomingPlacement}
+            primaryProjectId={primaryPourToday?.id}
+            emptyMessage={allProjectsClosedOut ? QUEUE_EMPTY_MESSAGE : undefined}
+          />
+        ) : null}
       </section>
 
       {projects.length === 0 && (

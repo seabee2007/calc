@@ -20,6 +20,8 @@ interface ModalProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
   /** Stack above planner task drawer (z 10050). */
   stackAboveDrawer?: boolean;
+  footer?: React.ReactNode;
+  panelClassName?: string;
 }
 
 const Modal: React.FC<ModalProps> = ({
@@ -29,6 +31,8 @@ const Modal: React.FC<ModalProps> = ({
   children,
   size = 'md',
   stackAboveDrawer = false,
+  footer,
+  panelClassName = '',
 }) => {
   const prevIsOpen = useRef(isOpen);
   const onCloseRef = useRef(onClose);
@@ -118,7 +122,7 @@ const Modal: React.FC<ModalProps> = ({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.96 }}
             transition={panelTransition}
-            className={`pointer-events-auto relative z-10 flex w-full max-h-[min(90dvh,100%)] flex-col ${MODAL_PANEL} ${sizeClasses[size]}`}
+            className={`pointer-events-auto relative z-10 flex w-full max-h-[85vh] flex-col ${MODAL_PANEL} ${sizeClasses[size]} ${panelClassName}`}
             onClick={(e) => e.stopPropagation()}
           >
               <div className={MODAL_HEADER}>
@@ -156,6 +160,11 @@ const Modal: React.FC<ModalProps> = ({
               >
                 {children}
               </div>
+              {footer ? (
+                <div className="shrink-0 border-t border-slate-200 bg-white/95 px-5 py-4 dark:border-slate-700/70 dark:bg-slate-900/95 sm:px-6">
+                  {footer}
+                </div>
+              ) : null}
           </motion.div>
         </motion.div>
       )}

@@ -50,6 +50,7 @@ export default function ChangeOrdersDocumentsPanel({
   const [deleteConfirmDocId, setDeleteConfirmDocId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [creatingNew, setCreatingNew] = useState(false);
 
   const formatMoney = (n: number) =>
     n.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
@@ -77,7 +78,12 @@ export default function ChangeOrdersDocumentsPanel({
               size="sm"
               variant="accent"
               icon={<Plus className="h-4 w-4" />}
-              onClick={() => openNewChangeOrder(navigate, projectId)}
+              disabled={creatingNew}
+              onClick={() => {
+                if (creatingNew) return;
+                setCreatingNew(true);
+                openNewChangeOrder(navigate, projectId);
+              }}
             >
               New change order
             </Button>

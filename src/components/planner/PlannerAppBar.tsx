@@ -6,11 +6,13 @@ import {
   Menu,
   SquareChartGantt,
   User,
+  Wrench,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { useToolsModalStore } from '../../store/toolsModalStore';
 import FieldNotificationsBell from '../field/FieldNotificationsBell';
 import AppProfileMenu from '../layout/AppProfileMenu';
-import { APP_NAV_HEADER, appNavIconButtonClass } from '../layout/appNavStyles';
+import { APP_NAV_HEADER, appNavIconButtonClass, isToolsPath } from '../layout/appNavStyles';
 
 interface PlannerAppBarProps {
   onMenuClick: () => void;
@@ -21,8 +23,11 @@ export default function PlannerAppBar({ onMenuClick, projectName }: PlannerAppBa
   const location = useLocation();
   const { user, isOwner, isEmployee } = useAuth();
   const [profileOpen, setProfileOpen] = useState(false);
+  const openTools = useToolsModalStore((s) => s.open);
+  const toolsModalOpen = useToolsModalStore((s) => s.isOpen);
 
   const dashboardHref = isEmployee && !isOwner ? '/employee/dashboard' : '/';
+  const toolsActive = toolsModalOpen || isToolsPath(location.pathname);
 
   const sectionLabel = useMemo(() => {
     if (projectName) return projectName;
@@ -57,6 +62,16 @@ export default function PlannerAppBar({ onMenuClick, projectName }: PlannerAppBa
         >
           <SquareChartGantt className="h-5 w-5" />
         </Link>,
+        <button
+          key="tools"
+          type="button"
+          className={appNavIconButtonClass(toolsActive)}
+          aria-label="Tools"
+          title="Tools"
+          onClick={() => openTools()}
+        >
+          <Wrench className="h-5 w-5" />
+        </button>,
       ]
     : [];
 

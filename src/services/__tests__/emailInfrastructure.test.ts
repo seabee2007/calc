@@ -15,7 +15,16 @@ import {
   validateOptionalEmailList,
 } from '../../../supabase/functions/_shared/emailValidation.ts';
 import { renderEmailTemplate } from '../../../supabase/functions/_shared/emailTemplates.ts';
-import { getPublicProposalUrl, getPublicClientPortalUrl, prepareTransactionalEmail } from '../../../supabase/functions/_shared/resend.ts';
+import {
+  validateChangeOrderSentPayload,
+} from '../../../supabase/functions/_shared/changeOrderEmail.ts';
+import {
+  getPublicProposalUrl,
+  getPublicClientPortalUrl,
+  getPublicChangeOrderUrl,
+  isAbsolutePublicUrl,
+  prepareTransactionalEmail,
+} from '../../../supabase/functions/_shared/resend.ts';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 
@@ -103,6 +112,24 @@ describe('email templates', () => {
     );
   });
 
+  it('uses a public change order URL path', () => {
+    expect(getPublicChangeOrderUrl('https://app.example.com', 'co-token')).toBe(
+      'https://app.example.com/change-order/co-token',
+    );
+  });
+
+  it('uses production app URL when site URL is missing for change order links', () => {
+    expect(getPublicChangeOrderUrl('', 'co-token')).toBe(
+      'https://app.ardenprojectos.com/change-order/co-token',
+    );
+    expect(getPublicChangeOrderUrl('', 'co-token')).not.toContain('localhost');
+  });
+
+  it('detects absolute public URLs for transactional email', () => {
+    expect(isAbsolutePublicUrl('https://app.example.com/change-order/co-token')).toBe(true);
+    expect(isAbsolutePublicUrl('/change-order/co-token')).toBe(false);
+  });
+
   it('renders subject, html, and text for clientPortalInvite', () => {
     const rendered = renderEmailTemplate('clientPortalInvite', {
       emailSubject: 'Your project portal is ready',
@@ -117,6 +144,124 @@ describe('email templates', () => {
     expect(rendered.html).toContain('View project portal');
     expect(rendered.html).toContain('https://app.example.com/client/project/abc');
     expect(rendered.text).toContain('office@concrete.com');
+  });
+
+  it('renders subject, html, and text for changeOrderSent', () => {
+    const changeOrderUrl = 'https://app.example.com/change-order/co-token';
+    const rendered = renderEmailTemplate('changeOrderSent', {
+      emailSubject: 'Change Order for Riverfront Slab',
+      clientName: 'Jane',
+      projectName: 'Riverfront Slab',
+      changeOrderTitle: 'Add patio',
+      changeOrderNumber: 'CO-12',
+      changeOrderTotal: '$1,250.00',
+      changeOrderUrl,
+      companyName: 'Concrete Co',
+      messageBody: [
+        'Hi Jane,',
+        '',
+        'Custom intro from the send modal.',
+        '',
+        'Project:',
+        'Riverfront Slab',
+        '',
+        'Change Order:',
+        'Add patio',
+        '',
+        'Review and respond here:',
+        changeOrderUrl,
+        '',
+        'Thank you,',
+        'Concrete Co',
+      ].join('\n'),
+    });
+
+    expect(rendered.subject).toBe('Change Order for Riverfront Slab');
+    expect(rendered.html).toContain('Change Order Ready for Review');
+    expect(rendered.html).toContain('Review Change Order');
+    expect(rendered.html).toContain(`href="${changeOrderUrl}"`);
+    expect(rendered.html).toContain('Riverfront Slab');
+    expect(rendered.html).toContain('Add patio');
+    expect(rendered.html).toContain('Custom intro from the send modal.');
+    expect(rendered.html).not.toContain('Project update');
+    expect(rendered.html).not.toContain('Review the change order for your project.');
+    expect(rendered.html).toContain(
+      'If the button does not work, copy and paste this link into your browser:',
+    );
+    expect(rendered.text).toContain('Hi Jane,');
+    expect(rendered.text).toContain(changeOrderUrl);
+    expect(rendered.text).toContain('Custom intro from the send modal.');
+    expect(rendered.text).not.toContain('Project update');
+  });
+
+  it('renders changeOrderSent defaults when messageBody is omitted', () => {
+    const changeOrderUrl = 'https://app.example.com/change-order/co-token';
+    const rendered = renderEmailTemplate('changeOrderSent', {
+      emailSubject: 'Change Order for Riverfront Slab',
+      clientName: 'Jane',
+      projectName: 'Riverfront Slab',
+      changeOrderTitle: 'Add patio',
+      changeOrderNumber: 'CO-12',
+      changeOrderTotal: '$1,250.00',
+      changeOrderUrl,
+      companyName: 'Concrete Co',
+    });
+
+    expect(rendered.text).toContain('Riverfront Slab');
+    expect(rendered.text).toContain('Add patio (CO-12)');
+    expect(rendered.text).toContain('$1,250.00');
+    expect(rendered.text).toContain(changeOrderUrl);
+    expect(rendered.html).toContain('Review Change Order');
+  });
+
+  it('validates changeOrderSent payload before send', () => {
+    expect(
+      validateChangeOrderSentPayload({
+        emailSubject: 'Change Order for Test',
+        projectName: 'Test Project',
+        changeOrderTitle: 'Add scope',
+        changeOrderTotal: '$100.00',
+        changeOrderUrl: 'https://app.example.com/change-order/token',
+      }),
+    ).toBeNull();
+
+    expect(
+      validateChangeOrderSentPayload({
+        emailSubject: 'Change Order for Test',
+        projectName: 'Test Project',
+        changeOrderTitle: 'Add scope',
+        changeOrderTotal: '$100.00',
+      }),
+    ).toBe('Missing change order review link.');
+  });
+
+  it('passes rendered change order HTML through prepareTransactionalEmail', () => {
+    const changeOrderUrl = 'https://app.example.com/change-order/co-token';
+    const templateData = {
+      emailSubject: 'Change Order for Riverfront Slab',
+      clientName: 'Jane',
+      projectName: 'Riverfront Slab',
+      changeOrderTitle: 'Add patio',
+      changeOrderTotal: '$1,250.00',
+      changeOrderUrl,
+      companyName: 'Concrete Co',
+    };
+    const rendered = renderEmailTemplate('changeOrderSent', templateData);
+    const prepared = prepareTransactionalEmail({
+      templateKey: 'changeOrderSent',
+      to: 'client@example.com',
+      data: templateData,
+      env: {
+        RESEND_API_KEY: 're_test_key',
+        EMAIL_SENDING_ENABLED: 'true',
+        RESEND_FROM_EMAIL: 'Arden Project OS <noreply@example.com>',
+      },
+    });
+
+    expect(prepared.ok).toBe(true);
+    expect(rendered.html).toContain('Review Change Order');
+    expect(rendered.html).toContain('Riverfront Slab');
+    expect(rendered.subject).toBe('Change Order for Riverfront Slab');
   });
 
   it('renders subject, html, and text for proposalFollowUp', () => {
@@ -190,6 +335,7 @@ describe('email validation', () => {
     expect(isAllowedTemplateKey('depositRequest')).toBe(true);
     expect(isAllowedTemplateKey('clientCheckIn')).toBe(true);
     expect(isAllowedTemplateKey('clientPortalInvite')).toBe(true);
+    expect(isAllowedTemplateKey('changeOrderSent')).toBe(true);
   });
 
   it('maps Resend webhook events to email event statuses', () => {
@@ -206,6 +352,7 @@ describe('frontend security', () => {
     expect(source).not.toContain('RESEND_API_KEY');
     expect(source).toContain('/functions/v1/send-transactional-email');
     expect(source).toContain('sendClientPortalInviteEmail');
+    expect(source).toContain('sendChangeOrderEmail');
   });
 
   it('does not mark proposals sent inside emailService', () => {

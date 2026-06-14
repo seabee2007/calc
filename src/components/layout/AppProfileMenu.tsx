@@ -8,10 +8,8 @@ import {
   Share2,
   Sun,
   User,
-  Wrench,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
-import { useToolsModalStore } from '../../store/toolsModalStore';
 import { useDefinitionsHelpStore } from '../../features/help/definitionsHelpStore';
 import { useThemeStore } from '../../store/themeStore';
 import {
@@ -53,7 +51,6 @@ export default function AppProfileMenu({
 }: AppProfileMenuProps) {
   const navigate = useNavigate();
   const { user, profile, signOut, isOwner, isEmployee } = useAuth();
-  const openTools = useToolsModalStore((s) => s.open);
   const openHelp = useDefinitionsHelpStore((s) => s.open);
   const { isDark, toggleTheme } = useThemeStore();
 
@@ -86,20 +83,6 @@ export default function AppProfileMenu({
       </button>
 
       <div className={menuDividerClass} />
-
-      {isOwner && (
-        <button
-          type="button"
-          className={menuItemClass}
-          onClick={() => {
-            onClose();
-            openTools();
-          }}
-        >
-          <Wrench className="h-4 w-4 text-cyan-400" aria-hidden />
-          Tools
-        </button>
-      )}
 
       <button
         type="button"

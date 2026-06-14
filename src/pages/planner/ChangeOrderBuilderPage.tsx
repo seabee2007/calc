@@ -1,17 +1,16 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Mail, Send } from 'lucide-react';
+import { ArrowLeft, Send } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { usePlannerProject } from '../../contexts/PlannerProjectContext';
 import {
-  createChangeOrderFromFar,
-  createChangeOrderFromRfi,
-  createChangeOrderManual,
+  ensurePublicChangeOrderLink,
   fetchChangeOrderById,
-  fetchProjectClientEmail,
   markChangeOrderSent,
+  resolveChangeOrderNewDraft,
   saveChangeOrder,
 } from '../../services/changeOrderService';
+import { fetchProjectClientEmail } from '../../services/projectClientEmailService';
 import type { ChangeOrder, ChangeOrderLineItem } from '../../types/changeOrder';
 import {
   computePricingBreakdown,
@@ -24,7 +23,6 @@ import {
 } from '../../utils/pricingParams';
 import PricingParamsEditor from '../../components/pricing/PricingParamsEditor';
 import { useProjectStore, useSettingsStore } from '../../store';
-import { getPublicChangeOrderUrl } from '../../lib/changeOrderTracking';
 import { changeOrderEditHref, plannerChangeOrdersHref } from '../../utils/plannerRoutes';
 import { dispatchPlannerRecordsChanged } from '../../utils/plannerRecordsRefresh';
 import ChangeOrderLineItemsEditor from '../../components/change-order/ChangeOrderLineItemsEditor';
@@ -32,9 +30,10 @@ import ChangeOrderDocument from '../../components/change-order/ChangeOrderDocume
 import ChangeOrderInternalPricingSummary from '../../components/change-order/ChangeOrderInternalPricingSummary';
 import ChangeOrderTrackingStrip from '../../components/change-order/ChangeOrderTrackingStrip';
 import SignatureBlock from '../../components/change-order/SignatureBlock';
-import ProposalSentLinkModal from '../../components/proposals/ProposalSentLinkModal';
+import ChangeOrderSendEmailModal from '../../components/change-order/ChangeOrderSendEmailModal';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
+import Toast from '../../components/ui/Toast';
 import { generateChangeOrderPDF } from '../../utils/changeOrderPdf';
 import { buildChangeOrderDocumentContext } from '../../utils/changeOrderDocumentContext';
 import {
@@ -56,6 +55,7 @@ export default function ChangeOrderBuilderPage() {
   const { project, isOwner: projectOwner, reload } = usePlannerProject();
   const { projects } = useProjectStore();
   const printRef = useRef<HTMLDivElement>(null);
+  const persistingRef = useRef(false);
   const [previewAudience, setPreviewAudience] = useState<'client' | 'internal'>('client');
 
   const isNew = changeOrderId === 'new';
@@ -84,9 +84,17 @@ export default function ChangeOrderBuilderPage() {
   const [status, setStatus] = useState<ChangeOrder['status']>('draft');
   const [publicToken, setPublicToken] = useState('');
   const [busy, setBusy] = useState(false);
+  const [isSending, setIsSending] = useState(false);
   const [initDone, setInitDone] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
-  const [sentUrl, setSentUrl] = useState<string | null>(null);
+  const [contractorValidationError, setContractorValidationError] = useState<string | null>(null);
+  const [sendModalOpen, setSendModalOpen] = useState(false);
+  const [sendModalCo, setSendModalCo] = useState<ChangeOrder | null>(null);
+  const [sendModalHighlightEmail, setSendModalHighlightEmail] = useState(false);
+  const [pageToast, setPageToast] = useState<{
+    message: string;
+    type: 'success' | 'error';
+  } | null>(null);
   const [displayNumber, setDisplayNumber] = useState<string | null>(null);
   const [sentAt, setSentAt] = useState<string | null>(null);
   const [viewedAt, setViewedAt] = useState<string | null>(null);
@@ -148,7 +156,7 @@ export default function ChangeOrderBuilderPage() {
 
   useEffect(() => {
     if (!projectId) return;
-    void fetchProjectClientEmail(projectId).then(setClientEmail);
+    void fetchProjectClientEmail(projectId).then((email) => setClientEmail(email || null));
   }, [projectId]);
 
   const canManage = Boolean(user && (isOwner || projectOwner));
@@ -185,7 +193,12 @@ export default function ChangeOrderBuilderPage() {
     };
   }, [canManage, projectId, changeOrderId, loadOrder]);
 
-  // Create draft from /change-orders/new, then replace URL with the new id (no lingering ?task= params).
+  useEffect(() => {
+    if (!changeOrderId || changeOrderId === 'new') return;
+    setCoId(changeOrderId);
+  }, [changeOrderId]);
+
+  // Open /change-orders/new as a local draft — DB insert happens on first save/send only.
   useEffect(() => {
     if (!canManage || !projectId || !isNew || !user) return;
 
@@ -197,25 +210,39 @@ export default function ChangeOrderBuilderPage() {
       setInitDone(false);
 
       try {
-        let co;
-        if (farId) {
-          co = await createChangeOrderFromFar(farId, user.id);
-        } else if (rfiId) {
-          co = await createChangeOrderFromRfi(rfiId, user.id);
-        } else {
-          co = await createChangeOrderManual(projectId, user.id, taskId);
-        }
+        const resolved = await resolveChangeOrderNewDraft({
+          projectId,
+          farId,
+          rfiId,
+          taskId,
+        });
         if (cancelled) return;
 
-        console.log('[Change Order Create] refresh planner side panels');
-        dispatchPlannerRecordsChanged({ kind: 'change_order', projectId, id: co.id });
-        navigate(changeOrderEditHref(projectId, co.id), { replace: true });
+        if (resolved.kind === 'existing') {
+          navigate(
+            changeOrderEditHref(projectId, resolved.changeOrderId),
+            { replace: true },
+          );
+          return;
+        }
+
+        const { prefill } = resolved;
+        setTitle(prefill.title);
+        setScope(prefill.scopeDescription);
+        setReason(prefill.reasonForChange);
+        setScheduleImpact(prefill.scheduleImpact ?? '');
+        setLinkedFarId(prefill.linkedFarId);
+        setLinkedRfiId(prefill.linkedRfiId);
+        setLinkedTaskId(prefill.linkedTaskId);
       } catch (err) {
         if (!cancelled) {
           const message =
             err instanceof Error ? err.message : 'Could not open change order builder.';
           setInitError(message);
           console.error('Change order init failed:', err);
+        }
+      } finally {
+        if (!cancelled) {
           setBusy(false);
           setInitDone(true);
         }
@@ -406,82 +433,165 @@ export default function ChangeOrderBuilderPage() {
     });
   }, [preview, fullProject, companySettings]);
 
-  const openMailto = useCallback(
-    (url: string) => {
-      const subject = encodeURIComponent(
-        `Change Order — ${title || project?.name || 'Project'}`,
-      );
-      const body = encodeURIComponent(
-        `Please review this change order online:\n\n${url}\n\nProject: ${project?.name ?? 'Project'}\n\nThank you.`,
-      );
-      const to = clientEmail?.trim() ? encodeURIComponent(clientEmail.trim()) : '';
-      window.location.href = to
-        ? `mailto:${to}?subject=${subject}&body=${body}`
-        : `mailto:?subject=${subject}&body=${body}`;
+  const showPageToast = useCallback((message: string, type: 'success' | 'error') => {
+    setPageToast({ message, type });
+  }, []);
+
+  useEffect(() => {
+    if (!pageToast) return;
+    const timer = window.setTimeout(() => setPageToast(null), 4000);
+    return () => window.clearTimeout(timer);
+  }, [pageToast]);
+
+  const persistChangeOrder = useCallback(
+    async (options?: { replaceRoute?: boolean; skipReload?: boolean }): Promise<ChangeOrder> => {
+      if (!user) throw new Error('Not signed in');
+      if (persistingRef.current) {
+        throw new Error('Save already in progress');
+      }
+      persistingRef.current = true;
+      try {
+        const saved = await saveChangeOrder(coId, buildSaveInput());
+        applyCoToState(saved);
+        const shouldReplaceRoute = options?.replaceRoute ?? (isNew || !coId);
+        if (shouldReplaceRoute) {
+          navigate(changeOrderEditHref(projectId, saved.id), { replace: true });
+        }
+        console.log('[Change Order Save] refresh planner side panels');
+        dispatchPlannerRecordsChanged({ kind: 'change_order', projectId, id: saved.id });
+        if (!options?.skipReload) {
+          void reload();
+        }
+        return saved;
+      } finally {
+        persistingRef.current = false;
+      }
     },
-    [title, project?.name, clientEmail],
+    [applyCoToState, buildSaveInput, coId, isNew, navigate, projectId, reload, user],
   );
 
-  const ensureSent = async (): Promise<ChangeOrder> => {
-    if (!coId || !user) throw new Error('Change order not ready');
+  const openSendModal = useCallback((changeOrder: ChangeOrder, highlightEmail: boolean) => {
+    setSendModalCo(changeOrder);
+    setSendModalHighlightEmail(highlightEmail);
+    setSendModalOpen(true);
+  }, []);
+
+  const handleSend = async () => {
+    console.info('[ChangeOrder] Send clicked', {
+      changeOrderId: coId ?? changeOrderId ?? null,
+      projectId,
+      hasContractorPrintedName: Boolean(contractorName.trim()),
+      clientEmail: clientEmail?.trim() || null,
+      isSaving: busy,
+      isSending,
+    });
+
+    if (isSending) {
+      console.info('[ChangeOrder] Send ignored — send already in progress');
+      return;
+    }
+
     if (!contractorName.trim()) {
-      throw new Error('Enter contractor printed name before sending.');
+      const message = 'Enter contractor printed name before sending.';
+      setContractorValidationError(message);
+      showPageToast(message, 'error');
+      return;
     }
-    const sig = contractorSignature.trim() || contractorName.trim();
-    const saved = await saveChangeOrder(coId, buildSaveInput());
-    applyCoToState(saved);
-    if (saved.status === 'draft') {
-      const sent = await markChangeOrderSent(coId, {
-        name: contractorName.trim(),
-        signature: sig,
+    setContractorValidationError(null);
+
+    if (persistingRef.current) {
+      showPageToast('Save already in progress. Try again in a moment.', 'error');
+      return;
+    }
+
+    setIsSending(true);
+    setBusy(true);
+    try {
+      console.info('[ChangeOrder] validating before send');
+
+      console.info('[ChangeOrder] saving before send');
+      let saved: ChangeOrder;
+      try {
+        saved = await persistChangeOrder({ replaceRoute: false, skipReload: true });
+      } catch (err) {
+        if (import.meta.env.DEV) {
+          console.error('[ChangeOrder] Save before send failed', err);
+        }
+        showPageToast('Could not save change order before sending.', 'error');
+        return;
+      }
+
+      console.info('[ChangeOrder] ensuring public change order URL');
+      let prepared: { changeOrder: ChangeOrder; url: string };
+      try {
+        prepared = await ensurePublicChangeOrderLink(saved.id);
+      } catch (err) {
+        if (import.meta.env.DEV) {
+          console.error('[ChangeOrder] Public link preparation failed', err);
+        }
+        showPageToast('Could not create client review link.', 'error');
+        return;
+      }
+
+      const highlightEmail = !clientEmail?.trim();
+      console.info('[ChangeOrder] opening send modal', {
+        changeOrderId: prepared.changeOrder.id,
+        highlightEmail,
+        reviewUrl: prepared.url,
       });
-      applyCoToState(sent);
-      return sent;
+      openSendModal(prepared.changeOrder, highlightEmail);
+
+      const needsRouteUpdate =
+        changeOrderId === 'new' || !changeOrderId || changeOrderId !== prepared.changeOrder.id;
+      if (needsRouteUpdate) {
+        queueMicrotask(() => {
+          navigate(changeOrderEditHref(projectId, prepared.changeOrder.id), { replace: true });
+        });
+      }
+    } catch (err) {
+      console.error('[ChangeOrder] Send flow failed', err);
+      if (import.meta.env.DEV) {
+        console.error('[ChangeOrder] Send flow failed details', err);
+      }
+      showPageToast('Could not prepare change order for sending.', 'error');
+    } finally {
+      setIsSending(false);
+      setBusy(false);
     }
-    return saved;
+  };
+
+  const handleSendEmailSuccess = async (_recipientEmail: string, _changeOrderUrl: string) => {
+    const sentCoId = sendModalCo?.id ?? coId;
+    try {
+      if (sentCoId) {
+        const sig = contractorSignature.trim() || contractorName.trim();
+        const sent = await markChangeOrderSent(sentCoId, {
+          name: contractorName.trim(),
+          signature: sig,
+        });
+        applyCoToState(sent);
+        console.log('[Change Order Send] refresh planner side panels');
+        dispatchPlannerRecordsChanged({ kind: 'change_order', projectId, id: sent.id });
+        void reload();
+      }
+    } catch (err) {
+      console.error('[ChangeOrder] Failed to mark change order sent after email', err);
+      showPageToast('Email sent, but status could not be updated.', 'error');
+    }
+    setSendModalOpen(false);
+    setSendModalCo(null);
+    setSendModalHighlightEmail(false);
+    navigate(plannerChangeOrdersHref(projectId));
   };
 
   const handleSave = async (): Promise<ChangeOrder | null> => {
-    if (!user || !coId) return null;
+    if (!user) return null;
     setBusy(true);
     try {
-      const co = await saveChangeOrder(coId, buildSaveInput());
-      applyCoToState(co);
-      console.log('[Change Order Save] refresh planner side panels');
-      dispatchPlannerRecordsChanged({ kind: 'change_order', projectId, id: co.id });
-      void reload();
-      return co;
+      return await persistChangeOrder();
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to save change order.');
       return null;
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const handleSend = async () => {
-    if (!coId) return;
-    setBusy(true);
-    try {
-      const co = await ensureSent();
-      console.log('[Change Order Send] refresh planner side panels');
-      dispatchPlannerRecordsChanged({ kind: 'change_order', projectId, id: co.id });
-      const url = getPublicChangeOrderUrl(co.publicToken);
-      setSentUrl(url);
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to send change order.');
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const handleEmail = async () => {
-    setBusy(true);
-    try {
-      const co = await ensureSent();
-      openMailto(getPublicChangeOrderUrl(co.publicToken));
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to prepare email.');
     } finally {
       setBusy(false);
     }
@@ -499,37 +609,26 @@ export default function ChangeOrderBuilderPage() {
   };
 
   const handlePdf = async () => {
-    if (!preview) {
-      alert('Save the change order first.');
-      return;
-    }
     setBusy(true);
     try {
-      if (coId) {
-        const saved = await saveChangeOrder(coId, buildSaveInput());
-        applyCoToState(saved);
-        await generateChangeOrderPDF(
-          saved,
-          buildChangeOrderDocumentContext({
-            order: saved,
-            project: fullProject,
-            companySettings: {
-              companyName: companySettings.companyName,
-              address: companySettings.address,
-              phone: companySettings.phone,
-              email: companySettings.email,
-              licenseNumber: companySettings.licenseNumber,
-              logoUrl: companySettings.logoUrl ?? companySettings.logo ?? null,
-              logo: companySettings.logo,
-            },
-            thisChangeOrderTotal: saved.total,
-          }),
-        );
-      } else if (documentContext) {
-        await generateChangeOrderPDF(preview, documentContext);
-      } else {
-        await generateChangeOrderPDF(preview);
-      }
+      const saved = await persistChangeOrder();
+      await generateChangeOrderPDF(
+        saved,
+        buildChangeOrderDocumentContext({
+          order: saved,
+          project: fullProject,
+          companySettings: {
+            companyName: companySettings.companyName,
+            address: companySettings.address,
+            phone: companySettings.phone,
+            email: companySettings.email,
+            licenseNumber: companySettings.licenseNumber,
+            logoUrl: companySettings.logoUrl ?? companySettings.logo ?? null,
+            logo: companySettings.logo,
+          },
+          thisChangeOrderTotal: saved.total,
+        }),
+      );
     } catch (err) {
       console.error('Change order PDF failed:', err);
       alert(err instanceof Error ? err.message : 'Failed to generate PDF.');
@@ -664,9 +763,13 @@ export default function ChangeOrderBuilderPage() {
               name={contractorName}
               signature={contractorSignature}
               signedAt={contractorSignedAt}
-              onNameChange={setContractorName}
+              onNameChange={(value) => {
+                setContractorName(value);
+                if (value.trim()) setContractorValidationError(null);
+              }}
               onSignatureChange={setContractorSignature}
               helperText="Required before sending to client. Sign in the box or use typed name."
+              nameError={contractorValidationError ?? undefined}
             />
             <SignatureBlock
               title="Client signature"
@@ -692,17 +795,9 @@ export default function ChangeOrderBuilderPage() {
                 size="sm"
                 icon={<Send className="h-4 w-4" />}
                 onClick={() => void handleSend()}
-                disabled={busy}
+                disabled={busy || isSending}
               >
                 Send to client
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                icon={<Mail className="h-4 w-4" />}
-                onClick={() => void handleEmail()}
-              >
-                Email link
               </Button>
               <Button
                 variant="outline"
@@ -775,16 +870,42 @@ export default function ChangeOrderBuilderPage() {
         </div>
       )}
 
-      <ProposalSentLinkModal
-        isOpen={Boolean(sentUrl)}
-        onClose={() => setSentUrl(null)}
-        shareUrl={sentUrl ?? ''}
-        title="Change order sent"
-        shareTitle="Change Order"
-        onEmailClient={() => {
-          if (sentUrl) openMailto(sentUrl);
-        }}
-      />
+      {sendModalOpen && sendModalCo ? (
+        <ChangeOrderSendEmailModal
+          changeOrderId={sendModalCo.id}
+          changeOrderToken={sendModalCo.publicToken}
+          projectId={projectId}
+          projectName={project?.name ?? fullProject?.name ?? 'Project'}
+          changeOrderTitle={sendModalCo.title || title || 'Change order'}
+          changeOrderNumber={sendModalCo.displayNumber ?? undefined}
+          changeOrderTotal={sendModalCo.total}
+          clientName={
+            clientName?.trim() ||
+            fullProject?.clientInfo?.clientName?.trim() ||
+            'Client'
+          }
+          clientEmail={clientEmail ?? undefined}
+          highlightEmail={sendModalHighlightEmail}
+          onClose={() => {
+            setSendModalOpen(false);
+            setSendModalCo(null);
+            setSendModalHighlightEmail(false);
+          }}
+          onSentSuccess={(recipientEmail, changeOrderUrl) => {
+            void handleSendEmailSuccess(recipientEmail, changeOrderUrl);
+          }}
+        />
+      ) : null}
+
+      {pageToast ? (
+        <Toast
+          id="change-order-send-toast"
+          title={pageToast.type === 'error' ? 'Error' : 'Success'}
+          message={pageToast.message}
+          type={pageToast.type}
+          onClose={() => setPageToast(null)}
+        />
+      ) : null}
     </div>
   );
 }
