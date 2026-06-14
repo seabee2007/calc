@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { markOnboardingCompletedLocally } from '../../utils/onboardingStatus';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Building2, Mail, Phone, MapPin, FileText, Save, ArrowLeft } from 'lucide-react';
@@ -72,7 +73,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onBack, onComplete }) => {
       );
 
       try {
-        localStorage.setItem('onboarding_completed', 'true');
+        markOnboardingCompletedLocally();
       } catch (storageError) {
         console.error('LocalStorage error:', storageError);
       }
@@ -95,7 +96,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onBack, onComplete }) => {
 
   const handleSkip = () => {
     try {
-      localStorage.setItem('onboarding_completed', 'true');
+      markOnboardingCompletedLocally();
     } catch (error) {
       console.error('LocalStorage error:', error);
     }

@@ -25,7 +25,11 @@ import ContactPage from './pages/legal/ContactPage';
 import { ProposalService } from './lib/proposalService';
 import { seedTrackedProposalsCache } from './hooks/useTrackedProposals';
 import { soundService } from './services/soundService';
-import RouteFallback from './routes/RouteFallback';
+import {
+  markOnboardingCompletedLocally,
+  readLocalOnboardingCompleted,
+  shouldShowOwnerOnboarding,
+} from './utils/onboardingStatus';
 import FullscreenExperienceTipHost from './components/onboarding/FullscreenExperienceTipHost';
 import DefinitionsHelpHost from './features/help/DefinitionsHelpHost';
 import {
@@ -139,7 +143,7 @@ export const useChatStore = () => {
 };
 
 function App() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, profile, profileLoading, loading: authLoading } = useAuth();
   const {
     isLoading: legalLoading,
     isAccepting: legalAccepting,
@@ -149,8 +153,9 @@ function App() {
     error: legalError,
     isSessionError: legalSessionError,
   } = useLegalAcceptance();
-  const { loadProjects } = useProjectStore();
-  const { loadCompanySettings, migrateSettings } = useSettingsStore();
+  const { loadProjects, projects } = useProjectStore();
+  const { loadCompanySettings, migrateSettings, companySettings, companySettingsHydrated } =
+    useSettingsStore();
   const { loadPreferences, migratePreferences } = usePreferencesStore();
   const chatStore = useChatStore();
   const { isDark } = useThemeStore();
@@ -197,34 +202,52 @@ function App() {
   }, [user, authLoading, loadProjects, loadCompanySettings, loadPreferences, migrateSettings, migratePreferences]);
 
   useEffect(() => {
-    const checkOnboarding = () => {
-      try {
-        if (user && !authLoading) {
-          const isTestOnboarding = location.pathname === '/test-onboarding';
+    if (authLoading) return;
 
-          let onboardingCompleted = false;
+    if (!user) {
+      setShowOnboarding(false);
+      setOnboardingChecked(true);
+      return;
+    }
 
-          try {
-            onboardingCompleted = localStorage.getItem('onboarding_completed') === 'true';
-          } catch (e) {
-            console.warn('Error reading onboarding status:', e);
-            onboardingCompleted = true;
-          }
+    if (isLoading || profileLoading || !companySettingsHydrated) {
+      setOnboardingChecked(false);
+      return;
+    }
 
-          setShowOnboarding(!onboardingCompleted || isTestOnboarding);
-          setOnboardingChecked(true);
-        } else if (!user && !authLoading) {
-          setOnboardingChecked(true);
-        }
-      } catch (error) {
-        console.error('Error checking onboarding status:', error);
-        setOnboardingChecked(true);
-        setShowOnboarding(false);
+    try {
+      const isTestOnboarding = location.pathname === '/test-onboarding';
+      const localOnboardingCompleted = readLocalOnboardingCompleted();
+      const shouldShow = shouldShowOwnerOnboarding({
+        profileRole: profile?.role,
+        companySettings,
+        localOnboardingCompleted,
+        hasExistingProjects: projects.length > 0,
+        isTestOnboardingRoute: isTestOnboarding,
+      });
+
+      if (!shouldShow && !localOnboardingCompleted) {
+        markOnboardingCompletedLocally();
       }
-    };
 
-    checkOnboarding();
-  }, [user, authLoading, location.pathname]);
+      setShowOnboarding(shouldShow);
+      setOnboardingChecked(true);
+    } catch (error) {
+      console.error('Error checking onboarding status:', error);
+      setOnboardingChecked(true);
+      setShowOnboarding(false);
+    }
+  }, [
+    user,
+    authLoading,
+    isLoading,
+    profileLoading,
+    companySettingsHydrated,
+    profile?.role,
+    companySettings,
+    projects.length,
+    location.pathname,
+  ]);
 
   const isLoggedOutLanding = location.pathname === '/' && !user && !authLoading;
   const isOnboardingActive =
@@ -245,7 +268,7 @@ function App() {
   const handleOnboardingComplete = () => {
     try {
       setShowOnboarding(false);
-      localStorage.setItem('onboarding_completed', 'true');
+      markOnboardingCompletedLocally();
     } catch (error) {
       console.error('Error saving onboarding completion:', error);
       setShowOnboarding(false);
