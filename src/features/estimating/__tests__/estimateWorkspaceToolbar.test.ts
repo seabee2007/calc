@@ -74,11 +74,15 @@ describe('estimateWorkspaceToolbar', () => {
     expect(shouldShowCollapseAllAction('overview', true)).toBe(false);
   });
 
-  it('shows reset form when an estimate or active estimate type exists', () => {
+  it('shows reset form when an estimate, active type, or persisted workspace work exists', () => {
     const setup = mockSetup();
     expect(shouldShowResetFormAction('line-items', true, null, setup, true)).toBe(true);
     expect(shouldShowResetFormAction('line-items', false, 'bid', setup, true)).toBe(true);
-    expect(shouldShowResetFormAction('line-items', false, null, setup, true)).toBe(false);
+    expect(shouldShowResetFormAction('line-items', false, null, setup, true)).toBe(true);
+    expect(
+      shouldShowResetFormAction('line-items', false, null, mockSetup({ estimateSetupStarted: false }), true, true),
+    ).toBe(true);
+    expect(shouldShowResetFormAction('line-items', false, null, setup, false)).toBe(false);
   });
 
   it('shows reset form on settings tab when an estimate exists', () => {
@@ -87,10 +91,11 @@ describe('estimateWorkspaceToolbar', () => {
     expect(shouldShowResetFormAction('settings', false, null, setup, true)).toBe(false);
   });
 
-  it('shows save estimate when an estimate or active estimate type exists', () => {
+  it('shows save estimate when a project workspace is open', () => {
     expect(shouldShowSaveEstimateAction(true, null)).toBe(true);
     expect(shouldShowSaveEstimateAction(false, 'budget')).toBe(true);
-    expect(shouldShowSaveEstimateAction(false, null)).toBe(false);
+    expect(shouldShowSaveEstimateAction(false, null, true)).toBe(true);
+    expect(shouldShowSaveEstimateAction(false, null, false)).toBe(false);
   });
 
   it('shows bucket save on other tabs when a non-quick estimate exists', () => {
@@ -103,6 +108,9 @@ describe('estimateWorkspaceToolbar', () => {
     expect(
       shouldShowBucketSaveAction('line-items', true, null, false, false),
     ).toBe(false);
+    expect(
+      shouldShowBucketSaveAction('line-items', false, null, false, false, true),
+    ).toBe(true);
     expect(
       shouldShowBucketSaveAction('overview', true, null, true, false),
     ).toBe(false);

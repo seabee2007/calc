@@ -365,11 +365,16 @@ export default function ProjectDetails() {
           />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:items-start">
           <div className={`lg:col-span-2 ${OPS_HERO_STAT_INNER} p-4`}>
-            <p className={OPS_BODY}>
-              {project.description || 'No description provided'}
+            <p className={`text-xs uppercase tracking-wide ${OPS_SECTION_EYEBROW} mb-2`}>
+              Project scope
             </p>
+            <div
+              className={`max-h-[min(420px,60vh)] lg:max-h-[min(260px,38vh)] overflow-y-auto overscroll-contain pr-1 sm:pr-2 text-sm leading-relaxed whitespace-pre-wrap ${OPS_BODY}`}
+            >
+              {project.description || 'No description provided'}
+            </div>
 
             <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
               <div className={`flex items-center gap-2 ${OPS_BODY}`}>

@@ -26,6 +26,7 @@ import {
   type SaveManualActivityInput,
   type UpdateProjectActivityInput,
 } from '../../application/constructionActivityService';
+import type { ProjectLaborRate } from '../../domain/laborRateTypes';
 import { useProjectLaborRates } from './useProjectLaborRates';
 import { useEstimateWorkspaceSaveStatusReporter } from './useEstimateWorkspaceSaveStatus';
 
@@ -43,6 +44,7 @@ export interface ConstructionActivityState {
 }
 
 export interface UseConstructionActivitiesReturn extends ConstructionActivityState {
+  projectRates: ProjectLaborRate[];
   reload: () => void;
   addFromAssembly: (params: AddFromAssemblyParams) => Promise<void>;
   addFromProductionRateAssembly: (
@@ -108,9 +110,18 @@ export function useConstructionActivities(
   }, []);
 
   const load = useCallback(async () => {
-    if (!projectId) return;
+    if (!projectId || !estimateId) {
+      setState((s) => ({
+        ...s,
+        activities: [],
+        lineItemsMap: new Map(),
+        loading: false,
+        error: null,
+      }));
+      return;
+    }
     setState((s) => ({ ...s, loading: true, error: null }));
-    const result = await loadProjectActivitiesWithLineItems(projectId, estimateId ?? undefined);
+    const result = await loadProjectActivitiesWithLineItems(projectId, estimateId);
     if (result.error || !result.data) {
       setState((s) => ({
         ...s,
@@ -270,6 +281,7 @@ export function useConstructionActivities(
 
   return {
     ...state,
+    projectRates,
     reload,
     addFromAssembly,
     addFromProductionRateAssembly,

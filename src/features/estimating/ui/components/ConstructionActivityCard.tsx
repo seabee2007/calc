@@ -6,10 +6,11 @@
  *
  * Line items are NEVER schedule activities — only the parent card has a schedule toggle.
  */
-import { useState } from 'react';
-import { ChevronDown, ChevronRight, Calendar, Trash2, AlertTriangle, ClipboardList, Pencil } from 'lucide-react';
-import type { ProjectActivityLineItem, ProjectConstructionActivity, ActivityMaterialResource, ActivityEquipmentResource } from '../../domain/constructionActivityTypes';
+import { useMemo, useState } from 'react';
+import { ChevronDown, ChevronRight, Calendar, Trash2, AlertTriangle, ClipboardList, Pencil, Check, Circle } from 'lucide-react';
+import type { ProjectActivityLineItem, ProjectConstructionActivity } from '../../domain/constructionActivityTypes';
 import { getConstructionActivityWarnings, hasConstructionActivityEstimateWarnings } from '../../domain/constructionActivityCalculations';
+import { computeActivityReadiness } from '../../application/estimateActivityReadiness';
 import ActivityLineItemRow from './ActivityLineItemRow';
 import ActivityProgressSummary from './ActivityProgressSummary';
 import ActivityProgressForm from './ActivityProgressForm';
@@ -26,6 +27,53 @@ interface Props {
   onEdit?: (activity: ProjectConstructionActivity, lineItems: ProjectActivityLineItem[]) => void;
   defaultExpanded?: boolean;
   currentProjectDay?: number;
+}
+
+function ReadinessChip({ score }: { score: number }) {
+  const colorClass =
+    score >= 80
+      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200'
+      : score >= 50
+        ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200'
+        : 'bg-slate-100 text-slate-700 dark:bg-slate-700/60 dark:text-slate-200';
+
+  return (
+    <div className={`flex flex-col items-center rounded px-2 py-1 min-w-[56px] ${colorClass}`}>
+      <span className="text-[10px] font-medium uppercase tracking-wide leading-none mb-0.5 opacity-80">
+        Ready
+      </span>
+      <span className="tabular-nums text-sm font-bold leading-none">{score}%</span>
+    </div>
+  );
+}
+
+function ReadinessChecklist({
+  readiness,
+}: {
+  readiness: ReturnType<typeof computeActivityReadiness>;
+}) {
+  const items = [
+    { label: 'Confirmed in estimate', done: readiness.isConfirmed },
+    { label: 'Quantity entered', done: readiness.hasQuantity },
+    { label: 'Labor priced', done: readiness.hasLaborPriced },
+    { label: 'Material or equipment', done: readiness.hasMaterialOrEquipment },
+    { label: 'No open flags', done: readiness.hasNoWarnings },
+  ];
+
+  return (
+    <ul className="grid gap-1 sm:grid-cols-2">
+      {items.map((item) => (
+        <li key={item.label} className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300">
+          {item.done ? (
+            <Check size={12} className="shrink-0 text-emerald-600" />
+          ) : (
+            <Circle size={12} className="shrink-0 text-slate-400" />
+          )}
+          {item.label}
+        </li>
+      ))}
+    </ul>
+  );
 }
 
 function StatChip({ label, value, unit }: { label: string; value: string; unit?: string }) {
@@ -59,8 +107,8 @@ export default function ConstructionActivityCard({
     currentProjectDay,
   );
 
-  // Resource sections — only loaded when card is expanded
-  const resources = useActivityResources(expanded ? activity.id : '');
+  // Resource sections — loaded for readiness chip and expanded estimate tab
+  const resources = useActivityResources(activity.id);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerType, setPickerType] = useState<'material' | 'equipment'>('material');
   const [editingMaterial, setEditingMaterial] = useState<ActivityMaterialResource | null>(null);
@@ -73,6 +121,17 @@ export default function ConstructionActivityCard({
   const warningMessages = getConstructionActivityWarnings(activity, lineItems);
 
   const totalCost = activity.totalCost ?? 0;
+
+  const readiness = useMemo(
+    () =>
+      computeActivityReadiness(
+        activity,
+        lineItems,
+        resources.materials,
+        resources.equipment,
+      ),
+    [activity, lineItems, resources.equipment, resources.materials],
+  );
 
   return (
     <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900/90 transition-shadow hover:shadow-md">
@@ -151,6 +210,7 @@ export default function ConstructionActivityCard({
               value={`$${(activity.totalEquipmentCost ?? 0).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
             />
           )}
+          <ReadinessChip score={readiness.score} />
         </div>
 
         {/* Mobile stats */}
@@ -239,6 +299,13 @@ export default function ConstructionActivityCard({
 
           {activeTab === 'estimate' && (
             <>
+              <div className="border-b border-slate-200 bg-slate-50 px-4 py-2 dark:border-slate-700 dark:bg-slate-800/40">
+                <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                  Estimate readiness — {readiness.score}%
+                </p>
+                <ReadinessChecklist readiness={readiness} />
+              </div>
+
               {/* Column headers */}
               <div className="hidden sm:grid sm:grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-x-3 border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/80 px-3 py-1.5">
                 <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">

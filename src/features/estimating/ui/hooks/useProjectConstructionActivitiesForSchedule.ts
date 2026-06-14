@@ -29,8 +29,10 @@ export function useProjectConstructionActivitiesForSchedule(
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    if (!projectId) {
+    if (!projectId || !estimateId) {
       setActivities([]);
+      setLoading(false);
+      setError(null);
       return;
     }
     setLoading(true);

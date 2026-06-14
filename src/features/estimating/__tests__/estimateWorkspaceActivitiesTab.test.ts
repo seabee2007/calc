@@ -66,6 +66,11 @@ describe('estimate workspace — Activities as primary workflow', () => {
     expect(workspacePageSource).toContain('ConstructionActivityBuilderPanel');
   });
 
+  it('locks Activities tab behind estimate type selection when no estimate exists', () => {
+    expect(workspacePageSource).toContain('hasEstimateTypeSelected={hasEstimate}');
+    expect(workspacePageSource).toContain('onChooseEstimateType={() => setEstimateTypeModalOpen(true)}');
+  });
+
   it('EstimateWorkspacePage still renders schedule tabs', () => {
     expect(workspacePageSource).toContain("activeTab === 'schedule-preview'");
     expect(workspacePageSource).toContain("activeTab === 'logic-network'");

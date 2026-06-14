@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import Input from '../../../../components/ui/Input';
+import ClearableNumberInput from '../../../../components/pricing/ClearableNumberInput';
 import Select from '../../../../components/ui/Select';
 import type {
   ActivityEquipmentResource,
@@ -15,7 +15,6 @@ import type { EstimateSettings, EstimateType } from '../../domain/estimateTypes'
 import type { EstimateDomainVersion } from '../../infrastructure/estimateDbTypes';
 import type { ScheduleActivity } from '../../scheduling/adapters/estimateLineItemsToScheduleActivities';
 import type { CpmActivityResult } from '../../scheduling/cpmTypes';
-import { parseEstimateFormNumber } from '../estimateFormDefaults';
 import { formatEstimateCurrency } from '../estimateFormatters';
 import {
   resolveEstimateTotalsReview,
@@ -81,68 +80,60 @@ function MarkupSettingsSection({
         </p>
       </div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Input
+        <ClearableNumberInput
           label="Indirect cost %"
-          type="number"
           min={0}
           max={100}
           step="any"
           value={settings.indirectCostPercent}
           disabled={!canEdit}
-          onChange={(event) =>
-            patch({ indirectCostPercent: parseEstimateFormNumber(event.target.value) })
-          }
+          onChange={(value) => patch({ indirectCostPercent: value })}
           fullWidth
+          data-testid="markup-indirect-cost-percent"
         />
-        <Input
+        <ClearableNumberInput
           label="Contingency %"
-          type="number"
           min={0}
           max={100}
           step="any"
           value={settings.contingencyPercent}
           disabled={!canEdit}
-          onChange={(event) =>
-            patch({ contingencyPercent: parseEstimateFormNumber(event.target.value) })
-          }
+          onChange={(value) => patch({ contingencyPercent: value })}
           fullWidth
+          data-testid="markup-contingency-percent"
         />
-        <Input
+        <ClearableNumberInput
           label="Overhead %"
-          type="number"
           min={0}
           max={100}
           step="any"
           value={settings.overheadPercent}
           disabled={!canEdit}
-          onChange={(event) =>
-            patch({ overheadPercent: parseEstimateFormNumber(event.target.value) })
-          }
+          onChange={(value) => patch({ overheadPercent: value })}
           fullWidth
+          data-testid="markup-overhead-percent"
         />
-        <Input
+        <ClearableNumberInput
           label="Profit %"
-          type="number"
           min={0}
           max={100}
           step="any"
           value={settings.profitPercent}
           disabled={!canEdit}
-          onChange={(event) =>
-            patch({ profitPercent: parseEstimateFormNumber(event.target.value) })
-          }
+          onChange={(value) => patch({ profitPercent: value })}
           fullWidth
+          data-testid="markup-profit-percent"
         />
-        <Input
+        <ClearableNumberInput
           label="Tax %"
-          type="number"
           min={0}
           max={100}
           step="any"
           value={settings.taxPercent}
           disabled={!canEdit}
-          onChange={(event) => patch({ taxPercent: parseEstimateFormNumber(event.target.value) })}
+          onChange={(value) => patch({ taxPercent: value })}
           fullWidth
+          data-testid="markup-tax-percent"
         />
         <Select
           label="Apply overhead to"

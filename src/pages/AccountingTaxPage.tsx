@@ -163,7 +163,7 @@ const AccountingTaxPage: React.FC = () => {
         data-testid="accounting-tax-page"
         header={
           <PageHeader
-            title="Accounting &amp; Tax"
+            title="Accounting &amp; Tax Prep Package"
             subtitle="Year-end export package for CPAs, QuickBooks, and tax preparation."
             actions={
               <Button

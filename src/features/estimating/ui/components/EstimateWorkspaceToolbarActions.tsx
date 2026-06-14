@@ -25,6 +25,7 @@ interface Props {
   saveStatusActiveOperations: number;
   hasPendingEstimateChanges: boolean;
   saveStatusErrorMessage?: string | null;
+  saveBlockedReason?: string | null;
   handlers: EstimateBuilderToolbarHandlers | null;
   onReset: () => void;
   onSave: () => void;
@@ -53,6 +54,7 @@ export default function EstimateWorkspaceToolbarActions({
   saveStatusActiveOperations,
   hasPendingEstimateChanges,
   saveStatusErrorMessage,
+  saveBlockedReason,
   handlers,
   onReset,
   onSave,
@@ -141,6 +143,7 @@ export default function EstimateWorkspaceToolbarActions({
           activeOperations={saveStatusActiveOperations}
           hasPendingEstimateChanges={hasPendingEstimateChanges}
           errorMessage={saveStatusErrorMessage}
+          saveBlockedReason={saveBlockedReason}
           onSave={onSave}
           onRetry={onRetrySave}
         />

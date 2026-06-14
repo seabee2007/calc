@@ -6,6 +6,7 @@ import type { UpdateProjectActivityInput } from '../../application/constructionA
 import ActivityInstanceFields, { buildIdentityFromForm } from './ActivityInstanceFields';
 import { useProjectLaborRates } from '../hooks/useProjectLaborRates';
 import { resolveLaborRateForWorkElement, workElementFromLineItem } from '../../application/laborRateResolver';
+import { isLineItemUnpricedForLabor } from '../../domain/constructionActivityCalculations';
 import { roundToTwo } from '../../domain/estimateMath';
 
 const FIELD_CLASS =
@@ -211,6 +212,14 @@ export default function EditConstructionActivityModal({
                   resolved.fullyBurdenedRateSnapshot > 0
                     ? roundToTwo(manHours * resolved.fullyBurdenedRateSnapshot)
                     : 0;
+                const missingProductionRate = isLineItemUnpricedForLabor(item) && quantity > 0;
+                const laborSummaryLabel = laborCost > 0
+                  ? `$${laborCost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} labor`
+                  : missingProductionRate
+                    ? 'Needs production rate'
+                    : manHours > 0 && resolved.fullyBurdenedRateSnapshot <= 0
+                      ? 'Needs labor pricing'
+                      : 'No labor cost';
                 const isOpen = expandedPricing[item.id] ?? false;
                 return (
                   <div
@@ -231,13 +240,16 @@ export default function EditConstructionActivityModal({
                         {item.name}
                       </span>
                       <span className="text-xs text-cyan-700 dark:text-cyan-400">
-                        {laborCost > 0
-                          ? `$${laborCost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} labor`
-                          : 'No labor cost'}
+                        {laborSummaryLabel}
                       </span>
                     </button>
                     {isOpen ? (
                       <div className="grid gap-3 border-t border-slate-200 px-3 py-3 sm:grid-cols-2 dark:border-slate-700">
+                        {missingProductionRate ? (
+                          <p className="sm:col-span-2 text-xs text-amber-600 dark:text-amber-300">
+                            Missing production rate — labor cost cannot be calculated.
+                          </p>
+                        ) : null}
                         <label className="block sm:col-span-2">
                           <span className="mb-1 block text-xs text-slate-500">Labor role</span>
                           <select

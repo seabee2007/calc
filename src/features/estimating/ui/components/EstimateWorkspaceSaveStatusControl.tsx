@@ -12,6 +12,7 @@ interface Props {
   activeOperations: number;
   hasPendingEstimateChanges: boolean;
   errorMessage?: string | null;
+  saveBlockedReason?: string | null;
   onSave: () => void;
   onRetry: () => void;
 }
@@ -22,6 +23,7 @@ export default function EstimateWorkspaceSaveStatusControl({
   activeOperations,
   hasPendingEstimateChanges,
   errorMessage,
+  saveBlockedReason,
   onSave,
   onRetry,
 }: Props) {
@@ -32,6 +34,7 @@ export default function EstimateWorkspaceSaveStatusControl({
     activeOperations,
     hasPendingEstimateChanges,
     errorMessage,
+    saveBlockedReason,
   });
 
   const handleClick = () => {

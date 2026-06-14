@@ -238,22 +238,29 @@ export function shouldShowResetFormAction(
   activeEstimateType: EstimateType | null,
   setup: UseEstimateSetupSessionResult,
   canEdit: boolean,
+  hasPersistedWorkspaceWork = false,
 ): boolean {
+  if (!canEdit) return false;
+
+  const hasResettableState =
+    hasEstimate ||
+    activeEstimateType != null ||
+    hasPersistedWorkspaceWork ||
+    canResetEstimateSetup(setup.session);
+
   if (activeTab === 'settings') {
-    return hasEstimate && canEdit;
+    return hasEstimate || hasPersistedWorkspaceWork;
   }
-  return (
-    (hasEstimate || activeEstimateType != null) &&
-    canEdit &&
-    canResetEstimateSetup(setup.session)
-  );
+
+  return hasResettableState;
 }
 
 export function shouldShowSaveEstimateAction(
   hasEstimate: boolean,
   activeEstimateType: EstimateType | null,
+  hasProjectContext = false,
 ): boolean {
-  return hasEstimate || activeEstimateType != null;
+  return hasProjectContext || hasEstimate || activeEstimateType != null;
 }
 
 export function shouldShowBucketSaveAction(
@@ -262,11 +269,16 @@ export function shouldShowBucketSaveAction(
   activeEstimateType: EstimateType | null,
   isQuickFeasibility: boolean,
   showBucketPanel: boolean,
+  hasProjectContext = false,
 ): boolean {
-  if (!shouldShowSaveEstimateAction(hasEstimate, activeEstimateType)) return false;
   if (isQuickFeasibility) return false;
-  if (activeTab === 'line-items') return showBucketPanel;
-  return hasEstimate;
+  if (!shouldShowSaveEstimateAction(hasEstimate, activeEstimateType, hasProjectContext)) {
+    return false;
+  }
+  if (activeTab === 'line-items') {
+    return showBucketPanel || hasProjectContext;
+  }
+  return hasProjectContext || hasEstimate || activeEstimateType != null;
 }
 
 export function shouldShowQuickSaveAction(

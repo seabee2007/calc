@@ -19,7 +19,13 @@ export function ProductionRateVariantSelector({
   onVariantChange,
   className = '',
 }: ProductionRateVariantSelectorProps) {
-  const variants = entry.allVariants ?? [];
+  const rawVariants = entry.allVariants ?? [];
+  const seenKeys = new Set<string>();
+  const variants = rawVariants.filter((variant) => {
+    if (seenKeys.has(variant.sourceProductionRateKey)) return false;
+    seenKeys.add(variant.sourceProductionRateKey);
+    return true;
+  });
   if (variants.length <= 1) return null;
 
   return (

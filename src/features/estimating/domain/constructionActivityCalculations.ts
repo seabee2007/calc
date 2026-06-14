@@ -153,6 +153,15 @@ export function rollupConstructionActivity(
   };
 }
 
+/** Whether a line item lacks production-rate or man-hour data needed to price labor. */
+export function isLineItemUnpricedForLabor(item: ProjectActivityLineItem): boolean {
+  const hasProductionRateLink =
+    (typeof item.productionRateId === 'string' && item.productionRateId.length > 0) ||
+    (typeof item.sourceProductionRateKey === 'string' && item.sourceProductionRateKey.length > 0);
+  const hasManHoursRate = Number.isFinite(item.manHoursPerUnit) && item.manHoursPerUnit > 0;
+  return !hasProductionRateLink && !hasManHoursRate;
+}
+
 /** Specific validation messages for line item estimate completeness. */
 export function getProjectActivityLineItemWarning(item: ProjectActivityLineItem): string | null {
   if (!validateProductionRateUnit(item.unit)) {
@@ -161,15 +170,8 @@ export function getProjectActivityLineItemWarning(item: ProjectActivityLineItem)
   if (!Number.isFinite(item.quantity) || item.quantity <= 0) {
     return `Missing quantity on "${item.name}".`;
   }
-  if (!Number.isFinite(item.manHoursPerUnit) || item.manHoursPerUnit <= 0) {
-    return `Missing man-hour rate on "${item.name}".`;
-  }
-  const hasRateReference =
-    (typeof item.productionRateId === 'string' && item.productionRateId.length > 0) ||
-    (typeof item.sourceProductionRateKey === 'string' && item.sourceProductionRateKey.length > 0) ||
-    item.pricingSource === 'manual';
-  if (!hasRateReference) {
-    return `Missing production rate source on "${item.name}".`;
+  if (isLineItemUnpricedForLabor(item)) {
+    return `Missing production rate — labor cost cannot be calculated on "${item.name}".`;
   }
   return null;
 }

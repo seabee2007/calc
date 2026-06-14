@@ -10,6 +10,11 @@ import {
   PROFESSIONALIZE_SCOPE_SUCCESS_MESSAGE,
   professionalizeProjectScope,
 } from '../../features/projects/application/professionalizeProjectScope';
+import {
+  PROJECT_SCOPE_TEMPLATES,
+  getProjectScopeTemplatesByCategory,
+  type ProjectScopeTemplate,
+} from '../../features/projects/data/projectScopeTemplates';
 import EstimateWorkspaceToast, {
   type EstimateWorkspaceToastVariant,
 } from '../../features/estimating/ui/components/EstimateWorkspaceToast';
@@ -90,6 +95,8 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
   const [generateError, setGenerateError] = useState<string | null>(null);
   const [generatedNamePreview, setGeneratedNamePreview] = useState<string | null>(null);
   const [scopeImproving, setScopeImproving] = useState(false);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
+  const [pendingTemplate, setPendingTemplate] = useState<ProjectScopeTemplate | null>(null);
   const [scopeToast, setScopeToast] = useState<{
     message: string;
     variant: EstimateWorkspaceToastVariant;
@@ -300,6 +307,29 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
       setScopeImproving(false);
     }
   }, [getValues, projectNameValue, scopeImproving, setValue]);
+
+  const applyTemplate = (template: ProjectScopeTemplate) => {
+    setValue('description', template.scopeText, { shouldDirty: true, shouldValidate: true });
+    setPendingTemplate(null);
+  };
+
+  const handleTemplateSelect = (id: string) => {
+    setSelectedTemplateId(id);
+    if (!id) return;
+    const template = PROJECT_SCOPE_TEMPLATES.find(t => t.id === id);
+    if (!template) return;
+    const current = getValues('description') ?? '';
+    if (current.trim()) {
+      setPendingTemplate(template);
+    } else {
+      applyTemplate(template);
+    }
+  };
+
+  const cancelTemplate = () => {
+    setPendingTemplate(null);
+    setSelectedTemplateId('');
+  };
 
   const onFormSubmit = async (data: ProjectFormData) => {
     setGenerateError(null);
@@ -710,7 +740,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
             htmlFor="description"
             className="block text-sm font-medium text-gray-700 dark:text-gray-300"
           >
-            Scope / description
+            Project scope
           </label>
           <Button
             type="button"
@@ -726,13 +756,67 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
             }
             onClick={() => void handleProfessionalizeScope()}
           >
-            {scopeImproving ? 'Improving…' : 'Professionalize scope'}
+            {scopeImproving ? 'Cleaning up…' : 'Clean up scope'}
           </Button>
         </div>
+
+        <div className="mb-2">
+          <label
+            htmlFor="scope-template-select"
+            className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
+          >
+            Start from a scope template:
+          </label>
+          <select
+            id="scope-template-select"
+            data-testid="scope-template-select"
+            value={selectedTemplateId}
+            onChange={e => handleTemplateSelect(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-900 dark:text-white text-sm"
+          >
+            <option value="">Select a scope template…</option>
+            {Object.entries(getProjectScopeTemplatesByCategory()).map(([category, templates]) => (
+              <optgroup key={category} label={category}>
+                {templates.map(t => (
+                  <option key={t.id} value={t.id}>{t.label}</option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            Choose a template to prefill the scope, then edit it for this project.
+            A detailed scope helps Arden suggest estimate divisions, activities,
+            quantities, and pricing gaps later.
+          </p>
+        </div>
+
+        {pendingTemplate !== null && (
+          <div className="mb-2 flex flex-wrap items-center gap-2 rounded-md border border-yellow-300 dark:border-yellow-600 bg-yellow-50 dark:bg-yellow-900/20 px-3 py-2 text-sm">
+            <span className="flex-1 text-yellow-800 dark:text-yellow-200">
+              Replace current scope with this template?
+            </span>
+            <button
+              type="button"
+              onClick={() => applyTemplate(pendingTemplate)}
+              className="rounded px-2 py-1 text-xs font-medium bg-yellow-500 hover:bg-yellow-600 text-white"
+            >
+              Replace
+            </button>
+            <button
+              type="button"
+              data-testid="scope-template-cancel"
+              onClick={cancelTemplate}
+              className="rounded px-2 py-1 text-xs font-medium border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
+            >
+              Cancel
+            </button>
+          </div>
+        )}
+
         <textarea
           id="description"
           rows={5}
-          placeholder="Brief scope of work — carries into the proposal scope section."
+          placeholder="Describe the work — or choose a template above to get started."
           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-900 dark:text-white"
           {...register('description', {
             required: isEditing ? false : 'Job scope is required to name the project',

@@ -8,6 +8,33 @@ vi.mock('../../hooks/useAuth', () => ({
   useAuth: () => ({ user: { id: 'user-1' } }),
 }));
 
+vi.mock('../../features/projects/data/projectScopeTemplates', () => {
+  const templates = [
+    {
+      id: 'res-wood-frame-house',
+      label: 'New Single-Family Wood-Frame House',
+      category: 'Residential',
+      description: 'Full construction of a new wood-frame residence',
+      scopeText: 'RESIDENTIAL TEMPLATE SCOPE TEXT',
+    },
+    {
+      id: 'metal-pemb',
+      label: 'Pre-Engineered Metal Building (PEMB)',
+      category: 'Metal & Pre-Engineered',
+      description: 'Pre-engineered metal building supply and erection',
+      scopeText: 'METAL TEMPLATE SCOPE TEXT',
+    },
+  ];
+  return {
+    PROJECT_SCOPE_TEMPLATES: templates,
+    getProjectScopeTemplateById: (id: string) => templates.find(t => t.id === id),
+    getProjectScopeTemplatesByCategory: () => ({
+      Residential: [templates[0]],
+      'Metal & Pre-Engineered': [templates[1]],
+    }),
+  };
+});
+
 vi.mock('../../store', () => ({
   useProjectStore: (selector: (state: { projects: [] }) => unknown) =>
     selector({ projects: [] }),
@@ -232,5 +259,96 @@ describe('ProjectForm client portal access', () => {
         'Client portal access uses the client information above. You can override the invite email if needed.',
       ),
     ).toBeInTheDocument();
+  });
+});
+
+describe('scope template', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('renders the template select dropdown', () => {
+    renderProjectForm();
+    expect(screen.getByTestId('scope-template-select')).toBeInTheDocument();
+  });
+
+  it('selecting a template with an empty scope populates the textarea immediately', async () => {
+    const user = userEvent.setup();
+    renderProjectForm({
+      initialData: {
+        name: 'Test Project',
+        description: '',
+        clientInfo: {
+          clientName: 'Jane Client',
+          clientCompany: 'Client Co',
+          clientEmail: 'jane@client.com',
+          clientPhone: '(555) 111-2222',
+          clientAddressSameAsJobsite: true,
+        },
+        jobsiteAddress: {
+          street: '123 Main St',
+          street2: '',
+          city: 'Atlanta',
+          state: 'GA',
+          zip: '30301',
+        },
+        projectCrewSize: 7,
+      },
+    });
+
+    await user.selectOptions(
+      screen.getByTestId('scope-template-select'),
+      'res-wood-frame-house',
+    );
+
+    const textarea = screen.getByRole('textbox', { name: /project scope/i });
+    expect(textarea).toHaveValue('RESIDENTIAL TEMPLATE SCOPE TEXT');
+    expect(screen.queryByText(/Replace current scope/)).not.toBeInTheDocument();
+  });
+
+  it('selecting a template with existing scope shows the confirmation banner', async () => {
+    const user = userEvent.setup();
+    renderProjectForm();
+
+    await user.selectOptions(
+      screen.getByTestId('scope-template-select'),
+      'metal-pemb',
+    );
+
+    expect(screen.getByText(/Replace current scope with this template/)).toBeInTheDocument();
+  });
+
+  it('clicking Replace in the confirmation applies the template text', async () => {
+    const user = userEvent.setup();
+    renderProjectForm();
+
+    await user.selectOptions(
+      screen.getByTestId('scope-template-select'),
+      'metal-pemb',
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Replace' }));
+
+    const textarea = screen.getByRole('textbox', { name: /project scope/i });
+    expect(textarea).toHaveValue('METAL TEMPLATE SCOPE TEXT');
+    expect(screen.queryByText(/Replace current scope/)).not.toBeInTheDocument();
+  });
+
+  it('clicking Cancel leaves the original scope unchanged and hides the banner', async () => {
+    const user = userEvent.setup();
+    renderProjectForm();
+
+    await user.selectOptions(
+      screen.getByTestId('scope-template-select'),
+      'metal-pemb',
+    );
+
+    expect(screen.getByText(/Replace current scope with this template/)).toBeInTheDocument();
+
+    await user.click(screen.getByTestId('scope-template-cancel'));
+
+    const textarea = screen.getByRole('textbox', { name: /project scope/i });
+    expect(textarea).toHaveValue('Scope text');
+    expect(screen.queryByText(/Replace current scope/)).not.toBeInTheDocument();
   });
 });

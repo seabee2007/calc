@@ -7,10 +7,11 @@ export interface ClearableNumberInputProps {
   onChange: (value: number) => void;
   min?: number;
   max?: number;
-  step?: number;
+  step?: number | string;
   placeholder?: string;
   fullWidth?: boolean;
   integer?: boolean;
+  disabled?: boolean;
   'data-testid'?: string;
 }
 
@@ -42,6 +43,7 @@ export default function ClearableNumberInput({
   placeholder = '0',
   fullWidth,
   integer = false,
+  disabled = false,
   'data-testid': dataTestId,
 }: ClearableNumberInputProps) {
   const [draft, setDraft] = useState<string | null>(null);
@@ -68,6 +70,7 @@ export default function ClearableNumberInput({
       placeholder={placeholder}
       fullWidth={fullWidth}
       value={displayValue}
+      disabled={disabled}
       data-testid={dataTestId}
       onFocus={() => {
         setDraft(value === 0 ? '' : formatStoredValue(value, integer));

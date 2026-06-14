@@ -51,7 +51,7 @@ const DEFAULT_HOURS_PER_DAY = 8;
 
 type SourceMode = 'choose' | 'production_rate' | 'manual';
 type Step = 'choose' | 'configure';
-type WizardStep = 1 | 2 | 3;
+type WizardStep = 1 | 2;
 
 interface Props {
   projectId: string;
@@ -494,15 +494,10 @@ export default function AssemblyPickerModal({
 
   const progressLabel =
     step === 'configure' && sourceMode === 'production_rate'
-      ? `Step ${wizardStep} of 3`
+      ? `Step ${wizardStep} of 2`
       : undefined;
 
-  const canAdvanceWizard =
-    wizardStep === 1
-      ? Boolean(divisionCode)
-      : wizardStep === 2
-        ? Boolean(category && draft?.lineItems.some((item) => item.selected))
-        : canConfirm;
+  const canAdvanceWizard = Boolean(divisionCode && category);
 
   const modalFooter =
     step === 'configure' ? (
@@ -525,13 +520,13 @@ export default function AssemblyPickerModal({
           )}
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {sourceMode === 'production_rate' && wizardStep < 3 ? (
+          {sourceMode === 'production_rate' && wizardStep < 2 ? (
             <Button
               type="button"
               variant="accent"
               size="sm"
               disabled={!canAdvanceWizard || library.loading}
-              onClick={() => setWizardStep((s) => (s < 3 ? ((s + 1) as WizardStep) : s))}
+              onClick={() => setWizardStep(2)}
             >
               Next
             </Button>
@@ -782,7 +777,7 @@ function NumberField({
 }
 
 function ProductionRateConfigureStep({
-  wizardStep = 3,
+  wizardStep = 2,
   libraryLoading,
   libraryError,
   totalRates,
@@ -896,27 +891,24 @@ function ProductionRateConfigureStep({
       </div>
 
       {wizardStep === 1 ? (
-        <div>
-          <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400">
-            Division
-          </label>
-          <select
-            value={divisionCode}
-            onChange={(e) => onDivisionChange(e.target.value)}
-            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
-          >
-            <option value="">Select division…</option>
-            {divisionOptions.map((option) => (
-              <option key={option.divisionCode} value={option.divisionCode}>
-                Division {option.divisionCode} — {option.divisionName} ({option.count})
-              </option>
-            ))}
-          </select>
-        </div>
-      ) : null}
-
-      {wizardStep === 2 ? (
         <>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400">
+              Division
+            </label>
+            <select
+              value={divisionCode}
+              onChange={(e) => onDivisionChange(e.target.value)}
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+            >
+              <option value="">Select division…</option>
+              {divisionOptions.map((option) => (
+                <option key={option.divisionCode} value={option.divisionCode}>
+                  Division {option.divisionCode} — {option.divisionName} ({option.count})
+                </option>
+              ))}
+            </select>
+          </div>
           <div>
             <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400">
               Activity Category
@@ -935,73 +927,10 @@ function ProductionRateConfigureStep({
               ))}
             </select>
           </div>
-          {draft ? (
-            <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                Work Elements
-              </p>
-              {draft.lineItems.map((item) => (
-                <WorkElementRow
-                  key={item.draftId}
-                  item={item}
-                  projectLaborRates={projectLaborRates}
-                  laborRatesLoading={laborRatesLoading}
-                  showDevSourceDetails={showDevSourceDetails}
-                  showQuantity={false}
-                  previewLineItem={preview?.projectLineItems.find(
-                    (line) => line.sourceProductionRateKey === item.rate.id,
-                  )}
-                  onToggle={(selected) => onToggleWorkElement(item.draftId, selected)}
-                  onQuantityChange={(value) => onQuantityChange(item.draftId, value)}
-                  onVariantChange={(nextRate) => onVariantChange(item.draftId, nextRate)}
-                />
-              ))}
-            </div>
-          ) : null}
         </>
       ) : null}
 
-      {wizardStep >= 3 ? (
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div>
-          <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400">
-            Division
-          </label>
-          <select
-            value={divisionCode}
-            onChange={(e) => onDivisionChange(e.target.value)}
-            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
-          >
-            <option value="">Select division…</option>
-            {divisionOptions.map((option) => (
-              <option key={option.divisionCode} value={option.divisionCode}>
-                Division {option.divisionCode} — {option.divisionName} ({option.count})
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400">
-            Activity Category
-          </label>
-          <select
-            value={category}
-            onChange={(e) => onCategoryChange(e.target.value)}
-            disabled={!divisionCode}
-            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm disabled:opacity-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
-          >
-            <option value="">Select category…</option>
-            {categoryOptions.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-      ) : null}
-
-      {wizardStep >= 3 && draft && (
+      {wizardStep === 2 && draft ? (
         <>
           <ActivityInstanceFields
             activityName={activityName}
@@ -1065,7 +994,9 @@ function ProductionRateConfigureStep({
             />
           )}
         </>
-      )}
+      ) : wizardStep === 2 ? (
+        <p className="text-sm text-slate-500">Select a division and activity category to continue.</p>
+      ) : null}
     </div>
   );
 }

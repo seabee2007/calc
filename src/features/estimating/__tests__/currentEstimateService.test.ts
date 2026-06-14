@@ -209,6 +209,22 @@ describe('currentEstimateService mapping', () => {
     expect(currentEstimate).toBeNull();
   });
 
+  it('maps a brand-new empty draft row when allowEmpty is true (save roundtrip)', () => {
+    const currentEstimate = mapEstimateRowToCurrentEstimate(
+      baseRow({
+        estimate_type: 'detailed',
+        selected_divisions: [],
+        line_items: [],
+      }),
+      { allowEmpty: true },
+    );
+
+    expect(currentEstimate).not.toBeNull();
+    expect(currentEstimate?.selectedDivisions).toEqual([]);
+    expect(currentEstimate?.lineItems).toEqual([]);
+    expect(currentEstimate?.estimateType).toBe('detailed');
+  });
+
   it('maps selected_divisions snake_case column to selectedDivisions on save roundtrip', () => {
     const divisions = [
       {

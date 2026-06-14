@@ -7,6 +7,7 @@ export interface EstimateWorkspaceSaveControlInput {
   activeOperations: number;
   hasPendingEstimateChanges: boolean;
   errorMessage?: string | null;
+  saveBlockedReason?: string | null;
 }
 
 export interface EstimateWorkspaceSaveControlView {
@@ -52,6 +53,18 @@ export function resolveEstimateWorkspaceSaveControl(
       title: 'Saving changes',
       disabled: true,
       showSpinner: true,
+      variant: 'outline',
+      action: 'none',
+    };
+  }
+
+  if (input.saveBlockedReason) {
+    return {
+      label: 'Save',
+      ariaLabel: 'Save unavailable',
+      title: input.saveBlockedReason,
+      disabled: true,
+      showSpinner: false,
       variant: 'outline',
       action: 'none',
     };

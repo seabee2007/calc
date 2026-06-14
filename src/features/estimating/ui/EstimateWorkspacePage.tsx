@@ -33,7 +33,7 @@ import {
   createCurrentEstimate,
   currentEstimateToDomainVersion,
   currentEstimateToSummary,
-  resetCurrentEstimate,
+  resetCurrentEstimateWorkspace,
   saveCurrentEstimate,
   saveCurrentEstimateWithLineItems,
   saveCurrentQuickFeasibilityEstimate,
@@ -41,7 +41,11 @@ import {
   type CurrentEstimate,
 } from '../application/currentEstimateService';
 import { shouldOpenBuildScopeModal } from '../application/estimateStartFlow';
-import { normalizeSelectedDivisions } from '../application/estimateWorkBreakdown';
+import {
+  appendSelectedDivisions,
+  buildSelectedDivisionsFromCodes,
+  normalizeSelectedDivisions,
+} from '../application/estimateWorkBreakdown';
 import {
   buildOptimisticEstimateWithDivisions,
   loadCurrentEstimateForProject,
@@ -329,6 +333,10 @@ export default function EstimateWorkspacePage() {
   const estimateAdapter = useMemo(
     () => (currentEstimate ? currentEstimateToDomainVersion(currentEstimate) : null),
     [currentEstimate],
+  );
+  const acceptedDivisionCodes = useMemo(
+    () => (currentEstimate?.selectedDivisions ?? []).map((division) => division.code),
+    [currentEstimate?.selectedDivisions],
   );
 
   const resolvedProjectId = projectId ?? routeProjectId ?? '';
@@ -1120,7 +1128,7 @@ export default function EstimateWorkspacePage() {
       estimateSetup.restoreSavedSetup(optimisticType, divisions);
       lineItemDraft.rehydrateFromVersion(currentEstimateToDomainVersion(optimisticEstimate));
       setSaveError(null);
-
+      workspaceSaveStatus.markSaving();
       setSaving(true);
 
       const result = await saveCurrentEstimate({
@@ -1134,6 +1142,7 @@ export default function EstimateWorkspacePage() {
       });
 
       if (result.error || !result.data) {
+        workspaceSaveStatus.markError(result.error);
         setSaveError(result.error ?? 'Failed to save selected divisions.');
         setSaving(false);
         return;
@@ -1147,9 +1156,29 @@ export default function EstimateWorkspacePage() {
         result.data.selectedDivisions,
       );
       lineItemDraft.rehydrateFromVersion(adapter);
+      workspaceSaveStatus.markSaved();
       setSaving(false);
     },
-    [currentEstimate, estimateAdapter, user?.id, estimateSetup, lineItemDraft],
+    [currentEstimate, estimateAdapter, user?.id, estimateSetup, lineItemDraft, workspaceSaveStatus],
+  );
+
+  const handleEnsureDivisionsSelected = useCallback(
+    async (divisionCodes: readonly string[]) => {
+      if (!currentEstimate || !estimateAdapter || divisionCodes.length === 0) return;
+
+      const existingCodes = new Set(currentEstimate.selectedDivisions.map((division) => division.code));
+      const missingCodes = divisionCodes.filter((code) => !existingCodes.has(code));
+      if (missingCodes.length === 0) return;
+
+      const additions = buildSelectedDivisionsFromCodes(missingCodes, { source: 'ai' });
+      await handleSaveSelectedDivisions(
+        appendSelectedDivisions(currentEstimate.selectedDivisions, additions),
+      );
+      setImportCollapseDivisionCodesKey(
+        `import-${Date.now()}-${missingCodes.join(',')}`,
+      );
+    },
+    [currentEstimate, estimateAdapter, handleSaveSelectedDivisions],
   );
 
   const handleSaveEstimate = useCallback(async () => {
@@ -1383,38 +1412,49 @@ export default function EstimateWorkspacePage() {
   );
 
   const handleResetEstimate = useCallback(async (): Promise<boolean> => {
-    if (!estimate || saving) return false;
+    if (!resolvedProjectId || saving) return false;
 
     setSaving(true);
     setSaveError(null);
     setSaveToastMessage(null);
+    workspaceSaveStatus.markSaving();
 
-    const result = await resetCurrentEstimate(estimate.projectId);
+    try {
+      const result = await resetCurrentEstimateWorkspace(resolvedProjectId);
 
-    if (result.error) {
-      setSaveError(result.error ?? 'Failed to reset estimate.');
+      if (result.error) {
+        workspaceSaveStatus.markError(result.error);
+        setSaveError(result.error ?? 'Failed to reset estimate.');
+        return false;
+      }
+
+      lineItemDraft.resetDraftSetup();
+      estimateSettings.rehydrateFromEstimate(null);
+      scheduleSettingsHook.rehydrateFromEstimate(null, []);
+      estimateSetup.resetSetup(selectedEstimateMethod);
+      conceptualEstimate.rehydrateFromEstimate(null);
+      setLevelingModalResult(null);
+      setImportCollapseDivisionCodesKey(null);
+      setCurrentEstimate(null);
+      setActiveEstimateType(null);
+      await reloadConstructionActivities();
+      workspaceSaveStatus.markSaved();
+      setSaveToastMessage('Estimate reset');
+      return true;
+    } finally {
       setSaving(false);
-      return false;
     }
-
-    lineItemDraft.resetDraftSetup();
-    estimateSettings.rehydrateFromEstimate(null);
-    scheduleSettingsHook.rehydrateFromEstimate(null, []);
-    estimateSetup.resetSetup(selectedEstimateMethod);
-    setLevelingModalResult(null);
-    setCurrentEstimate(null);
-    setActiveEstimateType(null);
-    setSaveToastMessage('Estimate reset');
-    setSaving(false);
-    return true;
   }, [
-    estimate,
+    conceptualEstimate,
     estimateSetup,
     estimateSettings,
     lineItemDraft,
+    reloadConstructionActivities,
+    resolvedProjectId,
     saving,
     scheduleSettingsHook,
     selectedEstimateMethod,
+    workspaceSaveStatus,
   ]);
 
   const handleConfirmResetSetup = useCallback(async () => {
@@ -2033,20 +2073,32 @@ export default function EstimateWorkspacePage() {
     activeTab,
     builderToolbarHandlers?.showCollapseAll ?? false,
   );
+  const hasPersistedWorkspaceWork =
+    hasEstimate ||
+    constructionActivities.length > 0 ||
+    (currentEstimate?.selectedDivisions.length ?? 0) > 0 ||
+    estimateSetup.session.selectedDivisions.length > 0;
   const showResetForm = shouldShowResetFormAction(
     activeTab,
     hasEstimate,
     activeEstimateType,
     estimateSetup,
     canEditEstimate || activeEstimateType != null,
+    hasPersistedWorkspaceWork,
   );
   const showEstimateSettings = shouldShowEstimateSettingsPanel(activeTab, tabRenderOptions);
+  const hasProjectContext = Boolean(resolvedProjectId);
+  const saveBlockedReason =
+    !estimate && !saving && workspaceSaveStatus.status !== 'saving'
+      ? 'Select an estimate type before saving'
+      : null;
   const showSaveBucket = shouldShowBucketSaveAction(
     activeTab,
     hasEstimate,
     activeEstimateType,
     isQuickFeasibilityEstimate,
     builderToolbarHandlers?.showCollapseAll ?? false,
+    hasProjectContext,
   );
   const showSaveQuick = shouldShowQuickSaveAction(
     activeTab,
@@ -2121,6 +2173,7 @@ export default function EstimateWorkspacePage() {
               saveStatusActiveOperations={workspaceSaveStatus.activeOperations}
               hasPendingEstimateChanges={hasPendingEstimateChanges}
               saveStatusErrorMessage={workspaceSaveStatus.errorMessage ?? saveError}
+              saveBlockedReason={saveBlockedReason}
               handlers={builderToolbarHandlers}
               onReset={() => {
                 if (activeTab === 'settings') {
@@ -2583,6 +2636,11 @@ export default function EstimateWorkspacePage() {
             <ConstructionActivityBuilderPanel
               projectId={resolvedProjectId}
               estimateId={estimate?.id}
+              hasEstimateTypeSelected={hasEstimate}
+              onChooseEstimateType={() => setEstimateTypeModalOpen(true)}
+              projectContext={projectScopeContext}
+              acceptedDivisionCodes={acceptedDivisionCodes}
+              onEnsureDivisionsSelected={handleEnsureDivisionsSelected}
               onActivitiesChanged={reloadConstructionActivities}
             />
           ) : (
@@ -2617,7 +2675,11 @@ export default function EstimateWorkspacePage() {
       />
       <EstimateResetSetupConfirmModal
         isOpen={resetModalOpen}
-        hasSavedActivities={(estimateAdapter?.lineItems.length ?? 0) > 0}
+        hasSavedWork={
+          (estimateAdapter?.lineItems.length ?? 0) > 0 ||
+          constructionActivities.length > 0 ||
+          (currentEstimate?.selectedDivisions.length ?? 0) > 0
+        }
         onClose={() => setResetModalOpen(false)}
         onConfirm={handleConfirmResetSetup}
       />

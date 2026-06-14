@@ -7,26 +7,26 @@ import { PLANNER_MUTED, TEXT_BODY } from '../estimateWorkspaceTheme';
 
 interface Props {
   isOpen: boolean;
-  hasSavedActivities: boolean;
+  hasSavedWork: boolean;
   onClose: () => void;
   onConfirm: () => void | Promise<void>;
 }
 
 export default function EstimateResetSetupConfirmModal({
   isOpen,
-  hasSavedActivities,
+  hasSavedWork,
   onClose,
   onConfirm,
 }: Props) {
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Reset estimate setup?" size="md">
+    <Modal isOpen={isOpen} onClose={onClose} title="Reset this estimate?" size="md">
       <div className="space-y-4">
         <p className={`text-sm ${TEXT_BODY}`}>
-          This will clear the current estimate for this project so you can choose a different
-          estimate type.
+          This will remove selected divisions, construction activities, and estimate line items
+          for this project so you can start again with a different estimate type.
         </p>
 
-        {hasSavedActivities ? (
+        {hasSavedWork ? (
           <p className={`text-xs ${PLANNER_MUTED}`}>{ESTIMATE_SETUP_RESET_REPLACE_NOTE}</p>
         ) : null}
 
@@ -35,7 +35,7 @@ export default function EstimateResetSetupConfirmModal({
             Cancel
           </Button>
           <Button type="button" variant="danger" onClick={onConfirm}>
-            Reset setup
+            Reset estimate
           </Button>
         </div>
       </div>

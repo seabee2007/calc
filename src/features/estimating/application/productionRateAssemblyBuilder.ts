@@ -101,6 +101,7 @@ export interface InstantiateManualActivityInput {
   projectLaborRates: readonly ProjectLaborRate[];
   productionFactor?: number;
   projectActivityId?: string;
+  sourceTemplateKey?: string;
 }
 
 export interface ProductionRateAssemblyInstantiationResult {
@@ -205,6 +206,19 @@ export function getRatesForAssemblyCategory(
       (group) => group.divisionCode === divisionCode && group.category === category,
     )?.rates ?? []
   );
+}
+
+export function buildAssemblyGroupForRate(rate: ProductionRateLibraryEntry): ProductionRateAssemblyGroup {
+  const category = rate.category?.trim() || rate.activityName;
+  return {
+    divisionCode: rate.divisionCode,
+    divisionName: rate.divisionName,
+    category,
+    rates: [rate],
+    defaultTitle: category,
+    suggestedCrewSize: suggestCrewSize([rate]),
+    suggestedHoursPerDay: DEFAULT_HOURS_PER_DAY,
+  };
 }
 
 export function getAssemblyGroupForCategory(
@@ -462,7 +476,7 @@ export function instantiateManualConstructionActivity(
     projectId: input.projectId,
     estimateId: input.estimateId,
     activityTemplateId: null,
-    sourceTemplateKey: MANUAL_ACTIVITY_SOURCE_TEMPLATE_KEY,
+    sourceTemplateKey: input.sourceTemplateKey ?? MANUAL_ACTIVITY_SOURCE_TEMPLATE_KEY,
     activityCode: input.assigned.activityCode,
     title: input.assigned.title,
     baseTitle: input.assigned.baseTitle,

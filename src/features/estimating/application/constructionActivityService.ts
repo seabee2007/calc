@@ -83,6 +83,8 @@ export interface SaveFromProductionRateAssemblyInput {
   identity: ActivityInstanceIdentityInput;
   existingActivities?: readonly ProjectConstructionActivity[];
   projectLaborRates: readonly ProjectLaborRate[];
+  /** Override category-based key — scope import uses per-activity keys. */
+  sourceTemplateKey?: string;
 }
 
 export interface SaveManualActivityInput {
@@ -98,6 +100,8 @@ export interface SaveManualActivityInput {
   identity: ActivityInstanceIdentityInput;
   existingActivities?: readonly ProjectConstructionActivity[];
   projectLaborRates: readonly ProjectLaborRate[];
+  /** Override shared manual_activity key — scope import uses per-activity keys. */
+  sourceTemplateKey?: string;
 }
 
 export interface UpdateProjectActivityInput {
@@ -332,10 +336,12 @@ export async function instantiateAndSaveFromProductionRateAssembly(
     return { data: null, error: 'Select at least one work element with quantity.' };
   }
 
-  const sourceTemplateKey = buildProductionRateCategorySourceTemplateKey(
-    input.group.divisionCode,
-    input.group.category,
-  );
+  const sourceTemplateKey =
+    input.sourceTemplateKey ??
+    buildProductionRateCategorySourceTemplateKey(
+      input.group.divisionCode,
+      input.group.category,
+    );
   const loadedExisting = await loadExistingActivitiesForCodeAssignment(input);
   if (loadedExisting.error || !loadedExisting.data) {
     return { data: null, error: loadedExisting.error };
@@ -398,11 +404,12 @@ export async function instantiateAndSaveManualActivity(
   }
 
   let existingActivities = loadedExisting.data;
+  const sourceTemplateKey = input.sourceTemplateKey ?? MANUAL_ACTIVITY_SOURCE_TEMPLATE_KEY;
   for (let attempt = 0; attempt < 2; attempt += 1) {
     const { assigned, validationError } = buildAssignedForSourceTemplate({
       existingActivities,
       divisionCode: input.divisionCode,
-      sourceTemplateKey: MANUAL_ACTIVITY_SOURCE_TEMPLATE_KEY,
+      sourceTemplateKey,
       identity: input.identity,
     });
 
@@ -423,6 +430,7 @@ export async function instantiateAndSaveManualActivity(
       durationDaysOverride: input.durationDaysOverride,
       scheduleEnabled: input.scheduleEnabled ?? true,
       projectLaborRates: input.projectLaborRates,
+      sourceTemplateKey,
     });
 
     const { projectActivity, projectLineItems } = instantiationResult;

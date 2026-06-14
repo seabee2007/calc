@@ -232,6 +232,26 @@ export async function updateProjectActivity(
 }
 
 /**
+ * Delete all project construction activities for a project.
+ * Line items are removed by CASCADE.
+ */
+export async function deleteProjectConstructionActivities(
+  projectId: string,
+): Promise<RepositoryResult<null>> {
+  try {
+    const { error } = await supabase
+      .from('project_construction_activities')
+      .delete()
+      .eq('project_id', projectId);
+
+    if (error) return failure(error.message);
+    return success(null);
+  } catch (err) {
+    return failure(err);
+  }
+}
+
+/**
  * Delete a project construction activity (and its line items by CASCADE).
  */
 export async function deleteProjectActivity(id: string): Promise<RepositoryResult<null>> {

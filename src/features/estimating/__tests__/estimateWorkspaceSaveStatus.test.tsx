@@ -106,6 +106,36 @@ describe('estimateWorkspaceSaveStatus', () => {
     expect(onRetry).toHaveBeenCalledTimes(1);
   });
 
+  it('shows disabled Save when saving is blocked', () => {
+    const control = resolveEstimateWorkspaceSaveControl({
+      status: 'saved',
+      activeOperations: 0,
+      hasPendingEstimateChanges: false,
+      saveBlockedReason: 'Select an estimate type before saving',
+    });
+
+    expect(control.label).toBe('Save');
+    expect(control.disabled).toBe(true);
+    expect(control.title).toBe('Select an estimate type before saving');
+    expect(control.action).toBe('none');
+  });
+
+  it('renders disabled save when blocked reason is provided', () => {
+    render(
+      <EstimateWorkspaceSaveStatusControl
+        show
+        status="saved"
+        activeOperations={0}
+        hasPendingEstimateChanges={false}
+        saveBlockedReason="Select an estimate type before saving"
+        onSave={() => {}}
+        onRetry={() => {}}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'Save unavailable' })).toBeDisabled();
+  });
+
   it('shows save status on all detailed estimate workspace tabs', () => {
     const tabs = getVisibleWorkspaceTabs('detailed', true).map((tab) => tab.id);
 

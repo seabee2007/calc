@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import userEvent from '@testing-library/user-event';
+import { describe, expect, it, vi } from 'vitest';
 import type { ProjectConstructionActivity } from '../domain/constructionActivityTypes';
 import { DEFAULT_ESTIMATE_SETTINGS } from '../application/estimateSettings';
 import EstimateTotalsReviewPanel, {
@@ -164,6 +165,56 @@ describe('EstimateTotalsReviewPanel', () => {
     expect(screen.getByText('Apply overhead to')).toBeInTheDocument();
     expect(screen.getByText('Apply profit to')).toBeInTheDocument();
     expect(screen.getByText('Tax applies to')).toBeInTheDocument();
+  });
+
+  it('allows clearing markup percent fields and treats blank as zero', async () => {
+    const user = userEvent.setup();
+    const updateSettings = vi.fn();
+
+    render(
+      <EstimateTotalsReviewPanel
+        version={null}
+        estimateType="detailed"
+        constructionActivities={[makeActivity()]}
+        settingsState={{
+          ...buildSettingsState({ profitPercent: 12 }),
+          updateSettings,
+        }}
+        canEdit
+      />,
+    );
+
+    const profitInput = screen.getByTestId('markup-profit-percent');
+    expect(profitInput).toHaveAttribute('placeholder', '0');
+
+    await user.click(profitInput);
+    await user.clear(profitInput);
+
+    expect(updateSettings).toHaveBeenCalledWith({ profitPercent: 0 });
+  });
+
+  it('shows zero percent fields as empty with placeholder on Costs & Markup', () => {
+    render(
+      <EstimateTotalsReviewPanel
+        version={null}
+        estimateType="detailed"
+        constructionActivities={[makeActivity()]}
+        settingsState={buildSettingsState({
+          indirectCostPercent: 0,
+          contingencyPercent: 0,
+          overheadPercent: 0,
+          profitPercent: 0,
+          taxPercent: 0,
+        })}
+        canEdit
+      />,
+    );
+
+    expect(screen.getByTestId('markup-indirect-cost-percent')).toHaveValue(null);
+    expect(screen.getByTestId('markup-contingency-percent')).toHaveValue(null);
+    expect(screen.getByTestId('markup-overhead-percent')).toHaveValue(null);
+    expect(screen.getByTestId('markup-profit-percent')).toHaveValue(null);
+    expect(screen.getByTestId('markup-tax-percent')).toHaveValue(null);
   });
 
   it('still calculates construction activity labor totals', () => {

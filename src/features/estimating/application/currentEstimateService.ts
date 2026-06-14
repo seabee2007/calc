@@ -1,4 +1,5 @@
 import { supabase } from '../../../lib/supabase';
+import { deleteProjectConstructionActivities } from '../infrastructure/activityRepository';
 import { buildEstimateDraftSnapshot } from './buildEstimateDraftSnapshot';
 import {
   draftLineToLineItemInput,
@@ -288,8 +289,12 @@ function buildEstimateTypePayloadFields(params: {
   };
 }
 
-function mapEstimateRowToCurrentEstimate(row: Record<string, unknown>): CurrentEstimate | null {
-  if (!hasMeaningfulCurrentEstimate(row)) return null;
+function mapEstimateRowToCurrentEstimate(
+  row: Record<string, unknown>,
+  options?: { allowEmpty?: boolean },
+): CurrentEstimate | null {
+  if (!options?.allowEmpty && !hasMeaningfulCurrentEstimate(row)) return null;
+  if (!row.id) return null;
 
   const selectedDivisions = normalizeSelectedDivisions(
     parseArray(row.selected_divisions).map(
@@ -438,7 +443,9 @@ async function saveEstimateRow(
 
     if (error) return failure(toErrorMessage(error));
     console.log('[Estimate Save] result', data);
-    const estimate = mapEstimateRowToCurrentEstimate(data as Record<string, unknown>);
+    const estimate = mapEstimateRowToCurrentEstimate(data as Record<string, unknown>, {
+      allowEmpty: true,
+    });
     if (!estimate) return failure('Saved estimate row was empty.');
     return success(estimate);
   }
@@ -451,7 +458,9 @@ async function saveEstimateRow(
 
   if (error) return failure(toErrorMessage(error));
   console.log('[Estimate Save] result', data);
-  const estimate = mapEstimateRowToCurrentEstimate(data as Record<string, unknown>);
+  const estimate = mapEstimateRowToCurrentEstimate(data as Record<string, unknown>, {
+    allowEmpty: true,
+  });
   if (!estimate) return failure('Saved estimate row was empty.');
   return success(estimate);
 }
@@ -715,6 +724,21 @@ export async function resetCurrentEstimate(projectId: string): Promise<Repositor
 
   if (error) return failure(toErrorMessage(error));
   return success(null);
+}
+
+/**
+ * Authoritative reset for the Estimate Workspace: clears persisted construction
+ * activities and the current estimate row for the project.
+ */
+export async function resetCurrentEstimateWorkspace(
+  projectId: string,
+): Promise<RepositoryResult<null>> {
+  const activitiesResult = await deleteProjectConstructionActivities(projectId);
+  if (activitiesResult.error) {
+    return failure(activitiesResult.error);
+  }
+
+  return resetCurrentEstimate(projectId);
 }
 
 export const currentEstimateTestExports = {
