@@ -56,7 +56,7 @@ describe('Navbar logged-in owner', () => {
   beforeEach(() => {
     mockUseAuth.mockReturnValue({
       user: { id: 'user-1', email: 'owner@example.com' },
-      profile: { displayName: 'Owner' },
+      profile: { displayName: 'Owner', role: 'owner' },
       signOut: vi.fn(),
       isOwner: true,
       isEmployee: false,
@@ -141,5 +141,35 @@ describe('Navbar logged-in owner', () => {
 
     expect(screen.queryByText('Tools')).not.toBeInTheDocument();
     expect(screen.getByText('Help')).toBeInTheDocument();
+  });
+});
+
+describe('Navbar logged-in field employee', () => {
+  beforeEach(() => {
+    mockUseAuth.mockReturnValue({
+      user: { id: 'emp-1', email: 'field@example.com' },
+      profile: { displayName: 'Field User', role: 'employee' },
+      signOut: vi.fn(),
+      isOwner: false,
+      isEmployee: true,
+    });
+  });
+
+  it('does not show owner items in the profile dropdown', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <MemoryRouter>
+        <Navbar />
+      </MemoryRouter>,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Profile menu' }));
+
+    expect(screen.getByText('Profile')).toBeInTheDocument();
+    expect(screen.getByText('Field portal')).toBeInTheDocument();
+    expect(screen.queryByText('Company settings')).not.toBeInTheDocument();
+    expect(screen.queryByText('Share / Invite Client')).not.toBeInTheDocument();
+    expect(screen.queryByText('Survey')).not.toBeInTheDocument();
   });
 });

@@ -26,7 +26,7 @@ describe('Projects page layout', () => {
   it('uses the shared AppPage container like Settings', () => {
     expect(projectsSource).toContain('<AppPage');
     expect(projectsSource).toContain('data-testid="projects-page"');
-    expect(projectsSource).toContain('className="w-full !max-w-none pt-6"');
+    expect(projectsSource).toContain('className="w-full max-w-full overflow-x-hidden !max-w-none pb-28 pt-6 md:pb-8"');
     expect(projectsSource).not.toContain('PREMIUM_PAGE_MAX_WIDTH');
     expect(settingsSource).toContain('className="w-full !max-w-none pt-6"');
   });
@@ -47,7 +47,7 @@ describe('Projects page layout', () => {
   });
 
   it('uses a two-column project grid within the shared container', () => {
-    expect(projectListSource).toContain('grid gap-6 lg:grid-cols-2');
+    expect(projectListSource).toContain('grid w-full max-w-full grid-cols-1 gap-4 lg:grid-cols-2');
     expect(projectListSource).not.toContain('lg:grid-cols-3');
   });
 });

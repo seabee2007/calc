@@ -36,4 +36,18 @@ describe('ProposalNextActionsPanel', () => {
 
     expect(screen.getByText('Send follow-up')).toBeInTheDocument();
   });
+
+  it('uses a stacked mobile layout with a full-width CTA row', () => {
+    const { container } = render(
+      <ProposalNextActionsPanel items={[followUpAction]} onAction={vi.fn()} />,
+    );
+
+    const actionButton = container.querySelector('button');
+    expect(actionButton?.className).toContain('flex-col');
+    expect(actionButton?.className).toContain('sm:flex-row');
+
+    const cta = screen.getByText('Send follow-up').closest('span');
+    expect(cta?.className).toContain('w-full');
+    expect(cta?.className).toContain('whitespace-nowrap');
+  });
 });

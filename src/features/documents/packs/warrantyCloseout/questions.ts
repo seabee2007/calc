@@ -43,11 +43,10 @@ export const warrantyCloseoutQuestions: DocumentQuestion[] = [
   {
     questionKey: 'letterDate',
     label: 'Letter date',
-    type: 'text',
+    type: 'date',
     group: 'schedule',
     required: false,
     mode: 'quick',
-    helperText: 'e.g. 2026-06-03 or June 3, 2026',
   },
   {
     questionKey: 'documentNumber',
@@ -76,7 +75,7 @@ export const warrantyCloseoutQuestions: DocumentQuestion[] = [
   {
     questionKey: 'projectCompletionDate',
     label: 'Project completion date',
-    type: 'text',
+    type: 'date',
     group: 'schedule',
     required: false,
     mode: 'quick',
@@ -84,7 +83,7 @@ export const warrantyCloseoutQuestions: DocumentQuestion[] = [
   {
     questionKey: 'warrantyStartDate',
     label: 'Warranty start date',
-    type: 'text',
+    type: 'date',
     group: 'schedule',
     required: false,
     mode: 'quick',
@@ -177,7 +176,7 @@ export const warrantyCloseoutQuestions: DocumentQuestion[] = [
   {
     questionKey: 'finalInspectionDate',
     label: 'Final inspection date',
-    type: 'text',
+    type: 'date',
     group: 'schedule',
     required: false,
     mode: 'standard',
@@ -309,7 +308,7 @@ export const warrantyCloseoutQuestions: DocumentQuestion[] = [
   {
     questionKey: 'followUpDate',
     label: 'Follow-up date',
-    type: 'text',
+    type: 'date',
     group: 'schedule',
     required: false,
     mode: 'advanced',
@@ -349,7 +348,7 @@ export const warrantyCloseoutQuestions: DocumentQuestion[] = [
   {
     questionKey: 'signatureDate',
     label: 'Signature date',
-    type: 'text',
+    type: 'date',
     group: 'schedule',
     required: false,
     mode: 'advanced',

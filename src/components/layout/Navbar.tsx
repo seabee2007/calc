@@ -24,6 +24,7 @@ import PilotSurveyModal from '../survey/PilotSurveyModal';
 import Button from '../ui/Button';
 import AppProfileMenu from './AppProfileMenu';
 import { APP_NAV_HEADER, APP_NAV_MOBILE_MENU, appNavIconButtonClass, isToolsPath } from './appNavStyles';
+import { isFieldOnlyRole } from '../../types/fieldPlanner';
 import {
   BRAND_NAME,
   getAppLoginUrl,
@@ -58,7 +59,7 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = ({ showThemeToggle = true, softHeader = false }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, isOwner, isEmployee } = useAuth();
+  const { user, isOwner, isEmployee, profile } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [shareInviteOpen, setShareInviteOpen] = useState(false);
@@ -73,6 +74,7 @@ const Navbar: React.FC<NavbarProps> = ({ showThemeToggle = true, softHeader = fa
     [location.pathname],
   );
   const mobileSectionLabel = location.pathname === '/' ? 'Dashboard' : sectionLabel;
+  const isFieldOnly = isFieldOnlyRole(profile?.role);
 
   const isActive = (path: string) => {
     if (path === '/') return location.pathname === '/';
@@ -353,29 +355,33 @@ const Navbar: React.FC<NavbarProps> = ({ showThemeToggle = true, softHeader = fa
                 </>
               )}
 
-              <button
-                type="button"
-                className={mobileLinkClass(false)}
-                onClick={() => {
-                  setMobileOpen(false);
-                  setShareInviteOpen(true);
-                }}
-              >
-                <Share2 className="h-5 w-5 text-cyan-400" />
-                Share / Invite Client
-              </button>
+              {isOwner && (
+                <>
+                  <button
+                    type="button"
+                    className={mobileLinkClass(false)}
+                    onClick={() => {
+                      setMobileOpen(false);
+                      setShareInviteOpen(true);
+                    }}
+                  >
+                    <Share2 className="h-5 w-5 text-cyan-400" />
+                    Share / Invite Client
+                  </button>
 
-              <button
-                type="button"
-                className={mobileLinkClass(false)}
-                onClick={() => {
-                  setMobileOpen(false);
-                  setSurveyOpen(true);
-                }}
-              >
-                <ClipboardList className="h-5 w-5 text-cyan-400" />
-                Survey
-              </button>
+                  <button
+                    type="button"
+                    className={mobileLinkClass(false)}
+                    onClick={() => {
+                      setMobileOpen(false);
+                      setSurveyOpen(true);
+                    }}
+                  >
+                    <ClipboardList className="h-5 w-5 text-cyan-400" />
+                    Survey
+                  </button>
+                </>
+              )}
 
               <button
                 type="button"
@@ -386,7 +392,7 @@ const Navbar: React.FC<NavbarProps> = ({ showThemeToggle = true, softHeader = fa
                 }}
               >
                 <User className="h-5 w-5" />
-                Account & settings
+                {isFieldOnly ? 'Account' : 'Account & settings'}
               </button>
             </div>
           </motion.div>

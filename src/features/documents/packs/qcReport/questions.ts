@@ -34,11 +34,10 @@ export const qcReportQuestions: DocumentQuestion[] = [
   {
     questionKey: 'reportDate',
     label: 'Report date',
-    type: 'text',
+    type: 'date',
     group: 'schedule',
     required: false,
     mode: 'quick',
-    helperText: 'e.g. 2026-06-03 or June 3, 2026',
   },
   {
     questionKey: 'reportNumber',
@@ -184,7 +183,7 @@ export const qcReportQuestions: DocumentQuestion[] = [
   {
     questionKey: 'followUpDate',
     label: 'Follow-up date',
-    type: 'text',
+    type: 'date',
     group: 'schedule',
     required: false,
     mode: 'standard',
@@ -234,7 +233,7 @@ export const qcReportQuestions: DocumentQuestion[] = [
   {
     questionKey: 'concretePlacementDate',
     label: 'Concrete placement date',
-    type: 'text',
+    type: 'date',
     group: 'schedule',
     required: false,
     mode: 'advanced',
@@ -314,7 +313,7 @@ export const qcReportQuestions: DocumentQuestion[] = [
   {
     questionKey: 'reinspectionDate',
     label: 'Reinspection date',
-    type: 'text',
+    type: 'date',
     group: 'schedule',
     required: false,
     mode: 'advanced',
@@ -354,7 +353,7 @@ export const qcReportQuestions: DocumentQuestion[] = [
   {
     questionKey: 'signatureDate',
     label: 'Signature date',
-    type: 'text',
+    type: 'date',
     group: 'schedule',
     required: false,
     mode: 'advanced',

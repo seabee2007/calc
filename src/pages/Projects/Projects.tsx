@@ -157,7 +157,7 @@ const ProjectsContent: React.FC = () => {
         transition={{ duration: 0.3 }}
       >
         <AppPage
-          className="w-full !max-w-none pt-6"
+          className="w-full max-w-full overflow-x-hidden !max-w-none pb-28 pt-6 md:pb-8"
           data-testid="projects-page"
           header={
             <PageHeader
@@ -209,7 +209,7 @@ const ProjectsContent: React.FC = () => {
         )}
 
         {!ui.showCreate && !ui.showDetails && (
-          <motion.div key="list" {...viewMotion}>
+          <motion.div key="list" {...viewMotion} className="w-full max-w-full min-w-0 overflow-x-hidden">
             <div className="flex gap-2 overflow-x-auto pb-2 mb-6 scrollbar-hide">
               {PROJECT_FOLDERS.map((key) => (
                   <button

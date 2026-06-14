@@ -57,7 +57,7 @@ export const rfiQuestions: DocumentQuestion[] = [
   {
     questionKey: 'dueDate',
     label: 'Due date',
-    type: 'text',
+    type: 'date',
     group: 'schedule',
     required: false,
     mode: 'quick',
@@ -97,7 +97,7 @@ export const rfiQuestions: DocumentQuestion[] = [
   {
     questionKey: 'responseDate',
     label: 'Response date',
-    type: 'text',
+    type: 'date',
     group: 'execution',
     required: false,
     mode: 'standard',
@@ -161,7 +161,7 @@ export const rfiQuestions: DocumentQuestion[] = [
   {
     questionKey: 'signatureDate',
     label: 'Signature date',
-    type: 'text',
+    type: 'date',
     group: 'execution',
     required: false,
     mode: 'advanced',

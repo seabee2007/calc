@@ -1192,11 +1192,11 @@ export default function DocumentBuilderPage() {
   return (
     <>
       <FieldToolPageLayout
-        title="Contract Builder"
+        title="Document Builder"
         subtitle={
           selectedProject
-            ? `Create, review, and manage construction contracts linked to your projects. Selected Project: ${selectedProject.name}`
-            : 'Create, review, and manage construction contracts linked to your projects.'
+            ? `Create, review, and manage documents linked to your projects. Selected Project: ${selectedProject.name}`
+            : 'Create, review, and manage documents linked to your projects.'
         }
         icon={FileSignature}
         maxWidthClassName="max-w-[88rem] mx-auto"
@@ -1385,7 +1385,7 @@ export default function DocumentBuilderPage() {
                       Run Compliance
                     </Button>
                     <Button variant="outline" onClick={handlePreviewContract} fullWidth>
-                      Preview Contract
+                      Preview
                     </Button>
                   </div>
                 </div>

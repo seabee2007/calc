@@ -77,11 +77,10 @@ export const submittalQuestions: DocumentQuestion[] = [
   {
     questionKey: 'submittalDate',
     label: 'Submittal date',
-    type: 'text',
+    type: 'date',
     group: 'schedule',
     required: false,
     mode: 'quick',
-    helperText: 'e.g. 2026-06-03 or June 3, 2026',
   },
   {
     questionKey: 'productData',
@@ -118,7 +117,7 @@ export const submittalQuestions: DocumentQuestion[] = [
   {
     questionKey: 'dueDate',
     label: 'Due date',
-    type: 'text',
+    type: 'date',
     group: 'schedule',
     required: false,
     mode: 'standard',
@@ -208,7 +207,7 @@ export const submittalQuestions: DocumentQuestion[] = [
   {
     questionKey: 'signatureDate',
     label: 'Signature date',
-    type: 'text',
+    type: 'date',
     group: 'execution',
     required: false,
     mode: 'advanced',

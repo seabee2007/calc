@@ -43,7 +43,7 @@ export const farQuestions: DocumentQuestion[] = [
   { questionKey: 'costImpact', label: 'Cost impact', type: 'text', group: 'change_management', required: false, mode: 'standard' },
   { questionKey: 'scheduleImpact', label: 'Schedule impact', type: 'text', group: 'change_management', required: false, mode: 'standard' },
   { questionKey: 'priority', label: 'Priority', type: 'text', group: 'schedule', required: false, mode: 'standard' },
-  { questionKey: 'dueDate', label: 'Due date', type: 'text', group: 'schedule', required: false, mode: 'standard' },
+  { questionKey: 'dueDate', label: 'Due date', type: 'date', group: 'schedule', required: false, mode: 'standard' },
   { questionKey: 'relatedRfi', label: 'Related RFI', type: 'text', group: 'execution', required: false, mode: 'advanced' },
   { questionKey: 'relatedChangeOrder', label: 'Related change order', type: 'text', group: 'execution', required: false, mode: 'advanced' },
   { questionKey: 'drawingReference', label: 'Drawing reference', type: 'text', group: 'execution', required: false, mode: 'advanced' },
@@ -52,6 +52,6 @@ export const farQuestions: DocumentQuestion[] = [
   { questionKey: 'contractorRecommendation', label: 'Contractor recommendation', type: 'text', group: 'execution', required: false, mode: 'advanced' },
   { questionKey: 'reviewerResponse', label: 'Reviewer response', type: 'text', group: 'execution', required: false, mode: 'standard' },
   { questionKey: 'reviewedBy', label: 'Reviewed by', type: 'text', group: 'execution', required: false, mode: 'standard' },
-  { questionKey: 'responseDate', label: 'Response date', type: 'text', group: 'execution', required: false, mode: 'standard' },
+  { questionKey: 'responseDate', label: 'Response date', type: 'date', group: 'execution', required: false, mode: 'standard' },
   { questionKey: 'approvalDecision', label: 'Approval decision', type: 'text', group: 'execution', required: false, mode: 'standard' },
 ];

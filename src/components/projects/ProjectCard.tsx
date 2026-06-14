@@ -173,85 +173,88 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
       role="button"
       tabIndex={0}
       data-testid={`project-card-${project.id}`}
+      className="w-full min-w-0"
     >
       <Card
-        className={`cursor-pointer h-full ${PREMIUM_PANEL} ${statusBadge.ringClass}`}
+        className={`h-full w-full min-w-0 cursor-pointer overflow-hidden ${PREMIUM_PANEL} ${statusBadge.ringClass}`}
         shadow="md"
       >
-        <div className="p-5">
-          <div className="flex items-start justify-between gap-2 mb-4">
-            <div className="flex items-center min-w-0">
-              <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg shrink-0">
-                <Folder className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div className="ml-3 min-w-0">
-                <h3
-                  className={`text-lg font-semibold truncate ${TEXT_FOREGROUND}`}
-                  title={project.name}
-                >
-                  {project.name}
-                </h3>
-                {scopeChip ? (
-                  <span className="mt-0.5 inline-block text-[10px] font-medium uppercase tracking-wide text-cyan-700 dark:text-cyan-400">
-                    {scopeChip}
-                  </span>
-                ) : null}
-              </div>
+        <div className="p-4 sm:p-5 md:p-6">
+          <div className="mb-4 flex min-w-0 items-start gap-3">
+            <div className="shrink-0 rounded-lg bg-blue-100 p-2 dark:bg-blue-900">
+              <Folder className="h-6 w-6 text-blue-600 dark:text-blue-400" />
             </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex min-w-0 items-start justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <h3
+                    className={`text-xl font-bold leading-tight line-clamp-2 break-words sm:text-2xl ${TEXT_FOREGROUND}`}
+                    title={project.name}
+                  >
+                    {project.name}
+                  </h3>
+                  {scopeChip ? (
+                    <span className="mt-0.5 inline-block text-[10px] font-medium uppercase tracking-wide text-cyan-700 dark:text-cyan-400">
+                      {scopeChip}
+                    </span>
+                  ) : null}
+                </div>
 
-            <div className="flex items-center gap-2 shrink-0">
-              <span
-                className={`inline-block text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded border ${statusBadge.badgeClass}`}
-              >
-                {statusBadge.label}
-              </span>
-              <div
-                className="relative"
-                onClick={stopCardOpen}
-                onPointerDownCapture={stopCardOpen}
-                onMouseDownCapture={stopCardOpen}
-                onTouchStartCapture={stopCardOpen}
-              >
-                <button
-                  type="button"
-                  aria-label="Project actions"
-                  aria-expanded={menuOpen}
-                  aria-haspopup="menu"
-                  className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-500 dark:hover:bg-gray-800 dark:hover:text-gray-200"
-                  onClick={() => setMenuOpen((open) => !open)}
-                >
-                  <MoreVertical className="h-4 w-4" />
-                </button>
-                {menuOpen ? (
-                  <>
+                <div className="flex shrink-0 items-center gap-2">
+                  <span
+                    className={`inline-block rounded border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${statusBadge.badgeClass}`}
+                  >
+                    {statusBadge.label}
+                  </span>
+                  <div
+                    className="relative"
+                    onClick={stopCardOpen}
+                    onPointerDownCapture={stopCardOpen}
+                    onMouseDownCapture={stopCardOpen}
+                    onTouchStartCapture={stopCardOpen}
+                  >
                     <button
                       type="button"
-                      className="fixed inset-0 z-10"
-                      aria-label="Close menu"
-                      onClick={() => setMenuOpen(false)}
-                    />
-                    <div
-                      role="menu"
-                      className="absolute right-0 top-full z-20 mt-1 w-44 rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800"
+                      aria-label="Project actions"
+                      aria-expanded={menuOpen}
+                      aria-haspopup="menu"
+                      className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-500 dark:hover:bg-gray-800 dark:hover:text-gray-200"
+                      onClick={() => setMenuOpen((open) => !open)}
                     >
-                      <button
-                        type="button"
-                        role="menuitem"
-                        className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          setMenuOpen(false);
-                          soundService.play('trash');
-                          onDelete();
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        Delete project
-                      </button>
-                    </div>
-                  </>
-                ) : null}
+                      <MoreVertical className="h-4 w-4" />
+                    </button>
+                    {menuOpen ? (
+                      <>
+                        <button
+                          type="button"
+                          className="fixed inset-0 z-10"
+                          aria-label="Close menu"
+                          onClick={() => setMenuOpen(false)}
+                        />
+                        <div
+                          role="menu"
+                          className="absolute right-0 top-full z-20 mt-1 w-44 rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800"
+                        >
+                          <button
+                            type="button"
+                            role="menuitem"
+                            className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setMenuOpen(false);
+                              soundService.play('trash');
+                              onDelete();
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            Delete project
+                          </button>
+                        </div>
+                      </>
+                    ) : null}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -262,29 +265,29 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
             </p>
           ) : null}
 
-          <div className="rounded-lg border border-gray-200/60 dark:border-gray-700/70 bg-white/40 dark:bg-gray-900/20 p-3 mb-3 space-y-3">
-            <div>
+          <div className="mb-3 w-full min-w-0 overflow-hidden rounded-lg border border-gray-200/60 bg-white/40 p-3 dark:border-gray-700/70 dark:bg-gray-900/20 sm:p-4 space-y-3">
+            <div className="min-w-0">
               <p className={`text-[10px] uppercase tracking-wide ${TEXT_SUBTLE}`}>
                 Next action
               </p>
               <p
-                className={`text-sm font-semibold mt-0.5 flex items-center gap-2 ${TEXT_FOREGROUND}`}
+                className={`mt-0.5 flex items-start gap-2 text-sm font-semibold ${TEXT_FOREGROUND}`}
               >
-                <ArrowRight className="h-4 w-4 text-cyan-500 shrink-0" />
-                <span className="truncate">{nextActionLabel}</span>
+                <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-cyan-500" />
+                <span className="min-w-0 break-words">{nextActionLabel}</span>
               </p>
             </div>
 
-            <div>
-              <div className="flex items-center justify-between gap-2 mb-1">
+            <div className="min-w-0">
+              <div className="mb-1 flex items-center justify-between gap-2">
                 <p className={`text-[10px] uppercase tracking-wide ${TEXT_SUBTLE}`}>
                   Workflow readiness
                 </p>
-                <span className={`text-xs font-semibold ${TEXT_FOREGROUND}`}>
+                <span className={`shrink-0 text-xs font-semibold ${TEXT_FOREGROUND}`}>
                   {readiness.label}
                 </span>
               </div>
-              <div className="h-1.5 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+              <div className="h-1.5 w-full max-w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
                 <div
                   className={`h-1.5 rounded-full ${
                     folder === 'archived' || workflow.stage === 'closed'
@@ -296,7 +299,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
               </div>
             </div>
 
-            <div className={`space-y-1 text-xs ${TEXT_MUTED}`}>
+            <div className={`min-w-0 space-y-1 text-xs break-words ${TEXT_MUTED}`}>
               <p>{formatProjectCardEstimateLine(estimateState)}</p>
               <p>{formatProjectCardScheduleLine(scheduleState)}</p>
               <p>{financialLine}</p>
@@ -308,7 +311,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
           </div>
 
           {folder === 'qc_closeout' && (
-            <div className="rounded-lg border border-violet-500/25 bg-violet-500/5 dark:bg-violet-950/20 p-3 mb-3 space-y-2">
+            <div className="mb-3 w-full min-w-0 overflow-hidden rounded-lg border border-violet-500/25 bg-violet-500/5 p-3 dark:bg-violet-950/20 space-y-2">
               <p className="text-[10px] uppercase tracking-wide text-violet-400/90">
                 QC closeout
               </p>
@@ -368,7 +371,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                   </p>
                 </div>
               </div>
-              <div className="flex items-center justify-between text-xs pt-1 border-t border-violet-500/15">
+              <div className="flex flex-col gap-2 border-t border-violet-500/15 pt-1 text-xs sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-gray-500 dark:text-gray-400">
                   Next:{' '}
                   <span className="font-medium text-gray-800 dark:text-gray-200">
@@ -390,7 +393,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                   <span>QC progress</span>
                   <span>{qcStatus.progressPercent}%</span>
                 </div>
-                <div className="h-1.5 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div className="h-1.5 w-full max-w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
                   <div
                     className="h-1.5 bg-violet-500 rounded-full"
                     style={{ width: `${qcStatus.progressPercent}%` }}
@@ -400,7 +403,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
             </div>
           )}
 
-          <div className={`flex items-center justify-between text-xs ${TEXT_SUBTLE} mt-3`}>
+          <div className={`mt-3 flex flex-col gap-2 text-xs sm:flex-row sm:items-center sm:justify-between ${TEXT_SUBTLE}`}>
             <div className="flex items-center">
               <Clock className="h-4 w-4 mr-1 shrink-0" />
               <span>{createdLabel}</span>

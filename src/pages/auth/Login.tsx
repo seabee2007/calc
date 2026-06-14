@@ -136,8 +136,16 @@ const Login: React.FC = () => {
         ? 'Sign in to continue to your project workspace.'
         : 'Sign in to continue to your project workspace.';
 
+  const handleBackClick = () => {
+    if (loginPath !== null && !inviteToken) {
+      setLoginPath(null);
+      return;
+    }
+    navigate('/');
+  };
+
   return (
-    <AuthLayout title="Welcome back" subtitle={subtitle}>
+    <AuthLayout title="Welcome back" subtitle={subtitle} onBackClick={handleBackClick}>
       {/* Path selector — shown when no path chosen and no invite token */}
       {loginPath === null && !inviteToken && (
         <div className="mb-6 grid gap-3 sm:grid-cols-2" data-testid="login-path-selector">
@@ -174,30 +182,11 @@ const Login: React.FC = () => {
       )}
 
       {loginPath === 'field' && !inviteToken && (
-        <div className="mb-4 flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setLoginPath(null)}
-            className="text-xs text-slate-400 hover:text-slate-200 underline"
-          >
-            ← Back
-          </button>
+        <div className="mb-4">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 px-2.5 py-0.5 text-xs font-medium text-cyan-300">
             <HardHat className="h-3 w-3" aria-hidden />
             Field Portal
           </span>
-        </div>
-      )}
-
-      {loginPath === 'admin' && (
-        <div className="mb-4">
-          <button
-            type="button"
-            onClick={() => setLoginPath(null)}
-            className="text-xs text-slate-400 hover:text-slate-200 underline"
-          >
-            ← Back
-          </button>
         </div>
       )}
 

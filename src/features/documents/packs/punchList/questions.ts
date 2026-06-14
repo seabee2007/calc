@@ -46,11 +46,10 @@ export const punchListQuestions: DocumentQuestion[] = [
   {
     questionKey: 'listDate',
     label: 'List date',
-    type: 'text',
+    type: 'date',
     group: 'schedule',
     required: false,
     mode: 'quick',
-    helperText: 'e.g. 2026-06-03 or June 3, 2026',
   },
   {
     questionKey: 'punchListNumber',
@@ -71,7 +70,7 @@ export const punchListQuestions: DocumentQuestion[] = [
   {
     questionKey: 'inspectionDate',
     label: 'Inspection date',
-    type: 'text',
+    type: 'date',
     group: 'schedule',
     required: false,
     mode: 'quick',
@@ -121,7 +120,7 @@ export const punchListQuestions: DocumentQuestion[] = [
   {
     questionKey: 'finalAcceptanceDate',
     label: 'Final acceptance date',
-    type: 'text',
+    type: 'date',
     group: 'schedule',
     required: false,
     mode: 'advanced',
@@ -129,7 +128,7 @@ export const punchListQuestions: DocumentQuestion[] = [
   {
     questionKey: 'signatureDate',
     label: 'Signature date',
-    type: 'text',
+    type: 'date',
     group: 'schedule',
     required: false,
     mode: 'advanced',

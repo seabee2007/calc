@@ -63,7 +63,7 @@ export default function ProposalPipelineCard({
     <motion.article
       layout
       className={[
-        'rounded-xl border bg-white/80 shadow-md shadow-slate-200/50 transition-all dark:bg-slate-800/70 dark:shadow-black/20',
+        'w-full min-w-0 overflow-hidden rounded-xl border bg-white/80 shadow-md shadow-slate-200/50 transition-all dark:bg-slate-800/70 dark:shadow-black/20',
         expanded
           ? 'border-blue-300 shadow-lg shadow-slate-200/60 dark:border-cyan-600/50 dark:shadow-black/25'
           : 'border-slate-200/70 hover:border-slate-300 hover:bg-white dark:border-slate-700/70 dark:hover:border-slate-600/80 dark:hover:bg-slate-800/85',
@@ -72,25 +72,25 @@ export default function ProposalPipelineCard({
       <button
         type="button"
         onClick={toggleExpand}
-        className="flex w-full items-start gap-3 p-4 text-left"
+        className="flex w-full min-w-0 items-start gap-3 p-4 text-left sm:p-5"
       >
         <ClientAvatar name={clientName} />
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-start justify-between gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
-              <h3 className="truncate text-base font-bold text-slate-900 dark:text-slate-50">
+              <h3 className="text-base font-bold leading-snug text-slate-900 break-words dark:text-slate-50 sm:truncate">
                 {projectName}
               </h3>
-              <p className="truncate text-sm text-slate-600 dark:text-slate-300">
+              <p className="mt-0.5 text-sm leading-snug text-slate-600 break-words dark:text-slate-300 sm:truncate">
                 {displayClient}
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-1.5 shrink-0">
+            <div className="flex flex-wrap items-center gap-1.5 sm:shrink-0">
               <ProposalStatusBadge status={status} />
             </div>
           </div>
 
-          <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between sm:gap-3">
             <div>
               <p className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50">
                 {formatProposalMoney(total)}

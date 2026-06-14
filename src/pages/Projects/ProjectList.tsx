@@ -41,7 +41,7 @@ export default function ProjectList({
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
+    <div className="grid w-full max-w-full grid-cols-1 gap-4 lg:grid-cols-2">
       {projects.map((project) => (
         <ProjectCard
           key={project.id}

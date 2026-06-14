@@ -27,11 +27,10 @@ export const dailyReportQuestions: DocumentQuestion[] = [
   {
     questionKey: 'reportDate',
     label: 'Report date',
-    type: 'text',
+    type: 'date',
     group: 'schedule',
     required: false,
     mode: 'quick',
-    helperText: 'e.g. 2026-06-03 or June 3, 2026',
   },
   {
     questionKey: 'preparedBy',
@@ -394,7 +393,7 @@ export const dailyReportQuestions: DocumentQuestion[] = [
   {
     questionKey: 'signatureDate',
     label: 'Signature date',
-    type: 'text',
+    type: 'date',
     group: 'execution',
     required: false,
     mode: 'advanced',

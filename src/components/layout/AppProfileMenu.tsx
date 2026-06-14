@@ -4,6 +4,7 @@ import {
   Building2,
   ClipboardList,
   HelpCircle,
+  LayoutDashboard,
   Moon,
   Share2,
   Sun,
@@ -12,6 +13,7 @@ import {
 import { useAuth } from '../../hooks/useAuth';
 import { useDefinitionsHelpStore } from '../../features/help/definitionsHelpStore';
 import { useThemeStore } from '../../store/themeStore';
+import { isFieldOnlyRole } from '../../types/fieldPlanner';
 import {
   persistExpandedSettingsSections,
   type SettingsSectionId,
@@ -41,14 +43,87 @@ function navigateToSettingsSection(
   navigate('/settings');
 }
 
-export default function AppProfileMenu({
+interface MenuBodyProps {
+  onClose: () => void;
+  showThemeToggle: boolean;
+  showShareInvite: boolean;
+  onShareInvite?: () => void;
+  showSurvey: boolean;
+  onSurvey?: () => void;
+}
+
+function FieldUserProfileMenu({
   onClose,
-  showThemeToggle = true,
-  showShareInvite = false,
+  showThemeToggle,
+}: Pick<MenuBodyProps, 'onClose' | 'showThemeToggle'>) {
+  const navigate = useNavigate();
+  const { user, profile, signOut } = useAuth();
+  const openHelp = useDefinitionsHelpStore((s) => s.open);
+  const { isDark, toggleTheme } = useThemeStore();
+
+  const handleSignOut = () => {
+    onClose();
+    void signOut().then(() => navigate('/login'));
+  };
+
+  return (
+    <>
+      <p className="truncate px-3 py-2 text-xs text-slate-400">
+        {profile?.displayName ?? user?.email}
+      </p>
+
+      <Link to="/employee/profile" className={menuItemClass} onClick={onClose}>
+        <User className="h-4 w-4 text-cyan-400" aria-hidden />
+        Profile
+      </Link>
+
+      <button
+        type="button"
+        className={menuItemClass}
+        onClick={() => {
+          onClose();
+          openHelp();
+        }}
+      >
+        <HelpCircle className="h-4 w-4 text-cyan-400" aria-hidden />
+        Help
+      </button>
+
+      {showThemeToggle ? (
+        <button type="button" className={menuItemClass} onClick={toggleTheme}>
+          {isDark ? (
+            <Sun className="h-4 w-4 text-cyan-400" aria-hidden />
+          ) : (
+            <Moon className="h-4 w-4 text-cyan-400" aria-hidden />
+          )}
+          {isDark ? 'Light mode' : 'Dark mode'}
+        </button>
+      ) : null}
+
+      <div className={menuDividerClass} />
+
+      <Link to="/employee/dashboard" className={menuItemClass} onClick={onClose}>
+        <LayoutDashboard className="h-4 w-4 text-cyan-400" aria-hidden />
+        Field portal
+      </Link>
+
+      <div className={menuDividerClass} />
+
+      <button type="button" className={menuItemClass} onClick={handleSignOut}>
+        Sign out
+      </button>
+    </>
+  );
+}
+
+function AdminUserProfileMenu({
+  onClose,
+  showThemeToggle,
+  showShareInvite,
   onShareInvite,
-  showSurvey = false,
+  showSurvey,
   onSurvey,
-}: AppProfileMenuProps) {
+}: MenuBodyProps) {
   const navigate = useNavigate();
   const { user, profile, signOut, isOwner, isEmployee } = useAuth();
   const openHelp = useDefinitionsHelpStore((s) => s.open);
@@ -60,7 +135,7 @@ export default function AppProfileMenu({
   };
 
   return (
-    <div className="absolute right-0 top-full z-50 mt-1 w-56 rounded-lg border border-slate-700 bg-slate-900 py-1 shadow-xl">
+    <>
       <p className="truncate px-3 py-2 text-xs text-slate-400">
         {profile?.displayName ?? user?.email}
       </p>
@@ -97,11 +172,7 @@ export default function AppProfileMenu({
       </button>
 
       {showThemeToggle ? (
-        <button
-          type="button"
-          className={menuItemClass}
-          onClick={toggleTheme}
-        >
+        <button type="button" className={menuItemClass} onClick={toggleTheme}>
           {isDark ? (
             <Sun className="h-4 w-4 text-cyan-400" aria-hidden />
           ) : (
@@ -114,20 +185,12 @@ export default function AppProfileMenu({
       <div className={menuDividerClass} />
 
       {isEmployee && !isOwner && (
-        <Link
-          to="/employee/dashboard"
-          className={menuItemClass}
-          onClick={onClose}
-        >
+        <Link to="/employee/dashboard" className={menuItemClass} onClick={onClose}>
           Employee portal
         </Link>
       )}
       {isOwner && (
-        <Link
-          to="/employees"
-          className={menuItemClass}
-          onClick={onClose}
-        >
+        <Link to="/employees" className={menuItemClass} onClick={onClose}>
           Team & employees
         </Link>
       )}
@@ -164,6 +227,35 @@ export default function AppProfileMenu({
       <button type="button" className={menuItemClass} onClick={handleSignOut}>
         Sign out
       </button>
+    </>
+  );
+}
+
+export default function AppProfileMenu({
+  onClose,
+  showThemeToggle = true,
+  showShareInvite = false,
+  onShareInvite,
+  showSurvey = false,
+  onSurvey,
+}: AppProfileMenuProps) {
+  const { profile } = useAuth();
+  const isFieldOnly = isFieldOnlyRole(profile?.role);
+
+  return (
+    <div className="absolute right-0 top-full z-50 mt-1 w-56 rounded-lg border border-slate-700 bg-slate-900 py-1 shadow-xl">
+      {isFieldOnly ? (
+        <FieldUserProfileMenu onClose={onClose} showThemeToggle={showThemeToggle} />
+      ) : (
+        <AdminUserProfileMenu
+          onClose={onClose}
+          showThemeToggle={showThemeToggle}
+          showShareInvite={showShareInvite}
+          onShareInvite={onShareInvite}
+          showSurvey={showSurvey}
+          onSurvey={onSurvey}
+        />
+      )}
     </div>
   );
 }

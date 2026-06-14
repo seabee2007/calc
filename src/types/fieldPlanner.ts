@@ -344,3 +344,8 @@ export function isOwnerRole(role: UserRole | undefined): boolean {
 export function isEmployeeRole(role: UserRole | undefined): boolean {
   return role !== undefined && FIELD_ROLES.includes(role);
 }
+
+/** Field-only roles that should not see owner/admin profile menu items. */
+export function isFieldOnlyRole(role: UserRole | undefined): boolean {
+  return role === 'employee' || role === 'foreman';
+}

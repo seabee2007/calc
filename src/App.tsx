@@ -86,6 +86,7 @@ import {
   LazyEmployeeMessagesPage,
   LazyEmployeeUploadsPage,
   LazyEmployeeDraftChangeOrderPage,
+  LazyEmployeeProfilePage,
   LazyOnboardingFlow,
   LazyConcreteChat,
   LazyActivityEstimatePreview,
@@ -557,6 +558,7 @@ function App() {
               path="draft-change-order"
               element={<LazyRoute Page={LazyEmployeeDraftChangeOrderPage} />}
             />
+            <Route path="profile" element={<LazyRoute Page={LazyEmployeeProfilePage} />} />
             <Route path="safety-meeting" element={<LazyRoute Page={LazySafetyMeetingToolPage} />} />
           </Route>
           <Route path="/proposal/:token" element={<LazyRoute Page={LazyPublicProposal} />} />

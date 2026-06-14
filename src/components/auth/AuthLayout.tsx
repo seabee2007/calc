@@ -62,10 +62,19 @@ interface AuthLayoutProps {
   title: string;
   subtitle: string;
   children: ReactNode;
+  onBackClick?: () => void;
 }
 
-export default function AuthLayout({ title, subtitle, children }: AuthLayoutProps) {
+export default function AuthLayout({ title, subtitle, children, onBackClick }: AuthLayoutProps) {
   const navigate = useNavigate();
+
+  const handleBack = () => {
+    if (onBackClick) {
+      onBackClick();
+      return;
+    }
+    navigate('/');
+  };
 
   return (
     <main className="auth-page auth-page-bg relative min-h-[100dvh] overflow-x-hidden overflow-y-auto text-white">
@@ -84,7 +93,7 @@ export default function AuthLayout({ title, subtitle, children }: AuthLayoutProp
         <motion.div {...backButtonMotion}>
           <Button
             variant="ghost"
-            onClick={() => navigate('/')}
+            onClick={handleBack}
             icon={<ArrowLeft size={20} />}
             className={AUTH_ACCENT.backButton}
           >

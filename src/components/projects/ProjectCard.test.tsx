@@ -113,4 +113,24 @@ describe('ProjectCard', () => {
     expect(onDelete).toHaveBeenCalledTimes(1);
     expect(onClick).not.toHaveBeenCalled();
   });
+
+  it('wraps long project titles instead of overflowing the card', () => {
+    render(
+      <ProjectCard
+        project={{
+          ...baseProject,
+          name: 'GU26-200 Detached Garage and Workshop Addition With Extended Driveway',
+        }}
+        folder="active"
+        onClick={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+
+    const title = screen.getByText(
+      'GU26-200 Detached Garage and Workshop Addition With Extended Driveway',
+    );
+    expect(title.className).toContain('line-clamp-2');
+    expect(title.className).toContain('break-words');
+  });
 });

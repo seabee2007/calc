@@ -393,7 +393,7 @@ const Proposals: React.FC = () => {
       />
 
       <Card
-        className={`${PREMIUM_PANEL} p-5 sm:p-6`}
+        className={`${PREMIUM_PANEL} min-w-0 overflow-hidden p-4 sm:p-6`}
         data-testid="proposal-pipeline-board-card"
       >
           <ProposalPipelineBoard
@@ -444,9 +444,9 @@ const Proposals: React.FC = () => {
               }}
             />
           ) : (
-            <div className="mt-5 grid grid-cols-1 gap-3 lg:grid-cols-2">
+            <div className="mt-5 grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-2">
               {filteredProposals.map((proposal) => (
-                <div key={proposal.id} id={`proposal-card-${proposal.id}`}>
+                <div key={proposal.id} id={`proposal-card-${proposal.id}`} className="min-w-0">
                   <ProposalPipelineCard
                     proposal={proposal}
                     expanded={expandedProposalId === proposal.id}

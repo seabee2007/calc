@@ -148,8 +148,8 @@ const ToolsModal: React.FC = () => {
       heading: 'Contracts & documents',
       cards: [
         {
-          title: 'Contract Builder',
-          description: 'Draft residential construction agreements (draft only)',
+          title: 'Documents Builder',
+          description: 'Draft Contracts & Documents (draft only)',
           path: '/tools/contract-builder',
           icon: FileSignature,
         },

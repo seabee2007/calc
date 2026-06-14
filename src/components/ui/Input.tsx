@@ -76,6 +76,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(({
     <div className={containerStyles}>
       {label && (
         <label 
+          htmlFor={props.id}
           className={`${FORM_LABEL} ${
             error ? FORM_LABEL_ERROR : isFocused ? FORM_LABEL_FOCUS : ''
           }`}
@@ -93,6 +94,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(({
         
         <input
           ref={ref}
+          id={props.id}
           type={type}
           className={inputStyles}
           onFocus={handleFocus}

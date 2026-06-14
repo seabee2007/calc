@@ -164,6 +164,9 @@ export const LazyEmployeeUploadsPage = lazyPage(
 export const LazyEmployeeDraftChangeOrderPage = lazyPage(
   () => import('../pages/employee/EmployeeDraftChangeOrderPage'),
 );
+export const LazyEmployeeProfilePage = lazyPage(
+  () => import('../pages/employee/EmployeeProfilePage'),
+);
 
 // Dev-only routes (never rendered in production builds)
 export const LazyActivityEstimatePreview = lazyPage(

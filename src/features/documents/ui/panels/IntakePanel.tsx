@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Input from '../../../../components/ui/Input';
+import DatePickerField from '../../../../components/ui/DatePickerField';
 import Select from '../../../../components/ui/Select';
 import USAddressFields from '../../../../components/address/USAddressFields';
 import { fetchRfisForProject } from '../../../../services/rfiService';
@@ -19,6 +20,7 @@ import {
 } from '../../../../utils/currencyInput';
 import { formatUSPhoneInput } from '../../../../utils/phoneFormat';
 import type { DocumentQuestion, IntakeGroup, QuestionnaireMode } from '../../types';
+import { isDateQuestionKey } from '../../../../utils/dateInput';
 import { GROUP_LABELS, MODES } from '../contractBuilderConstants';
 import type { ContractPrefillSource } from '../contractPrefill';
 
@@ -303,6 +305,24 @@ export default function IntakePanel({
       );
     }
 
+    const isDateField = q.type === 'date' || isDateQuestionKey(q.questionKey);
+    if (isDateField) {
+      const meta = fieldMeta(q.questionKey, q.helperText);
+      return (
+        <DatePickerField
+          id={`document-field-${q.questionKey}`}
+          label={q.label}
+          value={value}
+          onChange={(next) => onAnswerChange(q.questionKey, next)}
+          helperText={meta.helperText}
+          error={meta.error}
+          fullWidth
+          allowClear={!q.required}
+          required={q.required}
+        />
+      );
+    }
+
     const isCurrency = CONTRACT_CURRENCY_KEYS.has(q.questionKey);
     const isPhone = /phone/i.test(q.questionKey);
     const isEmail = /email/i.test(q.questionKey);
@@ -355,8 +375,9 @@ export default function IntakePanel({
 
     return (
       <Input
+        id={`document-field-${q.questionKey}`}
         label={q.label}
-        type={q.type === 'number' ? 'number' : q.type === 'date' ? 'date' : isPhone ? 'tel' : isEmail ? 'email' : 'text'}
+        type={q.type === 'number' ? 'number' : isPhone ? 'tel' : isEmail ? 'email' : 'text'}
         value={value === undefined || value === null ? '' : String(value)}
         onChange={(e) =>
           onAnswerChange(
