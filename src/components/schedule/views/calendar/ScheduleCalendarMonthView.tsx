@@ -21,7 +21,16 @@ interface Props {
 }
 
 const MAX_SINGLE_DAY = 2;
-const LANE_H = 28;
+const DAY_NUMBER_HEIGHT = 28;
+const DATE_EVENT_GAP = 8;
+const LANE_H = 26;
+const LANE_GAP = 2;
+const MULTI_DAY_TOP = DAY_NUMBER_HEIGHT + DATE_EVENT_GAP;
+
+function multiDayLanesHeight(laneCount: number): number {
+  if (laneCount <= 0) return 0;
+  return laneCount * LANE_H + (laneCount - 1) * LANE_GAP;
+}
 
 export default function ScheduleCalendarMonthView({
   events,
@@ -64,36 +73,46 @@ export default function ScheduleCalendarMonthView({
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto">
         {weekLayouts.map(({ week, bars, laneCount }, wi) => {
-          const rowTemplate =
-            laneCount > 0
-              ? `repeat(${laneCount}, ${LANE_H}px) minmax(100px, auto)`
-              : 'minmax(100px, auto)';
+          const lanesHeight = multiDayLanesHeight(laneCount);
 
           return (
             <div
               key={wi}
-              className="grid grid-cols-7 border-b border-slate-200 last:border-0 dark:border-slate-700"
-              style={{ gridTemplateRows: rowTemplate }}
+              className="relative grid grid-cols-7 border-b border-slate-200 last:border-0 dark:border-slate-700"
             >
-              {laneCount > 0 &&
-                bars.map((bar) => (
-                  <ScheduleCalendarMultiDayBar
-                    key={`${bar.event.id}-w${wi}-${bar.startColumnIndex}-${bar.lane}`}
-                    event={bar.event}
-                    selected={selectedId === bar.event.id}
-                    onClick={() => onSelect(bar.event.id)}
-                    gridColumn={`${bar.startColumnIndex + 1} / span ${bar.spanColumns}`}
-                    gridRow={bar.lane + 1}
-                    showTypeBadge
-                  />
-                ))}
+              {laneCount > 0 && (
+                <div
+                  className="pointer-events-none absolute inset-x-0 z-[5]"
+                  style={{ top: MULTI_DAY_TOP, height: lanesHeight }}
+                >
+                  {bars.map((bar) => (
+                    <div
+                      key={`${bar.event.id}-w${wi}-${bar.startColumnIndex}-${bar.lane}`}
+                      className="pointer-events-auto absolute px-0.5"
+                      style={{
+                        left: `${(bar.startColumnIndex / 7) * 100}%`,
+                        width: `${(bar.spanColumns / 7) * 100}%`,
+                        top: bar.lane * (LANE_H + LANE_GAP),
+                        height: LANE_H,
+                      }}
+                    >
+                      <ScheduleCalendarMultiDayBar
+                        event={bar.event}
+                        selected={selectedId === bar.event.id}
+                        onClick={() => onSelect(bar.event.id)}
+                        showTypeBadge
+                        fillCell
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
               {week.map((iso, di) => {
                 if (!iso) {
                   return (
                     <div
                       key={`empty-${wi}-${di}`}
-                      className="min-h-[100px] bg-slate-50 dark:bg-slate-900/30"
-                      style={{ gridColumn: di + 1, gridRow: laneCount > 0 ? laneCount + 1 : 1 }}
+                      className="min-h-[120px] bg-slate-50 dark:bg-slate-900/30"
                     />
                   );
                 }
@@ -105,24 +124,32 @@ export default function ScheduleCalendarMonthView({
                   <div
                     key={iso}
                     onClick={(event) => handleDayCellClick(iso, event)}
-                    className={`min-h-[100px] border-r border-slate-200 bg-white p-1 last:border-r-0 dark:border-slate-700 dark:bg-slate-950 ${dayCellInteractiveClass} ${
+                    className={`relative flex min-h-[120px] flex-col overflow-hidden border-r border-slate-200 bg-white last:border-r-0 dark:border-slate-700 dark:bg-slate-950 ${dayCellInteractiveClass} ${
                       isToday
                         ? 'z-[1] !bg-blue-50 ring-2 ring-inset ring-blue-500 text-blue-700 dark:!bg-blue-950/40 dark:ring-blue-400 dark:text-blue-300'
                         : ''
                     }`}
-                    style={{ gridColumn: di + 1, gridRow: laneCount > 0 ? laneCount + 1 : 1 }}
                   >
-                    <span
-                      className={
-                        isToday
-                          ? 'inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full border-2 border-blue-500 bg-blue-50 text-xs font-semibold text-blue-700 dark:border-blue-400 dark:bg-blue-950/40 dark:text-blue-300'
-                          : 'text-xs font-medium text-slate-700 dark:text-slate-300'
-                      }
-                      aria-current={isToday ? 'date' : undefined}
+                    <div
+                      className="relative z-10 shrink-0 px-2 pt-2 text-xs"
+                      style={{ minHeight: DAY_NUMBER_HEIGHT }}
                     >
-                      {dayNum}
-                    </span>
-                    <div className="mt-1 space-y-0.5">
+                      <span
+                        className={
+                          isToday
+                            ? 'inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full border-2 border-blue-500 bg-blue-50 text-xs font-semibold text-blue-700 dark:border-blue-400 dark:bg-blue-950/40 dark:text-blue-300'
+                            : 'font-medium text-slate-700 dark:text-slate-300'
+                        }
+                        aria-current={isToday ? 'date' : undefined}
+                      >
+                        {dayNum}
+                      </span>
+                    </div>
+
+                    <div
+                      className="mt-2 flex min-h-0 flex-1 flex-col gap-1 overflow-hidden px-1.5 pb-1.5"
+                      style={{ paddingTop: lanesHeight > 0 ? lanesHeight : undefined }}
+                    >
                       {dayEvents.slice(0, MAX_SINGLE_DAY).map((e) => (
                         <ScheduleCalendarEventChip
                           key={e.id}
@@ -137,7 +164,7 @@ export default function ScheduleCalendarMonthView({
                           type="button"
                           data-schedule-event="true"
                           data-no-swipe="true"
-                          className="w-full text-left text-[10px] font-medium text-[#2563EB] hover:underline"
+                          className="w-full min-w-0 truncate text-left text-[10px] font-medium text-[#2563EB] hover:underline"
                           onClick={(e) => {
                             e.stopPropagation();
                             if (dayEvents[MAX_SINGLE_DAY]) {

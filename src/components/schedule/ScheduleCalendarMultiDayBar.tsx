@@ -10,10 +10,12 @@ interface Props {
   selected?: boolean;
   onClick: () => void;
   /** CSS grid-column value, e.g. "2 / span 3" */
-  gridColumn: string;
+  gridColumn?: string;
   /** 1-based grid row */
-  gridRow: number;
+  gridRow?: number;
   showTypeBadge?: boolean;
+  /** Fill parent container (month view absolute lane wrapper). */
+  fillCell?: boolean;
 }
 
 export default function ScheduleCalendarMultiDayBar({
@@ -23,6 +25,7 @@ export default function ScheduleCalendarMultiDayBar({
   gridColumn,
   gridRow,
   showTypeBadge = true,
+  fillCell = false,
 }: Props) {
   const style = SCHEDULE_EVENT_TYPE_STYLES[event.eventType];
   const tooltip = `${event.title}\n${event.projectName ?? 'Project'}\n${formatScheduleEventDateRange(event)}`;
@@ -50,8 +53,8 @@ export default function ScheduleCalendarMultiDayBar({
         selected
           ? 'border-[#2563EB] ring-2 ring-[#2563EB]'
           : `${style.surface} hover:brightness-[0.97] dark:hover:brightness-110`
-      }`}
-      style={{ gridColumn, gridRow }}
+      } ${fillCell ? 'h-full w-full' : ''}`}
+      style={gridColumn && gridRow != null ? { gridColumn, gridRow } : undefined}
     >
       <span className={`h-full w-1 shrink-0 rounded-full ${style.dot}`} aria-hidden />
       <div className="min-w-0 flex-1">

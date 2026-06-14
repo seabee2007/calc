@@ -24,7 +24,13 @@ import {
 } from '../../types/scheduleEvent';
 import { SCHEDULE_FILTER_INPUT, SCHEDULE_MUTED } from './scheduleTheme';
 import { PLANNER_FORM_LABEL } from '../planner/plannerTheme';
+import ScheduleAssigneeCombobox, { type AssigneeOption } from './ScheduleAssigneeCombobox';
 import { toIsoDate } from '../../utils/scheduleEventUtils';
+import {
+  buildScheduleAssigneeOptions,
+  fetchScheduleAssigneeProfilesForProject,
+} from '../../utils/scheduleAssigneeOptions';
+import { fetchProfile } from '../../services/profileService';
 import type { RecurrenceRule, ScheduleEventSavePayload } from '../../types/scheduleEvent';
 import {
   defaultRecurrenceRule,
@@ -74,6 +80,7 @@ export default function ScheduleEventFormModal({
   userId,
 }: Props) {
   const [busy, setBusy] = useState(false);
+  const [assigneeOptions, setAssigneeOptions] = useState<AssigneeOption[]>([]);
   const [projectId, setProjectId] = useState(defaultProjectId ?? '');
   const [title, setTitle] = useState('');
   const [eventType, setEventType] = useState<ScheduleEventType>('general_task');
@@ -88,7 +95,7 @@ export default function ScheduleEventFormModal({
   const [notes, setNotes] = useState('');
   const [weatherRisk, setWeatherRisk] = useState<ScheduleWeatherRisk | ''>('');
   const [milestoneKey, setMilestoneKey] = useState<ProjectMilestoneKey | ''>('');
-  const [assignedToText, setAssignedToText] = useState('');
+  const [assignedTo, setAssignedTo] = useState<string[]>([]);
   const [priority, setPriority] = useState<SchedulePriority>('medium');
   const [documents, setDocuments] = useState<ScheduleEventDocument[]>([]);
   const [photos, setPhotos] = useState<ScheduleEventDocument[]>([]);
@@ -112,7 +119,7 @@ export default function ScheduleEventFormModal({
       setNotes(event.notes ?? '');
       setWeatherRisk(event.weatherRisk ?? '');
       setMilestoneKey(normalizeMilestoneKey(event.milestoneKey) ?? '');
-      setAssignedToText(event.assignedTo.join(', '));
+      setAssignedTo(event.assignedTo);
       setPriority(event.priority);
       setDocuments(
         event.relatedDocuments.length > 0 ? event.relatedDocuments : [],
@@ -136,7 +143,7 @@ export default function ScheduleEventFormModal({
       setNotes('');
       setWeatherRisk('');
       setMilestoneKey('');
-      setAssignedToText('');
+      setAssignedTo([]);
       setPriority('medium');
       setDocuments([]);
       setPhotos([]);
@@ -145,15 +152,34 @@ export default function ScheduleEventFormModal({
     }
   }, [isOpen, event, defaultProjectId, defaultValues, projects]);
 
+  useEffect(() => {
+    if (!isOpen || !userId) return;
+    let cancelled = false;
+
+    const loadAssignees = async () => {
+      try {
+        const profiles = projectId
+          ? await fetchScheduleAssigneeProfilesForProject(projectId, userId)
+          : [await fetchProfile(userId)].filter(Boolean);
+        if (cancelled) return;
+        setAssigneeOptions(buildScheduleAssigneeOptions(profiles, userId));
+      } catch {
+        if (!cancelled) setAssigneeOptions([]);
+      }
+    };
+
+    void loadAssignees();
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, projectId, userId]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!projectId || !title.trim()) return;
     setBusy(true);
     try {
-      const assignedTo = assignedToText
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean);
+      // assignedTo is already string[] from the combobox
       const relatedDocuments = documents.filter((d) => d.name.trim() || d.url.trim());
       const relatedPhotos = photos.filter((d) => d.name.trim() || d.url.trim());
       const parsed = event ? parseRecurrenceInstanceId(event.id) : null;
@@ -347,14 +373,11 @@ export default function ScheduleEventFormModal({
                 onChange={(e) => setLocation(e.target.value)}
               />
             </div>
-            <div>
-              <label className={PLANNER_FORM_LABEL}>Assigned users (comma-separated)</label>
-              <input
-                className={SCHEDULE_FILTER_INPUT}
-                value={assignedToText}
-                onChange={(e) => setAssignedToText(e.target.value)}
-              />
-            </div>
+            <ScheduleAssigneeCombobox
+              value={assignedTo}
+              onChange={setAssignedTo}
+              team={assigneeOptions}
+            />
             <div>
               <label className={PLANNER_FORM_LABEL}>Milestone link (optional)</label>
               <select
