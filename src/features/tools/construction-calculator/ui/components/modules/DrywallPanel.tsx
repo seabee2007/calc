@@ -1,53 +1,61 @@
 import React, { useMemo, useState } from 'react';
 import { calculateDrywall } from '../../../domain/modules/drywallModule';
 import { calculateCostPerUnit } from '../../../domain/modules/costPerUnit';
-import {
-  CostFields,
-  ModuleNumberField,
-  ModuleResultRow,
-  parseFeet,
-  parseInches,
-} from './modulePanelShared';
+import type { CalculatorInputController } from '../../hooks/useCalculatorInputController';
+import DimensionSlot from '../slots/DimensionSlot';
+import NumberSlot from '../slots/NumberSlot';
+import { CostFields, ModuleResultRow } from './modulePanelShared';
 
-export default function DrywallPanel() {
-  const [wallLengthFt, setWallLengthFt] = useState('12');
-  const [wallHeightFt, setWallHeightFt] = useState('8');
-  const [sheetWidth, setSheetWidth] = useState('48');
-  const [sheetHeight, setSheetHeight] = useState('96');
-  const [waste, setWaste] = useState('10');
+interface DrywallPanelProps {
+  controller: CalculatorInputController;
+}
+
+export default function DrywallPanel({ controller }: DrywallPanelProps) {
   const [quantity, setQuantity] = useState('');
   const [unitCost, setUnitCost] = useState('');
 
-  const result = useMemo(
-    () =>
-      calculateDrywall({
-        wallLengthInches: parseFeet(wallLengthFt),
-        wallHeightInches: parseFeet(wallHeightFt),
-        sheetWidthInches: parseInches(sheetWidth),
-        sheetHeightInches: parseInches(sheetHeight),
-        wastePercent: parseFloat(waste) || 0,
-      }),
-    [wallLengthFt, wallHeightFt, sheetWidth, sheetHeight, waste],
-  );
+  const wallLength = controller.getSlotValue('drywall', 'wallLength');
+  const wallHeight = controller.getSlotValue('drywall', 'wallHeight');
+  const sheetWidth = controller.getSlotValue('drywall', 'sheetWidth');
+  const sheetHeight = controller.getSlotValue('drywall', 'sheetHeight');
+  const wastePercent = controller.getSlotValue('drywall', 'wastePercent');
+
+  const result = useMemo(() => {
+    if (wallLength === null || wallHeight === null || sheetWidth === null || sheetHeight === null) {
+      return null;
+    }
+    return calculateDrywall({
+      wallLengthInches: wallLength,
+      wallHeightInches: wallHeight,
+      sheetWidthInches: sheetWidth,
+      sheetHeightInches: sheetHeight,
+      wastePercent: wastePercent ?? 10,
+    });
+  }, [wallLength, wallHeight, sheetWidth, sheetHeight, wastePercent]);
 
   const cost = useMemo(() => {
+    if (!result) return { totalCost: 0 };
     const q = parseFloat(quantity) || result.sheetCountWithWaste;
     const uc = parseFloat(unitCost) || 0;
     return calculateCostPerUnit({ quantity: q, unitCost: uc });
-  }, [quantity, unitCost, result.sheetCountWithWaste]);
+  }, [quantity, unitCost, result]);
 
   return (
     <div className="space-y-4" data-testid="drywall-panel">
       <div className="grid gap-3 sm:grid-cols-2">
-        <ModuleNumberField label="Wall length" value={wallLengthFt} onChange={setWallLengthFt} unit="ft" />
-        <ModuleNumberField label="Wall height" value={wallHeightFt} onChange={setWallHeightFt} unit="ft" />
-        <ModuleNumberField label="Sheet width" value={sheetWidth} onChange={setSheetWidth} unit="in" />
-        <ModuleNumberField label="Sheet height" value={sheetHeight} onChange={setSheetHeight} unit="in" />
-        <ModuleNumberField label="Waste %" value={waste} onChange={setWaste} unit="%" />
+        <DimensionSlot moduleId="drywall" slotId="wallLength" label="DRYWALL · WALL LENGTH" controller={controller} />
+        <DimensionSlot moduleId="drywall" slotId="wallHeight" label="DRYWALL · WALL HEIGHT" controller={controller} />
+        <DimensionSlot moduleId="drywall" slotId="sheetWidth" label="DRYWALL · SHEET WIDTH" controller={controller} />
+        <DimensionSlot moduleId="drywall" slotId="sheetHeight" label="DRYWALL · SHEET HEIGHT" controller={controller} />
+        <NumberSlot moduleId="drywall" slotId="wastePercent" label="DRYWALL · WASTE %" controller={controller} unit="%" />
       </div>
-      <ModuleResultRow label="Wall area (sq ft)" value={String(result.wallAreaSqFt)} />
-      <ModuleResultRow label="Sheets needed" value={String(result.sheetCount)} />
-      <ModuleResultRow label="Sheets (with waste)" value={String(result.sheetCountWithWaste)} />
+      {result && (
+        <>
+          <ModuleResultRow label="Wall area (sq ft)" value={String(result.wallAreaSqFt)} />
+          <ModuleResultRow label="Sheets needed" value={String(result.sheetCount)} sendValue={result.sheetCount} controller={controller} />
+          <ModuleResultRow label="Sheets (with waste)" value={String(result.sheetCountWithWaste)} sendValue={result.sheetCountWithWaste} controller={controller} />
+        </>
+      )}
       <CostFields
         quantity={quantity}
         unitCost={unitCost}

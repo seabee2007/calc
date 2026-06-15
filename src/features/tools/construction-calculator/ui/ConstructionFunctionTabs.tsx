@@ -23,7 +23,7 @@ export default function ConstructionFunctionTabs({
 
   return (
     <div
-      className={`mb-4 flex gap-1 overflow-x-auto pb-1 ${isField ? '' : ''}`}
+      className={`mb-4 flex gap-1 overflow-x-auto pb-1 ${isField ? 'no-scrollbar' : ''}`}
       role="tablist"
       data-testid="function-tabs"
     >

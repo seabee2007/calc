@@ -1,5 +1,5 @@
 import React from 'react';
-import type { FractionPrecision } from '../domain/constructionCalculatorTypes';
+import type { ConvUnit, FractionPrecision } from '../domain/constructionCalculatorTypes';
 import { FRACTION_PRECISIONS } from '../domain/constructionCalculatorTypes';
 import { TEXT_MUTED } from '../../../../theme/appTheme';
 
@@ -10,6 +10,10 @@ interface ConstructionDisplayProps {
   precision: FractionPrecision;
   onPrecisionChange: (precision: FractionPrecision) => void;
   layout: 'desktop' | 'field';
+  activeSlotLabel?: string | null;
+  memoryHasValue?: boolean;
+  convUnit?: ConvUnit;
+  convActive?: boolean;
 }
 
 export default function ConstructionDisplay({
@@ -19,6 +23,10 @@ export default function ConstructionDisplay({
   precision,
   onPrecisionChange,
   layout,
+  activeSlotLabel,
+  memoryHasValue = false,
+  convUnit,
+  convActive = false,
 }: ConstructionDisplayProps) {
   const isField = layout === 'field';
 
@@ -30,15 +38,32 @@ export default function ConstructionDisplay({
           : 'mb-4'
       }
     >
-      {modeHint && (
+      {activeSlotLabel && (
         <p
-          className={`truncate text-right text-xs font-medium ${
-            isField ? 'text-cyan-400/90' : 'text-cyan-700 dark:text-cyan-400'
-          }`}
-          data-testid="calculator-mode-hint"
+          className="truncate text-right text-xs font-semibold uppercase text-cyan-400"
+          data-testid="calculator-active-slot-label"
         >
-          {modeHint}
+          {activeSlotLabel}
         </p>
+      )}
+      {(modeHint || memoryHasValue) && (
+        <div className="flex items-center justify-end gap-2">
+          {memoryHasValue && (
+            <span className="text-xs font-bold text-emerald-400" data-testid="display-memory-indicator">
+              M
+            </span>
+          )}
+          {modeHint && (
+            <p
+              className={`truncate text-xs font-medium ${
+                isField ? 'text-cyan-400/90' : 'text-cyan-700 dark:text-cyan-400'
+              }`}
+              data-testid="calculator-mode-hint"
+            >
+              {modeHint}
+            </p>
+          )}
+        </div>
       )}
       <p
         className={`truncate text-right font-mono font-semibold tracking-tight ${
@@ -47,6 +72,11 @@ export default function ConstructionDisplay({
         data-testid="calculator-display"
       >
         {display}
+        {convActive && convUnit && (
+          <span className="ml-2 text-xs font-normal text-amber-400" data-testid="conv-unit-badge">
+            {convUnit}
+          </span>
+        )}
       </p>
       {error && (
         <p className="mt-1 text-right text-sm text-red-500 dark:text-red-400" role="alert">

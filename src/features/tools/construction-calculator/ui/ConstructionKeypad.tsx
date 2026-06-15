@@ -7,6 +7,7 @@ interface ConstructionKeypadProps {
   onKeyPress: (key: KeypadKey) => void;
   onPickFraction: (numerator: number, denominator: number) => void;
   layout: 'desktop' | 'field';
+  memoryHasValue?: boolean;
 }
 
 const ROWS: { key: KeypadKey; label: string; className?: string }[][] = [
@@ -30,9 +31,15 @@ const ROWS: { key: KeypadKey; label: string; className?: string }[][] = [
   ],
   [
     { key: '0', label: '0' },
+    { key: '.', label: '.' },
     { key: 'ft', label: 'FT' },
-    { key: 'in', label: 'IN' },
     { key: '+', label: '+' },
+  ],
+  [
+    { key: '±', label: '±' },
+    { key: 'pi', label: 'π' },
+    { key: 'in', label: 'IN' },
+    { key: 'conv', label: 'Conv' },
   ],
   [
     { key: 'frac', label: 'FRACTION', className: 'col-span-1' },
@@ -40,16 +47,23 @@ const ROWS: { key: KeypadKey; label: string; className?: string }[][] = [
     { key: 'clear', label: 'CLR' },
     { key: 'equals', label: '=' },
   ],
+  [
+    { key: 'M+', label: 'M+' },
+    { key: 'M-', label: 'M−' },
+    { key: 'MR', label: 'MR' },
+    { key: 'MC', label: 'MC' },
+  ],
 ];
 
 export default function ConstructionKeypad({
   onKeyPress,
   onPickFraction,
   layout,
+  memoryHasValue = false,
 }: ConstructionKeypadProps) {
   const isField = layout === 'field';
-  const keyHeight = isField ? 'min-h-[52px]' : 'min-h-[44px]';
-  const keyText = isField ? 'text-lg' : 'text-base';
+  const keyHeight = isField ? 'min-h-[48px]' : 'min-h-[40px]';
+  const keyText = isField ? 'text-base' : 'text-sm';
   const [fractionPickerOpen, setFractionPickerOpen] = useState(false);
 
   const handleKey = (key: KeypadKey) => {
@@ -62,8 +76,13 @@ export default function ConstructionKeypad({
 
   return (
     <>
+      {memoryHasValue && (
+        <p className="mb-1 text-right text-xs font-bold text-emerald-500" data-testid="memory-indicator">
+          M
+        </p>
+      )}
       <div
-        className={`grid grid-cols-4 gap-2 ${isField ? 'pb-2' : ''}`}
+        className={`grid grid-cols-4 gap-1.5 ${isField ? 'pb-2' : ''}`}
         data-testid="construction-keypad"
       >
         {ROWS.flat().map(({ key, label, className }) => (
@@ -78,9 +97,13 @@ export default function ConstructionKeypad({
                   ? isField
                     ? 'bg-slate-700 text-slate-200 hover:bg-slate-600'
                     : 'bg-slate-200 text-slate-700 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600'
-                  : isField
-                    ? 'border border-slate-600 bg-slate-800 text-white hover:border-cyan-500/50 hover:bg-slate-700'
-                    : 'border border-slate-200 bg-white text-slate-800 hover:border-cyan-400 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:hover:border-cyan-500/50 dark:hover:bg-slate-700'
+                  : key === 'M+' || key === 'M-' || key === 'MR' || key === 'MC'
+                    ? isField
+                      ? 'border border-emerald-700/50 bg-slate-800 text-emerald-300 hover:bg-slate-700'
+                      : 'border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 dark:border-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
+                    : isField
+                      ? 'border border-slate-600 bg-slate-800 text-white hover:border-cyan-500/50 hover:bg-slate-700'
+                      : 'border border-slate-200 bg-white text-slate-800 hover:border-cyan-400 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:hover:border-cyan-500/50 dark:hover:bg-slate-700'
             }`}
             aria-label={
               key === 'backspace'
@@ -95,12 +118,7 @@ export default function ConstructionKeypad({
             {key === 'backspace' ? <Delete className="h-5 w-5" /> : null}
             {key === 'clear' ? <RotateCcw className="h-5 w-5" /> : null}
             {key === 'frac' ? (
-              <>
-                <span className={isField ? 'text-sm leading-tight' : 'text-xs leading-tight'}>FRACTION</span>
-                {isField ? (
-                  <span className="text-[10px] font-normal leading-tight text-slate-400">Tap for fractions</span>
-                ) : null}
-              </>
+              <span className={isField ? 'text-xs leading-tight' : 'text-[10px] leading-tight'}>FRAC</span>
             ) : null}
             {key !== 'backspace' && key !== 'clear' && key !== 'frac' ? label : null}
           </button>

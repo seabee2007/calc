@@ -55,6 +55,14 @@ export type KeypadKey =
   | '7'
   | '8'
   | '9'
+  | '.'
+  | '±'
+  | 'pi'
+  | 'M+'
+  | 'M-'
+  | 'MR'
+  | 'MC'
+  | 'conv'
   | 'ft'
   | 'in'
   | 'frac'
@@ -65,6 +73,24 @@ export type KeypadKey =
   | 'clear'
   | 'backspace'
   | 'equals';
+
+export interface ActiveModuleSlot {
+  moduleId: string;
+  slotId: string;
+  label: string;
+  valueType: 'dimension' | 'scalar';
+  allowNegative: boolean;
+}
+
+export type ConvUnit = 'ft-in' | 'decimal-ft' | 'decimal-in' | 'yd' | 'm' | 'cm';
+
+export const CONV_UNITS: ConvUnit[] = ['ft-in', 'decimal-ft', 'decimal-in', 'yd', 'm', 'cm'];
+
+export type MemoryValue =
+  | { kind: 'dimension'; decimalInches: number }
+  | { kind: 'scalar'; value: number };
+
+export type SlotValues = Record<string, Record<string, number | null>>;
 
 export type LengthUnit = 'ft-in' | 'decimal-ft' | 'yd' | 'm' | 'cm' | 'mm';
 

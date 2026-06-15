@@ -1,35 +1,37 @@
 import React, { useMemo, useState } from 'react';
 import { calculateRightTriangle } from '../../../domain/modules/rightTriangleModule';
 import { formatFeetInchesFraction } from '../../../domain/constructionDimensionMath';
-import { DEFAULT_FRACTION_PRECISION } from '../../../domain/constructionCalculatorTypes';
-import {
-  ModuleNumberField,
-  ModuleResultRow,
-  parseInches,
-} from './modulePanelShared';
+import { buildDimensionFromDecimal } from '../../../domain/constructionCalculatorFormatters';
+import type { CalculatorInputController } from '../../hooks/useCalculatorInputController';
+import DimensionSlot from '../slots/DimensionSlot';
+import NumberSlot from '../slots/NumberSlot';
+import { ModuleResultRow } from './modulePanelShared';
 
-export default function RightTrianglePanel() {
-  const [rise, setRise] = useState('');
-  const [run, setRun] = useState('12');
-  const [pitchRise, setPitchRise] = useState('4');
+interface RightTrianglePanelProps {
+  controller: CalculatorInputController;
+}
+
+export default function RightTrianglePanel({ controller }: RightTrianglePanelProps) {
   const [mode, setMode] = useState<'rise-run' | 'pitch'>('pitch');
+  const precision = controller.state.precision;
+
+  const rise = controller.getSlotValue('triangle', 'rise');
+  const run = controller.getSlotValue('triangle', 'run');
+  const diagonal = controller.getSlotValue('triangle', 'diagonal');
+  const pitchRise = controller.getSlotValue('triangle', 'pitchRise');
 
   const result = useMemo(() => {
     if (mode === 'pitch') {
-      return calculateRightTriangle({
-        pitchRise: parseFloat(pitchRise) || 0,
-        pitchRun: 12,
-      });
+      if (pitchRise === null) return null;
+      return calculateRightTriangle({ pitchRise, pitchRun: 12 });
     }
+    if (rise === null && run === null && diagonal === null) return null;
     return calculateRightTriangle({
-      riseInches: parseInches(rise),
-      runInches: parseInches(run),
+      riseInches: rise ?? undefined,
+      runInches: run ?? undefined,
+      diagonalInches: diagonal ?? undefined,
     });
-  }, [mode, rise, run, pitchRise]);
-
-  if (!result) {
-    return <p className="text-sm text-slate-500">Enter at least two values to solve.</p>;
-  }
+  }, [mode, rise, run, diagonal, pitchRise]);
 
   return (
     <div className="space-y-4" data-testid="triangle-panel">
@@ -50,22 +52,50 @@ export default function RightTrianglePanel() {
         </button>
       </div>
       {mode === 'pitch' ? (
-        <ModuleNumberField label="Pitch rise (per 12 in run)" value={pitchRise} onChange={setPitchRise} />
+        <NumberSlot
+          moduleId="triangle"
+          slotId="pitchRise"
+          label="TRIANGLE · PITCH RISE (per 12 in run)"
+          controller={controller}
+          allowNegative={false}
+        />
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
-          <ModuleNumberField label="Rise" value={rise} onChange={setRise} unit="in" />
-          <ModuleNumberField label="Run" value={run} onChange={setRun} unit="in" />
+        <div className="grid gap-3 sm:grid-cols-3">
+          <DimensionSlot moduleId="triangle" slotId="rise" label="TRIANGLE · RISE" controller={controller} />
+          <DimensionSlot moduleId="triangle" slotId="run" label="TRIANGLE · RUN" controller={controller} />
+          <DimensionSlot moduleId="triangle" slotId="diagonal" label="TRIANGLE · DIAGONAL" controller={controller} />
         </div>
       )}
-      <ModuleResultRow label="Rise" value={formatFeetInchesFraction(result.riseInches, DEFAULT_FRACTION_PRECISION)} />
-      <ModuleResultRow label="Run" value={formatFeetInchesFraction(result.runInches, DEFAULT_FRACTION_PRECISION)} />
-      <ModuleResultRow label="Diagonal" value={formatFeetInchesFraction(result.diagonalInches, DEFAULT_FRACTION_PRECISION)} />
-      <ModuleResultRow label="Pitch" value={`${result.pitchRise}:${result.pitchRun}`} />
-      <ModuleResultRow label="Angle" value={`${result.angleDegrees}°`} />
-      <ModuleResultRow
-        label="Common rafter length"
-        value={formatFeetInchesFraction(result.commonRafterLengthInches, DEFAULT_FRACTION_PRECISION)}
-      />
+      {result && (
+        <>
+          <ModuleResultRow
+            label="Rise"
+            value={formatFeetInchesFraction(result.riseInches, precision)}
+            sendValue={buildDimensionFromDecimal(result.riseInches)}
+            controller={controller}
+          />
+          <ModuleResultRow
+            label="Run"
+            value={formatFeetInchesFraction(result.runInches, precision)}
+            sendValue={buildDimensionFromDecimal(result.runInches)}
+            controller={controller}
+          />
+          <ModuleResultRow
+            label="Diagonal"
+            value={formatFeetInchesFraction(result.diagonalInches, precision)}
+            sendValue={buildDimensionFromDecimal(result.diagonalInches)}
+            controller={controller}
+          />
+          <ModuleResultRow label="Pitch" value={`${result.pitchRise}:${result.pitchRun}`} />
+          <ModuleResultRow label="Angle" value={`${result.angleDegrees}°`} />
+          <ModuleResultRow
+            label="Common rafter length"
+            value={formatFeetInchesFraction(result.commonRafterLengthInches, precision)}
+            sendValue={buildDimensionFromDecimal(result.commonRafterLengthInches)}
+            controller={controller}
+          />
+        </>
+      )}
     </div>
   );
 }

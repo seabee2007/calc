@@ -163,6 +163,16 @@ describe('keypadInputReducer', () => {
     const entries = appendTapeEntry([], committed!.expression, committed!.result);
     expect(serializeTapeEntry(entries[0])).toBe(`23' 2" × 3 = 69' 6"`);
   });
+
+  it('decimal feet 10.5 FT displays as 10\' 6"', () => {
+    const state = tapKeypadSequence(['1', '0', '.', '5', 'ft']);
+    expect(state.display).toBe(`10' 6"`);
+  });
+
+  it('pi times dimension evaluates', () => {
+    const state = tapKeypadSequence(['pi', '×', '6', 'in', 'equals']);
+    expect(state.resultDisplay).toContain('"');
+  });
 });
 
 describe('constructionCalculatorEngine mixed operands', () => {

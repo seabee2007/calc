@@ -1,5 +1,8 @@
 import React from 'react';
 import { FORM_LABEL, FORM_INPUT } from '../../../../../../theme/appTheme';
+import type { CalculatorInputController } from '../../hooks/useCalculatorInputController';
+import type { DimensionValue } from '../../../domain/constructionCalculatorTypes';
+import ModuleResultSendButton from '../slots/ModuleResultSendButton';
 
 interface ModuleNumberFieldProps {
   label: string;
@@ -37,13 +40,20 @@ export function ModuleNumberField({
 interface ModuleResultRowProps {
   label: string;
   value: string;
+  sendValue?: DimensionValue | number;
+  controller?: CalculatorInputController;
 }
 
-export function ModuleResultRow({ label, value }: ModuleResultRowProps) {
+export function ModuleResultRow({ label, value, sendValue, controller }: ModuleResultRowProps) {
   return (
-    <div className="flex justify-between gap-4 border-b border-slate-200 py-2 dark:border-slate-700">
+    <div className="flex items-center justify-between gap-4 border-b border-slate-200 py-2 dark:border-slate-700">
       <span className="text-sm text-slate-600 dark:text-slate-400">{label}</span>
-      <span className="font-mono text-sm font-medium text-slate-900 dark:text-white">{value}</span>
+      <div className="flex items-center gap-2">
+        <span className="font-mono text-sm font-medium text-slate-900 dark:text-white">{value}</span>
+        {sendValue !== undefined && controller && (
+          <ModuleResultSendButton label={label} value={sendValue} controller={controller} />
+        )}
+      </div>
     </div>
   );
 }

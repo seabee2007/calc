@@ -6,7 +6,7 @@ import ConstructionKeypad from './ConstructionKeypad';
 import ConstructionTape from './ConstructionTape';
 import ConstructionFunctionTabs from './ConstructionFunctionTabs';
 import ConstructionCalculatorHelpModal from './ConstructionCalculatorHelpModal';
-import { useConstructionCalculator } from './useConstructionCalculator';
+import { useCalculatorInputController } from './hooks/useCalculatorInputController';
 import { CALCULATOR_SECTION } from '../../../../theme/appTheme';
 import AreaPanel from './components/modules/AreaPanel';
 import VolumePanel from './components/modules/VolumePanel';
@@ -19,31 +19,32 @@ import RightTrianglePanel from './components/modules/RightTrianglePanel';
 import CirclePanel from './components/modules/CirclePanel';
 import ConversionsPanel from './components/modules/ConversionsPanel';
 import DimensionEntryHelp from './DimensionEntryHelp';
+import type { CalculatorInputController } from './hooks/useCalculatorInputController';
 
 interface ConstructionCalculatorProps {
   layout: 'desktop' | 'field';
 }
 
-function renderModulePanel(tab: CalculatorFunctionTab) {
+function renderModulePanel(tab: CalculatorFunctionTab, controller: CalculatorInputController) {
   switch (tab) {
     case 'area':
-      return <AreaPanel />;
+      return <AreaPanel controller={controller} />;
     case 'volume':
-      return <VolumePanel />;
+      return <VolumePanel controller={controller} />;
     case 'board-feet':
-      return <BoardFeetPanel />;
+      return <BoardFeetPanel controller={controller} />;
     case 'concrete':
-      return <ConcretePanel />;
+      return <ConcretePanel controller={controller} />;
     case 'blocks':
-      return <BlocksPanel />;
+      return <BlocksPanel controller={controller} />;
     case 'drywall':
-      return <DrywallPanel />;
+      return <DrywallPanel controller={controller} />;
     case 'stairs':
-      return <StairsPanel />;
+      return <StairsPanel controller={controller} />;
     case 'triangle':
-      return <RightTrianglePanel />;
+      return <RightTrianglePanel controller={controller} />;
     case 'circle':
-      return <CirclePanel />;
+      return <CirclePanel controller={controller} />;
     case 'conversions':
       return <ConversionsPanel />;
     default:
@@ -54,11 +55,14 @@ function renderModulePanel(tab: CalculatorFunctionTab) {
 export default function ConstructionCalculator({ layout }: ConstructionCalculatorProps) {
   const [activeTab, setActiveTab] = useState<CalculatorFunctionTab>('core');
   const [helpOpen, setHelpOpen] = useState(false);
-  const { state, pressKey, pickFraction, setPrecision, modeHint } = useConstructionCalculator({
+  const controller = useCalculatorInputController({
     enableKeyboard: layout === 'desktop',
   });
+  const { state, pressKey, pickFraction, setPrecision, modeHint, activeSlot, memoryHasValue, convUnit } =
+    controller;
   const isField = layout === 'field';
   const isCore = activeTab === 'core';
+  const showKeypad = isCore || activeSlot !== null;
 
   const helpButton = (
     <button
@@ -90,21 +94,33 @@ export default function ConstructionCalculator({ layout }: ConstructionCalculato
         onTabChange={setActiveTab}
         layout={layout}
       />
-      {isCore ? (
-        <>
-          <ConstructionDisplay
-            display={state.display}
-            modeHint={modeHint}
-            error={state.error}
-            precision={state.precision}
-            onPrecisionChange={setPrecision}
-            layout={layout}
-          />
-          {isField && <DimensionEntryHelp layout={layout} />}
-          <ConstructionKeypad onKeyPress={pressKey} onPickFraction={pickFraction} layout={layout} />
-        </>
-      ) : (
-        <div className={isField ? '' : CALCULATOR_SECTION}>{renderModulePanel(activeTab)}</div>
+      {(isCore || activeSlot) && (
+        <ConstructionDisplay
+          display={state.display}
+          modeHint={modeHint}
+          error={state.error}
+          precision={state.precision}
+          onPrecisionChange={setPrecision}
+          layout={layout}
+          activeSlotLabel={activeSlot?.label ?? null}
+          memoryHasValue={memoryHasValue}
+          convUnit={convUnit}
+          convActive={state.convUnitIndex > 0}
+        />
+      )}
+      {!isCore && (
+        <div className={`${isField ? 'mb-4' : CALCULATOR_SECTION}`}>
+          {renderModulePanel(activeTab, controller)}
+        </div>
+      )}
+      {isCore && isField && <DimensionEntryHelp layout={layout} />}
+      {showKeypad && (
+        <ConstructionKeypad
+          onKeyPress={pressKey}
+          onPickFraction={pickFraction}
+          layout={layout}
+          memoryHasValue={memoryHasValue}
+        />
       )}
       {isField && <ConstructionTape layout={layout} />}
     </>

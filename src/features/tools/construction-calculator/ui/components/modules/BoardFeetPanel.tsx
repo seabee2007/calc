@@ -1,44 +1,54 @@
 import React, { useMemo, useState } from 'react';
 import { calculateBoardFeetModule } from '../../../domain/modules/boardFeetModule';
 import { calculateCostPerUnit } from '../../../domain/modules/costPerUnit';
-import {
-  CostFields,
-  ModuleNumberField,
-  ModuleResultRow,
-  parseInches,
-} from './modulePanelShared';
+import { buildDimensionFromDecimal } from '../../../domain/constructionCalculatorFormatters';
+import type { CalculatorInputController } from '../../hooks/useCalculatorInputController';
+import DimensionSlot from '../slots/DimensionSlot';
+import { CostFields, ModuleResultRow } from './modulePanelShared';
 
-export default function BoardFeetPanel() {
-  const [thickness, setThickness] = useState('1.5');
-  const [width, setWidth] = useState('5.5');
-  const [lengthFt, setLengthFt] = useState('8');
+interface BoardFeetPanelProps {
+  controller: CalculatorInputController;
+}
+
+export default function BoardFeetPanel({ controller }: BoardFeetPanelProps) {
   const [quantity, setQuantity] = useState('');
   const [unitCost, setUnitCost] = useState('');
 
-  const result = useMemo(
-    () =>
-      calculateBoardFeetModule({
-        thicknessInches: parseInches(thickness),
-        widthInches: parseInches(width),
-        lengthFeet: parseFloat(lengthFt) || 0,
-      }),
-    [thickness, width, lengthFt],
-  );
+  const thickness = controller.getSlotValue('board-feet', 'thickness');
+  const width = controller.getSlotValue('board-feet', 'width');
+  const length = controller.getSlotValue('board-feet', 'length');
+
+  const result = useMemo(() => {
+    if (thickness === null || width === null || length === null) return null;
+    return calculateBoardFeetModule({
+      thicknessInches: thickness,
+      widthInches: width,
+      lengthFeet: length / 12,
+    });
+  }, [thickness, width, length]);
 
   const cost = useMemo(() => {
+    if (!result) return { totalCost: 0 };
     const q = parseFloat(quantity) || result.boardFeet;
     const uc = parseFloat(unitCost) || 0;
     return calculateCostPerUnit({ quantity: q, unitCost: uc });
-  }, [quantity, unitCost, result.boardFeet]);
+  }, [quantity, unitCost, result]);
 
   return (
     <div className="space-y-4" data-testid="board-feet-panel">
       <div className="grid gap-3 sm:grid-cols-3">
-        <ModuleNumberField label="Thickness" value={thickness} onChange={setThickness} unit="in" />
-        <ModuleNumberField label="Width" value={width} onChange={setWidth} unit="in" />
-        <ModuleNumberField label="Length" value={lengthFt} onChange={setLengthFt} unit="ft" />
+        <DimensionSlot moduleId="board-feet" slotId="thickness" label="BOARD FEET · THICKNESS" controller={controller} />
+        <DimensionSlot moduleId="board-feet" slotId="width" label="BOARD FEET · WIDTH" controller={controller} />
+        <DimensionSlot moduleId="board-feet" slotId="length" label="BOARD FEET · LENGTH" controller={controller} />
       </div>
-      <ModuleResultRow label="Board feet" value={String(result.boardFeet)} />
+      {result && (
+        <ModuleResultRow
+          label="Board feet"
+          value={String(result.boardFeet)}
+          sendValue={result.boardFeet}
+          controller={controller}
+        />
+      )}
       <CostFields
         quantity={quantity}
         unitCost={unitCost}

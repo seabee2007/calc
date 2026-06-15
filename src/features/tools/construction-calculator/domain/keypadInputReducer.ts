@@ -1,15 +1,33 @@
 import type {
+  ActiveModuleSlot,
   CalculatorOperator,
   CalculatorToken,
   DimensionParts,
+  DimensionValue,
   FractionPrecision,
   KeypadKey,
+  MemoryValue,
+  SlotValues,
 } from './constructionCalculatorTypes';
-import { DEFAULT_FRACTION_PRECISION } from './constructionCalculatorTypes';
-import { buildDimensionValue, formatDimension } from './constructionCalculatorFormatters';
+import { CONV_UNITS, DEFAULT_FRACTION_PRECISION } from './constructionCalculatorTypes';
+import {
+  buildDimensionFromDecimal,
+  buildDimensionValue,
+  formatDimension,
+} from './constructionCalculatorFormatters';
 import { evaluateExpression } from './constructionCalculatorEngine';
-import { formatFeetInchesFraction, toDecimalInches } from './constructionDimensionMath';
+import { formatFeetInchesFraction } from './constructionDimensionMath';
 import { MIXED_DIMENSION_SCALAR_ERROR } from './calculatorFractions';
+import {
+  formatDecimalInchesAsConvUnit,
+  nextConvUnitIndex,
+} from './calculatorConvCycle';
+import {
+  memoryAdd,
+  memoryClear,
+  memoryRecall,
+  memorySubtract,
+} from './calculatorMemory';
 
 export type KeypadPhase = 'feet' | 'inches' | 'frac-num' | 'frac-den' | 'scalar';
 
@@ -25,6 +43,8 @@ export interface KeypadInputState {
   phase: KeypadPhase;
   entryMode: EntryMode;
   unitCommitted: boolean;
+  entryNegative: boolean;
+  directDecimalInches: number | null;
   tokens: CalculatorToken[];
   pendingOperator: CalculatorOperator | null;
   display: string;
@@ -32,12 +52,33 @@ export interface KeypadInputState {
   expressionDisplay: string;
   error: string | null;
   freshResult: boolean;
+  activeSlot: ActiveModuleSlot | null;
+  memoryValue: MemoryValue | null;
+  convUnitIndex: number;
+  slotValues: SlotValues;
+  convSourceInches: number | null;
 }
 
 export type KeypadAction =
   | KeypadKey
   | { type: 'set-precision'; precision: FractionPrecision }
-  | { type: 'pick-fraction'; numerator: number; denominator: number };
+  | { type: 'pick-fraction'; numerator: number; denominator: number }
+  | { type: 'set-active-slot'; slot: ActiveModuleSlot | null }
+  | { type: 'receive-result'; value: DimensionValue | number }
+  | { type: 'set-slot-value'; moduleId: string; slotId: string; value: number | null };
+
+function preserveMeta(state: KeypadInputState): Pick<
+  KeypadInputState,
+  'precision' | 'memoryValue' | 'convUnitIndex' | 'slotValues' | 'activeSlot'
+> {
+  return {
+    precision: state.precision,
+    memoryValue: state.memoryValue,
+    convUnitIndex: state.convUnitIndex,
+    slotValues: state.slotValues,
+    activeSlot: state.activeSlot,
+  };
+}
 
 export function createInitialKeypadState(
   precision: FractionPrecision = DEFAULT_FRACTION_PRECISION,
@@ -52,6 +93,8 @@ export function createInitialKeypadState(
     phase: 'feet',
     entryMode: 'dimension',
     unitCommitted: false,
+    entryNegative: false,
+    directDecimalInches: null,
     tokens: [],
     pendingOperator: null,
     display: '0',
@@ -59,7 +102,19 @@ export function createInitialKeypadState(
     expressionDisplay: '',
     error: null,
     freshResult: false,
+    activeSlot: null,
+    memoryValue: null,
+    convUnitIndex: 0,
+    slotValues: {},
+    convSourceInches: null,
   });
+}
+
+function createFreshEntryState(state: KeypadInputState): KeypadInputState {
+  return {
+    ...createInitialKeypadState(state.precision),
+    ...preserveMeta(state),
+  };
 }
 
 export function keypadReducer(state: KeypadInputState, action: KeypadAction): KeypadInputState {
@@ -71,9 +126,28 @@ export function keypadReducer(state: KeypadInputState, action: KeypadAction): Ke
     return handlePickFraction(state, action.numerator, action.denominator);
   }
 
+  if (typeof action === 'object' && action.type === 'set-active-slot') {
+    return handleSetActiveSlot(state, action.slot);
+  }
+
+  if (typeof action === 'object' && action.type === 'receive-result') {
+    return handleReceiveResult(state, action.value);
+  }
+
+  if (typeof action === 'object' && action.type === 'set-slot-value') {
+    return setSlotValue(state, action.moduleId, action.slotId, action.value);
+  }
+
   const key = action;
 
   if (key === 'clear') {
+    if (state.activeSlot) {
+      return applyDisplayState({
+        ...createFreshEntryState(state),
+        activeSlot: null,
+        error: null,
+      });
+    }
     return createInitialKeypadState(state.precision);
   }
 
@@ -82,10 +156,19 @@ export function keypadReducer(state: KeypadInputState, action: KeypadAction): Ke
   }
 
   if (key === 'equals') {
+    if (state.activeSlot?.valueType === 'scalar') {
+      return handleSlotScalarCommit(state);
+    }
+    if (state.activeSlot) {
+      return tryCommitActiveSlotDimension(state);
+    }
     return handleEquals(state);
   }
 
   if (key === '+' || key === '-' || key === '×' || key === '÷') {
+    if (state.activeSlot) {
+      return { ...state, error: 'Exit the active field before calculating.' };
+    }
     return handleOperator(state, key);
   }
 
@@ -101,6 +184,26 @@ export function keypadReducer(state: KeypadInputState, action: KeypadAction): Ke
     return handleFractionKey(state);
   }
 
+  if (key === '.') {
+    return handleDecimal(state);
+  }
+
+  if (key === '±') {
+    return handleNegate(state);
+  }
+
+  if (key === 'pi') {
+    return handlePi(state);
+  }
+
+  if (key === 'M+' || key === 'M-' || key === 'MR' || key === 'MC') {
+    return handleMemory(state, key);
+  }
+
+  if (key === 'conv') {
+    return handleConv(state);
+  }
+
   if (/^[0-9]$/.test(key)) {
     return handleDigit(state, key);
   }
@@ -109,6 +212,10 @@ export function keypadReducer(state: KeypadInputState, action: KeypadAction): Ke
 }
 
 export function getModeHint(state: KeypadInputState): string | null {
+  if (state.activeSlot) {
+    return `${state.activeSlot.label} — enter value`;
+  }
+
   if (state.freshResult) return null;
 
   if (state.entryMode === 'scalar') {
@@ -139,21 +246,330 @@ export function setKeypadPrecision(
   return applyDisplayState({ ...state, precision });
 }
 
-function handleDigit(state: KeypadInputState, digit: string): KeypadInputState {
+function handleSetActiveSlot(state: KeypadInputState, slot: ActiveModuleSlot | null): KeypadInputState {
+  const next = createFreshEntryState(state);
+  next.activeSlot = slot;
+  if (slot) {
+    const existing = state.slotValues[slot.moduleId]?.[slot.slotId];
+    if (existing !== null && existing !== undefined) {
+      if (slot.valueType === 'dimension') {
+        next.directDecimalInches = existing;
+        next.unitCommitted = true;
+        next.entryMode = 'dimension';
+      } else {
+        next.digitBuffer = String(existing);
+        next.entryMode = 'scalar';
+        next.phase = 'scalar';
+      }
+    } else {
+      next.entryMode = slot.valueType === 'scalar' ? 'scalar' : 'dimension';
+      next.phase = slot.valueType === 'scalar' ? 'scalar' : 'feet';
+    }
+  }
+  return applyDisplayState({ ...next, error: null });
+}
+
+function handleReceiveResult(state: KeypadInputState, value: DimensionValue | number): KeypadInputState {
+  const meta = preserveMeta(state);
+  if (typeof value === 'number') {
+    const rounded = Math.round(value * 10000) / 10000;
+    return applyDisplayState({
+      ...createInitialKeypadState(state.precision),
+      ...meta,
+      tokens: [{ type: 'scalar', value: rounded }],
+      resultDisplay: String(rounded),
+      freshResult: true,
+    });
+  }
+
+  return applyDisplayState({
+    ...createInitialKeypadState(state.precision),
+    ...meta,
+    tokens: [{ type: 'dimension', value }],
+    resultDisplay: formatDimension(value, state.precision),
+    convSourceInches: value.decimalInches,
+    freshResult: true,
+  });
+}
+
+function setSlotValue(
+  state: KeypadInputState,
+  moduleId: string,
+  slotId: string,
+  value: number | null,
+): KeypadInputState {
+  const moduleSlots = { ...(state.slotValues[moduleId] ?? {}), [slotId]: value };
+  return applyDisplayState({
+    ...state,
+    slotValues: { ...state.slotValues, [moduleId]: moduleSlots },
+    error: null,
+  });
+}
+
+function handleDecimal(state: KeypadInputState): KeypadInputState {
+  if (state.digitBuffer.includes('.')) return state;
+
   let next = state;
   if (state.freshResult) {
-    next = createInitialKeypadState(state.precision);
+    next = createFreshEntryState(state);
+  }
+
+  const buffer = next.digitBuffer ? `${next.digitBuffer}.` : '0.';
+  return applyDisplayState({
+    ...next,
+    digitBuffer: buffer,
+    error: null,
+    freshResult: false,
+  });
+}
+
+function handleNegate(state: KeypadInputState): KeypadInputState {
+  if (state.activeSlot && !state.activeSlot.allowNegative) {
+    return { ...state, error: 'Negative values are not allowed for this field.' };
+  }
+
+  if (state.freshResult) {
+    const token = state.tokens[0];
+    if (!token) return state;
+
+    if (token.type === 'scalar') {
+      const value = -token.value;
+      return applyDisplayState({
+        ...state,
+        tokens: [{ type: 'scalar', value }],
+        resultDisplay: String(Math.round(value * 10000) / 10000),
+        error: null,
+      });
+    }
+
+    if (token.type === 'dimension') {
+      const value = buildDimensionFromDecimal(-token.value.decimalInches);
+      return applyDisplayState({
+        ...state,
+        tokens: [{ type: 'dimension', value }],
+        resultDisplay: formatDimension(value, state.precision),
+        convSourceInches: value.decimalInches,
+        error: null,
+      });
+    }
+  }
+
+  return applyDisplayState({
+    ...state,
+    entryNegative: !state.entryNegative,
+    error: null,
+    freshResult: false,
+  });
+}
+
+function handlePi(state: KeypadInputState): KeypadInputState {
+  if (state.activeSlot) {
+    if (state.activeSlot.valueType !== 'scalar') {
+      return { ...state, error: 'Use the keypad dimension keys for this field.' };
+    }
+    return applyDisplayState({
+      ...state,
+      digitBuffer: String(Math.PI),
+      entryMode: 'scalar',
+      phase: 'scalar',
+      error: null,
+      freshResult: false,
+    });
+  }
+
+  let working = state;
+  if (state.freshResult || state.pendingOperator) {
+    working = createFreshEntryState(state);
+    if (state.pendingOperator) {
+      working.tokens = [...state.tokens];
+      working.pendingOperator = state.pendingOperator;
+      working.expressionDisplay = state.expressionDisplay;
+    }
+  }
+
+  const tokens = [...working.tokens];
+  if (working.pendingOperator && tokens.length >= 1) {
+    tokens.push({ type: 'scalar', value: Math.PI });
+    return applyDisplayState({
+      ...working,
+      tokens,
+      entryMode: working.pendingOperator === '×' || working.pendingOperator === '÷' ? 'dimension' : 'scalar',
+      phase: working.pendingOperator === '×' || working.pendingOperator === '÷' ? 'feet' : 'scalar',
+      digitBuffer: '',
+      error: null,
+      freshResult: false,
+    });
+  }
+
+  return applyDisplayState({
+    ...createFreshEntryState(state),
+    tokens: [{ type: 'scalar', value: Math.PI }],
+    resultDisplay: String(Math.round(Math.PI * 10000) / 10000),
+    freshResult: true,
+    error: null,
+  });
+}
+
+function getCurrentOperandForMemory(
+  state: KeypadInputState,
+): { kind: 'dimension'; value: DimensionValue } | { kind: 'scalar'; value: number } | null {
+  try {
+    if (state.freshResult && state.tokens.length === 1) {
+      const t = state.tokens[0];
+      if (t.type === 'dimension') return { kind: 'dimension', value: t.value };
+      if (t.type === 'scalar') return { kind: 'scalar', value: t.value };
+    }
+
+    validateOperandBeforeCommit(state);
+    if (state.entryMode === 'scalar' && state.digitBuffer) {
+      return { kind: 'scalar', value: parseFloat(state.digitBuffer) * (state.entryNegative ? -1 : 1) };
+    }
+
+    const parts = getCurrentParts(state);
+    if (parts) {
+      const dim = buildDimensionValue(parts);
+      if (state.entryNegative) {
+        return { kind: 'dimension', value: buildDimensionFromDecimal(-dim.decimalInches) };
+      }
+      return { kind: 'dimension', value: dim };
+    }
+
+    if (state.directDecimalInches !== null) {
+      const inches = state.entryNegative ? -state.directDecimalInches : state.directDecimalInches;
+      return { kind: 'dimension', value: buildDimensionFromDecimal(inches) };
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+function handleMemory(state: KeypadInputState, key: 'M+' | 'M-' | 'MR' | 'MC'): KeypadInputState {
+  try {
+    if (key === 'MC') {
+      return applyDisplayState({ ...state, memoryValue: memoryClear(), error: null });
+    }
+
+    if (key === 'MR') {
+      const expectedKind =
+        state.activeSlot?.valueType ??
+        (state.entryMode === 'scalar' ? 'scalar' : 'dimension');
+      const recalled = memoryRecall(state.memoryValue, expectedKind);
+
+      if (recalled.kind === 'scalar') {
+        if (state.activeSlot?.valueType === 'scalar') {
+          return applyDisplayState({
+            ...state,
+            digitBuffer: String(recalled.value),
+            entryMode: 'scalar',
+            phase: 'scalar',
+            error: null,
+          });
+        }
+        return applyDisplayState({
+          ...createFreshEntryState(state),
+          tokens: [{ type: 'scalar', value: recalled.value }],
+          resultDisplay: String(Math.round(recalled.value * 10000) / 10000),
+          freshResult: true,
+          error: null,
+        });
+      }
+
+      if (state.activeSlot?.valueType === 'dimension') {
+        return applyDisplayState({
+          ...state,
+          directDecimalInches: recalled.decimalInches,
+          unitCommitted: true,
+          entryMode: 'dimension',
+          error: null,
+        });
+      }
+
+      const dim = buildDimensionFromDecimal(recalled.decimalInches);
+      return applyDisplayState({
+        ...createFreshEntryState(state),
+        tokens: [{ type: 'dimension', value: dim }],
+        resultDisplay: formatDimension(dim, state.precision),
+        convSourceInches: dim.decimalInches,
+        freshResult: true,
+        error: null,
+      });
+    }
+
+    const operand = getCurrentOperandForMemory(state);
+    if (!operand) {
+      return { ...state, error: 'Enter a value before using memory.' };
+    }
+
+    const nextMemory =
+      key === 'M+' ? memoryAdd(state.memoryValue, operand) : memorySubtract(state.memoryValue, operand);
+
+    return applyDisplayState({ ...state, memoryValue: nextMemory, error: null });
+  } catch (e) {
+    return {
+      ...state,
+      error: e instanceof Error ? e.message : 'Memory error',
+    };
+  }
+}
+
+function getConvSourceInches(state: KeypadInputState): number | null {
+  if (state.convSourceInches !== null) return state.convSourceInches;
+
+  if (state.freshResult && state.tokens.length === 1 && state.tokens[0].type === 'dimension') {
+    return state.tokens[0].value.decimalInches;
+  }
+
+  if (state.directDecimalInches !== null) return state.directDecimalInches;
+
+  try {
+    const parts = getCurrentParts(state);
+    if (parts) return buildDimensionValue(parts).decimalInches;
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
+function handleConv(state: KeypadInputState): KeypadInputState {
+  const inches = getConvSourceInches(state);
+  if (inches === null) {
+    return { ...state, error: 'Enter a dimension result before converting units.' };
+  }
+
+  const nextIndex = nextConvUnitIndex(state.convUnitIndex);
+  const unit = CONV_UNITS[nextIndex];
+  const formatted = formatDecimalInchesAsConvUnit(inches, unit, state.precision);
+
+  return applyDisplayState({
+    ...state,
+    convUnitIndex: nextIndex,
+    convSourceInches: inches,
+    resultDisplay: formatted,
+    freshResult: true,
+    error: null,
+  });
+}
+
+function handleDigit(state: KeypadInputState, digit: string): KeypadInputState {
+  let next = state;
+  if (state.freshResult && !state.activeSlot) {
+    next = createFreshEntryState(state);
   }
 
   const buffer = next.digitBuffer + digit;
   let updated: KeypadInputState = {
     ...next,
     digitBuffer: buffer,
+    directDecimalInches: null,
     error: null,
     freshResult: false,
   };
 
-  if (updated.entryMode === 'scalar') {
+  if (updated.activeSlot?.valueType === 'scalar' || updated.entryMode === 'scalar') {
+    updated.entryMode = 'scalar';
+    updated.phase = 'scalar';
     return applyDisplayState(updated);
   }
 
@@ -164,9 +580,14 @@ function handleDigit(state: KeypadInputState, digit: string): KeypadInputState {
   return applyDisplayState(updated);
 }
 
+function parseBufferNumber(buffer: string): number {
+  if (buffer.includes('.')) return parseFloat(buffer);
+  return parseInt(buffer || '0', 10);
+}
+
 function handleUnitKey(state: KeypadInputState, unit: 'feet' | 'inches'): KeypadInputState {
   let working = state;
-  if (state.entryMode === 'scalar') {
+  if (state.entryMode === 'scalar' && !state.activeSlot) {
     working = {
       ...state,
       entryMode: 'dimension',
@@ -175,7 +596,29 @@ function handleUnitKey(state: KeypadInputState, unit: 'feet' | 'inches'): Keypad
     };
   }
 
-  const value = parseInt(working.digitBuffer || '0', 10);
+  if (working.digitBuffer.includes('.')) {
+    const num = parseFloat(working.digitBuffer);
+    const decimalInches = unit === 'feet' ? num * 12 : num;
+    const signed = working.entryNegative ? -decimalInches : decimalInches;
+
+    if (working.activeSlot?.valueType === 'dimension') {
+      return commitSlotDimension(working, signed);
+    }
+
+    const next: KeypadInputState = {
+      ...working,
+      directDecimalInches: Math.abs(decimalInches),
+      entryNegative: signed < 0,
+      digitBuffer: '',
+      unitCommitted: true,
+      phase: unit === 'feet' ? 'inches' : 'frac-num',
+      error: null,
+      freshResult: false,
+    };
+    return applyDisplayState(next);
+  }
+
+  const value = parseBufferNumber(working.digitBuffer || '0');
   let next: KeypadInputState;
 
   if (unit === 'feet') {
@@ -185,6 +628,7 @@ function handleUnitKey(state: KeypadInputState, unit: 'feet' | 'inches'): Keypad
       digitBuffer: '',
       phase: 'inches',
       unitCommitted: true,
+      directDecimalInches: null,
       error: null,
       freshResult: false,
     };
@@ -195,9 +639,14 @@ function handleUnitKey(state: KeypadInputState, unit: 'feet' | 'inches'): Keypad
       digitBuffer: '',
       phase: 'frac-num',
       unitCommitted: true,
+      directDecimalInches: null,
       error: null,
       freshResult: false,
     };
+
+    if (next.activeSlot?.valueType === 'dimension') {
+      return tryCommitActiveSlotDimension(next);
+    }
   }
 
   return applyDisplayState(next);
@@ -205,7 +654,7 @@ function handleUnitKey(state: KeypadInputState, unit: 'feet' | 'inches'): Keypad
 
 function handleFractionKey(state: KeypadInputState): KeypadInputState {
   let working = state;
-  if (state.entryMode === 'scalar') {
+  if (state.entryMode === 'scalar' && !state.activeSlot) {
     working = { ...state, entryMode: 'dimension', phase: 'frac-num', error: null };
   }
 
@@ -227,7 +676,7 @@ function handlePickFraction(
   denominator: number,
 ): KeypadInputState {
   let working = state;
-  if (state.entryMode === 'scalar') {
+  if (state.entryMode === 'scalar' && !state.activeSlot) {
     working = { ...state, entryMode: 'dimension', phase: 'frac-num', error: null };
   }
 
@@ -237,16 +686,22 @@ function handlePickFraction(
     denominator,
     digitBuffer: '',
     phase: 'frac-num',
+    unitCommitted: true,
     error: null,
     freshResult: false,
   };
+
+  if (next.activeSlot?.valueType === 'dimension') {
+    return tryCommitActiveSlotDimension(next);
+  }
+
   return applyDisplayState(next);
 }
 
 function handleBackspace(state: KeypadInputState): KeypadInputState {
   if (state.digitBuffer.length > 0) {
     const next = { ...state, digitBuffer: state.digitBuffer.slice(0, -1), error: null };
-    if (next.entryMode === 'scalar') {
+    if (next.entryMode === 'scalar' || next.activeSlot?.valueType === 'scalar') {
       return applyDisplayState(next);
     }
     if (next.phase === 'frac-den' && next.denominator !== null) {
@@ -255,8 +710,17 @@ function handleBackspace(state: KeypadInputState): KeypadInputState {
     return applyDisplayState(next);
   }
 
-  if (state.entryMode === 'scalar') {
+  if (state.entryMode === 'scalar' || state.activeSlot?.valueType === 'scalar') {
     return applyDisplayState({ ...state, error: null });
+  }
+
+  if (state.directDecimalInches !== null) {
+    return applyDisplayState({
+      ...state,
+      directDecimalInches: null,
+      unitCommitted: false,
+      phase: 'feet',
+    });
   }
 
   if (state.denominator !== null) {
@@ -292,6 +756,54 @@ function handleBackspace(state: KeypadInputState): KeypadInputState {
   return state;
 }
 
+function getDimensionDecimalInchesFromState(state: KeypadInputState): number | null {
+  if (state.directDecimalInches !== null) {
+    return state.entryNegative ? -state.directDecimalInches : state.directDecimalInches;
+  }
+  const parts = getCurrentParts(state);
+  if (!parts) return null;
+  const dim = buildDimensionValue(parts);
+  return state.entryNegative ? -dim.decimalInches : dim.decimalInches;
+}
+
+function commitSlotDimension(state: KeypadInputState, decimalInches: number): KeypadInputState {
+  if (!state.activeSlot) return state;
+  const { moduleId, slotId } = state.activeSlot;
+  const next = setSlotValue(state, moduleId, slotId, decimalInches);
+  return applyDisplayState({
+    ...next,
+    directDecimalInches: Math.abs(decimalInches),
+    entryNegative: decimalInches < 0,
+    unitCommitted: true,
+    digitBuffer: '',
+    feet: null,
+    inches: null,
+    numerator: null,
+    denominator: null,
+    error: null,
+  });
+}
+
+function tryCommitActiveSlotDimension(state: KeypadInputState): KeypadInputState {
+  const inches = getDimensionDecimalInchesFromState(state);
+  if (inches === null || !state.activeSlot) {
+    return { ...state, error: 'Enter a complete dimension.' };
+  }
+  return commitSlotDimension(state, inches);
+}
+
+function handleSlotScalarCommit(state: KeypadInputState): KeypadInputState {
+  if (!state.activeSlot || !state.digitBuffer) {
+    return { ...state, error: 'Enter a number.' };
+  }
+  const value = parseFloat(state.digitBuffer) * (state.entryNegative ? -1 : 1);
+  const { moduleId, slotId } = state.activeSlot;
+  return applyDisplayState({
+    ...setSlotValue(state, moduleId, slotId, value),
+    error: null,
+  });
+}
+
 function handleOperator(state: KeypadInputState, operator: CalculatorOperator): KeypadInputState {
   try {
     validateOperandBeforeCommit(state);
@@ -318,7 +830,7 @@ function handleOperator(state: KeypadInputState, operator: CalculatorOperator): 
     }
 
     return applyDisplayState({
-      ...createInitialKeypadState(state.precision),
+      ...createFreshEntryState(state),
       tokens,
       pendingOperator: operator,
       entryMode,
@@ -346,12 +858,15 @@ function handleEquals(state: KeypadInputState): KeypadInputState {
         : String(Math.round(evaluated.value * 10000) / 10000);
 
     const expression = committed.expressionDisplay;
+    const convInches =
+      evaluated.kind === 'dimension' ? evaluated.value.decimalInches : null;
 
     return applyDisplayState({
-      ...createInitialKeypadState(state.precision),
+      ...createFreshEntryState(state),
       resultDisplay: resultStr,
       expressionDisplay: expression,
       freshResult: true,
+      convSourceInches: convInches,
       tokens: [
         evaluated.kind === 'dimension'
           ? { type: 'dimension', value: evaluated.value }
@@ -374,6 +889,8 @@ function validateOperandBeforeCommit(state: KeypadInputState): void {
     return;
   }
 
+  if (state.directDecimalInches !== null) return;
+
   if (requiresExplicitUnits(state) && state.digitBuffer && !state.unitCommitted) {
     throw new Error(MIXED_DIMENSION_SCALAR_ERROR);
   }
@@ -389,8 +906,12 @@ function commitCurrentOperand(state: KeypadInputState): KeypadInputState {
 
   if (state.entryMode === 'scalar') {
     if (state.digitBuffer) {
-      tokens.push({ type: 'scalar', value: parseFloat(state.digitBuffer) });
+      const value = parseFloat(state.digitBuffer) * (state.entryNegative ? -1 : 1);
+      tokens.push({ type: 'scalar', value });
     }
+  } else if (state.directDecimalInches !== null) {
+    const inches = state.entryNegative ? -state.directDecimalInches : state.directDecimalInches;
+    tokens.push({ type: 'dimension', value: buildDimensionFromDecimal(inches) });
   } else if (
     state.unitCommitted ||
     state.feet !== null ||
@@ -400,13 +921,18 @@ function commitCurrentOperand(state: KeypadInputState): KeypadInputState {
   ) {
     const parts = getCurrentParts(state);
     if (parts) {
-      tokens.push({ type: 'dimension', value: buildDimensionValue(parts) });
+      let dim = buildDimensionValue(parts);
+      if (state.entryNegative) {
+        dim = buildDimensionFromDecimal(-dim.decimalInches);
+      }
+      tokens.push({ type: 'dimension', value: dim });
     }
   } else if (state.digitBuffer) {
     if (requiresExplicitUnits(state)) {
       throw new Error(MIXED_DIMENSION_SCALAR_ERROR);
     }
-    tokens.push({ type: 'scalar', value: parseFloat(state.digitBuffer) });
+    const value = parseFloat(state.digitBuffer) * (state.entryNegative ? -1 : 1);
+    tokens.push({ type: 'scalar', value });
   }
 
   const expr = formatTokenList(tokens, state.precision);
@@ -427,6 +953,10 @@ function getCurrentParts(state: KeypadInputState): DimensionParts | null {
     return null;
   }
 
+  if (state.directDecimalInches !== null) {
+    return null;
+  }
+
   const hasContent =
     state.feet !== null ||
     state.inches !== null ||
@@ -442,13 +972,13 @@ function getCurrentParts(state: KeypadInputState): DimensionParts | null {
   if (state.feet !== null) {
     parts.feet = state.feet;
   } else if (allowBufferPreview && state.phase === 'feet' && state.digitBuffer) {
-    parts.feet = parseInt(state.digitBuffer, 10);
+    parts.feet = parseBufferNumber(state.digitBuffer);
   }
 
   if (state.inches !== null) {
     parts.inches = state.inches;
   } else if (allowBufferPreview && state.phase === 'inches' && state.digitBuffer) {
-    parts.inches = parseInt(state.digitBuffer, 10);
+    parts.inches = parseBufferNumber(state.digitBuffer);
   } else if (
     allowBufferPreview &&
     state.phase === 'frac-num' &&
@@ -483,13 +1013,23 @@ function getCurrentParts(state: KeypadInputState): DimensionParts | null {
 }
 
 function formatCurrentOperand(state: KeypadInputState, precision: FractionPrecision): string {
-  if (state.entryMode === 'scalar') {
-    return state.digitBuffer || '';
+  if (state.activeSlot?.valueType === 'scalar' || state.entryMode === 'scalar') {
+    const prefix = state.entryNegative ? '-' : '';
+    return prefix + (state.digitBuffer || '');
+  }
+
+  if (state.directDecimalInches !== null) {
+    const inches = state.entryNegative ? -state.directDecimalInches : state.directDecimalInches;
+    return formatDimension(buildDimensionFromDecimal(inches), precision);
   }
 
   const parts = getCurrentParts(state);
   if (parts) {
-    return formatDimension(buildDimensionValue(parts), precision);
+    let dim = buildDimensionValue(parts);
+    if (state.entryNegative) {
+      dim = buildDimensionFromDecimal(-dim.decimalInches);
+    }
+    return formatDimension(dim, precision);
   }
 
   if (state.digitBuffer && requiresExplicitUnits(state)) {
@@ -510,7 +1050,27 @@ function formatTokenList(tokens: CalculatorToken[], precision: FractionPrecision
 }
 
 function buildLiveExpression(state: KeypadInputState): string {
+  if (state.activeSlot) {
+    const current = formatCurrentOperand(state, state.precision);
+    const existing = state.slotValues[state.activeSlot.moduleId]?.[state.activeSlot.slotId];
+    if (current && current !== '0') return current;
+    if (existing !== null && existing !== undefined) {
+      if (state.activeSlot.valueType === 'dimension') {
+        return formatDimension(buildDimensionFromDecimal(existing), state.precision);
+      }
+      return String(existing);
+    }
+    return current || '—';
+  }
+
   if (state.freshResult && state.resultDisplay) {
+    if (state.convUnitIndex > 0 && state.convSourceInches !== null) {
+      return formatDecimalInchesAsConvUnit(
+        state.convSourceInches,
+        CONV_UNITS[state.convUnitIndex],
+        state.precision,
+      );
+    }
     return state.resultDisplay;
   }
 
@@ -531,7 +1091,9 @@ function buildLiveExpression(state: KeypadInputState): string {
 
 function applyDisplayState(state: KeypadInputState): KeypadInputState {
   const display =
-    state.freshResult && state.resultDisplay ? state.resultDisplay : buildLiveExpression(state);
+    state.freshResult && state.resultDisplay && !state.activeSlot
+      ? state.resultDisplay
+      : buildLiveExpression(state);
   return { ...state, display };
 }
 
@@ -543,8 +1105,17 @@ export function getCommittedExpression(state: KeypadInputState): {
   return { expression: state.expressionDisplay, result: state.resultDisplay };
 }
 
+export function getSlotValue(
+  state: KeypadInputState,
+  moduleId: string,
+  slotId: string,
+): number | null {
+  return state.slotValues[moduleId]?.[slotId] ?? null;
+}
+
 export function mapKeyboardToKeypad(key: string): KeypadKey | null {
   if (/^[0-9]$/.test(key)) return key as KeypadKey;
+  if (key === '.') return '.';
   if (key === '+') return '+';
   if (key === '-') return '-';
   if (key === '*') return '×';

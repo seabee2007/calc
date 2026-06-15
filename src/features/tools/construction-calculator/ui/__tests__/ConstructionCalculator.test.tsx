@@ -65,7 +65,7 @@ describe('EmployeeQuickActions', () => {
         <EmployeeQuickActions userId="u1" />
       </MemoryRouter>,
     );
-    fireEvent.click(screen.getByText('Calculator'));
+    fireEvent.click(screen.getByText('Arden Calculator'));
     expect(mockNavigate).toHaveBeenCalledWith('/employee/calculator');
   });
 });
