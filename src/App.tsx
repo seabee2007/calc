@@ -92,12 +92,24 @@ import {
   LazyEmployeeLayout,
   LazyEmployeeDashboardPage,
   LazyEmployeeTasksPage,
+  LazyEmployeePlannerPage,
   LazyEmployeeProjectsPage,
   LazyEmployeeMessagesPage,
   LazyEmployeeUploadsPage,
   LazyEmployeeDraftChangeOrderPage,
   LazyEmployeeProfilePage,
   LazyEmployeeCalculatorPage,
+  LazyEmployeeSchedulePage,
+  LazyEmployeeRfiPage,
+  LazyEmployeeRfiDetailPage,
+  LazyEmployeeFarPage,
+  LazyEmployeeFarDetailPage,
+  LazyEmployeeQcPage,
+  LazyEmployeeQcDetailPage,
+  LazyEmployeeDocumentsPage,
+  LazyEmployeeDocumentDetailPage,
+  LazyEmployeeMorePage,
+  LazyEmployeeTaskDetailPage,
   LazyArdenFieldCalculatorPage,
   LazyOnboardingFlow,
   LazyConcreteChat,
@@ -626,12 +638,26 @@ function App() {
           >
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<LazyRoute Page={LazyEmployeeDashboardPage} />} />
+            <Route path="planner" element={<LazyRoute Page={LazyEmployeePlannerPage} />} />
             <Route path="tasks" element={<LazyRoute Page={LazyEmployeeTasksPage} />} />
             <Route
               path="tasks/:taskId"
-              element={<LazyRoute Page={LazyEmployeeTaskPlannerRedirect} />}
+              element={<LazyRoute Page={LazyEmployeeTaskDetailPage} />}
             />
             <Route path="uploads" element={<LazyRoute Page={LazyEmployeeUploadsPage} />} />
+            <Route path="schedule" element={<LazyRoute Page={LazyEmployeeSchedulePage} />} />
+            <Route path="rfi" element={<LazyRoute Page={LazyEmployeeRfiPage} />} />
+            <Route path="rfi/:id" element={<LazyRoute Page={LazyEmployeeRfiDetailPage} />} />
+            <Route path="far" element={<LazyRoute Page={LazyEmployeeFarPage} />} />
+            <Route path="far/:id" element={<LazyRoute Page={LazyEmployeeFarDetailPage} />} />
+            <Route path="qc" element={<LazyRoute Page={LazyEmployeeQcPage} />} />
+            <Route path="qc/:id" element={<LazyRoute Page={LazyEmployeeQcDetailPage} />} />
+            <Route path="documents" element={<LazyRoute Page={LazyEmployeeDocumentsPage} />} />
+            <Route
+              path="documents/:id"
+              element={<LazyRoute Page={LazyEmployeeDocumentDetailPage} />}
+            />
+            <Route path="more" element={<LazyRoute Page={LazyEmployeeMorePage} />} />
             <Route path="messages" element={<LazyRoute Page={LazyEmployeeMessagesPage} />} />
             <Route path="projects" element={<LazyRoute Page={LazyEmployeeProjectsPage} />} />
             <Route

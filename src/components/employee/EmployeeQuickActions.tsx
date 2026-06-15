@@ -6,10 +6,9 @@ import {
   ClipboardCheck,
   HelpCircle,
   Wrench,
+  FolderOpen,
+  CalendarDays,
   Calculator,
-  Calendar,
-  ShieldCheck,
-  FilePlus,
 } from 'lucide-react';
 import CreateRfiModal from '../field/CreateRfiModal';
 import CreateFieldAdjustmentModal from '../field/CreateFieldAdjustmentModal';
@@ -43,7 +42,7 @@ export default function EmployeeQuickActions({
     {
       label: 'QC Checklist',
       icon: ClipboardCheck,
-      onClick: () => navigate('/employee/tasks'),
+      onClick: () => navigate('/employee/qc'),
     },
     {
       label: 'Create RFI',
@@ -52,32 +51,25 @@ export default function EmployeeQuickActions({
       disabled: !defaultProjectId,
     },
     {
-      label: 'Field Adjustment',
+      label: 'Create FAR',
       icon: Wrench,
       onClick: () => setAdjOpen(true),
       disabled: !defaultProjectId,
     },
     {
-      label: 'Safety Meeting',
-      icon: ShieldCheck,
-      onClick: () => navigate('/employee/safety-meeting'),
-    },
-    {
-      label: 'Draft Change Order',
-      icon: FilePlus,
-      onClick: () => navigate('/employee/draft-change-order'),
-      disabled: !defaultProjectId,
-    },
-    {
-      label: 'Calculator',
-      icon: Calculator,
-      onClick: () => navigate('/employee/calculator'),
+      label: 'View Documents',
+      icon: FolderOpen,
+      onClick: () => navigate('/employee/documents'),
     },
     {
       label: 'Schedule',
-      icon: Calendar,
-      onClick: () => navigate('/planner/schedule'),
-      disabled: !defaultProjectId,
+      icon: CalendarDays,
+      onClick: () => navigate('/employee/schedule'),
+    },
+    {
+      label: 'Arden Calculator',
+      icon: Calculator,
+      onClick: () => navigate('/employee/calculator'),
     },
   ];
 
@@ -92,7 +84,7 @@ export default function EmployeeQuickActions({
               type="button"
               disabled={a.disabled}
               onClick={a.onClick}
-              className="flex min-h-[72px] flex-col items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-800/80 p-3 text-sm font-medium text-slate-100 hover:border-cyan-500/50 disabled:opacity-40"
+              className="flex min-h-[72px] flex-col items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-800/80 p-3 text-sm font-medium text-slate-100 hover:border-cyan-500/50 disabled:opacity-40 touch-manipulation"
             >
               <Icon className="h-6 w-6 text-cyan-400" />
               {a.label}

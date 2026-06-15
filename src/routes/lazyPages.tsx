@@ -159,6 +159,9 @@ export const LazyEmployeeDashboardPage = lazyPage(
   () => import('../pages/employee/EmployeeDashboardPage'),
 );
 export const LazyEmployeeTasksPage = lazyPage(() => import('../pages/employee/EmployeeTasksPage'));
+export const LazyEmployeePlannerPage = lazyPage(
+  () => import('../pages/employee/EmployeePlannerPage'),
+);
 export const LazyEmployeeProjectsPage = lazyPage(
   () => import('../pages/employee/EmployeeProjectsPage'),
 );
@@ -177,6 +180,31 @@ export const LazyEmployeeProfilePage = lazyPage(
 
 export const LazyEmployeeCalculatorPage = lazyPage(
   () => import('../pages/employee/EmployeeCalculatorPage'),
+);
+export const LazyEmployeeSchedulePage = lazyPage(
+  () => import('../pages/employee/EmployeeSchedulePage'),
+);
+export const LazyEmployeeRfiPage = lazyPage(() => import('../pages/employee/EmployeeRfiPage'));
+export const LazyEmployeeRfiDetailPage = lazyPage(
+  () => import('../pages/employee/EmployeeRfiDetailPage'),
+);
+export const LazyEmployeeFarPage = lazyPage(() => import('../pages/employee/EmployeeFarPage'));
+export const LazyEmployeeFarDetailPage = lazyPage(
+  () => import('../pages/employee/EmployeeFarDetailPage'),
+);
+export const LazyEmployeeQcPage = lazyPage(() => import('../pages/employee/EmployeeQcPage'));
+export const LazyEmployeeQcDetailPage = lazyPage(
+  () => import('../pages/employee/EmployeeQcDetailPage'),
+);
+export const LazyEmployeeDocumentsPage = lazyPage(
+  () => import('../pages/employee/EmployeeDocumentsPage'),
+);
+export const LazyEmployeeDocumentDetailPage = lazyPage(
+  () => import('../pages/employee/EmployeeDocumentDetailPage'),
+);
+export const LazyEmployeeMorePage = lazyPage(() => import('../pages/employee/EmployeeMorePage'));
+export const LazyEmployeeTaskDetailPage = lazyPage(
+  () => import('../pages/employee/EmployeeTaskDetailPage'),
 );
 export const LazyArdenFieldCalculatorPage = lazyPage(
   () => import('../pages/tools/ArdenFieldCalculatorPage'),

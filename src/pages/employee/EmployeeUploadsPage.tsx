@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AlertCircle, Camera, CheckCircle2, Loader2 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { fetchTasksForEmployee } from '../../services/plannerService';
@@ -8,6 +9,7 @@ import { uploadFieldAttachment } from '../../services/storageService';
 import type { PlannerTask } from '../../types/fieldPlanner';
 import Select from '../../components/ui/Select';
 import Button from '../../components/ui/Button';
+import { useEmployeePageTitle } from '../../components/employee/EmployeePageTitleContext';
 
 type UploadStatus = 'idle' | 'uploading' | 'success' | 'error';
 
@@ -36,7 +38,12 @@ function formatUploadedAt(iso: string): string {
 }
 
 export default function EmployeeUploadsPage() {
+  useEmployeePageTitle('Upload');
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const presetTaskId = searchParams.get('taskId') ?? '';
+  const presetTaskTitle = searchParams.get('taskTitle') ?? '';
   const [tasks, setTasks] = useState<PlannerTask[]>([]);
   const [taskId, setTaskId] = useState('');
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>('idle');
@@ -59,9 +66,13 @@ export default function EmployeeUploadsPage() {
     if (!user) return;
     void fetchTasksForEmployee(user.id).then((t) => {
       setTasks(t);
-      if (t[0]) setTaskId(t[0].id);
+      if (presetTaskId && t.some((task) => task.id === presetTaskId)) {
+        setTaskId(presetTaskId);
+      } else if (t[0]) {
+        setTaskId(t[0].id);
+      }
     });
-  }, [user]);
+  }, [user, presetTaskId]);
 
   useEffect(() => {
     return () => {
@@ -124,6 +135,10 @@ export default function EmployeeUploadsPage() {
       setLastUploadedPreviews(previews);
       setUploadStatus('success');
       setToastVisible(true);
+
+      if (presetTaskId) {
+        window.setTimeout(() => navigate(-1), 1200);
+      }
     } catch (e) {
       revokePreviewUrls();
       setLastUploadedPreviews([]);
@@ -152,7 +167,7 @@ export default function EmployeeUploadsPage() {
                   <p className="font-semibold">Photo uploaded successfully</p>
                   {lastUploadedTaskTitle ? (
                     <p className="mt-0.5 text-sm text-emerald-50/95">
-                      Attached to task: {lastUploadedTaskTitle}
+                      Photo uploaded to {lastUploadedTaskTitle}
                     </p>
                   ) : null}
                 </div>
@@ -177,7 +192,11 @@ export default function EmployeeUploadsPage() {
     <div className="space-y-4 pb-28">
       {toast}
 
-      <h1 className="text-xl font-bold text-white">Upload photos</h1>
+      {presetTaskId && presetTaskTitle ? (
+        <p className="text-sm text-slate-400">
+          Uploading to: <span className="text-slate-200">{presetTaskTitle}</span>
+        </p>
+      ) : null}
 
       {uploadStatus === 'success' && lastUploadedCount > 0 ? (
         <div

@@ -9,8 +9,10 @@ import type { FieldMessage } from '../../types/fieldPlanner';
 import { fetchAssignedProjects } from '../../services/employeeService';
 import Button from '../../components/ui/Button';
 import Select from '../../components/ui/Select';
+import { useEmployeePageTitle } from '../../components/employee/EmployeePageTitleContext';
 
 export default function EmployeeMessagesPage() {
+  useEmployeePageTitle('Messages');
   const { user, isOwner } = useAuth();
   const [messages, setMessages] = useState<FieldMessage[]>([]);
   const [projects, setProjects] = useState<{ id: string; name: string }[]>([]);
@@ -51,7 +53,6 @@ export default function EmployeeMessagesPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-bold text-white">Messages</h1>
 
       <ul className="space-y-2 max-h-[50vh] overflow-y-auto">
         {messages.map((m) => (

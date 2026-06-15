@@ -2,8 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { fetchAssignedProjects } from '../../services/employeeService';
 import EmployeeProjectCard from '../../components/employee/EmployeeProjectCard';
+import { useEmployeePageTitle } from '../../components/employee/EmployeePageTitleContext';
 
 export default function EmployeeProjectsPage() {
+  useEmployeePageTitle('Projects');
   const { user } = useAuth();
   const [projects, setProjects] = useState<
     { id: string; name: string; jobsite_city?: string; jobsite_state?: string }[]
@@ -16,7 +18,6 @@ export default function EmployeeProjectsPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-bold text-white mb-4">My projects</h1>
       <div className="space-y-2">
         {projects.map((p) => (
           <EmployeeProjectCard

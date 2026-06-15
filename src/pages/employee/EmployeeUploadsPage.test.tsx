@@ -1,14 +1,24 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 import EmployeeUploadsPage from './EmployeeUploadsPage';
 
 const mockUpload = vi.fn();
 const mockAddRecord = vi.fn();
+const mockNavigate = vi.fn();
 
 vi.mock('../../hooks/useAuth', () => ({
   useAuth: () => ({ user: { id: 'user-1', email: 'field@example.com' } }),
 }));
+
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
+});
 
 vi.mock('../../services/plannerService', () => ({
   fetchTasksForEmployee: vi.fn().mockResolvedValue([
@@ -44,7 +54,11 @@ describe('EmployeeUploadsPage upload feedback', () => {
 
   it('shows strong success feedback after upload', async () => {
     const user = userEvent.setup();
-    render(<EmployeeUploadsPage />);
+    render(
+      <MemoryRouter>
+        <EmployeeUploadsPage />
+      </MemoryRouter>,
+    );
 
     await waitFor(() => {
       expect(screen.getByText(/Photos attach to/i)).toBeInTheDocument();
@@ -67,7 +81,11 @@ describe('EmployeeUploadsPage upload feedback', () => {
   it('shows error feedback when upload fails', async () => {
     mockUpload.mockRejectedValueOnce(new Error('Network error'));
     const user = userEvent.setup();
-    render(<EmployeeUploadsPage />);
+    render(
+      <MemoryRouter>
+        <EmployeeUploadsPage />
+      </MemoryRouter>,
+    );
 
     await waitFor(() => {
       expect(screen.getByText(/Photos attach to/i)).toBeInTheDocument();

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Bell,
   CheckCircle2,
@@ -43,6 +43,7 @@ export default function FieldNotificationsBell({
 }: FieldNotificationsBellProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const rootRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<FieldNotification[]>([]);
 
@@ -51,12 +52,23 @@ export default function FieldNotificationsBell({
     void fetchNotifications(user.id, 15).then(setItems);
   }, [user, open]);
 
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (event: MouseEvent) => {
+      if (rootRef.current && !rootRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', onPointerDown);
+    return () => document.removeEventListener('mousedown', onPointerDown);
+  }, [open]);
+
   const unread = items.filter((n) => !n.isRead).length;
 
   if (!user) return null;
 
   return (
-    <div className="relative">
+    <div ref={rootRef} className="relative">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
