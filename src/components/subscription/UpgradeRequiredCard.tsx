@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { Lock } from 'lucide-react';
 import {
   FEATURE_DESCRIPTIONS,
@@ -20,6 +21,7 @@ export default function UpgradeRequiredCard({
   description,
   className = '',
 }: UpgradeRequiredCardProps) {
+  const navigate = useNavigate();
   const requiredPlan = minPlanForFeature(feature);
   const planLabel = PLAN_DISPLAY_NAMES[requiredPlan].short;
   const featureDescription = description ?? FEATURE_DESCRIPTIONS[feature];
@@ -51,7 +53,7 @@ export default function UpgradeRequiredCard({
             className="inline-flex items-center rounded-lg bg-cyan-600 px-4 py-2 text-sm font-medium text-white hover:bg-cyan-700"
             data-testid={`upgrade-cta-${feature}`}
             onClick={() => {
-              // Placeholder until Stripe Checkout is wired.
+              navigate('/settings/billing');
             }}
           >
             Upgrade to {planLabel}

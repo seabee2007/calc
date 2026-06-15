@@ -24,6 +24,7 @@ import {
   Volume,
   BookOpen,
   Users,
+  CreditCard,
 } from 'lucide-react';
 import AppPage from '../components/ui/AppPage';
 import PageHeader from '../components/ui/PageHeader';
@@ -939,6 +940,15 @@ const Settings: React.FC = () => {
           ))}
               </div>
             </SettingsCollapsibleSection>
+
+            <SettingsLinkSection
+              testId="settings-billing-link"
+              icon={<CreditCard className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />}
+              title="Billing & Subscription"
+              description="View your plan, upgrade, and manage Stripe billing."
+              summaryChip="Manage plan"
+              onNavigate={() => navigate('/settings/billing')}
+            />
 
             <SettingsLinkSection
               testId="settings-accounting-tax-link"

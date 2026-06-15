@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import React from 'react';
+import { MemoryRouter } from 'react-router-dom';
 import FeatureGate from '../FeatureGate';
 import { SubscriptionProvider } from '../../../contexts/SubscriptionContext';
 
@@ -47,11 +48,13 @@ describe('FeatureGate', () => {
     });
 
     render(
-      <SubscriptionProvider>
-        <FeatureGate feature="ai_concrete_chat">
-          <div>Allowed content</div>
-        </FeatureGate>
-      </SubscriptionProvider>,
+      <MemoryRouter>
+        <SubscriptionProvider>
+          <FeatureGate feature="ai_concrete_chat">
+            <div>Allowed content</div>
+          </FeatureGate>
+        </SubscriptionProvider>
+      </MemoryRouter>,
     );
 
     expect(await screen.findByText('Allowed content')).toBeInTheDocument();
@@ -76,11 +79,13 @@ describe('FeatureGate', () => {
     });
 
     render(
-      <SubscriptionProvider>
-        <FeatureGate feature="employee_portal">
-          <div>Hidden content</div>
-        </FeatureGate>
-      </SubscriptionProvider>,
+      <MemoryRouter>
+        <SubscriptionProvider>
+          <FeatureGate feature="employee_portal">
+            <div>Hidden content</div>
+          </FeatureGate>
+        </SubscriptionProvider>
+      </MemoryRouter>,
     );
 
     expect(await screen.findByTestId('upgrade-required-employee_portal')).toBeInTheDocument();

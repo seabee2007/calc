@@ -50,6 +50,7 @@ import {
   LazyProjects,
   LazyProjectProposalsPage,
   LazySettings,
+  LazyBillingPage,
   LazyPourPlanner,
   LazyMixDesignAdvisor,
   LazyProposalGenerator,
@@ -523,6 +524,16 @@ function App() {
                 <AuthGuard>
                   <OwnerGuard>
                     <GatedLazyRoute feature="accounting_exports" Page={LazyAccountingTaxPage} />
+                  </OwnerGuard>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="settings/billing"
+              element={
+                <AuthGuard>
+                  <OwnerGuard>
+                    <LazyRoute Page={LazyBillingPage} />
                   </OwnerGuard>
                 </AuthGuard>
               }

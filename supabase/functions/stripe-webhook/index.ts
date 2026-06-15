@@ -1,154 +1,151 @@
 /**
- * Stripe webhook handler (stub).
- *
- * Wire real Stripe signature verification and SDK calls when Checkout goes live.
- * Never trust client-supplied plan IDs — resolve plan from Stripe price lookup keys only.
+ * Stripe webhook — source of truth for subscription status.
+ * Never trust client-provided plan IDs; resolve from Stripe Price lookup keys.
  */
-import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
-import { corsHeaders } from '../_shared/cors.ts';
+import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import Stripe from "https://esm.sh/stripe@17.7.0?target=deno";
+import { corsHeaders } from "../_shared/cors.ts";
+import {
+  buildSubscriptionUpsertPayload,
+  extractUserIdFromMetadata,
+  fetchStripeSubscription,
+  findUserIdForStripeCustomer,
+  getStripe,
+  upsertSubscriptionRow,
+} from "../_shared/stripe.ts";
 
-const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-const STRIPE_WEBHOOK_SECRET = Deno.env.get('STRIPE_WEBHOOK_SECRET');
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+const STRIPE_WEBHOOK_SECRET = Deno.env.get("STRIPE_WEBHOOK_SECRET");
 
-type PlanId = 'starter' | 'professional' | 'business';
-
-const LOOKUP_KEY_TO_PLAN: Record<string, PlanId> = {
-  arden_starter_monthly: 'starter',
-  arden_starter_annual: 'starter',
-  arden_professional_monthly: 'professional',
-  arden_professional_annual: 'professional',
-  arden_business_monthly: 'business',
-  arden_business_annual: 'business',
-};
-
-interface StripeEventStub {
-  type: string;
-  data: {
-    object: Record<string, unknown>;
-  };
-}
-
-function resolvePlanFromPriceLookup(priceLookupKey: string | undefined): PlanId {
-  if (!priceLookupKey) return 'starter';
-  return LOOKUP_KEY_TO_PLAN[priceLookupKey] ?? 'starter';
-}
-
-function resolvePlanFromStripeObject(object: Record<string, unknown>): PlanId {
-  const metadataPlan = object.metadata && typeof object.metadata === 'object'
-    ? (object.metadata as Record<string, unknown>).plan_id
-    : undefined;
-  if (typeof metadataPlan === 'string' && metadataPlan in LOOKUP_KEY_TO_PLAN === false) {
-    const normalized = metadataPlan as PlanId;
-    if (normalized === 'starter' || normalized === 'professional' || normalized === 'business') {
-      return normalized;
-    }
-  }
-
-  const items = object.items as { data?: Array<{ price?: { lookup_key?: string } }> } | undefined;
-  const lookupKey = items?.data?.[0]?.price?.lookup_key;
-  return resolvePlanFromPriceLookup(typeof lookupKey === 'string' ? lookupKey : undefined);
-}
-
-async function upsertSubscriptionFromStripeObject(
-  admin: ReturnType<typeof createClient>,
-  userId: string,
-  object: Record<string, unknown>,
-) {
-  const planId = resolvePlanFromStripeObject(object);
-  const status = typeof object.status === 'string' ? object.status : 'trialing';
-
-  const payload = {
-    user_id: userId,
-    stripe_customer_id:
-      typeof object.customer === 'string' ? object.customer : null,
-    stripe_subscription_id: typeof object.id === 'string' ? object.id : null,
-    plan_id: planId,
+function jsonResponse(body: Record<string, unknown>, status = 200): Response {
+  return new Response(JSON.stringify(body), {
     status,
-    current_period_start:
-      typeof object.current_period_start === 'number'
-        ? new Date(object.current_period_start * 1000).toISOString()
-        : null,
-    current_period_end:
-      typeof object.current_period_end === 'number'
-        ? new Date(object.current_period_end * 1000).toISOString()
-        : null,
-    trial_end:
-      typeof object.trial_end === 'number'
-        ? new Date(object.trial_end * 1000).toISOString()
-        : null,
-    cancel_at_period_end: Boolean(object.cancel_at_period_end),
-    updated_at: new Date().toISOString(),
-  };
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
 
-  const { error } = await admin.from('subscriptions').upsert(payload, { onConflict: 'user_id' });
+async function resolveUserIdForSubscription(
+  admin: ReturnType<typeof createClient>,
+  subscription: Stripe.Subscription,
+): Promise<string | null> {
+  const fromMetadata = extractUserIdFromMetadata(subscription.metadata);
+  if (fromMetadata) return fromMetadata;
+
+  const customerId = typeof subscription.customer === "string"
+    ? subscription.customer
+    : subscription.customer?.id;
+  if (!customerId) return null;
+  return findUserIdForStripeCustomer(admin, customerId);
+}
+
+async function syncSubscriptionById(
+  admin: ReturnType<typeof createClient>,
+  stripe: Stripe,
+  subscriptionId: string,
+  userIdHint?: string | null,
+): Promise<void> {
+  const subscription = await fetchStripeSubscription(stripe, subscriptionId);
+  const userId = userIdHint ?? await resolveUserIdForSubscription(admin, subscription);
+  if (!userId) {
+    console.warn("[stripe-webhook] Could not resolve user for subscription", subscriptionId);
+    return;
+  }
+  await upsertSubscriptionRow(admin, buildSubscriptionUpsertPayload(userId, subscription));
+}
+
+async function updateStatusForCustomer(
+  admin: ReturnType<typeof createClient>,
+  customerId: string,
+  status: string,
+): Promise<void> {
+  const userId = await findUserIdForStripeCustomer(admin, customerId);
+  if (!userId) return;
+
+  const { error } = await admin
+    .from("subscriptions")
+    .update({
+      status,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("user_id", userId);
+
   if (error) throw error;
 }
 
-function extractUserId(object: Record<string, unknown>): string | null {
-  const metadata = object.metadata;
-  if (metadata && typeof metadata === 'object') {
-    const userId = (metadata as Record<string, unknown>).user_id;
-    if (typeof userId === 'string' && userId.length > 0) return userId;
-  }
-  const clientReferenceId = object.client_reference_id;
-  if (typeof clientReferenceId === 'string' && clientReferenceId.length > 0) {
-    return clientReferenceId;
-  }
-  return null;
-}
-
-async function handleStripeEvent(admin: ReturnType<typeof createClient>, event: StripeEventStub) {
-  const object = event.data.object;
-
+async function handleStripeEvent(
+  admin: ReturnType<typeof createClient>,
+  stripe: Stripe,
+  event: Stripe.Event,
+): Promise<void> {
   switch (event.type) {
-    case 'checkout.session.completed': {
-      const userId = extractUserId(object);
-      if (!userId) return;
-      const subscriptionId = object.subscription;
-      if (typeof subscriptionId === 'string') {
-        // When Stripe SDK is wired, fetch the subscription object here instead of trusting the session.
-        await upsertSubscriptionFromStripeObject(admin, userId, {
-          ...object,
-          id: subscriptionId,
-          status: 'active',
-        });
+    case "checkout.session.completed": {
+      const session = event.data.object as Stripe.Checkout.Session;
+      const userId = extractUserIdFromMetadata(session.metadata) ??
+        (typeof session.client_reference_id === "string" ? session.client_reference_id : null);
+      const subscriptionId = typeof session.subscription === "string"
+        ? session.subscription
+        : session.subscription?.id;
+
+      if (subscriptionId) {
+        await syncSubscriptionById(admin, stripe, subscriptionId, userId);
+        return;
+      }
+
+      if (userId && typeof session.customer === "string") {
+        await admin.from("subscriptions").upsert(
+          {
+            user_id: userId,
+            stripe_customer_id: session.customer,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "user_id" },
+        );
       }
       return;
     }
-    case 'customer.subscription.created':
-    case 'customer.subscription.updated': {
-      const userId = extractUserId(object);
+    case "customer.subscription.created":
+    case "customer.subscription.updated": {
+      const subscription = event.data.object as Stripe.Subscription;
+      const userId = await resolveUserIdForSubscription(admin, subscription);
       if (!userId) return;
-      await upsertSubscriptionFromStripeObject(admin, userId, object);
+      await upsertSubscriptionRow(admin, buildSubscriptionUpsertPayload(userId, subscription));
       return;
     }
-    case 'customer.subscription.deleted': {
-      const userId = extractUserId(object);
+    case "customer.subscription.deleted": {
+      const subscription = event.data.object as Stripe.Subscription;
+      const userId = await resolveUserIdForSubscription(admin, subscription);
       if (!userId) return;
-      await upsertSubscriptionFromStripeObject(admin, userId, {
-        ...object,
-        status: 'canceled',
+      await upsertSubscriptionRow(admin, {
+        ...buildSubscriptionUpsertPayload(userId, subscription),
+        status: "canceled",
       });
       return;
     }
-    case 'invoice.payment_failed': {
-      const userId = extractUserId(object);
-      if (!userId) return;
-      await upsertSubscriptionFromStripeObject(admin, userId, {
-        ...object,
-        status: 'past_due',
-      });
+    case "invoice.payment_failed": {
+      const invoice = event.data.object as Stripe.Invoice;
+      const customerId = typeof invoice.customer === "string"
+        ? invoice.customer
+        : invoice.customer?.id;
+      if (!customerId) return;
+      await updateStatusForCustomer(admin, customerId, "past_due");
       return;
     }
-    case 'invoice.payment_succeeded': {
-      const userId = extractUserId(object);
-      if (!userId) return;
-      await upsertSubscriptionFromStripeObject(admin, userId, {
-        ...object,
-        status: 'active',
-      });
+    case "invoice.payment_succeeded": {
+      const invoice = event.data.object as Stripe.Invoice;
+      const subscriptionId = typeof invoice.subscription === "string"
+        ? invoice.subscription
+        : invoice.subscription?.id;
+      if (subscriptionId) {
+        await syncSubscriptionById(admin, stripe, subscriptionId);
+        return;
+      }
+      const customerId = typeof invoice.customer === "string"
+        ? invoice.customer
+        : invoice.customer?.id;
+      if (!customerId) return;
+      await updateStatusForCustomer(admin, customerId, "active");
       return;
     }
     default:
@@ -157,62 +154,41 @@ async function handleStripeEvent(admin: ReturnType<typeof createClient>, event: 
 }
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: corsHeaders });
   }
 
-  if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+  if (req.method !== "POST") {
+    return jsonResponse({ error: "Method not allowed" }, 405);
   }
 
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-    return new Response(JSON.stringify({ error: 'Server configuration error.' }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !STRIPE_WEBHOOK_SECRET) {
+    return jsonResponse({ error: "Server configuration error." }, 500);
   }
 
-  const signature = req.headers.get('Stripe-Signature');
-  const rawBody = await req.text();
-
-  // TODO: verify signature with Stripe SDK:
-  // const event = stripe.webhooks.constructEvent(rawBody, signature, STRIPE_WEBHOOK_SECRET);
-  if (!STRIPE_WEBHOOK_SECRET) {
-    console.warn('[stripe-webhook] STRIPE_WEBHOOK_SECRET is not configured — stub mode only.');
-  }
+  const signature = req.headers.get("Stripe-Signature");
   if (!signature) {
-    return new Response(JSON.stringify({ error: 'Missing Stripe-Signature header.' }), {
-      status: 400,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return jsonResponse({ error: "Missing Stripe-Signature header." }, 400);
   }
 
-  let event: StripeEventStub;
+  const rawBody = await req.text();
+  const stripe = getStripe();
+
+  let event: Stripe.Event;
   try {
-    event = JSON.parse(rawBody) as StripeEventStub;
-  } catch {
-    return new Response(JSON.stringify({ error: 'Invalid JSON payload.' }), {
-      status: 400,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    event = stripe.webhooks.constructEvent(rawBody, signature, STRIPE_WEBHOOK_SECRET);
+  } catch (error) {
+    console.error("[stripe-webhook] signature verification failed", error);
+    return jsonResponse({ error: "Invalid Stripe signature." }, 400);
   }
 
   const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
   try {
-    await handleStripeEvent(admin, event);
-    return new Response(JSON.stringify({ received: true }), {
-      status: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    await handleStripeEvent(admin, stripe, event);
+    return jsonResponse({ received: true });
   } catch (error) {
-    console.error('[stripe-webhook] handler failed', error);
-    return new Response(JSON.stringify({ error: 'Webhook handler failed.' }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    console.error("[stripe-webhook] handler failed", error);
+    return jsonResponse({ error: "Webhook handler failed." }, 500);
   }
 });

@@ -1,1 +1,2 @@
-// This file can be deleted as it's no longer needed
+// Deprecated: use create-customer-portal-session instead.
+export {};
