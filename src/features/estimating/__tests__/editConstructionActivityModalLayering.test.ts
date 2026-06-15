@@ -37,6 +37,14 @@ describe('EditConstructionActivityModal layering', () => {
     expect(editModalSource).toContain('Save Activity');
     expect(editModalSource).toContain('void handleSave()');
   });
+
+  it('embeds Arden Calc without route navigation', () => {
+    expect(editModalSource).toContain('Arden Calc');
+    expect(editModalSource).toContain('ArdenCalcOverlay');
+    expect(editModalSource).not.toContain('/calculator');
+    expect(editModalSource).not.toContain('window.location');
+    expect(editModalSource).not.toContain('useNavigate');
+  });
 });
 
 describe('ConstructionActivityBuilderPanel edit modal placement', () => {

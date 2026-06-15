@@ -13,6 +13,7 @@ interface ConstructionCalculatorHelpModalProps {
   isOpen: boolean;
   onClose: () => void;
   layout: 'desktop' | 'field';
+  stackAboveParent?: boolean;
 }
 
 function FormulaBlock({ lines }: { lines: string[] }) {
@@ -131,6 +132,7 @@ export default function ConstructionCalculatorHelpModal({
   isOpen,
   onClose,
   layout,
+  stackAboveParent = false,
 }: ConstructionCalculatorHelpModalProps) {
   const isField = layout === 'field';
   const [activeChip, setActiveChip] = useState<CalculatorHelpChip | null>(null);
@@ -203,6 +205,7 @@ export default function ConstructionCalculatorHelpModal({
       title={CALCULATOR_HELP_MODAL_TITLE}
       size="xl"
       panelClassName="max-h-[85vh]"
+      stackAboveDrawer={stackAboveParent}
     >
       <div data-testid="calculator-help-modal" className="-mt-1 flex max-h-[calc(85vh-5rem)] flex-col">
         <p className="mb-4 text-sm text-slate-600 dark:text-slate-400">{CALCULATOR_HELP_MODAL_SUBTITLE}</p>

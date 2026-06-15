@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { CircleHelp } from 'lucide-react';
 import type { CalculatorFunctionTab } from '../domain/constructionCalculatorTypes';
 import ConstructionDisplay from './ConstructionDisplay';
@@ -23,6 +23,8 @@ import type { CalculatorInputController } from './hooks/useCalculatorInputContro
 
 interface ConstructionCalculatorProps {
   layout: 'desktop' | 'field';
+  embedded?: boolean;
+  onControllerReady?: (controller: CalculatorInputController) => void;
 }
 
 function renderModulePanel(tab: CalculatorFunctionTab, controller: CalculatorInputController) {
@@ -52,17 +54,25 @@ function renderModulePanel(tab: CalculatorFunctionTab, controller: CalculatorInp
   }
 }
 
-export default function ConstructionCalculator({ layout }: ConstructionCalculatorProps) {
+export default function ConstructionCalculator({
+  layout,
+  embedded = false,
+  onControllerReady,
+}: ConstructionCalculatorProps) {
   const [activeTab, setActiveTab] = useState<CalculatorFunctionTab>('core');
   const [helpOpen, setHelpOpen] = useState(false);
   const controller = useCalculatorInputController({
-    enableKeyboard: layout === 'desktop',
+    enableKeyboard: layout === 'desktop' && !embedded,
   });
   const { state, pressKey, pickFraction, setPrecision, modeHint, activeSlot, memoryHasValue, convUnit } =
     controller;
-  const isField = layout === 'field';
+  const isField = layout === 'field' || embedded;
   const isCore = activeTab === 'core';
   const showKeypad = isCore || activeSlot !== null;
+
+  useEffect(() => {
+    onControllerReady?.(controller);
+  }, [controller, onControllerReady]);
 
   const helpButton = (
     <button
@@ -88,6 +98,7 @@ export default function ConstructionCalculator({ layout }: ConstructionCalculato
         isOpen={helpOpen}
         onClose={() => setHelpOpen(false)}
         layout={layout}
+        stackAboveParent={embedded}
       />
       <ConstructionFunctionTabs
         activeTab={activeTab}
@@ -126,8 +137,8 @@ export default function ConstructionCalculator({ layout }: ConstructionCalculato
     </>
   );
 
-  if (isField) {
-    return <div className="pb-20">{calculatorBody}</div>;
+  if (isField || embedded) {
+    return <div className={embedded ? '' : 'pb-20'}>{calculatorBody}</div>;
   }
 
   return (
