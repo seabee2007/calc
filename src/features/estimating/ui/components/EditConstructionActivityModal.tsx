@@ -8,6 +8,7 @@ import { useProjectLaborRates } from '../hooks/useProjectLaborRates';
 import { resolveLaborRateForWorkElement, workElementFromLineItem } from '../../application/laborRateResolver';
 import { isLineItemUnpricedForLabor } from '../../domain/constructionActivityCalculations';
 import { roundToTwo } from '../../domain/estimateMath';
+import { useSubscription } from '../../../../contexts/SubscriptionContext';
 import ArdenCalcOverlay from './ArdenCalcOverlay';
 import { usePrefersTouchLayout } from '../hooks/usePrefersTouchLayout';
 import { Calculator } from 'lucide-react';
@@ -57,6 +58,8 @@ export default function EditConstructionActivityModal({
   const quantityInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const sectionLauncherRef = useRef<HTMLButtonElement>(null);
   const prefersTouch = usePrefersTouchLayout();
+  const { hasFeature } = useSubscription();
+  const calcEnabled = hasFeature('arden_calc_in_estimator');
 
   const { projectRates, loading: ratesLoading } = useProjectLaborRates(activity.projectId);
 
@@ -98,9 +101,10 @@ export default function EditConstructionActivityModal({
   );
 
   const openCalcForField = useCallback((fieldId: string) => {
+    if (!calcEnabled) return;
     setFocusedQuantityId(fieldId);
     setCalcOpen(true);
-  }, []);
+  }, [calcEnabled]);
 
   const closeCalc = useCallback(() => {
     setCalcOpen(false);
@@ -219,15 +223,19 @@ export default function EditConstructionActivityModal({
                   onFocus={() => setFocusedQuantityId(item.id)}
                   onChange={(e) => setQuantities((current) => ({ ...current, [item.id]: e.target.value }))}
                 />
-                <button
-                  type="button"
-                  onClick={() => openCalcForField(item.id)}
-                  className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-slate-300 text-slate-600 hover:border-cyan-400 hover:text-cyan-700 dark:border-slate-600 dark:text-slate-300 dark:hover:border-cyan-500/50 dark:hover:text-cyan-400"
-                  aria-label={`Open Arden Calc for ${item.name}`}
-                  data-testid={`arden-calc-launcher-${item.id}`}
-                >
-                  <Calculator className="h-4 w-4" aria-hidden />
-                </button>
+                {calcEnabled ? (
+                  <button
+                    type="button"
+                    onClick={() => openCalcForField(item.id)}
+                    className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-slate-300 text-slate-600 hover:border-cyan-400 hover:text-cyan-700 dark:border-slate-600 dark:text-slate-300 dark:hover:border-cyan-500/50 dark:hover:text-cyan-400"
+                    aria-label={`Open Arden Calc for ${item.name}`}
+                    data-testid={`arden-calc-launcher-${item.id}`}
+                  >
+                    <Calculator className="h-4 w-4" aria-hidden />
+                  </button>
+                ) : (
+                  <span className="inline-flex h-8 w-8 shrink-0" aria-hidden />
+                )}
                 <span className="text-xs text-slate-500">{item.unit}</span>
               </div>
             ))}
@@ -387,12 +395,14 @@ export default function EditConstructionActivityModal({
         </div>
       </div>
 
-      <ArdenCalcOverlay
-        open={calcOpen}
-        onClose={closeCalc}
-        prefersTouch={prefersTouch}
-        onUseResult={handleUseCalculatorResult}
-      />
+      {calcEnabled ? (
+        <ArdenCalcOverlay
+          open={calcOpen}
+          onClose={closeCalc}
+          prefersTouch={prefersTouch}
+          onUseResult={handleUseCalculatorResult}
+        />
+      ) : null}
     </Modal>
   );
 }

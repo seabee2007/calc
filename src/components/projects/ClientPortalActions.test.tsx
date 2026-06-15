@@ -15,6 +15,10 @@ vi.mock('../../services/clientPortalService', () => ({
   buildClientPortalUrl: (token: string) => `https://app.example.com/client/project/${token}`,
 }));
 
+vi.mock('../subscription/FeatureGate', () => ({
+  default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+
 vi.mock('./ClientPortalCreatedModal', () => ({
   default: ({
     clientName,

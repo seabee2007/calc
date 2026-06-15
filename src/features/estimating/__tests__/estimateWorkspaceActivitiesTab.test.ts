@@ -31,7 +31,7 @@ describe('estimate workspace — Activities as primary workflow', () => {
   });
 
   it('does not show a fixed tab list — tabs adapt by estimate type', () => {
-    expect(workspacePageSource).toContain('visibleTabs={visibleWorkspaceTabs}');
+    expect(workspacePageSource).toContain('visibleTabs={entitlementFilteredTabs}');
     expect(workspacePageSource).toContain('ChooseEstimateTypeModal');
     expect(workspacePageSource).toContain('EstimateTypeHeaderControl');
   });

@@ -16,6 +16,8 @@ import {
   DEFAULT_ESTIMATE_WORKSPACE_TAB,
 } from '../utils/estimateRoutes';
 import { useAuth } from '../../../hooks/useAuth';
+import { useSubscription } from '../../../contexts/SubscriptionContext';
+import FeatureGate from '../../../components/subscription/FeatureGate';
 import { usePlannerProject } from '../../../contexts/PlannerProjectContext';
 import { useProjectStore } from '../../../store';
 import { DEFAULT_ESTIMATE_METHOD, isConceptualEstimateType, isQuickEstimateType, normalizeEstimateMethod, supportsConstructionActivitiesWorkflow } from '../domain/estimateMethods';
@@ -367,6 +369,20 @@ export default function EstimateWorkspacePage() {
   const visibleWorkspaceTabs = useMemo(
     () => getVisibleWorkspaceTabs(resolvedEstimateType, schedulingEnabled),
     [resolvedEstimateType, schedulingEnabled],
+  );
+  const { hasFeature } = useSubscription();
+  const entitlementFilteredTabs = useMemo(
+    () =>
+      visibleWorkspaceTabs.filter((tab) => {
+        if (isScheduleWorkspaceTab(tab.id) && !hasFeature('logic_network')) {
+          return false;
+        }
+        if (tab.id === 'level-iii-gantt' && !hasFeature('level_three_gantt')) {
+          return false;
+        }
+        return true;
+      }),
+    [visibleWorkspaceTabs, hasFeature],
   );
 
   // Construction activities for schedule source (Milestone 5) — must be declared before
@@ -2217,7 +2233,9 @@ export default function EstimateWorkspacePage() {
   const setHeaderMiniStatus = headerCollapse?.setMiniStatus;
 
   const activeTabLabel =
-    visibleWorkspaceTabs.find((tab) => tab.id === activeTab)?.label ?? 'Workspace';
+    visibleWorkspaceTabs.find((tab) => tab.id === activeTab)?.label ??
+    entitlementFilteredTabs.find((tab) => tab.id === activeTab)?.label ??
+    'Workspace';
 
   useEffect(() => {
     if (!headerCollapseEnabled || !setHeaderMiniStatus) return;
@@ -2254,7 +2272,7 @@ export default function EstimateWorkspacePage() {
   const estimateWorkspaceTabBar = (
     <EstimateWorkspaceTabBar
       activeTabId={activeTab}
-      visibleTabs={visibleWorkspaceTabs}
+      visibleTabs={entitlementFilteredTabs}
       onTabChange={handleTabChange}
       estimateTypeControl={
         <EstimateTypeHeaderControl
@@ -2763,18 +2781,20 @@ export default function EstimateWorkspacePage() {
         {/* ── Construction Activities tab (Milestones 4 + 5) ─────────────────── */}
         {!loadError && !dataLoading && activeTab === 'activities' ? (
           resolvedProjectId ? (
-            <ConstructionActivityBuilderPanel
-              projectId={resolvedProjectId}
-              estimateId={estimate?.id}
-              hasEstimateTypeSelected={hasEstimate}
-              onChooseEstimateType={() => setEstimateTypeModalOpen(true)}
-              projectContext={projectScopeContext}
-              acceptedDivisionCodes={acceptedDivisionCodes}
-              selectedDivisions={currentEstimate?.selectedDivisions ?? EMPTY_SELECTED_DIVISIONS}
-              importCollapseDivisionCodesKey={importCollapseDivisionCodesKey}
-              onEnsureDivisionsSelected={handleEnsureDivisionsSelected}
-              onActivitiesChanged={reloadConstructionActivities}
-            />
+            <FeatureGate feature="activity_based_estimating">
+              <ConstructionActivityBuilderPanel
+                projectId={resolvedProjectId}
+                estimateId={estimate?.id}
+                hasEstimateTypeSelected={hasEstimate}
+                onChooseEstimateType={() => setEstimateTypeModalOpen(true)}
+                projectContext={projectScopeContext}
+                acceptedDivisionCodes={acceptedDivisionCodes}
+                selectedDivisions={currentEstimate?.selectedDivisions ?? EMPTY_SELECTED_DIVISIONS}
+                importCollapseDivisionCodesKey={importCollapseDivisionCodesKey}
+                onEnsureDivisionsSelected={handleEnsureDivisionsSelected}
+                onActivitiesChanged={reloadConstructionActivities}
+              />
+            </FeatureGate>
           ) : (
             <EstimateWorkspaceEmptyState
               title="No project"

@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { UserPlus, Mail, Users, Clock, FolderKanban, Link2, Trash2, Smartphone, Copy, Check } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { useSubscription } from '../../contexts/SubscriptionContext';
+import UpgradeRequiredCard from '../subscription/UpgradeRequiredCard';
 import {
   assignEmployeeToProject,
   createEmployeeInvite,
@@ -60,6 +62,7 @@ function formatSentDate(iso: string): string {
 
 export default function EmployeeManagement() {
   const { user } = useAuth();
+  const { canInviteFieldSeat } = useSubscription();
   const { projects, loadProjects } = useProjectStore();
   const [invites, setInvites] = useState<EmployeeInvite[]>([]);
   const [team, setTeam] = useState<Profile[]>([]);
@@ -130,6 +133,10 @@ export default function EmployeeManagement() {
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !email.trim()) return;
+    if (!canInviteFieldSeat(team.length)) {
+      showMessage('Upgrade your plan or add field seats to invite more team members.', 'warning');
+      return;
+    }
     setBusy(true);
     setMessage(null);
     try {
@@ -207,6 +214,8 @@ export default function EmployeeManagement() {
     }
   };
 
+  const inviteAllowed = canInviteFieldSeat(team.length);
+
   return (
     <div className="space-y-6">
       <section
@@ -240,6 +249,15 @@ export default function EmployeeManagement() {
           title="Invite team member"
           description="Send an invite so an employee can access assigned project work."
         />
+        {!inviteAllowed ? (
+          <div className="mt-6">
+            <UpgradeRequiredCard
+              feature="employee_portal"
+              title="Field seat limit reached"
+              description="Your current plan does not include enough field seats for another team invite."
+            />
+          </div>
+        ) : (
         <form onSubmit={(e) => void handleInvite(e)} className="mt-6 grid gap-4 md:grid-cols-2">
           <Input
             label="Email"
@@ -272,6 +290,7 @@ export default function EmployeeManagement() {
             </Button>
           </div>
         </form>
+        )}
       </section>
 
       <section className={SECTION_CARD} data-testid="pending-invites-card">

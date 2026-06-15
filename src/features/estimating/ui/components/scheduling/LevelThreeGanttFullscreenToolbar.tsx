@@ -1,4 +1,6 @@
 import Button from '../../../../../components/ui/Button';
+import FeatureGate from '../../../../../components/subscription/FeatureGate';
+import UpgradeRequiredCard from '../../../../../components/subscription/UpgradeRequiredCard';
 import LevelThreeGanttExportMenu from './LevelThreeGanttExportMenu';
 
 const FULLSCREEN_TOOLBAR_BUTTON_CLASS =
@@ -72,12 +74,24 @@ export default function LevelThreeGanttFullscreenToolbar({
 
         <span className="w-px self-stretch bg-slate-300 dark:bg-slate-700" aria-hidden />
 
-        <LevelThreeGanttExportMenu
-          exportReady={exportReady}
-          onExportPdf={onExportPdf}
-          onExportExcel={onExportExcel}
-          buttonClassName="border-slate-300 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-        />
+        <FeatureGate
+          feature="level_three_gantt_export"
+          inline
+          fallback={
+            <UpgradeRequiredCard
+              feature="level_three_gantt_export"
+              className="max-w-xs p-3"
+              title="Export requires Business"
+            />
+          }
+        >
+          <LevelThreeGanttExportMenu
+            exportReady={exportReady}
+            onExportPdf={onExportPdf}
+            onExportExcel={onExportExcel}
+            buttonClassName="border-slate-300 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+          />
+        </FeatureGate>
         <Button
           type="button"
           variant="outline"
