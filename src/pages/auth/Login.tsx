@@ -1,7 +1,7 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Building2, HardHat, Lock, Mail } from 'lucide-react';
+import { Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { HardHat, Lock, Mail } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
@@ -36,7 +36,7 @@ export function resolvePostLoginDest(role: string | undefined, returnTo?: string
 }
 
 const Login: React.FC = () => {
-  const { signIn, refreshProfile } = useAuth();
+  const { signIn, refreshProfile, user, profile, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const inviteToken =
@@ -47,8 +47,9 @@ const Login: React.FC = () => {
   const loginMessage = (location.state as { message?: string } | null)?.message;
   const oauthError = new URLSearchParams(location.search).get('error') === 'oauth';
   const [socialLoginError, setSocialLoginError] = React.useState<string | null>(null);
+  const intentParam = new URLSearchParams(location.search).get('intent');
   const [loginPath, setLoginPath] = React.useState<LoginPath>(
-    inviteToken ? 'field' : null,
+    inviteToken || intentParam === 'field' ? 'field' : 'admin',
   );
   const { register, handleSubmit, formState: { errors }, setError, watch } = useForm<LoginForm>();
   const [isLoading, setIsLoading] = React.useState(false);
@@ -56,6 +57,12 @@ const Login: React.FC = () => {
   const [resetError, setResetError] = React.useState<string | null>(null);
 
   const emailValue = watch('email');
+
+  // If already authenticated, redirect away so the login page never flashes
+  // when the loading gate briefly exits during session restore.
+  if (!authLoading && user) {
+    return <Navigate to={resolvePostLoginDest(profile?.role, returnTo)} replace />;
+  }
 
   const onSubmit = async (data: LoginForm) => {
     try {
@@ -137,50 +144,12 @@ const Login: React.FC = () => {
         : 'Sign in to continue to your project workspace.';
 
   const handleBackClick = () => {
-    if (loginPath !== null && !inviteToken) {
-      setLoginPath(null);
-      return;
-    }
     navigate('/');
   };
 
   return (
     <AuthLayout title="Welcome back" subtitle={subtitle} onBackClick={handleBackClick}>
-      {/* Path selector — shown when no path chosen and no invite token */}
-      {loginPath === null && !inviteToken && (
-        <div className="mb-6 grid gap-3 sm:grid-cols-2" data-testid="login-path-selector">
-          <button
-            type="button"
-            onClick={() => setLoginPath('admin')}
-            className="flex flex-col items-start gap-2 rounded-2xl border border-slate-700 bg-slate-800/60 p-4 text-left hover:border-cyan-500/60 hover:bg-slate-800 transition-colors"
-            data-testid="login-path-admin"
-          >
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-700">
-              <Building2 className="h-4 w-4 text-cyan-400" aria-hidden />
-            </span>
-            <span className="text-sm font-semibold text-white">Company / Admin Login</span>
-            <span className="text-xs leading-relaxed text-slate-400">
-              For owners, project managers, estimators, and office staff.
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setLoginPath('field')}
-            className="flex flex-col items-start gap-2 rounded-2xl border border-slate-700 bg-slate-800/60 p-4 text-left hover:border-cyan-500/60 hover:bg-slate-800 transition-colors"
-            data-testid="login-path-field"
-          >
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-700">
-              <HardHat className="h-4 w-4 text-cyan-400" aria-hidden />
-            </span>
-            <span className="text-sm font-semibold text-white">Field Portal Login</span>
-            <span className="text-xs leading-relaxed text-slate-400">
-              For field employees submitting photos, notes, RFIs, FARs, and task updates.
-            </span>
-          </button>
-        </div>
-      )}
-
+      {/* Field Portal badge — shown when coming from a field/invite link */}
       {loginPath === 'field' && !inviteToken && (
         <div className="mb-4">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 px-2.5 py-0.5 text-xs font-medium text-cyan-300">
@@ -204,8 +173,7 @@ const Login: React.FC = () => {
         </AuthAlert>
       )}
 
-      {/* Show the form only after a path is chosen (or when an invite token is present) */}
-      {(loginPath !== null || inviteToken) && !resetEmailSent && (
+      {!resetEmailSent && (
         <>
           <SocialLoginButtons
             appearance="auth-dark"
@@ -228,7 +196,7 @@ const Login: React.FC = () => {
           If an account exists with {emailValue}, password reset instructions have been sent.
           Please check your email inbox.
         </AuthAlert>
-      ) : (loginPath !== null || inviteToken) ? (
+      ) : (
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="auth-page-inputs space-y-6 [&_label]:text-slate-300"
@@ -289,7 +257,7 @@ const Login: React.FC = () => {
             isLoading={isLoading}
             className={authPrimaryButtonClassName}
           >
-            Sign In
+            {isLoading ? 'Signing in\u2026' : 'Sign In'}
           </Button>
 
           <p className="text-center text-sm text-slate-300">
@@ -309,7 +277,7 @@ const Login: React.FC = () => {
             </button>
           </p>
         </form>
-      ) : null}
+      )}
     </AuthLayout>
   );
 };

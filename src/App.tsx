@@ -1,4 +1,4 @@
-import React, { useEffect, useState, Suspense } from 'react';
+import React, { useEffect, useRef, useState, Suspense } from 'react';
 import Button from './components/ui/Button';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useThemeStore } from './store/themeStore';
@@ -26,6 +26,7 @@ import { ProposalService } from './lib/proposalService';
 import { seedTrackedProposalsCache } from './hooks/useTrackedProposals';
 import { soundService } from './services/soundService';
 import RouteFallback from './routes/RouteFallback';
+import AppLoadingScreen from './components/ui/AppLoadingScreen';
 import {
   markOnboardingCompletedLocally,
   readLocalOnboardingCompleted,
@@ -167,6 +168,18 @@ function App() {
   const [initError, setInitError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Reset onboarding gate immediately when the signed-in user changes.
+  // This prevents the loading screen from briefly dropping between
+  // onAuthStateChange setting a new user and initializeApp resetting stores.
+  const prevUserIdRef = useRef<string | null | undefined>(undefined);
+  useEffect(() => {
+    const userId = user?.id ?? null;
+    if (userId !== prevUserIdRef.current) {
+      prevUserIdRef.current = userId;
+      setOnboardingChecked(false);
+    }
+  }, [user?.id]);
+
   useEffect(() => {
     const initializeApp = async () => {
       try {
@@ -200,7 +213,10 @@ function App() {
     };
 
     initializeApp();
-  }, [user, authLoading, loadProjects, loadCompanySettings, loadPreferences, migrateSettings, migratePreferences]);
+  // Use user?.id (not user object) so initializeApp only re-runs when the
+  // actual user changes, not on every onAuthStateChange reference update.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, authLoading, loadProjects, loadCompanySettings, loadPreferences, migrateSettings, migratePreferences]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -225,6 +241,7 @@ function App() {
         localOnboardingCompleted,
         hasExistingProjects: projects.length > 0,
         isTestOnboardingRoute: isTestOnboarding,
+        profileAgreementAcceptedAt: profile?.agreementAcceptedAt ?? null,
       });
 
       if (!shouldShow && !localOnboardingCompleted) {
@@ -278,9 +295,10 @@ function App() {
 
   if (initError) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center p-4">
+      <div className="min-h-[100dvh] bg-slate-950 flex items-center justify-center p-6">
         <div className="text-center">
-          <h1 className="text-xl font-bold mb-4">{initError}</h1>
+          <p className="text-sm font-bold uppercase tracking-[0.28em] text-cyan-300 mb-4">Arden Project OS</p>
+          <h1 className="text-xl font-bold mb-4 text-white">{initError}</h1>
           <Button variant="primary" onClick={() => window.location.reload()}>
             Retry
           </Button>
@@ -293,12 +311,14 @@ function App() {
   const requiresLegalAcceptance =
     !!user && !hasAcceptedCurrentLegal && !legalGateBypass;
 
-  if (!onboardingChecked || authLoading || isLoading || (user && legalLoading && !legalGateBypass)) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full" />
-      </div>
-    );
+  if (
+    !onboardingChecked ||
+    authLoading ||
+    isLoading ||
+    (user && !companySettingsHydrated) ||
+    (user && legalLoading && !legalGateBypass)
+  ) {
+    return <AppLoadingScreen />;
   }
 
   if ((showOnboarding && user) || location.pathname === '/test-onboarding') {

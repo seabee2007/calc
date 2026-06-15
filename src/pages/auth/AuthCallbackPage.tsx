@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import AppLoadingScreenComp from '../../components/ui/AppLoadingScreen';
 import { supabase } from '../../lib/supabase';
 import { consumeLoginIntent } from '../../lib/loginIntent';
 import { consumePendingProjectInviteToken } from '../../services/projectInviteService';
@@ -106,9 +107,5 @@ export default function AuthCallbackPage() {
     };
   }, [navigate]);
 
-  return (
-    <div className="flex min-h-[100dvh] items-center justify-center bg-white dark:bg-gray-900">
-      <p className="text-gray-700 dark:text-gray-200">Signing you in...</p>
-    </div>
-  );
+  return <AppLoadingScreenComp message="Securing your session\u2026" />;
 }

@@ -15,6 +15,8 @@ export interface OnboardingStatusInput {
   localOnboardingCompleted?: boolean;
   hasExistingProjects?: boolean;
   isTestOnboardingRoute?: boolean;
+  /** DB-backed: profile.agreementAcceptedAt — truthy means user already accepted terms. */
+  profileAgreementAcceptedAt?: string | null;
 }
 
 /** True when company settings were saved (onboarding completed or settings edited later). */
@@ -42,6 +44,12 @@ export function shouldShowOwnerOnboarding(input: OnboardingStatusInput): boolean
   }
 
   if (input.localOnboardingCompleted) {
+    return false;
+  }
+
+  // DB-backed check: if the user has already accepted the agreement, they are
+  // an established user and should not see onboarding again after a cache clear.
+  if (input.profileAgreementAcceptedAt) {
     return false;
   }
 

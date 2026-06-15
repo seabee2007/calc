@@ -22,8 +22,8 @@ export default function RoleGuard({
 
   if (loading || profileLoading) {
     return (
-      <div className="flex min-h-[40vh] items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-cyan-500 border-t-transparent" />
+      <div className="flex min-h-[40vh] items-center justify-center bg-transparent">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-cyan-400/30 border-t-cyan-300" />
       </div>
     );
   }
