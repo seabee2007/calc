@@ -54,7 +54,7 @@ function resolveSubscriptionOwnerId(
 }
 
 export function SubscriptionProvider({ children }: { children: ReactNode }) {
-  const { user, profile } = useAuth();
+  const { user, profile, loading: authLoading, profileLoading } = useAuth();
   const [subscription, setSubscription] = useState<SubscriptionRow | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -79,8 +79,14 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
   }, [subscriptionOwnerId]);
 
   useEffect(() => {
+    if (authLoading || profileLoading || !user || !profile) {
+      setSubscription(null);
+      setLoading(Boolean(user && (authLoading || profileLoading)));
+      return;
+    }
+
     void refresh();
-  }, [refresh]);
+  }, [authLoading, profileLoading, user?.id, profile?.id, refresh]);
 
   const plan = useMemo(
     () => resolveEffectivePlanFromRow(subscription),

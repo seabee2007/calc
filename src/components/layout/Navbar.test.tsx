@@ -10,6 +10,24 @@ vi.mock('../../hooks/useAuth', () => ({
   useAuth: () => mockUseAuth(),
 }));
 
+vi.mock('../../contexts/SubscriptionContext', () => ({
+  useSubscription: () => ({
+    plan: 'starter',
+    status: null,
+    isActive: false,
+    subscription: null,
+    loading: false,
+    refresh: vi.fn(),
+    limits: {},
+    hasFeature: vi.fn(),
+    getLimit: vi.fn(),
+    canCreateProject: vi.fn(),
+    canInviteFieldSeat: vi.fn(),
+    requiresUpgrade: vi.fn(),
+    minPlanRequired: vi.fn(),
+  }),
+}));
+
 const mockOpenTools = vi.fn();
 
 vi.mock('../../store/toolsModalStore', () => ({

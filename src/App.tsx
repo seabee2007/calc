@@ -16,6 +16,7 @@ import { LegacyTaskDetailRedirect } from './components/routing/LegacyPlannerRedi
 import PlannerIndexRedirect from './components/routing/PlannerIndexRedirect';
 import { useProjectStore, useSettingsStore, usePreferencesStore } from './store';
 import { useAuth } from './hooks/useAuth';
+import { useAuthBootstrap } from './hooks/useAuthBootstrap';
 import { useLegalAcceptance } from './hooks/useLegalAcceptance';
 import LegalAcceptanceGate from './components/legal/LegalAcceptanceGate';
 import { isLegalGateBypassRoute } from './utils/legalGateRoutes';
@@ -23,7 +24,9 @@ import TermsPage from './pages/legal/TermsPage';
 import PrivacyPage from './pages/legal/PrivacyPage';
 import ContactPage from './pages/legal/ContactPage';
 import { ProposalService } from './lib/proposalService';
+import { getVerifiedAuthUser, isUnauthenticatedError } from './lib/authSession';
 import { seedTrackedProposalsCache } from './hooks/useTrackedProposals';
+import { useTrackedProposalsStore } from './store/trackedProposalsStore';
 import { soundService } from './services/soundService';
 import RouteFallback from './routes/RouteFallback';
 import AppLoadingScreen from './components/ui/AppLoadingScreen';
@@ -177,6 +180,12 @@ function ConcreteChatGate() {
 function App() {
   const { user, profile, profileLoading, loading: authLoading } = useAuth();
   const {
+    bootstrapReady,
+    bootstrapPhase,
+    bootstrapError,
+    retryBootstrap,
+  } = useAuthBootstrap();
+  const {
     isLoading: legalLoading,
     isAccepting: legalAccepting,
     hasAcceptedCurrentLegal,
@@ -211,45 +220,96 @@ function App() {
   }, [user?.id]);
 
   useEffect(() => {
+    if (authLoading) return;
+    if (user) return;
+    useTrackedProposalsStore.getState().setProposals([]);
+  }, [user, authLoading]);
+
+  useEffect(() => {
+    if (!bootstrapReady) {
+      if (!user && !authLoading) {
+        setIsLoading(false);
+      }
+      return;
+    }
+
+    let cancelled = false;
+
     const initializeApp = async () => {
       try {
         await soundService.initialize();
 
-        if (user && !authLoading) {
-          await Promise.all([
-            loadProjects().catch((e) => console.error('Error loading projects:', e)),
-            loadCompanySettings().catch((e) => console.error('Error loading settings:', e)),
-            loadPreferences().catch((e) => console.error('Error loading preferences:', e)),
-            ProposalService.getAll()
-              .then((data) => {
-                if (user.id) seedTrackedProposalsCache(user.id, data);
-              })
-              .catch((e) => console.error('Error prefetching proposals:', e)),
-          ]);
+        if (user) {
+          const verifiedUser = await getVerifiedAuthUser();
 
-          await Promise.all([
-            migrateSettings().catch((e) => console.error('Error migrating settings:', e)),
-            migratePreferences().catch((e) =>
-              console.error('Error migrating preferences:', e),
-            ),
-          ]);
+          if (verifiedUser) {
+            await Promise.all([
+              loadProjects().catch((e) => {
+                if (isUnauthenticatedError(e)) return;
+                console.error('Error loading projects:', e);
+              }),
+              loadCompanySettings().catch((e) => {
+                if (isUnauthenticatedError(e)) return;
+                console.error('Error loading company settings:', e);
+              }),
+              loadPreferences().catch((e) => {
+                if (isUnauthenticatedError(e)) return;
+                console.error('Error loading preferences:', e);
+              }),
+              ProposalService.getAll()
+                .then((data) => {
+                  seedTrackedProposalsCache(verifiedUser.id, data);
+                })
+                .catch((e) => {
+                  if (isUnauthenticatedError(e)) return;
+                  console.error('Error prefetching proposals:', e);
+                }),
+            ]);
+
+            await Promise.all([
+              migrateSettings().catch((e) => {
+                if (isUnauthenticatedError(e)) return;
+                console.error('Error migrating settings:', e);
+              }),
+              migratePreferences().catch((e) => {
+                if (isUnauthenticatedError(e)) return;
+                console.error('Error migrating preferences:', e);
+              }),
+            ]);
+          }
         }
       } catch (error) {
         console.error('Error initializing app:', error);
         setInitError('Failed to initialize app. Please try again.');
       } finally {
-        setIsLoading(false);
+        if (!cancelled) {
+          setIsLoading(false);
+        }
       }
     };
 
-    initializeApp();
+    setIsLoading(true);
+    void initializeApp();
+
+    return () => {
+      cancelled = true;
+    };
   // Use user?.id (not user object) so initializeApp only re-runs when the
   // actual user changes, not on every onAuthStateChange reference update.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, authLoading, loadProjects, loadCompanySettings, loadPreferences, migrateSettings, migratePreferences]);
+  }, [
+    bootstrapReady,
+    user?.id,
+    authLoading,
+    loadProjects,
+    loadCompanySettings,
+    loadPreferences,
+    migrateSettings,
+    migratePreferences,
+  ]);
 
   useEffect(() => {
-    if (authLoading) return;
+    if (authLoading || !bootstrapReady) return;
 
     if (!user) {
       setShowOnboarding(false);
@@ -271,7 +331,6 @@ function App() {
         localOnboardingCompleted,
         hasExistingProjects: projects.length > 0,
         isTestOnboardingRoute: isTestOnboarding,
-        profileAgreementAcceptedAt: profile?.agreementAcceptedAt ?? null,
       });
 
       if (!shouldShow && !localOnboardingCompleted) {
@@ -288,6 +347,7 @@ function App() {
   }, [
     user,
     authLoading,
+    bootstrapReady,
     isLoading,
     profileLoading,
     companySettingsHydrated,
@@ -341,7 +401,23 @@ function App() {
   const requiresLegalAcceptance =
     !!user && !hasAcceptedCurrentLegal && !legalGateBypass;
 
+  if (bootstrapPhase === 'error' && user) {
+    return (
+      <div className="min-h-[100dvh] bg-slate-950 flex items-center justify-center p-6">
+        <div className="text-center max-w-md">
+          <p className="text-sm font-bold uppercase tracking-[0.28em] text-cyan-300 mb-4">Arden Project OS</p>
+          <h1 className="text-xl font-bold mb-2 text-white">Could not prepare your account</h1>
+          <p className="text-sm text-slate-400 mb-4">{bootstrapError ?? 'Please try again.'}</p>
+          <Button variant="primary" onClick={retryBootstrap}>
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   if (
+    !bootstrapReady ||
     !onboardingChecked ||
     authLoading ||
     isLoading ||
@@ -349,14 +425,6 @@ function App() {
     (user && legalLoading && !legalGateBypass)
   ) {
     return <AppLoadingScreen />;
-  }
-
-  if ((showOnboarding && user) || location.pathname === '/test-onboarding') {
-    return (
-      <Suspense fallback={<RouteFallback />}>
-        <LazyOnboardingFlow onComplete={handleOnboardingComplete} />
-      </Suspense>
-    );
   }
 
   if (requiresLegalAcceptance) {
@@ -369,6 +437,14 @@ function App() {
         onRetry={() => void refreshLegalAcceptance()}
         isAccepting={legalAccepting}
       />
+    );
+  }
+
+  if ((showOnboarding && user) || location.pathname === '/test-onboarding') {
+    return (
+      <Suspense fallback={<RouteFallback />}>
+        <LazyOnboardingFlow onComplete={handleOnboardingComplete} />
+      </Suspense>
     );
   }
 

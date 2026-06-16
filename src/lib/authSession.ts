@@ -34,3 +34,19 @@ export async function clearStaleAuthSession(): Promise<void> {
     // Session may already be invalid; local sign-out is best-effort.
   }
 }
+
+/**
+ * Returns the current user only when Supabase confirms a valid server session.
+ * Prefer this over React auth state before calling authenticated services.
+ */
+export async function getVerifiedAuthUser() {
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user) return null;
+  return user;
+}
+
+export function isUnauthenticatedError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+  const message = error.message.toLowerCase();
+  return message.includes('not authenticated') || message.includes('must be authenticated');
+}

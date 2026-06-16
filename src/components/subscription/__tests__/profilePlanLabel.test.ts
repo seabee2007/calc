@@ -9,6 +9,34 @@ describe('getProfilePlanLabel', () => {
     });
   });
 
+  it('returns Free for a customer-only row without a Stripe subscription id', () => {
+    expect(
+      getProfilePlanLabel({
+        plan: 'starter',
+        status: 'inactive',
+        subscription: {
+          id: 'sub-row',
+          userId: 'user-1',
+          stripeCustomerId: 'cus_1',
+          stripeSubscriptionId: null,
+          planId: 'starter',
+          status: 'inactive',
+          currentPeriodStart: null,
+          currentPeriodEnd: null,
+          trialEnd: null,
+          cancelAtPeriodEnd: false,
+          activeProjectLimit: null,
+          includedFieldSeats: null,
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+      }),
+    ).toEqual({
+      label: 'Free',
+      tone: 'muted',
+    });
+  });
+
   it('returns Trial for trialing status', () => {
     expect(
       getProfilePlanLabel({

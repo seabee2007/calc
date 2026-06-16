@@ -58,8 +58,7 @@ const Login: React.FC = () => {
 
   const emailValue = watch('email');
 
-  // If already authenticated, redirect away so the login page never flashes
-  // when the loading gate briefly exits during session restore.
+  // If already authenticated, return to the app shell so bootstrap/legal/onboarding gates run.
   if (!authLoading && user) {
     return <Navigate to={resolvePostLoginDest(profile?.role, returnTo)} replace />;
   }

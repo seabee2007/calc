@@ -36,12 +36,12 @@ export function getProfilePlanLabel(input: {
     return { label: 'Free', tone: 'muted' };
   }
 
-  if (normalizedStatus && !isSubscriptionStatusActive(normalizedStatus)) {
-    return { label: 'Canceled', tone: 'muted' };
+  if (!subscription.stripeSubscriptionId) {
+    return { label: 'Free', tone: 'muted' };
   }
 
-  if (plan === 'starter' && !subscription.stripeSubscriptionId) {
-    return { label: 'Free', tone: 'muted' };
+  if (normalizedStatus && !isSubscriptionStatusActive(normalizedStatus)) {
+    return { label: 'Canceled', tone: 'muted' };
   }
 
   return {

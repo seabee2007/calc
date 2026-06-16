@@ -156,6 +156,8 @@ export async function getOrCreateStripeCustomer(
     {
       user_id: userId,
       stripe_customer_id: customer.id,
+      // Explicit inactive status — DB default is trialing, which would grant paid trial access.
+      status: "inactive",
       updated_at: new Date().toISOString(),
     },
     { onConflict: "user_id" },
