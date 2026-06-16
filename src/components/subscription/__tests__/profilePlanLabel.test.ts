@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { getProfilePlanLabel } from '../profilePlanLabel';
+import {
+  getBillingStatusLabel,
+  getCustomerFacingCurrentPlanId,
+  getProfilePlanLabel,
+} from '../profilePlanLabel';
 
 describe('getProfilePlanLabel', () => {
   it('returns Free when there is no subscription row', () => {
@@ -147,5 +151,96 @@ describe('getProfilePlanLabel', () => {
       label: 'Past due',
       tone: 'warning',
     });
+  });
+});
+
+describe('getBillingStatusLabel', () => {
+  it('returns No active subscription when there is no subscription row', () => {
+    expect(
+      getBillingStatusLabel({ plan: 'starter', status: null, subscription: null }),
+    ).toBe('No active subscription');
+  });
+
+  it('returns Active for an active Stripe subscription', () => {
+    expect(
+      getBillingStatusLabel({
+        plan: 'business',
+        status: 'active',
+        subscription: {
+          id: 'sub-row',
+          userId: 'user-1',
+          stripeCustomerId: 'cus_1',
+          stripeSubscriptionId: 'sub_1',
+          planId: 'business',
+          status: 'active',
+          currentPeriodStart: null,
+          currentPeriodEnd: null,
+          trialEnd: null,
+          cancelAtPeriodEnd: false,
+          activeProjectLimit: null,
+          includedFieldSeats: 15,
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+      }),
+    ).toBe('Active');
+  });
+});
+
+describe('getCustomerFacingCurrentPlanId', () => {
+  it('returns null when there is no subscription row', () => {
+    expect(
+      getCustomerFacingCurrentPlanId({ plan: 'starter', status: null, subscription: null }),
+    ).toBeNull();
+  });
+
+  it('returns null for customer-only rows without a Stripe subscription id', () => {
+    expect(
+      getCustomerFacingCurrentPlanId({
+        plan: 'starter',
+        status: 'inactive',
+        subscription: {
+          id: 'sub-row',
+          userId: 'user-1',
+          stripeCustomerId: 'cus_1',
+          stripeSubscriptionId: null,
+          planId: 'starter',
+          status: 'inactive',
+          currentPeriodStart: null,
+          currentPeriodEnd: null,
+          trialEnd: null,
+          cancelAtPeriodEnd: false,
+          activeProjectLimit: null,
+          includedFieldSeats: null,
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+      }),
+    ).toBeNull();
+  });
+
+  it('returns professional for an active professional subscription', () => {
+    expect(
+      getCustomerFacingCurrentPlanId({
+        plan: 'professional',
+        status: 'active',
+        subscription: {
+          id: 'sub-row',
+          userId: 'user-1',
+          stripeCustomerId: 'cus_1',
+          stripeSubscriptionId: 'sub_1',
+          planId: 'professional',
+          status: 'active',
+          currentPeriodStart: null,
+          currentPeriodEnd: null,
+          trialEnd: null,
+          cancelAtPeriodEnd: false,
+          activeProjectLimit: null,
+          includedFieldSeats: 5,
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+      }),
+    ).toBe('professional');
   });
 });

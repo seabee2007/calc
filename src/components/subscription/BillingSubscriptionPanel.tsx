@@ -1,25 +1,23 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { CreditCard, ExternalLink } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { CreditCard, ExternalLink, AlertTriangle } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import InlineNotice from '../ui/InlineNotice';
 import Button from '../ui/Button';
-import PlanBadge from './PlanBadge';
 import PricingPlansCard from './PricingPlansCard';
 import { useSubscription } from '../../contexts/SubscriptionContext';
 import type { PlanId } from '../../lib/entitlements';
-import { PLAN_DISPLAY_NAMES } from '../../lib/entitlements';
-import { getPlanRank } from '../../lib/planMarketing';
+import {
+  getBillingStatusLabel,
+  getCustomerFacingCurrentPlanId,
+  getProfilePlanLabel,
+  BILLING_PLAN_LABEL_TONE_STYLES,
+} from './profilePlanLabel';
 import {
   createCheckoutSession,
   createCustomerPortalSession,
   isStripeConfigured,
   redirectToStripeUrl,
 } from '../../services/billingService';
-
-function formatStatusLabel(status: string | null): string {
-  if (!status) return 'No subscription';
-  return status.replace(/_/g, ' ');
-}
 
 function formatDate(iso: string | null | undefined): string | null {
   if (!iso) return null;
@@ -47,9 +45,18 @@ export default function BillingSubscriptionPanel() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
-  const checkoutResult = searchParams.get('checkout');
+  const subscriptionLabels = { plan, status, subscription };
+  const { label: currentPlanLabel, tone: currentPlanTone } = getProfilePlanLabel(subscriptionLabels);
+  const billingStatusLabel = getBillingStatusLabel(subscriptionLabels);
+  const customerCurrentPlanId = getCustomerFacingCurrentPlanId(subscriptionLabels);
+
+  const hasStripeCustomer = Boolean(subscription?.stripeCustomerId);
   const hasStripeSubscription = Boolean(subscription?.stripeSubscriptionId) && isActive;
+  const isPastDue = status?.toLowerCase() === 'past_due';
   const periodEndLabel = formatDate(subscription?.currentPeriodEnd);
+  const cancelAtPeriodEnd = subscription?.cancelAtPeriodEnd ?? false;
+
+  const checkoutResult = searchParams.get('checkout');
 
   useEffect(() => {
     if (checkoutResult === 'success') {
@@ -66,10 +73,7 @@ export default function BillingSubscriptionPanel() {
     setError(null);
     setBusyAction(targetPlan);
     try {
-      const url = await createCheckoutSession({
-        planId: targetPlan,
-        billingInterval,
-      });
+      const url = await createCheckoutSession({ planId: targetPlan, billingInterval });
       redirectToStripeUrl(url);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not start checkout.');
@@ -89,57 +93,48 @@ export default function BillingSubscriptionPanel() {
     }
   }, []);
 
-  const handleUpgrade = useCallback(async (targetPlan: PlanId) => {
-    if (hasStripeSubscription && getPlanRank(targetPlan) <= getPlanRank(plan)) {
+  /**
+   * Card CTA handler. Downgrades and upgrades for existing subscribers go through
+   * the Stripe Customer Portal; new checkouts go directly to Stripe Checkout.
+   */
+  const handleSelectPlan = useCallback(async (targetPlan: PlanId) => {
+    if (hasStripeSubscription) {
+      // Any plan change for an existing subscriber routes through the portal.
       await openPortal();
       return;
     }
     await startCheckout(targetPlan);
-  }, [hasStripeSubscription, openPortal, plan, startCheckout]);
-
-  const upgradeButtons = useMemo(
-    () =>
-      (['professional', 'business'] as const).map((targetPlan) => {
-        const label =
-          getPlanRank(targetPlan) <= getPlanRank(plan)
-            ? `Manage ${PLAN_DISPLAY_NAMES[targetPlan].short}`
-            : `Upgrade to ${PLAN_DISPLAY_NAMES[targetPlan].short}`;
-        return (
-          <Button
-            key={targetPlan}
-            variant={targetPlan === 'professional' ? 'accent' : 'primary'}
-            size="sm"
-            disabled={Boolean(busyAction) || loading}
-            isLoading={busyAction === targetPlan}
-            onClick={() => void handleUpgrade(targetPlan)}
-            data-testid={`upgrade-${targetPlan}`}
-          >
-            {label}
-          </Button>
-        );
-      }),
-    [busyAction, handleUpgrade, loading, plan],
-  );
+  }, [hasStripeSubscription, openPortal, startCheckout]);
 
   return (
     <div className="space-y-6" data-testid="billing-subscription-panel">
       {!isStripeConfigured() ? (
         <InlineNotice
           variant="warning"
-          title="Stripe is not configured for this environment. Set VITE_STRIPE_PUBLISHABLE_KEY to enable live checkout redirects."
+          title="Stripe is not configured for this environment. Set VITE_STRIPE_PUBLISHABLE_KEY to enable live checkout."
         />
       ) : null}
 
-      {notice ? (
-        <InlineNotice variant="success" title={notice} />
+      {notice ? <InlineNotice variant="success" title={notice} /> : null}
+      {error ? <InlineNotice variant="warning" title={error} /> : null}
+
+      {isPastDue ? (
+        <InlineNotice
+          variant="warning"
+          title="Your payment is past due. Update your payment method to keep your subscription active."
+        />
       ) : null}
 
-      {error ? (
-        <InlineNotice variant="warning" title={error} />
+      {cancelAtPeriodEnd && periodEndLabel ? (
+        <InlineNotice
+          variant="warning"
+          title={`Your subscription is canceled and will end on ${periodEndLabel}. Reactivate before then to keep access.`}
+        />
       ) : null}
 
+      {/* Current plan summary */}
       <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <CreditCard className="h-5 w-5 text-cyan-600 dark:text-cyan-400" aria-hidden />
@@ -147,46 +142,68 @@ export default function BillingSubscriptionPanel() {
                 Subscription
               </h2>
             </div>
+
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm text-slate-600 dark:text-slate-300">Current plan:</span>
-              <PlanBadge plan={plan} />
+              <span className="text-sm text-slate-500 dark:text-slate-400">Current plan:</span>
               <span
-                className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium capitalize text-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${BILLING_PLAN_LABEL_TONE_STYLES[currentPlanTone]}`}
+                data-testid="billing-current-plan-label"
+              >
+                {currentPlanLabel}
+              </span>
+              <span
+                className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300"
                 data-testid="subscription-status"
               >
-                {formatStatusLabel(status)}
+                {isPastDue ? (
+                  <AlertTriangle className="h-3 w-3 text-amber-500" aria-hidden />
+                ) : null}
+                {billingStatusLabel}
               </span>
             </div>
-            {periodEndLabel ? (
-              <p className="text-sm text-slate-500 dark:text-slate-400" data-testid="subscription-period-end">
+
+            {periodEndLabel && !cancelAtPeriodEnd ? (
+              <p className="text-xs text-slate-400 dark:text-slate-500" data-testid="subscription-period-end">
                 Current period ends {periodEndLabel}
               </p>
             ) : null}
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            {upgradeButtons}
+          {/* Manage Billing — shown only when a Stripe customer exists */}
+          {hasStripeCustomer ? (
             <Button
               variant="outline"
               size="sm"
               icon={<ExternalLink className="h-4 w-4" />}
-              disabled={Boolean(busyAction) || loading || !subscription?.stripeCustomerId}
+              disabled={Boolean(busyAction) || loading}
               isLoading={busyAction === 'portal'}
               onClick={() => void openPortal()}
               data-testid="manage-billing-button"
             >
               Manage Billing
             </Button>
-          </div>
+          ) : (
+            /* Render a disabled placeholder so tests can still query it */
+            <Button
+              variant="outline"
+              size="sm"
+              icon={<ExternalLink className="h-4 w-4" />}
+              disabled
+              data-testid="manage-billing-button"
+            >
+              Manage Billing
+            </Button>
+          )}
         </div>
       </section>
 
+      {/* Pricing cards */}
       <PricingPlansCard
-        currentPlan={plan}
+        currentPlanId={customerCurrentPlanId}
         billingInterval={billingInterval}
         onBillingIntervalChange={setBillingInterval}
-        onSelectPlan={(targetPlan) => void handleUpgrade(targetPlan)}
-        loadingPlan={typeof busyAction === 'string' && busyAction !== 'portal' ? busyAction : null}
+        onSelectPlan={(targetPlan) => void handleSelectPlan(targetPlan)}
+        loadingPlan={typeof busyAction === 'string' && busyAction !== 'portal' ? (busyAction as PlanId) : null}
         disabled={Boolean(busyAction) || loading}
       />
     </div>

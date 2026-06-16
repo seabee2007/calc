@@ -32,9 +32,9 @@ import RouteFallback from './routes/RouteFallback';
 import AppLoadingScreen from './components/ui/AppLoadingScreen';
 import {
   markOnboardingCompletedLocally,
-  readLocalOnboardingCompleted,
   shouldShowOwnerOnboarding,
 } from './utils/onboardingStatus';
+import { markOnboardingCompleted } from './services/profileService';
 import FullscreenExperienceTipHost from './components/onboarding/FullscreenExperienceTipHost';
 import DefinitionsHelpHost from './features/help/DefinitionsHelpHost';
 import FeatureGate from './components/subscription/FeatureGate';
@@ -178,7 +178,7 @@ function ConcreteChatGate() {
 }
 
 function App() {
-  const { user, profile, profileLoading, loading: authLoading } = useAuth();
+  const { user, profile, profileLoading, loading: authLoading, refreshProfile } = useAuth();
   const {
     bootstrapReady,
     bootstrapPhase,
@@ -317,25 +317,24 @@ function App() {
       return;
     }
 
-    if (isLoading || profileLoading || !companySettingsHydrated) {
+    if (isLoading || profileLoading || !companySettingsHydrated || legalLoading) {
       setOnboardingChecked(false);
+      return;
+    }
+
+    if (!hasAcceptedCurrentLegal) {
+      setShowOnboarding(false);
+      setOnboardingChecked(true);
       return;
     }
 
     try {
       const isTestOnboarding = location.pathname === '/test-onboarding';
-      const localOnboardingCompleted = readLocalOnboardingCompleted();
       const shouldShow = shouldShowOwnerOnboarding({
         profileRole: profile?.role,
-        companySettings,
-        localOnboardingCompleted,
-        hasExistingProjects: projects.length > 0,
+        profileOnboardingCompletedAt: profile?.onboardingCompletedAt ?? null,
         isTestOnboardingRoute: isTestOnboarding,
       });
-
-      if (!shouldShow && !localOnboardingCompleted) {
-        markOnboardingCompletedLocally();
-      }
 
       setShowOnboarding(shouldShow);
       setOnboardingChecked(true);
@@ -351,9 +350,10 @@ function App() {
     isLoading,
     profileLoading,
     companySettingsHydrated,
+    legalLoading,
+    hasAcceptedCurrentLegal,
     profile?.role,
-    companySettings,
-    projects.length,
+    profile?.onboardingCompletedAt,
     location.pathname,
   ]);
 
@@ -373,8 +373,12 @@ function App() {
     }
   }, [isDark, isLoggedOutLanding, isOnboardingActive]);
 
-  const handleOnboardingComplete = () => {
+  const handleOnboardingComplete = async () => {
     try {
+      if (user?.id) {
+        await markOnboardingCompleted(user.id);
+        await refreshProfile();
+      }
       setShowOnboarding(false);
       markOnboardingCompletedLocally();
     } catch (error) {
@@ -398,8 +402,9 @@ function App() {
   }
 
   const legalGateBypass = isLegalGateBypassRoute(location.pathname);
+  const legalGateResolved = !user || !legalLoading;
   const requiresLegalAcceptance =
-    !!user && !hasAcceptedCurrentLegal && !legalGateBypass;
+    !!user && legalGateResolved && !hasAcceptedCurrentLegal && !legalGateBypass;
 
   if (bootstrapPhase === 'error' && user) {
     return (
@@ -422,7 +427,7 @@ function App() {
     authLoading ||
     isLoading ||
     (user && !companySettingsHydrated) ||
-    (user && legalLoading && !legalGateBypass)
+    (user && !legalGateResolved && !legalGateBypass)
   ) {
     return <AppLoadingScreen />;
   }
@@ -440,7 +445,10 @@ function App() {
     );
   }
 
-  if ((showOnboarding && user) || location.pathname === '/test-onboarding') {
+  if (
+    ((showOnboarding && user && hasAcceptedCurrentLegal) ||
+      location.pathname === '/test-onboarding')
+  ) {
     return (
       <Suspense fallback={<RouteFallback />}>
         <LazyOnboardingFlow onComplete={handleOnboardingComplete} />

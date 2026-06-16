@@ -44,6 +44,8 @@ export interface Profile {
   businessAddressPostalCode: string | null;
   agreementAcceptedAt: string | null;
   agreementVersion: string | null;
+  onboardingCompletedAt: string | null;
+  onboardingVersion: string | null;
   createdAt: string;
   updatedAt: string;
 }

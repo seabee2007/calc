@@ -14,6 +14,8 @@ import {
 import type { User } from '@supabase/supabase-js';
 import type { Profile } from '../types/fieldPlanner';
 import { createOwnerProfile, fetchProfile } from '../services/profileService';
+import { clearLegalAcceptanceSessionCache } from '../services/legalAcceptanceService';
+import { ONBOARDING_COMPLETED_KEY } from '../utils/onboardingStatus';
 import { isEmployeeRole, isOwnerRole } from '../types/fieldPlanner';
 
 interface AuthContextValue {
@@ -184,6 +186,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const signOut = useCallback(async () => {
+    const userId = user?.id;
     try {
       const { error } = await supabase.auth.signOut();
       if (error && !isStaleRefreshTokenError(error)) {
@@ -194,11 +197,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error('[auth] Sign out error:', error);
       }
     } finally {
+      if (userId) {
+        clearLegalAcceptanceSessionCache(userId);
+      }
+      try {
+        localStorage.removeItem(ONBOARDING_COMPLETED_KEY);
+      } catch {
+        // ignore
+      }
       await clearStaleAuthSession();
       setUser(null);
       setProfile(null);
     }
-  }, []);
+  }, [user?.id]);
 
   const isOwner = isOwnerRole(profile?.role);
   const isEmployee = isEmployeeRole(profile?.role);

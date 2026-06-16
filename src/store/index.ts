@@ -16,6 +16,7 @@ import {
   migratePreferencesFromLocalStorage,
   DEFAULT_USER_PREFERENCES,
 } from '../services/userPreferencesService';
+import { applyThemeModeFromPreferences } from './themeStore';
 import type {
   Project,
   UserPreferences,
@@ -1662,6 +1663,7 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
     try {
       set({ loading: true });
       const preferences = await getUserPreferences();
+      applyThemeModeFromPreferences(preferences.themeMode);
       set({ preferences, loading: false });
     } catch (error) {
       console.error('Error loading preferences:', error);
@@ -1701,6 +1703,7 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
       const migratedPreferences = await migratePreferencesFromLocalStorage();
       
       if (migratedPreferences) {
+        applyThemeModeFromPreferences(migratedPreferences.themeMode);
         set({ preferences: migratedPreferences });
         console.log('Preferences migrated successfully');
       }

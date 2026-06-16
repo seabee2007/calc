@@ -11,15 +11,18 @@ export interface CompanySettingsOnboardingSnapshot {
 
 export interface OnboardingStatusInput {
   profileRole?: UserRole;
-  companySettings?: CompanySettingsOnboardingSnapshot;
-  localOnboardingCompleted?: boolean;
-  hasExistingProjects?: boolean;
+  /** Server-side completion marker — sole source of truth for owner onboarding. */
+  profileOnboardingCompletedAt?: string | null;
   isTestOnboardingRoute?: boolean;
-  /** @deprecated Agreement acceptance is handled by the legal gate before onboarding. */
+  /** @deprecated Not used for gating — company_settings may exist from bootstrap. */
+  companySettings?: CompanySettingsOnboardingSnapshot;
+  /** @deprecated Not used for gating — legal acceptance runs before onboarding. */
   profileAgreementAcceptedAt?: string | null;
+  /** @deprecated Prefer profileOnboardingCompletedAt. */
+  localOnboardingCompleted?: boolean;
 }
 
-/** True when company settings were saved (onboarding completed or settings edited later). */
+/** True when company settings were saved with meaningful owner-entered data. */
 export function hasEstablishedCompanySettings(
   settings: CompanySettingsOnboardingSnapshot | undefined,
 ): boolean {
@@ -43,15 +46,7 @@ export function shouldShowOwnerOnboarding(input: OnboardingStatusInput): boolean
     return false;
   }
 
-  if (input.localOnboardingCompleted) {
-    return false;
-  }
-
-  if (hasEstablishedCompanySettings(input.companySettings)) {
-    return false;
-  }
-
-  if (input.hasExistingProjects) {
+  if (input.profileOnboardingCompletedAt) {
     return false;
   }
 
@@ -62,7 +57,7 @@ export function readLocalOnboardingCompleted(): boolean {
   try {
     return localStorage.getItem(ONBOARDING_COMPLETED_KEY) === 'true';
   } catch {
-    return true;
+    return false;
   }
 }
 
@@ -70,6 +65,6 @@ export function markOnboardingCompletedLocally(): void {
   try {
     localStorage.setItem(ONBOARDING_COMPLETED_KEY, 'true');
   } catch {
-    // Ignore storage failures — server-side settings remain the source of truth.
+    // Ignore storage failures — server-side profile flag is the source of truth.
   }
 }

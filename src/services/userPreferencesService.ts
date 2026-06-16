@@ -32,6 +32,7 @@ const DEFAULT_NOTIFICATIONS: UserPreferences['notifications'] = {
 };
 
 export const DEFAULT_USER_PREFERENCES: UserPreferences = {
+  themeMode: null,
   units: 'imperial',
   lengthUnit: 'feet',
   volumeUnit: 'cubic_yards',
@@ -44,8 +45,16 @@ export const DEFAULT_USER_PREFERENCES: UserPreferences = {
   notifications: DEFAULT_NOTIFICATIONS,
 };
 
+function parseThemeMode(value: unknown): UserPreferences['themeMode'] {
+  if (value === 'light' || value === 'dark') {
+    return value;
+  }
+  return null;
+}
+
 function mapRowToPreferences(data: Record<string, unknown>): UserPreferences {
   return {
+    themeMode: parseThemeMode(data.theme_mode),
     units: (data.units as UserPreferences['units']) || 'imperial',
     lengthUnit: (data.length_unit as UserPreferences['lengthUnit']) || 'feet',
     volumeUnit: (data.volume_unit as UserPreferences['volumeUnit']) || 'cubic_yards',
@@ -67,6 +76,7 @@ function preferencesToRow(
 ): Record<string, unknown> {
   return {
     user_id: userId,
+    theme_mode: preferences.themeMode,
     units: preferences.units,
     length_unit: preferences.lengthUnit,
     volume_unit: preferences.volumeUnit,
@@ -162,6 +172,19 @@ export const migratePreferencesFromLocalStorage =
 
     try {
       const localPrefs = JSON.parse(savedPrefs) as Partial<UserPreferences>;
+
+      const themeStorage = localStorage.getItem('theme-storage');
+      if (themeStorage && localPrefs.themeMode == null) {
+        try {
+          const parsedTheme = JSON.parse(themeStorage) as { state?: { isDark?: boolean } };
+          if (typeof parsedTheme.state?.isDark === 'boolean') {
+            localPrefs.themeMode = parsedTheme.state.isDark ? 'dark' : 'light';
+          }
+        } catch {
+          // Ignore invalid theme-storage payload during migration.
+        }
+      }
+
       return updateUserPreferences(localPrefs);
     } catch (error) {
       console.error('Error migrating preferences from localStorage:', error);

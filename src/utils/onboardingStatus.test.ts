@@ -28,76 +28,90 @@ describe('hasEstablishedCompanySettings', () => {
       }),
     ).toBe(false);
   });
+
+  it('returns false for bootstrap defaults with auth email only', () => {
+    expect(
+      hasEstablishedCompanySettings({
+        companyName: '',
+        email: 'owner@example.com',
+        phone: '',
+        address: '',
+      }),
+    ).toBe(false);
+  });
 });
 
 describe('shouldShowOwnerOnboarding', () => {
-  it('shows onboarding for new owners without saved settings', () => {
+  it('shows onboarding for new owners without onboarding_completed_at', () => {
     expect(
       shouldShowOwnerOnboarding({
         profileRole: 'owner',
-        localOnboardingCompleted: false,
-        companySettings: { companyName: '' },
+        profileOnboardingCompletedAt: null,
       }),
     ).toBe(true);
   });
 
-  it('skips onboarding when local flag is set', () => {
+  it('shows onboarding when bootstrap company_settings exist but onboarding is incomplete', () => {
     expect(
       shouldShowOwnerOnboarding({
         profileRole: 'owner',
-        localOnboardingCompleted: true,
+        profileOnboardingCompletedAt: null,
+        profileAgreementAcceptedAt: '2026-01-01T00:00:00.000Z',
+        companySettings: {
+          companyName: '',
+          email: 'owner@example.com',
+          phone: '',
+          address: '',
+        },
+      }),
+    ).toBe(true);
+  });
+
+  it('shows onboarding for owners with existing projects when onboarding is incomplete', () => {
+    expect(
+      shouldShowOwnerOnboarding({
+        profileRole: 'owner',
+        profileOnboardingCompletedAt: null,
+      }),
+    ).toBe(true);
+  });
+
+  it('skips onboarding when onboarding_completed_at is populated', () => {
+    expect(
+      shouldShowOwnerOnboarding({
+        profileRole: 'owner',
+        profileOnboardingCompletedAt: '2026-01-01T00:00:00.000Z',
+        profileAgreementAcceptedAt: '2026-01-01T00:00:00.000Z',
         companySettings: { companyName: '' },
       }),
     ).toBe(false);
   });
 
-  it('skips onboarding for existing owners with saved company settings', () => {
+  it('does not skip onboarding based on saved company settings alone', () => {
     expect(
       shouldShowOwnerOnboarding({
         profileRole: 'owner',
-        localOnboardingCompleted: false,
+        profileOnboardingCompletedAt: null,
         companySettings: { companyName: 'Acme Concrete' },
       }),
-    ).toBe(false);
+    ).toBe(true);
   });
 
-  it('skips onboarding for employees regardless of local flag', () => {
+  it('skips onboarding for employees regardless of completion state', () => {
     expect(
       shouldShowOwnerOnboarding({
         profileRole: 'employee',
-        localOnboardingCompleted: false,
+        profileOnboardingCompletedAt: null,
         companySettings: { companyName: '' },
       }),
     ).toBe(false);
-  });
-
-  it('skips onboarding for owners with existing projects', () => {
-    expect(
-      shouldShowOwnerOnboarding({
-        profileRole: 'owner',
-        localOnboardingCompleted: false,
-        companySettings: { companyName: '' },
-        hasExistingProjects: true,
-      }),
-    ).toBe(false);
-  });
-
-  it('shows onboarding for owners who accepted agreement but have no company settings', () => {
-    expect(
-      shouldShowOwnerOnboarding({
-        profileRole: 'owner',
-        localOnboardingCompleted: false,
-        companySettings: { companyName: '' },
-        profileAgreementAcceptedAt: '2026-01-01T00:00:00.000Z',
-      }),
-    ).toBe(true);
   });
 
   it('forces onboarding on the test route', () => {
     expect(
       shouldShowOwnerOnboarding({
         profileRole: 'owner',
-        localOnboardingCompleted: true,
+        profileOnboardingCompletedAt: '2026-01-01T00:00:00.000Z',
         companySettings: { companyName: 'Acme Concrete' },
         isTestOnboardingRoute: true,
       }),

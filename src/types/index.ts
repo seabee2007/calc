@@ -14,8 +14,11 @@ export type { StoredTruckTicketRecord } from './concreteTruckTicket';
 
 export type { ProjectClientInfo } from './projectClient';
 
+export type ThemeMode = 'light' | 'dark';
+
 // User preferences interface
 export interface UserPreferences {
+  themeMode: ThemeMode | null;
   autoSave: boolean;
   notifications: {
     projectUpdates: boolean;

@@ -19,6 +19,21 @@ export function useLegalAcceptance() {
   const [error, setError] = useState<string | null>(null);
   const [isSessionError, setIsSessionError] = useState(false);
 
+  useEffect(() => {
+    if (!user?.id) {
+      setLatestAcceptance(null);
+      setHasAcceptedCurrentLegal(false);
+      setIsLoading(false);
+      setError(null);
+      setIsSessionError(false);
+      return;
+    }
+
+    // Prevent stale acceptance from a prior session/render before refresh completes.
+    setHasAcceptedCurrentLegal(false);
+    setIsLoading(true);
+  }, [user?.id]);
+
   const refresh = useCallback(async () => {
     if (!user?.id) {
       setLatestAcceptance(null);

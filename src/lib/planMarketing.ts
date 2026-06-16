@@ -10,11 +10,34 @@ export function formatPlanLimitLabel(value: number, noun: string): string {
   return `Up to ${value} ${noun}`;
 }
 
+export interface PlanPricing {
+  monthlyUsd: number;
+  annualMonthlyUsd: number; // effective per-month when billed annually
+  annualTotalUsd: number;   // charged once per year
+}
+
+/**
+ * Pricing displayed on the billing page.
+ * Kept here as a single source of truth so no component hardcodes dollar amounts.
+ */
+export const PLAN_PRICING: Record<PlanId, PlanPricing> = {
+  starter:      { monthlyUsd: 49,  annualMonthlyUsd: 41,  annualTotalUsd: 490  },
+  professional: { monthlyUsd: 129, annualMonthlyUsd: 109, annualTotalUsd: 1308 },
+  business:     { monthlyUsd: 249, annualMonthlyUsd: 209, annualTotalUsd: 2508 },
+};
+
+export function formatUsd(cents: number): string {
+  return `$${cents.toLocaleString('en-US')}`;
+}
+
 export interface PlanMarketingCard {
   planId: PlanId;
   shortName: string;
   longName: string;
   highlights: string[];
+  pricing: PlanPricing;
+  /** Card to visually highlight as recommended. */
+  recommended?: boolean;
 }
 
 export function getPlanMarketingCards(): PlanMarketingCard[] {
@@ -54,6 +77,8 @@ export function getPlanMarketingCards(): PlanMarketingCard[] {
       shortName: names.short,
       longName: names.long,
       highlights: highlights[planId],
+      pricing: PLAN_PRICING[planId],
+      recommended: planId === 'professional',
     };
   });
 }

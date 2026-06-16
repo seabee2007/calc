@@ -3,6 +3,7 @@ import type { Profile, UserRole } from '../types/fieldPlanner';
 
 export const DEFAULT_PROFILE_DISPLAY_NAME = 'Team member';
 export const CURRENT_AGREEMENT_VERSION = '2025-01';
+export const CURRENT_ONBOARDING_VERSION = '2025-01';
 
 function mapProfile(row: Record<string, unknown>): Profile {
   const firstName = (row.first_name as string) ?? null;
@@ -26,6 +27,8 @@ function mapProfile(row: Record<string, unknown>): Profile {
     businessAddressPostalCode: (row.business_address_postal_code as string) ?? null,
     agreementAcceptedAt: (row.agreement_accepted_at as string) ?? null,
     agreementVersion: (row.agreement_version as string) ?? null,
+    onboardingCompletedAt: (row.onboarding_completed_at as string) ?? null,
+    onboardingVersion: (row.onboarding_version as string) ?? null,
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
   };
@@ -141,6 +144,23 @@ export async function updateProfile(
   const { data, error } = await supabase
     .from('profiles')
     .update(payload)
+    .eq('id', userId)
+    .select('*')
+    .single();
+
+  if (error) throw error;
+  return mapProfile(data);
+}
+
+export async function markOnboardingCompleted(userId: string): Promise<Profile> {
+  const now = new Date().toISOString();
+  const { data, error } = await supabase
+    .from('profiles')
+    .update({
+      onboarding_completed_at: now,
+      onboarding_version: CURRENT_ONBOARDING_VERSION,
+      updated_at: now,
+    })
     .eq('id', userId)
     .select('*')
     .single();
