@@ -21,6 +21,7 @@ interface ProjectHealthCardProps {
   review: ProjectRiskReview;
   className?: string;
   emptyMessage?: string;
+  embedded?: boolean;
 }
 
 function riskTone(level: ProjectRiskLevel): { badge: string; text: string } {
@@ -47,17 +48,20 @@ const ProjectHealthCard: React.FC<ProjectHealthCardProps> = ({
   review,
   className = '',
   emptyMessage,
+  embedded = false,
 }) => {
   const tone = riskTone(review.riskLevel);
   const hasProject = Boolean(review.projectId);
 
-  return (
-    <OpsCard className={`flex h-full flex-col ${className}`.trim()}>
-      <div className="mb-3 flex items-center justify-between gap-2">
-        <div className="flex min-w-0 items-center gap-2">
-          <ShieldAlert className="h-5 w-5 shrink-0 text-cyan-600 dark:text-cyan-400" />
-          <h3 className={`font-semibold ${OPS_TITLE}`}>Project risk review</h3>
-        </div>
+  const body = (
+    <>
+      <div className="mb-3 flex items-center justify-end gap-2">
+        {!embedded ? (
+          <div className="mr-auto flex min-w-0 items-center gap-2">
+            <ShieldAlert className="h-5 w-5 shrink-0 text-cyan-600 dark:text-cyan-400" />
+            <h3 className={`font-semibold ${OPS_TITLE}`}>Project risk review</h3>
+          </div>
+        ) : null}
         {hasProject ? (
           <Link
             to={`/projects?project=${review.projectId}`}
@@ -139,6 +143,16 @@ const ProjectHealthCard: React.FC<ProjectHealthCardProps> = ({
           </>
         )}
       </div>
+    </>
+  );
+
+  if (embedded) {
+    return <div className={`flex h-full flex-col ${className}`.trim()}>{body}</div>;
+  }
+
+  return (
+    <OpsCard className={`flex h-full flex-col ${className}`.trim()}>
+      {body}
     </OpsCard>
   );
 };

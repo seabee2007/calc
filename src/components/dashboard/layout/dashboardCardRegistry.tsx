@@ -17,10 +17,15 @@ import {
   type DashboardCardMeta,
 } from '../../../lib/dashboardLayout';
 import { QUEUE_EMPTY_MESSAGE, type DashboardCardContext } from './dashboardData';
+import { isCompactDashboardCard } from './dashboardCardLayout';
 
 export interface DashboardCardRenderOptions {
   /** Extra class names applied to the card root where the card supports it. */
   className?: string;
+  /** Card width in grid columns (12-column desktop grid). */
+  cardWidth?: number;
+  /** True when rendered in the mobile single-column stack. */
+  isMobile?: boolean;
 }
 
 export interface DashboardCardDefinition extends DashboardCardMeta {
@@ -42,13 +47,14 @@ type DashboardCardBehavior = Pick<DashboardCardDefinition, 'isVisible' | 'render
 const CARD_BEHAVIOR: Record<DashboardCardId, DashboardCardBehavior> = {
   todaysOperations: {
     isVisible: alwaysVisible,
-    render: (ctx) => (
+    render: (ctx, options) => (
       <DashboardHero
         activeProjects={ctx.snapshot.activeProjectCount}
         placementsToday={ctx.hasAnyConcreteWork ? ctx.snapshot.todayPourCount : undefined}
         proposalsSent={ctx.snapshot.proposalsSentCount}
         onStartProject={ctx.onStartProject}
         onQuickQuote={ctx.onQuickQuote}
+        compactActions={isCompactDashboardCard(options?.cardWidth, options?.isMobile)}
       />
     ),
   },

@@ -9,6 +9,7 @@ import { formatProposalMoney, formatWinRate } from '../../utils/proposalKpis';
 
 interface BusinessSnapshotCardProps {
   financial: ProposalFinancialKpis;
+  embedded?: boolean;
 }
 
 function SnapshotMetric({
@@ -30,20 +31,25 @@ function SnapshotMetric({
   );
 }
 
-const BusinessSnapshotCard: React.FC<BusinessSnapshotCardProps> = ({ financial }) => {
+const BusinessSnapshotCard: React.FC<BusinessSnapshotCardProps> = ({
+  financial,
+  embedded = false,
+}) => {
   const navigate = useNavigate();
   const grossMarginPct =
     financial.acceptedRevenue > 0 && financial.grossProfit > 0
       ? `${((financial.grossProfit / financial.acceptedRevenue) * 100).toFixed(1)}% gross margin`
       : null;
 
-  return (
-    <OpsCard>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <DollarSign className={`h-5 w-5 ${TEXT_SUCCESS}`} />
-          <h3 className={`font-semibold ${OPS_TITLE}`}>Business snapshot</h3>
-        </div>
+  const body = (
+    <>
+      <div className={`${embedded ? 'mb-3' : 'mb-4'} flex flex-wrap items-center justify-end gap-2`}>
+        {!embedded ? (
+          <div className="mr-auto flex items-center gap-2">
+            <DollarSign className={`h-5 w-5 ${TEXT_SUCCESS}`} />
+            <h3 className={`font-semibold ${OPS_TITLE}`}>Business snapshot</h3>
+          </div>
+        ) : null}
         <button
           type="button"
           onClick={() => navigate('/financials')}
@@ -81,8 +87,11 @@ const BusinessSnapshotCard: React.FC<BusinessSnapshotCardProps> = ({ financial }
             .join(' · ')}
         </p>
       )}
-    </OpsCard>
+    </>
   );
+
+  if (embedded) return body;
+  return <OpsCard>{body}</OpsCard>;
 };
 
 export default BusinessSnapshotCard;

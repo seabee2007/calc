@@ -7,6 +7,7 @@ import type { ReinforcementPricing } from './laborEstimate';
 import type { MixDesignApproval } from './mixDesignApproval';
 import type { ProjectClientInfo } from './projectClient';
 import type { Weather } from './weather';
+import type { DashboardLayout } from '../lib/dashboardLayout';
 
 export type { USAddress } from './address';
 
@@ -36,6 +37,9 @@ export interface UserPreferences {
   defaultPSI: '2500' | '3000' | '4000' | '5000';
   units: 'imperial' | 'metric';
   lengthUnit: 'feet' | 'meters';
+  /** Persisted Operations Dashboard grid layout (desktop/base grid). Null until
+   * the user customizes (or a migrated layout is saved). */
+  dashboardLayout: DashboardLayout | null;
 }
 
 // Calculation interface

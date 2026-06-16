@@ -10,6 +10,11 @@
   overflow: visible;
 }
 
+.dashboard-grid .react-grid-item > .dashboard-grid-cell {
+  height: auto;
+  min-height: 100%;
+}
+
 .dashboard-grid .react-grid-item.cssTransforms {
   transition-property: transform, width, height;
   transition-duration: 200ms;
@@ -26,7 +31,7 @@
   z-index: 30;
 }
 
-.dashboard-grid .react-grid-item.react-draggable-dragging .dashboard-grid-item-root > :last-child {
+.dashboard-grid .react-grid-item.react-draggable-dragging > .dashboard-grid-cell {
   border-radius: 1rem;
   box-shadow: 0 24px 50px -18px rgba(8, 145, 178, 0.6);
   outline: 2px solid rgba(45, 212, 191, 0.9);

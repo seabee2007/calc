@@ -1,11 +1,16 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   clampCardWidth,
   getDefaultDashboardLayout,
+  validateAndMigrateLayout,
   type DashboardCardId,
   type DashboardLayout,
   type DashboardLayoutItem,
 } from '../../../lib/dashboardLayout';
+import {
+  getUserPreferences,
+  updateDashboardLayout,
+} from '../../../services/userPreferencesService';
 
 /** A position update coming back from the grid engine (drag/resize stop). */
 export interface DashboardItemPosition {
@@ -16,11 +21,15 @@ export interface DashboardItemPosition {
   h: number;
 }
 
+export type DashboardSaveStatus = 'idle' | 'saving' | 'saved' | 'error';
+
 export interface DashboardLayoutController {
   layout: DashboardLayout;
   /** Items sorted by reading order (y, then x). */
   orderedItems: DashboardLayoutItem[];
   customizing: boolean;
+  /** Persistence feedback for the customize UI. */
+  saveStatus: DashboardSaveStatus;
   setCustomizing: (value: boolean) => void;
   /** Apply x/y/w from the grid after a drag or resize. Height is owned by the
    * grid's content measurement, so existing heights are preserved. */
@@ -32,25 +41,124 @@ export interface DashboardLayoutController {
   resetLayout: () => void;
 }
 
+/** Collapse rapid layout commits (RGL can fire several) into one save. */
+const SAVE_DEBOUNCE_MS = 800;
+/** How long the "Saved" indicator stays visible before fading to idle. */
+const SAVED_INDICATOR_MS = 2000;
+
 /**
- * Phase 2B: local-only grid layout state (no persistence). Holds the working
- * layout (x/y/w/h per card), the customize-mode flag, and the operations the
- * grid editor needs. Phase 3 will layer loading from and debounced saving to
- * user_preferences on top of this.
+ * Phase 3: per-user grid layout with Supabase persistence.
+ *
+ * - Loads the saved layout once on mount (default when absent), validating and
+ *   migrating any stored value so a corrupt layout never breaks the dashboard.
+ * - Saves only after meaningful user actions (drag/resize stop, size change,
+ *   reset), debounced, and never while loading or when nothing changed — which
+ *   keeps loading and content-measurement from triggering save loops.
+ * - Keeps the local layout if a save fails and surfaces the failure via
+ *   `saveStatus` so the user can keep arranging; the next successful save
+ *   persists the latest local state.
+ *
+ * Height changes come from content measurement (not a user action), so they
+ * update local state but do not trigger a save; the latest measured height
+ * rides along on the next user-action save.
  */
 export function useDashboardLayout(): DashboardLayoutController {
   const [layout, setLayout] = useState<DashboardLayout>(() => getDefaultDashboardLayout());
   const [customizing, setCustomizing] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<DashboardSaveStatus>('idle');
+
+  const layoutRef = useRef(layout);
+  const hydratedRef = useRef(false);
+  const mountedRef = useRef(true);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSavedJsonRef = useRef<string | null>(null);
+
+  const setLayoutTracked = useCallback((next: DashboardLayout) => {
+    layoutRef.current = next;
+    setLayout(next);
+  }, []);
+
+  const persist = useCallback((next: DashboardLayout) => {
+    const json = JSON.stringify(next);
+    // Nothing changed since the last successful save — skip the round trip.
+    if (json === lastSavedJsonRef.current) return;
+    setSaveStatus('saving');
+    void updateDashboardLayout(next)
+      .then(() => {
+        if (!mountedRef.current) return;
+        lastSavedJsonRef.current = json;
+        setSaveStatus('saved');
+        if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
+        savedTimerRef.current = setTimeout(() => {
+          if (mountedRef.current) setSaveStatus('idle');
+        }, SAVED_INDICATOR_MS);
+      })
+      .catch(() => {
+        if (!mountedRef.current) return;
+        // Keep the local layout; the latest state persists on the next save.
+        setSaveStatus('error');
+      });
+  }, []);
+
+  const scheduleSave = useCallback(
+    (next: DashboardLayout) => {
+      // Never save during/before the initial load (avoids load->save loops).
+      if (!hydratedRef.current) return;
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = setTimeout(() => persist(next), SAVE_DEBOUNCE_MS);
+    },
+    [persist],
+  );
+
+  useEffect(() => {
+    mountedRef.current = true;
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const prefs = await getUserPreferences();
+        if (cancelled) return;
+        if (prefs.dashboardLayout) {
+          const migrated = validateAndMigrateLayout(prefs.dashboardLayout);
+          setLayoutTracked(migrated);
+          hydratedRef.current = true;
+          const rawJson = JSON.stringify(prefs.dashboardLayout);
+          const migratedJson = JSON.stringify(migrated);
+          if (rawJson === migratedJson) {
+            // Already canonical — remember it so we don't re-save an identical layout.
+            lastSavedJsonRef.current = migratedJson;
+          } else {
+            // Saved layout was invalid/legacy: persist the cleaned version once.
+            scheduleSave(migrated);
+          }
+        } else {
+          hydratedRef.current = true;
+        }
+      } catch {
+        // Load failed: keep the default layout and allow customizing/saving.
+        if (!cancelled) hydratedRef.current = true;
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      mountedRef.current = false;
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
+    };
+  }, [scheduleSave, setLayoutTracked]);
 
   const orderedItems = useMemo(
     () => [...layout.items].sort((a, b) => a.y - b.y || a.x - b.x),
     [layout],
   );
 
-  const applyPositions = useCallback((positions: DashboardItemPosition[]) => {
-    if (positions.length === 0) return;
-    const byId = new Map(positions.map((p) => [p.id, p]));
-    setLayout((prev) => {
+  const applyPositions = useCallback(
+    (positions: DashboardItemPosition[]) => {
+      if (positions.length === 0) return;
+      const prev = layoutRef.current;
+      const byId = new Map(positions.map((p) => [p.id, p]));
       let changed = false;
       const items = prev.items.map((item) => {
         const next = byId.get(item.id);
@@ -62,38 +170,58 @@ export function useDashboardLayout(): DashboardLayoutController {
         // Height is measured by the grid; keep the current value.
         return { ...item, x: next.x, y: next.y, w: next.w };
       });
-      return changed ? { ...prev, items } : prev;
-    });
-  }, []);
+      if (!changed) return;
+      const next = { ...prev, items };
+      setLayoutTracked(next);
+      scheduleSave(next);
+    },
+    [scheduleSave, setLayoutTracked],
+  );
 
-  const setCardWidth = useCallback((id: DashboardCardId, w: number) => {
-    setLayout((prev) => ({
-      ...prev,
-      items: prev.items.map((item) =>
-        item.id === id ? { ...item, w: clampCardWidth(id, w) } : item,
-      ),
-    }));
-  }, []);
-
-  const setCardHeight = useCallback((id: DashboardCardId, h: number) => {
-    setLayout((prev) => {
+  const setCardWidth = useCallback(
+    (id: DashboardCardId, w: number) => {
+      const prev = layoutRef.current;
+      const clamped = clampCardWidth(id, w);
       const current = prev.items.find((item) => item.id === id);
-      if (!current || current.h === h) return prev;
-      return {
+      if (!current || current.w === clamped) return;
+      const next = {
+        ...prev,
+        items: prev.items.map((item) =>
+          item.id === id ? { ...item, w: clamped } : item,
+        ),
+      };
+      setLayoutTracked(next);
+      scheduleSave(next);
+    },
+    [scheduleSave, setLayoutTracked],
+  );
+
+  const setCardHeight = useCallback(
+    (id: DashboardCardId, h: number) => {
+      const prev = layoutRef.current;
+      const current = prev.items.find((item) => item.id === id);
+      if (!current || current.h === h) return;
+      const next = {
         ...prev,
         items: prev.items.map((item) => (item.id === id ? { ...item, h } : item)),
       };
-    });
-  }, []);
+      // Measured height: update local state only, never trigger a save.
+      setLayoutTracked(next);
+    },
+    [setLayoutTracked],
+  );
 
   const resetLayout = useCallback(() => {
-    setLayout(getDefaultDashboardLayout());
-  }, []);
+    const next = getDefaultDashboardLayout();
+    setLayoutTracked(next);
+    scheduleSave(next);
+  }, [scheduleSave, setLayoutTracked]);
 
   return {
     layout,
     orderedItems,
     customizing,
+    saveStatus,
     setCustomizing,
     applyPositions,
     setCardWidth,

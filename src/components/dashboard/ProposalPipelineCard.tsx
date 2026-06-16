@@ -17,6 +17,7 @@ interface ProposalPipelineCardProps {
   proposals: TrackedProposalRow[];
   winRate: number;
   wonThisMonth: number;
+  embedded?: boolean;
 }
 
 const ProposalPipelineCard: React.FC<ProposalPipelineCardProps> = ({
@@ -26,6 +27,7 @@ const ProposalPipelineCard: React.FC<ProposalPipelineCardProps> = ({
   proposals,
   winRate,
   wonThisMonth,
+  embedded = false,
 }) => {
   const navigate = useNavigate();
 
@@ -45,13 +47,15 @@ const ProposalPipelineCard: React.FC<ProposalPipelineCardProps> = ({
     { label: 'Accepted', value: String(acceptedCount) },
   ];
 
-  return (
-    <OpsCard className="rounded-2x1 overflow-hidden">
-      <header className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <FileStack className="h-5 w-5 text-violet-400" />
-          <h3 className={`font-semibold ${OPS_TITLE}`}>Proposal pipeline</h3>
-        </div>
+  const body = (
+    <>
+      <header className={`${embedded ? 'mb-3' : 'mb-4'} flex flex-wrap items-center justify-end gap-3`}>
+        {!embedded ? (
+          <div className="mr-auto flex items-center gap-2">
+            <FileStack className="h-5 w-5 text-violet-400" />
+            <h3 className={`font-semibold ${OPS_TITLE}`}>Proposal pipeline</h3>
+          </div>
+        ) : null}
         <button
           type="button"
           onClick={() => navigate('/proposals')}
@@ -95,8 +99,11 @@ const ProposalPipelineCard: React.FC<ProposalPipelineCardProps> = ({
           </div>
         ))}
       </div>
-    </OpsCard>
+    </>
   );
+
+  if (embedded) return body;
+  return <OpsCard className="rounded-2x1 overflow-hidden">{body}</OpsCard>;
 };
 
 export default ProposalPipelineCard;

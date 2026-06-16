@@ -20,6 +20,7 @@ interface DashboardNextActionsCardProps {
   maxItems?: number;
   onProposalAction?: (action: ProposalNextAction) => void;
   className?: string;
+  embedded?: boolean;
 }
 
 const DashboardNextActionsCard: React.FC<DashboardNextActionsCardProps> = ({
@@ -28,6 +29,7 @@ const DashboardNextActionsCard: React.FC<DashboardNextActionsCardProps> = ({
   maxItems = 5,
   onProposalAction,
   className = '',
+  embedded = false,
 }) => {
   const navigate = useNavigate();
   const proposalActions = useMemo(() => buildCrmNextActions(proposals), [proposals]);
@@ -50,13 +52,15 @@ const DashboardNextActionsCard: React.FC<DashboardNextActionsCardProps> = ({
     return [...extras, ...fromProposals].slice(0, maxItems);
   }, [extraActions, maxItems, navigate, onProposalAction, proposalActions]);
 
-  return (
-    <OpsCard className={`flex min-h-0 flex-col lg:h-full ${className}`.trim()}>
-      <div className="mb-3 flex shrink-0 items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <ListTodo className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
-          <h3 className={`font-semibold ${OPS_TITLE}`}>Next actions</h3>
-        </div>
+  const body = (
+    <>
+      <div className="mb-3 flex shrink-0 items-center justify-end gap-2">
+        {!embedded ? (
+          <div className="mr-auto flex items-center gap-2">
+            <ListTodo className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
+            <h3 className={`font-semibold ${OPS_TITLE}`}>Next actions</h3>
+          </div>
+        ) : null}
         <button
           type="button"
           onClick={() => navigate('/proposals')}
@@ -98,6 +102,16 @@ const DashboardNextActionsCard: React.FC<DashboardNextActionsCardProps> = ({
           ))}
         </ul>
       )}
+    </>
+  );
+
+  if (embedded) {
+    return <div className={`flex min-h-0 flex-col ${className}`.trim()}>{body}</div>;
+  }
+
+  return (
+    <OpsCard className={`flex min-h-0 flex-col lg:h-full ${className}`.trim()}>
+      {body}
     </OpsCard>
   );
 };

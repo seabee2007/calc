@@ -1,5 +1,6 @@
 import { clearStaleAuthSession, isStaleRefreshTokenError } from '../lib/authSession';
 import { supabase } from '../lib/supabase';
+import { validateAndMigrateLayout, type DashboardLayout } from '../lib/dashboardLayout';
 import type { UserPreferences } from '../types';
 
 async function requireAuthenticatedUserId(): Promise<string> {
@@ -43,6 +44,7 @@ export const DEFAULT_USER_PREFERENCES: UserPreferences = {
   soundEnabled: true,
   hapticsEnabled: true,
   notifications: DEFAULT_NOTIFICATIONS,
+  dashboardLayout: null,
 };
 
 function parseThemeMode(value: unknown): UserPreferences['themeMode'] {
@@ -50,6 +52,18 @@ function parseThemeMode(value: unknown): UserPreferences['themeMode'] {
     return value;
   }
   return null;
+}
+
+/**
+ * Pass the stored layout through as-is (null when absent). Validation/migration
+ * is the consumer's responsibility (useDashboardLayout) so it can detect when a
+ * saved layout had to be cleaned up and persist the cleaned version once.
+ */
+function parseDashboardLayout(value: unknown): DashboardLayout | null {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+  return value as DashboardLayout;
 }
 
 function mapRowToPreferences(data: Record<string, unknown>): UserPreferences {
@@ -67,6 +81,7 @@ function mapRowToPreferences(data: Record<string, unknown>): UserPreferences {
     hapticsEnabled: typeof data.haptics_enabled === 'boolean' ? data.haptics_enabled : true,
     notifications:
       (data.notifications as UserPreferences['notifications']) || DEFAULT_NOTIFICATIONS,
+    dashboardLayout: parseDashboardLayout(data.dashboard_layout),
   };
 }
 
@@ -87,6 +102,7 @@ function preferencesToRow(
     sound_enabled: preferences.soundEnabled,
     haptics_enabled: preferences.hapticsEnabled,
     notifications: preferences.notifications,
+    dashboard_layout: preferences.dashboardLayout,
     updated_at: new Date().toISOString(),
   };
 }
@@ -144,6 +160,18 @@ export const updateUserPreferences = async (
   const currentPreferences = await getUserPreferences();
   const merged = { ...currentPreferences, ...preferences };
   return saveUserPreferences(merged);
+};
+
+/**
+ * Persist the Operations Dashboard grid layout for the authenticated user.
+ * The layout is validated/migrated before saving so the column never stores a
+ * malformed layout, regardless of what the caller passes in.
+ */
+export const updateDashboardLayout = async (
+  layout: DashboardLayout,
+): Promise<UserPreferences> => {
+  const validated = validateAndMigrateLayout(layout);
+  return updateUserPreferences({ dashboardLayout: validated });
 };
 
 export const migratePreferencesFromLocalStorage =

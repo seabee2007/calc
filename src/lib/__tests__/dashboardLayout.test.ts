@@ -103,13 +103,13 @@ describe('dashboardLayout', () => {
     const result = validateAndMigrateLayout({
       version: 2,
       items: [
-        { id: 'todaysOperations', x: 0, y: 0, w: 4, h: 4 }, // full-only -> clamps up to 12
+        { id: 'todaysOperations', x: 0, y: 0, w: 4, h: 4 },
         { id: 'activeProjects', x: 0, y: 1, w: 99, h: 4 }, // clamps down to 12
       ],
     });
     const hero = result.items.find((c) => c.id === 'todaysOperations');
     const active = result.items.find((c) => c.id === 'activeProjects');
-    expect(hero?.w).toBe(12);
+    expect(hero?.w).toBe(4);
     expect(active?.w).toBe(12);
   });
 
@@ -127,7 +127,7 @@ describe('dashboardLayout', () => {
     expect(clampCardWidth('activeProjects', 6)).toBe(6);
     expect(clampCardWidth('activeProjects', 2)).toBe(DASHBOARD_CARD_META.activeProjects.minW);
     expect(clampCardWidth('activeProjects', 99)).toBe(DASHBOARD_GRID_COLS);
-    expect(clampCardWidth('todaysOperations', 6)).toBe(12);
+    expect(clampCardWidth('todaysOperations', 6)).toBe(6);
   });
 
   it('widthLabel maps standard widths to friendly names', () => {

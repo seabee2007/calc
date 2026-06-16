@@ -37,4 +37,18 @@ describe('DashboardHero', () => {
     expect(screen.getByText('Active Projects')).toBeInTheDocument();
     expect(screen.getByText('Proposals Sent')).toBeInTheDocument();
   });
+
+  it('shows full action labels when compactActions is false', () => {
+    render(<DashboardHero {...defaultProps} compactActions={false} />);
+    expect(screen.getByRole('button', { name: /Start Project/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Quick Quote/i })).toBeInTheDocument();
+  });
+
+  it('shows short action labels when compactActions is true', () => {
+    render(<DashboardHero {...defaultProps} compactActions />);
+    expect(screen.getByRole('button', { name: /^Start$/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Quote$/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Start Project/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Quick Quote/i })).not.toBeInTheDocument();
+  });
 });

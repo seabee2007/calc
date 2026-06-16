@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Check, FolderKanban, LayoutGrid, RotateCcw } from 'lucide-react';
@@ -250,12 +250,37 @@ const OperationsDashboard: React.FC = () => {
   const {
     orderedItems,
     customizing,
+    saveStatus,
     setCustomizing,
     applyPositions,
     setCardWidth,
     setCardHeight,
     resetLayout,
   } = useDashboardLayout();
+
+  const [resetNotice, setResetNotice] = useState(false);
+  const resetNoticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => {
+    if (resetNoticeTimer.current) clearTimeout(resetNoticeTimer.current);
+  }, []);
+
+  const handleResetLayout = () => {
+    resetLayout();
+    setResetNotice(true);
+    if (resetNoticeTimer.current) clearTimeout(resetNoticeTimer.current);
+    resetNoticeTimer.current = setTimeout(() => setResetNotice(false), 2500);
+  };
+
+  const saveStatusMessage = resetNotice
+    ? 'Dashboard layout reset'
+    : saveStatus === 'saving'
+      ? 'Saving…'
+      : saveStatus === 'saved'
+        ? 'Saved'
+        : saveStatus === 'error'
+          ? "Couldn't save — changes kept"
+          : null;
 
   const cardContext: DashboardCardContext = {
     isOwner: Boolean(isOwner),
@@ -293,12 +318,29 @@ const OperationsDashboard: React.FC = () => {
         className="flex flex-wrap items-center justify-end gap-2"
         data-testid="dashboard-customize-controls"
       >
+        {saveStatusMessage ? (
+          <span
+            role="status"
+            aria-live="polite"
+            data-testid="dashboard-save-status"
+            className={`mr-1 inline-flex items-center gap-1 text-xs ${
+              saveStatus === 'error'
+                ? 'text-red-600 dark:text-red-400'
+                : 'text-slate-500 dark:text-slate-400'
+            }`}
+          >
+            {saveStatus === 'saved' && !resetNotice ? (
+              <Check size={14} className="text-emerald-500" />
+            ) : null}
+            {saveStatusMessage}
+          </span>
+        ) : null}
         {customizing ? (
           <Button
             variant="outline"
             size="sm"
             icon={<RotateCcw size={16} />}
-            onClick={resetLayout}
+            onClick={handleResetLayout}
             data-testid="dashboard-reset-layout"
           >
             Reset layout

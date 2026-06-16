@@ -29,6 +29,7 @@ interface SmartPourAssistantProps {
   };
   attention: string[];
   emptyMessage?: string;
+  embedded?: boolean;
 }
 
 const CHECK_ITEMS: { key: keyof SmartPourAssistantProps['checks']; label: string }[] = [
@@ -50,15 +51,18 @@ const SmartPourAssistant: React.FC<SmartPourAssistantProps> = ({
   checks,
   attention,
   emptyMessage,
+  embedded = false,
 }) => {
   const navigate = useNavigate();
 
-  return (
-    <OpsCard className={className}>
-      <div className="flex items-center gap-2 mb-2">
-        <ClipboardCheck className="h-5 w-5 text-cyan-400 shrink-0" />
-        <h3 className={`font-semibold text-sm ${OPS_TITLE}`}>Pre-placement review</h3>
-      </div>
+  const body = (
+    <>
+      {!embedded ? (
+        <div className="mb-2 flex items-center gap-2">
+          <ClipboardCheck className="h-5 w-5 shrink-0 text-cyan-400" />
+          <h3 className={`text-sm font-semibold ${OPS_TITLE}`}>Pre-placement review</h3>
+        </div>
+      ) : null}
 
       {!projectId ? (
         <>
@@ -127,8 +131,11 @@ const SmartPourAssistant: React.FC<SmartPourAssistantProps> = ({
           </Button>
         </>
       )}
-    </OpsCard>
+    </>
   );
+
+  if (embedded) return <div className={className}>{body}</div>;
+  return <OpsCard className={className}>{body}</OpsCard>;
 };
 
 function CheckRow({ ok, label }: { ok: boolean; label: string }) {

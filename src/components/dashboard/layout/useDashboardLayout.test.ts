@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { act, renderHook } from '@testing-library/react';
 import { useDashboardLayout } from './useDashboardLayout';
 import {
@@ -6,6 +6,14 @@ import {
   DASHBOARD_LAYOUT_VERSION,
   getDefaultDashboardLayout,
 } from '../../../lib/dashboardLayout';
+
+// These behavioral tests cover local layout operations; persistence is isolated
+// by stubbing the service so the hook never touches Supabase. Saved layout is
+// absent here, so the hook keeps the default layout on mount.
+vi.mock('../../../services/userPreferencesService', () => ({
+  getUserPreferences: vi.fn().mockResolvedValue({ dashboardLayout: null }),
+  updateDashboardLayout: vi.fn().mockResolvedValue({ dashboardLayout: null }),
+}));
 
 describe('useDashboardLayout', () => {
   it('starts from the default layout in customize-off mode', () => {
@@ -58,9 +66,8 @@ describe('useDashboardLayout', () => {
     act(() => result.current.setCardWidth('activeProjects', 12));
     expect(result.current.layout.items.find((i) => i.id === 'activeProjects')?.w).toBe(12);
 
-    // todaysOperations is full-only; any width clamps to 12.
     act(() => result.current.setCardWidth('todaysOperations', 4));
-    expect(result.current.layout.items.find((i) => i.id === 'todaysOperations')?.w).toBe(12);
+    expect(result.current.layout.items.find((i) => i.id === 'todaysOperations')?.w).toBe(4);
   });
 
   it('updates measured height for a card', () => {

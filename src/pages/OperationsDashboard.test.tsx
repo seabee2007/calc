@@ -57,6 +57,12 @@ vi.mock('../hooks/useTrackedProposals', () => ({
   useTrackedProposals: () => proposalsState,
 }));
 
+// Dashboard layout persistence is isolated from Supabase in these layout tests.
+vi.mock('../services/userPreferencesService', () => ({
+  getUserPreferences: vi.fn().mockResolvedValue({ dashboardLayout: null }),
+  updateDashboardLayout: vi.fn().mockResolvedValue({ dashboardLayout: null }),
+}));
+
 vi.mock('../utils/projectWorkflow', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../utils/projectWorkflow')>();
   return {
@@ -165,43 +171,43 @@ vi.mock('../components/dashboard/DashboardHero', () => ({
 }));
 
 vi.mock('../components/dashboard/schedule/ScheduleOperationsSection', () => ({
-  default: () => <div>Operations schedule</div>,
+  default: () => <div>Schedule content</div>,
 }));
 
 vi.mock('../components/owner/OwnerActivityFeed', () => ({
-  default: () => <div>Field activity</div>,
+  default: () => <div>Field activity body</div>,
 }));
 
 vi.mock('../components/dashboard/ActiveProjectsPanel', () => ({
-  default: () => <div>Active projects</div>,
+  default: () => <div>Active projects body</div>,
 }));
 
 vi.mock('../components/dashboard/ProposalPipelineCard', () => ({
-  default: () => <div>Proposal pipeline</div>,
+  default: () => <div>Proposal pipeline body</div>,
 }));
 
 vi.mock('../components/dashboard/DashboardNextActionsCard', () => ({
-  default: () => <div>Next actions</div>,
+  default: () => <div>Next actions body</div>,
 }));
 
 vi.mock('../components/dashboard/FeaturedPlacementConditions', () => ({
-  default: () => <div>Today&apos;s placement conditions</div>,
+  default: () => <div>Placement widget body</div>,
 }));
 
 vi.mock('../components/dashboard/ProjectControlsCard', () => ({
-  default: () => <div>Project Controls</div>,
+  default: () => <div>Controls widget body</div>,
 }));
 
 vi.mock('../components/dashboard/SmartPourAssistant', () => ({
-  default: () => <div>Pre-placement review</div>,
+  default: () => <div>Pour assistant widget body</div>,
 }));
 
 vi.mock('../components/dashboard/ProjectHealthCard', () => ({
-  default: () => <div>Project risk review</div>,
+  default: () => <div>Risk widget body</div>,
 }));
 
 vi.mock('../components/dashboard/ConcreteDeliveryScheduleCard', () => ({
-  default: () => <div>Concrete delivery schedule</div>,
+  default: () => <div>Delivery widget body</div>,
 }));
 
 import OperationsDashboard from './OperationsDashboard';
@@ -242,9 +248,9 @@ describe('OperationsDashboard layout', () => {
     );
 
     assertFollowsDocumentOrder(container, 'dashboard-card-todaysOperations', 'dashboard-card-operationsSchedule');
-    assertFollowsDocumentOrder(container, 'dashboard-card-operationsSchedule', 'dashboard-card-fieldActivity');
-    assertFollowsDocumentOrder(container, 'dashboard-card-fieldActivity', 'dashboard-card-businessSnapshot');
-    assertFollowsDocumentOrder(container, 'dashboard-card-businessSnapshot', 'dashboard-card-activeProjects');
+    assertFollowsDocumentOrder(container, 'dashboard-card-operationsSchedule', 'dashboard-card-businessSnapshot');
+    assertFollowsDocumentOrder(container, 'dashboard-card-businessSnapshot', 'dashboard-card-fieldActivity');
+    assertFollowsDocumentOrder(container, 'dashboard-card-fieldActivity', 'dashboard-card-activeProjects');
     assertFollowsDocumentOrder(container, 'dashboard-card-activeProjects', 'dashboard-card-proposalPipeline');
     assertFollowsDocumentOrder(container, 'dashboard-card-proposalPipeline', 'dashboard-card-nextActions');
     assertFollowsDocumentOrder(container, 'dashboard-card-nextActions', 'dashboard-card-projectControls');
@@ -263,10 +269,10 @@ describe('OperationsDashboard layout', () => {
     expect(container.querySelector('[data-testid="dashboard-card-nextActions"]')).toBeTruthy();
     expect(within(
       container.querySelector('[data-testid="dashboard-card-projectControls"]') as HTMLElement,
-    ).getByText(/Project Controls/i)).toBeInTheDocument();
+    ).getByText(/Controls widget body/i)).toBeInTheDocument();
     expect(within(
       container.querySelector('[data-testid="dashboard-card-projectRiskReview"]') as HTMLElement,
-    ).getByText(/Project risk review/i)).toBeInTheDocument();
+    ).getByText(/Risk widget body/i)).toBeInTheDocument();
   });
 
   it('hides owner-only cards for non-owners', () => {
@@ -293,7 +299,7 @@ describe('OperationsDashboard layout', () => {
     expect(container.querySelector('[data-testid="dashboard-card-placementConditions"]')).toBeNull();
     expect(container.querySelector('[data-testid="dashboard-card-smartPourAssistant"]')).toBeNull();
     expect(container.querySelector('[data-testid="dashboard-card-concreteDeliverySchedule"]')).toBeNull();
-    expect(screen.getByText(/Project risk review/i)).toBeInTheDocument();
+    expect(screen.getByText(/Risk widget body/i)).toBeInTheDocument();
   });
 
   it('shows concrete cards after the risk review when upcoming placements exist', () => {
@@ -314,9 +320,9 @@ describe('OperationsDashboard layout', () => {
         <OperationsDashboard />
       </MemoryRouter>,
     );
-    expect(screen.getByText(/Today's placement conditions/i)).toBeInTheDocument();
-    expect(screen.getByText(/Pre-placement review/i)).toBeInTheDocument();
-    expect(screen.getByText(/Concrete delivery schedule/i)).toBeInTheDocument();
+    expect(screen.getByText(/Placement widget body/i)).toBeInTheDocument();
+    expect(screen.getByText(/Pour assistant widget body/i)).toBeInTheDocument();
+    expect(screen.getByText(/Delivery widget body/i)).toBeInTheDocument();
     assertFollowsDocumentOrder(container, 'dashboard-card-projectRiskReview', 'dashboard-card-placementConditions');
     assertFollowsDocumentOrder(container, 'dashboard-card-placementConditions', 'dashboard-card-smartPourAssistant');
     assertFollowsDocumentOrder(container, 'dashboard-card-smartPourAssistant', 'dashboard-card-concreteDeliverySchedule');

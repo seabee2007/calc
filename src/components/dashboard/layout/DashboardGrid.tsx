@@ -17,7 +17,8 @@ import { useIsNarrowViewport } from './useIsNarrowViewport';
 
 const GridWithWidth = WidthProvider(GridLayout);
 
-const ROW_HEIGHT = 8;
+/** Row height in px — must be large enough that default h values fit real card content. */
+const ROW_HEIGHT = 28;
 const MARGIN: [number, number] = [20, 20];
 
 function pxToRows(px: number): number {
@@ -75,7 +76,7 @@ export default function DashboardGrid({
       <div className="space-y-4" data-testid="dashboard-grid-mobile">
         {visibleItems.map((item) => (
           <div key={item.id} data-testid={`dashboard-card-${item.id}`}>
-            {DASHBOARD_CARD_REGISTRY[item.id].render(ctx)}
+            {DASHBOARD_CARD_REGISTRY[item.id].render(ctx, { isMobile: true, cardWidth: item.w })}
           </div>
         ))}
       </div>
@@ -115,23 +116,18 @@ export default function DashboardGrid({
       onResizeStop={handleStop}
       useCSSTransforms
     >
-      {visibleItems.map((item) => {
-        const meta = DASHBOARD_CARD_META[item.id];
-        return (
+      {visibleItems.map((item) => (
           <div key={item.id} data-testid={`dashboard-card-${item.id}`} className="dashboard-grid-cell">
             <DashboardGridItem
               id={item.id}
-              title={meta.title}
               width={item.w}
-              allowedWidths={meta.allowedWidths}
               ctx={ctx}
               customizing={customizing}
               onWidthChange={onWidthChange}
               onMeasure={handleMeasure}
             />
           </div>
-        );
-      })}
+      ))}
     </GridWithWidth>
   );
 }

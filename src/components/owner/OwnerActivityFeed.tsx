@@ -51,7 +51,13 @@ function useIsSmallScreen(): boolean {
   return isSmallScreen;
 }
 
-export default function OwnerActivityFeed({ limit = DEFAULT_FETCH_LIMIT }: { limit?: number }) {
+export default function OwnerActivityFeed({
+  limit = DEFAULT_FETCH_LIMIT,
+  embedded = false,
+}: {
+  limit?: number;
+  embedded?: boolean;
+}) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const isSmallScreen = useIsSmallScreen();
@@ -146,26 +152,20 @@ export default function OwnerActivityFeed({ limit = DEFAULT_FETCH_LIMIT }: { lim
   const showList = !loading && listItems.length > 0;
   const showEmpty = !loading && visibleItems.length === 0 && !isClearingAll;
 
-  return (
-    <OpsCard className="p-4">
-      <div className="mb-3 flex items-center justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-cyan-400">
-            Field activity
-          </p>
-          <p className={`text-sm ${OPS_MUTED}`}>Employee updates across your projects</p>
-        </div>
-        <Button
-          variant="accent"
-          size="sm"
-          className="shrink-0"
-          icon={<LayoutGrid className="h-4 w-4" />}
-          onClick={() => navigate('/planner/hub')}
-        >
-          Open Planner Hub
-        </Button>
-      </div>
+  const headerActions = (
+    <Button
+      variant="accent"
+      size="sm"
+      className="shrink-0"
+      icon={<LayoutGrid className="h-4 w-4" />}
+      onClick={() => navigate('/planner/hub')}
+    >
+      Open Planner Hub
+    </Button>
+  );
 
+  const feedBody = (
+    <>
       {loading && <p className={`text-sm ${OPS_MUTED}`}>Loading…</p>}
 
       {showEmpty && (
@@ -234,6 +234,30 @@ export default function OwnerActivityFeed({ limit = DEFAULT_FETCH_LIMIT }: { lim
           View all →
         </button>
       </div>
+    </>
+  );
+
+  if (embedded) {
+    return (
+      <div>
+        <div className="mb-3 flex justify-end">{headerActions}</div>
+        {feedBody}
+      </div>
+    );
+  }
+
+  return (
+    <OpsCard className="p-4">
+      <div className="mb-3 flex items-center justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-cyan-400">
+            Field activity
+          </p>
+          <p className={`text-sm ${OPS_MUTED}`}>Employee updates across your projects</p>
+        </div>
+        {headerActions}
+      </div>
+      {feedBody}
     </OpsCard>
   );
 }

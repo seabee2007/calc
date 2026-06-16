@@ -48,6 +48,8 @@ export interface DashboardCardGridRect {
 export interface DashboardCardMeta {
   id: DashboardCardId;
   title: string;
+  /** Optional one-line description shown under the title in the card header. */
+  subtitle?: string;
   /** Default position/size on the 12-column grid. `h` is an initial guess; the
    * grid measures real content height at runtime and overrides it. */
   default: DashboardCardGridRect;
@@ -61,12 +63,14 @@ const FULL_ONLY: number[] = [12];
 const ALL_WIDTHS: number[] = [12, 8, 6, 4];
 
 /**
- * Default layout mirrors the original dashboard grouping:
- *  - full-width hero / schedule / field activity / business snapshot stacked
- *  - Active Projects | Proposal Pipeline as a two-column row, with Next Actions
- *    sitting under Proposal Pipeline in the right column
- *  - Project Controls | Project Risk Review as a two-column row
- *  - concrete-only cards grouped at the bottom
+ * Default layout reading order:
+ *  1. Today's Operations
+ *  2. Schedule & Deadlines
+ *  3. Business Snapshot
+ *  4. Field Activity
+ *  5. Active Projects | Proposal Pipeline (Next Actions under pipeline)
+ *  6. Project Controls | Project Risk Review
+ *  7. concrete-only cards at the bottom
  *
  * `y` values are spaced out; the grid uses vertical compaction so the gaps pack
  * away and column heights stay tidy regardless of measured card heights.
@@ -75,73 +79,73 @@ export const DASHBOARD_CARD_META: Record<DashboardCardId, DashboardCardMeta> = {
   todaysOperations: {
     id: 'todaysOperations',
     title: "Today's Operations",
-    default: { x: 0, y: 0, w: 12, h: 3 },
-    minW: 12,
-    minH: 2,
-    allowedWidths: FULL_ONLY,
+    default: { x: 0, y: 0, w: 12, h: 4 },
+    minW: 4,
+    minH: 3,
+    allowedWidths: ALL_WIDTHS,
   },
   operationsSchedule: {
     id: 'operationsSchedule',
-    title: 'Operations Schedule',
+    title: 'Schedule & Deadlines',
     default: { x: 0, y: 100, w: 12, h: 4 },
     minW: 4,
-    minH: 2,
-    allowedWidths: ALL_WIDTHS,
-  },
-  fieldActivity: {
-    id: 'fieldActivity',
-    title: 'Field Activity',
-    default: { x: 0, y: 200, w: 12, h: 6 },
-    minW: 4,
-    minH: 2,
+    minH: 3,
     allowedWidths: ALL_WIDTHS,
   },
   businessSnapshot: {
     id: 'businessSnapshot',
     title: 'Business Snapshot',
-    default: { x: 0, y: 300, w: 12, h: 3 },
+    default: { x: 0, y: 200, w: 12, h: 3 },
     minW: 4,
-    minH: 2,
+    minH: 3,
+    allowedWidths: ALL_WIDTHS,
+  },
+  fieldActivity: {
+    id: 'fieldActivity',
+    title: 'Field Activity',
+    default: { x: 0, y: 300, w: 12, h: 4 },
+    minW: 4,
+    minH: 3,
     allowedWidths: ALL_WIDTHS,
   },
   activeProjects: {
     id: 'activeProjects',
     title: 'Active Projects',
-    default: { x: 0, y: 400, w: 6, h: 12 },
+    default: { x: 0, y: 400, w: 6, h: 10 },
     minW: 4,
-    minH: 2,
+    minH: 6,
     allowedWidths: ALL_WIDTHS,
   },
   proposalPipeline: {
     id: 'proposalPipeline',
     title: 'Proposal Pipeline',
-    default: { x: 6, y: 400, w: 6, h: 8 },
+    default: { x: 6, y: 400, w: 6, h: 4 },
     minW: 4,
-    minH: 2,
+    minH: 3,
     allowedWidths: ALL_WIDTHS,
   },
   nextActions: {
     id: 'nextActions',
     title: 'Next Actions',
-    default: { x: 6, y: 500, w: 6, h: 6 },
+    default: { x: 6, y: 500, w: 6, h: 4 },
     minW: 4,
-    minH: 2,
+    minH: 3,
     allowedWidths: ALL_WIDTHS,
   },
   projectControls: {
     id: 'projectControls',
     title: 'Project Controls',
-    default: { x: 0, y: 600, w: 6, h: 7 },
+    default: { x: 0, y: 600, w: 6, h: 4 },
     minW: 4,
-    minH: 2,
+    minH: 3,
     allowedWidths: ALL_WIDTHS,
   },
   projectRiskReview: {
     id: 'projectRiskReview',
     title: 'Project Risk Review',
-    default: { x: 6, y: 600, w: 6, h: 7 },
+    default: { x: 6, y: 600, w: 6, h: 4 },
     minW: 4,
-    minH: 2,
+    minH: 3,
     allowedWidths: ALL_WIDTHS,
   },
   placementConditions: {
@@ -149,23 +153,23 @@ export const DASHBOARD_CARD_META: Record<DashboardCardId, DashboardCardMeta> = {
     title: 'Placement Conditions',
     default: { x: 0, y: 700, w: 12, h: 5 },
     minW: 12,
-    minH: 2,
+    minH: 4,
     allowedWidths: FULL_ONLY,
   },
   smartPourAssistant: {
     id: 'smartPourAssistant',
     title: 'Pre-Placement Review',
-    default: { x: 0, y: 800, w: 6, h: 7 },
+    default: { x: 0, y: 800, w: 6, h: 4 },
     minW: 4,
-    minH: 2,
+    minH: 3,
     allowedWidths: ALL_WIDTHS,
   },
   concreteDeliverySchedule: {
     id: 'concreteDeliverySchedule',
     title: 'Concrete Delivery Schedule',
-    default: { x: 6, y: 800, w: 6, h: 7 },
+    default: { x: 6, y: 800, w: 6, h: 4 },
     minW: 4,
-    minH: 2,
+    minH: 3,
     allowedWidths: ALL_WIDTHS,
   },
 };

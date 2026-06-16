@@ -44,6 +44,7 @@ interface ConcreteDeliveryScheduleCardProps {
   primaryProjectId?: string;
   /** Shown when the operational queue is empty (e.g. all projects closed). */
   emptyMessage?: string;
+  embedded?: boolean;
 }
 
 const ConcreteDeliveryScheduleCard: React.FC<ConcreteDeliveryScheduleCardProps> = ({
@@ -53,6 +54,7 @@ const ConcreteDeliveryScheduleCard: React.FC<ConcreteDeliveryScheduleCardProps> 
   nextPlacement,
   primaryProjectId,
   emptyMessage,
+  embedded = false,
 }) => {
   const navigate = useNavigate();
   const [scheduleOpen, setScheduleOpen] = useState(false);
@@ -69,12 +71,14 @@ const ConcreteDeliveryScheduleCard: React.FC<ConcreteDeliveryScheduleCardProps> 
   const daysUntil =
     upcomingPourDate != null ? calendarDaysUntil(upcomingPourDate, new Date()) : null;
 
-  return (
-    <OpsCard>
-      <div className="flex items-center gap-2 mb-4">
-        <Truck className="h-5 w-5 text-blue-400" />
-        <h3 className={`font-semibold ${OPS_TITLE}`}>Concrete delivery schedule</h3>
-      </div>
+  const body = (
+    <>
+      {!embedded ? (
+        <div className="mb-4 flex items-center gap-2">
+          <Truck className="h-5 w-5 text-blue-400" />
+          <h3 className={`font-semibold ${OPS_TITLE}`}>Concrete delivery schedule</h3>
+        </div>
+      ) : null}
 
       {!hasPlacementsToday && !nextPlacement ? (
         <div className="text-center py-4">
@@ -260,8 +264,11 @@ const ConcreteDeliveryScheduleCard: React.FC<ConcreteDeliveryScheduleCardProps> 
           </Button>
         </>
       )}
-    </OpsCard>
+    </>
   );
+
+  if (embedded) return body;
+  return <OpsCard>{body}</OpsCard>;
 };
 
 export default ConcreteDeliveryScheduleCard;

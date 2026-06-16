@@ -33,6 +33,7 @@ interface ProjectControlsCardProps {
   projects?: Project[];
   proposals?: TrackedProposalRow[];
   fieldNotesProject?: ControlProjectRef | null;
+  embedded?: boolean;
 }
 
 function resolveQcReviewProject(
@@ -133,6 +134,7 @@ const ProjectControlsCard: React.FC<ProjectControlsCardProps> = ({
   projects = [],
   proposals = [],
   fieldNotesProject = null,
+  embedded = false,
 }) => {
   const navigate = useNavigate();
   const qcReviewProject = useMemo(
@@ -189,13 +191,15 @@ const ProjectControlsCard: React.FC<ProjectControlsCardProps> = ({
     );
   }
 
-  return (
-    <OpsCard className="flex h-full flex-col">
-      <div className="mb-3 flex items-center justify-between gap-2">
-        <div className="flex min-w-0 items-center gap-2">
-          <SlidersHorizontal className="h-5 w-5 shrink-0 text-cyan-600 dark:text-cyan-400" />
-          <h3 className={`font-semibold ${OPS_TITLE}`}>Project Controls</h3>
-        </div>
+  const body = (
+    <>
+      <div className="mb-3 flex items-center justify-end gap-2">
+        {!embedded ? (
+          <div className="mr-auto flex min-w-0 items-center gap-2">
+            <SlidersHorizontal className="h-5 w-5 shrink-0 text-cyan-600 dark:text-cyan-400" />
+            <h3 className={`font-semibold ${OPS_TITLE}`}>Project Controls</h3>
+          </div>
+        ) : null}
         <Link
           to="/planner/hub"
           className="inline-flex shrink-0 items-center gap-1 text-sm text-cyan-700 hover:underline dark:text-cyan-400"
@@ -252,8 +256,11 @@ const ProjectControlsCard: React.FC<ProjectControlsCardProps> = ({
           <p className={`text-sm ${OPS_MUTED}`}>No project control issues right now.</p>
         ) : null}
       </div>
-    </OpsCard>
+    </>
   );
+
+  if (embedded) return <div className="flex h-full flex-col">{body}</div>;
+  return <OpsCard className="flex h-full flex-col">{body}</OpsCard>;
 };
 
 export default ProjectControlsCard;

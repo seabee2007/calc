@@ -17,6 +17,7 @@ import {
 interface ActiveProjectsPanelProps {
   projects: DashboardProjectCard[];
   compact?: boolean;
+  embedded?: boolean;
 }
 
 const WORKFLOW_STAGES = PROJECT_LIFECYCLE_STAGE_ORDER;
@@ -24,6 +25,7 @@ const WORKFLOW_STAGES = PROJECT_LIFECYCLE_STAGE_ORDER;
 const ActiveProjectsPanel: React.FC<ActiveProjectsPanelProps> = ({
   projects,
   compact = false,
+  embedded = false,
 }) => {
   const navigate = useNavigate();
   const { projects: storeProjects, updateProject, setCurrentProject } = useProjectStore();
@@ -68,12 +70,14 @@ const ActiveProjectsPanel: React.FC<ActiveProjectsPanelProps> = ({
     navigate({ pathname: action.path, search });
   };
 
-  return (
-    <OpsCard className="flex min-h-0 flex-col lg:h-full">
-      <header className="mb-4 flex shrink-0 flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <h3 className={`font-semibold ${OPS_TITLE}`}>Active projects</h3>
-        </div>
+  const body = (
+    <>
+      <header className="mb-4 flex shrink-0 flex-wrap items-center justify-end gap-3">
+        {!embedded ? (
+          <div className="mr-auto flex items-center gap-2">
+            <h3 className={`font-semibold ${OPS_TITLE}`}>Active projects</h3>
+          </div>
+        ) : null}
         {projects.length > 0 && (
           <button
             type="button"
@@ -170,8 +174,14 @@ const ActiveProjectsPanel: React.FC<ActiveProjectsPanelProps> = ({
           ))}
         </ul>
       )}
-    </OpsCard>
+    </>
   );
+
+  if (embedded) {
+    return <div className="flex min-h-0 flex-col lg:h-full">{body}</div>;
+  }
+
+  return <OpsCard className="flex min-h-0 flex-col lg:h-full">{body}</OpsCard>;
 };
 
 export default ActiveProjectsPanel;
