@@ -27,6 +27,8 @@ import {
 } from '../../../scheduling/levelThreeGanttGrid';
 import type { EstimateDomainTask } from '../../../infrastructure/estimateDbTypes';
 import LevelThreeGantt from './LevelThreeGantt';
+import FeatureGate from '../../../../../components/subscription/FeatureGate';
+import UpgradeRequiredCard from '../../../../../components/subscription/UpgradeRequiredCard';
 import LevelThreeGanttExportMenu from './LevelThreeGanttExportMenu';
 import LevelThreeGanttFullscreenToolbar from './LevelThreeGanttFullscreenToolbar';
 import LevelThreeGanttLegend from './LevelThreeGanttLegend';
@@ -35,6 +37,39 @@ import ResourceHistogram from './ResourceHistogram';
 
 const TOOLBAR_BUTTON_CLASS =
   'rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700';
+
+function GatedLevelThreeExportMenu({
+  exportReady,
+  onExportPdf,
+  onExportExcel,
+  buttonClassName,
+}: {
+  exportReady: boolean;
+  onExportPdf?: () => void;
+  onExportExcel?: () => void;
+  buttonClassName?: string;
+}) {
+  return (
+    <FeatureGate
+      feature="level_three_gantt_export"
+      inline
+      fallback={
+        <UpgradeRequiredCard
+          feature="level_three_gantt_export"
+          className="max-w-md p-4"
+          title="Export requires Business"
+        />
+      }
+    >
+      <LevelThreeGanttExportMenu
+        exportReady={exportReady}
+        onExportPdf={onExportPdf}
+        onExportExcel={onExportExcel}
+        buttonClassName={buttonClassName}
+      />
+    </FeatureGate>
+  );
+}
 
 interface Props {
   activities: ScheduleActivity[];
@@ -282,7 +317,7 @@ export default function LevelThreeGanttWorkspace({
           >
             Full screen
           </button>
-          <LevelThreeGanttExportMenu
+          <GatedLevelThreeExportMenu
             exportReady={exportReady}
             onExportPdf={onExportPdf}
             onExportExcel={onExportExcel}

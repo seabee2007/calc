@@ -60,6 +60,7 @@ export const LazyProjectProposalsPage = lazyPage(
   () => import('../pages/Projects/ProjectProposalsPage'),
 );
 export const LazySettings = lazyPage(() => import('../pages/Settings'));
+export const LazyBillingPage = lazyPage(() => import('../pages/BillingPage'));
 export const LazyPourPlanner = lazyPage(() => import('../pages/PourPlanner'));
 export const LazyMixDesignAdvisor = lazyPage(() => import('../pages/MixDesignAdvisor'));
 export const LazyProposalGenerator = lazyPage(() => import('../pages/ProposalGenerator'));

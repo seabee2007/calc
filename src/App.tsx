@@ -34,6 +34,9 @@ import {
 } from './utils/onboardingStatus';
 import FullscreenExperienceTipHost from './components/onboarding/FullscreenExperienceTipHost';
 import DefinitionsHelpHost from './features/help/DefinitionsHelpHost';
+import FeatureGate from './components/subscription/FeatureGate';
+import { GatedLazyRoute } from './components/subscription/GatedLazyRoute';
+import { useSubscription } from './contexts/SubscriptionContext';
 import {
   LazyRoute,
   LazyConcreteCalculatorPage,
@@ -47,6 +50,7 @@ import {
   LazyProjects,
   LazyProjectProposalsPage,
   LazySettings,
+  LazyBillingPage,
   LazyPourPlanner,
   LazyMixDesignAdvisor,
   LazyProposalGenerator,
@@ -155,6 +159,20 @@ export const useChatStore = () => {
   const [isVisible, setIsVisible] = React.useState(true);
   return { isVisible, setIsVisible };
 };
+
+function ConcreteChatGate() {
+  const { hasFeature, loading } = useSubscription();
+
+  if (loading || !hasFeature('ai_concrete_chat')) {
+    return null;
+  }
+
+  return (
+    <Suspense fallback={null}>
+      <LazyConcreteChat />
+    </Suspense>
+  );
+}
 
 function App() {
   const { user, profile, profileLoading, loading: authLoading } = useAuth();
@@ -495,7 +513,7 @@ function App() {
               element={
                 <AuthGuard>
                   <OwnerGuard>
-                    <LazyRoute Page={LazyFinancialDetailsPage} />
+                    <GatedLazyRoute feature="financial_dashboard" Page={LazyFinancialDetailsPage} />
                   </OwnerGuard>
                 </AuthGuard>
               }
@@ -505,7 +523,17 @@ function App() {
               element={
                 <AuthGuard>
                   <OwnerGuard>
-                    <LazyRoute Page={LazyAccountingTaxPage} />
+                    <GatedLazyRoute feature="accounting_exports" Page={LazyAccountingTaxPage} />
+                  </OwnerGuard>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="settings/billing"
+              element={
+                <AuthGuard>
+                  <OwnerGuard>
+                    <LazyRoute Page={LazyBillingPage} />
                   </OwnerGuard>
                 </AuthGuard>
               }
@@ -548,7 +576,7 @@ function App() {
               path="tools/contract-builder"
               element={
                 <AuthGuard>
-                  <LazyRoute Page={LazyContractBuilderPage} />
+                  <GatedLazyRoute feature="contract_builder" Page={LazyContractBuilderPage} />
                 </AuthGuard>
               }
             />
@@ -600,26 +628,26 @@ function App() {
               </AuthGuard>
             }
           >
-            <Route path="planner/hub" element={<LazyRoute Page={LazyPlannerHubPage} />} />
+            <Route path="planner/hub" element={<GatedLazyRoute feature="global_planner_hub" Page={LazyPlannerHubPage} />} />
             <Route path="planner/schedule" element={<LazyRoute Page={LazyScheduleWorkspacePage} />} />
             <Route path="planner/rfis" element={<LazyRoute Page={LazyPlannerAllRfisPage} />} />
             <Route path="planner/fars" element={<LazyRoute Page={LazyPlannerAllFarsPage} />} />
             <Route
               path="planner/change-orders"
-              element={<LazyRoute Page={LazyPlannerAllChangeOrdersPage} />}
+              element={<GatedLazyRoute feature="change_orders" Page={LazyPlannerAllChangeOrdersPage} />}
             />
             <Route path="projects/:projectId/planner" element={<LazyRoute Page={LazyPlannerProjectShell} />}>
               <Route index element={<PlannerIndexRedirect />} />
               <Route path="board" element={<LazyRoute Page={LazyPlannerBoardPage} />} />
               <Route path="charts" element={<LazyRoute Page={LazyPlannerChartsPage} />} />
               <Route path="schedule" element={<LazyRoute Page={LazyPlannerSchedulePage} />} />
-              <Route path="documents" element={<LazyRoute Page={LazyPlannerDocumentsPage} />} />
+              <Route path="documents" element={<GatedLazyRoute feature="document_builder" Page={LazyPlannerDocumentsPage} />} />
               <Route path="rfis" element={<LazyRoute Page={LazyPlannerRFIsPage} />} />
               <Route path="adjustments" element={<LazyRoute Page={LazyPlannerAdjustmentsPage} />} />
-              <Route path="change-orders" element={<LazyRoute Page={LazyPlannerChangeOrdersPage} />} />
+              <Route path="change-orders" element={<GatedLazyRoute feature="change_orders" Page={LazyPlannerChangeOrdersPage} />} />
               <Route
                 path="change-orders/:changeOrderId"
-                element={<LazyRoute Page={LazyChangeOrderBuilderPage} />}
+                element={<GatedLazyRoute feature="change_orders" Page={LazyChangeOrderBuilderPage} />}
               />
               <Route path="estimate/:estimateTab" element={<LazyRoute Page={LazyEstimateWorkspacePage} />} />
               <Route path="estimate" element={<LazyRoute Page={LazyEstimateWorkspacePage} />} />
@@ -700,11 +728,7 @@ function App() {
 
         {chatStore.isVisible &&
           !location.pathname.startsWith('/proposal/') &&
-          !location.pathname.startsWith('/client/project/') && (
-            <Suspense fallback={null}>
-              <LazyConcreteChat />
-            </Suspense>
-          )}
+          !location.pathname.startsWith('/client/project/') && <ConcreteChatGate />}
 
         <FullscreenExperienceTipHost />
         <DefinitionsHelpHost />

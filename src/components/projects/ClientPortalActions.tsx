@@ -17,6 +17,7 @@ import {
   OPS_SECTION_TITLE,
 } from '../dashboard/opsTheme';
 import { TEXT_ACCENT } from '../../theme/appTheme';
+import FeatureGate from '../subscription/FeatureGate';
 
 interface ClientPortalActionsProps {
   projectId: string;
@@ -109,7 +110,8 @@ const ClientPortalActions: React.FC<ClientPortalActionsProps> = ({
   }
 
   return (
-    <>
+    <FeatureGate feature="client_portal">
+      <>
       <div className={OPS_SECTION}>
         <div>
           <p className={`${OPS_SECTION_TITLE} flex items-center gap-2`}>
@@ -193,7 +195,8 @@ const ClientPortalActions: React.FC<ClientPortalActionsProps> = ({
         onDismiss={() => setSentToast(null)}
         zIndexClass="z-[10060]"
       />
-    </>
+      </>
+    </FeatureGate>
   );
 };
 

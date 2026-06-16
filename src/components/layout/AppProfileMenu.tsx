@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   Building2,
   ClipboardList,
+  CreditCard,
   HelpCircle,
   LayoutDashboard,
   Moon,
@@ -11,10 +12,10 @@ import {
   User,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
-import { getUserInitials } from '../../utils/getUserInitials';
 import { useDefinitionsHelpStore } from '../../features/help/definitionsHelpStore';
 import { useThemeStore } from '../../store/themeStore';
 import { isFieldOnlyRole } from '../../types/fieldPlanner';
+import ProfileMenuUserHeader from './ProfileMenuUserHeader';
 import {
   persistExpandedSettingsSections,
   type SettingsSectionId,
@@ -69,17 +70,7 @@ function FieldUserProfileMenu({
 
   return (
     <>
-      <div className="flex items-center gap-2 px-3 py-2">
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-cyan-600 text-[10px] font-semibold text-white">
-          {getUserInitials({
-            firstName: profile?.firstName,
-            lastName: profile?.lastName,
-            displayName: profile?.displayName,
-            email: user?.email,
-          })}
-        </span>
-        <p className="truncate text-xs text-slate-400">{profile?.displayName ?? user?.email}</p>
-      </div>
+      <ProfileMenuUserHeader user={user} profile={profile} />
 
       <Link to="/employee/profile" className={menuItemClass} onClick={onClose}>
         <User className="h-4 w-4 text-cyan-400" aria-hidden />
@@ -145,17 +136,7 @@ function AdminUserProfileMenu({
 
   return (
     <>
-      <div className="flex items-center gap-2 px-3 py-2">
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-cyan-600 text-[10px] font-semibold text-white">
-          {getUserInitials({
-            firstName: profile?.firstName,
-            lastName: profile?.lastName,
-            displayName: profile?.displayName,
-            email: user?.email,
-          })}
-        </span>
-        <p className="truncate text-xs text-slate-400">{profile?.displayName ?? user?.email}</p>
-      </div>
+      <ProfileMenuUserHeader user={user} profile={profile} />
 
       <button
         type="button"
@@ -173,6 +154,12 @@ function AdminUserProfileMenu({
         <User className="h-4 w-4 text-cyan-400" aria-hidden />
         User preferences
       </button>
+      {isOwner ? (
+        <Link to="/settings/billing" className={menuItemClass} onClick={onClose}>
+          <CreditCard className="h-4 w-4 text-cyan-400" aria-hidden />
+          Billing & Subscription
+        </Link>
+      ) : null}
 
       <div className={menuDividerClass} />
 

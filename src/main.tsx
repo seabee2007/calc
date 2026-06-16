@@ -6,6 +6,7 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { AuthProvider } from './hooks/useAuth';
 import { ConfirmProvider } from './contexts/ConfirmContext';
+import { SubscriptionProvider } from './contexts/SubscriptionContext';
 import RootErrorBoundary from './components/layout/RootErrorBoundary';
 import './index.css';
 
@@ -39,9 +40,11 @@ root.render(
     <StrictMode>
       <BrowserRouter>
         <AuthProvider>
-          <ConfirmProvider>
-            <App />
-          </ConfirmProvider>
+          <SubscriptionProvider>
+            <ConfirmProvider>
+              <App />
+            </ConfirmProvider>
+          </SubscriptionProvider>
         </AuthProvider>
       </BrowserRouter>
     </StrictMode>

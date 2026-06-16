@@ -1,6 +1,8 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { useSubscription } from '../../contexts/SubscriptionContext';
+import UpgradeRequiredCard from '../subscription/UpgradeRequiredCard';
 import {
   FIELD_PORTAL_ACCESS_VERIFY_FAILED_MESSAGE,
 } from '../../pages/auth/postAuthRouting';
@@ -65,6 +67,24 @@ export function OwnerGuard({ children }: { children: React.ReactNode }) {
 }
 
 export function EmployeeGuard({ children }: { children: React.ReactNode }) {
+  const { hasFeature, loading: subscriptionLoading } = useSubscription();
+
+  if (subscriptionLoading) {
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center bg-transparent">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-cyan-400/30 border-t-cyan-300" />
+      </div>
+    );
+  }
+
+  if (!hasFeature('employee_portal')) {
+    return (
+      <div className="mx-auto max-w-2xl p-6">
+        <UpgradeRequiredCard feature="employee_portal" />
+      </div>
+    );
+  }
+
   return (
     <RoleGuard
       allowedRoles={['employee', 'foreman', 'project_manager']}
