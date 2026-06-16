@@ -28,22 +28,33 @@ vi.mock('framer-motion', () => ({
   ),
 }));
 
+// Stable references: these hooks return referentially-stable values in the real
+// app (auth context / zustand store), so the mocks must too. Returning fresh
+// objects/arrays each render would make OperationsDashboard's data effects
+// (deps include user/projects/proposals) re-run every render and loop.
+const authState = vi.hoisted(() => ({
+  isOwner: true,
+  user: { id: 'owner-1' } as { id: string },
+}));
+const storeState = vi.hoisted(() => ({
+  projects: [{ id: 'p1', name: 'Test Project' }],
+  loadProjects: () => {},
+}));
+const proposalsState = vi.hoisted(() => ({
+  proposals: [] as unknown[],
+  refresh: () => {},
+}));
+
 vi.mock('../hooks/useAuth', () => ({
-  useAuth: () => ({ isOwner: true, user: { id: 'owner-1' } }),
+  useAuth: () => ({ isOwner: authState.isOwner, user: authState.user }),
 }));
 
 vi.mock('../store', () => ({
-  useProjectStore: () => ({
-    projects: [{ id: 'p1', name: 'Test Project' }],
-    loadProjects: vi.fn(),
-  }),
+  useProjectStore: () => storeState,
 }));
 
 vi.mock('../hooks/useTrackedProposals', () => ({
-  useTrackedProposals: () => ({
-    proposals: [],
-    refresh: vi.fn(),
-  }),
+  useTrackedProposals: () => proposalsState,
 }));
 
 vi.mock('../utils/projectWorkflow', async (importOriginal) => {
@@ -209,82 +220,83 @@ describe('OperationsDashboard layout', () => {
   beforeEach(() => {
     mockNavigate.mockReset();
     mockOperationsSnapshot = { ...baseOperationsSnapshot };
+    authState.isOwner = true;
   });
 
-  it("renders Today's Operations first", () => {
+  it("renders Today's Operations as the first card", () => {
     const { container } = render(
       <MemoryRouter>
         <OperationsDashboard />
       </MemoryRouter>,
     );
     expect(screen.getByText("Today's Operations")).toBeInTheDocument();
-    expect(
-      container.querySelector('[data-testid="dashboard-todays-operations"]'),
-    ).toBeTruthy();
+    const firstCard = container.querySelector('[data-testid^="dashboard-card-"]');
+    expect(firstCard).toHaveAttribute('data-testid', 'dashboard-card-todaysOperations');
   });
 
-  it('renders sections in the restored dashboard order', () => {
+  it('renders registry cards in the default layout order', () => {
     const { container } = render(
       <MemoryRouter>
         <OperationsDashboard />
       </MemoryRouter>,
     );
 
-    assertFollowsDocumentOrder(container, 'dashboard-todays-operations', 'dashboard-operations-schedule');
-    assertFollowsDocumentOrder(container, 'dashboard-operations-schedule', 'dashboard-field-activity');
-    assertFollowsDocumentOrder(container, 'dashboard-field-activity', 'dashboard-business-snapshot');
-    assertFollowsDocumentOrder(container, 'dashboard-business-snapshot', 'dashboard-active-proposals-grid');
-    assertFollowsDocumentOrder(container, 'dashboard-active-proposals-grid', 'dashboard-controls-risk-grid');
+    assertFollowsDocumentOrder(container, 'dashboard-card-todaysOperations', 'dashboard-card-operationsSchedule');
+    assertFollowsDocumentOrder(container, 'dashboard-card-operationsSchedule', 'dashboard-card-fieldActivity');
+    assertFollowsDocumentOrder(container, 'dashboard-card-fieldActivity', 'dashboard-card-businessSnapshot');
+    assertFollowsDocumentOrder(container, 'dashboard-card-businessSnapshot', 'dashboard-card-activeProjects');
+    assertFollowsDocumentOrder(container, 'dashboard-card-activeProjects', 'dashboard-card-proposalPipeline');
+    assertFollowsDocumentOrder(container, 'dashboard-card-proposalPipeline', 'dashboard-card-nextActions');
+    assertFollowsDocumentOrder(container, 'dashboard-card-nextActions', 'dashboard-card-projectControls');
+    assertFollowsDocumentOrder(container, 'dashboard-card-projectControls', 'dashboard-card-projectRiskReview');
   });
 
-  it('renders Project Controls and Project Risk Review side-by-side on xl', () => {
+  it('renders owner-only cards (including Next Actions) for owners', () => {
     const { container } = render(
       <MemoryRouter>
         <OperationsDashboard />
       </MemoryRouter>,
     );
-    const grid = container.querySelector('[data-testid="dashboard-controls-risk-grid"]');
-    expect(grid).toHaveClass('xl:grid-cols-2');
-    expect(grid).toHaveClass('xl:items-stretch');
-    expect(within(grid as HTMLElement).getByText(/Project Controls/i)).toBeInTheDocument();
-    expect(within(grid as HTMLElement).getByText(/Project risk review/i)).toBeInTheDocument();
+    expect(container.querySelector('[data-testid="dashboard-card-operationsSchedule"]')).toBeTruthy();
+    expect(container.querySelector('[data-testid="dashboard-card-fieldActivity"]')).toBeTruthy();
+    // Next Actions must always render for owners (Phase 2B regression guard).
+    expect(container.querySelector('[data-testid="dashboard-card-nextActions"]')).toBeTruthy();
+    expect(within(
+      container.querySelector('[data-testid="dashboard-card-projectControls"]') as HTMLElement,
+    ).getByText(/Project Controls/i)).toBeInTheDocument();
+    expect(within(
+      container.querySelector('[data-testid="dashboard-card-projectRiskReview"]') as HTMLElement,
+    ).getByText(/Project risk review/i)).toBeInTheDocument();
   });
 
-  it('renders Project Controls below Active Projects / Proposal Pipeline', () => {
+  it('hides owner-only cards for non-owners', () => {
+    authState.isOwner = false;
     const { container } = render(
       <MemoryRouter>
         <OperationsDashboard />
       </MemoryRouter>,
     );
-    assertFollowsDocumentOrder(container, 'dashboard-active-proposals-grid', 'dashboard-controls-risk-grid');
-    expect(screen.getByText(/Project Controls/i)).toBeInTheDocument();
+    expect(container.querySelector('[data-testid="dashboard-card-operationsSchedule"]')).toBeNull();
+    expect(container.querySelector('[data-testid="dashboard-card-fieldActivity"]')).toBeNull();
+    expect(container.querySelector('[data-testid="dashboard-card-nextActions"]')).toBeNull();
+    // Always-visible cards still render.
+    expect(container.querySelector('[data-testid="dashboard-card-activeProjects"]')).toBeTruthy();
+    expect(container.querySelector('[data-testid="dashboard-card-businessSnapshot"]')).toBeTruthy();
   });
 
-  it('renders Active Projects and Proposal Pipeline side-by-side on desktop', () => {
+  it('hides concrete-only cards when there is no placement work', () => {
     const { container } = render(
       <MemoryRouter>
         <OperationsDashboard />
       </MemoryRouter>,
     );
-    const grid = container.querySelector('[data-testid="dashboard-active-proposals-grid"]');
-    expect(grid).toHaveClass('lg:items-stretch');
-    expect(within(grid as HTMLElement).getByText('Proposal pipeline')).toBeInTheDocument();
-    expect(within(grid as HTMLElement).getByText('Active projects')).toBeInTheDocument();
-  });
-
-  it('hides concrete-only widgets when there is no placement work', () => {
-    render(
-      <MemoryRouter>
-        <OperationsDashboard />
-      </MemoryRouter>,
-    );
-    expect(screen.queryByText(/Today's placement conditions/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/Pre-placement review/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/Concrete delivery schedule/i)).not.toBeInTheDocument();
+    expect(container.querySelector('[data-testid="dashboard-card-placementConditions"]')).toBeNull();
+    expect(container.querySelector('[data-testid="dashboard-card-smartPourAssistant"]')).toBeNull();
+    expect(container.querySelector('[data-testid="dashboard-card-concreteDeliverySchedule"]')).toBeNull();
     expect(screen.getByText(/Project risk review/i)).toBeInTheDocument();
   });
 
-  it('shows concrete widgets when upcoming placements exist', () => {
+  it('shows concrete cards after the risk review when upcoming placements exist', () => {
     mockOperationsSnapshot = {
       ...baseOperationsSnapshot,
       upcomingPlacements: [
@@ -305,19 +317,23 @@ describe('OperationsDashboard layout', () => {
     expect(screen.getByText(/Today's placement conditions/i)).toBeInTheDocument();
     expect(screen.getByText(/Pre-placement review/i)).toBeInTheDocument();
     expect(screen.getByText(/Concrete delivery schedule/i)).toBeInTheDocument();
-    assertFollowsDocumentOrder(container, 'dashboard-controls-risk-grid', 'dashboard-placement-conditions');
-    assertFollowsDocumentOrder(container, 'dashboard-placement-conditions', 'dashboard-lower-concrete-grid');
+    assertFollowsDocumentOrder(container, 'dashboard-card-projectRiskReview', 'dashboard-card-placementConditions');
+    assertFollowsDocumentOrder(container, 'dashboard-card-placementConditions', 'dashboard-card-smartPourAssistant');
+    assertFollowsDocumentOrder(container, 'dashboard-card-smartPourAssistant', 'dashboard-card-concreteDeliverySchedule');
   });
 
-  it('renders lower row with project risk review when no concrete work', () => {
+  it('renders the Customize dashboard control with no drag handles by default', () => {
     render(
       <MemoryRouter>
         <OperationsDashboard />
       </MemoryRouter>,
     );
-    expect(screen.getByText(/Project risk review/i)).toBeInTheDocument();
-    expect(screen.queryByText(/Pre-placement review/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/Concrete delivery schedule/i)).not.toBeInTheDocument();
+
+    expect(screen.getByTestId('dashboard-customize-toggle')).toHaveTextContent(
+      /Customize dashboard/i,
+    );
+    expect(screen.queryAllByLabelText('Move dashboard card')).toHaveLength(0);
+    expect(screen.queryByTestId('dashboard-reset-layout')).toBeNull();
   });
 
   it('renders simplified Business Snapshot metrics only', () => {

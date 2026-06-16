@@ -1,0 +1,74 @@
+/* Dashboard grid editor styling layered on top of react-grid-layout. */
+
+.dashboard-grid {
+  position: relative;
+}
+
+/* Cards size to their measured content; keep overflow visible so a brief
+   height mismatch during measurement never clips card content. */
+.dashboard-grid .react-grid-item {
+  overflow: visible;
+}
+
+.dashboard-grid .react-grid-item.cssTransforms {
+  transition-property: transform, width, height;
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.dashboard-grid-item-root {
+  width: 100%;
+}
+
+/* The lifted card while dragging: elevated shadow + teal ring, no smear. */
+.dashboard-grid .react-grid-item.react-draggable-dragging {
+  transition: none;
+  z-index: 30;
+}
+
+.dashboard-grid .react-grid-item.react-draggable-dragging .dashboard-grid-item-root > :last-child {
+  border-radius: 1rem;
+  box-shadow: 0 24px 50px -18px rgba(8, 145, 178, 0.6);
+  outline: 2px solid rgba(45, 212, 191, 0.9);
+  outline-offset: 2px;
+}
+
+.dashboard-grid .react-grid-item.resizing {
+  z-index: 30;
+}
+
+/* Clean cyan dashed placeholder showing where the card will land. */
+.dashboard-grid .react-grid-placeholder {
+  background: rgba(34, 211, 238, 0.16) !important;
+  border: 2px dashed rgba(34, 211, 238, 0.85);
+  border-radius: 1rem;
+  opacity: 1;
+  transition-duration: 120ms;
+}
+
+/* East (width) resize handle: a subtle cyan pill instead of the default corner. */
+.dashboard-grid .react-resizable-handle-e {
+  top: 0;
+  right: -3px;
+  bottom: 0;
+  width: 14px;
+  height: auto;
+  margin: auto 0;
+  padding: 0;
+  transform: none;
+  background-image: none;
+  cursor: ew-resize;
+}
+
+.dashboard-grid .react-resizable-handle-e::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  width: 4px;
+  height: 40px;
+  transform: translateY(-50%);
+  border-radius: 9999px;
+  background: rgba(34, 211, 238, 0.85);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.4);
+}

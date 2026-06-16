@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FolderKanban } from 'lucide-react';
+import { Check, FolderKanban, LayoutGrid, RotateCcw } from 'lucide-react';
 import { useProjectStore } from '../store';
 import { useTrackedProposals } from '../hooks/useTrackedProposals';
 import { buildOperationsSnapshot, buildQcDashboardStats, resolveNextUpcomingPlacement } from '../utils/operationsDashboard';
@@ -10,19 +10,7 @@ import {
   resolveFeaturedRiskProject,
 } from '../utils/projectRiskReview';
 import { isProjectClosedOut } from '../utils/projectWorkflow';
-
-const QUEUE_EMPTY_MESSAGE =
-  'No projects scheduled — closed jobs are out of the queue.';
-import DashboardHero from '../components/dashboard/DashboardHero';
-import FeaturedPlacementConditions from '../components/dashboard/FeaturedPlacementConditions';
-import ConcreteDeliveryScheduleCard from '../components/dashboard/ConcreteDeliveryScheduleCard';
-import SmartPourAssistant from '../components/dashboard/SmartPourAssistant';
-import ActiveProjectsPanel from '../components/dashboard/ActiveProjectsPanel';
-import ProposalPipelineCard from '../components/dashboard/ProposalPipelineCard';
-import BusinessSnapshotCard from '../components/dashboard/BusinessSnapshotCard';
-import DashboardNextActionsCard, {
-  type DashboardExtraAction,
-} from '../components/dashboard/DashboardNextActionsCard';
+import { type DashboardExtraAction } from '../components/dashboard/DashboardNextActionsCard';
 import { buildCrmRevenueMetrics } from '../utils/proposalCrm';
 import { fetchChangeOrdersForProjectIds } from '../services/changeOrderService';
 import {
@@ -31,16 +19,16 @@ import {
 } from '../services/scheduleEventService';
 import { buildScheduleDashboardSnapshot } from '../utils/scheduleDashboard';
 import { addDays, toIsoDate } from '../utils/scheduleEventUtils';
-import ScheduleOperationsSection from '../components/dashboard/schedule/ScheduleOperationsSection';
 import type { ChangeOrder } from '../types/changeOrder';
-import ProjectHealthCard from '../components/dashboard/ProjectHealthCard';
-import ProjectControlsCard from '../components/dashboard/ProjectControlsCard';
-import OwnerActivityFeed from '../components/owner/OwnerActivityFeed';
 import EmptyState from '../components/ui/EmptyState';
+import Button from '../components/ui/Button';
 import { useAuth } from '../hooks/useAuth';
 import { OPS_SHELL } from '../components/dashboard/opsTheme';
 import { PREMIUM_PAGE_MAX_WIDTH, PAGE_GUTTER } from '../theme/appTheme';
 import { formatPlacementPourDateTime } from '../utils/placementPourDate';
+import type { DashboardCardContext } from '../components/dashboard/layout/dashboardData';
+import DashboardGrid from '../components/dashboard/layout/DashboardGrid';
+import { useDashboardLayout } from '../components/dashboard/layout/useDashboardLayout';
 
 const OperationsDashboard: React.FC = () => {
   const { isOwner, user } = useAuth();
@@ -259,6 +247,40 @@ const OperationsDashboard: React.FC = () => {
     return match ? { id: match.id, name: match.name } : null;
   }, [snapshot.projects]);
 
+  const {
+    orderedItems,
+    customizing,
+    setCustomizing,
+    applyPositions,
+    setCardWidth,
+    setCardHeight,
+    resetLayout,
+  } = useDashboardLayout();
+
+  const cardContext: DashboardCardContext = {
+    isOwner: Boolean(isOwner),
+    projects,
+    proposals,
+    snapshot,
+    qcStats,
+    scheduleSnapshot,
+    projectRiskReview,
+    crmRevenueMetrics,
+    prePlacement,
+    financial,
+    pipeline,
+    proposalWeightedForecast,
+    totalQcRecords,
+    hasAnyConcreteWork,
+    allProjectsClosedOut,
+    nextUpcomingPlacement,
+    primaryPourTodayId: primaryPourToday?.id,
+    fieldNotesProject,
+    dashboardExtraActions,
+    onStartProject: () => navigate('/projects', { state: { openCreate: true } }),
+    onQuickQuote: () => navigate('/proposal-generator'),
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -267,114 +289,40 @@ const OperationsDashboard: React.FC = () => {
       transition={{ duration: 0.3 }}
       className={`${OPS_SHELL} ${PREMIUM_PAGE_MAX_WIDTH} ${PAGE_GUTTER} space-y-4 sm:space-y-5 pb-24 md:pb-8`}
     >
-      <div data-testid="dashboard-todays-operations">
-        <DashboardHero
-          activeProjects={snapshot.activeProjectCount}
-          placementsToday={hasAnyConcreteWork ? snapshot.todayPourCount : undefined}
-          proposalsSent={snapshot.proposalsSentCount}
-          onStartProject={() => navigate('/projects', { state: { openCreate: true } })}
-          onQuickQuote={() => navigate('/proposal-generator')}
-        />
-      </div>
-
-      {isOwner ? (
-        <div data-testid="dashboard-operations-schedule">
-          <ScheduleOperationsSection snapshot={scheduleSnapshot} />
-        </div>
-      ) : null}
-
-      {isOwner ? (
-        <div data-testid="dashboard-field-activity">
-          <OwnerActivityFeed />
-        </div>
-      ) : null}
-
-      <div data-testid="dashboard-business-snapshot">
-        <BusinessSnapshotCard financial={financial} />
-      </div>
-
-      <section
-        data-testid="dashboard-active-proposals-grid"
-        className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-stretch"
+      <div
+        className="flex flex-wrap items-center justify-end gap-2"
+        data-testid="dashboard-customize-controls"
       >
-        <div className="flex min-h-0 flex-col lg:h-full lg:min-h-0">
-          <ActiveProjectsPanel projects={snapshot.projects} />
-        </div>
-        <div className="flex min-h-0 flex-col gap-5 lg:h-full lg:min-h-0">
-          <div className="shrink-0">
-            <ProposalPipelineCard
-            pipeline={pipeline}
-            pipelineValue={crmRevenueMetrics.pipelineValue}
-            weightedForecast={proposalWeightedForecast}
-            proposals={proposals}
-            winRate={financial.winRate}
-            wonThisMonth={financial.monthlyRevenue}
-            />
-          </div>
-          {isOwner ? (
-            <DashboardNextActionsCard
-              className="min-h-0 lg:flex-1"
-              proposals={proposals}
-              extraActions={dashboardExtraActions}
-              maxItems={5}
-            />
-          ) : null}
-        </div>
-      </section>
-
-      <section
-        data-testid="dashboard-controls-risk-grid"
-        className="grid grid-cols-1 gap-5 xl:grid-cols-2 xl:items-stretch"
-      >
-        <ProjectControlsCard
-          testsDue={qcStats.qcTestsDue}
-          testsOverdue={qcStats.qcTestsOverdue}
-          totalRecords={totalQcRecords}
-          deadlineCount={
-            isOwner ? scheduleSnapshot?.upcomingDeadlines.length : undefined
-          }
-          projects={projects}
-          proposals={proposals}
-          fieldNotesProject={fieldNotesProject}
-        />
-        <ProjectHealthCard
-          review={projectRiskReview}
-          emptyMessage={allProjectsClosedOut ? QUEUE_EMPTY_MESSAGE : undefined}
-        />
-      </section>
-
-      {hasAnyConcreteWork ? (
-        <section data-testid="dashboard-placement-conditions">
-          <FeaturedPlacementConditions
-            snapshot={snapshot}
-            hasPlacementsToday={snapshot.hasPlacementsToday}
-          />
-        </section>
-      ) : null}
-
-      {hasAnyConcreteWork ? (
-        <section
-          data-testid="dashboard-lower-concrete-grid"
-          className="grid grid-cols-1 gap-5 sm:grid-cols-2"
+        {customizing ? (
+          <Button
+            variant="outline"
+            size="sm"
+            icon={<RotateCcw size={16} />}
+            onClick={resetLayout}
+            data-testid="dashboard-reset-layout"
+          >
+            Reset layout
+          </Button>
+        ) : null}
+        <Button
+          variant={customizing ? 'accent' : 'outline'}
+          size="sm"
+          icon={customizing ? <Check size={16} /> : <LayoutGrid size={16} />}
+          onClick={() => setCustomizing(!customizing)}
+          data-testid="dashboard-customize-toggle"
         >
-          <SmartPourAssistant
-            projectId={prePlacement.projectId}
-            projectName={prePlacement.projectName}
-            pourDateLabel={prePlacement.pourDateLabel}
-            checks={prePlacement.checks}
-            attention={prePlacement.attention}
-            emptyMessage={allProjectsClosedOut ? QUEUE_EMPTY_MESSAGE : undefined}
-          />
-          <ConcreteDeliveryScheduleCard
-            schedule={snapshot.deliverySchedule}
-            timeline={snapshot.timeline}
-            hasPlacementsToday={snapshot.hasPlacementsToday}
-            nextPlacement={nextUpcomingPlacement}
-            primaryProjectId={primaryPourToday?.id}
-            emptyMessage={allProjectsClosedOut ? QUEUE_EMPTY_MESSAGE : undefined}
-          />
-        </section>
-      ) : null}
+          {customizing ? 'Done' : 'Customize dashboard'}
+        </Button>
+      </div>
+
+      <DashboardGrid
+        ctx={cardContext}
+        items={orderedItems}
+        customizing={customizing}
+        onApplyPositions={applyPositions}
+        onWidthChange={setCardWidth}
+        onMeasureHeight={setCardHeight}
+      />
 
       {projects.length === 0 && (
         <EmptyState

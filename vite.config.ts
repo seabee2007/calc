@@ -90,8 +90,19 @@ export default defineConfig({
       'Access-Control-Allow-Headers': 'X-Requested-With, content-type, Authorization, apikey, X-Client-Info'
     }
   },
+  // react-draggable (via react-grid-layout) references `process.env.DRAGGABLE_DEBUG`,
+  // which throws in the browser because `process` is undefined. Replace that exact
+  // token so the reference is compiled away in both app source and pre-bundled deps.
+  define: {
+    'process.env.DRAGGABLE_DEBUG': 'false',
+  },
   optimizeDeps: {
-    include: ['react', 'react-dom']
+    include: ['react', 'react-dom'],
+    esbuildOptions: {
+      define: {
+        'process.env.DRAGGABLE_DEBUG': 'false',
+      },
+    },
   },
   resolve: {
     dedupe: ['react', 'react-dom'],

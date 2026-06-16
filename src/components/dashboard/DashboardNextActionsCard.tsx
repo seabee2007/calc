@@ -50,8 +50,6 @@ const DashboardNextActionsCard: React.FC<DashboardNextActionsCardProps> = ({
     return [...extras, ...fromProposals].slice(0, maxItems);
   }, [extraActions, maxItems, navigate, onProposalAction, proposalActions]);
 
-  if (items.length === 0) return null;
-
   return (
     <OpsCard className={`flex min-h-0 flex-col lg:h-full ${className}`.trim()}>
       <div className="mb-3 flex shrink-0 items-center justify-between gap-2">
@@ -67,28 +65,39 @@ const DashboardNextActionsCard: React.FC<DashboardNextActionsCardProps> = ({
           View all →
         </button>
       </div>
-      <ul className="min-h-0 flex-1 space-y-3 lg:overflow-y-auto lg:pr-1">
-        {items.map((item) => (
-          <li key={item.id}>
-            <button
-              type="button"
-              onClick={item.onClick}
-              className={`group flex w-full items-center gap-3 px-3 py-2.5 text-left ${OPS_ACTION_ITEM}`}
-            >
-              <span className="min-w-0 flex-1">
-                <span className="block text-sm font-semibold text-slate-900 dark:text-slate-100">
-                  {item.title}
+      {items.length === 0 ? (
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-1 py-6 text-center">
+          <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
+            You&rsquo;re all caught up
+          </p>
+          <p className={`text-xs ${OPS_SUBTLE}`}>
+            No proposals or tasks need attention right now.
+          </p>
+        </div>
+      ) : (
+        <ul className="min-h-0 flex-1 space-y-3 lg:overflow-y-auto lg:pr-1">
+          {items.map((item) => (
+            <li key={item.id}>
+              <button
+                type="button"
+                onClick={item.onClick}
+                className={`group flex w-full items-center gap-3 px-3 py-2.5 text-left ${OPS_ACTION_ITEM}`}
+              >
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-semibold text-slate-900 dark:text-slate-100">
+                    {item.title}
+                  </span>
+                  <span className={`mt-0.5 block truncate text-xs ${OPS_SUBTLE}`}>{item.detail}</span>
                 </span>
-                <span className={`mt-0.5 block truncate text-xs ${OPS_SUBTLE}`}>{item.detail}</span>
-              </span>
-              <span className={OPS_CTA_PILL}>
-                Open
-                <ArrowRight className="h-4 w-4" aria-hidden />
-              </span>
-            </button>
-          </li>
-        ))}
-      </ul>
+                <span className={OPS_CTA_PILL}>
+                  Open
+                  <ArrowRight className="h-4 w-4" aria-hidden />
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </OpsCard>
   );
 };
