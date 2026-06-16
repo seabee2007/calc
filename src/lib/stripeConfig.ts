@@ -16,6 +16,7 @@ export type StripePriceLookupKey =
   (typeof STRIPE_PRICE_LOOKUP_KEYS)[keyof typeof STRIPE_PRICE_LOOKUP_KEYS];
 
 export const STRIPE_PRODUCT_NAMES: Record<PlanId, string> = {
+  free: '',
   starter: 'arden_starter',
   professional: 'arden_professional',
   business: 'arden_business',

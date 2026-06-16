@@ -17,7 +17,7 @@ vi.mock('../../../hooks/useAuth', () => ({
 vi.mock('../../../services/subscriptionService', () => ({
   fetchSubscription: (...args: unknown[]) => fetchSubscription(...args),
   resolveEffectivePlanFromRow: (row: { planId: string; status: string } | null) => {
-    if (!row || row.status === 'canceled') return 'starter';
+    if (!row || row.status === 'canceled') return 'free';
     return row.planId;
   },
 }));

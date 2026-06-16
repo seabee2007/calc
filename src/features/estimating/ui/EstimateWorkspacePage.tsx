@@ -18,6 +18,10 @@ import {
 import { useAuth } from '../../../hooks/useAuth';
 import { useSubscription } from '../../../contexts/SubscriptionContext';
 import FeatureGate from '../../../components/subscription/FeatureGate';
+import {
+  canUseEstimateType,
+  getDefaultEstimateTypeForPlan,
+} from '../../../lib/estimateEntitlements';
 import { usePlannerProject } from '../../../contexts/PlannerProjectContext';
 import { useProjectStore } from '../../../store';
 import { DEFAULT_ESTIMATE_METHOD, isConceptualEstimateType, isQuickEstimateType, normalizeEstimateMethod, supportsConstructionActivitiesWorkflow } from '../domain/estimateMethods';
@@ -114,6 +118,7 @@ import EstimateImportModal from './EstimateImportModal';
 import ConstructionActivityBuilderPanel from './components/ConstructionActivityBuilderPanel';
 import ChooseEstimateTypeModal from './components/ChooseEstimateTypeModal';
 import ChangeEstimateTypeConfirmModal from './components/ChangeEstimateTypeConfirmModal';
+import UnsupportedEstimateTypePanel from './components/UnsupportedEstimateTypePanel';
 import EstimateTypeHeaderControl from './components/EstimateTypeHeaderControl';
 import EstimateQuickFeasibilityPanel from './components/EstimateQuickFeasibilityPanel';
 import ConceptualBudgetPanel from './components/ConceptualBudgetPanel';
@@ -359,9 +364,22 @@ export default function EstimateWorkspacePage() {
   );
 
   const resolvedProjectId = projectId ?? routeProjectId ?? '';
+  const { hasFeature, plan, loading: subscriptionLoading } = useSubscription();
+  const planDefaultEstimateType = useMemo(
+    () => getDefaultEstimateTypeForPlan(plan),
+    [plan],
+  );
+  const isEstimateTypeAllowed = useCallback(
+    (type: EstimateType) => canUseEstimateType(plan, type),
+    [plan],
+  );
   const resolvedEstimateType = normalizeEstimateMethod(
     currentEstimate?.estimateType ?? activeEstimateType ?? selectedEstimateMethod,
   );
+  const estimateTypeEntitlementBlocked =
+    estimate != null &&
+    !subscriptionLoading &&
+    !canUseEstimateType(plan, resolvedEstimateType);
   const schedulingEnabled = resolveWorkspaceSchedulingEnabled(
     resolvedEstimateType,
     currentEstimate?.schedulingEnabled,
@@ -370,7 +388,6 @@ export default function EstimateWorkspacePage() {
     () => getVisibleWorkspaceTabs(resolvedEstimateType, schedulingEnabled),
     [resolvedEstimateType, schedulingEnabled],
   );
-  const { hasFeature } = useSubscription();
   const entitlementFilteredTabs = useMemo(
     () =>
       visibleWorkspaceTabs.filter((tab) => {
@@ -764,6 +781,37 @@ export default function EstimateWorkspacePage() {
   scheduleSettingsRef.current = scheduleSettingsHook;
 
   useEffect(() => {
+    if (subscriptionLoading || dataLoading) return;
+    if (currentEstimate) return;
+    setSelectedEstimateMethod(planDefaultEstimateType);
+  }, [subscriptionLoading, dataLoading, currentEstimate, planDefaultEstimateType]);
+
+  useEffect(() => {
+    if (!resolvedProjectId || dataLoading || subscriptionLoading) return;
+    if (activeTab !== 'activities' || hasFeature('activity_based_estimating')) return;
+
+    const fallbackType =
+      estimate != null && !canUseEstimateType(plan, resolvedEstimateType)
+        ? planDefaultEstimateType
+        : planDefaultEstimateType;
+    const fallbackTab = getDefaultWorkspaceTabForEstimateType(fallbackType);
+    if (activeTab === fallbackTab) return;
+
+    navigate(estimateWorkspaceHref(resolvedProjectId, fallbackTab), { replace: true });
+  }, [
+    activeTab,
+    dataLoading,
+    estimate,
+    hasFeature,
+    navigate,
+    plan,
+    planDefaultEstimateType,
+    resolvedEstimateType,
+    resolvedProjectId,
+    subscriptionLoading,
+  ]);
+
+  useEffect(() => {
     if (!resolvedProjectId || dataLoading) return;
     if (
       isTabVisibleForEstimateType(activeTab, resolvedEstimateType, schedulingEnabled)
@@ -843,9 +891,9 @@ export default function EstimateWorkspacePage() {
     setCurrentEstimate(null);
     setActiveEstimateType(null);
     setAutoOpenScopeModalKey(null);
-    setSelectedEstimateMethod(DEFAULT_ESTIMATE_METHOD);
+    setSelectedEstimateMethod(planDefaultEstimateType);
     scheduleSourceRehydrateKeyRef.current = null;
-    estimateSetupRef.current.resetSetup(DEFAULT_ESTIMATE_METHOD);
+    estimateSetupRef.current.resetSetup(planDefaultEstimateType);
     lineItemDraftRef.current.resetDraftSetup();
     estimateSettingsRef.current.rehydrateFromEstimate(null);
     scheduleSettingsRef.current.rehydrateFromEstimate(null, []);
@@ -871,7 +919,7 @@ export default function EstimateWorkspacePage() {
           scheduleSourceRehydrateKeyRef.current = null;
           const loadedType = loadedEstimate.estimateType
             ? normalizeEstimateMethod(loadedEstimate.estimateType)
-            : DEFAULT_ESTIMATE_METHOD;
+            : planDefaultEstimateType;
           setActiveEstimateType(loadedEstimate.estimateType);
           setSelectedEstimateMethod(loadedType);
           if (loadedEstimate.estimateType) {
@@ -902,7 +950,7 @@ export default function EstimateWorkspacePage() {
     return () => {
       cancelled = true;
     };
-  }, [resolvedProjectId]);
+  }, [resolvedProjectId, planDefaultEstimateType]);
 
   const handleRetryLoadEstimate = useCallback(async () => {
     if (!resolvedProjectId) return;
@@ -916,9 +964,9 @@ export default function EstimateWorkspacePage() {
     setSaveError(null);
     setCurrentEstimate(null);
     setActiveEstimateType(null);
-    setSelectedEstimateMethod(DEFAULT_ESTIMATE_METHOD);
+    setSelectedEstimateMethod(planDefaultEstimateType);
     scheduleSourceRehydrateKeyRef.current = null;
-    estimateSetupRef.current.resetSetup(DEFAULT_ESTIMATE_METHOD);
+    estimateSetupRef.current.resetSetup(planDefaultEstimateType);
     lineItemDraftRef.current.resetDraftSetup();
     estimateSettingsRef.current.rehydrateFromEstimate(null);
     scheduleSettingsRef.current.rehydrateFromEstimate(null, []);
@@ -933,7 +981,7 @@ export default function EstimateWorkspacePage() {
       if (loadedEstimate) {
         const loadedType = loadedEstimate.estimateType
           ? normalizeEstimateMethod(loadedEstimate.estimateType)
-          : DEFAULT_ESTIMATE_METHOD;
+          : planDefaultEstimateType;
         setActiveEstimateType(loadedEstimate.estimateType);
         setSelectedEstimateMethod(loadedType);
         if (loadedEstimate.estimateType) {
@@ -954,12 +1002,16 @@ export default function EstimateWorkspacePage() {
         setDataLoading(false);
       }
     }
-  }, [resolvedProjectId]);
+  }, [resolvedProjectId, planDefaultEstimateType]);
 
   const handleStartEstimate = useCallback(async (estimateTypeOverride?: EstimateType) => {
     if (!resolvedProjectId || creating || estimate != null) return;
 
     const estimateType = estimateTypeOverride ?? selectedEstimateMethod;
+    if (!canUseEstimateType(plan, estimateType)) {
+      setCreateError('Upgrade required to use this estimate type.');
+      return;
+    }
 
     setCreating(true);
     setCreateError(null);
@@ -1012,6 +1064,7 @@ export default function EstimateWorkspacePage() {
     lineItemDraft,
     scheduleSettingsHook,
     navigate,
+    plan,
   ]);
 
   const handleSchedulingEnabledChange = useCallback(
@@ -1043,6 +1096,9 @@ export default function EstimateWorkspacePage() {
   const handleEstimateTypeModalSelect = useCallback(
     (nextType: EstimateType) => {
       setEstimateTypeModalOpen(false);
+      if (!isEstimateTypeAllowed(nextType)) {
+        return;
+      }
       if (!currentEstimate) {
         setSelectedEstimateMethod(nextType);
         setActiveEstimateType(nextType);
@@ -1053,7 +1109,63 @@ export default function EstimateWorkspacePage() {
       setPendingEstimateTypeChange(nextType);
       setEstimateTypeChangeConfirmOpen(true);
     },
-    [currentEstimate, handleStartEstimate, resolvedEstimateType],
+    [currentEstimate, handleStartEstimate, isEstimateTypeAllowed, resolvedEstimateType],
+  );
+
+  const handleSwitchToSupportedEstimateType = useCallback(
+    async (nextType: EstimateType) => {
+      if (!currentEstimate || changingEstimateType || !isEstimateTypeAllowed(nextType)) return;
+
+      setChangingEstimateType(true);
+      setSaveError(null);
+
+      const nextEstimate: CurrentEstimate = {
+        ...currentEstimate,
+        estimateType: nextType,
+      };
+
+      const result = await saveCurrentEstimate({
+        ...buildEstimatePersistenceFields(nextEstimate),
+        selectedDivisions: currentEstimate.selectedDivisions,
+        lineItems: currentEstimate.lineItems,
+        totals: currentEstimate.totals,
+        summary: currentEstimate.summary,
+        assumptions: currentEstimate.assumptions,
+        createdBy: user?.id ?? null,
+      });
+
+      if (result.error || !result.data) {
+        setSaveError(result.error ?? 'Could not change estimate type.');
+        setChangingEstimateType(false);
+        return;
+      }
+
+      const loadedType = normalizeEstimateMethod(result.data.estimateType ?? nextType);
+      setCurrentEstimate(result.data);
+      setActiveEstimateType(result.data.estimateType);
+      setSelectedEstimateMethod(loadedType);
+      estimateSetup.restoreSavedSetup(loadedType, result.data.selectedDivisions);
+      lineItemDraft.rehydrateFromVersion(currentEstimateToDomainVersion(result.data));
+      setChangingEstimateType(false);
+      setSaveToastMessage('Estimate type updated');
+      navigate(
+        estimateWorkspaceHref(
+          resolvedProjectId,
+          getDefaultWorkspaceTabForEstimateType(loadedType),
+        ),
+        { replace: true },
+      );
+    },
+    [
+      changingEstimateType,
+      currentEstimate,
+      estimateSetup,
+      isEstimateTypeAllowed,
+      lineItemDraft,
+      navigate,
+      resolvedProjectId,
+      user?.id,
+    ],
   );
 
   const pendingEstimateTypeWarning = useMemo(
@@ -1070,6 +1182,11 @@ export default function EstimateWorkspacePage() {
 
   const handleConfirmEstimateTypeChange = useCallback(async () => {
     if (!currentEstimate || !pendingEstimateTypeChange || changingEstimateType) return;
+    if (!isEstimateTypeAllowed(pendingEstimateTypeChange)) {
+      setEstimateTypeChangeConfirmOpen(false);
+      setPendingEstimateTypeChange(null);
+      return;
+    }
 
     setChangingEstimateType(true);
     setSaveError(null);
@@ -1125,6 +1242,7 @@ export default function EstimateWorkspacePage() {
     changingEstimateType,
     currentEstimate,
     estimateSetup,
+    isEstimateTypeAllowed,
     lineItemDraft,
     navigate,
     pendingEstimateTypeChange,
@@ -2126,12 +2244,20 @@ export default function EstimateWorkspacePage() {
 
   const hasEstimate = estimate != null;
   const hasEstimateAdapter = estimateAdapter != null;
+  const showWorkspaceTabPanels = !loadError && !estimateTypeEntitlementBlocked;
   const selectedDivisionCount = currentEstimate?.selectedDivisions.length ?? 0;
   const lineItemCount = currentEstimate?.lineItems.length ?? 0;
   const tabRenderOptions = { isLoading: dataLoading, hasEstimate };
   const showOverviewLoading = activeTab === 'overview' && dataLoading;
   const showEstimateTabLoading = activeTab === 'line-items' && dataLoading;
   const showEstimateTypeSelection = shouldShowEstimateTypeSelectionOnTab(activeTab, tabRenderOptions);
+  const showStartEstimatePrompt =
+    !dataLoading &&
+    !hasEstimate &&
+    (showEstimateTypeSelection ||
+      activeTab === 'quick-estimate' ||
+      activeTab === 'overview' ||
+      activeTab === 'conceptual-budget');
   const showOverviewNoEstimate = shouldShowOverviewNoEstimateMessage(activeTab, tabRenderOptions);
   const showOverviewFinancialSummary = shouldShowOverviewFinancialSummary(
     activeTab,
@@ -2377,22 +2503,31 @@ export default function EstimateWorkspacePage() {
           </div>
         ) : null}
 
-        {!loadError && showOverviewLoading ? (
+        {!loadError && !dataLoading && estimateTypeEntitlementBlocked ? (
+          <UnsupportedEstimateTypePanel
+            estimateType={resolvedEstimateType}
+            plan={plan}
+            onSwitchToSupportedEstimateType={(type) => void handleSwitchToSupportedEstimateType(type)}
+            switching={changingEstimateType}
+          />
+        ) : null}
+
+        {showWorkspaceTabPanels && showOverviewLoading ? (
           <p className={`py-12 text-center text-sm ${PLANNER_MUTED}`}>{LOADING_ESTIMATE_MESSAGE}</p>
         ) : null}
 
-        {!loadError && showEstimateTabLoading ? (
+        {showWorkspaceTabPanels && showEstimateTabLoading ? (
           <p className={`py-12 text-center text-sm ${PLANNER_MUTED}`}>{LOADING_ESTIMATE_MESSAGE}</p>
         ) : null}
 
-        {!loadError && showOverviewNoEstimate ? (
+        {showWorkspaceTabPanels && showOverviewNoEstimate ? (
           <EstimateWorkspaceEmptyState
             title="No estimate started"
             body={OVERVIEW_NO_ESTIMATE_MESSAGE}
           />
         ) : null}
 
-        {!loadError && showOverviewFinancialSummary && hasEstimateAdapter ? (
+        {showWorkspaceTabPanels && showOverviewFinancialSummary && hasEstimateAdapter ? (
           <EstimateTotalsReviewPanel
             version={estimateAdapter}
             loading={
@@ -2422,12 +2557,14 @@ export default function EstimateWorkspacePage() {
           />
         ) : null}
 
-        {!loadError && showEstimateTypeSelection ? (
+        {showWorkspaceTabPanels && showStartEstimatePrompt ? (
           <div className="space-y-4">
             <EstimateMethodSelector
               value={selectedEstimateMethod}
               onChange={setSelectedEstimateMethod}
               disabled={creating}
+              isEstimateTypeAllowed={isEstimateTypeAllowed}
+              defaultEstimateType={planDefaultEstimateType}
             />
             <EstimateWorkspaceEmptyState
               title="No estimate has been started for this project yet"
@@ -2437,17 +2574,17 @@ export default function EstimateWorkspacePage() {
               variant="accent"
               size="sm"
               icon={<Play className="h-4 w-4" />}
-              disabled={creating}
+              disabled={creating || !isEstimateTypeAllowed(selectedEstimateMethod)}
               isLoading={creating}
               className="w-full sm:w-auto"
-              onClick={handleStartEstimate}
+              onClick={() => void handleStartEstimate()}
             >
               {creating ? 'Starting...' : 'Start Estimate'}
             </Button>
           </div>
         ) : null}
 
-        {!loadError && showEstimateSettings && hasEstimate ? (
+        {showWorkspaceTabPanels && showEstimateSettings && hasEstimate ? (
           <EstimateSettingsPanel
             settingsState={estimateSettings}
             canEdit={canEditEstimate}
@@ -2464,14 +2601,14 @@ export default function EstimateWorkspacePage() {
           />
         ) : null}
 
-        {!loadError && !dataLoading && activeTab === 'settings' && !hasEstimate ? (
+        {showWorkspaceTabPanels && !dataLoading && activeTab === 'settings' && !hasEstimate ? (
           <EstimateWorkspaceEmptyState
             title="No estimate started"
             body={TAB_NO_ESTIMATE_MESSAGE}
           />
         ) : null}
 
-        {!loadError && showEstimateBuilder && estimate && hasEstimateAdapter ? (
+        {showWorkspaceTabPanels && showEstimateBuilder && estimate && hasEstimateAdapter ? (
           <EstimateLineItemsBuilderPanel
             estimate={estimate}
             version={estimateAdapter}
@@ -2495,7 +2632,7 @@ export default function EstimateWorkspacePage() {
           />
         ) : null}
 
-        {!loadError && !dataLoading && activeTab === 'schedule-preview' ? (
+        {showWorkspaceTabPanels && !dataLoading && activeTab === 'schedule-preview' ? (
           hasEstimate && estimate ? (
             !schedulingEnabled ? (
               renderScheduleDisabledEmptyState(resolvedEstimateType)
@@ -2527,7 +2664,7 @@ export default function EstimateWorkspacePage() {
           )
         ) : null}
 
-        {!loadError && !dataLoading && activeTab === 'gantt-preview' ? (
+        {showWorkspaceTabPanels && !dataLoading && activeTab === 'gantt-preview' ? (
           hasEstimate ? (
             <EstimateGanttPreview
               datePlanResult={scheduleDatePlanResult}
@@ -2546,7 +2683,7 @@ export default function EstimateWorkspacePage() {
           )
         ) : null}
 
-        {!loadError && !dataLoading && activeTab === 'logic-network' ? (
+        {showWorkspaceTabPanels && !dataLoading && activeTab === 'logic-network' ? (
           hasEstimate ? (
             !schedulingEnabled ? (
               renderScheduleDisabledEmptyState(resolvedEstimateType)
@@ -2622,7 +2759,7 @@ export default function EstimateWorkspacePage() {
           )
         ) : null}
 
-        {!loadError && !dataLoading && activeTab === 'level-iii-gantt' ? (
+        {showWorkspaceTabPanels && !dataLoading && activeTab === 'level-iii-gantt' ? (
           hasEstimate ? (
             !schedulingEnabled ? (
               renderScheduleDisabledEmptyState(resolvedEstimateType)
@@ -2703,7 +2840,7 @@ export default function EstimateWorkspacePage() {
           )
         ) : null}
 
-        {!loadError && !dataLoading && activeTab === 'quick-estimate' && hasEstimate ? (
+        {showWorkspaceTabPanels && !dataLoading && activeTab === 'quick-estimate' && hasEstimate ? (
           <EstimateQuickFeasibilityPanel
             disabled={!canEditEstimate || saving}
             projectContext={
@@ -2729,7 +2866,7 @@ export default function EstimateWorkspacePage() {
           />
         ) : null}
 
-        {!loadError &&
+        {showWorkspaceTabPanels &&
         !dataLoading &&
         isConceptualEstimate &&
         hasEstimate &&
@@ -2741,7 +2878,7 @@ export default function EstimateWorkspacePage() {
           />
         ) : null}
 
-        {!loadError &&
+        {showWorkspaceTabPanels &&
         !dataLoading &&
         isConceptualEstimate &&
         hasEstimate &&
@@ -2752,7 +2889,7 @@ export default function EstimateWorkspacePage() {
           />
         ) : null}
 
-        {!loadError &&
+        {showWorkspaceTabPanels &&
         !dataLoading &&
         isConceptualEstimate &&
         hasEstimate &&
@@ -2760,7 +2897,7 @@ export default function EstimateWorkspacePage() {
           <ConceptualScenariosPanel controller={conceptualEstimate} disabled={saving} />
         ) : null}
 
-        {!loadError &&
+        {showWorkspaceTabPanels &&
         !dataLoading &&
         isConceptualEstimate &&
         hasEstimate &&
@@ -2768,7 +2905,7 @@ export default function EstimateWorkspacePage() {
           <ConceptualRisksContingencyPanel controller={conceptualEstimate} disabled={saving} />
         ) : null}
 
-        {!loadError &&
+        {showWorkspaceTabPanels &&
         !dataLoading &&
         WORKFLOW_PLACEHOLDER_TAB_IDS.includes(activeTab) &&
         hasEstimate ? (
@@ -2779,7 +2916,7 @@ export default function EstimateWorkspacePage() {
         ) : null}
 
         {/* ── Construction Activities tab (Milestones 4 + 5) ─────────────────── */}
-        {!loadError && !dataLoading && activeTab === 'activities' ? (
+        {showWorkspaceTabPanels && !dataLoading && activeTab === 'activities' ? (
           resolvedProjectId ? (
             <FeatureGate feature="activity_based_estimating">
               <ConstructionActivityBuilderPanel
@@ -2810,6 +2947,7 @@ export default function EstimateWorkspacePage() {
         currentType={resolvedEstimateType}
         onClose={() => setEstimateTypeModalOpen(false)}
         onSelect={handleEstimateTypeModalSelect}
+        isEstimateTypeAllowed={isEstimateTypeAllowed}
       />
       <ChangeEstimateTypeConfirmModal
         open={estimateTypeChangeConfirmOpen}

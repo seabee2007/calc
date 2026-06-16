@@ -67,7 +67,6 @@ serve(async (req) => {
 
     const body = await req.json();
     const inviteId = String(body.inviteId ?? "").trim();
-    const siteUrl = String(body.siteUrl ?? SITE_URL ?? "").replace(/\/$/, "");
 
     if (!inviteId) {
       return new Response(JSON.stringify({ error: "inviteId is required" }), {
@@ -77,6 +76,83 @@ serve(async (req) => {
     }
 
     const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    const { data: subscription, error: subscriptionError } = await admin
+      .from("subscriptions")
+      .select("plan_id, status, included_field_seats")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (subscriptionError) {
+      return new Response(JSON.stringify({ error: "Could not verify subscription." }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const activeStatuses = new Set(["active", "trialing"]);
+    const effectivePlan =
+      subscription && activeStatuses.has(String(subscription.status))
+        ? String(subscription.plan_id)
+        : "starter";
+    const employeePortalPlans = new Set(["professional", "business"]);
+
+    if (!employeePortalPlans.has(effectivePlan)) {
+      return new Response(JSON.stringify({ error: "Upgrade required to invite team members." }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const defaultSeatLimits: Record<string, number> = {
+      professional: 5,
+      business: 15,
+    };
+    const seatLimit =
+      typeof subscription?.included_field_seats === "number"
+        ? subscription.included_field_seats
+        : defaultSeatLimits[effectivePlan] ?? 0;
+
+    const { count: teamCount, error: teamCountError } = await admin
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .eq("employer_id", user.id);
+
+    if (teamCountError) {
+      return new Response(JSON.stringify({ error: "Could not verify team seat usage." }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const { count: pendingCount, error: pendingCountError } = await admin
+      .from("employee_invites")
+      .select("id", { count: "exact", head: true })
+      .eq("employer_id", user.id)
+      .is("accepted_at", null);
+
+    if (pendingCountError) {
+      return new Response(JSON.stringify({ error: "Could not verify pending invites." }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const seatUsage = (teamCount ?? 0) + (pendingCount ?? 0);
+    if (seatLimit >= 0 && seatUsage >= seatLimit) {
+      return new Response(
+        JSON.stringify({
+          error: "Field seat limit reached. Upgrade your plan or remove a pending invite.",
+        }),
+        {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    const bodySiteUrl = String(body.siteUrl ?? "").replace(/\/$/, "");
+    const siteUrl = (SITE_URL || bodySiteUrl).replace(/\/$/, "");
 
     const { data: invite, error: inviteError } = await admin
       .from("employee_invites")

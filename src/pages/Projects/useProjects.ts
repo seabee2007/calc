@@ -21,6 +21,9 @@ import { createClientPortal } from '../../services/clientPortalService';
 import { syncPlacementPourToSchedule } from '../../services/placementScheduleSyncService';
 import { buildPlacementPourDateIso } from '../../utils/placementPourDate';
 import { useConfirm } from '../../contexts/ConfirmContext';
+import { useSubscription } from '../../contexts/SubscriptionContext';
+import { buildFolderCounts } from '../../utils/projectFolders';
+import { projectLimitUpgradeMessage } from '../../lib/entitlements';
 
 const ProjectsContext = createContext<ReturnType<typeof useProjectsState> | null>(null);
 
@@ -41,6 +44,7 @@ function useProjectsState() {
   const navigate = useNavigate();
   const location = useLocation();
   const confirm = useConfirm();
+  const { hasFeature, canCreateProject, plan } = useSubscription();
   const {
     projects,
     currentProject,
@@ -168,6 +172,11 @@ function useProjectsState() {
 
   const handlers = {
     create: async (data: ProjectFormData) => {
+      const activeCount = buildFolderCounts(projects).active;
+      if (!canCreateProject(activeCount)) {
+        toast(projectLimitUpgradeMessage(plan), 'error');
+        return;
+      }
       try {
         const newProject = await addProject({
           name: data.name,
@@ -184,7 +193,7 @@ function useProjectsState() {
         openProjectDetails(newProject.id);
         toast('Project created successfully', 'success');
 
-        if (data.clientPortalAccess?.enabled) {
+        if (data.clientPortalAccess?.enabled && hasFeature('client_portal')) {
           const portalName = data.clientPortalAccess.clientName.trim();
           const portalEmail = data.clientPortalAccess.clientEmail.trim();
           if (portalName && portalEmail) {
@@ -229,7 +238,7 @@ function useProjectsState() {
         setUi((s) => ({ ...s, editing: false }));
         toast('Project updated successfully', 'success');
 
-        if (data.clientPortalAccess?.enabled) {
+        if (data.clientPortalAccess?.enabled && hasFeature('client_portal')) {
           const portalName = data.clientPortalAccess.clientName.trim();
           const portalEmail = data.clientPortalAccess.clientEmail.trim();
           if (portalName && portalEmail) {

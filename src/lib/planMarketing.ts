@@ -21,6 +21,7 @@ export interface PlanPricing {
  * Kept here as a single source of truth so no component hardcodes dollar amounts.
  */
 export const PLAN_PRICING: Record<PlanId, PlanPricing> = {
+  free:         { monthlyUsd: 0,   annualMonthlyUsd: 0,   annualTotalUsd: 0    },
   starter:      { monthlyUsd: 49,  annualMonthlyUsd: 41,  annualTotalUsd: 490  },
   professional: { monthlyUsd: 129, annualMonthlyUsd: 109, annualTotalUsd: 1308 },
   business:     { monthlyUsd: 249, annualMonthlyUsd: 209, annualTotalUsd: 2508 },
@@ -46,7 +47,7 @@ export function getPlanMarketingCards(): PlanMarketingCard[] {
     const maxProjects = getPlanLimit(planId, 'max_active_projects');
     const fieldSeats = getPlanLimit(planId, 'included_field_seats');
 
-    const highlights: Record<PlanId, string[]> = {
+    const highlights: Partial<Record<PlanId, string[]>> = {
       starter: [
         formatPlanLimitLabel(maxProjects, 'active projects'),
         formatPlanLimitLabel(fieldSeats, 'field seat'),
@@ -76,7 +77,7 @@ export function getPlanMarketingCards(): PlanMarketingCard[] {
       planId,
       shortName: names.short,
       longName: names.long,
-      highlights: highlights[planId],
+      highlights: highlights[planId] ?? [],
       pricing: PLAN_PRICING[planId],
       recommended: planId === 'professional',
     };

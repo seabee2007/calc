@@ -1,19 +1,25 @@
+import { getAppUrl, normalizeUrlBase } from '../config/brand';
+import { canInviteTeamMember } from '../lib/entitlements';
 import { supabase } from '../lib/supabase';
 import type { EmployeeInvite, EmployeeProjectAssignment, UserRole } from '../types/fieldPlanner';
+import { assertCurrentUserHasFeature, resolveCurrentUserPlan } from './featureEntitlementService';
+import { fetchTeamProfiles } from './profileService';
+
+/** App origin for employee invite links — uses VITE_APP_URL, not accidental window.location. */
+export function resolveEmployeeInviteAppOrigin(explicitOrigin?: string): string {
+  if (explicitOrigin?.trim()) {
+    return normalizeUrlBase(explicitOrigin);
+  }
+  return getAppUrl();
+}
 
 export function employeeInviteSignupHref(token: string, origin?: string): string {
-  const base = (origin ?? (typeof window !== 'undefined' ? window.location.origin : '')).replace(
-    /\/$/,
-    '',
-  );
+  const base = resolveEmployeeInviteAppOrigin(origin);
   return `${base}/signup?invite=${encodeURIComponent(token)}`;
 }
 
 export function employeeInviteLoginHref(token: string, origin?: string): string {
-  const base = (origin ?? (typeof window !== 'undefined' ? window.location.origin : '')).replace(
-    /\/$/,
-    '',
-  );
+  const base = resolveEmployeeInviteAppOrigin(origin);
   return `${base}/login?invite=${encodeURIComponent(token)}`;
 }
 
@@ -89,6 +95,20 @@ export async function createEmployeeInvite(
   email: string,
   role: UserRole = 'employee',
 ) {
+  await assertCurrentUserHasFeature('employee_portal');
+
+  const plan = await resolveCurrentUserPlan();
+  const [pendingInvites, teamProfiles] = await Promise.all([
+    fetchPendingInvites(employerId),
+    fetchTeamProfiles(employerId),
+  ]);
+  const seatUsageCount = pendingInvites.length + teamProfiles.length;
+  if (!canInviteTeamMember(plan, seatUsageCount)) {
+    throw new Error(
+      'Field seat limit reached. Upgrade your plan or remove a pending invite.',
+    );
+  }
+
   const { data, error } = await supabase
     .from('employee_invites')
     .insert({
@@ -111,7 +131,7 @@ export async function sendEmployeeInviteEmail(
   const token = session.session?.access_token;
   if (!token) throw new Error('Not authenticated');
 
-  const siteUrl = options?.siteUrl ?? (typeof window !== 'undefined' ? window.location.origin : '');
+  const siteUrl = options?.siteUrl ?? getAppUrl();
   const base = import.meta.env.VITE_SUPABASE_URL;
   const res = await fetch(`${base}/functions/v1/invite-employee`, {
     method: 'POST',

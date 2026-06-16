@@ -1,8 +1,10 @@
-export type PlanId = 'starter' | 'professional' | 'business';
+export type PlanId = 'free' | 'starter' | 'professional' | 'business';
 
+/** Paid plans in ascending order — used for minPlanForFeature and marketing cards. */
 export const PLAN_ORDER: PlanId[] = ['starter', 'professional', 'business'];
 
 export const PLAN_DISPLAY_NAMES: Record<PlanId, { short: string; long: string }> = {
+  free: { short: 'Free', long: 'Free' },
   starter: { short: 'Starter', long: 'Foundation' },
   professional: { short: 'Professional', long: 'Field' },
   business: { short: 'Business', long: 'Portfolio' },
@@ -46,6 +48,13 @@ export type LimitKey =
 
 /** -1 = unlimited */
 export const PLAN_LIMITS: Record<PlanId, Record<LimitKey, number>> = {
+  free: {
+    max_active_projects: 1,
+    included_field_seats: 0,
+    max_field_seats: 0,
+    ai_requests_monthly: 0,
+    level_three_exports_monthly: 0,
+  },
   starter: {
     max_active_projects: 3,
     included_field_seats: 1,
@@ -68,6 +77,12 @@ export const PLAN_LIMITS: Record<PlanId, Record<LimitKey, number>> = {
     level_three_exports_monthly: -1,
   },
 };
+
+const FREE_FEATURES: FeatureKey[] = [
+  'quick_estimates',
+  'calculators',
+  'resources',
+];
 
 const STARTER_FEATURES: FeatureKey[] = [
   'quick_estimates',
@@ -108,6 +123,7 @@ const BUSINESS_FEATURES: FeatureKey[] = [
 ];
 
 export const PLAN_FEATURES: Record<PlanId, Set<FeatureKey>> = {
+  free: new Set(FREE_FEATURES),
   starter: new Set(STARTER_FEATURES),
   professional: new Set(PROFESSIONAL_FEATURES),
   business: new Set(BUSINESS_FEATURES),
@@ -212,6 +228,20 @@ export function canInviteFieldSeat(
   return true;
 }
 
+/** Whether the owner can send another team/field invite (feature + included seat limit). */
+export function canInviteTeamMember(
+  plan: PlanId | null | undefined,
+  seatUsageCount: number,
+  includedFieldSeats?: number | null,
+): boolean {
+  if (!shouldEnforcePlanLimits()) return true;
+  if (!plan) return false;
+  if (!hasFeature(plan, 'employee_portal')) return false;
+  const seatLimit = resolvePlanLimit(plan, 'included_field_seats', includedFieldSeats);
+  if (seatLimit < 0) return true;
+  return seatUsageCount < seatLimit;
+}
+
 export function minPlanForFeature(feature: FeatureKey): PlanId {
   for (const plan of PLAN_ORDER) {
     if (hasFeature(plan, feature)) return plan;
@@ -227,9 +257,23 @@ export function isSubscriptionStatusActive(status: string | null | undefined): b
 export function resolveEffectivePlan(
   row: SubscriptionEntitlementInput | null | undefined,
 ): PlanId {
-  if (!row) return 'starter';
-  if (!isSubscriptionStatusActive(row.status)) return 'starter';
+  if (!row) return 'free';
+  if (!isSubscriptionStatusActive(row.status)) return 'free';
   return row.planId;
+}
+
+/** Human-readable upgrade prompt when the user hits their active-project limit. */
+export function projectLimitUpgradeMessage(plan: PlanId): string {
+  switch (plan) {
+    case 'free':
+      return 'Free includes 1 active project. Upgrade to Starter for 3 projects or Professional for 10.';
+    case 'starter':
+      return 'Starter includes 3 active projects. Upgrade to Professional for 10.';
+    case 'professional':
+      return 'Professional includes 10 active projects. Upgrade to Business for unlimited projects.';
+    case 'business':
+      return 'You have reached your active project limit.';
+  }
 }
 
 export function getEffectiveLimits(

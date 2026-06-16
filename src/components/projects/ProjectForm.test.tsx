@@ -2,6 +2,7 @@ import React from 'react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 import ProjectForm from './ProjectForm';
 
 vi.mock('../../hooks/useAuth', () => ({
@@ -45,6 +46,15 @@ vi.mock('../../services/clientPortalService', () => ({
   getClientPortalUrl: (token: string) => `https://example.com/portal/${token}`,
 }));
 
+const mockHasFeature = vi.fn((feature: string) => feature === 'client_portal');
+
+vi.mock('../../contexts/SubscriptionContext', () => ({
+  useSubscription: () => ({
+    hasFeature: mockHasFeature,
+    loading: false,
+  }),
+}));
+
 function renderProjectForm(
   props: Partial<React.ComponentProps<typeof ProjectForm>> = {},
 ) {
@@ -52,12 +62,13 @@ function renderProjectForm(
   const onCancel = vi.fn();
 
   render(
-    <ProjectForm
-      onSubmit={onSubmit}
-      onCancel={onCancel}
-      isEditing
-      hidePourDate
-      initialData={{
+    <MemoryRouter>
+      <ProjectForm
+        onSubmit={onSubmit}
+        onCancel={onCancel}
+        isEditing
+        hidePourDate
+        initialData={{
         name: 'Test Project',
         description: 'Scope text',
         clientInfo: {
@@ -77,7 +88,8 @@ function renderProjectForm(
         projectCrewSize: 7,
       }}
       {...props}
-    />,
+      />
+    </MemoryRouter>,
   );
 
   return { onSubmit, onCancel };
@@ -92,6 +104,7 @@ async function enableClientPortalInvite(user: ReturnType<typeof userEvent.setup>
 describe('ProjectForm client portal access', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockHasFeature.mockImplementation((feature: string) => feature === 'client_portal');
   });
 
   it('does not render duplicate client name/email/phone fields in Client Access', async () => {
@@ -259,6 +272,51 @@ describe('ProjectForm client portal access', () => {
         'Client portal access uses the client information above. You can override the invite email if needed.',
       ),
     ).toBeInTheDocument();
+  });
+
+  it('locks client portal invite for users without client_portal entitlement', () => {
+    mockHasFeature.mockReturnValue(false);
+    renderProjectForm();
+
+    expect(screen.getByTestId('client-portal-locked')).toBeInTheDocument();
+    expect(screen.getByTestId('upgrade-required-client_portal')).toBeInTheDocument();
+    expect(
+      screen.getByRole('checkbox', { name: /Invite client to view project dashboard/i }),
+    ).toBeDisabled();
+  });
+
+  it('strips client portal access from submit payload when entitlement is missing', async () => {
+    mockHasFeature.mockReturnValue(false);
+    const user = userEvent.setup();
+    const { onSubmit } = renderProjectForm({
+      initialData: {
+        name: 'Test Project',
+        description: 'Scope text',
+        clientInfo: {
+          clientName: 'Jane Client',
+          clientEmail: 'jane@client.com',
+          clientAddressSameAsJobsite: true,
+        },
+        jobsiteAddress: {
+          street: '123 Main St',
+          street2: '',
+          city: 'Atlanta',
+          state: 'GA',
+          zip: '30301',
+        },
+        projectCrewSize: 7,
+        clientPortalAccess: {
+          enabled: true,
+          clientName: 'Jane Client',
+          clientEmail: 'jane@client.com',
+        },
+      },
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Update Project' }));
+
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+    expect(onSubmit.mock.calls[0][0].clientPortalAccess?.enabled).toBe(false);
   });
 });
 

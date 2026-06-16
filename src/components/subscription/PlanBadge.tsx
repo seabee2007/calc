@@ -1,6 +1,7 @@
 import { PLAN_DISPLAY_NAMES, type PlanId } from '../../lib/entitlements';
 
 const PLAN_BADGE_STYLES: Record<PlanId, string> = {
+  free: 'border-slate-200 bg-slate-50 text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400',
   starter:
     'border-slate-300 bg-slate-100 text-slate-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200',
   professional:

@@ -11,6 +11,7 @@ import { useAuth } from '../hooks/useAuth';
 import {
   canCreateProject as canCreateProjectEntitlement,
   canInviteFieldSeat as canInviteFieldSeatEntitlement,
+  canInviteTeamMember as canInviteTeamMemberEntitlement,
   canUseFeature,
   getEffectiveLimits,
   minPlanForFeature,
@@ -36,6 +37,7 @@ export interface SubscriptionContextValue {
   getLimit: (key: LimitKey) => number;
   canCreateProject: (activeCount: number) => boolean;
   canInviteFieldSeat: (currentCount: number) => boolean;
+  canInviteTeamMember: (seatUsageCount: number) => boolean;
   requiresUpgrade: (feature: FeatureKey) => boolean;
   minPlanRequired: (feature: FeatureKey) => PlanId;
   loading: boolean;
@@ -124,6 +126,12 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     [plan, subscription?.includedFieldSeats],
   );
 
+  const canInviteTeamMember = useCallback(
+    (seatUsageCount: number) =>
+      canInviteTeamMemberEntitlement(plan, seatUsageCount, subscription?.includedFieldSeats),
+    [plan, subscription?.includedFieldSeats],
+  );
+
   const requiresUpgrade = useCallback(
     (feature: FeatureKey) => !canUseFeature(plan, feature),
     [plan],
@@ -142,6 +150,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       getLimit,
       canCreateProject,
       canInviteFieldSeat,
+      canInviteTeamMember,
       requiresUpgrade,
       minPlanRequired,
       loading,
@@ -157,6 +166,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       getLimit,
       canCreateProject,
       canInviteFieldSeat,
+      canInviteTeamMember,
       requiresUpgrade,
       minPlanRequired,
       loading,

@@ -1,7 +1,9 @@
 import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { Save, X, Calendar, MapPin, Loader2, CheckCircle2, Sparkles } from 'lucide-react';
+import { Save, X, Calendar, MapPin, Loader2, CheckCircle2, Sparkles, Lock } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { useSubscription } from '../../contexts/SubscriptionContext';
+import UpgradeRequiredCard from '../subscription/UpgradeRequiredCard';
 import {
   ProfessionalizeScopeEmptyError,
   ProfessionalizeScopeFailedError,
@@ -106,6 +108,8 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
   );
   const clientEmailInputRef = useRef<HTMLInputElement | null>(null);
   const { user } = useAuth();
+  const { hasFeature, loading: subscriptionLoading } = useSubscription();
+  const canUseClientPortal = hasFeature('client_portal');
   const storeProjects = useProjectStore((s) => s.projects);
 
   const buildDefaults = (): ProjectFormData => ({
@@ -393,6 +397,11 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
     };
     if (hidePourDate) delete payload.pourDate;
 
+    if (payload.clientPortalAccess?.enabled && !canUseClientPortal) {
+      payload.clientPortalAccess.enabled = false;
+      payload.clientPortalAccess.overrideInviteEmail = undefined;
+    }
+
     if (payload.clientPortalAccess?.enabled) {
       const portalName = payload.clientInfo.clientName.trim();
       const mainClientEmail = payload.clientInfo.clientEmail?.trim() || '';
@@ -600,6 +609,26 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
             <p className="text-xs text-gray-500 dark:text-gray-400">
               Copy the link from project details after saving.
             </p>
+          </div>
+        ) : !canUseClientPortal ? (
+          <div className="space-y-3" data-testid="client-portal-locked">
+            <label className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 cursor-not-allowed">
+              <input
+                type="checkbox"
+                className="rounded border-gray-300 dark:border-gray-600"
+                checked={false}
+                disabled
+                aria-disabled="true"
+              />
+              <Lock className="h-4 w-4 shrink-0" aria-hidden />
+              Invite client to view project dashboard
+              <span className="text-xs font-medium uppercase tracking-wide text-amber-700 dark:text-amber-300">
+                Professional required
+              </span>
+            </label>
+            {!subscriptionLoading ? (
+              <UpgradeRequiredCard feature="client_portal" className="p-4" />
+            ) : null}
           </div>
         ) : (
           <>

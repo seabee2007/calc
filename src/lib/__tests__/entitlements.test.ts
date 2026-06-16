@@ -3,6 +3,7 @@ import {
   PLAN_FEATURES,
   canCreateProject,
   canInviteFieldSeat,
+  canInviteTeamMember,
   canUseFeature,
   getPlanLimit,
   hasFeature,
@@ -54,9 +55,14 @@ describe('entitlements', () => {
   });
 
   it('canCreateProject respects active project limits', () => {
+    expect(canCreateProject('free', 0)).toBe(true);
+    expect(canCreateProject('free', 1)).toBe(false);
     expect(canCreateProject('starter', 2)).toBe(true);
     expect(canCreateProject('starter', 3)).toBe(false);
+    expect(canCreateProject('professional', 9)).toBe(true);
+    expect(canCreateProject('professional', 10)).toBe(false);
     expect(canCreateProject('business', 100)).toBe(true);
+    expect(canCreateProject(null, 0)).toBe(false);
   });
 
   it('canInviteFieldSeat respects included and max field seats', () => {
@@ -67,19 +73,39 @@ describe('entitlements', () => {
     expect(canInviteFieldSeat('business', 20)).toBe(true);
   });
 
+  it('canInviteTeamMember requires employee_portal and included field seats', () => {
+    expect(canInviteTeamMember('starter', 0)).toBe(false);
+    expect(canInviteTeamMember('starter', 1)).toBe(false);
+    expect(canInviteTeamMember('professional', 0)).toBe(true);
+    expect(canInviteTeamMember('professional', 4)).toBe(true);
+    expect(canInviteTeamMember('professional', 5)).toBe(false);
+    expect(canInviteTeamMember('business', 14)).toBe(true);
+    expect(canInviteTeamMember('business', 15)).toBe(false);
+    expect(canInviteTeamMember(null, 0)).toBe(false);
+  });
+
   it('minPlanForFeature resolves the lowest plan that includes a feature', () => {
     expect(minPlanForFeature('quick_estimates')).toBe('starter');
     expect(minPlanForFeature('logic_network')).toBe('professional');
     expect(minPlanForFeature('ai_concrete_chat')).toBe('business');
   });
 
-  it('resolveEffectivePlan falls back to starter for inactive subscriptions', () => {
+  it('resolveEffectivePlan falls back to free for inactive/missing subscriptions', () => {
     expect(resolveEffectivePlan({ planId: 'business', status: 'active' })).toBe('business');
     expect(resolveEffectivePlan({ planId: 'professional', status: 'trialing' })).toBe(
       'professional',
     );
-    expect(resolveEffectivePlan({ planId: 'business', status: 'canceled' })).toBe('starter');
-    expect(resolveEffectivePlan(null)).toBe('starter');
+    expect(resolveEffectivePlan({ planId: 'business', status: 'canceled' })).toBe('free');
+    expect(resolveEffectivePlan(null)).toBe('free');
+  });
+
+  it('Free plan has max_active_projects = 1 and no paid features', () => {
+    expect(getPlanLimit('free', 'max_active_projects')).toBe(1);
+    expect(hasFeature('free', 'quick_estimates')).toBe(true);
+    expect(hasFeature('free', 'conceptual_estimates')).toBe(false);
+    expect(hasFeature('free', 'employee_portal')).toBe(false);
+    expect(hasFeature('free', 'client_portal')).toBe(false);
+    expect(hasFeature('free', 'activity_based_estimating')).toBe(false);
   });
 
   it('canUseFeature bypasses enforcement in local dev by default', () => {

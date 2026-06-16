@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { UserPlus, Mail, Users, Clock, FolderKanban, Link2, Trash2, Smartphone, Copy, Check } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { UserPlus, Mail, Users, Clock, FolderKanban, Link2, Trash2, Smartphone, Copy, Check, Loader2 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useSubscription } from '../../contexts/SubscriptionContext';
 import UpgradeRequiredCard from '../subscription/UpgradeRequiredCard';
@@ -62,7 +62,7 @@ function formatSentDate(iso: string): string {
 
 export default function EmployeeManagement() {
   const { user } = useAuth();
-  const { canInviteFieldSeat } = useSubscription();
+  const { hasFeature, canInviteTeamMember } = useSubscription();
   const { projects, loadProjects } = useProjectStore();
   const [invites, setInvites] = useState<EmployeeInvite[]>([]);
   const [team, setTeam] = useState<Profile[]>([]);
@@ -74,6 +74,8 @@ export default function EmployeeManagement() {
   const [message, setMessage] = useState<string | null>(null);
   const [messageTone, setMessageTone] = useState<'info' | 'success' | 'warning'>('info');
   const [busy, setBusy] = useState(false);
+  const [inviteSending, setInviteSending] = useState(false);
+  const inviteSendingRef = useRef(false);
   const [copiedMemberId, setCopiedMemberId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -130,34 +132,50 @@ export default function EmployeeManagement() {
     setMessageTone(tone);
   };
 
+  const seatUsageCount = team.length + invites.length;
+  const canUseTeamInvites = hasFeature('employee_portal');
+  const inviteAllowed = canUseTeamInvites && canInviteTeamMember(seatUsageCount);
+  const seatLimitReached = canUseTeamInvites && !canInviteTeamMember(seatUsageCount);
+
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !email.trim()) return;
-    if (!canInviteFieldSeat(team.length)) {
-      showMessage('Upgrade your plan or add field seats to invite more team members.', 'warning');
+    if (!user || !email.trim() || inviteSendingRef.current) return;
+
+    if (!canUseTeamInvites) {
+      showMessage('Team member invites require a paid team plan. Upgrade to continue.', 'warning');
       return;
     }
-    setBusy(true);
+
+    if (!canInviteTeamMember(seatUsageCount)) {
+      showMessage(
+        'Field seat limit reached. Upgrade your plan or remove a pending invite.',
+        'warning',
+      );
+      return;
+    }
+
+    inviteSendingRef.current = true;
+    setInviteSending(true);
     setMessage(null);
+    const submittedEmail = email.trim();
+
     try {
       const invite = await createEmployeeInvite(
         user.id,
-        email,
+        submittedEmail,
         role as import('../../types/fieldPlanner').UserRole,
       );
       const signupLink = employeeInviteSignupHref(invite.token);
       try {
-        const result = await sendEmployeeInviteEmail(invite.id, {
-          siteUrl: window.location.origin,
-        });
+        const result = await sendEmployeeInviteEmail(invite.id);
         const link = result.inviteLink || signupLink;
         if (result.existingUser) {
           showMessage(
-            `Account already exists for ${email}. Share this login link: ${result.inviteLink || employeeInviteLoginHref(invite.token)}`,
+            `Account already exists for ${submittedEmail}. Share this login link: ${result.inviteLink || employeeInviteLoginHref(invite.token)}`,
             'warning',
           );
         } else {
-          showMessage(`Invite email sent to ${email}. Backup link: ${link}`, 'success');
+          showMessage(`Invite sent to ${submittedEmail}. Backup link: ${link}`, 'success');
         }
       } catch (err) {
         showMessage(
@@ -172,7 +190,8 @@ export default function EmployeeManagement() {
     } catch (err) {
       showMessage(err instanceof Error ? err.message : 'Failed to send invite', 'warning');
     } finally {
-      setBusy(false);
+      inviteSendingRef.current = false;
+      setInviteSending(false);
     }
   };
 
@@ -214,10 +233,30 @@ export default function EmployeeManagement() {
     }
   };
 
-  const inviteAllowed = canInviteFieldSeat(team.length);
+  const inviteFormDisabled = !inviteAllowed || inviteSending;
 
   return (
     <div className="space-y-6">
+      {inviteSending ? (
+        <div
+          className="fixed inset-0 z-[10050] flex items-center justify-center bg-slate-950/60 px-4 backdrop-blur-sm dark:bg-slate-950/70"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="invite-sending-title"
+          data-testid="invite-sending-overlay"
+        >
+          <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-xl dark:border-slate-700 dark:bg-slate-900">
+            <Loader2 className="mx-auto h-8 w-8 animate-spin text-cyan-600 dark:text-cyan-400" />
+            <p id="invite-sending-title" className={`mt-4 text-base font-semibold ${TEXT_FOREGROUND}`}>
+              Sending invite...
+            </p>
+            <p className={`mt-2 text-sm ${TEXT_MUTED}`}>
+              Creating employee invite and sending email.
+            </p>
+          </div>
+        </div>
+      ) : null}
+
       <section
         className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
         aria-label="Team summary"
@@ -249,12 +288,20 @@ export default function EmployeeManagement() {
           title="Invite team member"
           description="Send an invite so an employee can access assigned project work."
         />
-        {!inviteAllowed ? (
+        {!canUseTeamInvites ? (
+          <div className="mt-6">
+            <UpgradeRequiredCard
+              feature="employee_portal"
+              title="Upgrade required"
+              description="Team member invites and field access require a paid team plan."
+            />
+          </div>
+        ) : seatLimitReached ? (
           <div className="mt-6">
             <UpgradeRequiredCard
               feature="employee_portal"
               title="Field seat limit reached"
-              description="Your current plan does not include enough field seats for another team invite."
+              description="Field seat limit reached. Upgrade your plan or remove a pending invite."
             />
           </div>
         ) : (
@@ -266,6 +313,8 @@ export default function EmployeeManagement() {
             onChange={(e) => setEmail(e.target.value)}
             required
             fullWidth
+            disabled={inviteFormDisabled}
+            data-testid="invite-email-input"
           />
           <Select
             label="Role"
@@ -277,12 +326,13 @@ export default function EmployeeManagement() {
               { value: 'project_manager', label: 'Project Manager' },
             ]}
             fullWidth
+            disabled={inviteFormDisabled}
           />
           <div className="md:col-span-2">
             <Button
               type="submit"
               variant="primary"
-              disabled={busy}
+              disabled={inviteFormDisabled}
               icon={<Mail className="h-4 w-4" />}
               data-testid="send-invite-button"
             >

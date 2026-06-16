@@ -10,7 +10,7 @@ interface ProjectListProps {
   folder: ProjectFolder;
   onSelect: (id: string) => void;
   onDelete: (id: string) => void;
-  onCreate: () => void;
+  onCreate?: () => void;
 }
 
 export default function ProjectList({
@@ -30,7 +30,7 @@ export default function ProjectList({
         <p className="text-gray-500 mb-6 dark:text-gray-300 max-w-md mx-auto">
           {PROJECT_FOLDER_EMPTY[folder]}
         </p>
-        {folder === 'active' && (
+        {folder === 'active' && onCreate && (
           <Button onClick={onCreate} icon={<Plus size={18} />} className="whitespace-nowrap">
             <span className="hidden sm:inline">Create New Project</span>
             <span className="sm:hidden">New Project</span>

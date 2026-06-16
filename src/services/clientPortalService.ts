@@ -1,6 +1,7 @@
 import { getPublicAppUrl } from '../config/brand';
 import { supabase } from '../lib/supabase';
 import type { ClientPortalRecord, ClientPortalViewData } from '../types/clientPortal';
+import { assertCurrentUserHasFeature } from './featureEntitlementService';
 
 const FN_BASE = import.meta.env.VITE_SUPABASE_FUNCTIONS_URL;
 const ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -68,6 +69,8 @@ export async function createClientPortal(input: {
     throw new Error('You must be signed in to create a client portal.');
   }
 
+  await assertCurrentUserHasFeature('client_portal');
+
   const existing = await fetchClientPortalByProjectId(input.projectId);
   if (existing) return existing;
 
@@ -125,6 +128,7 @@ export async function fetchClientPortalView(token: string): Promise<ClientPortal
 }
 
 export async function copyClientPortalLink(token: string): Promise<void> {
+  await assertCurrentUserHasFeature('client_portal');
   const url = buildClientPortalUrl(token);
   await navigator.clipboard.writeText(url);
 }

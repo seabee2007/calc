@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, ArrowLeftCircle } from 'lucide-react';
-import { useSearchParams } from 'react-router-dom';
+import { Plus, ArrowLeftCircle, Lock } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useProjects, ProjectsProvider } from './useProjects';
 import ProjectList from './ProjectList';
 import ProjectDetails from './ProjectDetails';
@@ -13,6 +13,8 @@ import AppPage from '../../components/ui/AppPage';
 import PageHeader from '../../components/ui/PageHeader';
 import Button from '../../components/ui/Button';
 import { useTrackedProposals } from '../../hooks/useTrackedProposals';
+import { useSubscription } from '../../contexts/SubscriptionContext';
+import { projectLimitUpgradeMessage } from '../../lib/entitlements';
 import type { Project } from '../../types';
 import type { TrackedProposalRow } from '../../types/proposalTracking';
 import {
@@ -88,6 +90,8 @@ const Projects: React.FC = () => {
 const ProjectsContent: React.FC = () => {
   const { projects, currentProject, ui, setUi, handlers } = useProjects();
   const { proposals } = useTrackedProposals();
+  const { plan, canCreateProject } = useSubscription();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [projectFolder, setProjectFolder] = useState<ProjectFolder>(() =>
     parseProjectFolder(searchParams.get('folder')),
@@ -117,6 +121,9 @@ const ProjectsContent: React.FC = () => {
     [projects, resolveCtx],
   );
 
+  const activeProjectCount = folderCounts.active;
+  const atProjectLimit = !canCreateProject(activeProjectCount);
+
   const visibleProjects = useMemo(
     () =>
       projects.filter(
@@ -128,10 +135,15 @@ const ProjectsContent: React.FC = () => {
   const headerActions =
     !ui.showCreate && !ui.showDetails ? (
       <Button
-        onClick={() => setUi((s) => ({ ...s, showCreate: true }))}
-        icon={<Plus size={18} />}
+        onClick={() => {
+          if (atProjectLimit) return;
+          setUi((s) => ({ ...s, showCreate: true }));
+        }}
+        icon={atProjectLimit ? <Lock size={16} /> : <Plus size={18} />}
+        disabled={atProjectLimit}
         className="shadow-lg transition-shadow hover:shadow-xl"
         data-testid="projects-new-button"
+        title={atProjectLimit ? projectLimitUpgradeMessage(plan) : undefined}
       >
         <span className="hidden sm:inline">New Project</span>
         <span className="sm:hidden">New</span>
@@ -212,6 +224,29 @@ const ProjectsContent: React.FC = () => {
 
         {!ui.showCreate && !ui.showDetails && (
           <motion.div key="list" {...viewMotion} className="w-full max-w-full min-w-0 overflow-x-hidden">
+            {atProjectLimit && (
+              <div
+                className="mb-5 flex items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 dark:border-amber-700/60 dark:bg-amber-950/30"
+                data-testid="project-limit-banner"
+              >
+                <Lock className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" aria-hidden />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
+                    Active project limit reached
+                  </p>
+                  <p className="mt-0.5 text-sm text-amber-700 dark:text-amber-400">
+                    {projectLimitUpgradeMessage(plan)}
+                  </p>
+                  <button
+                    type="button"
+                    className="mt-2 text-sm font-medium text-cyan-600 underline-offset-2 hover:underline dark:text-cyan-400"
+                    onClick={() => navigate('/settings/billing')}
+                  >
+                    View upgrade options
+                  </button>
+                </div>
+              </div>
+            )}
             <div className="flex gap-2 overflow-x-auto pb-2 mb-6 scrollbar-hide">
               {PROJECT_FOLDERS.map((key) => (
                   <button
@@ -234,7 +269,7 @@ const ProjectsContent: React.FC = () => {
               folder={projectFolder}
               onSelect={handlers.selectProject}
               onDelete={(id) => handlers.confirmDelete('project', id)}
-              onCreate={() => setUi((s) => ({ ...s, showCreate: true }))}
+              onCreate={atProjectLimit ? undefined : () => setUi((s) => ({ ...s, showCreate: true }))}
             />
           </motion.div>
         )}

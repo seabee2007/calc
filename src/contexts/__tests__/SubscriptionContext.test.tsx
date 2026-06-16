@@ -15,7 +15,7 @@ vi.mock('../../hooks/useAuth', () => ({
 vi.mock('../../services/subscriptionService', () => ({
   fetchSubscription: (...args: unknown[]) => fetchSubscription(...args),
   resolveEffectivePlanFromRow: (row: { planId: string; status: string } | null) => {
-    if (!row || row.status === 'canceled') return 'starter';
+    if (!row || row.status === 'canceled') return 'free';
     return row.planId;
   },
 }));
@@ -79,7 +79,7 @@ describe('SubscriptionContext', () => {
     expect(screen.getByTestId('min-plan')).toHaveTextContent('professional');
   });
 
-  it('defaults to starter when no subscription row exists', async () => {
+  it('defaults to free when no subscription row exists', async () => {
     fetchSubscription.mockResolvedValue(null);
 
     render(
@@ -89,7 +89,7 @@ describe('SubscriptionContext', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByTestId('plan')).toHaveTextContent('starter');
+      expect(screen.getByTestId('plan')).toHaveTextContent('free');
     });
   });
 });
