@@ -78,7 +78,11 @@ export default function EstimateWorkspaceTabBar({
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-2 sm:px-4">
         <nav className="min-w-0 flex-1 overflow-x-auto" aria-label="Estimate workspace sections">
           <Tabs
-            tabs={visibleTabs.map((tab) => ({ id: tab.id, label: tab.label }))}
+            tabs={visibleTabs.map((tab) => ({
+              id: tab.id,
+              label: tab.label,
+              testId: tab.id === 'logic-network' ? 'logic-network-tab' : undefined,
+            }))}
             activeTabId={activeTabId}
             onChange={(id) => onTabChange(id as EstimateWorkspaceTabId)}
             variant="default"

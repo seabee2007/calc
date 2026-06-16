@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  buildAddedWidgetItem,
   clampCardWidth,
   getDefaultDashboardLayout,
   validateAndMigrateLayout,
@@ -27,9 +28,19 @@ export interface DashboardLayoutController {
   layout: DashboardLayout;
   /** Items sorted by reading order (y, then x). */
   orderedItems: DashboardLayoutItem[];
+  /** Ids currently placed on the dashboard (presence === active widget). */
+  activeIds: Set<DashboardCardId>;
   customizing: boolean;
   /** Persistence feedback for the customize UI. */
   saveStatus: DashboardSaveStatus;
+  /**
+   * Incremented after layout hydration and on every explicit reset. Pass as part
+   * of the grid `key` so RGL discards stale internal position cache on route
+   * remount or reset.
+   */
+  gridKey: number;
+  /** False until saved preferences have been loaded (or load failed). */
+  isLayoutReady: boolean;
   setCustomizing: (value: boolean) => void;
   /** Apply x/y/w from the grid after a drag or resize. Height is owned by the
    * grid's content measurement, so existing heights are preserved. */
@@ -38,6 +49,10 @@ export interface DashboardLayoutController {
   setCardWidth: (id: DashboardCardId, w: number) => void;
   /** Measured content height (in grid rows) for a card. */
   setCardHeight: (id: DashboardCardId, h: number) => void;
+  /** Add a catalog widget to the dashboard (no-op if already active). */
+  addWidget: (id: DashboardCardId) => void;
+  /** Remove a widget from the dashboard (stays available in the catalog). */
+  removeWidget: (id: DashboardCardId) => void;
   resetLayout: () => void;
 }
 
@@ -66,6 +81,8 @@ export function useDashboardLayout(): DashboardLayoutController {
   const [layout, setLayout] = useState<DashboardLayout>(() => getDefaultDashboardLayout());
   const [customizing, setCustomizing] = useState(false);
   const [saveStatus, setSaveStatus] = useState<DashboardSaveStatus>('idle');
+  const [gridKey, setGridKey] = useState(0);
+  const [isLayoutReady, setIsLayoutReady] = useState(false);
 
   const layoutRef = useRef(layout);
   const hydratedRef = useRef(false);
@@ -123,6 +140,8 @@ export function useDashboardLayout(): DashboardLayoutController {
           const migrated = validateAndMigrateLayout(prefs.dashboardLayout);
           setLayoutTracked(migrated);
           hydratedRef.current = true;
+          setIsLayoutReady(true);
+          setGridKey((k) => k + 1);
           const rawJson = JSON.stringify(prefs.dashboardLayout);
           const migratedJson = JSON.stringify(migrated);
           if (rawJson === migratedJson) {
@@ -134,10 +153,16 @@ export function useDashboardLayout(): DashboardLayoutController {
           }
         } else {
           hydratedRef.current = true;
+          setIsLayoutReady(true);
+          setGridKey((k) => k + 1);
         }
       } catch {
         // Load failed: keep the default layout and allow customizing/saving.
-        if (!cancelled) hydratedRef.current = true;
+        if (!cancelled) {
+          hydratedRef.current = true;
+          setIsLayoutReady(true);
+          setGridKey((k) => k + 1);
+        }
       }
     })();
 
@@ -151,6 +176,11 @@ export function useDashboardLayout(): DashboardLayoutController {
 
   const orderedItems = useMemo(
     () => [...layout.items].sort((a, b) => a.y - b.y || a.x - b.x),
+    [layout],
+  );
+
+  const activeIds = useMemo(
+    () => new Set(layout.items.map((item) => item.id)),
     [layout],
   );
 
@@ -211,21 +241,55 @@ export function useDashboardLayout(): DashboardLayoutController {
     [setLayoutTracked],
   );
 
+  const addWidget = useCallback(
+    (id: DashboardCardId) => {
+      const prev = layoutRef.current;
+      if (prev.items.some((item) => item.id === id)) return;
+      const next = {
+        ...prev,
+        items: [...prev.items, buildAddedWidgetItem(id, prev.items)],
+      };
+      setLayoutTracked(next);
+      scheduleSave(next);
+    },
+    [scheduleSave, setLayoutTracked],
+  );
+
+  const removeWidget = useCallback(
+    (id: DashboardCardId) => {
+      const prev = layoutRef.current;
+      if (!prev.items.some((item) => item.id === id)) return;
+      const next = {
+        ...prev,
+        items: prev.items.filter((item) => item.id !== id),
+      };
+      setLayoutTracked(next);
+      scheduleSave(next);
+    },
+    [scheduleSave, setLayoutTracked],
+  );
+
   const resetLayout = useCallback(() => {
     const next = getDefaultDashboardLayout();
     setLayoutTracked(next);
+    setGridKey((k) => k + 1);
     scheduleSave(next);
   }, [scheduleSave, setLayoutTracked]);
 
   return {
     layout,
     orderedItems,
+    activeIds,
     customizing,
     saveStatus,
+    gridKey,
+    isLayoutReady,
     setCustomizing,
     applyPositions,
     setCardWidth,
     setCardHeight,
+    addWidget,
+    removeWidget,
     resetLayout,
   };
 }

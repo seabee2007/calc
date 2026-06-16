@@ -24,6 +24,8 @@ import type { CalculatorInputController } from './hooks/useCalculatorInputContro
 interface ConstructionCalculatorProps {
   layout: 'desktop' | 'field';
   embedded?: boolean;
+  /** Pre-select this tab when the calculator first mounts (e.g. from a dashboard widget button). */
+  initialTab?: CalculatorFunctionTab;
   onControllerReady?: (controller: CalculatorInputController) => void;
 }
 
@@ -57,9 +59,10 @@ function renderModulePanel(tab: CalculatorFunctionTab, controller: CalculatorInp
 export default function ConstructionCalculator({
   layout,
   embedded = false,
+  initialTab,
   onControllerReady,
 }: ConstructionCalculatorProps) {
-  const [activeTab, setActiveTab] = useState<CalculatorFunctionTab>('core');
+  const [activeTab, setActiveTab] = useState<CalculatorFunctionTab>(initialTab ?? 'core');
   const [helpOpen, setHelpOpen] = useState(false);
   const controller = useCalculatorInputController({
     enableKeyboard: layout === 'desktop' && !embedded,
@@ -142,8 +145,15 @@ export default function ConstructionCalculator({
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-      <div className={CALCULATOR_SECTION}>{calculatorBody}</div>
+    // `minmax(0, 1fr)` instead of plain `1fr` (= `minmax(auto, 1fr)`) so the
+    // calculator column's minimum is 0 rather than its min-content width.
+    // Without this, the flex tab row's shrink-0 buttons force the column to
+    // ~850 px+, blowing out the grid and creating a horizontal scrollbar inside
+    // the dashboard modal. `min-w-0` on the child ensures it also respects the
+    // constrained track width. The full calculator page is unaffected — on wide
+    // viewports `minmax(0, 1fr)` still gives the column all available space.
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <div className={`min-w-0 ${CALCULATOR_SECTION}`}>{calculatorBody}</div>
       <ConstructionTape layout={layout} />
     </div>
   );

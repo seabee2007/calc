@@ -18,6 +18,23 @@ import {
 } from '../../../lib/dashboardLayout';
 import { QUEUE_EMPTY_MESSAGE, type DashboardCardContext } from './dashboardData';
 import { isCompactDashboardCard } from './dashboardCardLayout';
+import {
+  QuickActionsWidget,
+  ProjectsNeedingEstimateWidget,
+  ProposalsFollowUpWidget,
+  QcDueWidget,
+} from '../widgets/optionalWidgets';
+import {
+  AccountingTaxLauncherWidget,
+  ArdenCalcWidget,
+  NewProjectShortcutWidget,
+  NewProposalShortcutWidget,
+  PlannerHubShortcutWidget,
+  QuickEstimateLauncherWidget,
+  ScheduleShortcutWidget,
+  SupportHelpWidget,
+  widgetCompact,
+} from '../widgets/toolShortcutWidgets';
 
 export interface DashboardCardRenderOptions {
   /** Extra class names applied to the card root where the card supports it. */
@@ -60,7 +77,12 @@ const CARD_BEHAVIOR: Record<DashboardCardId, DashboardCardBehavior> = {
   },
   operationsSchedule: {
     isVisible: ownerOnly,
-    render: (ctx) => <ScheduleOperationsSection snapshot={ctx.scheduleSnapshot} />,
+    render: (ctx, options) => (
+      <ScheduleOperationsSection
+        snapshot={ctx.scheduleSnapshot}
+        stackPanels={isCompactDashboardCard(options?.cardWidth, options?.isMobile)}
+      />
+    ),
   },
   fieldActivity: {
     isVisible: ownerOnly,
@@ -154,6 +176,75 @@ const CARD_BEHAVIOR: Record<DashboardCardId, DashboardCardBehavior> = {
         primaryProjectId={ctx.primaryPourTodayId}
         emptyMessage={queueEmptyMessage(ctx)}
       />
+    ),
+  },
+
+  // ---- Phase 4 optional catalog widgets ----
+  quickActions: {
+    isVisible: alwaysVisible,
+    render: (ctx) => <QuickActionsWidget ctx={ctx} />,
+  },
+  projectsNeedingEstimate: {
+    isVisible: alwaysVisible,
+    render: (ctx) => <ProjectsNeedingEstimateWidget ctx={ctx} />,
+  },
+  proposalsFollowUp: {
+    isVisible: alwaysVisible,
+    render: (ctx) => <ProposalsFollowUpWidget ctx={ctx} />,
+  },
+  qcDue: {
+    isVisible: ownerOnly,
+    render: (ctx) => <QcDueWidget ctx={ctx} />,
+  },
+
+  // ---- Phase 5A tool/shortcut catalog widgets ----
+  ardenCalc: {
+    isVisible: alwaysVisible,
+    render: (_ctx, options) => (
+      <ArdenCalcWidget compact={widgetCompact(options?.cardWidth, options?.isMobile)} />
+    ),
+  },
+  quickEstimateLauncher: {
+    isVisible: alwaysVisible,
+    render: (ctx, options) => (
+      <QuickEstimateLauncherWidget
+        ctx={ctx}
+        compact={widgetCompact(options?.cardWidth, options?.isMobile)}
+      />
+    ),
+  },
+  newProjectShortcut: {
+    isVisible: alwaysVisible,
+    render: (ctx) => <NewProjectShortcutWidget ctx={ctx} />,
+  },
+  newProposalShortcut: {
+    isVisible: ownerOnly,
+    render: (_ctx, options) => (
+      <NewProposalShortcutWidget compact={widgetCompact(options?.cardWidth, options?.isMobile)} />
+    ),
+  },
+  plannerHubShortcut: {
+    isVisible: ownerOnly,
+    render: (_ctx, options) => (
+      <PlannerHubShortcutWidget compact={widgetCompact(options?.cardWidth, options?.isMobile)} />
+    ),
+  },
+  scheduleShortcut: {
+    isVisible: ownerOnly,
+    render: (_ctx, options) => (
+      <ScheduleShortcutWidget compact={widgetCompact(options?.cardWidth, options?.isMobile)} />
+    ),
+  },
+  accountingTaxLauncher: {
+    isVisible: ownerOnly,
+    render: (_ctx, options) => (
+      <AccountingTaxLauncherWidget compact={widgetCompact(options?.cardWidth, options?.isMobile)} />
+    ),
+  },
+  supportHelp: {
+    isVisible: alwaysVisible,
+    render: (_ctx, options) => (
+      <SupportHelpWidget compact={widgetCompact(options?.cardWidth, options?.isMobile)} />
     ),
   },
 };

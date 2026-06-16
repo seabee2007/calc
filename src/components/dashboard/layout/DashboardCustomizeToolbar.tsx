@@ -1,10 +1,12 @@
-import { GripVertical } from 'lucide-react';
+import { GripVertical, Trash2 } from 'lucide-react';
 import { widthLabel } from '../../../lib/dashboardLayout';
 
 interface DashboardCustomizeToolbarProps {
   width: number;
   allowedWidths: number[];
   onWidthChange: (w: number) => void;
+  /** When provided, shows a remove control (optional/non-default widgets only). */
+  onRemove?: () => void;
 }
 
 /** Slim customize-only toolbar — sits inside the card top edge, not a card wrapper. */
@@ -12,6 +14,7 @@ export default function DashboardCustomizeToolbar({
   width,
   allowedWidths,
   onWidthChange,
+  onRemove,
 }: DashboardCustomizeToolbarProps) {
   return (
     <div
@@ -51,6 +54,16 @@ export default function DashboardCustomizeToolbar({
             );
           })}
         </div>
+      ) : null}
+      {onRemove ? (
+        <button
+          type="button"
+          aria-label="Remove widget"
+          onClick={onRemove}
+          className="inline-flex rounded-md p-1 text-slate-500 hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 dark:text-slate-400 dark:hover:bg-red-500/15 dark:hover:text-red-400"
+        >
+          <Trash2 className="h-4 w-4" aria-hidden />
+        </button>
       ) : null}
     </div>
   );

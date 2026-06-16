@@ -24,3 +24,7 @@ dist-ssr
 *.sw?
 .env
 env
+scripts/qa/.qa-manifest.json
+scripts/qa/shared/.qa-manifest.json
+qa-reports/tier-gates/
+tests/e2e/.auth/

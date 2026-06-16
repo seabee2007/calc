@@ -4,7 +4,7 @@ import {
   updateDashboardLayout,
 } from '../userPreferencesService';
 import {
-  DASHBOARD_CARD_IDS,
+  DEFAULT_VISIBLE_CARD_IDS,
   getDefaultDashboardLayout,
 } from '../../lib/dashboardLayout';
 
@@ -84,8 +84,8 @@ describe('userPreferencesService dashboard_layout wiring', () => {
     const writtenLayout = dbState.upsertedRow?.dashboard_layout as {
       items: { id: string }[];
     };
-    expect(writtenLayout.items).toHaveLength(DASHBOARD_CARD_IDS.length);
+    expect(writtenLayout.items).toHaveLength(DEFAULT_VISIBLE_CARD_IDS.length);
     expect(writtenLayout.items.map((i) => i.id)).not.toContain('unknownCard');
-    expect(result.dashboardLayout?.items).toHaveLength(DASHBOARD_CARD_IDS.length);
+    expect(result.dashboardLayout?.items).toHaveLength(DEFAULT_VISIBLE_CARD_IDS.length);
   });
 });

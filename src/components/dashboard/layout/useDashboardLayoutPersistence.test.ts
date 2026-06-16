@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, renderHook } from '@testing-library/react';
 import { useDashboardLayout } from './useDashboardLayout';
 import {
-  DASHBOARD_CARD_IDS,
+  DEFAULT_VISIBLE_CARD_IDS,
   getDefaultDashboardLayout,
   type DashboardLayout,
 } from '../../../lib/dashboardLayout';
@@ -86,15 +86,15 @@ describe('useDashboardLayout persistence', () => {
     const { result } = renderHook(() => useDashboardLayout());
     await flush();
 
-    // Unknown card dropped, missing registry cards appended.
+    // Unknown card dropped, missing default-visible cards appended.
     const ids = result.current.layout.items.map((i) => i.id) as string[];
     expect(ids).not.toContain('totallyUnknownCard');
-    expect(result.current.layout.items).toHaveLength(DASHBOARD_CARD_IDS.length);
+    expect(result.current.layout.items).toHaveLength(DEFAULT_VISIBLE_CARD_IDS.length);
 
     await advanceAndFlush();
     expect(updateDashboardLayout).toHaveBeenCalledTimes(1);
     const savedArg = updateDashboardLayout.mock.calls[0][0] as DashboardLayout;
-    expect(savedArg.items).toHaveLength(DASHBOARD_CARD_IDS.length);
+    expect(savedArg.items).toHaveLength(DEFAULT_VISIBLE_CARD_IDS.length);
   });
 
   it('saves after a drag/position commit (debounced once)', async () => {
@@ -158,5 +158,173 @@ describe('useDashboardLayout persistence', () => {
     const active = result.current.layout.items.find((i) => i.id === 'activeProjects');
     expect(active?.x).toBe(6);
     expect(active?.w).toBe(4);
+  });
+
+  it('adds an optional widget and persists it', async () => {
+    const { result } = renderHook(() => useDashboardLayout());
+    await flush();
+
+    expect(result.current.activeIds.has('quickActions')).toBe(false);
+
+    act(() => result.current.addWidget('quickActions'));
+    expect(result.current.activeIds.has('quickActions')).toBe(true);
+
+    await advanceAndFlush();
+    expect(updateDashboardLayout).toHaveBeenCalledTimes(1);
+    const savedArg = updateDashboardLayout.mock.calls[0][0] as DashboardLayout;
+    expect(savedArg.items.some((i) => i.id === 'quickActions')).toBe(true);
+  });
+
+  it('adds a Phase 5A tool widget and persists it', async () => {
+    const { result } = renderHook(() => useDashboardLayout());
+    await flush();
+
+    act(() => result.current.addWidget('ardenCalc'));
+    expect(result.current.activeIds.has('ardenCalc')).toBe(true);
+
+    await advanceAndFlush();
+    const savedArg = updateDashboardLayout.mock.calls[0][0] as DashboardLayout;
+    expect(savedArg.items.some((i) => i.id === 'ardenCalc')).toBe(true);
+  });
+
+  it('reloads an added tool widget from saved preferences', async () => {
+    const saved = getDefaultDashboardLayout();
+    saved.items = [...saved.items, { id: 'ardenCalc', x: 0, y: 950, w: 6, h: 4 }];
+    getUserPreferences.mockResolvedValue({ dashboardLayout: saved });
+
+    const { result } = renderHook(() => useDashboardLayout());
+    await flush();
+
+    expect(result.current.activeIds.has('ardenCalc')).toBe(true);
+  });
+
+  it('is a no-op when adding a widget that is already active', async () => {
+    const { result } = renderHook(() => useDashboardLayout());
+    await flush();
+
+    act(() => result.current.addWidget('businessSnapshot'));
+    await advanceAndFlush();
+    // businessSnapshot is already in the default layout — nothing to save.
+    expect(updateDashboardLayout).not.toHaveBeenCalled();
+  });
+
+  it('removes a widget and persists the removal', async () => {
+    const { result } = renderHook(() => useDashboardLayout());
+    await flush();
+
+    act(() => result.current.addWidget('quickActions'));
+    await advanceAndFlush();
+    updateDashboardLayout.mockClear();
+
+    act(() => result.current.removeWidget('quickActions'));
+    expect(result.current.activeIds.has('quickActions')).toBe(false);
+
+    await advanceAndFlush();
+    expect(updateDashboardLayout).toHaveBeenCalledTimes(1);
+    const savedArg = updateDashboardLayout.mock.calls[0][0] as DashboardLayout;
+    expect(savedArg.items.some((i) => i.id === 'quickActions')).toBe(false);
+  });
+
+  it('reset layout removes optional tool widgets', async () => {
+    const { result } = renderHook(() => useDashboardLayout());
+    await flush();
+
+    act(() => result.current.addWidget('ardenCalc'));
+    expect(result.current.activeIds.has('ardenCalc')).toBe(true);
+
+    act(() => result.current.resetLayout());
+    expect(result.current.activeIds.has('ardenCalc')).toBe(false);
+    expect(result.current.orderedItems).toEqual(getDefaultDashboardLayout().items);
+  });
+
+  it('reset restores default x/y/w/h coordinates — does not keep stale custom positions', async () => {
+    const { result } = renderHook(() => useDashboardLayout());
+    await flush();
+
+    // Simulate dragging activeProjects to a non-default position.
+    act(() => {
+      result.current.applyPositions([{ id: 'activeProjects', x: 6, y: 999, w: 4, h: 8 }]);
+    });
+    const stale = result.current.layout.items.find((i) => i.id === 'activeProjects');
+    expect(stale?.x).toBe(6);
+    expect(stale?.y).toBe(999);
+
+    act(() => result.current.resetLayout());
+
+    const defaultMeta = getDefaultDashboardLayout().items.find((i) => i.id === 'activeProjects');
+    const restored = result.current.layout.items.find((i) => i.id === 'activeProjects');
+    expect(restored?.x).toBe(defaultMeta?.x);
+    expect(restored?.y).toBe(defaultMeta?.y);
+    expect(restored?.w).toBe(defaultMeta?.w);
+    expect(restored?.h).toBe(defaultMeta?.h);
+  });
+
+  it('reset restores only defaultVisible widgets', async () => {
+    const { result } = renderHook(() => useDashboardLayout());
+    await flush();
+
+    // Add several optional widgets.
+    act(() => {
+      result.current.addWidget('ardenCalc');
+      result.current.addWidget('quickActions');
+    });
+    expect(result.current.activeIds.has('ardenCalc')).toBe(true);
+    expect(result.current.activeIds.has('quickActions')).toBe(true);
+
+    act(() => result.current.resetLayout());
+
+    // Only default-visible widgets should be present.
+    const ids = [...result.current.activeIds];
+    expect(ids).toHaveLength(DEFAULT_VISIBLE_CARD_IDS.length);
+    expect(ids).not.toContain('ardenCalc');
+    expect(ids).not.toContain('quickActions');
+    DEFAULT_VISIBLE_CARD_IDS.forEach((id) => expect(ids).toContain(id));
+  });
+
+  it('incrementing gridKey on reset — does not increment on add/remove', async () => {
+    const { result } = renderHook(() => useDashboardLayout());
+    await flush();
+
+    const initialKey = result.current.gridKey;
+    expect(result.current.isLayoutReady).toBe(true);
+
+    // add and remove should not touch the key.
+    act(() => result.current.addWidget('ardenCalc'));
+    expect(result.current.gridKey).toBe(initialKey);
+
+    act(() => result.current.removeWidget('ardenCalc'));
+    expect(result.current.gridKey).toBe(initialKey);
+
+    // Reset must bump the key.
+    act(() => result.current.resetLayout());
+    expect(result.current.gridKey).toBe(initialKey + 1);
+
+    // Each additional reset increments again.
+    act(() => result.current.resetLayout());
+    expect(result.current.gridKey).toBe(initialKey + 2);
+  });
+
+  it('bumps gridKey after hydration so route remount gets a fresh RGL instance', async () => {
+    const { result } = renderHook(() => useDashboardLayout());
+    expect(result.current.isLayoutReady).toBe(false);
+    await flush();
+    expect(result.current.isLayoutReady).toBe(true);
+    expect(result.current.gridKey).toBeGreaterThan(0);
+  });
+
+  it('reset layout returns non-overlapping default items', async () => {
+    const { result } = renderHook(() => useDashboardLayout());
+    await flush();
+
+    act(() => {
+      result.current.applyPositions([
+        { id: 'activeProjects', x: 0, y: 5, w: 6, h: 3 },
+        { id: 'projectControls', x: 0, y: 5, w: 6, h: 4 },
+      ]);
+    });
+
+    act(() => result.current.resetLayout());
+    const defaults = getDefaultDashboardLayout();
+    expect(result.current.orderedItems).toEqual(defaults.items);
   });
 });

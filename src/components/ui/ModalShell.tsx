@@ -25,7 +25,7 @@ export interface ModalShellProps {
   progressLabel?: string;
   children: React.ReactNode;
   footer?: React.ReactNode;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
   stackAboveDrawer?: boolean;
 }
 
@@ -34,6 +34,7 @@ const sizeClasses = {
   md: 'max-w-lg',
   lg: 'max-w-2xl',
   xl: 'max-w-3xl',
+  '2xl': 'max-w-5xl',
 };
 
 const ModalShell: React.FC<ModalShellProps> = ({

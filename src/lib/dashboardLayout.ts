@@ -5,11 +5,19 @@
  * grid layout with x/y/w/h coordinates, so cards can be freely placed and
  * resized on a 12-column grid (driven by react-grid-layout in the UI).
  *
- * The render/visibility behavior lives in the registry
- * (`src/components/dashboard/layout/dashboardCardRegistry.tsx`), which imports
- * the metadata from here. Keeping this module pure lets layout
- * validation/migration be unit-tested without pulling in component modules.
+ * Phase 4 introduces the widget catalog. The saved layout's `items` array is the
+ * source of truth for which widgets are *active* (presence === added). The
+ * registry (`dashboardCardRegistry.tsx`) defines every *available* widget and
+ * its metadata; `validateAndMigrateLayout` only auto-adds widgets flagged
+ * `defaultVisible`, so optional catalog widgets stay available but inactive
+ * until the user adds them.
+ *
+ * Keeping this module pure lets layout validation/migration be unit-tested
+ * without pulling in component modules.
  */
+
+import type { FeatureKey, PlanId } from './entitlements';
+import { repairDashboardGridLayout } from './dashboardGridRepair';
 
 export type DashboardCardId =
   | 'todaysOperations'
@@ -23,10 +31,48 @@ export type DashboardCardId =
   | 'projectRiskReview'
   | 'placementConditions'
   | 'smartPourAssistant'
-  | 'concreteDeliverySchedule';
+  | 'concreteDeliverySchedule'
+  // Phase 4 optional catalog widgets (not default-visible):
+  | 'quickActions'
+  | 'projectsNeedingEstimate'
+  | 'proposalsFollowUp'
+  | 'qcDue'
+  // Phase 5A tool/shortcut catalog widgets:
+  | 'ardenCalc'
+  | 'quickEstimateLauncher'
+  | 'newProjectShortcut'
+  | 'newProposalShortcut'
+  | 'plannerHubShortcut'
+  | 'scheduleShortcut'
+  | 'accountingTaxLauncher'
+  | 'supportHelp';
 
 /** The dashboard grid is a 12-column grid on desktop. */
 export const DASHBOARD_GRID_COLS = 12;
+
+/** Widget categories used to group/filter the catalog. */
+export const DASHBOARD_WIDGET_CATEGORIES = [
+  'Operations',
+  'Projects',
+  'Estimating',
+  'Scheduling',
+  'Financial',
+  'Proposals',
+  'Field / Crew',
+  'Risk / QC',
+  'Weather / Placement',
+  'Client / Approvals',
+  'Documents',
+  'Team',
+  'Tools / Calculators',
+  'Shortcuts',
+  'Admin / Business',
+] as const;
+
+export type DashboardWidgetCategory = (typeof DASHBOARD_WIDGET_CATEGORIES)[number];
+
+/** Role gating for a widget. `any` = available to all roles. */
+export type DashboardWidgetRole = 'owner' | 'employee' | 'any';
 
 /** Named widths (in grid columns) used by the size controls. */
 export type DashboardCardSizeName = 'full' | 'twoThirds' | 'half' | 'third';
@@ -48,6 +94,9 @@ export interface DashboardCardGridRect {
 export interface DashboardCardMeta {
   id: DashboardCardId;
   title: string;
+  /** One-line catalog description (no sensitive counts). */
+  description: string;
+  category: DashboardWidgetCategory;
   /** Optional one-line description shown under the title in the card header. */
   subtitle?: string;
   /** Default position/size on the 12-column grid. `h` is an initial guess; the
@@ -57,13 +106,23 @@ export interface DashboardCardMeta {
   minH: number;
   /** Widths offered by the size controls (in grid columns). */
   allowedWidths: number[];
+  /** Whether this widget is part of the factory-default dashboard. Optional
+   * catalog widgets are `false`: available but inactive until added. */
+  defaultVisible: boolean;
+  /** Minimum plan required to add/render this widget (omit = available on any plan). */
+  requiredPlan?: PlanId;
+  /** Entitlement feature required to add/render this widget. Plan pill derives from
+   * `requiredPlan ?? minPlanForFeature(requiredFeature)` when set. */
+  requiredFeature?: FeatureKey;
+  /** Role required to add/render this widget. */
+  requiredRole?: DashboardWidgetRole;
 }
 
 const FULL_ONLY: number[] = [12];
 const ALL_WIDTHS: number[] = [12, 8, 6, 4];
 
 /**
- * Default layout reading order:
+ * Default layout reading order (default-visible widgets):
  *  1. Today's Operations
  *  2. Schedule & Deadlines
  *  3. Business Snapshot
@@ -72,6 +131,9 @@ const ALL_WIDTHS: number[] = [12, 8, 6, 4];
  *  6. Project Controls | Project Risk Review
  *  7. concrete-only cards at the bottom
  *
+ * Optional catalog widgets carry `defaultVisible: false` and a high default `y`
+ * so they pack below existing cards when added.
+ *
  * `y` values are spaced out; the grid uses vertical compaction so the gaps pack
  * away and column heights stay tidy regardless of measured card heights.
  */
@@ -79,102 +141,290 @@ export const DASHBOARD_CARD_META: Record<DashboardCardId, DashboardCardMeta> = {
   todaysOperations: {
     id: 'todaysOperations',
     title: "Today's Operations",
-    default: { x: 0, y: 0, w: 12, h: 4 },
+    description: 'Key counts and quick actions for the day.',
+    category: 'Operations',
+    default: { x: 0, y: 0, w: 12, h: 3 },
     minW: 4,
     minH: 3,
     allowedWidths: ALL_WIDTHS,
+    defaultVisible: true,
   },
   operationsSchedule: {
     id: 'operationsSchedule',
     title: 'Schedule & Deadlines',
-    default: { x: 0, y: 100, w: 12, h: 4 },
+    description: "Today's calendar plus upcoming deadlines and milestones.",
+    category: 'Scheduling',
+    default: { x: 0, y: 3, w: 12, h: 4 },
     minW: 4,
-    minH: 3,
+    minH: 4,
     allowedWidths: ALL_WIDTHS,
+    defaultVisible: true,
+    requiredRole: 'owner',
   },
   businessSnapshot: {
     id: 'businessSnapshot',
     title: 'Business Snapshot',
-    default: { x: 0, y: 200, w: 12, h: 3 },
+    description: 'Revenue, profit, and pipeline at a glance.',
+    category: 'Financial',
+    default: { x: 0, y: 7, w: 12, h: 3 },
     minW: 4,
     minH: 3,
     allowedWidths: ALL_WIDTHS,
+    defaultVisible: true,
   },
   fieldActivity: {
     id: 'fieldActivity',
     title: 'Field Activity',
-    default: { x: 0, y: 300, w: 12, h: 4 },
+    description: 'Recent updates from the field and crews.',
+    category: 'Field / Crew',
+    default: { x: 0, y: 10, w: 12, h: 3 },
     minW: 4,
     minH: 3,
     allowedWidths: ALL_WIDTHS,
+    defaultVisible: true,
+    requiredRole: 'owner',
   },
   activeProjects: {
     id: 'activeProjects',
     title: 'Active Projects',
-    default: { x: 0, y: 400, w: 6, h: 10 },
+    description: 'Open projects with their next recommended action.',
+    category: 'Projects',
+    // `h` is an initial guess only; the grid measures real content height at
+    // runtime (compact when empty, taller when the project list is populated).
+    default: { x: 0, y: 13, w: 6, h: 3 },
     minW: 4,
-    minH: 6,
+    minH: 3,
     allowedWidths: ALL_WIDTHS,
+    defaultVisible: true,
   },
   proposalPipeline: {
     id: 'proposalPipeline',
     title: 'Proposal Pipeline',
-    default: { x: 6, y: 400, w: 6, h: 4 },
+    description: 'Proposal stages, win rate, and forecast.',
+    category: 'Proposals',
+    default: { x: 6, y: 13, w: 6, h: 4 },
     minW: 4,
     minH: 3,
     allowedWidths: ALL_WIDTHS,
+    defaultVisible: true,
   },
   nextActions: {
     id: 'nextActions',
     title: 'Next Actions',
-    default: { x: 6, y: 500, w: 6, h: 4 },
+    description: 'The most important things to do next.',
+    category: 'Operations',
+    default: { x: 6, y: 17, w: 6, h: 3 },
     minW: 4,
     minH: 3,
     allowedWidths: ALL_WIDTHS,
+    defaultVisible: true,
+    requiredRole: 'owner',
   },
   projectControls: {
     id: 'projectControls',
     title: 'Project Controls',
-    default: { x: 0, y: 600, w: 6, h: 4 },
+    description: 'QC, deadlines, and field-note shortcuts.',
+    category: 'Operations',
+    default: { x: 0, y: 16, w: 6, h: 4 },
     minW: 4,
     minH: 3,
     allowedWidths: ALL_WIDTHS,
+    defaultVisible: true,
   },
   projectRiskReview: {
     id: 'projectRiskReview',
     title: 'Project Risk Review',
-    default: { x: 6, y: 600, w: 6, h: 4 },
+    description: 'Featured project risk and weather exposure.',
+    category: 'Risk / QC',
+    default: { x: 6, y: 20, w: 6, h: 4 },
     minW: 4,
     minH: 3,
     allowedWidths: ALL_WIDTHS,
+    defaultVisible: true,
   },
   placementConditions: {
     id: 'placementConditions',
     title: 'Placement Conditions',
-    default: { x: 0, y: 700, w: 12, h: 5 },
+    description: 'Weather and site conditions for upcoming pours.',
+    category: 'Weather / Placement',
+    default: { x: 0, y: 24, w: 12, h: 5 },
     minW: 12,
     minH: 4,
     allowedWidths: FULL_ONLY,
+    defaultVisible: true,
   },
   smartPourAssistant: {
     id: 'smartPourAssistant',
     title: 'Pre-Placement Review',
-    default: { x: 0, y: 800, w: 6, h: 4 },
+    description: 'Readiness checks before a concrete placement.',
+    category: 'Weather / Placement',
+    default: { x: 0, y: 29, w: 6, h: 4 },
     minW: 4,
     minH: 3,
     allowedWidths: ALL_WIDTHS,
+    defaultVisible: true,
   },
   concreteDeliverySchedule: {
     id: 'concreteDeliverySchedule',
     title: 'Concrete Delivery Schedule',
-    default: { x: 6, y: 800, w: 6, h: 4 },
+    description: 'Truck timeline and delivery spacing for pours.',
+    category: 'Weather / Placement',
+    default: { x: 6, y: 29, w: 6, h: 4 },
     minW: 4,
     minH: 3,
     allowedWidths: ALL_WIDTHS,
+    defaultVisible: true,
+  },
+
+  // ---- Phase 4 optional catalog widgets (defaultVisible: false) ----
+  quickActions: {
+    id: 'quickActions',
+    title: 'Quick Actions',
+    description: 'One-tap shortcuts to start projects, proposals, and estimates.',
+    category: 'Shortcuts',
+    default: { x: 0, y: 900, w: 6, h: 4 },
+    minW: 4,
+    minH: 3,
+    allowedWidths: ALL_WIDTHS,
+    defaultVisible: false,
+  },
+  projectsNeedingEstimate: {
+    id: 'projectsNeedingEstimate',
+    title: 'Projects Needing Estimate',
+    description: 'Projects still in takeoff or estimating that need pricing.',
+    category: 'Projects',
+    default: { x: 0, y: 900, w: 6, h: 4 },
+    minW: 4,
+    minH: 3,
+    allowedWidths: ALL_WIDTHS,
+    defaultVisible: false,
+  },
+  proposalsFollowUp: {
+    id: 'proposalsFollowUp',
+    title: 'Proposals Needing Follow-up',
+    description: 'Sent proposals that have gone quiet and need a nudge.',
+    category: 'Proposals',
+    default: { x: 6, y: 900, w: 6, h: 4 },
+    minW: 4,
+    minH: 3,
+    allowedWidths: ALL_WIDTHS,
+    defaultVisible: false,
+  },
+  qcDue: {
+    id: 'qcDue',
+    title: 'QC Due',
+    description: 'Quality-control tests due and overdue across projects.',
+    category: 'Risk / QC',
+    default: { x: 6, y: 900, w: 6, h: 4 },
+    minW: 4,
+    minH: 3,
+    allowedWidths: ALL_WIDTHS,
+    defaultVisible: false,
+    requiredPlan: 'professional',
+    requiredRole: 'owner',
+  },
+
+  // ---- Phase 5A tool/shortcut catalog widgets (defaultVisible: false) ----
+  ardenCalc: {
+    id: 'ardenCalc',
+    title: 'Arden Calc',
+    description: 'Quick launch slab, footing, column, sidewalk, and reinforcement calculators.',
+    category: 'Tools / Calculators',
+    default: { x: 0, y: 950, w: 6, h: 4 },
+    minW: 4,
+    minH: 3,
+    allowedWidths: ALL_WIDTHS,
+    defaultVisible: false,
+    requiredFeature: 'calculators',
+  },
+  quickEstimateLauncher: {
+    id: 'quickEstimateLauncher',
+    title: 'Quick Estimate',
+    description: 'Start or continue a quick ballpark estimate.',
+    category: 'Estimating',
+    default: { x: 6, y: 950, w: 6, h: 4 },
+    minW: 4,
+    minH: 3,
+    allowedWidths: ALL_WIDTHS,
+    defaultVisible: false,
+    requiredFeature: 'quick_estimates',
+  },
+  newProjectShortcut: {
+    id: 'newProjectShortcut',
+    title: 'New Project',
+    description: 'Create a new active project from the dashboard.',
+    category: 'Shortcuts',
+    default: { x: 0, y: 950, w: 4, h: 3 },
+    minW: 4,
+    minH: 3,
+    allowedWidths: ALL_WIDTHS,
+    defaultVisible: false,
+  },
+  newProposalShortcut: {
+    id: 'newProposalShortcut',
+    title: 'New Proposal',
+    description: 'Open the proposal generator to draft a client proposal.',
+    category: 'Shortcuts',
+    default: { x: 4, y: 950, w: 4, h: 3 },
+    minW: 4,
+    minH: 3,
+    allowedWidths: ALL_WIDTHS,
+    defaultVisible: false,
+    requiredFeature: 'proposals',
+    requiredRole: 'owner',
+  },
+  plannerHubShortcut: {
+    id: 'plannerHubShortcut',
+    title: 'Open Planner Hub',
+    description: 'Jump to the global planner hub across all projects.',
+    category: 'Shortcuts',
+    default: { x: 8, y: 950, w: 4, h: 3 },
+    minW: 4,
+    minH: 3,
+    allowedWidths: ALL_WIDTHS,
+    defaultVisible: false,
+    requiredFeature: 'global_planner_hub',
+    requiredRole: 'owner',
+  },
+  scheduleShortcut: {
+    id: 'scheduleShortcut',
+    title: 'Open Schedule',
+    description: 'Open the schedule workspace and calendar.',
+    category: 'Scheduling',
+    default: { x: 0, y: 1000, w: 6, h: 3 },
+    minW: 4,
+    minH: 3,
+    allowedWidths: ALL_WIDTHS,
+    defaultVisible: false,
+    requiredRole: 'owner',
+  },
+  accountingTaxLauncher: {
+    id: 'accountingTaxLauncher',
+    title: 'Accounting & Tax',
+    description: 'Export accounting and tax reports for your business.',
+    category: 'Financial',
+    default: { x: 6, y: 1000, w: 6, h: 3 },
+    minW: 4,
+    minH: 3,
+    allowedWidths: ALL_WIDTHS,
+    defaultVisible: false,
+    requiredFeature: 'accounting_exports',
+    requiredRole: 'owner',
+  },
+  supportHelp: {
+    id: 'supportHelp',
+    title: 'Support & Help',
+    description: 'Contact support or browse help resources.',
+    category: 'Admin / Business',
+    default: { x: 0, y: 1000, w: 6, h: 3 },
+    minW: 4,
+    minH: 3,
+    allowedWidths: ALL_WIDTHS,
+    defaultVisible: false,
   },
 };
 
-/** Card ids in default reading order (top-to-bottom, left-to-right). */
+/** Every registered widget id, in reading order (top-to-bottom, left-to-right). */
 export const DASHBOARD_CARD_IDS: DashboardCardId[] = (
   Object.keys(DASHBOARD_CARD_META) as DashboardCardId[]
 ).sort((a, b) => {
@@ -182,6 +432,11 @@ export const DASHBOARD_CARD_IDS: DashboardCardId[] = (
   const db = DASHBOARD_CARD_META[b].default;
   return da.y - db.y || da.x - db.x;
 });
+
+/** Ids that make up the factory-default dashboard (presence === active). */
+export const DEFAULT_VISIBLE_CARD_IDS: DashboardCardId[] = DASHBOARD_CARD_IDS.filter(
+  (id) => DASHBOARD_CARD_META[id].defaultVisible,
+);
 
 export const DASHBOARD_LAYOUT_VERSION = 2 as const;
 
@@ -230,11 +485,35 @@ function defaultItem(id: DashboardCardId): DashboardLayoutItem {
   return { id, x, y, w, h };
 }
 
-/** The factory default layout, derived from the card registry metadata. */
+/** The factory default layout: the default-visible widgets in reading order. */
 export function getDefaultDashboardLayout(): DashboardLayout {
+  const items = DEFAULT_VISIBLE_CARD_IDS.map(defaultItem);
   return {
     version: DASHBOARD_LAYOUT_VERSION,
-    items: DASHBOARD_CARD_IDS.map(defaultItem),
+    items: repairDashboardGridLayout(items),
+  };
+}
+
+/**
+ * Next free row below all existing items — where a newly added widget lands.
+ * (The grid vertically compacts, so this just needs to be clear of everything.)
+ */
+export function nextAvailableY(items: DashboardLayoutItem[]): number {
+  return items.reduce((max, item) => Math.max(max, item.y + item.h), 0);
+}
+
+/** Build the grid item for a freshly added widget, placed below existing ones. */
+export function buildAddedWidgetItem(
+  id: DashboardCardId,
+  items: DashboardLayoutItem[],
+): DashboardLayoutItem {
+  const meta = DASHBOARD_CARD_META[id];
+  return {
+    id,
+    x: 0,
+    y: nextAvailableY(items),
+    w: clampCardWidth(id, meta.default.w),
+    h: Math.max(meta.minH, meta.default.h),
   };
 }
 
@@ -251,12 +530,13 @@ function num(value: unknown, fallback: number): number {
 }
 
 /**
- * Validate and migrate a persisted layout against the current card registry:
+ * Validate and migrate a persisted layout against the current registry:
  * - drop unknown card ids
  * - drop duplicate ids (keep first occurrence)
  * - coerce missing/invalid coordinates to the card defaults
  * - clamp widths to the card's allowed range
- * - append any registry cards missing from the saved layout, using defaults
+ * - append any missing *default-visible* widgets (optional catalog widgets are
+ *   NOT auto-added — they stay available but inactive until the user adds them)
  * - stamp the current version
  *
  * Returns the factory default when the input is missing or unusable, so a
@@ -298,7 +578,9 @@ export function validateAndMigrateLayout(raw: unknown): DashboardLayout {
     });
   });
 
-  for (const id of DASHBOARD_CARD_IDS) {
+  // Auto-add only missing default-visible widgets; optional widgets stay in the
+  // catalog (available but not placed) until the user adds them.
+  for (const id of DEFAULT_VISIBLE_CARD_IDS) {
     if (seen.has(id)) continue;
     seen.add(id);
     items.push(defaultItem(id));

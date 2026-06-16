@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import GridLayout, { WidthProvider, type Layout } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
@@ -9,6 +9,7 @@ import {
   type DashboardCardId,
   type DashboardLayoutItem,
 } from '../../../lib/dashboardLayout';
+import { buildVisibleDashboardRenderLayout } from '../../../lib/dashboardGridRepair';
 import { DASHBOARD_CARD_REGISTRY } from './dashboardCardRegistry';
 import type { DashboardCardContext } from './dashboardData';
 import type { DashboardItemPosition } from './useDashboardLayout';
@@ -27,12 +28,19 @@ function pxToRows(px: number): number {
 
 interface DashboardGridProps {
   ctx: DashboardCardContext;
-  /** Items in reading order; hidden/gated cards are filtered here at render. */
+  /** Saved layout items (includes hidden/gated widgets). */
   items: DashboardLayoutItem[];
   customizing: boolean;
   onApplyPositions: (positions: DashboardItemPosition[]) => void;
   onWidthChange: (id: DashboardCardId, w: number) => void;
   onMeasureHeight: (id: DashboardCardId, rows: number) => void;
+  /** Removes an optional widget from the dashboard (customize mode only). */
+  onRemoveWidget: (id: DashboardCardId) => void;
+  /**
+   * Bumped after layout hydration or explicit reset so RGL discards stale
+   * internal position cache on route remount.
+   */
+  gridKey?: number;
 }
 
 export default function DashboardGrid({
@@ -42,11 +50,31 @@ export default function DashboardGrid({
   onApplyPositions,
   onWidthChange,
   onMeasureHeight,
+  onRemoveWidget,
+  gridKey = 0,
 }: DashboardGridProps) {
   const isNarrow = useIsNarrowViewport();
 
-  // Hidden/gated cards are filtered at render only; they remain in the layout.
-  const visibleItems = items.filter((item) => DASHBOARD_CARD_REGISTRY[item.id].isVisible(ctx));
+  const visibleIds = useMemo(() => {
+    const ids = new Set<DashboardCardId>();
+    for (const item of items) {
+      if (DASHBOARD_CARD_REGISTRY[item.id].isVisible(ctx)) {
+        ids.add(item.id);
+      }
+    }
+    return ids;
+  }, [ctx, items]);
+
+  /** Collision-free slice for render — saved layout is not mutated here. */
+  const renderItems = useMemo(
+    () => buildVisibleDashboardRenderLayout(items, visibleIds),
+    [items, visibleIds],
+  );
+
+  const visibleIdsKey = useMemo(
+    () => [...visibleIds].sort().join(','),
+    [visibleIds],
+  );
 
   const handleMeasure = useCallback(
     (id: DashboardCardId, pxHeight: number) => {
@@ -74,7 +102,7 @@ export default function DashboardGrid({
   if (isNarrow) {
     return (
       <div className="space-y-4" data-testid="dashboard-grid-mobile">
-        {visibleItems.map((item) => (
+        {renderItems.map((item) => (
           <div key={item.id} data-testid={`dashboard-card-${item.id}`}>
             {DASHBOARD_CARD_REGISTRY[item.id].render(ctx, { isMobile: true, cardWidth: item.w })}
           </div>
@@ -83,7 +111,7 @@ export default function DashboardGrid({
     );
   }
 
-  const layout: Layout[] = visibleItems.map((item) => {
+  const rglLayout: Layout[] = renderItems.map((item) => {
     const meta = DASHBOARD_CARD_META[item.id];
     const fixedWidth = meta.allowedWidths.length === 1;
     return {
@@ -101,8 +129,9 @@ export default function DashboardGrid({
 
   return (
     <GridWithWidth
-      className="dashboard-grid"
-      layout={layout}
+      key={`dashboard-grid-${gridKey}-${visibleIdsKey}`}
+      className={`dashboard-grid${customizing ? ' dashboard-grid--customizing' : ''}`}
+      layout={rglLayout}
       cols={DASHBOARD_GRID_COLS}
       rowHeight={ROW_HEIGHT}
       margin={MARGIN}
@@ -112,21 +141,23 @@ export default function DashboardGrid({
       draggableCancel=".dashboard-no-drag"
       resizeHandles={['e']}
       compactType="vertical"
+      preventCollision={false}
       onDragStop={handleStop}
       onResizeStop={handleStop}
       useCSSTransforms
     >
-      {visibleItems.map((item) => (
-          <div key={item.id} data-testid={`dashboard-card-${item.id}`} className="dashboard-grid-cell">
-            <DashboardGridItem
-              id={item.id}
-              width={item.w}
-              ctx={ctx}
-              customizing={customizing}
-              onWidthChange={onWidthChange}
-              onMeasure={handleMeasure}
-            />
-          </div>
+      {renderItems.map((item) => (
+        <div key={item.id} data-testid={`dashboard-card-${item.id}`} className="dashboard-grid-cell">
+          <DashboardGridItem
+            id={item.id}
+            width={item.w}
+            ctx={ctx}
+            customizing={customizing}
+            onWidthChange={onWidthChange}
+            onMeasure={handleMeasure}
+            onRemove={DASHBOARD_CARD_META[item.id].defaultVisible ? undefined : onRemoveWidget}
+          />
+        </div>
       ))}
     </GridWithWidth>
   );

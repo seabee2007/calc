@@ -13,6 +13,7 @@ interface Tab {
   id: string;
   label: string;
   icon?: React.ReactNode;
+  testId?: string;
 }
 
 interface TabsProps {
@@ -82,6 +83,7 @@ const Tabs: React.FC<TabsProps> = ({
           <motion.button
             key={tab.id}
             type="button"
+            data-testid={tab.testId}
             className={`${baseTabItem} ${variantStyles[variant].tab} ${isActive ? variantStyles[variant].activeTab : variantStyles[variant].inactiveTab} ${tabWidthStyle} ${FOCUS_RING}`}
             onClick={() => handleTabClick(tab.id)}
             whileTap={prefersReducedMotion ? undefined : { scale: 0.97 }}

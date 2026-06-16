@@ -11,6 +11,8 @@ interface DashboardGridItemProps {
   customizing: boolean;
   onWidthChange: (id: DashboardCardId, w: number) => void;
   onMeasure: (id: DashboardCardId, pxHeight: number) => void;
+  /** Removes this widget; only passed for optional (non-default) widgets. */
+  onRemove?: (id: DashboardCardId) => void;
 }
 
 export default function DashboardGridItem({
@@ -20,6 +22,7 @@ export default function DashboardGridItem({
   customizing,
   onWidthChange,
   onMeasure,
+  onRemove,
 }: DashboardGridItemProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const meta = DASHBOARD_CARD_META[id];
@@ -45,6 +48,7 @@ export default function DashboardGridItem({
           width={width}
           allowedWidths={meta.allowedWidths}
           onWidthChange={(w) => onWidthChange(id, w)}
+          onRemove={onRemove ? () => onRemove(id) : undefined}
         />
       ) : null}
       <div className={customizing ? 'pointer-events-none select-none' : undefined}>

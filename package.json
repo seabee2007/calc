@@ -27,7 +27,12 @@
     "preview": "vite preview",
     "serve:prod": "node csp-server.js",
     "upload-sounds": "ts-node scripts/uploadSounds.ts",
-    "generate:favicons": "node scripts/generateFavicons.mjs"
+    "generate:favicons": "node scripts/generateFavicons.mjs",
+    "qa:seed-gates": "tsx scripts/qa/seed-tier-gate-data.ts",
+    "qa:cleanup-gates": "tsx scripts/qa/cleanup-tier-gate-data.ts",
+    "qa:e2e-gates": "playwright test --project=tier-gates --headed && tsx scripts/qa/run-tier-gate-checks.ts",
+    "qa:e2e-gates:debug": "playwright test --project=tier-gates --headed --debug",
+    "qa:gates": "npm run qa:seed-gates && npm run qa:e2e-gates"
   },
   "dependencies": {
     "@adobe/pdfservices-node-sdk": "^4.1.0",
@@ -71,6 +76,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",
+    "@playwright/test": "^1.58.2",
     "@squoosh/lib": "^0.3.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Check, FolderKanban, LayoutGrid, RotateCcw } from 'lucide-react';
+import { Check, FolderKanban, LayoutGrid, Plus, RotateCcw } from 'lucide-react';
 import { useProjectStore } from '../store';
 import { useTrackedProposals } from '../hooks/useTrackedProposals';
 import { buildOperationsSnapshot, buildQcDashboardStats, resolveNextUpcomingPlacement } from '../utils/operationsDashboard';
@@ -29,6 +29,9 @@ import { formatPlacementPourDateTime } from '../utils/placementPourDate';
 import type { DashboardCardContext } from '../components/dashboard/layout/dashboardData';
 import DashboardGrid from '../components/dashboard/layout/DashboardGrid';
 import { useDashboardLayout } from '../components/dashboard/layout/useDashboardLayout';
+import DashboardWidgetCatalog from '../components/dashboard/widgets/DashboardWidgetCatalog';
+import { DASHBOARD_CARD_META, type DashboardCardId } from '../lib/dashboardLayout';
+import { useSubscription } from '../contexts/SubscriptionContext';
 
 const OperationsDashboard: React.FC = () => {
   const { isOwner, user } = useAuth();
@@ -249,31 +252,54 @@ const OperationsDashboard: React.FC = () => {
 
   const {
     orderedItems,
+    activeIds,
     customizing,
     saveStatus,
+    gridKey,
+    isLayoutReady,
     setCustomizing,
     applyPositions,
     setCardWidth,
     setCardHeight,
+    addWidget,
+    removeWidget,
     resetLayout,
   } = useDashboardLayout();
 
-  const [resetNotice, setResetNotice] = useState(false);
-  const resetNoticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { plan, hasFeature } = useSubscription();
+
+  const [catalogOpen, setCatalogOpen] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const noticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => () => {
-    if (resetNoticeTimer.current) clearTimeout(resetNoticeTimer.current);
+    if (noticeTimer.current) clearTimeout(noticeTimer.current);
   }, []);
+
+  const flashNotice = (message: string) => {
+    setNotice(message);
+    if (noticeTimer.current) clearTimeout(noticeTimer.current);
+    noticeTimer.current = setTimeout(() => setNotice(null), 2500);
+  };
 
   const handleResetLayout = () => {
     resetLayout();
-    setResetNotice(true);
-    if (resetNoticeTimer.current) clearTimeout(resetNoticeTimer.current);
-    resetNoticeTimer.current = setTimeout(() => setResetNotice(false), 2500);
+    flashNotice('Dashboard layout reset');
   };
 
-  const saveStatusMessage = resetNotice
-    ? 'Dashboard layout reset'
+  const handleAddWidget = (id: DashboardCardId) => {
+    addWidget(id);
+    flashNotice(`${DASHBOARD_CARD_META[id].title} added`);
+    setCatalogOpen(false);
+  };
+
+  const handleRemoveWidget = (id: DashboardCardId) => {
+    removeWidget(id);
+    flashNotice('Widget removed');
+  };
+
+  const saveStatusMessage = notice
+    ? notice
     : saveStatus === 'saving'
       ? 'Saving…'
       : saveStatus === 'saved'
@@ -329,11 +355,22 @@ const OperationsDashboard: React.FC = () => {
                 : 'text-slate-500 dark:text-slate-400'
             }`}
           >
-            {saveStatus === 'saved' && !resetNotice ? (
+            {saveStatus === 'saved' && !notice ? (
               <Check size={14} className="text-emerald-500" />
             ) : null}
             {saveStatusMessage}
           </span>
+        ) : null}
+        {customizing ? (
+          <Button
+            variant="outline"
+            size="sm"
+            icon={<Plus size={16} />}
+            onClick={() => setCatalogOpen(true)}
+            data-testid="dashboard-add-widget"
+          >
+            Add widget
+          </Button>
         ) : null}
         {customizing ? (
           <Button
@@ -357,14 +394,42 @@ const OperationsDashboard: React.FC = () => {
         </Button>
       </div>
 
-      <DashboardGrid
-        ctx={cardContext}
-        items={orderedItems}
-        customizing={customizing}
-        onApplyPositions={applyPositions}
-        onWidthChange={setCardWidth}
-        onMeasureHeight={setCardHeight}
-      />
+      {isLayoutReady ? (
+        <DashboardGrid
+          ctx={cardContext}
+          items={orderedItems}
+          customizing={customizing}
+          onApplyPositions={applyPositions}
+          onWidthChange={setCardWidth}
+          onMeasureHeight={setCardHeight}
+          onRemoveWidget={handleRemoveWidget}
+          gridKey={gridKey}
+        />
+      ) : (
+        <div
+          className="space-y-4"
+          data-testid="dashboard-grid-loading"
+          aria-busy="true"
+          aria-label="Loading dashboard layout"
+        >
+          <div className="h-32 animate-pulse rounded-xl bg-slate-200/80 dark:bg-slate-800/80" />
+          <div className="h-48 animate-pulse rounded-xl bg-slate-200/80 dark:bg-slate-800/80" />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="h-40 animate-pulse rounded-xl bg-slate-200/80 dark:bg-slate-800/80" />
+            <div className="h-40 animate-pulse rounded-xl bg-slate-200/80 dark:bg-slate-800/80" />
+          </div>
+        </div>
+      )}
+
+        <DashboardWidgetCatalog
+          isOpen={catalogOpen}
+          onClose={() => setCatalogOpen(false)}
+          plan={plan}
+          isOwner={Boolean(isOwner)}
+          hasFeature={hasFeature}
+          activeIds={activeIds}
+          onAdd={handleAddWidget}
+        />
 
       {projects.length === 0 && (
         <EmptyState
