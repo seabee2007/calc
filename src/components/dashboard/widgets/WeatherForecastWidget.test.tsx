@@ -145,7 +145,11 @@ describe('WeatherForecastWidget', () => {
     await waitFor(() => {
       expect(screen.getByTestId('weather-forecast-single-day')).toBeInTheDocument();
     });
-    expect(getForecastByQuery).toHaveBeenCalledWith(expect.stringContaining('Portland'), 1);
+    expect(getForecastByQuery).toHaveBeenCalledWith(
+      expect.stringContaining('Portland'),
+      1,
+      expect.objectContaining({ forceRefresh: false }),
+    );
     expect(screen.getByText(/WEATHER RISK: GOOD/i)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /View details/i })).not.toBeInTheDocument();
   });
@@ -175,7 +179,11 @@ describe('WeatherForecastWidget', () => {
     expect(screen.getByTestId('weather-forecast-today-summary')).toBeInTheDocument();
     expect(screen.getByTestId('weather-forecast-strip')).toBeInTheDocument();
     expect(screen.getAllByTestId('weather-forecast-day-tile-wide').length).toBeGreaterThan(0);
-    expect(getForecastByQuery).toHaveBeenCalledWith(expect.stringContaining('Portland'), 7);
+    expect(getForecastByQuery).toHaveBeenCalledWith(
+      expect.stringContaining('Portland'),
+      7,
+      expect.objectContaining({ forceRefresh: false }),
+    );
     expect(screen.queryByRole('button', { name: /View details/i })).not.toBeInTheDocument();
   });
 
@@ -194,7 +202,11 @@ describe('WeatherForecastWidget', () => {
     expect(screen.getByText(/WEATHER RISK: GOOD/i)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /View details/i })).not.toBeInTheDocument();
     expect(screen.queryByTestId('weather-forecast-today-summary')).not.toBeInTheDocument();
-    expect(getForecastByQuery).toHaveBeenCalledWith(expect.stringContaining('Portland'), 5);
+    expect(getForecastByQuery).toHaveBeenCalledWith(
+      expect.stringContaining('Portland'),
+      5,
+      expect.objectContaining({ forceRefresh: false }),
+    );
   });
 
   it('shows error state and retries', async () => {
@@ -218,6 +230,11 @@ describe('WeatherForecastWidget', () => {
     await waitFor(() => {
       expect(screen.getByTestId('weather-forecast-single-day')).toBeInTheDocument();
     });
+    expect(getForecastByQuery).toHaveBeenLastCalledWith(
+      expect.any(String),
+      1,
+      expect.objectContaining({ forceRefresh: true }),
+    );
   });
 
   it('shows sign-in message when weather request is unauthorized', async () => {
@@ -280,7 +297,11 @@ describe('WeatherForecastWidget', () => {
     );
 
     await waitFor(() => {
-      expect(getForecastByQuery).toHaveBeenCalledWith(expect.stringContaining('Tamuning'), 1);
+      expect(getForecastByQuery).toHaveBeenCalledWith(
+        expect.stringContaining('Tamuning'),
+        1,
+        expect.objectContaining({ forceRefresh: false }),
+      );
     });
 
     getForecastByQuery.mockClear();
@@ -288,7 +309,11 @@ describe('WeatherForecastWidget', () => {
     fireEvent.click(screen.getByTestId('weather-location-option-p1'));
 
     await waitFor(() => {
-      expect(getForecastByQuery).toHaveBeenCalledWith(expect.stringContaining('Portland'), 1);
+      expect(getForecastByQuery).toHaveBeenCalledWith(
+        expect.stringContaining('Portland'),
+        1,
+        expect.objectContaining({ forceRefresh: false }),
+      );
     });
   });
 

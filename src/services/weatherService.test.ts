@@ -48,6 +48,38 @@ describe('weatherService', () => {
     );
   });
 
+  it('sends cache options and forceRefresh flag for forecast queries', async () => {
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        location: { city: 'Portland', country: 'US' },
+        forecast: [{ date: '2026-06-17', maxTemp: 70, minTemp: 55, conditions: 'Clear' }],
+        cached: true,
+        usageCharged: false,
+      }),
+    });
+
+    await getForecastByQuery('Portland, OR', 3, {
+      locationKey: 'my:portland',
+      locationLabel: 'My Weather',
+      forceRefresh: true,
+    });
+
+    const forecastCall = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls.find(([url]) =>
+      String(url).includes('/getWeatherForecast'),
+    );
+    expect(forecastCall).toBeTruthy();
+    const [, init] = forecastCall!;
+    expect(JSON.parse(String(init.body))).toMatchObject({
+      query: 'Portland, OR',
+      days: 3,
+      mode: 'forecast',
+      locationKey: 'my:portland',
+      locationLabel: 'My Weather',
+      forceRefresh: true,
+    });
+  });
+
   it('throws WeatherServiceError when there is no session', async () => {
     getSession.mockResolvedValue({ data: { session: null } });
 

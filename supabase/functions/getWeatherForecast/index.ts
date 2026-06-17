@@ -7,6 +7,11 @@ import {
   trackMeteredUsage,
   usageConfigErrorResponse,
 } from "../_shared/meterUsage.ts";
+import {
+  createServiceRoleClient,
+  resolveUsageContext,
+  type UsageContext,
+} from "../_shared/usage.ts";
 
 const BASE_URL = "https://api.weatherapi.com/v1";
 
@@ -18,7 +23,15 @@ interface ForecastRequest {
   includeHistory?: boolean;
   includeAlerts?: boolean;
   mode?: "full" | "forecast";
+  projectId?: string;
+  locationKey?: string;
+  locationLabel?: string;
+  forceRefresh?: boolean;
 }
+
+type ForecastPayload = Record<string, unknown> & {
+  forecast?: unknown[];
+};
 
 function locationQuery(body: ForecastRequest): string | null {
   if (typeof body.query === "string" && body.query.trim()) {
@@ -33,6 +46,136 @@ function locationQuery(body: ForecastRequest): string | null {
     return `${body.latitude},${body.longitude}`;
   }
   return null;
+}
+
+function normalizeLocationKey(value: string): string {
+  return value.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function buildLocationKey(body: ForecastRequest, q: string): string {
+  if (typeof body.locationKey === "string" && body.locationKey.trim()) {
+    return normalizeLocationKey(body.locationKey);
+  }
+  if (typeof body.projectId === "string" && body.projectId.trim()) {
+    return `project:${body.projectId.trim()}`;
+  }
+  if (
+    typeof body.latitude === "number" &&
+    typeof body.longitude === "number" &&
+    Number.isFinite(body.latitude) &&
+    Number.isFinite(body.longitude)
+  ) {
+    return `latlng:${body.latitude.toFixed(4)},${body.longitude.toFixed(4)}`;
+  }
+  return `query:${normalizeLocationKey(q)}`;
+}
+
+function withCacheMetadata(
+  payload: ForecastPayload,
+  cache: { fetched_at: string; expires_at: string },
+  options: { cached: boolean; usageCharged: boolean; stale?: boolean; providerError?: boolean },
+): ForecastPayload {
+  return {
+    ...payload,
+    cached: options.cached,
+    stale: options.stale ?? new Date(cache.expires_at).getTime() <= Date.now(),
+    providerError: options.providerError ?? false,
+    fetchedAt: cache.fetched_at,
+    expiresAt: cache.expires_at,
+    usageCharged: options.usageCharged,
+  };
+}
+
+async function readCache(
+  admin: ReturnType<typeof createServiceRoleClient>,
+  context: UsageContext,
+  locationKey: string,
+): Promise<{
+  forecast_json: ForecastPayload;
+  fetched_at: string;
+  expires_at: string;
+} | null> {
+  const { data, error } = await admin
+    .from("weather_forecast_cache")
+    .select("forecast_json, fetched_at, expires_at")
+    .eq("employer_id", context.employerId)
+    .eq("user_id", context.userId)
+    .eq("location_key", locationKey)
+    .maybeSingle();
+
+  if (error) {
+    console.error("[weather-cache] read failed", error);
+    return null;
+  }
+  return data as {
+    forecast_json: ForecastPayload;
+    fetched_at: string;
+    expires_at: string;
+  } | null;
+}
+
+async function upsertCache(
+  admin: ReturnType<typeof createServiceRoleClient>,
+  context: UsageContext,
+  input: {
+    projectId?: string;
+    locationKey: string;
+    locationLabel: string;
+    latitude?: number | null;
+    longitude?: number | null;
+    address?: string | null;
+    payload: ForecastPayload;
+    fetchedAt: string;
+    expiresAt: string;
+  },
+): Promise<void> {
+  const row = {
+    employer_id: context.employerId,
+    user_id: context.userId,
+    project_id: input.projectId ?? null,
+    location_key: input.locationKey,
+    location_label: input.locationLabel,
+    latitude: input.latitude ?? null,
+    longitude: input.longitude ?? null,
+    address: input.address ?? null,
+    forecast_json: input.payload,
+    source: "weather_api",
+    fetched_at: input.fetchedAt,
+    expires_at: input.expiresAt,
+  };
+
+  const { data: updated, error: updateError } = await admin
+    .from("weather_forecast_cache")
+    .update(row)
+    .eq("employer_id", context.employerId)
+    .eq("user_id", context.userId)
+    .eq("location_key", input.locationKey)
+    .select("id");
+
+  if (updateError) {
+    console.error("[weather-cache] update failed", updateError);
+  }
+
+  if ((updated ?? []).length > 0) return;
+
+  const { error: insertError } = await admin
+    .from("weather_forecast_cache")
+    .insert(row);
+
+  if (insertError) {
+    // If a concurrent request inserted the row first, update it.
+    if (insertError.code === "23505") {
+      const { error: retryError } = await admin
+        .from("weather_forecast_cache")
+        .update(row)
+        .eq("employer_id", context.employerId)
+        .eq("user_id", context.userId)
+        .eq("location_key", input.locationKey);
+      if (retryError) console.error("[weather-cache] retry update failed", retryError);
+      return;
+    }
+    console.error("[weather-cache] insert failed", insertError);
+  }
 }
 
 function parseLocalHour(timeStr: string): number {
@@ -91,15 +234,6 @@ serve(async (req) => {
     return usageConfigErrorResponse(corsHeaders);
   }
 
-  const quota = await requireUsageQuota(
-    authResult.user.id,
-    "weather.forecast",
-    "weather_request",
-    corsHeaders,
-  );
-  if (!quota.ok) return quota.response;
-  const usageContext = quota.context;
-
   const apiKey = Deno.env.get("WEATHER_API_KEY");
   if (!apiKey) {
     console.error("WEATHER_API_KEY is not configured");
@@ -120,6 +254,9 @@ serve(async (req) => {
       );
     }
 
+    const admin = createServiceRoleClient();
+    const usageContext = await resolveUsageContext(admin, authResult.user.id);
+
     const maxForecastDays = Math.min(
       14,
       Math.max(1, parseInt(Deno.env.get("MAX_FORECAST_DAYS") ?? "5", 10) || 5),
@@ -132,6 +269,29 @@ serve(async (req) => {
     const days = Math.min(maxForecastDays, Math.max(1, body.days ?? (mode === "forecast" ? 5 : 3)));
     const includeAlerts = body.includeAlerts !== false;
     const includeHistory = body.includeHistory !== false && mode === "full";
+    const locationKey = buildLocationKey(body, q);
+    const locationLabel = body.locationLabel?.trim() || q;
+    const cachedRow = await readCache(admin, usageContext, locationKey);
+
+    if (body.forceRefresh !== true && cachedRow) {
+      return new Response(
+        JSON.stringify(
+          withCacheMetadata(cachedRow.forecast_json, cachedRow, {
+            cached: true,
+            usageCharged: false,
+          }),
+        ),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    const quota = await requireUsageQuota(
+      authResult.user.id,
+      "weather.forecast",
+      "weather_request",
+      corsHeaders,
+    );
+    if (!quota.ok) return quota.response;
 
     const alertsParam = includeAlerts ? "&alerts=yes" : "";
     const forecastUrl =
@@ -141,6 +301,19 @@ serve(async (req) => {
     if (!forecastResponse.ok) {
       const errText = await forecastResponse.text();
       console.error("WeatherAPI forecast error:", errText);
+      if (cachedRow) {
+        return new Response(
+          JSON.stringify(
+            withCacheMetadata(cachedRow.forecast_json, cachedRow, {
+              cached: true,
+              stale: true,
+              providerError: true,
+              usageCharged: false,
+            }),
+          ),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
       return new Response(JSON.stringify({ error: "Weather API returned an error" }), {
         status: forecastResponse.status,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -151,21 +324,42 @@ serve(async (req) => {
     const forecast = forecastData.forecast.forecastday.map(mapForecastDay);
 
     if (mode === "forecast") {
+      const fetchedAt = new Date().toISOString();
+      const expiresAt = new Date(Date.now() + 6 * 60 * 60 * 1000).toISOString();
+      const payload: ForecastPayload = {
+        location: {
+          city: forecastData.location.name,
+          country: forecastData.location.country,
+          latitude: forecastData.location.lat,
+          longitude: forecastData.location.lon,
+        },
+        forecast,
+      };
       await trackMeteredUsage(usageContext, {
         featureKey: "weather.forecast",
         usageUnit: "weather_request",
         requestId: req.headers.get("x-request-id"),
+        metadata: { locationKey, cached: false },
+      });
+      await upsertCache(admin, usageContext, {
+        projectId: body.projectId,
+        locationKey,
+        locationLabel,
+        latitude: forecastData.location.lat,
+        longitude: forecastData.location.lon,
+        address: typeof body.query === "string" ? body.query.trim() : null,
+        payload,
+        fetchedAt,
+        expiresAt,
       });
       return new Response(
-        JSON.stringify({
-          location: {
-            city: forecastData.location.name,
-            country: forecastData.location.country,
-            latitude: forecastData.location.lat,
-            longitude: forecastData.location.lon,
-          },
-          forecast,
-        }),
+        JSON.stringify(
+          withCacheMetadata(payload, { fetched_at: fetchedAt, expires_at: expiresAt }, {
+            cached: false,
+            usageCharged: true,
+            stale: false,
+          }),
+        ),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
@@ -208,27 +402,49 @@ serve(async (req) => {
       expires: alert.expires,
     })) ?? [];
 
+    const fetchedAt = new Date().toISOString();
+    const expiresAt = new Date(Date.now() + 6 * 60 * 60 * 1000).toISOString();
+    const payload: ForecastPayload = {
+      temperature: forecastData.current.temp_f,
+      humidity: forecastData.current.humidity,
+      conditions: forecastData.current.condition.text,
+      windSpeed: forecastData.current.wind_mph,
+      precipitation: forecastData.current.precip_in,
+      location: {
+        city: forecastData.location.name,
+        country: forecastData.location.country,
+      },
+      forecast,
+      alerts,
+      historical,
+    };
+
     await trackMeteredUsage(usageContext, {
       featureKey: "weather.forecast",
       usageUnit: "weather_request",
       requestId: req.headers.get("x-request-id"),
+      metadata: { locationKey, cached: false },
+    });
+    await upsertCache(admin, usageContext, {
+      projectId: body.projectId,
+      locationKey,
+      locationLabel,
+      latitude: forecastData.location.lat,
+      longitude: forecastData.location.lon,
+      address: typeof body.query === "string" ? body.query.trim() : null,
+      payload,
+      fetchedAt,
+      expiresAt,
     });
 
     return new Response(
-      JSON.stringify({
-        temperature: forecastData.current.temp_f,
-        humidity: forecastData.current.humidity,
-        conditions: forecastData.current.condition.text,
-        windSpeed: forecastData.current.wind_mph,
-        precipitation: forecastData.current.precip_in,
-        location: {
-          city: forecastData.location.name,
-          country: forecastData.location.country,
-        },
-        forecast,
-        alerts,
-        historical,
-      }),
+      JSON.stringify(
+        withCacheMetadata(payload, { fetched_at: fetchedAt, expires_at: expiresAt }, {
+          cached: false,
+          usageCharged: true,
+          stale: false,
+        }),
+      ),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (err) {

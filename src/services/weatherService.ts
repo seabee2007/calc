@@ -26,6 +26,10 @@ interface ForecastRequest {
   includeHistory?: boolean;
   includeAlerts?: boolean;
   mode?: 'full' | 'forecast';
+  projectId?: string;
+  locationKey?: string;
+  locationLabel?: string;
+  forceRefresh?: boolean;
 }
 
 export interface ForecastLocation {
@@ -38,6 +42,12 @@ export interface ForecastLocation {
 export interface ExtendedForecastResult {
   location: ForecastLocation;
   forecast: (ForecastDay & { avgHumidity?: number })[];
+  cached?: boolean;
+  stale?: boolean;
+  providerError?: boolean;
+  fetchedAt?: string;
+  expiresAt?: string;
+  usageCharged?: boolean;
 }
 
 export type WeatherServiceErrorCode = 'unauthorized' | 'config' | 'usage_limit';
@@ -190,10 +200,20 @@ export async function getExtendedForecast(
 export async function getForecastByQuery(
   query: string,
   days: number = 7,
+  options: {
+    projectId?: string;
+    locationKey?: string;
+    locationLabel?: string;
+    forceRefresh?: boolean;
+  } = {},
 ): Promise<ExtendedForecastResult | null> {
   return fetchWeather<ExtendedForecastResult>({
     query,
     days,
     mode: 'forecast',
+    projectId: options.projectId,
+    locationKey: options.locationKey,
+    locationLabel: options.locationLabel,
+    forceRefresh: options.forceRefresh ?? false,
   });
 }

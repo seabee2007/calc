@@ -64,11 +64,27 @@ function truncateProjectName(name: string, max = 36): string {
   return `${name.slice(0, max - 1)}…`;
 }
 
+function formatUpdatedTime(value?: string): string | null {
+  if (!value) return null;
+  const timestamp = new Date(value).getTime();
+  if (!Number.isFinite(timestamp)) return null;
+  const diffMs = Date.now() - timestamp;
+  const diffMinutes = Math.max(0, Math.round(diffMs / 60000));
+  if (diffMinutes < 1) return 'Updated just now';
+  if (diffMinutes < 60) return `Updated ${diffMinutes}m ago`;
+  const diffHours = Math.round(diffMinutes / 60);
+  if (diffHours < 24) return `Updated ${diffHours}h ago`;
+  const diffDays = Math.round(diffHours / 24);
+  return `Updated ${diffDays}d ago`;
+}
+
 type WeatherFetchKind = 'my' | 'project';
 
 interface WeatherFetchTarget {
   kind: WeatherFetchKind;
   query: string;
+  locationKey: string;
+  locationLabel: string;
   projectOption?: ProjectJobsiteOption;
 }
 
@@ -517,12 +533,23 @@ export function WeatherForecastWidget({
     if (selection.source === 'project' && selection.projectId) {
       const option = activeProjectOption(selection.projectId, siteOptions);
       if (option) {
-        return { kind: 'project', query: option.query, projectOption: option };
+        return {
+          kind: 'project',
+          query: option.query,
+          locationKey: `project:${option.id}`,
+          locationLabel: option.name,
+          projectOption: option,
+        };
       }
       return null;
     }
     if (myWeather) {
-      return { kind: 'my', query: myWeather.query };
+      return {
+        kind: 'my',
+        query: myWeather.query,
+        locationKey: `my:${myWeather.query.toLowerCase().replace(/\s+/g, ' ').trim()}`,
+        locationLabel: 'My Weather',
+      };
     }
     return null;
   }, [selection, siteOptions, myWeather]);
@@ -558,16 +585,22 @@ export function WeatherForecastWidget({
   );
 
   const loadForecast = useCallback(
-    async (target: WeatherFetchTarget, days: number) => {
+    async (target: WeatherFetchTarget, days: number, options: { forceRefresh?: boolean } = {}) => {
       const fetchKey = `${target.kind}|${target.query}|${days}`;
-      if (fetchKey === fetchKeyRef.current) return;
+      if (!options.forceRefresh && fetchKey === fetchKeyRef.current) return;
 
       const requestId = ++requestIdRef.current;
       setLoading(true);
       setError(null);
+      fetchKeyRef.current = fetchKey;
 
       try {
-        const data = await getForecastByQuery(target.query, days);
+        const data = await getForecastByQuery(target.query, days, {
+          projectId: target.projectOption?.id,
+          locationKey: target.locationKey,
+          locationLabel: target.locationLabel,
+          forceRefresh: options.forceRefresh ?? false,
+        });
         if (requestId !== requestIdRef.current) return;
         if (!data || data.forecast.length === 0) {
           setResult(null);
@@ -580,7 +613,6 @@ export function WeatherForecastWidget({
           return;
         }
         setResult(data);
-        fetchKeyRef.current = fetchKey;
       } catch (err) {
         if (requestId !== requestIdRef.current) return;
         setResult(null);
@@ -622,7 +654,7 @@ export function WeatherForecastWidget({
   const handleRetry = () => {
     if (!fetchTarget) return;
     fetchKeyRef.current = '';
-    void loadForecast(fetchTarget, forecastDays);
+    void loadForecast(fetchTarget, forecastDays, { forceRefresh: true });
   };
 
   const activeProject =
@@ -645,6 +677,12 @@ export function WeatherForecastWidget({
   const showHeaderRisk = todayRisk != null && (mode === 'wide' || mode === 'twoThirds');
   const needsMyWeatherSetup = selectorValue === 'my' && !myWeather;
   const hasNoLocationSources = !myWeather && siteOptions.length === 0;
+  const updatedLabel = formatUpdatedTime(result?.fetchedAt);
+  const cacheLabel = result?.stale
+    ? 'Refresh available'
+    : result?.cached
+      ? 'Showing saved forecast'
+      : null;
 
   if (!isPlanSufficient(plan, 'starter')) {
     return (
@@ -708,6 +746,11 @@ export function WeatherForecastWidget({
               ? 'Set your location to see My Weather.'
               : subtitle}
         </p>
+        {result ? (
+          <p className={`w-full text-[11px] ${OPS_MUTED}`} data-testid="weather-forecast-cache-status">
+            {[updatedLabel, cacheLabel, 'Refresh uses weather credits'].filter(Boolean).join(' · ')}
+          </p>
+        ) : null}
       </header>
 
       {needsMyWeatherSetup || (hasNoLocationSources && !fetchTarget) ? (

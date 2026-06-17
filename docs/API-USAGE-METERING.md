@@ -85,6 +85,17 @@ Plan resolution matches entitlements: only `active` / `trialing` subscriptions u
 
 AI metering runs only when the OpenAI path is taken (not keyword/regional fallbacks). Email metering runs only when a message is actually sent.
 
+## Weather Forecast Cache Policy
+
+`getWeatherForecast` uses a server-side cache in `public.weather_forecast_cache`.
+
+- Dashboard Weather Forecast auto-loads request cached data first (`forceRefresh: false`).
+- Cached reads are free and do **not** call WeatherAPI.
+- Cached reads do **not** record `weather_request` usage events.
+- Manual Refresh sends `forceRefresh: true`, calls WeatherAPI, records one `weather_request`, and updates the cache.
+- If cached data is stale, the widget still shows the saved forecast with a refresh-available note instead of auto-refreshing.
+- If WeatherAPI fails during manual refresh and a stale cache exists, the Edge Function returns stale cached data with `providerError: true` and does not charge usage.
+
 ## Blocked response contract
 
 HTTP **429** body:
