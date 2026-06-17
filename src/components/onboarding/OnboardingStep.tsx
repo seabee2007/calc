@@ -23,16 +23,30 @@ interface OnboardingStepProps {
   error?: string;
 }
 
+/**
+ * Parse a pipe-encoded address for display during typing.
+ * Do NOT trim street/street2/city — trimming while the user types swallows
+ * the space bar (e.g. "119 " → re-render → trim → "119").
+ * Trimming happens at submit time via trimPipeAddress.
+ */
 function addressFromPipe(value: string): USAddress {
   const parts = value.split('|');
   return {
     ...EMPTY_US_ADDRESS,
-    street: parts[0]?.trim() ?? '',
-    street2: parts[1]?.trim() ?? '',
-    city: parts[2]?.trim() ?? '',
+    street: parts[0] ?? '',
+    street2: parts[1] ?? '',
+    city: parts[2] ?? '',
     state: (parts[3]?.trim() ?? '').toUpperCase(),
-    zip: (parts[4]?.trim() ?? '').replace(/\D/g, '').slice(0, 5),
+    zip: (parts[4] ?? '').replace(/\D/g, '').slice(0, 5),
   };
+}
+
+/** Trim each pipe-separated field — used at submit time only, not during typing. */
+export function trimPipeAddress(pipeValue: string): string {
+  return pipeValue
+    .split('|')
+    .map((part) => part.trim())
+    .join('|');
 }
 
 function addressToPipe(addr: USAddress): string {

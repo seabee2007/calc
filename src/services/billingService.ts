@@ -67,6 +67,18 @@ export async function createCustomerPortalSession(returnUrl?: string): Promise<s
   return result.url;
 }
 
+export async function createUsageCreditCheckout(
+  packId: string,
+  returnTo?: string,
+): Promise<string> {
+  const result = await invokeBillingFunction<{ url?: string }>('create-usage-credit-checkout', {
+    packId,
+    returnTo,
+  });
+  if (!result.url) throw new Error('Checkout URL missing from server response.');
+  return result.url;
+}
+
 export function redirectToStripeUrl(url: string): void {
   window.location.assign(url);
 }

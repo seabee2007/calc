@@ -1,17 +1,26 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import WelcomeScreen from './WelcomeScreen';
 import { useSettingsStore } from '../../store';
 import { useThemeStore } from '../../store/themeStore';
 import { isValidUsPhoneNumber } from '../../utils/phoneFormatting';
-import OnboardingStep from './OnboardingStep';
+import OnboardingStep, { trimPipeAddress } from './OnboardingStep';
 import OnboardingShell from './OnboardingShell';
 import ThemeSelector from './ThemeSelector';
 import { useAuth } from '../../hooks/useAuth';
 import type { Profile } from '../../types/fieldPlanner';
+import {
+  getOnboardingDraft,
+  saveOnboardingDraft,
+  clearOnboardingDraft,
+  mergeOnboardingDraftValues,
+  isValidOnboardingStep,
+  type OnboardingStepType,
+} from '../../lib/onboardingDraft';
 
-type OnboardingStepType = 'welcome' | 'company-name' | 'email' | 'phone' | 'address' | 'license' | 'motto' | 'theme';
+// Re-export so App.tsx and tests can reference the type from one place.
+export type { OnboardingStepType };
 
 interface OnboardingFlowProps {
   onComplete: () => void;
@@ -24,6 +33,17 @@ interface StepConfig {
   required: boolean;
   type: string;
 }
+
+const ONBOARDING_STEPS: OnboardingStepType[] = [
+  'welcome',
+  'company-name',
+  'email',
+  'phone',
+  'address',
+  'license',
+  'motto',
+  'theme',
+];
 
 /** Build a pipe-delimited address string from the signup-captured profile address fields. */
 function profileAddressToPipe(profile: Profile | null | undefined): string {
@@ -55,32 +75,75 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
     theme: isDark ? 'dark' : 'light',
   });
 
-  // Hydrate form defaults once — after both companySettings store and profile are loaded.
-  // Precedence: existing companySettings data → signup profile data → empty string.
+  // True once the step + formData have been initialized from draft/server.
+  // Prevents re-initialization on subsequent renders and also gates draft-saving
+  // (we don't want to overwrite a restored draft with empty initial state).
   const initializedRef = useRef(false);
+  // Separate flag so the save effect doesn't fire before initialization completes.
+  const draftReadyRef = useRef(false);
+
+  // ── Initialization: restore draft, then fill gaps from companySettings/profile ─
 
   useEffect(() => {
     if (initializedRef.current) return;
     if (!companySettingsHydrated || profileLoading) return;
+    if (!user?.id) return;
 
-    // Address: prefer already-saved company address; fall back to structured signup address.
+    // Server-sourced defaults (lowest priority).
     const savedAddress = companySettings.address?.trim() ?? '';
-    const defaultAddress = savedAddress || profileAddressToPipe(profile);
-
-    setFormData({
+    const serverValues = {
       companyName: companySettings.companyName?.trim() || '',
-      // Company email defaults to auth email for new accounts that haven't set one yet.
       email: companySettings.email?.trim() || user?.email?.trim() || '',
-      // Company phone defaults to the phone entered at signup (personal/business is often the same).
       phone: companySettings.phone?.trim() || profile?.phone?.trim() || '',
-      address: defaultAddress,
+      address: savedAddress || profileAddressToPipe(profile),
       licenseNumber: companySettings.licenseNumber?.trim() || '',
       motto: companySettings.motto?.trim() || '',
       theme: isDark ? 'dark' : 'light',
-    });
+    };
+
+    // Draft overrides server defaults for any field the user has typed.
+    const draft = getOnboardingDraft(user.id);
+    const merged = draft
+      ? mergeOnboardingDraftValues(serverValues, draft.values)
+      : serverValues;
+
+    setFormData(merged);
+
+    // Restore step from draft if present and valid; otherwise start at welcome.
+    if (draft && isValidOnboardingStep(draft.currentStep)) {
+      setCurrentStep(draft.currentStep);
+    }
 
     initializedRef.current = true;
+    draftReadyRef.current = true;
   }, [companySettingsHydrated, profileLoading, companySettings, profile, user, isDark]);
+
+  // ── Draft persistence: save whenever step or form data changes ──────────────
+
+  const saveDraft = useCallback(() => {
+    if (!draftReadyRef.current || !user?.id) return;
+    saveOnboardingDraft(user.id, {
+      schemaVersion: 1,
+      userId: user.id,
+      currentStep,
+      completedSteps: [],
+      values: {
+        companyName: formData.companyName,
+        email: formData.email,
+        phone: formData.phone,
+        address: formData.address,
+        licenseNumber: formData.licenseNumber,
+        motto: formData.motto,
+        theme: formData.theme,
+      },
+    });
+  }, [user?.id, currentStep, formData]);
+
+  useEffect(() => {
+    saveDraft();
+  }, [saveDraft]);
+
+  // ── Input handler ───────────────────────────────────────────────────────────
 
   const handleInputChange = (value: string) => {
     if (currentStep === 'phone') {
@@ -89,14 +152,15 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
 
     setFormData(prev => ({
       ...prev,
-      [currentStep === 'company-name' ? 'companyName' : 
-       currentStep === 'license' ? 'licenseNumber' : currentStep]: value
+      [currentStep === 'company-name' ? 'companyName' :
+       currentStep === 'license' ? 'licenseNumber' : currentStep]: value,
     }));
   };
 
+  // ── Navigation ──────────────────────────────────────────────────────────────
+
   const handleNext = async () => {
-    const steps: OnboardingStepType[] = ['welcome', 'company-name', 'email', 'phone', 'address', 'license', 'motto', 'theme'];
-    const currentIndex = steps.indexOf(currentStep);
+    const currentIndex = ONBOARDING_STEPS.indexOf(currentStep);
 
     if (currentStep === 'phone') {
       const phone = formData.phone.trim();
@@ -106,58 +170,64 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
       }
       setPhoneError(undefined);
     }
-    
-    if (currentIndex === steps.length - 1) {
-      // Save all data
+
+    if (currentIndex === ONBOARDING_STEPS.length - 1) {
+      // Apply theme change immediately.
+      if ((formData.theme === 'dark' && !isDark) || (formData.theme === 'light' && isDark)) {
+        toggleTheme();
+      }
+
+      // Trim address parts at submit time, not during typing.
+      const settingsData = {
+        companyName: formData.companyName.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
+        address: trimPipeAddress(formData.address),
+        licenseNumber: formData.licenseNumber.trim(),
+        motto: formData.motto.trim(),
+      };
+
       try {
-        // Update theme if changed
-        if ((formData.theme === 'dark' && !isDark) || (formData.theme === 'light' && isDark)) {
-          toggleTheme();
-        }
-
-        // Map form data to Supabase schema
-        const settingsData = {
-          companyName: formData.companyName,
-          email: formData.email,
-          phone: formData.phone,
-          address: formData.address,
-          licenseNumber: formData.licenseNumber,
-          motto: formData.motto
-        };
-
         await updateCompanySettings(settingsData, { allowEmptyTextOverwrite: true });
+        // Settings saved — clear the draft before calling onComplete so a
+        // hard reload between this and onComplete doesn't re-show onboarding.
+        if (user?.id) {
+          clearOnboardingDraft(user.id);
+        }
         onComplete();
-        // Navigate to home page
         navigate('/');
       } catch (error) {
         console.error('Error saving settings:', error);
-        // Even if save fails, complete onboarding and navigate
+        // Settings save failed — keep the draft so the user can retry.
+        // Still complete onboarding so the user is not stuck.
         onComplete();
         navigate('/');
       }
     } else {
-      setCurrentStep(steps[currentIndex + 1]);
+      setCurrentStep(ONBOARDING_STEPS[currentIndex + 1]);
     }
   };
 
   const handleBack = () => {
-    const steps: OnboardingStepType[] = ['welcome', 'company-name', 'email', 'phone', 'address', 'license', 'motto', 'theme'];
-    const currentIndex = steps.indexOf(currentStep);
+    const currentIndex = ONBOARDING_STEPS.indexOf(currentStep);
     if (currentIndex > 0) {
-      setCurrentStep(steps[currentIndex - 1]);
+      setCurrentStep(ONBOARDING_STEPS[currentIndex - 1]);
     }
   };
 
   const handleSkip = () => {
-    const steps: OnboardingStepType[] = ['welcome', 'company-name', 'email', 'phone', 'address', 'license', 'motto', 'theme'];
-    const currentIndex = steps.indexOf(currentStep);
-    // Move to the next step instead of completing
-    if (currentIndex < steps.length - 1) {
-      setCurrentStep(steps[currentIndex + 1]);
+    const currentIndex = ONBOARDING_STEPS.indexOf(currentStep);
+    if (currentIndex < ONBOARDING_STEPS.length - 1) {
+      setCurrentStep(ONBOARDING_STEPS[currentIndex + 1]);
     } else {
+      if (user?.id) {
+        clearOnboardingDraft(user.id);
+      }
       onComplete();
     }
   };
+
+  // ── Step config ─────────────────────────────────────────────────────────────
 
   const stepConfig: Record<Exclude<OnboardingStepType, 'welcome' | 'theme'>, StepConfig> = {
     'company-name': {
@@ -165,43 +235,43 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
       description: 'Enter the company name to appear on your account, proposals and emails',
       placeholder: 'Your Construction Company',
       required: true,
-      type: 'text'
+      type: 'text',
     },
-    'email': {
+    email: {
       title: 'Email Address',
       description: 'Enter the email address clients can reach you at',
       placeholder: 'contact@yourcompany.com',
       required: true,
-      type: 'email'
+      type: 'email',
     },
-    'phone': {
+    phone: {
       title: 'Phone Number',
       description: 'Enter your company phone number',
       placeholder: '(555) 123-4567',
       required: false,
-      type: 'tel'
+      type: 'tel',
     },
-    'address': {
+    address: {
       title: 'Business Address',
-      description: 'Enter your company\'s business address',
+      description: "Enter your company's business address",
       placeholder: 'Street Address',
       required: false,
-      type: 'text'
+      type: 'text',
     },
-    'license': {
+    license: {
       title: 'License Number',
       description: 'Enter your contractor license number (if applicable)',
       placeholder: 'License #123456',
       required: false,
-      type: 'text'
+      type: 'text',
     },
-    'motto': {
+    motto: {
       title: 'Company Motto',
       description: 'Enter a motto or slogan for your company (optional)',
       placeholder: 'Quality concrete solutions since 1995',
       required: false,
-      type: 'text'
-    }
+      type: 'text',
+    },
   };
 
   const getCurrentValue = (step: OnboardingStepType): string => {
@@ -210,16 +280,19 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
         return formData.companyName;
       case 'license':
         return formData.licenseNumber;
-      case 'address':
-        // Split the address into parts or return empty parts
-        const [line1 = '', line2 = '', city = '', state = '', zip = ''] = formData.address.split('|');
+      case 'address': {
+        const [line1 = '', line2 = '', city = '', state = '', zip = ''] =
+          formData.address.split('|');
         return [line1, line2, city, state, zip].join('|');
+      }
       case 'theme':
         return formData.theme;
       default:
         return formData[step as keyof typeof formData] || '';
     }
   };
+
+  // ── Render ──────────────────────────────────────────────────────────────────
 
   return (
     <OnboardingShell>
@@ -230,7 +303,9 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
           <ThemeSelector
             key="theme"
             value={formData.theme}
-            onChange={(theme: 'light' | 'dark') => setFormData(prev => ({ ...prev, theme }))}
+            onChange={(theme: 'light' | 'dark') =>
+              setFormData(prev => ({ ...prev, theme }))
+            }
             onNext={handleNext}
             onBack={handleBack}
           />
@@ -257,4 +332,4 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
   );
 };
 
-export default OnboardingFlow; 
+export default OnboardingFlow;

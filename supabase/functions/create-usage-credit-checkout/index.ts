@@ -12,8 +12,14 @@ import {
 } from "../_shared/usageCreditPacks.ts";
 import {
   buildUsageCreditPackCheckoutMetadata,
-  buildUsageCreditPackCheckoutMetadata as buildCheckoutMetadata,
 } from "../_shared/usageCreditPackCheckout.ts";
+import {
+  findPriceIdByLookupKey,
+  getAppUrl,
+  getOrCreateStripeCustomer,
+  getStripe,
+  resolveAppReturnUrl,
+} from "../_shared/stripe.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -118,7 +124,7 @@ serve(async (req) => {
       `${appUrl}${returnTo.startsWith("/") ? returnTo : `/${returnTo}`}?creditCheckout=canceled#usage`,
     );
 
-    const metadata = buildCheckoutMetadata({
+    const metadata = buildUsageCreditPackCheckoutMetadata({
       packId,
       userId: authResult.user.id,
       employerId: context.employerId,

@@ -20,7 +20,11 @@ export default defineConfig({
     react(),
     productionRateReviewDevServer(repoRoot),
     VitePWA({
-      registerType: 'autoUpdate',
+      // Use 'prompt' instead of 'autoUpdate' — autoUpdate silently reloads the
+      // page when a new service worker activates, which can wipe unsaved form data.
+      // With 'prompt', the app shows a "New version available" banner and lets the
+      // user choose when to refresh.
+      registerType: 'prompt',
       manifestFilename: 'site.webmanifest',
       includeAssets: [
         'favicon.ico',

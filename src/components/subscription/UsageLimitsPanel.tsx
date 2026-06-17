@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../ui/Button';
 import type { UsageSummary, UsageSummaryItem } from '../../services/usageSummaryService';
@@ -16,6 +16,14 @@ import {
   usageUpgradeCtaLabel,
 } from '../../lib/usageLabels';
 import { buildBillingUpgradeUrl } from '../../lib/usageMetering';
+import {
+  canPurchaseCreditPacks,
+  creditPackIdForBillingGroup,
+  creditPackIdForUsageUnit,
+  type UsageCreditPackId,
+} from '../../lib/usageCreditPacks';
+import { creditPackLabel } from '../../lib/usageCreditPackCheckout';
+import { createUsageCreditCheckout, redirectToStripeUrl } from '../../services/billingService';
 
 export interface UsageLimitsPanelProps {
   summary: UsageSummary | null;
@@ -44,10 +52,16 @@ function aggregateGroup(items: UsageSummaryItem[], units: UsageUnit[]) {
   const used = groupItems.reduce((sum, item) => sum + item.used, 0);
   const limit = groupItems.reduce((sum, item) => sum + Math.max(0, item.limit), 0);
   const remaining = Math.max(0, limit - used);
+  const creditRemaining = groupItems.reduce((sum, item) => sum + item.creditRemaining, 0);
+  const creditsExpireAt =
+    groupItems
+      .map((item) => item.creditsExpireAt)
+      .filter((value): value is string => Boolean(value))
+      .sort()[0] ?? null;
   const percentUsed = computePercentUsed(used, limit);
   const resetsAt = groupItems[0]?.resetsAt ?? '';
 
-  return { used, limit, remaining, percentUsed, resetsAt };
+  return { used, limit, remaining, creditRemaining, creditsExpireAt, percentUsed, resetsAt };
 }
 
 export function UsageLimitRow({
@@ -58,6 +72,10 @@ export function UsageLimitRow({
   percentUsed,
   resetsAt,
   showResetDate = true,
+  creditRemaining = 0,
+  creditsExpireAt = null,
+  onBuyMore,
+  buyMoreLabel,
 }: {
   label: string;
   used: number;
@@ -66,6 +84,10 @@ export function UsageLimitRow({
   percentUsed: number;
   resetsAt?: string;
   showResetDate?: boolean;
+  creditRemaining?: number;
+  creditsExpireAt?: string | null;
+  onBuyMore?: () => void;
+  buyMoreLabel?: string;
 }) {
   const band = getUsageStateBand(percentUsed, limit);
 
@@ -74,7 +96,7 @@ export function UsageLimitRow({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{label}</p>
         <p className={`text-sm ${usageStateTextClass(band)}`} data-testid="usage-limit-quota">
-          {formatUsageQuota(used, limit)}
+          {formatUsageQuota(used, limit, creditRemaining)}
         </p>
       </div>
       <div
@@ -97,12 +119,30 @@ export function UsageLimitRow({
             ? 'Not included on your plan'
             : limit < 0
               ? 'Unlimited'
-              : `${remaining.toLocaleString()} remaining`}
+              : `${remaining.toLocaleString()} monthly remaining`}
+          {creditRemaining > 0 ? ` · ${creditRemaining.toLocaleString()} credits` : ''}
         </span>
-        {showResetDate && resetsAt ? (
-          <span data-testid="usage-limit-reset">Resets {formatUsageResetDate(resetsAt)}</span>
-        ) : null}
+        <span className="flex flex-wrap items-center gap-2">
+          {creditRemaining > 0 && creditsExpireAt ? (
+            <span data-testid="usage-credits-expire">
+              Credits expire {formatUsageResetDate(creditsExpireAt)}
+            </span>
+          ) : null}
+          {showResetDate && resetsAt ? (
+            <span data-testid="usage-limit-reset">Resets {formatUsageResetDate(resetsAt)}</span>
+          ) : null}
+        </span>
       </div>
+      {onBuyMore && buyMoreLabel ? (
+        <Button
+          variant="outline"
+          size="sm"
+          data-testid="usage-buy-more-button"
+          onClick={onBuyMore}
+        >
+          {buyMoreLabel}
+        </Button>
+      ) : null}
     </div>
   );
 }
@@ -118,8 +158,28 @@ export default function UsageLimitsPanel({
   className = '',
 }: UsageLimitsPanelProps) {
   const navigate = useNavigate();
+  const [buyingPackId, setBuyingPackId] = useState<UsageCreditPackId | null>(null);
+  const [buyError, setBuyError] = useState<string | null>(null);
   const planId = summary?.planId ?? 'free';
   const upgradePlan = nextUpgradePlan(planId);
+  const canBuyCredits = canPurchaseCreditPacks(planId);
+
+  const startCreditCheckout = async (packId: UsageCreditPackId) => {
+    setBuyError(null);
+    setBuyingPackId(packId);
+    try {
+      const url = await createUsageCreditCheckout(packId, '/settings/billing');
+      redirectToStripeUrl(url);
+    } catch (checkoutError) {
+      setBuyError(
+        checkoutError instanceof Error
+          ? checkoutError.message
+          : 'Could not start credit pack checkout.',
+      );
+    } finally {
+      setBuyingPackId(null);
+    }
+  };
 
   const rows = useMemo(() => {
     if (!summary) return [];
@@ -131,6 +191,7 @@ export default function UsageLimitsPanel({
         .map((item) => ({
           key: item.usageUnit,
           label: item.label,
+          packId: creditPackIdForUsageUnit(item.usageUnit),
           ...item,
         }));
     }
@@ -141,6 +202,7 @@ export default function UsageLimitsPanel({
       return {
         key: group.id,
         label: group.label,
+        packId: creditPackIdForBillingGroup(group.id),
         ...aggregate,
       };
     }).filter((row): row is NonNullable<typeof row> => row !== null);
@@ -165,6 +227,7 @@ export default function UsageLimitsPanel({
     <section
       className={`rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 ${className}`}
       data-testid="usage-limits-panel"
+      id="usage"
     >
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
@@ -190,6 +253,12 @@ export default function UsageLimitsPanel({
         </p>
       ) : null}
 
+      {buyError ? (
+        <p className="mt-4 text-sm text-amber-700 dark:text-amber-300" data-testid="usage-buy-error">
+          {buyError}
+        </p>
+      ) : null}
+
       {!loading && !error && summary ? (
         <div className="mt-5 space-y-5">
           {rows.map((row) => (
@@ -202,6 +271,20 @@ export default function UsageLimitsPanel({
               percentUsed={row.percentUsed}
               resetsAt={row.resetsAt}
               showResetDate={showResetDate && !compact}
+              creditRemaining={row.creditRemaining}
+              creditsExpireAt={row.creditsExpireAt}
+              onBuyMore={
+                canBuyCredits && row.packId
+                  ? () => void startCreditCheckout(row.packId as UsageCreditPackId)
+                  : undefined
+              }
+              buyMoreLabel={
+                row.packId && buyingPackId === row.packId
+                  ? 'Opening checkout…'
+                  : row.packId
+                    ? `Buy more (${creditPackLabel(row.packId as UsageCreditPackId)})`
+                    : undefined
+              }
             />
           ))}
 

@@ -5,7 +5,7 @@ create table if not exists public.usage_credit_packs (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   employer_id uuid null references auth.users(id) on delete cascade,
-  stripe_checkout_session_id text unique,
+  stripe_checkout_session_id text null,
   stripe_payment_intent_id text null,
   stripe_customer_id text null,
   usage_unit text not null,
@@ -15,7 +15,8 @@ create table if not exists public.usage_credit_packs (
   expires_at timestamptz not null,
   metadata jsonb not null default '{}',
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+  updated_at timestamptz not null default now(),
+  unique (stripe_checkout_session_id, usage_unit)
 );
 
 create index if not exists usage_credit_packs_employer_unit_active_idx

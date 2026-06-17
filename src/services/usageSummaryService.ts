@@ -9,6 +9,8 @@ export interface UsageSummaryItem {
   used: number;
   limit: number;
   remaining: number;
+  creditRemaining: number;
+  creditsExpireAt: string | null;
   percentUsed: number;
   resetsAt: string;
 }

@@ -260,11 +260,50 @@ CTA: **Open Billing** / **Upgrade plan** when at limit.
 
 ---
 
-## Phase 3 — Stripe re-up / usage credit purchases (not implemented)
+## Phase 3 — Stripe re-up / usage credit purchases (implemented)
 
-Planned after usage visibility is validated in production:
+See **[docs/USAGE-CREDIT-PACKS.md](USAGE-CREDIT-PACKS.md)** for the full reference.
 
-- One-time usage credit packs (re-ups)
+### Overview
+
+Paid plan owners can purchase one-time usage credit packs through Stripe Checkout when they have exhausted their monthly base allowance.
+
+### Pack catalog
+
+| Pack ID | Stripe Lookup Key | Credits |
+|---------|-------------------|---------|
+| `ai_100` | `arden_ai_request_pack_100` | 100 × `ai_request` |
+| `weather_map_500` | `arden_weather_map_pack_500` | 125 each × `weather_request`, `geocode_request`, `travel_request`, `place_search` |
+| `email_500` | `arden_email_send_pack_500` | 500 × `email_send` |
+
+### Credit consumption order
+
+1. Monthly base allowance is consumed first.
+2. Credit pack balance is drawn only after base is exhausted.
+3. Credits expire at the end of the UTC calendar month of purchase.
+
+### Key files
+
+| Layer | File |
+|-------|------|
+| Migration | `supabase/migrations/20260717140000_usage_credit_packs.sql` |
+| Pack catalog (edge) | `supabase/functions/_shared/usageCreditPacks.ts` |
+| Checkout + webhook helpers (edge) | `supabase/functions/_shared/usageCreditPackCheckout.ts` |
+| Credit-aware check (edge) | `supabase/functions/_shared/usageCredits.ts` |
+| Checkout edge function | `supabase/functions/create-usage-credit-checkout/index.ts` |
+| Pack catalog (frontend) | `src/lib/usageCreditPacks.ts` |
+| Checkout helpers (frontend) | `src/lib/usageCreditPackCheckout.ts` |
+| Credit check (frontend) | `src/lib/usageCredits.ts` |
+| Limit-reached UX | `src/lib/usageLimitUx.ts` |
+| Usage limits panel | `src/components/subscription/UsageLimitsPanel.tsx` |
+| Usage limit notice | `src/components/subscription/UsageLimitNotice.tsx` |
+
+### Stripe dashboard setup (manual — production)
+
+Create three one-time prices with exact lookup keys listed above. See `docs/USAGE-CREDIT-PACKS.md → Stripe setup` for full instructions.
+
+### Phase 3 NOT yet implemented
+
 - Optional Stripe metered billing / overage automation
 - Admin tooling for custom Business limits
 

@@ -85,6 +85,8 @@ export default function UsageMeterWidget({ cardWidth, isMobile }: UsageMeterWidg
               percentUsed={item.percentUsed}
               resetsAt={item.resetsAt}
               showResetDate={mode === 'full'}
+              creditRemaining={item.creditRemaining}
+              creditsExpireAt={item.creditsExpireAt}
             />
           ))}
 

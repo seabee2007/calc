@@ -25,6 +25,12 @@ import { generateProjectName } from '../../services/projectNamingService';
 import { isUsageLimitError } from '../../lib/usageMetering';
 import { usageLimitToastMessage } from '../../lib/usageLimitUx';
 import { resolveStateCode } from '../../types/address';
+import {
+  clearFormDraft,
+  getFormDraft,
+  getFormDraftKey,
+  useDebouncedFormDraft,
+} from '../../lib/formDrafts';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Card from '../ui/Card';
@@ -114,6 +120,14 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
   const canUseClientPortal = hasFeature('client_portal');
   const storeProjects = useProjectStore((s) => s.projects);
 
+  // Draft key is null when editing (we only draft new projects).
+  const draftKey = !isEditing && user?.id
+    ? getFormDraftKey('new-project', user.id)
+    : null;
+
+  // Show a notice if we restored a draft.
+  const [draftRestored, setDraftRestored] = useState(false);
+
   const buildDefaults = (): ProjectFormData => ({
     name: initialData?.name ?? '',
     description: initialData?.description ?? '',
@@ -142,6 +156,9 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
     projectCrewSize: initialData?.projectCrewSize ?? 7,
   });
 
+  // Restore draft for new projects — overrides buildDefaults() if a saved draft exists.
+  const restoredDraft = !isEditing && draftKey ? getFormDraft<ProjectFormData>(draftKey) : null;
+
   const {
     register,
     handleSubmit,
@@ -152,10 +169,20 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
     setValue,
     setError,
     clearErrors,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<ProjectFormData>({
-    defaultValues: buildDefaults(),
+    defaultValues: restoredDraft ?? buildDefaults(),
   });
+
+  // Flag if we restored a draft (only once on mount).
+  useEffect(() => {
+    if (restoredDraft) setDraftRestored(true);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Save new-project draft to localStorage whenever the form is dirty.
+  const watchedValues = watch();
+  useDebouncedFormDraft(draftKey, watchedValues, isDirty);
 
   const clientSameAsJobsite = watch('clientInfo.clientAddressSameAsJobsite');
   const inviteClientPortal = watch('clientPortalAccess.enabled');
@@ -460,6 +487,10 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
       payload.clientPortalAccess.overrideInviteEmail = undefined;
     }
 
+    // Clear the draft before calling onSubmit — if onSubmit throws, the caller
+    // can decide whether to re-show the form. The draft is already persisted so
+    // the user won't lose data; we clear it optimistically to avoid stale data.
+    if (draftKey) clearFormDraft(draftKey);
     await onSubmit(payload);
   };
 
@@ -469,6 +500,22 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
 
   const formBody = (
     <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-4">
+      {draftRestored && (
+        <div className="flex items-center justify-between rounded-lg border border-cyan-400/20 bg-cyan-500/10 px-3 py-2 text-sm text-cyan-300">
+          <span>Restored your unsaved project draft.</span>
+          <button
+            type="button"
+            className="ml-3 text-xs text-cyan-400 hover:text-white transition-colors"
+            onClick={() => {
+              if (draftKey) clearFormDraft(draftKey);
+              reset(buildDefaults());
+              setDraftRestored(false);
+            }}
+          >
+            Discard draft
+          </button>
+        </div>
+      )}
       {isEditing ? (
         <Input
           label="Project Name"

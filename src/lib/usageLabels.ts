@@ -82,9 +82,15 @@ export function formatUsageResetDate(iso: string): string {
   });
 }
 
-export function formatUsageQuota(used: number, limit: number): string {
-  if (limit < 0) return `${used.toLocaleString()} / Unlimited`;
-  return `${used.toLocaleString()} / ${limit.toLocaleString()}`;
+export function formatUsageQuota(used: number, limit: number, creditRemaining = 0): string {
+  const base =
+    limit < 0
+      ? `${used.toLocaleString()} / Unlimited`
+      : `${used.toLocaleString()} / ${limit.toLocaleString()}`;
+  if (creditRemaining > 0) {
+    return `${base} + ${creditRemaining.toLocaleString()} credits`;
+  }
+  return base;
 }
 
 export function nextUpgradePlan(planId: PlanId): PlanId | null {

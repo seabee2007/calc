@@ -16,6 +16,8 @@ export class UsageLimitError extends Error {
   readonly used: number;
   readonly planId: PlanId;
   readonly upgradeRequired = true as const;
+  readonly buyMoreAvailable: boolean;
+  readonly creditRemaining: number;
   readonly status = 429;
 
   constructor(payload: UsageLimitReachedPayload) {
@@ -26,6 +28,8 @@ export class UsageLimitError extends Error {
     this.limit = payload.limit;
     this.used = payload.used;
     this.planId = payload.planId;
+    this.buyMoreAvailable = payload.buyMoreAvailable ?? payload.planId !== 'free';
+    this.creditRemaining = payload.creditRemaining ?? 0;
   }
 }
 

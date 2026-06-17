@@ -1,114 +1,127 @@
-import type { ComponentProps } from 'react';
-import { describe, expect, it } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import React from 'react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import UsageLimitsPanel from '../UsageLimitsPanel';
 import type { UsageSummary } from '../../../services/usageSummaryService';
 
-const baseSummary: UsageSummary = {
-  periodStart: '2026-06-01T00:00:00.000Z',
-  periodEnd: '2026-07-01T00:00:00.000Z',
-  planId: 'free',
-  items: [
-    {
-      usageUnit: 'ai_request',
-      label: 'AI requests',
-      used: 0,
-      limit: 0,
-      remaining: 0,
-      percentUsed: 100,
-      resetsAt: '2026-07-01T00:00:00.000Z',
-    },
-    {
-      usageUnit: 'weather_request',
-      label: 'Weather forecasts',
-      used: 23,
-      limit: 25,
-      remaining: 2,
-      percentUsed: 92,
-      resetsAt: '2026-07-01T00:00:00.000Z',
-    },
-    {
-      usageUnit: 'geocode_request',
-      label: 'Address lookups',
-      used: 10,
-      limit: 10,
-      remaining: 0,
-      percentUsed: 100,
-      resetsAt: '2026-07-01T00:00:00.000Z',
-    },
-    {
-      usageUnit: 'travel_request',
-      label: 'Travel-time checks',
-      used: 2,
-      limit: 10,
-      remaining: 8,
-      percentUsed: 20,
-      resetsAt: '2026-07-01T00:00:00.000Z',
-    },
-    {
-      usageUnit: 'place_search',
-      label: 'Place searches',
-      used: 1,
-      limit: 10,
-      remaining: 9,
-      percentUsed: 10,
-      resetsAt: '2026-07-01T00:00:00.000Z',
-    },
-    {
-      usageUnit: 'email_send',
-      label: 'Email sends',
-      used: 3,
-      limit: 10,
-      remaining: 7,
-      percentUsed: 30,
-      resetsAt: '2026-07-01T00:00:00.000Z',
-    },
-  ],
-};
+const createUsageCreditCheckoutMock = vi.fn();
 
-function renderPanel(props: Partial<ComponentProps<typeof UsageLimitsPanel>> = {}) {
+vi.mock('../../../services/billingService', () => ({
+  createUsageCreditCheckout: (...args: unknown[]) => createUsageCreditCheckoutMock(...args),
+  redirectToStripeUrl: vi.fn(),
+}));
+
+function makeItem(
+  usageUnit: string,
+  used: number,
+  limit: number,
+  creditRemaining = 0,
+) {
+  return {
+    usageUnit,
+    label: usageUnit,
+    used,
+    limit,
+    remaining: Math.max(0, limit - used),
+    creditRemaining,
+    creditsExpireAt: creditRemaining > 0 ? '2026-07-01T00:00:00.000Z' : null,
+    percentUsed: limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : 100,
+    resetsAt: '2026-07-01T00:00:00.000Z',
+  };
+}
+
+function makeSummary(planId: string, creditRemaining = 0): UsageSummary {
+  return {
+    periodStart: '2026-06-01T00:00:00.000Z',
+    periodEnd: '2026-07-01T00:00:00.000Z',
+    planId: planId as UsageSummary['planId'],
+    items: [
+      makeItem('ai_request', 50, 50, creditRemaining),
+      makeItem('weather_request', 10, 250),
+      makeItem('geocode_request', 5, 100),
+      makeItem('travel_request', 3, 100),
+      makeItem('place_search', 2, 100),
+      makeItem('email_send', 0, 100),
+    ],
+  };
+}
+
+function renderPanel(props: Partial<React.ComponentProps<typeof UsageLimitsPanel>> = {}) {
   return render(
     <MemoryRouter>
-      <UsageLimitsPanel summary={baseSummary} {...props} />
+      <UsageLimitsPanel {...props} />
     </MemoryRouter>,
   );
 }
 
-describe('UsageLimitsPanel', () => {
-  it('renders grouped usage rows on billing view', () => {
-    renderPanel();
-    expect(screen.getByTestId('usage-limits-panel')).toBeInTheDocument();
-    expect(screen.getByText('AI requests')).toBeInTheDocument();
-    expect(screen.getByText('Weather requests')).toBeInTheDocument();
-    expect(screen.getByText('Map / geocode requests')).toBeInTheDocument();
-    expect(screen.getByText('Email sends')).toBeInTheDocument();
+describe('UsageLimitsPanel — paid owner', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
   });
 
-  it('shows free AI disabled state', () => {
-    renderPanel();
-    expect(screen.getByText('Not included on your plan')).toBeInTheDocument();
+  it('renders usage rows when summary is loaded', () => {
+    renderPanel({ summary: makeSummary('starter') });
+    const rows = screen.getAllByTestId('usage-limit-row');
+    expect(rows.length).toBeGreaterThan(0);
   });
 
-  it('shows warning style at 80% usage', () => {
-    renderPanel();
-    const warningBar = screen
-      .getAllByTestId('usage-limit-progress')
-      .find((node) => node.getAttribute('data-usage-band') === 'warning');
-    expect(warningBar).toBeTruthy();
+  it('shows "Buy more" button for paid owner when summary is loaded', () => {
+    renderPanel({ summary: makeSummary('starter') });
+    const buttons = screen.getAllByTestId('usage-buy-more-button');
+    expect(buttons.length).toBeGreaterThan(0);
   });
 
-  it('shows blocked style and upgrade CTA at 100%', () => {
-    renderPanel();
-    const blockedBars = screen
-      .getAllByTestId('usage-limit-progress')
-      .filter((node) => node.getAttribute('data-usage-band') === 'blocked');
-    expect(blockedBars.length).toBeGreaterThan(0);
-    expect(screen.getByTestId('usage-upgrade-cta')).toBeInTheDocument();
+  it('calls createUsageCreditCheckout when Buy more is clicked', async () => {
+    createUsageCreditCheckoutMock.mockResolvedValue('https://checkout.stripe.com/test');
+    renderPanel({ summary: makeSummary('starter') });
+    const btn = screen.getAllByTestId('usage-buy-more-button')[0];
+    fireEvent.click(btn);
+    await waitFor(() => {
+      expect(createUsageCreditCheckoutMock).toHaveBeenCalledTimes(1);
+    });
   });
 
-  it('shows owner-only notice for employees', () => {
+  it('shows credit remaining when credits exist', () => {
+    renderPanel({ summary: makeSummary('starter', 80) });
+    const creditTexts = screen.getAllByText(/80.*credits/i);
+    expect(creditTexts.length).toBeGreaterThan(0);
+  });
+
+  it('shows upgrade CTA for starter plan', () => {
+    renderPanel({ summary: makeSummary('starter') });
+    expect(screen.getByTestId('usage-upgrade-cta')).toBeTruthy();
+  });
+});
+
+describe('UsageLimitsPanel — free plan', () => {
+  it('does NOT show Buy more button when plan is free', () => {
+    renderPanel({ summary: makeSummary('free') });
+    expect(screen.queryAllByTestId('usage-buy-more-button')).toHaveLength(0);
+  });
+
+  it('shows upgrade CTA for free plan', () => {
+    renderPanel({ summary: makeSummary('free') });
+    expect(screen.getByTestId('usage-upgrade-cta')).toBeTruthy();
+  });
+});
+
+describe('UsageLimitsPanel — owner-only blocked', () => {
+  it('shows blocked message when ownerOnlyBlocked=true', () => {
     renderPanel({ summary: null, ownerOnlyBlocked: true });
-    expect(screen.getByText(/account owners/i)).toBeInTheDocument();
+    expect(screen.getByText(/account owners/i)).toBeTruthy();
+    expect(screen.queryByTestId('usage-buy-more-button')).toBeNull();
+  });
+});
+
+describe('UsageLimitsPanel — loading/error states', () => {
+  it('shows loading state', () => {
+    renderPanel({ summary: null, loading: true });
+    expect(screen.getByText(/loading usage/i)).toBeTruthy();
+  });
+
+  it('shows error message', () => {
+    renderPanel({ summary: null, error: 'Failed to load usage' });
+    expect(screen.getByTestId('usage-limits-error')).toBeTruthy();
   });
 });

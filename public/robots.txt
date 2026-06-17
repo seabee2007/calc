@@ -1,0 +1,22 @@
+User-agent: *
+Allow: /
+
+# Disallow authenticated app routes from indexing
+Disallow: /dashboard
+Disallow: /projects
+Disallow: /estimates
+Disallow: /proposals
+Disallow: /billing
+Disallow: /settings
+Disallow: /field
+Disallow: /planner
+Disallow: /schedule
+Disallow: /calculators
+Disallow: /resources
+Disallow: /auth/
+
+# Allow public-facing token pages
+Allow: /proposal/
+Allow: /client/project/
+
+Sitemap: https://app.ardenprojectos.com/sitemap.xml

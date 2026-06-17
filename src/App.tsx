@@ -35,6 +35,7 @@ import {
   shouldShowOwnerOnboarding,
 } from './utils/onboardingStatus';
 import { markOnboardingCompleted } from './services/profileService';
+import { clearOnboardingDraft } from './lib/onboardingDraft';
 import FullscreenExperienceTipHost from './components/onboarding/FullscreenExperienceTipHost';
 import DefinitionsHelpHost from './features/help/DefinitionsHelpHost';
 import FeatureGate from './components/subscription/FeatureGate';
@@ -207,14 +208,21 @@ function App() {
   const [initError, setInitError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Reset onboarding gate immediately when the signed-in user changes.
-  // This prevents the loading screen from briefly dropping between
-  // onAuthStateChange setting a new user and initializeApp resetting stores.
+  // True after the first full initializeApp completes for any user/state.
+  // Prevents tab-resume SIGNED_IN replay from re-showing the full-screen loader:
+  //   tab resume → Supabase fires SIGNED_IN → loadProfile → profileLoading bounce
+  //   → bootstrapReady bounces false→true → effect re-runs → without this guard,
+  //   setIsLoading(true) would show "Loading your workspace..." for several seconds.
+  const [hasBootstrappedOnce, setHasBootstrappedOnce] = useState(false);
+
+  // Reset onboarding gate and bootstrap flag immediately when the signed-in user
+  // changes. This ensures a fresh init when signing in as a different account.
   const prevUserIdRef = useRef<string | null | undefined>(undefined);
   useEffect(() => {
     const userId = user?.id ?? null;
     if (userId !== prevUserIdRef.current) {
       prevUserIdRef.current = userId;
+      setHasBootstrappedOnce(false);
       setOnboardingChecked(false);
     }
   }, [user?.id]);
@@ -230,6 +238,14 @@ function App() {
       if (!user && !authLoading) {
         setIsLoading(false);
       }
+      return;
+    }
+
+    // After the first successful init, skip re-running for the same user.
+    // Supabase fires SIGNED_IN on tab resume → loadProfile → profileLoading bounce
+    // → bootstrapReady bounces false→true → this effect re-fires.
+    // Guard prevents the full-screen "Loading your workspace..." on every tab resume.
+    if (hasBootstrappedOnce) {
       return;
     }
 
@@ -283,6 +299,9 @@ function App() {
         setInitError('Failed to initialize app. Please try again.');
       } finally {
         if (!cancelled) {
+          // Set hasBootstrappedOnce before clearing isLoading so the render
+          // that follows does not briefly re-show the loading screen via !bootstrapReady.
+          setHasBootstrappedOnce(true);
           setIsLoading(false);
         }
       }
@@ -301,6 +320,7 @@ function App() {
     bootstrapReady,
     user?.id,
     authLoading,
+    hasBootstrappedOnce,
     loadProjects,
     loadCompanySettings,
     loadPreferences,
@@ -378,12 +398,15 @@ function App() {
       if (user?.id) {
         await markOnboardingCompleted(user.id);
         await refreshProfile();
+        // Clear the draft only after the server has confirmed completion.
+        clearOnboardingDraft(user.id);
       }
-      setShowOnboarding(false);
       markOnboardingCompletedLocally();
+      setShowOnboarding(false);
     } catch (error) {
       console.error('Error saving onboarding completion:', error);
-      setShowOnboarding(false);
+      // Keep onboarding visible so the user does not lose progress.
+      // Do NOT call setShowOnboarding(false) here.
     }
   };
 
@@ -422,7 +445,9 @@ function App() {
   }
 
   if (
-    !bootstrapReady ||
+    // Only block on !bootstrapReady during the initial boot — not on token-refresh
+    // bounces that occur on tab resume (hasBootstrappedOnce gates those).
+    (!bootstrapReady && !hasBootstrappedOnce) ||
     !onboardingChecked ||
     authLoading ||
     isLoading ||

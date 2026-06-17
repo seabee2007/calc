@@ -15,6 +15,7 @@ import {
   getStripe,
   upsertSubscriptionRow,
 } from "../_shared/stripe.ts";
+import { insertUsageCreditPacksFromCheckout } from "../_shared/usageCreditPackCheckout.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -170,6 +171,25 @@ async function handleStripeEvent(
   switch (event.type) {
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
+
+      if (session.metadata?.type === "usage_credit_pack") {
+        logWebhookContext(event, {
+          metadataType: session.metadata.type,
+          packId: session.metadata.pack_id ?? null,
+          stripeCheckoutSessionId: session.id,
+        });
+        try {
+          await insertUsageCreditPacksFromCheckout(admin, session);
+        } catch (error) {
+          console.error("[stripe-webhook] usage credit pack checkout failed", {
+            sessionId: session.id,
+            error,
+          });
+          throw error;
+        }
+        return;
+      }
+
       const userId = extractUserIdFromMetadata(session.metadata) ??
         (typeof session.client_reference_id === "string" ? session.client_reference_id : null);
       const subscriptionId = typeof session.subscription === "string"

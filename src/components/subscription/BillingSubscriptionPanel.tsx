@@ -75,6 +75,7 @@ export default function BillingSubscriptionPanel() {
   const cancelAtPeriodEnd = subscription?.cancelAtPeriodEnd ?? false;
 
   const checkoutResult = searchParams.get('checkout');
+  const creditCheckoutResult = searchParams.get('creditCheckout');
   const upgradePlan = useMemo(
     () => parseUpgradePlan(searchParams.get('upgrade')),
     [searchParams],
@@ -103,6 +104,17 @@ export default function BillingSubscriptionPanel() {
       setSearchParams({}, { replace: true });
     }
   }, [checkoutResult, refresh, returnToPath, navigate, setSearchParams]);
+
+  useEffect(() => {
+    if (creditCheckoutResult === 'success') {
+      setNotice('Usage credits added. Your credit balance will update shortly.');
+      void usageSummary.refetch();
+      setSearchParams({}, { replace: true });
+    } else if (creditCheckoutResult === 'canceled') {
+      setNotice('Usage credit purchase canceled. No charges were made.');
+      setSearchParams({}, { replace: true });
+    }
+  }, [creditCheckoutResult, usageSummary, setSearchParams]);
 
   const startCheckout = useCallback(async (targetPlan: PlanId) => {
     setError(null);

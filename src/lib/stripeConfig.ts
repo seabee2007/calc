@@ -10,6 +10,9 @@ export const STRIPE_PRICE_LOOKUP_KEYS = {
   extra_field_seat: 'arden_extra_field_seat_monthly',
   extra_project_pack: 'arden_extra_project_pack_monthly',
   ai_overage: 'arden_ai_requests_overage',
+  ai_request_pack_100: 'arden_ai_request_pack_100',
+  weather_map_pack_500: 'arden_weather_map_pack_500',
+  email_send_pack_500: 'arden_email_send_pack_500',
 } as const;
 
 export type StripePriceLookupKey =
