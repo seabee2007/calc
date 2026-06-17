@@ -22,6 +22,8 @@ import EstimateWorkspaceToast, {
 } from '../../features/estimating/ui/components/EstimateWorkspaceToast';
 import { useProjectStore } from '../../store';
 import { generateProjectName } from '../../services/projectNamingService';
+import { isUsageLimitError } from '../../lib/usageMetering';
+import { usageLimitToastMessage } from '../../lib/usageLimitUx';
 import { resolveStateCode } from '../../types/address';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
@@ -254,7 +256,11 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
       reset({ ...getValues(), jobsiteAddress: normalized });
       return normalized;
     } catch (err) {
-      setVerifyError(err instanceof Error ? err.message : 'Could not verify address.');
+      if (isUsageLimitError(err)) {
+        setVerifyError(usageLimitToastMessage(err));
+      } else {
+        setVerifyError(err instanceof Error ? err.message : 'Could not verify address.');
+      }
       setVerifiedLine(null);
       setVerifiedAddress(null);
       return null;
@@ -297,6 +303,14 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
         console.error('[ProjectForm] Professionalize scope failed', error);
         setScopeToast({
           message: PROFESSIONALIZE_SCOPE_ERROR_MESSAGE,
+          variant: 'error',
+        });
+        return;
+      }
+
+      if (isUsageLimitError(error)) {
+        setScopeToast({
+          message: usageLimitToastMessage(error),
           variant: 'error',
         });
         return;
@@ -368,7 +382,11 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
         projectName = generated.name;
         setGeneratedNamePreview(generated.name);
       } catch (err) {
-        setGenerateError(err instanceof Error ? err.message : 'Could not generate project name.');
+        if (isUsageLimitError(err)) {
+          setGenerateError(usageLimitToastMessage(err));
+        } else {
+          setGenerateError(err instanceof Error ? err.message : 'Could not generate project name.');
+        }
         return;
       } finally {
         setNameGenerating(false);

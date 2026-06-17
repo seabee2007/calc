@@ -32,6 +32,12 @@ import {
   buildChangeOrderInviteSubject,
 } from "../_shared/changeOrderInviteEmail.ts";
 import { validateChangeOrderSentPayload } from "../_shared/changeOrderEmail.ts";
+import {
+  isUsageConfigured,
+  requireUsageQuota,
+  trackMeteredUsage,
+  usageConfigErrorResponse,
+} from "../_shared/meterUsage.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -158,6 +164,19 @@ serve(async (req) => {
     if (userError || !user) {
       return jsonResponse({ error: "Unauthorized" }, 401);
     }
+
+    if (!isUsageConfigured()) {
+      return usageConfigErrorResponse(corsHeaders);
+    }
+
+    const quota = await requireUsageQuota(
+      user.id,
+      "email.transactional",
+      "email_send",
+      corsHeaders,
+    );
+    if (!quota.ok) return quota.response;
+    const usageContext = quota.context;
 
     const body = (await req.json()) as RequestBody;
     const rawBodyError = rejectRawEmailBody(body as Record<string, unknown>);
@@ -548,6 +567,13 @@ serve(async (req) => {
         metadata: { ...eventMetadata, ...(sendResult.metadata ?? {}) },
       });
     }
+
+    await trackMeteredUsage(usageContext, {
+      featureKey: "email.transactional",
+      usageUnit: "email_send",
+      requestId: req.headers.get("x-request-id"),
+      metadata: { templateKey },
+    });
 
     if (proposalId && PROPOSAL_CLIENT_EMAIL_TEMPLATES.has(templateKey)) {
       const now = new Date().toISOString();

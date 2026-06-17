@@ -3,6 +3,12 @@ import { corsHeaders } from "../_shared/cors.ts";
 import { geocodeAddressSmart } from "../_shared/mapboxGeocode.ts";
 import { formatUSAddress, validateUSAddressParts } from "../_shared/usAddress.ts";
 import { requireAuth } from "../_shared/requireAuth.ts";
+import {
+  isUsageConfigured,
+  requireUsageQuota,
+  trackMeteredUsage,
+  usageConfigErrorResponse,
+} from "../_shared/meterUsage.ts";
 
 const MAPBOX_TOKEN = Deno.env.get("MAPBOX_ACCESS_TOKEN");
 
@@ -20,6 +26,19 @@ serve(async (req) => {
 
   const authResult = await requireAuth(req, corsHeaders);
   if (!authResult.ok) return authResult.response;
+
+  if (!isUsageConfigured()) {
+    return usageConfigErrorResponse(corsHeaders);
+  }
+
+  const quota = await requireUsageQuota(
+    authResult.user.id,
+    "mapbox.geocode",
+    "geocode_request",
+    corsHeaders,
+  );
+  if (!quota.ok) return quota.response;
+  const usageContext = quota.context;
 
   try {
     if (!MAPBOX_TOKEN) {
@@ -81,6 +100,12 @@ serve(async (req) => {
         zip: userParts.zip ?? "",
       });
     }
+
+    await trackMeteredUsage(usageContext, {
+      featureKey: "mapbox.geocode",
+      usageUnit: "geocode_request",
+      requestId: req.headers.get("x-request-id"),
+    });
 
     return new Response(
       JSON.stringify({

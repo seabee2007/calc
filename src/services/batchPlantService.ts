@@ -1,5 +1,7 @@
+import { getMeteredAuthHeaders } from './meteredFunctionClient';
+import { parseEdgeFunctionJson } from '../lib/usageMetering';
+
 const FN_BASE = import.meta.env.VITE_SUPABASE_FUNCTIONS_URL;
-const ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 export interface BatchPlantResult {
   plantName: string;
@@ -44,8 +46,8 @@ export async function findBatchPlant(
   projectLocation: string,
   options: FindBatchPlantOptions = {},
 ): Promise<BatchPlantResult> {
-  if (!FN_BASE || !ANON_KEY) {
-    throw new Error('Missing VITE_SUPABASE_FUNCTIONS_URL or VITE_SUPABASE_ANON_KEY');
+  if (!FN_BASE) {
+    throw new Error('Missing VITE_SUPABASE_FUNCTIONS_URL');
   }
 
   const location = projectLocation.trim();
@@ -55,11 +57,7 @@ export async function findBatchPlant(
 
   const res = await fetch(`${FN_BASE}/find-batch-plant`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      apikey: ANON_KEY,
-      Authorization: `Bearer ${ANON_KEY}`,
-    },
+    headers: await getMeteredAuthHeaders(),
     body: JSON.stringify({
       projectLocation: location,
       latitude: options.latitude,
@@ -67,23 +65,16 @@ export async function findBatchPlant(
     }),
   });
 
-  const data = (await res.json()) as BatchPlantResult | BatchPlantError;
-
   if (res.status === 404) {
+    const data = (await res.json().catch(() => ({}))) as BatchPlantError;
     throw new BatchPlantNotFoundError(
-      ('error' in data && data.error)
+      data.error
         ? `${data.error} You can enter a plant name and address manually below.`
         : 'No nearby batch plant found for this jobsite. Verify the jobsite is correct, then try again—or enter the batch plant address manually.',
     );
   }
 
-  if (!res.ok) {
-    const message =
-      'error' in data && data.error
-        ? data.error
-        : `Batch plant search failed (${res.status})`;
-    throw new Error(message);
-  }
+  const data = await parseEdgeFunctionJson<BatchPlantResult & BatchPlantError>(res);
 
   if ('error' in data && data.error) {
     throw new Error(data.error);

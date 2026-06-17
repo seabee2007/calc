@@ -2,6 +2,13 @@ import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 import { geocodeAddressSmart } from "../_shared/mapboxGeocode.ts";
 import { getDrivingRouteMiles } from "../_shared/mapboxDirections.ts";
+import { requireAuth } from "../_shared/requireAuth.ts";
+import {
+  isUsageConfigured,
+  requireUsageQuota,
+  trackMeteredUsage,
+  usageConfigErrorResponse,
+} from "../_shared/meterUsage.ts";
 
 const MAPBOX_TOKEN = Deno.env.get("MAPBOX_ACCESS_TOKEN");
 
@@ -60,6 +67,22 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
+
+  const authResult = await requireAuth(req, corsHeaders);
+  if (!authResult.ok) return authResult.response;
+
+  if (!isUsageConfigured()) {
+    return usageConfigErrorResponse(corsHeaders);
+  }
+
+  const quota = await requireUsageQuota(
+    authResult.user.id,
+    "mapbox.travel_time",
+    "travel_request",
+    corsHeaders,
+  );
+  if (!quota.ok) return quota.response;
+  const usageContext = quota.context;
 
   try {
     if (!MAPBOX_TOKEN) {
@@ -126,6 +149,12 @@ serve(async (req) => {
           (routeSummary.distanceMiles / (routeSummary.travelMinutes / 60)).toFixed(1),
         )
         : 0;
+
+    await trackMeteredUsage(usageContext, {
+      featureKey: "mapbox.travel_time",
+      usageUnit: "travel_request",
+      requestId: req.headers.get("x-request-id"),
+    });
 
     return new Response(
       JSON.stringify({

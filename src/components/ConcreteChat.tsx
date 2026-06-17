@@ -4,6 +4,13 @@ import { BRAND_NAME, goToAppAuth } from '../config/brand';
 import { MessageSquare, Send, X } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useProjectStore } from '../store';
+import { supabase } from '../lib/supabase';
+import {
+  buildBillingUpgradeUrl,
+  isUsageLimitError,
+  parseEdgeFunctionJson,
+} from '../lib/usageMetering';
+import { buildUsageLimitPresentation } from '../lib/usageLimitUx';
 import Button from './ui/Button';
 import { buildChatProjectContext } from '../utils/chatProjectContext';
 import ChatMarkdownMessage from './chat/ChatMarkdownMessage';
@@ -38,22 +45,24 @@ async function askConcrete(input: {
   pageLabel?: string;
   projectContext?: string | null;
 }): Promise<{ answer: string }> {
+  const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  if (!token || !anonKey) {
+    throw new Error('Sign in to use Concrete Chat.');
+  }
+
   const res = await fetch(`${FN_BASE}/askConcrete`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      apikey: import.meta.env.VITE_SUPABASE_ANON_KEY!,
-      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY!}`,
+      apikey: anonKey,
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(input),
   });
 
-  if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(`Function error (${res.status}): ${errText}`);
-  }
-
-  return res.json();
+  return parseEdgeFunctionJson<{ answer: string }>(res);
 }
 
 function resolvePageLabel(pathname: string): string {
@@ -141,12 +150,24 @@ function ChatPanel({ onClose }: { onClose?: () => void }) {
         { id: nextMessageId(), role: 'assistant', content: answer },
       ]);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Unknown error';
-      console.error(err);
-      setMessages((m) => [
-        ...m,
-        { id: nextMessageId(), role: 'assistant', content: `Error: ${message}` },
-      ]);
+      if (isUsageLimitError(err)) {
+        const presentation = buildUsageLimitPresentation(err);
+        setMessages((m) => [
+          ...m,
+          {
+            id: nextMessageId(),
+            role: 'assistant',
+            content: `${presentation.message} (${presentation.quotaLabel}. ${presentation.resetLabel}) [${presentation.upgradeLabel}](${presentation.upgradeUrl ?? buildBillingUpgradeUrl(err.planId)})`,
+          },
+        ]);
+      } else {
+        const message = err instanceof Error ? err.message : 'Unknown error';
+        console.error(err);
+        setMessages((m) => [
+          ...m,
+          { id: nextMessageId(), role: 'assistant', content: `Error: ${message}` },
+        ]);
+      }
     } finally {
       setLoading(false);
       requestAnimationFrame(() => {

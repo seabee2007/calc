@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { parseEdgeFunctionJson } from '../lib/usageMetering';
 
 export interface SendTransactionalEmailResponse {
   ok: boolean;
@@ -50,10 +51,7 @@ async function invokeSendTransactionalEmail(body: {
     body: JSON.stringify(body),
   });
 
-  const payload = (await res.json().catch(() => ({}))) as SendTransactionalEmailResponse;
-  if (!res.ok) {
-    throw new Error(payload.error ?? 'Unable to send email right now.');
-  }
+  const payload = await parseEdgeFunctionJson<SendTransactionalEmailResponse>(res);
   return payload;
 }
 

@@ -1,6 +1,12 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 import { requireAuth } from "../_shared/requireAuth.ts";
+import {
+  isUsageConfigured,
+  requireUsageQuota,
+  trackMeteredUsage,
+  usageConfigErrorResponse,
+} from "../_shared/meterUsage.ts";
 
 const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 
@@ -76,6 +82,19 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    if (!isUsageConfigured()) {
+      return usageConfigErrorResponse(corsHeaders);
+    }
+
+    const quota = await requireUsageQuota(
+      authResult.user.id,
+      "ai.labor_crew_review",
+      "ai_request",
+      corsHeaders,
+    );
+    if (!quota.ok) return quota.response;
+    const usageContext = quota.context;
 
     const payload = {
       jobContext: body.jobContext ?? {},
@@ -165,6 +184,12 @@ serve(async (req) => {
         ? parsed.confidence
         : "low",
     };
+
+    await trackMeteredUsage(usageContext, {
+      featureKey: "ai.labor_crew_review",
+      usageUnit: "ai_request",
+      requestId: req.headers.get("x-request-id"),
+    });
 
     return new Response(JSON.stringify(result), {
       status: 200,

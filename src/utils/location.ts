@@ -9,6 +9,7 @@ import {
   type USAddress,
 } from '../types/address';
 import { verifyJobsiteAddress } from '../services/geocodeService';
+import { isUsageLimitError } from '../lib/usageMetering';
 
 declare global {
   interface Navigator {
@@ -115,6 +116,7 @@ export async function geocodeAddress(
       address: result.formattedAddress,
     };
   } catch (error) {
+    if (isUsageLimitError(error)) throw error;
     console.warn('Geocode failed:', error);
     return null;
   }

@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { isUsageLimitError, parseUsageLimitPayload, UsageLimitError } from '../lib/usageMetering';
 import type { Weather, ForecastDay } from '../types';
 
 interface ExtendedWeatherData extends Weather {
@@ -39,7 +40,7 @@ export interface ExtendedForecastResult {
   forecast: (ForecastDay & { avgHumidity?: number })[];
 }
 
-export type WeatherServiceErrorCode = 'unauthorized' | 'config';
+export type WeatherServiceErrorCode = 'unauthorized' | 'config' | 'usage_limit';
 
 export class WeatherServiceError extends Error {
   readonly code: WeatherServiceErrorCode;
@@ -123,12 +124,27 @@ async function fetchWeather<T>(body: ForecastRequest): Promise<T | null> {
           401,
         );
       }
+      if (res.status === 429) {
+        try {
+          const payload = JSON.parse(errText) as Record<string, unknown>;
+          const limitPayload = parseUsageLimitPayload(payload);
+          if (limitPayload) {
+            throw new UsageLimitError(limitPayload);
+          }
+        } catch (parseError) {
+          if (parseError instanceof UsageLimitError) throw parseError;
+          if (parseError instanceof WeatherServiceError) throw parseError;
+        }
+      }
       return null;
     }
 
     return res.json();
   } catch (error) {
     if (error instanceof WeatherServiceError) throw error;
+    if (isUsageLimitError(error)) {
+      throw error;
+    }
     console.error('Error fetching weather data:', error);
     return null;
   }

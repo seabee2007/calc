@@ -44,6 +44,35 @@ vi.mock('../../../contexts/SubscriptionContext', () => ({
   useSubscription: () => mockSubscriptionState,
 }));
 
+vi.mock('../../../hooks/useAuth', () => ({
+  useAuth: () => ({ isOwner: true, user: { id: 'user-1' } }),
+}));
+
+vi.mock('../../../hooks/useUsageSummary', () => ({
+  useUsageSummary: () => ({
+    summary: {
+      periodStart: '2026-06-01T00:00:00.000Z',
+      periodEnd: '2026-07-01T00:00:00.000Z',
+      planId: 'free',
+      items: [
+        {
+          usageUnit: 'ai_request',
+          label: 'AI requests',
+          used: 0,
+          limit: 0,
+          remaining: 0,
+          percentUsed: 100,
+          resetsAt: '2026-07-01T00:00:00.000Z',
+        },
+      ],
+    },
+    loading: false,
+    error: null,
+    ownerOnlyBlocked: false,
+    refetch: vi.fn(),
+  }),
+}));
+
 describe('BillingSubscriptionPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -68,6 +97,7 @@ describe('BillingSubscriptionPanel', () => {
 
     expect(screen.getByTestId('billing-current-plan-label')).toHaveTextContent('Free');
     expect(screen.getByTestId('subscription-status')).toHaveTextContent('No active subscription');
+    expect(screen.getByTestId('usage-limits-panel')).toBeInTheDocument();
     expect(screen.queryByTestId('upgrade-professional')).not.toBeInTheDocument();
     expect(screen.queryByTestId('upgrade-business')).not.toBeInTheDocument();
     expect(screen.getByTestId('pricing-plans-card')).toBeInTheDocument();

@@ -2,6 +2,12 @@
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { requireAuth } from "../_shared/requireAuth.ts";
+import {
+  isUsageConfigured,
+  requireUsageQuota,
+  trackMeteredUsage,
+  usageConfigErrorResponse,
+} from "../_shared/meterUsage.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -46,6 +52,19 @@ serve(async (req) => {
 
   const authResult = await requireAuth(req, corsHeaders);
   if (!authResult.ok) return authResult.response;
+
+  if (!isUsageConfigured()) {
+    return usageConfigErrorResponse(corsHeaders);
+  }
+
+  const quota = await requireUsageQuota(
+    authResult.user.id,
+    "ai.ask_concrete",
+    "ai_request",
+    corsHeaders,
+  );
+  if (!quota.ok) return quota.response;
+  const usageContext = quota.context;
 
   try {
     const { question, pageLabel, projectContext } = await req.json();
@@ -106,6 +125,11 @@ serve(async (req) => {
 
     const { choices } = await openAiRes.json();
     const answer = choices?.[0]?.message?.content?.trim() ?? "Sorry, no answer returned.";
+    await trackMeteredUsage(usageContext, {
+      featureKey: "ai.ask_concrete",
+      usageUnit: "ai_request",
+      requestId: req.headers.get("x-request-id"),
+    });
     return new Response(JSON.stringify({ answer }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

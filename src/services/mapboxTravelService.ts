@@ -1,5 +1,7 @@
+import { getMeteredAuthHeaders } from './meteredFunctionClient';
+import { parseEdgeFunctionJson } from '../lib/usageMetering';
+
 const FN_BASE = import.meta.env.VITE_SUPABASE_FUNCTIONS_URL;
-const ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 export interface MapboxGeocodedPoint {
   lng: number;
@@ -33,8 +35,8 @@ export async function getMapboxTravelTime(
     jobsite?: MapboxTravelCoords;
   },
 ): Promise<MapboxTravelTimeResult> {
-  if (!FN_BASE || !ANON_KEY) {
-    throw new Error('Missing VITE_SUPABASE_FUNCTIONS_URL or VITE_SUPABASE_ANON_KEY');
+  if (!FN_BASE) {
+    throw new Error('Missing VITE_SUPABASE_FUNCTIONS_URL');
   }
 
   const plant = plantAddress.trim();
@@ -46,11 +48,7 @@ export async function getMapboxTravelTime(
 
   const res = await fetch(`${FN_BASE}/mapbox-travel-time`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      apikey: ANON_KEY,
-      Authorization: `Bearer ${ANON_KEY}`,
-    },
+    headers: await getMeteredAuthHeaders(),
     body: JSON.stringify({
       plantAddress: plant,
       jobsiteAddress: jobsite,
@@ -61,15 +59,7 @@ export async function getMapboxTravelTime(
     }),
   });
 
-  const data = (await res.json()) as MapboxTravelTimeResult | MapboxTravelTimeError;
-
-  if (!res.ok) {
-    const message =
-      'error' in data && data.error
-        ? data.error
-        : `Travel time request failed (${res.status})`;
-    throw new Error(message);
-  }
+  const data = await parseEdgeFunctionJson<MapboxTravelTimeResult & MapboxTravelTimeError>(res);
 
   if ('error' in data && data.error) {
     throw new Error(data.error);

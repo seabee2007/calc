@@ -126,6 +126,17 @@ describe('DashboardWidgetCatalog', () => {
     expect(screen.getByTestId('widget-tile-weatherForecast')).toBeInTheDocument();
   });
 
+  it('lists Usage Meter in the catalog for owners', () => {
+    renderCatalog({ plan: 'free', isOwner: true });
+    expect(screen.getByTestId('widget-tile-usageMeter')).toBeInTheDocument();
+    expect(within(screen.getByTestId('widget-tile-usageMeter')).getByText('Usage Meter')).toBeInTheDocument();
+  });
+
+  it('hides Usage Meter from employees in the catalog', () => {
+    renderCatalog({ plan: 'free', isOwner: false });
+    expect(screen.queryByTestId('widget-tile-usageMeter')).not.toBeInTheDocument();
+  });
+
   it('adds an available widget when its Add button is clicked', () => {
     const { onAdd } = renderCatalog();
     const tile = screen.getByTestId('widget-tile-quickActions');

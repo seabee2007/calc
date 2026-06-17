@@ -1,6 +1,12 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { corsHeaders } from "../_shared/cors.ts";
+import {
+  isUsageConfigured,
+  requireUsageQuota,
+  trackMeteredUsage,
+  usageConfigErrorResponse,
+} from "../_shared/meterUsage.ts";
 
 const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
@@ -512,6 +518,19 @@ serve(async (req) => {
       });
     }
 
+    if (!isUsageConfigured()) {
+      return usageConfigErrorResponse(corsHeaders);
+    }
+
+    const quota = await requireUsageQuota(
+      user.id,
+      "ai.estimate_divisions",
+      "ai_request",
+      corsHeaders,
+    );
+    if (!quota.ok) return quota.response;
+    const usageContext = quota.context;
+
     const openAiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -584,6 +603,12 @@ serve(async (req) => {
         "Project scope is vague. Review recommendations carefully and adjust divisions manually.",
       ];
     }
+
+    await trackMeteredUsage(usageContext, {
+      featureKey: "ai.estimate_divisions",
+      usageUnit: "ai_request",
+      requestId: req.headers.get("x-request-id"),
+    });
 
     return new Response(JSON.stringify(sanitized), {
       status: 200,

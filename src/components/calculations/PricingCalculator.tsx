@@ -19,6 +19,7 @@ import {
   regionalDefaultsFromLocation,
 } from '../../utils/supplierPricing';
 import { useProjectStore } from '../../store';
+import { isUsageLimitError } from '../../lib/usageMetering';
 import {
   DEFAULT_BATCH_PLANT_CONTACT,
   type PlacementOrder,
@@ -93,9 +94,52 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
   const [batchPlant, setBatchPlant] = useState<BatchPlantResult | null>(null);
   const [plantSearchLoading, setPlantSearchLoading] = useState(false);
   const [plantSearchError, setPlantSearchError] = useState<string | null>(null);
+  const [aiPricingLoading, setAiPricingLoading] = useState(false);
+  const [aiPricingError, setAiPricingError] = useState<string | null>(null);
   const [pricingSourceLabel, setPricingSourceLabel] = useState<string | null>(null);
   const [pricingNotes, setPricingNotes] = useState<string | null>(null);
-  const lastAutoSearchKeyRef = useRef('');
+
+  const mapLocationLimitMessage = () =>
+    "You've reached your monthly map/location lookup limit.";
+  const aiLimitMessage = () => "You've reached your monthly AI request limit.";
+
+  const applyRegionalPricing = useCallback(
+    (
+      plant: BatchPlantResult,
+      coords: JobsiteCoords,
+      travelMiles: number,
+    ) => {
+      const { defaults } = regionalDefaultsFromLocation({
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+      });
+      const pricingLookup = mapPricingApiResponse({
+        usedAiPricing: false,
+        basePrice: defaults!.basePrice,
+        psiPriceAdjustments: defaults!.psiPriceAdjustments,
+        deliveryFees: {
+          baseDeliveryFee: defaults!.baseDeliveryFee,
+          minimumOrder: defaults!.minimumOrder,
+          smallLoadFee: defaults!.smallLoadFee,
+          distanceFee: defaults!.distanceFeePerMile,
+          baseDistance: defaults!.baseDistanceMiles,
+        },
+        additionalServices: {
+          saturdayDeliveryFee: defaults!.saturdayDeliveryFee,
+          afterHoursFee: defaults!.afterHoursFee,
+          pumpTruckFee: defaults!.pumpTruckFee,
+        },
+        confidence: 'medium',
+        notes: `Using regional default pricing (${defaults!.regionLabel}). Tap AI pricing for a plant-specific estimate.`,
+        source: 'regional_default',
+      });
+      const bundle = buildSupplierFromPlant(plant, pricingLookup, coords, travelMiles);
+      setSupplier(bundle.supplier);
+      setPricingSourceLabel('Regional default pricing');
+      setPricingNotes(bundle.pricingNotes);
+    },
+    [],
+  );
 
   const applyJobsiteCoords = useCallback((loc: GeocodedLocation) => {
     setJobsiteCoords({
@@ -107,7 +151,8 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
     setSupplier(null);
     setPricingSourceLabel(null);
     setPricingNotes(null);
-    lastAutoSearchKeyRef.current = '';
+    setPlantSearchError(null);
+    setAiPricingError(null);
   }, []);
 
   const initialLocationKey =
@@ -158,6 +203,7 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
     async (coords: JobsiteCoords) => {
       setPlantSearchLoading(true);
       setPlantSearchError(null);
+      setAiPricingError(null);
 
       try {
         const plant = await findBatchPlant(coords.address, {
@@ -191,61 +237,13 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
         }
 
         await persistBatchPlantToProject(plant, routeTravel);
-
-        const { defaults } = regionalDefaultsFromLocation({
-          latitude: coords.latitude,
-          longitude: coords.longitude,
-        });
-
-        let pricingLookup;
-        try {
-          pricingLookup = await lookupBatchPlantPricing({
-            plantName: plant.plantName,
-            plantAddress: plant.formattedAddress,
-            plantLatitude: plant.latitude,
-            plantLongitude: plant.longitude,
-            jobsiteAddress: coords.address,
-            regionalDefaults: defaults,
-          });
-        } catch {
-          pricingLookup = mapPricingApiResponse({
-            usedAiPricing: false,
-            basePrice: defaults!.basePrice,
-            psiPriceAdjustments: defaults!.psiPriceAdjustments,
-            deliveryFees: {
-              baseDeliveryFee: defaults!.baseDeliveryFee,
-              minimumOrder: defaults!.minimumOrder,
-              smallLoadFee: defaults!.smallLoadFee,
-              distanceFee: defaults!.distanceFeePerMile,
-              baseDistance: defaults!.baseDistanceMiles,
-            },
-            additionalServices: {
-              saturdayDeliveryFee: defaults!.saturdayDeliveryFee,
-              afterHoursFee: defaults!.afterHoursFee,
-              pumpTruckFee: defaults!.pumpTruckFee,
-            },
-            confidence: 'medium',
-            notes: `Using regional default pricing (${defaults!.regionLabel}).`,
-            source: 'regional_default',
-          });
-        }
-
-        const bundle = buildSupplierFromPlant(
-          plant,
-          pricingLookup,
-          { latitude: coords.latitude, longitude: coords.longitude },
-          travelMiles,
-        );
-        setSupplier(bundle.supplier);
-        setPricingSourceLabel(
-          bundle.pricingSource === 'ai_estimate'
-            ? 'AI-estimated plant pricing'
-            : 'Regional default pricing',
-        );
-        setPricingNotes(bundle.pricingNotes);
+        applyRegionalPricing(plant, coords, travelMiles);
       } catch (err) {
         setBatchPlant(null);
-        if (err instanceof BatchPlantNotFoundError) {
+        setSupplier(null);
+        if (isUsageLimitError(err)) {
+          setPlantSearchError(mapLocationLimitMessage());
+        } else if (err instanceof BatchPlantNotFoundError) {
           setPlantSearchError(err.message);
         } else {
           setPlantSearchError(
@@ -256,16 +254,52 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
         setPlantSearchLoading(false);
       }
     },
-    [persistBatchPlantToProject],
+    [applyRegionalPricing, persistBatchPlantToProject],
   );
 
-  useEffect(() => {
-    if (isPlanner || !jobsiteCoords) return;
-    const key = `${jobsiteCoords.latitude.toFixed(4)},${jobsiteCoords.longitude.toFixed(4)}`;
-    if (lastAutoSearchKeyRef.current === key) return;
-    lastAutoSearchKeyRef.current = key;
-    void runBatchPlantSearch(jobsiteCoords);
-  }, [jobsiteCoords, isPlanner, runBatchPlantSearch]);
+  const runAiPricingEstimate = useCallback(async () => {
+    if (!batchPlant || !jobsiteCoords) return;
+    setAiPricingLoading(true);
+    setAiPricingError(null);
+
+    try {
+      const { defaults } = regionalDefaultsFromLocation({
+        latitude: jobsiteCoords.latitude,
+        longitude: jobsiteCoords.longitude,
+      });
+      const pricingLookup = await lookupBatchPlantPricing({
+        plantName: batchPlant.plantName,
+        plantAddress: batchPlant.formattedAddress,
+        plantLatitude: batchPlant.latitude,
+        plantLongitude: batchPlant.longitude,
+        jobsiteAddress: jobsiteCoords.address,
+        regionalDefaults: defaults,
+      });
+      const bundle = buildSupplierFromPlant(
+        batchPlant,
+        pricingLookup,
+        jobsiteCoords,
+        distance,
+      );
+      setSupplier(bundle.supplier);
+      setPricingSourceLabel(
+        bundle.pricingSource === 'ai_estimate'
+          ? 'AI-estimated plant pricing'
+          : 'Regional default pricing',
+      );
+      setPricingNotes(bundle.pricingNotes);
+    } catch (err) {
+      if (isUsageLimitError(err)) {
+        setAiPricingError(aiLimitMessage());
+      } else {
+        setAiPricingError(
+          err instanceof Error ? err.message : 'Could not estimate supplier pricing.',
+        );
+      }
+    } finally {
+      setAiPricingLoading(false);
+    }
+  }, [batchPlant, jobsiteCoords, distance]);
 
   const linkedProject = projectId
     ? projects.find((p) => p.id === projectId)
@@ -448,68 +482,113 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
           onLocationApplied={applyJobsiteCoords}
           idPrefix="pricing-jobsite"
           applyButtonLabel="Verify jobsite"
-          helperText="Saved project jobsite loads automatically. Verify before searching for a batch plant."
+          helperText="Enter or verify the jobsite address, then use Supplier tools below to find a batch plant."
+          showUseCurrentLocation
         />
 
-        <div className="mt-4 rounded-lg border border-cyan-200 dark:border-cyan-800/60 bg-cyan-50/50 dark:bg-cyan-950/30 p-4 space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h5 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-              <Factory className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
-              Nearest batch plant
-            </h5>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              disabled={!jobsiteCoords || plantSearchLoading}
-              onClick={() => jobsiteCoords && void runBatchPlantSearch(jobsiteCoords)}
-              icon={
-                plantSearchLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Factory className="h-4 w-4" />
-                )
-              }
-            >
-              {plantSearchLoading ? 'Searching…' : batchPlant ? 'Search again' : 'Find batch plant'}
-            </Button>
+        {/* ── Supplier tools ── */}
+        <div className="mt-4 rounded-lg border border-cyan-200 dark:border-cyan-800/60 bg-cyan-50/50 dark:bg-cyan-950/30 p-4 space-y-4">
+          <h5 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+            <Factory className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
+            Supplier tools
+          </h5>
+
+          {/* Find batch plant */}
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-3">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                disabled={!jobsiteCoords || plantSearchLoading}
+                onClick={() => jobsiteCoords && void runBatchPlantSearch(jobsiteCoords)}
+                data-testid="find-batch-plant-button"
+                icon={
+                  plantSearchLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Factory className="h-4 w-4" />
+                  )
+                }
+              >
+                {plantSearchLoading
+                  ? 'Searching…'
+                  : batchPlant
+                    ? 'Find batch plants again'
+                    : 'Find nearby batch plants'}
+              </Button>
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                Uses map/location credits.
+              </span>
+            </div>
+
+            {!jobsiteCoords && (
+              <p className="text-xs text-amber-700 dark:text-amber-300">
+                Verify the jobsite address above to search for nearby batch plants.
+              </p>
+            )}
+
+            {plantSearchError && (
+              <div className="text-sm text-red-600 dark:text-red-400 space-y-1">
+                <p>{plantSearchError}</p>
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  Mapbox may not list every ready-mix plant. If you know a local supplier, enter
+                  their address manually on the placement planner call sheet.
+                </p>
+              </div>
+            )}
+
+            {batchPlant && (
+              <div className="space-y-1 text-sm pt-1">
+                <p className="font-medium text-gray-900 dark:text-white">{batchPlant.plantName}</p>
+                <p className="text-gray-600 dark:text-gray-400">{batchPlant.formattedAddress}</p>
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  {batchPlant.distanceMiles.toFixed(1)} mi drive to jobsite
+                  {batchPlant.driveMinutes ? ` · ~${batchPlant.driveMinutes} min` : ''}
+                </p>
+                {pricingSourceLabel && (
+                  <p className="text-xs text-cyan-700 dark:text-cyan-300 flex items-center gap-1">
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                    {pricingSourceLabel}
+                  </p>
+                )}
+                {pricingNotes && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{pricingNotes}</p>
+                )}
+              </div>
+            )}
           </div>
 
-          {!jobsiteCoords && (
-            <p className="text-xs text-amber-700 dark:text-amber-300">
-              Verify the jobsite address above to search for nearby batch plants.
-            </p>
-          )}
-
-          {plantSearchError && (
-            <div className="text-sm text-red-600 dark:text-red-400 space-y-1">
-              <p>{plantSearchError}</p>
-              <p className="text-xs text-gray-600 dark:text-gray-400">
-                Mapbox may not list every ready-mix plant. If you know a local supplier, enter
-                their address manually on the placement planner call sheet.
-              </p>
-            </div>
-          )}
-
-          {batchPlant && (
-            <div className="space-y-2 text-sm">
-              <p className="font-medium text-gray-900 dark:text-white">{batchPlant.plantName}</p>
-              <p className="text-gray-600 dark:text-gray-400">{batchPlant.formattedAddress}</p>
-              <p className="text-xs text-gray-600 dark:text-gray-400">
-                {batchPlant.distanceMiles.toFixed(1)} mi drive to jobsite
-                {batchPlant.driveMinutes ? ` · ~${batchPlant.driveMinutes} min` : ''}
-              </p>
-              {pricingSourceLabel && (
-                <p className="text-xs text-cyan-700 dark:text-cyan-300 flex items-center gap-1">
-                  <CheckCircle2 className="h-3.5 w-3.5" />
-                  {pricingSourceLabel}
-                </p>
-              )}
-              {pricingNotes && (
-                <p className="text-xs text-gray-500 dark:text-gray-400">{pricingNotes}</p>
+          {/* AI pricing — only shown once a batch plant is found */}
+          {batchPlant ? (
+            <div className="space-y-2 border-t border-cyan-200 dark:border-cyan-800/60 pt-4">
+              <div className="flex flex-wrap items-center gap-3">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  disabled={aiPricingLoading}
+                  onClick={() => void runAiPricingEstimate()}
+                  data-testid="ai-pricing-button"
+                  icon={
+                    aiPricingLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <DollarSign className="h-4 w-4" />
+                    )
+                  }
+                >
+                  {aiPricingLoading ? 'Estimating…' : 'Estimate supplier pricing with AI'}
+                </Button>
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  Uses AI credits.
+                </span>
+              </div>
+              {aiPricingError && (
+                <p className="text-sm text-red-600 dark:text-red-400">{aiPricingError}</p>
               )}
             </div>
-          )}
+          ) : null}
         </div>
 
         <div className="mt-4">

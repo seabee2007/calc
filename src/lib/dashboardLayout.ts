@@ -46,7 +46,8 @@ export type DashboardCardId =
   | 'scheduleShortcut'
   | 'accountingTaxLauncher'
   | 'supportHelp'
-  | 'weatherForecast';
+  | 'weatherForecast'
+  | 'usageMeter';
 
 /** The dashboard grid is a 12-column grid on desktop. */
 export const DASHBOARD_GRID_COLS = 12;
@@ -435,6 +436,18 @@ export const DASHBOARD_CARD_META: Record<DashboardCardId, DashboardCardMeta> = {
     allowedWidths: ALL_WIDTHS,
     defaultVisible: false,
     requiredPlan: 'starter',
+  },
+  usageMeter: {
+    id: 'usageMeter',
+    title: 'Usage Meter',
+    description: 'Monthly metered API usage against your plan limits.',
+    category: 'Admin / Business',
+    default: { x: 6, y: 950, w: 6, h: 4 },
+    minW: 4,
+    minH: 3,
+    allowedWidths: ALL_WIDTHS,
+    defaultVisible: false,
+    requiredRole: 'owner',
   },
 };
 

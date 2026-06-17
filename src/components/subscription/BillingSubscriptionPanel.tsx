@@ -4,7 +4,10 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import InlineNotice from '../ui/InlineNotice';
 import Button from '../ui/Button';
 import PricingPlansCard from './PricingPlansCard';
+import UsageLimitsPanel from './UsageLimitsPanel';
 import { useSubscription } from '../../contexts/SubscriptionContext';
+import { useAuth } from '../../hooks/useAuth';
+import { useUsageSummary } from '../../hooks/useUsageSummary';
 import type { PlanId } from '../../lib/entitlements';
 import {
   getBillingStatusLabel,
@@ -51,6 +54,8 @@ export default function BillingSubscriptionPanel() {
     loading,
     refresh,
   } = useSubscription();
+  const { isOwner } = useAuth();
+  const usageSummary = useUsageSummary(isOwner);
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [billingInterval, setBillingInterval] = useState<'month' | 'year'>('month');
@@ -234,6 +239,13 @@ export default function BillingSubscriptionPanel() {
           )}
         </div>
       </section>
+
+      <UsageLimitsPanel
+        summary={usageSummary.summary}
+        loading={usageSummary.loading}
+        error={usageSummary.error}
+        ownerOnlyBlocked={!isOwner || usageSummary.ownerOnlyBlocked}
+      />
 
       {/* Pricing cards */}
       <PricingPlansCard

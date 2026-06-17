@@ -66,6 +66,13 @@ describe('dashboardLayout', () => {
     expect(DASHBOARD_CARD_META.weatherForecast.requiredPlan).toBe('starter');
   });
 
+  it('registers usage meter widget metadata', () => {
+    expect(DASHBOARD_CARD_META.usageMeter.category).toBe('Admin / Business');
+    expect(DASHBOARD_CARD_META.usageMeter.defaultVisible).toBe(false);
+    expect(DASHBOARD_CARD_META.usageMeter.requiredRole).toBe('owner');
+    expect(DASHBOARD_CARD_IDS).toContain('usageMeter');
+  });
+
   it('keeps Next Actions in the default layout (right column under proposals)', () => {
     const layout = getDefaultDashboardLayout();
     const next = layout.items.find((c) => c.id === 'nextActions');

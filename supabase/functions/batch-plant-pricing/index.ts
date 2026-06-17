@@ -1,6 +1,12 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 import { requireAuth } from "../_shared/requireAuth.ts";
+import {
+  isUsageConfigured,
+  requireUsageQuota,
+  trackMeteredUsage,
+  usageConfigErrorResponse,
+} from "../_shared/meterUsage.ts";
 
 const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 
@@ -117,6 +123,19 @@ serve(async (req) => {
       });
     }
 
+    if (!isUsageConfigured()) {
+      return usageConfigErrorResponse(corsHeaders);
+    }
+
+    const quota = await requireUsageQuota(
+      authResult.user.id,
+      "ai.batch_plant_pricing",
+      "ai_request",
+      corsHeaders,
+    );
+    if (!quota.ok) return quota.response;
+    const usageContext = quota.context;
+
     const payload = {
       plantName,
       plantAddress,
@@ -220,6 +239,12 @@ serve(async (req) => {
         "AI-estimated plant pricing — confirm with the batch plant before bidding.",
       source: "ai_estimate",
     };
+
+    await trackMeteredUsage(usageContext, {
+      featureKey: "ai.batch_plant_pricing",
+      usageUnit: "ai_request",
+      requestId: req.headers.get("x-request-id"),
+    });
 
     return new Response(JSON.stringify(result), {
       status: 200,

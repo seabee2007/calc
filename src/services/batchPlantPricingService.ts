@@ -1,8 +1,9 @@
 import type { ConcretePricing } from '../types';
 import { mapPricingApiResponse } from '../utils/supplierPricing';
+import { getMeteredAuthHeaders } from './meteredFunctionClient';
+import { parseEdgeFunctionJson } from '../lib/usageMetering';
 
 const FN_BASE = import.meta.env.VITE_SUPABASE_FUNCTIONS_URL;
-const ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 export interface BatchPlantPricingLookupInput {
   plantName: string;
@@ -36,17 +37,13 @@ export interface BatchPlantPricingLookupResult {
 export async function lookupBatchPlantPricing(
   input: BatchPlantPricingLookupInput,
 ): Promise<BatchPlantPricingLookupResult> {
-  if (!FN_BASE || !ANON_KEY) {
-    throw new Error('Missing VITE_SUPABASE_FUNCTIONS_URL or VITE_SUPABASE_ANON_KEY');
+  if (!FN_BASE) {
+    throw new Error('Missing VITE_SUPABASE_FUNCTIONS_URL');
   }
 
   const res = await fetch(`${FN_BASE}/batch-plant-pricing`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      apikey: ANON_KEY,
-      Authorization: `Bearer ${ANON_KEY}`,
-    },
+    headers: await getMeteredAuthHeaders(),
     body: JSON.stringify({
       plantName: input.plantName.trim(),
       plantAddress: input.plantAddress.trim(),
@@ -61,13 +58,9 @@ export async function lookupBatchPlantPricing(
     throw new Error('batch-plant-pricing function is not deployed');
   }
 
-  const data = (await res.json()) as Parameters<typeof mapPricingApiResponse>[0] & {
-    error?: string;
-  };
-
-  if (!res.ok) {
-    throw new Error(data.error ?? `Pricing lookup failed (${res.status})`);
-  }
+  const data = await parseEdgeFunctionJson<
+    Parameters<typeof mapPricingApiResponse>[0] & { error?: string }
+  >(res);
 
   if ('error' in data && data.error) {
     throw new Error(data.error);

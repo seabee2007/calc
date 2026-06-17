@@ -1,4 +1,5 @@
 import { supabase } from '../../../lib/supabase';
+import { parseEdgeFunctionJson } from '../../../lib/usageMetering';
 import { getCsiDivisionByCode, isKnownCsiDivision } from '../domain/csiDivisions';
 import { normalizeSelectedDivisionCodes } from './estimateWorkBreakdown';
 import type {
@@ -176,12 +177,7 @@ export async function suggestDivisionsFromScope(
     body: JSON.stringify(payload),
   });
 
-  const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
-
-  if (!res.ok) {
-    const message = typeof body.error === 'string' ? body.error : SUGGEST_DIVISIONS_ERROR_MESSAGE;
-    throw new Error(message);
-  }
+  const body = await parseEdgeFunctionJson<Record<string, unknown>>(res);
 
   return normalizeSuggestDivisionsResponse(body, request.scopeText);
 }

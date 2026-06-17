@@ -1,4 +1,5 @@
 import { supabase } from '../../../lib/supabase';
+import { parseEdgeFunctionJson, isUsageLimitError } from '../../../lib/usageMetering';
 
 export const PROFESSIONALIZE_SCOPE_EMPTY_MESSAGE = 'Enter a scope first';
 
@@ -146,18 +147,13 @@ export async function professionalizeProjectScope(
     }),
   });
 
-  const body = await res.json().catch(() => ({}));
-
-  if (!res.ok) {
-    const message =
-      typeof body === 'object' &&
-      body !== null &&
-      'error' in body &&
-      typeof (body as { error?: unknown }).error === 'string'
-        ? (body as { error: string }).error
-        : PROFESSIONALIZE_SCOPE_ERROR_MESSAGE;
-    throw new ProfessionalizeScopeFailedError(message);
+  try {
+    const body = await parseEdgeFunctionJson<{ improvedScope?: string }>(res);
+    return parseProfessionalizeScopeResponse(body);
+  } catch (error) {
+    if (isUsageLimitError(error)) throw error;
+    throw new ProfessionalizeScopeFailedError(
+      error instanceof Error ? error.message : PROFESSIONALIZE_SCOPE_ERROR_MESSAGE,
+    );
   }
-
-  return parseProfessionalizeScopeResponse(body);
 }

@@ -12,6 +12,13 @@ import {
   type GeocodedPoint,
 } from "../_shared/mapboxGeocode.ts";
 import { getDrivingRouteMiles } from "../_shared/mapboxDirections.ts";
+import { requireAuth } from "../_shared/requireAuth.ts";
+import {
+  isUsageConfigured,
+  requireUsageQuota,
+  trackMeteredUsage,
+  usageConfigErrorResponse,
+} from "../_shared/meterUsage.ts";
 
 const MAPBOX_TOKEN = Deno.env.get("MAPBOX_ACCESS_TOKEN");
 
@@ -842,6 +849,22 @@ serve(async (req) => {
     });
   }
 
+  const authResult = await requireAuth(req, corsHeaders);
+  if (!authResult.ok) return authResult.response;
+
+  if (!isUsageConfigured()) {
+    return usageConfigErrorResponse(corsHeaders);
+  }
+
+  const quota = await requireUsageQuota(
+    authResult.user.id,
+    "mapbox.place_search",
+    "place_search",
+    corsHeaders,
+  );
+  if (!quota.ok) return quota.response;
+  const usageContext = quota.context;
+
   try {
     if (!MAPBOX_TOKEN) {
       return new Response(JSON.stringify({ error: "Missing Mapbox token." }), {
@@ -944,6 +967,12 @@ serve(async (req) => {
       latitude: origin.lat,
       longitude: origin.lng,
     };
+
+    await trackMeteredUsage(usageContext, {
+      featureKey: "mapbox.place_search",
+      usageUnit: "place_search",
+      requestId: req.headers.get("x-request-id"),
+    });
 
     return new Response(
       JSON.stringify({

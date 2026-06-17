@@ -5,6 +5,12 @@ import { readEmailEnvConfig } from "../_shared/emailConfig.ts";
 import { insertEmailEvent } from "../_shared/emailEvents.ts";
 import { renderEmailTemplate } from "../_shared/emailTemplates.ts";
 import { prepareTransactionalEmail, sendTransactionalEmail } from "../_shared/resend.ts";
+import {
+  isUsageConfigured,
+  requireUsageQuota,
+  trackMeteredUsage,
+  usageConfigErrorResponse,
+} from "../_shared/meterUsage.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -213,6 +219,19 @@ serve(async (req) => {
       );
     }
 
+    if (!isUsageConfigured()) {
+      return usageConfigErrorResponse(corsHeaders);
+    }
+
+    const quota = await requireUsageQuota(
+      user.id,
+      "email.employee_invite",
+      "email_send",
+      corsHeaders,
+    );
+    if (!quota.ok) return quota.response;
+    const usageContext = quota.context;
+
     const sendResult = await sendTransactionalEmail({
       templateKey: "teamInvite",
       to: email,
@@ -220,6 +239,13 @@ serve(async (req) => {
     });
 
     if (sendResult.ok) {
+      await trackMeteredUsage(usageContext, {
+        featureKey: "email.employee_invite",
+        usageUnit: "email_send",
+        requestId: req.headers.get("x-request-id"),
+        metadata: { inviteId },
+      });
+
       const event = await insertEmailEvent(admin, {
         userId: user.id,
         templateKey: "teamInvite",

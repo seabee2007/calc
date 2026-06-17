@@ -25,6 +25,8 @@ import {
   WeatherServiceError,
   type ExtendedForecastResult,
 } from '../../../services/weatherService';
+import { isUsageLimitError } from '../../../lib/usageMetering';
+import { usageLimitToastMessage } from '../../../lib/usageLimitUx';
 import {
   projectsWithJobsite,
   type ProjectJobsiteOption,
@@ -588,6 +590,10 @@ export function WeatherForecastWidget({
               ? 'Sign in again to load My Weather.'
               : 'Sign in again to load the jobsite forecast.',
           );
+        } else if (isUsageLimitError(err)) {
+          setError(usageLimitToastMessage(err));
+        } else if (err instanceof WeatherServiceError && err.code === 'usage_limit') {
+          setError(err.message);
         } else {
           setError(
             target.kind === 'my'

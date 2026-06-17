@@ -10,7 +10,8 @@ import {
   validateUSAddress,
   type USAddress,
 } from '../../types/address';
-import { geocodeAddress, type GeocodedLocation } from '../../utils/location';
+import { geocodeAddress, getCurrentPosition, reverseGeocode, type GeocodedLocation } from '../../utils/location';
+import { isUsageLimitError } from '../../lib/usageMetering';
 
 export type JobsiteLocationMode = 'project' | 'manual';
 
@@ -23,6 +24,8 @@ interface JobsiteLocationSectionProps {
   idPrefix?: string;
   applyButtonLabel?: string;
   helperText?: string;
+  /** Show a button that requests browser geolocation only when clicked. */
+  showUseCurrentLocation?: boolean;
 }
 
 const JobsiteLocationSection: React.FC<JobsiteLocationSectionProps> = ({
@@ -34,6 +37,7 @@ const JobsiteLocationSection: React.FC<JobsiteLocationSectionProps> = ({
   idPrefix = 'jobsite-loc',
   applyButtonLabel = 'Apply for pricing',
   helperText,
+  showUseCurrentLocation = false,
 }) => {
   const projectUsable = hasProjectJobsite(projectJobsite);
   const projectLine = projectUsable ? formatUSAddress(projectJobsite!) : '';
@@ -45,6 +49,9 @@ const JobsiteLocationSection: React.FC<JobsiteLocationSectionProps> = ({
   const [locationError, setLocationError] = useState<string | null>(null);
   const [appliedLine, setAppliedLine] = useState<string | null>(null);
   const lastAutoProjectRef = useRef<string>('');
+
+  const mapLocationLimitMessage = () =>
+    "You've reached your monthly map/location lookup limit.";
 
   const runGeocode = useCallback(
     async (addr: USAddress) => {
@@ -71,7 +78,11 @@ const JobsiteLocationSection: React.FC<JobsiteLocationSectionProps> = ({
           'Location not found. Check city, state, and ZIP (street optional for pricing region).',
         );
         return false;
-      } catch {
+      } catch (err) {
+        if (isUsageLimitError(err)) {
+          setLocationError(mapLocationLimitMessage());
+          return false;
+        }
         setLocationError('Error searching location. Please try again.');
         return false;
       } finally {
@@ -81,17 +92,22 @@ const JobsiteLocationSection: React.FC<JobsiteLocationSectionProps> = ({
     [onLocationApplied],
   );
 
-  useEffect(() => {
-    if (!projectUsable || !projectJobsite) return;
-    const key = formatUSAddress(projectJobsite);
-    if (mode !== 'project') return;
-    if (key === lastAutoProjectRef.current) return;
-    lastAutoProjectRef.current = key;
-
-    const copied = copyUSAddress(projectJobsite);
-    onChange(copied);
-    void runGeocode(copied);
-  }, [mode, projectUsable, projectJobsite, onChange, runGeocode]);
+  const handleUseCurrentLocation = useCallback(async () => {
+    setSearchLoading(true);
+    setLocationError(null);
+    try {
+      const position = await getCurrentPosition();
+      const { latitude, longitude } = position.coords;
+      const address = await reverseGeocode(latitude, longitude);
+      const loc: GeocodedLocation = { latitude, longitude, address };
+      onLocationApplied(loc);
+      setAppliedLine(address);
+    } catch {
+      setLocationError('Could not read your current location. Check browser permissions and try again.');
+    } finally {
+      setSearchLoading(false);
+    }
+  }, [onLocationApplied]);
 
   useEffect(() => {
     if (!projectUsable) {
@@ -101,7 +117,9 @@ const JobsiteLocationSection: React.FC<JobsiteLocationSectionProps> = ({
     }
     setMode('project');
     lastAutoProjectRef.current = '';
-  }, [projectUsable, projectLine, projectName]);
+    const copied = copyUSAddress(projectJobsite!);
+    onChange(copied);
+  }, [projectUsable, projectLine, projectName, projectJobsite, onChange]);
 
   const switchToProject = () => {
     if (!projectJobsite) return;
@@ -173,7 +191,7 @@ const JobsiteLocationSection: React.FC<JobsiteLocationSectionProps> = ({
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => void runGeocode(copyUSAddress(projectJobsite))}
+              onClick={() => void runGeocode(copyUSAddress(projectJobsite!))}
               disabled={searchLoading}
               icon={
                 searchLoading ? (
@@ -183,8 +201,19 @@ const JobsiteLocationSection: React.FC<JobsiteLocationSectionProps> = ({
                 )
               }
             >
-              {searchLoading ? 'Applying…' : 'Re-apply location'}
+              {searchLoading ? 'Applying…' : applyButtonLabel}
             </Button>
+            {showUseCurrentLocation ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => void handleUseCurrentLocation()}
+                disabled={searchLoading}
+              >
+                Use my current location
+              </Button>
+            ) : null}
           </div>
         </div>
       )}
@@ -204,7 +233,18 @@ const JobsiteLocationSection: React.FC<JobsiteLocationSectionProps> = ({
             showStreet2
             idPrefix={idPrefix}
           />
-          <div className="flex justify-end">
+          <div className="flex flex-wrap justify-end gap-2">
+            {showUseCurrentLocation ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => void handleUseCurrentLocation()}
+                disabled={searchLoading}
+              >
+                Use my current location
+              </Button>
+            ) : null}
             <Button
               type="button"
               variant="outline"

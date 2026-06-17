@@ -37,6 +37,7 @@ import {
   widgetCompact,
 } from '../widgets/toolShortcutWidgets';
 import WeatherForecastWidget from '../widgets/WeatherForecastWidget';
+import UsageMeterWidget from '../widgets/UsageMeterWidget';
 
 export interface DashboardCardRenderOptions {
   /** Extra class names applied to the card root where the card supports it. */
@@ -263,6 +264,12 @@ const CARD_BEHAVIOR: Record<DashboardCardId, DashboardCardBehavior> = {
         widgetConfig={options?.widgetConfig}
         onWidgetConfigChange={options?.onWidgetConfigChange}
       />
+    ),
+  },
+  usageMeter: {
+    isVisible: ownerOnly,
+    render: (_ctx, options) => (
+      <UsageMeterWidget cardWidth={options?.cardWidth} isMobile={options?.isMobile} />
     ),
   },
 };

@@ -5,9 +5,10 @@ import {
   validateUSAddress,
   type USAddress,
 } from '../types/address';
+import { getMeteredAuthHeaders } from './meteredFunctionClient';
+import { parseEdgeFunctionJson } from '../lib/usageMetering';
 
 const FN_BASE = import.meta.env.VITE_SUPABASE_FUNCTIONS_URL;
-const ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 export interface GeocodedAddressResult {
   formattedAddress: string;
@@ -21,19 +22,15 @@ export interface GeocodedAddressError {
   error: string;
 }
 
-function supabaseHeaders(): HeadersInit {
-  return {
-    'Content-Type': 'application/json',
-    apikey: ANON_KEY,
-    Authorization: `Bearer ${ANON_KEY}`,
-  };
+function supabaseHeaders(): Promise<HeadersInit> {
+  return getMeteredAuthHeaders();
 }
 
 export async function verifyJobsiteAddress(
   addressOrParts: string | USAddress,
 ): Promise<GeocodedAddressResult> {
-  if (!FN_BASE || !ANON_KEY) {
-    throw new Error('Missing VITE_SUPABASE_FUNCTIONS_URL or VITE_SUPABASE_ANON_KEY');
+  if (!FN_BASE) {
+    throw new Error('Missing VITE_SUPABASE_FUNCTIONS_URL');
   }
 
   let body: { address?: string; addressParts?: USAddress };
@@ -72,19 +69,11 @@ export async function verifyJobsiteAddress(
 
   const res = await fetch(`${FN_BASE}/geocode-address`, {
     method: 'POST',
-    headers: supabaseHeaders(),
+    headers: await supabaseHeaders(),
     body: JSON.stringify(body),
   });
 
-  const data = (await res.json()) as GeocodedAddressResult | GeocodedAddressError;
-
-  if (!res.ok) {
-    const message =
-      'error' in data && data.error
-        ? data.error
-        : `Address verification failed (${res.status})`;
-    throw new Error(message);
-  }
+  const data = await parseEdgeFunctionJson<GeocodedAddressResult & GeocodedAddressError>(res);
 
   if ('error' in data && data.error) {
     throw new Error(data.error);

@@ -1,6 +1,12 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 import { requireAuth } from "../_shared/requireAuth.ts";
+import {
+  isUsageConfigured,
+  requireUsageQuota,
+  trackMeteredUsage,
+  usageConfigErrorResponse,
+} from "../_shared/meterUsage.ts";
 
 const BASE_URL = "https://api.weatherapi.com/v1";
 
@@ -81,6 +87,19 @@ serve(async (req) => {
   const authResult = await requireAuth(req, corsHeaders);
   if (!authResult.ok) return authResult.response;
 
+  if (!isUsageConfigured()) {
+    return usageConfigErrorResponse(corsHeaders);
+  }
+
+  const quota = await requireUsageQuota(
+    authResult.user.id,
+    "weather.forecast",
+    "weather_request",
+    corsHeaders,
+  );
+  if (!quota.ok) return quota.response;
+  const usageContext = quota.context;
+
   const apiKey = Deno.env.get("WEATHER_API_KEY");
   if (!apiKey) {
     console.error("WEATHER_API_KEY is not configured");
@@ -132,6 +151,11 @@ serve(async (req) => {
     const forecast = forecastData.forecast.forecastday.map(mapForecastDay);
 
     if (mode === "forecast") {
+      await trackMeteredUsage(usageContext, {
+        featureKey: "weather.forecast",
+        usageUnit: "weather_request",
+        requestId: req.headers.get("x-request-id"),
+      });
       return new Response(
         JSON.stringify({
           location: {
@@ -183,6 +207,12 @@ serve(async (req) => {
       effective: alert.effective,
       expires: alert.expires,
     })) ?? [];
+
+    await trackMeteredUsage(usageContext, {
+      featureKey: "weather.forecast",
+      usageUnit: "weather_request",
+      requestId: req.headers.get("x-request-id"),
+    });
 
     return new Response(
       JSON.stringify({
