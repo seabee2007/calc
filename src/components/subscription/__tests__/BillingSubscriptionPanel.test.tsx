@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
@@ -8,6 +8,7 @@ const createCheckoutSession = vi.fn();
 const createCustomerPortalSession = vi.fn();
 const redirectToStripeUrl = vi.fn();
 const mockNavigate = vi.fn();
+const scrollIntoViewMock = vi.fn();
 
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom');
@@ -33,6 +34,31 @@ let mockSubscriptionState = {
   refresh: vi.fn(),
 };
 
+let mockUsageSummaryState = {
+  summary: {
+    periodStart: '2026-06-01T00:00:00.000Z',
+    periodEnd: '2026-07-01T00:00:00.000Z',
+    planId: 'free' as const,
+    items: [
+      {
+        usageUnit: 'ai_request' as const,
+        label: 'AI requests',
+        used: 0,
+        limit: 0,
+        remaining: 0,
+        percentUsed: 100,
+        resetsAt: '2026-07-01T00:00:00.000Z',
+        creditRemaining: 0,
+        creditsExpireAt: null,
+      },
+    ],
+  },
+  loading: false,
+  error: null,
+  ownerOnlyBlocked: false,
+  refetch: vi.fn(),
+};
+
 vi.mock('../../../services/billingService', () => ({
   createCheckoutSession: (...args: unknown[]) => createCheckoutSession(...args),
   createCustomerPortalSession: (...args: unknown[]) => createCustomerPortalSession(...args),
@@ -49,28 +75,7 @@ vi.mock('../../../hooks/useAuth', () => ({
 }));
 
 vi.mock('../../../hooks/useUsageSummary', () => ({
-  useUsageSummary: () => ({
-    summary: {
-      periodStart: '2026-06-01T00:00:00.000Z',
-      periodEnd: '2026-07-01T00:00:00.000Z',
-      planId: 'free',
-      items: [
-        {
-          usageUnit: 'ai_request',
-          label: 'AI requests',
-          used: 0,
-          limit: 0,
-          remaining: 0,
-          percentUsed: 100,
-          resetsAt: '2026-07-01T00:00:00.000Z',
-        },
-      ],
-    },
-    loading: false,
-    error: null,
-    ownerOnlyBlocked: false,
-    refetch: vi.fn(),
-  }),
+  useUsageSummary: () => mockUsageSummaryState,
 }));
 
 describe('BillingSubscriptionPanel', () => {
@@ -86,6 +91,47 @@ describe('BillingSubscriptionPanel', () => {
     };
     createCheckoutSession.mockResolvedValue('https://checkout.stripe.test/session');
     createCustomerPortalSession.mockResolvedValue('https://billing.stripe.test/portal');
+    scrollIntoViewMock.mockReset();
+    Element.prototype.scrollIntoView = scrollIntoViewMock;
+    vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({
+      matches: false,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }));
+    vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+      callback(0);
+      return 1;
+    });
+    mockUsageSummaryState = {
+      summary: {
+        periodStart: '2026-06-01T00:00:00.000Z',
+        periodEnd: '2026-07-01T00:00:00.000Z',
+        planId: 'free',
+        items: [
+          {
+            usageUnit: 'ai_request',
+            label: 'AI requests',
+            used: 0,
+            limit: 0,
+            remaining: 0,
+            percentUsed: 100,
+            resetsAt: '2026-07-01T00:00:00.000Z',
+            creditRemaining: 0,
+            creditsExpireAt: null,
+          },
+        ],
+      },
+      loading: false,
+      error: null,
+      ownerOnlyBlocked: false,
+      refetch: vi.fn(),
+    };
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   it('shows Free and no active subscription for a user with no subscription row', () => {
@@ -264,7 +310,34 @@ describe('BillingSubscriptionPanel', () => {
     expect(redirectToStripeUrl).toHaveBeenCalledWith('https://billing.stripe.test/portal');
   });
 
-  it('highlights the upgrade plan from the upgrade query param', () => {
+  it('scrolls to Plans and highlights Professional when the usage CTA is clicked', async () => {
+    mockUsageSummaryState = {
+      ...mockUsageSummaryState,
+      summary: {
+        ...mockUsageSummaryState.summary,
+        planId: 'starter',
+      },
+    };
+
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter>
+        <BillingSubscriptionPanel />
+      </MemoryRouter>,
+    );
+
+    await user.click(screen.getByTestId('usage-upgrade-cta'));
+
+    expect(screen.getByTestId('pricing-plan-professional')).toHaveTextContent('Recommended upgrade');
+    await waitFor(() => {
+      expect(scrollIntoViewMock).toHaveBeenCalledWith({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    });
+  });
+
+  it('highlights and scrolls to the upgrade plan from the upgrade query param', async () => {
     render(
       <MemoryRouter initialEntries={['/settings/billing?upgrade=business&returnTo=%2F%3FcustomizeDashboard%3D1']}>
         <BillingSubscriptionPanel />
@@ -272,6 +345,12 @@ describe('BillingSubscriptionPanel', () => {
     );
 
     expect(screen.getByTestId('pricing-plan-business')).toHaveTextContent('Recommended upgrade');
+    await waitFor(() => {
+      expect(scrollIntoViewMock).toHaveBeenCalledWith({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    });
   });
 
   it('returns to returnTo after checkout success', async () => {

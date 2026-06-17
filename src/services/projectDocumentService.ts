@@ -209,7 +209,24 @@ export async function saveProjectDocumentDraft(
   savePayload.companySnapshot = meta.companySnapshot;
   savePayload.renderedSnapshot = meta.renderedSnapshot;
 
-  return saveContractVersion(savePayload);
+  const result = await saveContractVersion(savePayload);
+
+  if (payload.projectId && builderWorkflowStatus === 'Submitted') {
+    try {
+      const { notifyDocumentNeedsReview } = await import('./notificationEventService');
+      await notifyDocumentNeedsReview({
+        projectId: payload.projectId,
+        documentId: payload.documentId,
+        documentName: payload.title,
+      });
+    } catch (notificationError) {
+      if (import.meta.env.DEV) {
+        console.error('[Notifications] Failed after document submit', notificationError);
+      }
+    }
+  }
+
+  return result;
 }
 
 /** Merge workflow answers from Planner review drawer; keeps contract_documents.status as draft/finalized/archived. */

@@ -113,6 +113,9 @@ describe('estimateWorkspaceToolbar', () => {
     ).toBe(true);
     expect(
       shouldShowBucketSaveAction('overview', true, null, true, false),
+    ).toBe(true);
+    expect(
+      shouldShowBucketSaveAction('quick-estimate', true, null, true, false),
     ).toBe(false);
   });
 

@@ -98,6 +98,17 @@ describe('conceptual estimate workflow', () => {
     expect(workspacePageSource).toContain('!hasDirtyLocalState');
   });
 
+  it('saves quick estimate markup and settings through the current estimate row', () => {
+    expect(workspacePageSource).toContain('if (isQuickFeasibilityEstimate) {');
+    expect(workspacePageSource).toContain('estimateSettingsToAssumptions');
+    expect(workspacePageSource).toContain("Failed to save estimate settings.");
+    const branchStart = workspacePageSource.indexOf('if (isQuickFeasibilityEstimate) {');
+    const branchEnd = workspacePageSource.indexOf('const hasEstimateChanges =', branchStart);
+    const quickSettingsBranch = workspacePageSource.slice(branchStart, branchEnd);
+    expect(quickSettingsBranch).toContain('saveCurrentEstimate({');
+    expect(quickSettingsBranch).not.toContain('saveCurrentEstimateWithLineItems');
+  });
+
   it('places Convert to Detailed Estimate in the Actions menu, not add-item toolbar', () => {
     expect(workspacePageSource).toContain('shouldShowConvertToDetailedAction');
     expect(workspacePageSource).toContain('onConvertToDetailed={() => setConvertToDetailedModalOpen(true)}');

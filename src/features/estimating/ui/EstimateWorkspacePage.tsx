@@ -140,6 +140,7 @@ import {
 } from './hooks/useEstimateWorkspaceSaveStatus';
 import { friendlyEstimateWorkspaceSaveError, resolveEstimateWorkspaceSaveControl } from './estimateWorkspaceSaveStatus';
 import { quickFeasibilityInputsFromSnapshot } from '../application/estimateQuickFeasibility';
+import { estimateSettingsToAssumptions } from '../application/estimateSettings';
 import { applyImportedEstimate } from '../importExport/estimateImportApply';
 import type { ImportedEstimateData } from '../importExport/estimateImportParser';
 import type { EstimateImportApplyMode } from '../importExport/estimateImportApply';
@@ -1453,6 +1454,63 @@ export default function EstimateWorkspacePage() {
     if (pendingCrewCommit !== null) {
       setProjectCrewSizeDraftDirty(false);
       await handleProjectCrewSizeChange(pendingCrewCommit);
+    }
+
+    if (isQuickFeasibilityEstimate) {
+      if (!estimateSettings.dirty && !projectCrewSizeDraftDirty) return;
+
+      setSaving(true);
+      workspaceSaveStatus.markSaving();
+      setSaveError(null);
+      setSaveToastMessage(null);
+
+      const saveAssumptions = mergeScheduleAssumptions(
+        {
+          scheduleSettings: scheduleSettingsHook.scheduleSettings,
+          logicLinks: scheduleSettingsHook.logicLinks,
+          logicNetworkLayout: scheduleSettingsHook.logicNetworkLayout,
+          leveledActivityOffsets: scheduleSettingsHook.leveledOffsets,
+          logicReviewIgnored: scheduleSettingsHook.logicReviewIgnored,
+          logicNetworkInitialized: scheduleSettingsHook.logicNetworkInitialized,
+          logicNetworkViewMode: scheduleSettingsHook.logicNetworkViewMode,
+          precedenceDiagram: scheduleSettingsHook.precedenceDiagram,
+        },
+        (currentEstimateRef.current?.assumptions as Record<string, unknown>) ?? {},
+      );
+      const assumptions = estimateSettingsToAssumptions(
+        estimateSettings.settings,
+        saveAssumptions,
+      );
+
+      const result = await saveCurrentEstimate({
+        ...(currentEstimate
+          ? buildEstimatePersistenceFields(currentEstimate)
+          : {
+              estimateId: estimate.id,
+              projectId: estimate.projectId,
+              estimateType: normalizeEstimateMethod(estimateAdapter.estimateType),
+            }),
+        selectedDivisions: currentEstimate?.selectedDivisions ?? [],
+        lineItems: currentEstimate?.lineItems ?? [],
+        totals: currentEstimate?.totals ?? {},
+        summary: currentEstimate?.summary ?? {},
+        assumptions,
+        createdBy: user?.id ?? null,
+      });
+
+      if (result.error || !result.data) {
+        workspaceSaveStatus.markError(result.error);
+        setSaveError(friendlyEstimateWorkspaceSaveError(result.error ?? 'Failed to save estimate settings.'));
+        setSaving(false);
+        return;
+      }
+
+      setSaveToastMessage(createEstimateSaveSuccessToast().message);
+      setCurrentEstimate(result.data);
+      estimateSettings.rehydrateFromEstimate(result.data);
+      workspaceSaveStatus.markSaved();
+      setSaving(false);
+      return;
     }
 
     const hasEstimateChanges =

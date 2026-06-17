@@ -79,7 +79,25 @@ export async function sendFieldMessage(input: {
     .select('*')
     .single();
   if (error) throw error;
-  return mapMessage(data);
+  const message = mapMessage(data);
+
+  try {
+    const { notifyEmployeeMessage } = await import('./notificationEventService');
+    await notifyEmployeeMessage({
+      projectId: input.projectId,
+      senderId: input.senderId,
+      messageId: message.id,
+      recipientId: input.recipientId,
+      taskId: input.taskId,
+      messagePreview: input.message,
+    });
+  } catch (notificationError) {
+    if (import.meta.env.DEV) {
+      console.error('[Notifications] Failed after field message send', notificationError);
+    }
+  }
+
+  return message;
 }
 
 export async function markMessageRead(messageId: string) {

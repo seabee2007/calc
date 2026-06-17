@@ -498,6 +498,8 @@ export async function submitTaskForReview(taskId: string) {
   if (error) throw error;
 
   const task = mapTask(data);
+  const { data: authData } = await supabase.auth.getUser();
+  const actorId = authData.user?.id ?? task.assignedTo ?? task.createdBy;
   const { data: project } = await supabase
     .from('projects')
     .select('user_id, name')
@@ -505,15 +507,15 @@ export async function submitTaskForReview(taskId: string) {
     .maybeSingle();
 
   if (project?.user_id) {
-    const { createNotification } = await import('./notificationService');
-    await createNotification({
-      userId: project.user_id as string,
-      type: 'task_submitted',
-      title: 'Task submitted for review',
-      body: task.title,
-      href: plannerBoardHref(task.projectId, task.id),
+    const { notifyFieldActivity } = await import('./notificationEventService');
+    await notifyFieldActivity({
       projectId: task.projectId,
+      employeeUserId: actorId ?? project.user_id as string,
+      summary: task.title,
+      sourceType: 'planner_task',
+      sourceId: task.id,
       taskId: task.id,
+      actionUrl: plannerBoardHref(task.projectId, task.id),
     });
   }
 

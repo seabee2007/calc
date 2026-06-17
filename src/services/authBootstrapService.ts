@@ -10,6 +10,7 @@ import {
   DEFAULT_USER_PREFERENCES,
   saveUserPreferences,
 } from './userPreferencesService';
+import { ensureNotificationPreferences } from './notificationPreferenceService';
 
 async function ensureUserPreferencesRow(userId: string): Promise<void> {
   const { data, error } = await supabase
@@ -71,6 +72,11 @@ export async function bootstrapAuthenticatedUser(
   }
 
   await ensureUserPreferencesRow(userId);
+  await ensureNotificationPreferences({
+    emailUpdatesEnabled: DEFAULT_USER_PREFERENCES.notifications.emailUpdates,
+    projectRemindersEnabled: DEFAULT_USER_PREFERENCES.notifications.projectReminders,
+    weatherAlertsEnabled: DEFAULT_USER_PREFERENCES.notifications.weatherAlerts,
+  });
 
   if (isOwnerRole(profile.role)) {
     await ensureCompanySettingsRow(userId, email);

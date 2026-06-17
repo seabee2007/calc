@@ -52,6 +52,12 @@ import {
   type USAddress,
 } from '../types/address';
 import { formatUsPhoneNumber } from '../utils/phoneFormatting';
+import type { NotificationPreferences } from '../lib/notificationTypes';
+import {
+  countEnabledNotificationToggles,
+  ensureNotificationPreferences,
+  updateNotificationPreferences,
+} from '../services/notificationPreferenceService';
 
 const TAX_SYSTEM_LABELS: Record<string, string> = {
   none: 'None',
@@ -73,9 +79,7 @@ const Settings: React.FC = () => {
   const { preferences, updatePreferences, loading: preferencesLoading } = usePreferencesStore();
   const { rates: laborRates } = useCompanyLaborRates();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [expandedSections, setExpandedSections] = useState<Set<SettingsSectionId>>(
-    () => readExpandedSettingsSections(),
-  );
+  const [notificationPrefs, setNotificationPrefs] = useState<NotificationPreferences | null>(null);
   
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
@@ -254,12 +258,37 @@ const Settings: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    if (!user) return;
+    void ensureNotificationPreferences({
+      emailUpdatesEnabled: preferences.notifications.emailUpdates,
+      projectRemindersEnabled: preferences.notifications.projectReminders,
+      weatherAlertsEnabled: preferences.notifications.weatherAlerts,
+    })
+      .then(setNotificationPrefs)
+      .catch((error) => {
+        if (import.meta.env.DEV) {
+          console.error('[Settings] Failed to load notification preferences', error);
+        }
+      });
+  }, [user, preferences.notifications.emailUpdates, preferences.notifications.projectReminders, preferences.notifications.weatherAlerts]);
+
   const handleNotificationChange = async (field: string, value: boolean) => {
+    const preferencePatch: Partial<NotificationPreferences> =
+      field === 'emailUpdates'
+        ? { emailUpdatesEnabled: value }
+        : field === 'projectReminders'
+          ? { projectRemindersEnabled: value }
+          : field === 'weatherAlerts'
+            ? { weatherAlertsEnabled: value }
+            : {};
+
     try {
       const updatedNotifications = { ...preferences.notifications, [field]: value };
       await updatePreferences({ notifications: updatedNotifications });
+      const savedPrefs = await updateNotificationPreferences(preferencePatch);
+      if (savedPrefs) setNotificationPrefs(savedPrefs);
       
-      // Play success sound for toggles
       soundService.play('toggle');
       
       if (!preferencesLoading && preferences.autoSave) {
@@ -340,12 +369,15 @@ const Settings: React.FC = () => {
   );
 
   const notificationsSummary = useMemo(() => {
+    if (notificationPrefs) {
+      return `${countEnabledNotificationToggles(notificationPrefs)} enabled`;
+    }
     const enabledCount = Object.entries(preferences.notifications).filter(
       ([key, value]) =>
         ['emailUpdates', 'projectReminders', 'weatherAlerts'].includes(key) && value,
     ).length;
     return `${enabledCount} enabled`;
-  }, [preferences.notifications]);
+  }, [notificationPrefs, preferences.notifications]);
 
   // Force save function for manual save or when auto-save is disabled
   const forceSaveChanges = async () => {
@@ -901,7 +933,7 @@ const Settings: React.FC = () => {
               testId="settings-section-notifications"
               icon={<Bell className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />}
               title="Notifications"
-              description="Email updates, project reminders, and weather alerts."
+              description="Stay informed about project activity, documents, messages, and deadlines."
               summaryChip={notificationsSummary}
               expanded={expandedSections.has('notifications')}
               onToggle={toggleSection}
@@ -920,10 +952,15 @@ const Settings: React.FC = () => {
                   {key === 'weatherAlerts' && 'Weather Alerts'}
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {key === 'emailUpdates' && 'Receive updates about new features and improvements'}
+                  {key === 'emailUpdates' && 'Receive email updates for important project events'}
                   {key === 'projectReminders' && 'Get reminded about ongoing projects and deadlines'}
-                  {key === 'weatherAlerts' && 'Receive alerts about weather conditions affecting concrete work'}
+                  {key === 'weatherAlerts' && 'Weather alert automation coming soon'}
                 </p>
+                {key === 'weatherAlerts' ? (
+                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    Weather alerts are coming soon and will use saved forecast data only.
+                  </p>
+                ) : null}
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input

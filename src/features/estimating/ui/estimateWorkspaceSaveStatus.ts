@@ -72,7 +72,7 @@ export function resolveEstimateWorkspaceSaveControl(
 
   if (input.hasPendingEstimateChanges || input.status === 'dirty') {
     return {
-      label: 'Save',
+      label: 'Unsaved changes · Save',
       ariaLabel: 'Save unsaved changes',
       title: 'Unsaved changes',
       disabled: false,

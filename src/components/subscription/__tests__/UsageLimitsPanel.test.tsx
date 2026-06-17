@@ -100,7 +100,20 @@ describe('UsageLimitsPanel — paid owner', () => {
 
   it('shows upgrade CTA for starter plan', () => {
     renderPanel({ summary: makeSummary('starter') });
-    expect(screen.getByTestId('usage-upgrade-cta')).toBeTruthy();
+    expect(screen.getByTestId('usage-upgrade-cta')).toHaveTextContent('Upgrade to Professional');
+    expect(screen.getByText('Higher monthly usage limits')).toBeInTheDocument();
+  });
+
+  it('calls onUpgradePlan when the usage upgrade CTA is clicked', async () => {
+    const onUpgradePlan = vi.fn();
+    renderPanel({ summary: makeSummary('starter'), onUpgradePlan });
+
+    fireEvent.click(screen.getByTestId('usage-upgrade-cta'));
+
+    await waitFor(() => {
+      expect(onUpgradePlan).toHaveBeenCalledWith('professional');
+    });
+    expect(navigateMock).not.toHaveBeenCalled();
   });
 });
 
@@ -115,10 +128,10 @@ describe('UsageLimitsPanel — free plan', () => {
     expect(screen.queryAllByTestId('usage-buy-more-button')).toHaveLength(0);
   });
 
-  it('shows "Upgrade plan" CTA for free plan', () => {
+  it('shows a specific upgrade CTA for free plan', () => {
     renderPanel({ summary: makeSummary('free') });
     const cta = screen.getByTestId('usage-upgrade-cta');
-    expect(cta.textContent).toBe('Upgrade plan');
+    expect(cta.textContent).toBe('Upgrade to Starter');
   });
 
   it('routes free user upgrade CTA to subscription upgrade, not credit checkout', async () => {

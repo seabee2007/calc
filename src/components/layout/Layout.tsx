@@ -6,6 +6,8 @@ import BottomNav from './BottomNav';
 import ToolsModal from '../workflow/ToolsModal';
 import MoreMenuModal from '../workflow/MoreMenuModal';
 import { useAuth } from '../../hooks/useAuth';
+import NotificationAttentionToast from '../field/NotificationAttentionToast';
+import { runNotificationReminderChecksForOwner } from '../../services/notificationReminderService';
 import { isPlannerWorkspacePath } from '../../utils/plannerRoutes';
 import SiteBackground from './SiteBackground';
 import PageErrorBoundary from './PageErrorBoundary';
@@ -15,7 +17,7 @@ import { isPublicLegalPath, usesPublicMarketingShell } from '../../utils/publicM
 
 const Layout: React.FC = () => {
   const location = useLocation();
-  const { user, isEmployee } = useAuth();
+  const { user, isEmployee, isOwner } = useAuth();
 
   const isPlannerWorkspace = isPlannerWorkspacePath(location.pathname);
   const isEmployeeRoute = location.pathname.startsWith('/employee');
@@ -107,6 +109,11 @@ const Layout: React.FC = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (!user || !isOwner) return;
+    void runNotificationReminderChecksForOwner(user.id);
+  }, [user, isOwner, location.pathname]);
+
   if (isAuthPage || isPlannerWorkspace) {
     return <Outlet />;
   }
@@ -137,6 +144,7 @@ const Layout: React.FC = () => {
           showThemeToggle={!useMarketingShell}
           softHeader={isLoggedOutLanding || (isPublicLegalPage && !user)}
         />
+        {user && isOwner ? <NotificationAttentionToast /> : null}
 
         <main
           className={`relative mx-auto w-full flex-grow px-4 py-8 sm:px-6 lg:px-8 ${

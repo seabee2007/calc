@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../ui/Button';
 import type { UsageSummary, UsageSummaryItem } from '../../services/usageSummaryService';
-import type { PlanId } from '../../lib/entitlements';
+import { PLAN_DISPLAY_NAMES, type PlanId } from '../../lib/entitlements';
 import type { UsageUnit } from '../../lib/usageLimits';
 import {
   USAGE_BILLING_GROUPS,
@@ -34,6 +34,7 @@ export interface UsageLimitsPanelProps {
   maxRows?: number;
   showResetDate?: boolean;
   className?: string;
+  onUpgradePlan?: (planId: PlanId) => void;
 }
 
 function itemByUnit(items: UsageSummaryItem[], unit: UsageUnit): UsageSummaryItem | undefined {
@@ -156,6 +157,7 @@ export default function UsageLimitsPanel({
   maxRows,
   showResetDate = true,
   className = '',
+  onUpgradePlan,
 }: UsageLimitsPanelProps) {
   const navigate = useNavigate();
   const [buyingPackId, setBuyingPackId] = useState<UsageCreditPackId | null>(null);
@@ -163,6 +165,7 @@ export default function UsageLimitsPanel({
   const planId = summary?.planId ?? 'free';
   const upgradePlan = nextUpgradePlan(planId);
   const canBuyCredits = canPurchaseCreditPacks(planId);
+  const upgradePlanName = upgradePlan ? PLAN_DISPLAY_NAMES[upgradePlan].short : null;
 
   const startCreditCheckout = async (packId: UsageCreditPackId) => {
     setBuyError(null);
@@ -290,14 +293,25 @@ export default function UsageLimitsPanel({
 
           <div className="flex flex-wrap items-center gap-3 pt-2">
             {upgradePlan ? (
-              <Button
-                variant="accent"
-                size="sm"
-                data-testid="usage-upgrade-cta"
-                onClick={() => navigate(buildBillingUpgradeUrl(upgradePlan, '/settings/billing'))}
-              >
-                {usageUpgradeCtaLabel(planId)}
-              </Button>
+              <div className="space-y-1">
+                <Button
+                  variant="accent"
+                  size="sm"
+                  data-testid="usage-upgrade-cta"
+                  onClick={() => {
+                    if (onUpgradePlan) {
+                      onUpgradePlan(upgradePlan);
+                      return;
+                    }
+                    navigate(buildBillingUpgradeUrl(upgradePlan, '/settings/billing'));
+                  }}
+                >
+                  {upgradePlanName ? `Upgrade to ${upgradePlanName}` : usageUpgradeCtaLabel(planId)}
+                </Button>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Higher monthly usage limits
+                </p>
+              </div>
             ) : (
               <p className="text-sm text-slate-600 dark:text-slate-300" data-testid="usage-contact-support">
                 {usageUpgradeCtaLabel(planId)}

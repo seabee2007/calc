@@ -1,6 +1,6 @@
-import { supabase } from '../lib/supabase';
 import type { TrackedProposalRow } from '../types/proposalTracking';
-import { createNotification } from './notificationService';
+import { buildNotificationSourceMetadata } from '../lib/notificationTypes';
+import { createNotification, hasExistingNotification } from './notificationService';
 
 export type ProposalNotificationType =
   | 'proposal_accepted'
@@ -54,21 +54,12 @@ export async function hasExistingProposalNotification(
   proposalId: string,
   type: ProposalNotificationType,
 ): Promise<boolean> {
-  const href = proposalNotificationHref(proposalId);
-  const { data, error } = await supabase
-    .from('field_notifications')
-    .select('id')
-    .eq('user_id', userId)
-    .eq('type', type)
-    .eq('href', href)
-    .limit(1);
-
-  if (error) {
-    if (error.code === 'PGRST205') return false;
-    throw error;
-  }
-
-  return (data?.length ?? 0) > 0;
+  return hasExistingNotification({
+    userId,
+    type,
+    sourceType: 'proposal',
+    sourceId: proposalId,
+  });
 }
 
 export async function createProposalNotification(input: {
@@ -91,9 +82,14 @@ export async function createProposalNotification(input: {
       userId,
       type,
       title: copy.title,
-      body: copy.body(clientName, proposalTitle),
-      href: proposalNotificationHref(proposal.id),
+      message: copy.body(clientName, proposalTitle),
+      actionUrl: proposalNotificationHref(proposal.id),
       projectId: proposal.project_id ?? undefined,
+      metadata: buildNotificationSourceMetadata({
+        sourceType: 'proposal',
+        sourceId: proposal.id,
+        recipientUserId: userId,
+      }),
     });
   } catch (error) {
     if (import.meta.env.DEV) {

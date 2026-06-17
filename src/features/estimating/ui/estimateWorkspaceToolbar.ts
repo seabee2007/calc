@@ -288,7 +288,7 @@ export function shouldShowBucketSaveAction(
   showBucketPanel: boolean,
   hasProjectContext = false,
 ): boolean {
-  if (isQuickFeasibility) return false;
+  if (isQuickFeasibility && activeTab === 'quick-estimate') return false;
   if (!shouldShowSaveEstimateAction(hasEstimate, activeEstimateType, hasProjectContext)) {
     return false;
   }

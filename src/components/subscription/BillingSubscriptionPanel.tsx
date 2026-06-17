@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CreditCard, ExternalLink, AlertTriangle } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import InlineNotice from '../ui/InlineNotice';
@@ -62,6 +62,8 @@ export default function BillingSubscriptionPanel() {
   const [busyAction, setBusyAction] = useState<'portal' | PlanId | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [highlightedPlan, setHighlightedPlan] = useState<PlanId | null>(null);
+  const plansSectionRef = useRef<HTMLDivElement | null>(null);
 
   const subscriptionLabels = { plan, status, subscription };
   const { label: currentPlanLabel, tone: currentPlanTone } = getProfilePlanLabel(subscriptionLabels);
@@ -84,6 +86,41 @@ export default function BillingSubscriptionPanel() {
     const value = searchParams.get('returnTo');
     return isSafeReturnPath(value) ? value : null;
   }, [searchParams]);
+
+  const scrollToPlansSection = useCallback(() => {
+    const section = plansSectionRef.current;
+    if (!section) return;
+    const prefersReducedMotion =
+      typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    section.scrollIntoView({
+      behavior: prefersReducedMotion ? 'auto' : 'smooth',
+      block: 'start',
+    });
+  }, []);
+
+  const schedulePlansScroll = useCallback(() => {
+    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+      window.requestAnimationFrame(scrollToPlansSection);
+      return;
+    }
+    setTimeout(scrollToPlansSection, 0);
+  }, [scrollToPlansSection]);
+
+  const handleUsageUpgradePlan = useCallback(
+    (targetPlan: PlanId) => {
+      setHighlightedPlan(targetPlan);
+      schedulePlansScroll();
+    },
+    [schedulePlansScroll],
+  );
+
+  useEffect(() => {
+    if (!upgradePlan) return;
+    setHighlightedPlan(upgradePlan);
+    schedulePlansScroll();
+  }, [schedulePlansScroll, upgradePlan]);
 
   useEffect(() => {
     if (checkoutResult === 'success') {
@@ -257,18 +294,21 @@ export default function BillingSubscriptionPanel() {
         loading={usageSummary.loading}
         error={usageSummary.error}
         ownerOnlyBlocked={!isOwner || usageSummary.ownerOnlyBlocked}
+        onUpgradePlan={handleUsageUpgradePlan}
       />
 
       {/* Pricing cards */}
-      <PricingPlansCard
-        currentPlanId={customerCurrentPlanId}
-        billingInterval={billingInterval}
-        onBillingIntervalChange={setBillingInterval}
-        onSelectPlan={(targetPlan) => void handleSelectPlan(targetPlan)}
-        loadingPlan={typeof busyAction === 'string' && busyAction !== 'portal' ? (busyAction as PlanId) : null}
-        disabled={Boolean(busyAction) || loading}
-        highlightedPlan={upgradePlan}
-      />
+      <div ref={plansSectionRef} className="scroll-mt-28" data-testid="billing-plans-section">
+        <PricingPlansCard
+          currentPlanId={customerCurrentPlanId}
+          billingInterval={billingInterval}
+          onBillingIntervalChange={setBillingInterval}
+          onSelectPlan={(targetPlan) => void handleSelectPlan(targetPlan)}
+          loadingPlan={typeof busyAction === 'string' && busyAction !== 'portal' ? (busyAction as PlanId) : null}
+          disabled={Boolean(busyAction) || loading}
+          highlightedPlan={highlightedPlan}
+        />
+      </div>
     </div>
   );
 }

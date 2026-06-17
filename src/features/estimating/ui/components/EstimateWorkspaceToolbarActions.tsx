@@ -144,7 +144,7 @@ export default function EstimateWorkspaceToolbarActions({
       ) : null}
       {showSaveQuick ? (
         <Button
-          variant="accent"
+          variant="outline"
           size="sm"
           icon={<Save className="h-4 w-4" />}
           disabled={!canEdit || !canSaveQuick}

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { TrackedProposalRow } from '../types/proposalTracking';
+import type { TrackedProposalRow } from '../../types/proposalTracking';
 import {
   createProposalNotification,
   getProposalClientName,
@@ -9,16 +9,11 @@ import {
 } from '../proposalNotificationService';
 
 const createNotification = vi.fn();
-const supabaseFrom = vi.fn();
+const hasExistingNotification = vi.fn();
 
 vi.mock('../notificationService', () => ({
   createNotification: (...args: unknown[]) => createNotification(...args),
-}));
-
-vi.mock('../../lib/supabase', () => ({
-  supabase: {
-    from: (...args: unknown[]) => supabaseFrom(...args),
-  },
+  hasExistingNotification: (...args: unknown[]) => hasExistingNotification(...args),
 }));
 
 function makeProposal(overrides: Partial<TrackedProposalRow> = {}): TrackedProposalRow {
@@ -61,17 +56,7 @@ function makeProposal(overrides: Partial<TrackedProposalRow> = {}): TrackedPropo
 describe('proposalNotificationService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    supabaseFrom.mockReturnValue({
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          eq: vi.fn().mockReturnValue({
-            eq: vi.fn().mockReturnValue({
-              limit: vi.fn().mockResolvedValue({ data: [], error: null }),
-            }),
-          }),
-        }),
-      }),
-    });
+    hasExistingNotification.mockResolvedValue(false);
     createNotification.mockResolvedValue({ id: 'notif-1' });
   });
 
@@ -91,9 +76,13 @@ describe('proposalNotificationService', () => {
       userId: 'owner-1',
       type: 'proposal_accepted',
       title: 'Proposal accepted',
-      body: 'Jane Smith accepted Backyard Patio.',
-      href: '/proposals?proposalId=proposal-1',
+      message: 'Jane Smith accepted Backyard Patio.',
+      actionUrl: '/proposals?proposalId=proposal-1',
       projectId: 'project-1',
+      metadata: expect.objectContaining({
+        sourceType: 'proposal',
+        sourceId: 'proposal-1',
+      }),
     });
   });
 
@@ -106,26 +95,16 @@ describe('proposalNotificationService', () => {
       expect.objectContaining({
         type: 'proposal_declined',
         title: 'Proposal declined',
-        body: 'Jane Smith declined Backyard Patio.',
+        message: 'Jane Smith declined Backyard Patio.',
       }),
     );
   });
 
   it('creates first proposal_viewed notification only once', async () => {
     const proposal = makeProposal();
-    const limit = vi
-      .fn()
-      .mockResolvedValueOnce({ data: [], error: null })
-      .mockResolvedValueOnce({ data: [{ id: 'existing' }], error: null });
-    supabaseFrom.mockReturnValue({
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          eq: vi.fn().mockReturnValue({
-            eq: vi.fn().mockReturnValue({ limit }),
-          }),
-        }),
-      }),
-    });
+    hasExistingNotification
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true);
 
     await createProposalNotification({ proposal, type: 'proposal_viewed' });
     await createProposalNotification({ proposal, type: 'proposal_viewed' });
@@ -134,23 +113,13 @@ describe('proposalNotificationService', () => {
     expect(createNotification).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'proposal_viewed',
-        body: 'Jane Smith viewed Backyard Patio.',
+        message: 'Jane Smith viewed Backyard Patio.',
       }),
     );
   });
 
   it('skips duplicate notifications when one already exists', async () => {
-    supabaseFrom.mockReturnValue({
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          eq: vi.fn().mockReturnValue({
-            eq: vi.fn().mockReturnValue({
-              limit: vi.fn().mockResolvedValue({ data: [{ id: 'existing' }], error: null }),
-            }),
-          }),
-        }),
-      }),
-    });
+    hasExistingNotification.mockResolvedValue(true);
 
     await createProposalNotification({
       proposal: makeProposal(),

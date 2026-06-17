@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Outlet, useLocation, useParams } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../hooks/useAuth';
+import NotificationAttentionToast from '../field/NotificationAttentionToast';
+import { runNotificationReminderChecksForOwner } from '../../services/notificationReminderService';
 import PlannerAppBar from '../planner/PlannerAppBar';
 import PlannerSidebar from '../planner/PlannerSidebar';
 import ToolsModal from '../workflow/ToolsModal';
@@ -55,8 +57,9 @@ const PlannerWorkspaceLayout: React.FC = () => {
   const { user, isOwner, isEmployee } = useAuth();
 
   useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [location.pathname]);
+    if (!user || !isOwner) return;
+    void runNotificationReminderChecksForOwner(user.id);
+  }, [user, isOwner, location.pathname]);
 
   useEffect(() => {
     const setThemeColors = () => {
@@ -92,6 +95,7 @@ const PlannerWorkspaceLayout: React.FC = () => {
       <SiteBackground solidCanvas />
       <div className="relative z-10 flex min-h-0 min-h-[100dvh] flex-1 flex-col">
         <PlannerWorkspaceMain />
+        {user && isOwner ? <NotificationAttentionToast /> : null}
         {user && isOwner && !isEmployee && <ToolsModal />}
       </div>
     </div>

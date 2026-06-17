@@ -67,6 +67,13 @@ describe('estimateWorkspaceQuickSave toolbar', () => {
     );
   });
 
+  it('uses outline toolbar styling instead of the filled accent variant', () => {
+    renderQuickSaveToolbar();
+    const button = screen.getByTestId('estimate-workspace-save-quick-button');
+    expect(button.className).toContain('border');
+    expect(button.className).not.toContain('bg-cyan-600');
+  });
+
   it('calls the quick save handler when Save Quick Estimate is clicked', async () => {
     const user = userEvent.setup();
     const { saveQuick } = renderQuickSaveToolbar();
@@ -84,6 +91,35 @@ describe('estimateWorkspaceQuickSave toolbar', () => {
   it('keeps save disabled when quick estimate cannot be saved', () => {
     renderQuickSaveToolbar({ canSaveQuick: false });
     expect(screen.getByTestId('estimate-workspace-save-quick-button')).toBeDisabled();
+  });
+
+  it('uses the same save status component for saved state on other toolbar save tabs', () => {
+    render(
+      <EstimateWorkspaceToolbarActions
+        showAddDivision={false}
+        showCollapseAll={false}
+        showReset={false}
+        showSaveBucket={true}
+        showSaveQuick={false}
+        showImportExport={false}
+        canEdit={true}
+        canSaveQuick={false}
+        saving={false}
+        saveStatus="saved"
+        saveStatusActiveOperations={0}
+        hasPendingEstimateChanges={false}
+        handlers={null}
+        onReset={vi.fn()}
+        onSave={vi.fn()}
+        onRetrySave={vi.fn()}
+        onImportEstimate={vi.fn()}
+        onExportEstimate={vi.fn()}
+        onDownloadImportTemplate={vi.fn()}
+        onOpenHelp={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText('Saved ✓')).toBeInTheDocument();
   });
 
   it('still renders the Actions dropdown trigger', () => {

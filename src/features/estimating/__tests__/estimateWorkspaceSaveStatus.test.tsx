@@ -50,7 +50,7 @@ describe('estimateWorkspaceSaveStatus', () => {
       hasPendingEstimateChanges: true,
     });
 
-    expect(control.label).toBe('Save');
+    expect(control.label).toBe('Unsaved changes · Save');
     expect(control.action).toBe('save');
     expect(control.variant).toBe('accent');
   });
@@ -144,6 +144,18 @@ describe('estimateWorkspaceSaveStatus', () => {
         shouldShowBucketSaveAction(tabId, true, 'detailed', false, tabId === 'line-items'),
       ).toBe(true);
     }
+  });
+
+  it('shows global save status on quick estimate editable tabs outside the quick form', () => {
+    expect(
+      shouldShowBucketSaveAction('quick-estimate', true, 'quick', true, false),
+    ).toBe(false);
+    expect(
+      shouldShowBucketSaveAction('overview', true, 'quick', true, false),
+    ).toBe(true);
+    expect(
+      shouldShowBucketSaveAction('settings', true, 'quick', true, false),
+    ).toBe(true);
   });
 
   it('does not rely on a disabled icon-only save button in toolbar actions', () => {

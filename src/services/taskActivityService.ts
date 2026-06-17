@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { plannerBoardHref } from '../utils/plannerRoutes';
 import type { TaskAttachment, TaskChecklistItem, TaskComment } from '../types/fieldPlanner';
 import { buildProfileNameMap, nameFromMap } from './profileService';
 
@@ -74,7 +75,26 @@ export async function addTaskComment(
     .select('*')
     .single();
   if (error) throw error;
-  return mapComment(data);
+  const savedComment = mapComment(data);
+
+  try {
+    const { notifyFieldActivity } = await import('./notificationEventService');
+    await notifyFieldActivity({
+      projectId,
+      employeeUserId: userId,
+      summary: savedComment.comment,
+      sourceType: 'task_comment',
+      sourceId: savedComment.id,
+      taskId,
+      actionUrl: plannerBoardHref(projectId, taskId),
+    });
+  } catch (notificationError) {
+    if (import.meta.env.DEV) {
+      console.error('[Notifications] Failed after task comment', notificationError);
+    }
+  }
+
+  return savedComment;
 }
 
 export async function fetchChecklistItems(taskId: string): Promise<TaskChecklistItem[]> {
@@ -154,5 +174,23 @@ export async function addTaskAttachmentRecord(input: {
     .select('*')
     .single();
   if (error) throw error;
-  return mapAttachment(data);
+  const attachment = mapAttachment(data);
+
+  try {
+    const { notifyFieldActivity } = await import('./notificationEventService');
+    await notifyFieldActivity({
+      projectId: input.projectId,
+      employeeUserId: input.uploadedBy,
+      summary: input.fileName,
+      sourceType: 'task_attachment',
+      sourceId: attachment.id,
+      taskId: input.taskId,
+    });
+  } catch (notificationError) {
+    if (import.meta.env.DEV) {
+      console.error('[Notifications] Failed after task attachment', notificationError);
+    }
+  }
+
+  return attachment;
 }
