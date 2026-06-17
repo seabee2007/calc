@@ -7,6 +7,7 @@ import {
   type DashboardCardId,
   type DashboardLayout,
   type DashboardLayoutItem,
+  type DashboardLayoutItemConfig,
 } from '../../../lib/dashboardLayout';
 import {
   getUserPreferences,
@@ -54,6 +55,8 @@ export interface DashboardLayoutController {
   /** Remove a widget from the dashboard (stays available in the catalog). */
   removeWidget: (id: DashboardCardId) => void;
   resetLayout: () => void;
+  /** Merge per-widget config onto a layout item and persist. */
+  setWidgetConfig: (id: DashboardCardId, config: DashboardLayoutItemConfig) => void;
 }
 
 /** Collapse rapid layout commits (RGL can fire several) into one save. */
@@ -276,6 +279,35 @@ export function useDashboardLayout(): DashboardLayoutController {
     scheduleSave(next);
   }, [scheduleSave, setLayoutTracked]);
 
+  const setWidgetConfig = useCallback(
+    (id: DashboardCardId, configPatch: DashboardLayoutItemConfig) => {
+      const prev = layoutRef.current;
+      const current = prev.items.find((item) => item.id === id);
+      if (!current) return;
+
+      const merged: DashboardLayoutItemConfig = {
+        ...current.config,
+        ...configPatch,
+      };
+      if (configPatch.weatherForecast && current.config?.weatherForecast) {
+        merged.weatherForecast = {
+          ...current.config.weatherForecast,
+          ...configPatch.weatherForecast,
+        };
+      }
+
+      const next = {
+        ...prev,
+        items: prev.items.map((item) =>
+          item.id === id ? { ...item, config: merged } : item,
+        ),
+      };
+      setLayoutTracked(next);
+      scheduleSave(next);
+    },
+    [scheduleSave, setLayoutTracked],
+  );
+
   return {
     layout,
     orderedItems,
@@ -291,5 +323,6 @@ export function useDashboardLayout(): DashboardLayoutController {
     addWidget,
     removeWidget,
     resetLayout,
+    setWidgetConfig,
   };
 }

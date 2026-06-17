@@ -20,6 +20,8 @@ interface DashboardWidgetCatalogProps {
   hasFeature: (feature: FeatureKey) => boolean;
   activeIds: Set<DashboardCardId>;
   onAdd: (id: DashboardCardId) => void;
+  onUpgrade: (requiredPlan: PlanId, widgetId: DashboardCardId) => void | Promise<void>;
+  isPastDue?: boolean;
 }
 
 /** Catalog list is derived from the registry metadata — single source of truth. */
@@ -43,9 +45,12 @@ const DashboardWidgetCatalog: React.FC<DashboardWidgetCatalogProps> = ({
   hasFeature,
   activeIds,
   onAdd,
+  onUpgrade,
+  isPastDue = false,
 }) => {
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<'all' | DashboardWidgetCategory>('all');
+  const [upgradingWidgetId, setUpgradingWidgetId] = useState<DashboardCardId | null>(null);
 
   const widgets = useCatalogWidgets(isOwner);
   const accessCtx = useMemo(
@@ -76,6 +81,16 @@ const DashboardWidgetCatalog: React.FC<DashboardWidgetCatalogProps> = ({
   const handleAdd = (id: DashboardCardId) => {
     if (statusFor(id) !== 'add') return;
     onAdd(id);
+  };
+
+  const handleUpgrade = async (requiredPlan: PlanId, widgetId: DashboardCardId) => {
+    if (statusFor(widgetId) !== 'locked' || upgradingWidgetId) return;
+    setUpgradingWidgetId(widgetId);
+    try {
+      await onUpgrade(requiredPlan, widgetId);
+    } finally {
+      setUpgradingWidgetId(null);
+    }
   };
 
   return (
@@ -127,6 +142,9 @@ const DashboardWidgetCatalog: React.FC<DashboardWidgetCatalogProps> = ({
                 meta={meta}
                 status={statusFor(meta.id)}
                 onAdd={() => handleAdd(meta.id)}
+                onUpgrade={(requiredPlan) => void handleUpgrade(requiredPlan, meta.id)}
+                upgrading={upgradingWidgetId === meta.id}
+                isPastDue={isPastDue}
               />
             ))}
           </div>

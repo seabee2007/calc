@@ -237,6 +237,17 @@ describe('useDashboardLayout persistence', () => {
     expect(result.current.orderedItems).toEqual(getDefaultDashboardLayout().items);
   });
 
+  it('adds weather forecast widget and reset removes it', async () => {
+    const { result } = renderHook(() => useDashboardLayout());
+    await flush();
+
+    act(() => result.current.addWidget('weatherForecast'));
+    expect(result.current.activeIds.has('weatherForecast')).toBe(true);
+
+    act(() => result.current.resetLayout());
+    expect(result.current.activeIds.has('weatherForecast')).toBe(false);
+  });
+
   it('reset restores default x/y/w/h coordinates — does not keep stale custom positions', async () => {
     const { result } = renderHook(() => useDashboardLayout());
     await flush();

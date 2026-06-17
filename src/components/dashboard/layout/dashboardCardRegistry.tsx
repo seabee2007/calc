@@ -15,6 +15,7 @@ import {
   DASHBOARD_CARD_META,
   type DashboardCardId,
   type DashboardCardMeta,
+  type DashboardLayoutItemConfig,
 } from '../../../lib/dashboardLayout';
 import { QUEUE_EMPTY_MESSAGE, type DashboardCardContext } from './dashboardData';
 import { isCompactDashboardCard } from './dashboardCardLayout';
@@ -35,6 +36,7 @@ import {
   SupportHelpWidget,
   widgetCompact,
 } from '../widgets/toolShortcutWidgets';
+import WeatherForecastWidget from '../widgets/WeatherForecastWidget';
 
 export interface DashboardCardRenderOptions {
   /** Extra class names applied to the card root where the card supports it. */
@@ -43,6 +45,10 @@ export interface DashboardCardRenderOptions {
   cardWidth?: number;
   /** True when rendered in the mobile single-column stack. */
   isMobile?: boolean;
+  /** Per-widget config from the saved layout item. */
+  widgetConfig?: DashboardLayoutItemConfig;
+  /** Persist per-widget config changes. */
+  onWidgetConfigChange?: (config: DashboardLayoutItemConfig) => void;
 }
 
 export interface DashboardCardDefinition extends DashboardCardMeta {
@@ -245,6 +251,18 @@ const CARD_BEHAVIOR: Record<DashboardCardId, DashboardCardBehavior> = {
     isVisible: alwaysVisible,
     render: (_ctx, options) => (
       <SupportHelpWidget compact={widgetCompact(options?.cardWidth, options?.isMobile)} />
+    ),
+  },
+  weatherForecast: {
+    isVisible: alwaysVisible,
+    render: (ctx, options) => (
+      <WeatherForecastWidget
+        ctx={ctx}
+        cardWidth={options?.cardWidth}
+        isMobile={options?.isMobile}
+        widgetConfig={options?.widgetConfig}
+        onWidgetConfigChange={options?.onWidgetConfigChange}
+      />
     ),
   },
 };

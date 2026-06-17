@@ -7,6 +7,15 @@ import BillingSubscriptionPanel from '../BillingSubscriptionPanel';
 const createCheckoutSession = vi.fn();
 const createCustomerPortalSession = vi.fn();
 const redirectToStripeUrl = vi.fn();
+const mockNavigate = vi.fn();
+
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
+});
 
 type MockSubscription = {
   stripeCustomerId: string | null;
@@ -223,5 +232,40 @@ describe('BillingSubscriptionPanel', () => {
       expect(createCustomerPortalSession).toHaveBeenCalled();
     });
     expect(redirectToStripeUrl).toHaveBeenCalledWith('https://billing.stripe.test/portal');
+  });
+
+  it('highlights the upgrade plan from the upgrade query param', () => {
+    render(
+      <MemoryRouter initialEntries={['/settings/billing?upgrade=business&returnTo=%2F%3FcustomizeDashboard%3D1']}>
+        <BillingSubscriptionPanel />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByTestId('pricing-plan-business')).toHaveTextContent('Recommended upgrade');
+  });
+
+  it('returns to returnTo after checkout success', async () => {
+    const refresh = vi.fn().mockResolvedValue(undefined);
+    mockSubscriptionState = {
+      plan: 'free',
+      status: null,
+      isActive: false,
+      subscription: null,
+      loading: false,
+      refresh,
+    };
+
+    render(
+      <MemoryRouter initialEntries={['/settings/billing?checkout=success&returnTo=%2F%3FcustomizeDashboard%3D1%26openWidgetCatalog%3D1']}>
+        <BillingSubscriptionPanel />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(refresh).toHaveBeenCalled();
+    });
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/?customizeDashboard=1&openWidgetCatalog=1', { replace: true });
+    });
   });
 });

@@ -6,6 +6,57 @@ import Stripe from "https://esm.sh/stripe@17.7.0?target=deno";
 
 export type PlanId = "starter" | "professional" | "business";
 export type BillingInterval = "month" | "year";
+export type StripeKeyMode = "test" | "live";
+
+let stripeEnvValidated = false;
+
+export function detectStripeKeyMode(key: string | null | undefined): StripeKeyMode | null {
+  if (!key || typeof key !== "string") return null;
+  if (key.startsWith("sk_test_") || key.startsWith("pk_test_")) return "test";
+  if (key.startsWith("sk_live_") || key.startsWith("pk_live_")) return "live";
+  return null;
+}
+
+function assertStripeEnvConsistency(): void {
+  if (stripeEnvValidated) return;
+
+  const secretKey = Deno.env.get("STRIPE_SECRET_KEY");
+  const secretMode = detectStripeKeyMode(secretKey);
+  if (!secretMode) {
+    throw new Error("STRIPE_SECRET_KEY must start with sk_test_ or sk_live_.");
+  }
+
+  const configuredMode = Deno.env.get("STRIPE_MODE") as StripeKeyMode | undefined;
+  if (configuredMode && configuredMode !== secretMode) {
+    throw new Error(
+      `STRIPE_MODE=${configuredMode} does not match STRIPE_SECRET_KEY mode (${secretMode}).`,
+    );
+  }
+
+  const publishableKey = Deno.env.get("STRIPE_PUBLISHABLE_KEY");
+  const publishableMode = detectStripeKeyMode(publishableKey);
+  if (publishableKey && publishableMode && publishableMode !== secretMode) {
+    throw new Error(
+      "STRIPE_PUBLISHABLE_KEY mode does not match STRIPE_SECRET_KEY mode.",
+    );
+  }
+
+  stripeEnvValidated = true;
+}
+
+function validateAppUrlForStripeMode(appUrl: string): void {
+  const secretMode = detectStripeKeyMode(Deno.env.get("STRIPE_SECRET_KEY"));
+  if (secretMode !== "live") return;
+  try {
+    const host = new URL(appUrl).hostname;
+    if (host === "localhost" || host === "127.0.0.1") {
+      throw new Error("APP_URL must not point to localhost when using sk_live_.");
+    }
+  } catch (error) {
+    if (error instanceof Error && error.message.includes("localhost")) throw error;
+    throw new Error("APP_URL must be a valid absolute URL.");
+  }
+}
 
 export const STRIPE_PRICE_LOOKUP_KEYS = {
   starter_monthly: "arden_starter_monthly",
@@ -43,6 +94,7 @@ export const PLAN_INCLUDED_FIELD_SEATS: Record<PlanId, number> = {
 const VALID_PLAN_IDS = new Set<PlanId>(["starter", "professional", "business"]);
 
 export function getStripe(): Stripe {
+  assertStripeEnvConsistency();
   const secretKey = Deno.env.get("STRIPE_SECRET_KEY");
   if (!secretKey) {
     throw new Error("STRIPE_SECRET_KEY is not configured.");
@@ -58,7 +110,34 @@ export function getAppUrl(): string {
   if (!url) {
     throw new Error("APP_URL is not configured.");
   }
+  validateAppUrlForStripeMode(url);
   return url;
+}
+
+/** Same-origin path or absolute URL under the app origin — blocks open redirects. */
+export function isSafeAppReturnUrl(candidate: string, appUrl: string): boolean {
+  try {
+    const app = new URL(appUrl);
+    const resolved = candidate.startsWith("/")
+      ? new URL(candidate, appUrl)
+      : new URL(candidate);
+    if (resolved.origin !== app.origin) return false;
+    if (!resolved.pathname.startsWith("/")) return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function resolveAppReturnUrl(
+  candidate: unknown,
+  appUrl: string,
+  fallback: string,
+): string {
+  if (typeof candidate === "string" && isSafeAppReturnUrl(candidate, appUrl)) {
+    return candidate.startsWith("/") ? `${appUrl}${candidate}` : candidate;
+  }
+  return fallback;
 }
 
 export function isPlanId(value: unknown): value is PlanId {

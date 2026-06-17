@@ -18,8 +18,17 @@ export const OPS_SHELL =
 
 export const OPS_PANEL = `${PREMIUM_PANEL} p-6`;
 
-/** Hero card — matches OpsCard `panel` surface. */
-export const OPS_HERO_CARD = PREMIUM_PANEL;
+/**
+ * Shared outer shell for Operations Dashboard grid widgets — same elevation as
+ * Schedule & Deadlines and Today's Operations (`PREMIUM_PANEL`).
+ */
+export const DASHBOARD_CARD_SHELL = PREMIUM_PANEL;
+
+/** Nested panel inside a dashboard shell (e.g. schedule sub-panels). */
+export const DASHBOARD_CARD_INNER = PREMIUM_INNER_PANEL;
+
+/** Hero card — matches the shared dashboard widget shell. */
+export const OPS_HERO_CARD = DASHBOARD_CARD_SHELL;
 
 export const OPS_HERO_LABEL = TEXT_ACCENT;
 

@@ -8,6 +8,7 @@ import Stripe from "https://esm.sh/stripe@17.7.0?target=deno";
 import { corsHeaders } from "../_shared/cors.ts";
 import {
   buildSubscriptionUpsertPayload,
+  detectStripeKeyMode,
   extractUserIdFromMetadata,
   fetchStripeSubscription,
   findUserIdForStripeCustomer,
@@ -144,6 +145,8 @@ async function upsertCustomerOnlyRow(
     {
       user_id: userId,
       stripe_customer_id: customerId,
+      // Never inherit DB default trialing on customer-only rows.
+      status: "inactive",
       updated_at: new Date().toISOString(),
     },
     { onConflict: "user_id" },
@@ -307,8 +310,14 @@ serve(async (req) => {
     return jsonResponse({ error: "Missing Stripe-Signature header." }, 400);
   }
 
-  const rawBody = await req.text();
   const stripe = getStripe();
+  const secretMode = detectStripeKeyMode(Deno.env.get("STRIPE_SECRET_KEY"));
+  const configuredMode = Deno.env.get("STRIPE_MODE") as "test" | "live" | undefined;
+  if (configuredMode && secretMode && configuredMode !== secretMode) {
+    return jsonResponse({ error: "Stripe webhook mode mismatch." }, 500);
+  }
+
+  const rawBody = await req.text();
 
   let event: Stripe.Event;
   try {

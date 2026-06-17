@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Check, FolderKanban, LayoutGrid, Plus, RotateCcw } from 'lucide-react';
@@ -30,7 +30,9 @@ import type { DashboardCardContext } from '../components/dashboard/layout/dashbo
 import DashboardGrid from '../components/dashboard/layout/DashboardGrid';
 import { useDashboardLayout } from '../components/dashboard/layout/useDashboardLayout';
 import DashboardWidgetCatalog from '../components/dashboard/widgets/DashboardWidgetCatalog';
+import { startDashboardWidgetUpgrade } from '../components/dashboard/widgets/startDashboardWidgetUpgrade';
 import { DASHBOARD_CARD_META, type DashboardCardId } from '../lib/dashboardLayout';
+import type { PlanId } from '../lib/entitlements';
 import { useSubscription } from '../contexts/SubscriptionContext';
 
 const OperationsDashboard: React.FC = () => {
@@ -264,13 +266,31 @@ const OperationsDashboard: React.FC = () => {
     addWidget,
     removeWidget,
     resetLayout,
+    setWidgetConfig,
   } = useDashboardLayout();
 
-  const { plan, hasFeature } = useSubscription();
+  const { plan, hasFeature, status, isActive, subscription, refresh } = useSubscription();
 
   const [catalogOpen, setCatalogOpen] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const noticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const customizeReturnApplied = useRef(false);
+
+  useEffect(() => {
+    if (customizeReturnApplied.current) return;
+    const params = new URLSearchParams(location.search);
+    const customize = params.get('customizeDashboard') === '1';
+    const openCatalog = params.get('openWidgetCatalog') === '1';
+    const checkoutSuccess = params.get('checkout') === 'success';
+    if (!customize && !openCatalog && !checkoutSuccess) return;
+
+    customizeReturnApplied.current = true;
+    if (customize) setCustomizing(true);
+    if (openCatalog) setCatalogOpen(true);
+    if (checkoutSuccess) void refresh();
+
+    navigate(location.pathname, { replace: true });
+  }, [location.pathname, location.search, navigate, refresh, setCustomizing]);
 
   useEffect(() => () => {
     if (noticeTimer.current) clearTimeout(noticeTimer.current);
@@ -297,6 +317,22 @@ const OperationsDashboard: React.FC = () => {
     removeWidget(id);
     flashNotice('Widget removed');
   };
+
+  const isPastDue = status?.toLowerCase() === 'past_due';
+  const hasStripeSubscription = Boolean(subscription?.stripeSubscriptionId) && isActive;
+
+  const handleWidgetUpgrade = useCallback(
+    async (requiredPlan: PlanId, _widgetId: DashboardCardId) => {
+      await startDashboardWidgetUpgrade({
+        requiredPlan,
+        hasActiveStripeSubscription: hasStripeSubscription,
+        isPastDue,
+        navigate,
+        onError: flashNotice,
+      });
+    },
+    [hasStripeSubscription, isPastDue, navigate],
+  );
 
   const saveStatusMessage = notice
     ? notice
@@ -403,6 +439,7 @@ const OperationsDashboard: React.FC = () => {
           onWidthChange={setCardWidth}
           onMeasureHeight={setCardHeight}
           onRemoveWidget={handleRemoveWidget}
+          onWidgetConfigChange={setWidgetConfig}
           gridKey={gridKey}
         />
       ) : (
@@ -429,6 +466,8 @@ const OperationsDashboard: React.FC = () => {
           hasFeature={hasFeature}
           activeIds={activeIds}
           onAdd={handleAddWidget}
+          onUpgrade={handleWidgetUpgrade}
+          isPastDue={isPastDue}
         />
 
       {projects.length === 0 && (

@@ -60,6 +60,12 @@ describe('dashboardLayout', () => {
     expect(DASHBOARD_CARD_META.newProjectShortcut.requiredFeature).toBeUndefined();
   });
 
+  it('registers weather forecast widget metadata', () => {
+    expect(DASHBOARD_CARD_META.weatherForecast.category).toBe('Weather / Placement');
+    expect(DASHBOARD_CARD_META.weatherForecast.defaultVisible).toBe(false);
+    expect(DASHBOARD_CARD_META.weatherForecast.requiredPlan).toBe('starter');
+  });
+
   it('keeps Next Actions in the default layout (right column under proposals)', () => {
     const layout = getDefaultDashboardLayout();
     const next = layout.items.find((c) => c.id === 'nextActions');
@@ -170,6 +176,32 @@ describe('dashboardLayout', () => {
     const active = result.items.find((c) => c.id === 'activeProjects');
     const def = DASHBOARD_CARD_META.activeProjects.default;
     expect(active).toEqual({ id: 'activeProjects', x: def.x, y: def.y, w: def.w, h: def.h });
+  });
+
+  it('preserves per-widget config on layout items', () => {
+    const result = validateAndMigrateLayout({
+      version: 2,
+      items: [
+        {
+          id: 'weatherForecast',
+          x: 0,
+          y: 0,
+          w: 8,
+          h: 6,
+          config: {
+            weatherForecast: {
+              selectedWeatherSource: 'project',
+              selectedProjectId: 'proj-42',
+            },
+          },
+        },
+      ],
+    });
+    const weather = result.items.find((c) => c.id === 'weatherForecast');
+    expect(weather?.config?.weatherForecast).toEqual({
+      selectedWeatherSource: 'project',
+      selectedProjectId: 'proj-42',
+    });
   });
 
   it('clampCardWidth respects per-card minimums and the grid max', () => {

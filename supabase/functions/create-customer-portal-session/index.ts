@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { corsHeaders } from "../_shared/cors.ts";
 import { requireAuth } from "../_shared/requireAuth.ts";
-import { getAppUrl, getStripe } from "../_shared/stripe.ts";
+import { getAppUrl, getStripe, resolveAppReturnUrl } from "../_shared/stripe.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -50,11 +50,17 @@ serve(async (req) => {
       );
     }
 
+    const body = await req.json().catch(() => ({}));
     const stripe = getStripe();
     const appUrl = getAppUrl();
+    const returnUrl = resolveAppReturnUrl(
+      body.returnUrl,
+      appUrl,
+      `${appUrl}/settings/billing`,
+    );
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: `${appUrl}/settings/billing`,
+      return_url: returnUrl,
     });
 
     return jsonResponse({ url: portalSession.url });

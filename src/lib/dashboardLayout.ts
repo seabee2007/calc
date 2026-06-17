@@ -45,7 +45,8 @@ export type DashboardCardId =
   | 'plannerHubShortcut'
   | 'scheduleShortcut'
   | 'accountingTaxLauncher'
-  | 'supportHelp';
+  | 'supportHelp'
+  | 'weatherForecast';
 
 /** The dashboard grid is a 12-column grid on desktop. */
 export const DASHBOARD_GRID_COLS = 12;
@@ -422,6 +423,19 @@ export const DASHBOARD_CARD_META: Record<DashboardCardId, DashboardCardMeta> = {
     allowedWidths: ALL_WIDTHS,
     defaultVisible: false,
   },
+  weatherForecast: {
+    id: 'weatherForecast',
+    title: 'Weather Forecast',
+    description:
+      'Jobsite forecast with temperature, rain, wind, and weather risk for placement planning.',
+    category: 'Weather / Placement',
+    default: { x: 0, y: 950, w: 6, h: 4 },
+    minW: 4,
+    minH: 3,
+    allowedWidths: ALL_WIDTHS,
+    defaultVisible: false,
+    requiredPlan: 'starter',
+  },
 };
 
 /** Every registered widget id, in reading order (top-to-bottom, left-to-right). */
@@ -440,12 +454,25 @@ export const DEFAULT_VISIBLE_CARD_IDS: DashboardCardId[] = DASHBOARD_CARD_IDS.fi
 
 export const DASHBOARD_LAYOUT_VERSION = 2 as const;
 
+export type WeatherSourceKind = 'my' | 'project';
+
+/** Per-widget config persisted on dashboard layout items. */
+export interface WeatherForecastWidgetConfig {
+  selectedWeatherSource?: WeatherSourceKind;
+  selectedProjectId?: string | null;
+}
+
+export interface DashboardLayoutItemConfig {
+  weatherForecast?: WeatherForecastWidgetConfig;
+}
+
 export interface DashboardLayoutItem {
   id: DashboardCardId;
   x: number;
   y: number;
   w: number;
   h: number;
+  config?: DashboardLayoutItemConfig;
 }
 
 export interface DashboardLayout {
@@ -523,6 +550,31 @@ interface RawLayoutItem {
   y?: unknown;
   w?: unknown;
   h?: unknown;
+  config?: unknown;
+}
+
+function parseWeatherForecastConfig(raw: unknown): WeatherForecastWidgetConfig | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const wf = (raw as { weatherForecast?: unknown }).weatherForecast;
+  if (!wf || typeof wf !== 'object') return undefined;
+  const src = (wf as { selectedWeatherSource?: unknown }).selectedWeatherSource;
+  const projectId = (wf as { selectedProjectId?: unknown }).selectedProjectId;
+  const config: WeatherForecastWidgetConfig = {};
+  if (src === 'my' || src === 'project') {
+    config.selectedWeatherSource = src;
+  }
+  if (typeof projectId === 'string') {
+    config.selectedProjectId = projectId;
+  } else if (projectId === null) {
+    config.selectedProjectId = null;
+  }
+  return Object.keys(config).length > 0 ? config : undefined;
+}
+
+function parseItemConfig(raw: unknown): DashboardLayoutItemConfig | undefined {
+  const weatherForecast = parseWeatherForecastConfig(raw);
+  if (!weatherForecast) return undefined;
+  return { weatherForecast };
 }
 
 function num(value: unknown, fallback: number): number {
@@ -569,12 +621,14 @@ export function validateAndMigrateLayout(raw: unknown): DashboardLayout {
     }
     seen.add(item.id);
     const def = DASHBOARD_CARD_META[item.id].default;
+    const config = parseItemConfig(item.config);
     items.push({
       id: item.id,
       x: num(item.x, def.x),
       y: num(item.y, def.y),
       w: clampCardWidth(item.id, item.w),
       h: Math.max(DASHBOARD_CARD_META[item.id].minH, num(item.h, def.h)),
+      ...(config ? { config } : {}),
     });
   });
 

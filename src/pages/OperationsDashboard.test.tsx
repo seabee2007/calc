@@ -70,7 +70,16 @@ vi.mock('../contexts/SubscriptionContext', () => ({
     plan: 'business',
     hasFeature: () => true,
     canCreateProject: () => true,
+    status: null,
+    isActive: true,
+    subscription: null,
+    refresh: vi.fn(),
   }),
+}));
+
+vi.mock('../components/dashboard/widgets/DashboardWidgetCatalog', () => ({
+  default: ({ isOpen }: { isOpen: boolean }) =>
+    isOpen ? <div data-testid="dashboard-widget-catalog-open">Widget catalog</div> : null,
 }));
 
 vi.mock('../utils/projectWorkflow', async (importOriginal) => {
@@ -222,9 +231,9 @@ vi.mock('../components/dashboard/ConcreteDeliveryScheduleCard', () => ({
 
 import OperationsDashboard from './OperationsDashboard';
 
-async function renderDashboard() {
+async function renderDashboard(initialEntry = '/') {
   const view = render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={[initialEntry]}>
       <OperationsDashboard />
     </MemoryRouter>,
   );
@@ -349,5 +358,17 @@ describe('OperationsDashboard layout', () => {
     await renderDashboard();
     fireEvent.click(screen.getByRole('button', { name: /View financial details/i }));
     expect(mockNavigate).toHaveBeenCalledWith('/financials');
+  });
+
+  it('enters customize mode when customizeDashboard=1 is in the URL', async () => {
+    await renderDashboard('/?customizeDashboard=1');
+    expect(screen.getByTestId('dashboard-customize-toggle')).toHaveTextContent(/Done/i);
+    expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true });
+  });
+
+  it('opens the widget catalog when openWidgetCatalog=1 is in the URL', async () => {
+    await renderDashboard('/?customizeDashboard=1&openWidgetCatalog=1');
+    expect(screen.getByTestId('dashboard-widget-catalog-open')).toBeInTheDocument();
+    expect(screen.getByTestId('dashboard-customize-toggle')).toHaveTextContent(/Done/i);
   });
 });

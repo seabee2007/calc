@@ -10,6 +10,8 @@ interface PricingPlansCardProps {
   onSelectPlan: (planId: PlanId) => void;
   loadingPlan?: PlanId | null;
   disabled?: boolean;
+  /** Deep-link highlight when arriving from a locked widget upgrade CTA. */
+  highlightedPlan?: PlanId | null;
 }
 
 function getPlanCtaLabel(
@@ -43,6 +45,7 @@ export default function PricingPlansCard({
   onSelectPlan,
   loadingPlan = null,
   disabled = false,
+  highlightedPlan = null,
 }: PricingPlansCardProps) {
   const cards = getPlanMarketingCards();
   const isAnnual = billingInterval === 'year';
@@ -101,6 +104,7 @@ export default function PricingPlansCard({
       <div className="grid gap-5 sm:grid-cols-1 lg:grid-cols-3">
         {cards.map((card) => {
           const isCurrent = currentPlanId !== null && card.planId === currentPlanId;
+          const isHighlighted = highlightedPlan === card.planId && !isCurrent;
           const isLoading = loadingPlan === card.planId;
           const ctaLabel = isLoading ? 'Redirecting…' : getPlanCtaLabel(card.planId, currentPlanId);
           const isCtaDisabled = disabled || isLoading || isCurrent;
@@ -114,6 +118,8 @@ export default function PricingPlansCard({
           // Visual treatment: recommended card gets cyan glow; current plan gets subtle fill
           const cardClass = isCurrent
             ? 'border-cyan-400/70 bg-cyan-50/30 dark:border-cyan-500/50 dark:bg-cyan-950/20 ring-1 ring-cyan-400/30 dark:ring-cyan-500/20'
+            : isHighlighted
+              ? 'border-cyan-400/80 bg-cyan-50/40 ring-2 ring-cyan-400/50 dark:border-cyan-500/50 dark:bg-cyan-950/30 dark:ring-cyan-500/40'
             : card.recommended
               ? 'border-cyan-300/60 bg-white shadow-md shadow-cyan-100/40 dark:border-cyan-500/30 dark:bg-slate-900 dark:shadow-none'
               : 'border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900';
@@ -131,9 +137,14 @@ export default function PricingPlansCard({
               data-testid={`pricing-plan-${card.planId}`}
             >
               {/* Recommended badge */}
-              {card.recommended && !isCurrent ? (
+              {card.recommended && !isCurrent && !isHighlighted ? (
                 <span className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center rounded-full bg-cyan-600 px-3 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white shadow">
                   Most popular
+                </span>
+              ) : null}
+              {isHighlighted ? (
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center rounded-full bg-cyan-600 px-3 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white shadow">
+                  Recommended upgrade
                 </span>
               ) : null}
 

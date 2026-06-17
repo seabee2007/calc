@@ -1,7 +1,5 @@
+import { supabase } from '../lib/supabase';
 import type { Weather, ForecastDay } from '../types';
-
-const FN_BASE = import.meta.env.VITE_SUPABASE_FUNCTIONS_URL;
-const ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 interface ExtendedWeatherData extends Weather {
   alerts?: {
@@ -41,19 +39,76 @@ export interface ExtendedForecastResult {
   forecast: (ForecastDay & { avgHumidity?: number })[];
 }
 
+export type WeatherServiceErrorCode = 'unauthorized' | 'config';
+
+export class WeatherServiceError extends Error {
+  readonly code: WeatherServiceErrorCode;
+  readonly status?: number;
+
+  constructor(message: string, code: WeatherServiceErrorCode, status?: number) {
+    super(message);
+    this.name = 'WeatherServiceError';
+    this.code = code;
+    this.status = status;
+  }
+}
+
+function getFunctionsBaseUrl(): string {
+  const configured = import.meta.env.VITE_SUPABASE_FUNCTIONS_URL;
+  if (typeof configured === 'string' && configured.length > 0) {
+    return configured.replace(/\/$/, '');
+  }
+  const base = import.meta.env.VITE_SUPABASE_URL;
+  if (!base) {
+    throw new WeatherServiceError(
+      'Missing VITE_SUPABASE_URL for weather requests.',
+      'config',
+    );
+  }
+  return `${base.replace(/\/$/, '')}/functions/v1`;
+}
+
+async function getAccessToken(): Promise<string> {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  if (!token) {
+    throw new WeatherServiceError(
+      'User must be authenticated to load weather forecast.',
+      'unauthorized',
+      401,
+    );
+  }
+  return token;
+}
+
 async function fetchWeather<T>(body: ForecastRequest): Promise<T | null> {
-  if (!FN_BASE || !ANON_KEY) {
-    console.error('Missing VITE_SUPABASE_FUNCTIONS_URL or VITE_SUPABASE_ANON_KEY');
-    return null;
+  const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  if (!anonKey) {
+    console.error('Missing VITE_SUPABASE_ANON_KEY');
+    throw new WeatherServiceError('Weather service not configured.', 'config');
   }
 
+  let accessToken: string;
   try {
-    const res = await fetch(`${FN_BASE}/getWeatherForecast`, {
+    accessToken = await getAccessToken();
+  } catch (error) {
+    if (error instanceof WeatherServiceError) throw error;
+    throw new WeatherServiceError(
+      'User must be authenticated to load weather forecast.',
+      'unauthorized',
+      401,
+    );
+  }
+
+  const fnBase = getFunctionsBaseUrl();
+
+  try {
+    const res = await fetch(`${fnBase}/getWeatherForecast`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        apikey: ANON_KEY,
-        Authorization: `Bearer ${ANON_KEY}`,
+        apikey: anonKey,
+        Authorization: `Bearer ${accessToken}`,
       },
       body: JSON.stringify(body),
     });
@@ -61,11 +116,19 @@ async function fetchWeather<T>(body: ForecastRequest): Promise<T | null> {
     if (!res.ok) {
       const errText = await res.text();
       console.error('Weather function error:', res.status, errText);
+      if (res.status === 401) {
+        throw new WeatherServiceError(
+          'User must be authenticated to load weather forecast.',
+          'unauthorized',
+          401,
+        );
+      }
       return null;
     }
 
     return res.json();
   } catch (error) {
+    if (error instanceof WeatherServiceError) throw error;
     console.error('Error fetching weather data:', error);
     return null;
   }
@@ -73,7 +136,7 @@ async function fetchWeather<T>(body: ForecastRequest): Promise<T | null> {
 
 export async function getWeatherByLocation(
   latitude: number,
-  longitude: number
+  longitude: number,
 ): Promise<ExtendedWeatherData | null> {
   return fetchWeather<ExtendedWeatherData>({
     latitude,
@@ -85,9 +148,7 @@ export async function getWeatherByLocation(
   });
 }
 
-export async function getWeatherByQuery(
-  query: string
-): Promise<ExtendedWeatherData | null> {
+export async function getWeatherByQuery(query: string): Promise<ExtendedWeatherData | null> {
   return fetchWeather<ExtendedWeatherData>({
     query: query.trim(),
     days: 3,
@@ -100,7 +161,7 @@ export async function getWeatherByQuery(
 export async function getExtendedForecast(
   latitude: number,
   longitude: number,
-  days: number = 7
+  days: number = 7,
 ): Promise<ExtendedForecastResult | null> {
   return fetchWeather<ExtendedForecastResult>({
     latitude,
@@ -112,7 +173,7 @@ export async function getExtendedForecast(
 
 export async function getForecastByQuery(
   query: string,
-  days: number = 7
+  days: number = 7,
 ): Promise<ExtendedForecastResult | null> {
   return fetchWeather<ExtendedForecastResult>({
     query,

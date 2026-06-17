@@ -16,7 +16,7 @@ export default function ScheduleTodayCard({ events }: Props) {
   const preview = events.slice(0, 4);
 
   return (
-    <OpsCard>
+    <OpsCard nested>
       <div className="flex items-start justify-between gap-2">
         <div>
           <p className={OPS_TITLE}>Today on schedule</p>

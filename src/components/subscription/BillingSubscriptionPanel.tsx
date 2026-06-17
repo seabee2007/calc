@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { CreditCard, ExternalLink, AlertTriangle } from 'lucide-react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import InlineNotice from '../ui/InlineNotice';
 import Button from '../ui/Button';
 import PricingPlansCard from './PricingPlansCard';
@@ -18,6 +18,7 @@ import {
   isStripeConfigured,
   redirectToStripeUrl,
 } from '../../services/billingService';
+import { validateClientStripePublishableKey } from '../../lib/stripeEnv';
 
 function formatDate(iso: string | null | undefined): string | null {
   if (!iso) return null;
@@ -30,6 +31,17 @@ function formatDate(iso: string | null | undefined): string | null {
   });
 }
 
+const PAID_UPGRADE_PLANS = new Set<PlanId>(['starter', 'professional', 'business']);
+
+function parseUpgradePlan(value: string | null): PlanId | null {
+  if (!value || !PAID_UPGRADE_PLANS.has(value as PlanId)) return null;
+  return value as PlanId;
+}
+
+function isSafeReturnPath(path: string | null): path is string {
+  return Boolean(path && path.startsWith('/') && !path.startsWith('//'));
+}
+
 export default function BillingSubscriptionPanel() {
   const {
     plan,
@@ -39,6 +51,7 @@ export default function BillingSubscriptionPanel() {
     loading,
     refresh,
   } = useSubscription();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [billingInterval, setBillingInterval] = useState<'month' | 'year'>('month');
   const [busyAction, setBusyAction] = useState<'portal' | PlanId | null>(null);
@@ -57,17 +70,34 @@ export default function BillingSubscriptionPanel() {
   const cancelAtPeriodEnd = subscription?.cancelAtPeriodEnd ?? false;
 
   const checkoutResult = searchParams.get('checkout');
+  const upgradePlan = useMemo(
+    () => parseUpgradePlan(searchParams.get('upgrade')),
+    [searchParams],
+  );
+  const returnToPath = useMemo(() => {
+    const value = searchParams.get('returnTo');
+    return isSafeReturnPath(value) ? value : null;
+  }, [searchParams]);
 
   useEffect(() => {
     if (checkoutResult === 'success') {
       setNotice('Checkout completed. Your subscription will update shortly after Stripe confirms payment.');
-      void refresh();
-      setSearchParams({}, { replace: true });
+      void refresh().finally(() => {
+        if (returnToPath) {
+          navigate(returnToPath, { replace: true });
+          return;
+        }
+        setSearchParams({}, { replace: true });
+      });
     } else if (checkoutResult === 'canceled') {
       setNotice('Checkout was canceled. No changes were made.');
+      if (returnToPath) {
+        navigate(returnToPath, { replace: true });
+        return;
+      }
       setSearchParams({}, { replace: true });
     }
-  }, [checkoutResult, refresh, setSearchParams]);
+  }, [checkoutResult, refresh, returnToPath, navigate, setSearchParams]);
 
   const startCheckout = useCallback(async (targetPlan: PlanId) => {
     setError(null);
@@ -106,6 +136,10 @@ export default function BillingSubscriptionPanel() {
     await startCheckout(targetPlan);
   }, [hasStripeSubscription, openPortal, startCheckout]);
 
+  const stripeConfigWarning = validateClientStripePublishableKey(
+    import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY,
+  );
+
   return (
     <div className="space-y-6" data-testid="billing-subscription-panel">
       {!isStripeConfigured() ? (
@@ -113,6 +147,10 @@ export default function BillingSubscriptionPanel() {
           variant="warning"
           title="Stripe is not configured for this environment. Set VITE_STRIPE_PUBLISHABLE_KEY to enable live checkout."
         />
+      ) : null}
+
+      {stripeConfigWarning ? (
+        <InlineNotice variant="warning" title={stripeConfigWarning} />
       ) : null}
 
       {notice ? <InlineNotice variant="success" title={notice} /> : null}
@@ -205,6 +243,7 @@ export default function BillingSubscriptionPanel() {
         onSelectPlan={(targetPlan) => void handleSelectPlan(targetPlan)}
         loadingPlan={typeof busyAction === 'string' && busyAction !== 'portal' ? (busyAction as PlanId) : null}
         disabled={Boolean(busyAction) || loading}
+        highlightedPlan={upgradePlan}
       />
     </div>
   );

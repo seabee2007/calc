@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { DASHBOARD_CARD_META, type DashboardCardId } from '../../../lib/dashboardLayout';
+import { DASHBOARD_CARD_META, type DashboardCardId, type DashboardLayoutItemConfig } from '../../../lib/dashboardLayout';
 import { DASHBOARD_CARD_REGISTRY } from './dashboardCardRegistry';
 import type { DashboardCardContext } from './dashboardData';
 import DashboardCustomizeToolbar from './DashboardCustomizeToolbar';
@@ -9,6 +9,8 @@ interface DashboardGridItemProps {
   width: number;
   ctx: DashboardCardContext;
   customizing: boolean;
+  widgetConfig?: DashboardLayoutItemConfig;
+  onWidgetConfigChange?: (config: DashboardLayoutItemConfig) => void;
   onWidthChange: (id: DashboardCardId, w: number) => void;
   onMeasure: (id: DashboardCardId, pxHeight: number) => void;
   /** Removes this widget; only passed for optional (non-default) widgets. */
@@ -20,6 +22,8 @@ export default function DashboardGridItem({
   width,
   ctx,
   customizing,
+  widgetConfig,
+  onWidgetConfigChange,
   onWidthChange,
   onMeasure,
   onRemove,
@@ -52,7 +56,11 @@ export default function DashboardGridItem({
         />
       ) : null}
       <div className={customizing ? 'pointer-events-none select-none' : undefined}>
-        {DASHBOARD_CARD_REGISTRY[id].render(ctx, { cardWidth: width })}
+        {DASHBOARD_CARD_REGISTRY[id].render(ctx, {
+          cardWidth: width,
+          widgetConfig,
+          onWidgetConfigChange,
+        })}
       </div>
     </div>
   );

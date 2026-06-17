@@ -11,6 +11,7 @@ import {
   lookupKeyForPlan,
   parseBillingInterval,
   PLAN_INCLUDED_FIELD_SEATS,
+  resolveAppReturnUrl,
   STRIPE_PRICE_LOOKUP_KEYS,
   type PlanId,
 } from "../_shared/stripe.ts";
@@ -43,6 +44,20 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
+    const forbiddenCheckoutFields = [
+      "priceId",
+      "price",
+      "amount",
+      "line_items",
+      "lineItems",
+      "stripePriceId",
+    ] as const;
+    for (const field of forbiddenCheckoutFields) {
+      if (field in body && body[field] != null) {
+        return jsonResponse({ error: `Client must not send ${field}.` }, 400);
+      }
+    }
+
     const planId = body.planId;
     const billingInterval = parseBillingInterval(body.billingInterval);
     const fieldSeatQuantity = Number(body.fieldSeatQuantity ?? 0);
@@ -84,12 +99,22 @@ serve(async (req) => {
     }
 
     const appUrl = getAppUrl();
+    const successUrl = resolveAppReturnUrl(
+      body.successUrl,
+      appUrl,
+      `${appUrl}/settings/billing?checkout=success`,
+    );
+    const cancelUrl = resolveAppReturnUrl(
+      body.cancelUrl,
+      appUrl,
+      `${appUrl}/settings/billing?checkout=canceled`,
+    );
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       customer: customerId,
       line_items: lineItems,
-      success_url: `${appUrl}/settings/billing?checkout=success`,
-      cancel_url: `${appUrl}/settings/billing?checkout=canceled`,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
       client_reference_id: authResult.user.id,
       subscription_data: {
         metadata: {

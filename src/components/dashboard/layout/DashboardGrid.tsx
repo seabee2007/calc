@@ -8,6 +8,7 @@ import {
   DASHBOARD_GRID_COLS,
   type DashboardCardId,
   type DashboardLayoutItem,
+  type DashboardLayoutItemConfig,
 } from '../../../lib/dashboardLayout';
 import { buildVisibleDashboardRenderLayout } from '../../../lib/dashboardGridRepair';
 import { DASHBOARD_CARD_REGISTRY } from './dashboardCardRegistry';
@@ -36,6 +37,8 @@ interface DashboardGridProps {
   onMeasureHeight: (id: DashboardCardId, rows: number) => void;
   /** Removes an optional widget from the dashboard (customize mode only). */
   onRemoveWidget: (id: DashboardCardId) => void;
+  /** Persist per-widget config (e.g. weather location source). */
+  onWidgetConfigChange?: (id: DashboardCardId, config: DashboardLayoutItemConfig) => void;
   /**
    * Bumped after layout hydration or explicit reset so RGL discards stale
    * internal position cache on route remount.
@@ -51,6 +54,7 @@ export default function DashboardGrid({
   onWidthChange,
   onMeasureHeight,
   onRemoveWidget,
+  onWidgetConfigChange,
   gridKey = 0,
 }: DashboardGridProps) {
   const isNarrow = useIsNarrowViewport();
@@ -104,7 +108,14 @@ export default function DashboardGrid({
       <div className="space-y-4" data-testid="dashboard-grid-mobile">
         {renderItems.map((item) => (
           <div key={item.id} data-testid={`dashboard-card-${item.id}`}>
-            {DASHBOARD_CARD_REGISTRY[item.id].render(ctx, { isMobile: true, cardWidth: item.w })}
+            {DASHBOARD_CARD_REGISTRY[item.id].render(ctx, {
+              isMobile: true,
+              cardWidth: item.w,
+              widgetConfig: item.config,
+              onWidgetConfigChange: onWidgetConfigChange
+                ? (config) => onWidgetConfigChange(item.id, config)
+                : undefined,
+            })}
           </div>
         ))}
       </div>
@@ -153,6 +164,12 @@ export default function DashboardGrid({
             width={item.w}
             ctx={ctx}
             customizing={customizing}
+            widgetConfig={item.config}
+            onWidgetConfigChange={
+              onWidgetConfigChange
+                ? (config) => onWidgetConfigChange(item.id, config)
+                : undefined
+            }
             onWidthChange={onWidthChange}
             onMeasure={handleMeasure}
             onRemove={DASHBOARD_CARD_META[item.id].defaultVisible ? undefined : onRemoveWidget}

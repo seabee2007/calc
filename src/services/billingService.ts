@@ -6,6 +6,8 @@ export interface CheckoutSessionRequest {
   planId: PlanId;
   billingInterval: BillingInterval;
   fieldSeatQuantity?: number;
+  successUrl?: string;
+  cancelUrl?: string;
 }
 
 async function getAccessToken(): Promise<string> {
@@ -49,14 +51,17 @@ export async function createCheckoutSession(
     planId: request.planId,
     billingInterval: request.billingInterval,
     fieldSeatQuantity: request.fieldSeatQuantity ?? 0,
+    successUrl: request.successUrl,
+    cancelUrl: request.cancelUrl,
   });
   if (!result.url) throw new Error('Checkout URL missing from server response.');
   return result.url;
 }
 
-export async function createCustomerPortalSession(): Promise<string> {
+export async function createCustomerPortalSession(returnUrl?: string): Promise<string> {
   const result = await invokeBillingFunction<{ url?: string }>(
     'create-customer-portal-session',
+    returnUrl ? { returnUrl } : undefined,
   );
   if (!result.url) throw new Error('Customer portal URL missing from server response.');
   return result.url;

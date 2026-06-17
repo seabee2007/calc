@@ -24,6 +24,7 @@ function renderCatalog(
 ) {
   const plan = overrides.plan ?? 'business';
   const onAdd = vi.fn();
+  const onUpgrade = vi.fn();
   const props: React.ComponentProps<typeof DashboardWidgetCatalog> = {
     isOpen: true,
     onClose: vi.fn(),
@@ -32,10 +33,11 @@ function renderCatalog(
     hasFeature: hasFeatureForPlan(plan),
     activeIds: new Set<DashboardCardId>(),
     onAdd,
+    onUpgrade,
     ...overrides,
   };
   render(<DashboardWidgetCatalog {...props} />);
-  return { onAdd };
+  return { onAdd, onUpgrade };
 }
 
 describe('DashboardWidgetCatalog', () => {
@@ -65,21 +67,24 @@ describe('DashboardWidgetCatalog', () => {
     expect(button).toBeDisabled();
   });
 
-  it('locks widgets above the user plan and prevents adding them', () => {
-    const { onAdd } = renderCatalog({ plan: 'free' });
+  it('locks widgets above the user plan with a clickable upgrade CTA', () => {
+    const { onAdd, onUpgrade } = renderCatalog({ plan: 'free' });
     const tile = screen.getByTestId('widget-tile-qcDue');
-    const button = within(tile).getByRole('button', { name: /Upgrade required QC Due/i });
-    expect(button).toBeDisabled();
+    const button = within(tile).getByRole('button', { name: /Upgrade to Professional QC Due/i });
+    expect(button).toBeEnabled();
+    expect(within(tile).getByText('Professional required to add this widget.')).toBeInTheDocument();
     fireEvent.click(button);
+    expect(onUpgrade).toHaveBeenCalledWith('professional', 'qcDue');
     expect(onAdd).not.toHaveBeenCalled();
   });
 
-  it('locks Accounting & Tax for free users', () => {
-    const { onAdd } = renderCatalog({ plan: 'free' });
+  it('locks Accounting & Tax for free users with Upgrade to Business', () => {
+    const { onAdd, onUpgrade } = renderCatalog({ plan: 'free' });
     const tile = screen.getByTestId('widget-tile-accountingTaxLauncher');
-    const button = within(tile).getByRole('button', { name: /Upgrade required Accounting & Tax/i });
-    expect(button).toBeDisabled();
+    const button = within(tile).getByRole('button', { name: /Upgrade to Business Accounting & Tax/i });
+    expect(button).toBeEnabled();
     fireEvent.click(button);
+    expect(onUpgrade).toHaveBeenCalledWith('business', 'accountingTaxLauncher');
     expect(onAdd).not.toHaveBeenCalled();
   });
 
@@ -88,6 +93,37 @@ describe('DashboardWidgetCatalog', () => {
     const tile = screen.getByTestId('widget-tile-accountingTaxLauncher');
     fireEvent.click(within(tile).getByRole('button', { name: /Add Accounting & Tax/i }));
     expect(onAdd).toHaveBeenCalledWith('accountingTaxLauncher');
+  });
+
+  it('lists Weather Forecast in the catalog', () => {
+    renderCatalog({ plan: 'starter' });
+    expect(screen.getByTestId('widget-tile-weatherForecast')).toBeInTheDocument();
+    expect(within(screen.getByTestId('widget-tile-weatherForecast')).getByText('Weather Forecast')).toBeInTheDocument();
+  });
+
+  it('locks Weather Forecast for free users with Upgrade to Starter', () => {
+    const { onAdd, onUpgrade } = renderCatalog({ plan: 'free' });
+    const tile = screen.getByTestId('widget-tile-weatherForecast');
+    const button = within(tile).getByRole('button', { name: /Upgrade to Starter Weather Forecast/i });
+    expect(button).toBeEnabled();
+    fireEvent.click(button);
+    expect(onUpgrade).toHaveBeenCalledWith('starter', 'weatherForecast');
+    expect(onAdd).not.toHaveBeenCalled();
+  });
+
+  it('allows starter users to add Weather Forecast', () => {
+    const { onAdd } = renderCatalog({ plan: 'starter' });
+    const tile = screen.getByTestId('widget-tile-weatherForecast');
+    fireEvent.click(within(tile).getByRole('button', { name: /Add Weather Forecast/i }));
+    expect(onAdd).toHaveBeenCalledWith('weatherForecast');
+  });
+
+  it('finds Weather Forecast via weather search terms', () => {
+    renderCatalog({ plan: 'starter' });
+    fireEvent.change(screen.getByLabelText('Search widgets'), {
+      target: { value: 'forecast' },
+    });
+    expect(screen.getByTestId('widget-tile-weatherForecast')).toBeInTheDocument();
   });
 
   it('adds an available widget when its Add button is clicked', () => {
