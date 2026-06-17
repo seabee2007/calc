@@ -4,6 +4,7 @@ import {
   getUsageStateBand,
   nextUpgradePlan,
   usageStateProgressClass,
+  usageUpgradeCtaLabel,
 } from '../usageLabels';
 
 describe('usageLabels', () => {
@@ -36,5 +37,14 @@ describe('usageLabels', () => {
     expect(nextUpgradePlan('starter')).toBe('professional');
     expect(nextUpgradePlan('professional')).toBe('business');
     expect(nextUpgradePlan('business')).toBeNull();
+  });
+
+  it('uses "Upgrade plan" for free users', () => {
+    expect(usageUpgradeCtaLabel('free')).toBe('Upgrade plan');
+  });
+
+  it('uses plan-specific labels for paid upgrade paths', () => {
+    expect(usageUpgradeCtaLabel('starter')).toContain('Professional');
+    expect(usageUpgradeCtaLabel('professional')).toContain('Business');
   });
 });

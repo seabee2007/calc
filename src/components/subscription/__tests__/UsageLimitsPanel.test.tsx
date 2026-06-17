@@ -6,11 +6,20 @@ import UsageLimitsPanel from '../UsageLimitsPanel';
 import type { UsageSummary } from '../../../services/usageSummaryService';
 
 const createUsageCreditCheckoutMock = vi.fn();
+const navigateMock = vi.fn();
 
 vi.mock('../../../services/billingService', () => ({
   createUsageCreditCheckout: (...args: unknown[]) => createUsageCreditCheckoutMock(...args),
   redirectToStripeUrl: vi.fn(),
 }));
+
+vi.mock('react-router-dom', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-router-dom')>();
+  return {
+    ...actual,
+    useNavigate: () => navigateMock,
+  };
+});
 
 function makeItem(
   usageUnit: string,
@@ -58,6 +67,7 @@ function renderPanel(props: Partial<React.ComponentProps<typeof UsageLimitsPanel
 describe('UsageLimitsPanel — paid owner', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    navigateMock.mockReset();
   });
 
   it('renders usage rows when summary is loaded', () => {
@@ -95,14 +105,31 @@ describe('UsageLimitsPanel — paid owner', () => {
 });
 
 describe('UsageLimitsPanel — free plan', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    navigateMock.mockReset();
+  });
+
   it('does NOT show Buy more button when plan is free', () => {
     renderPanel({ summary: makeSummary('free') });
     expect(screen.queryAllByTestId('usage-buy-more-button')).toHaveLength(0);
   });
 
-  it('shows upgrade CTA for free plan', () => {
+  it('shows "Upgrade plan" CTA for free plan', () => {
     renderPanel({ summary: makeSummary('free') });
-    expect(screen.getByTestId('usage-upgrade-cta')).toBeTruthy();
+    const cta = screen.getByTestId('usage-upgrade-cta');
+    expect(cta.textContent).toBe('Upgrade plan');
+  });
+
+  it('routes free user upgrade CTA to subscription upgrade, not credit checkout', async () => {
+    renderPanel({ summary: makeSummary('free') });
+    fireEvent.click(screen.getByTestId('usage-upgrade-cta'));
+    await waitFor(() => {
+      expect(navigateMock).toHaveBeenCalledWith(
+        '/settings/billing?upgrade=starter&returnTo=%2Fsettings%2Fbilling',
+      );
+    });
+    expect(createUsageCreditCheckoutMock).not.toHaveBeenCalled();
   });
 });
 

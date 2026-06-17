@@ -103,6 +103,7 @@ export function nextUpgradePlan(planId: PlanId): PlanId | null {
 export function usageUpgradeCtaLabel(planId: PlanId): string {
   const next = nextUpgradePlan(planId);
   if (!next) return 'Need more? Contact support';
+  if (planId === 'free') return 'Upgrade plan';
   switch (next) {
     case 'starter':
       return 'Upgrade for higher usage';
