@@ -55,6 +55,8 @@ import {
 } from '../application/estimateWorkBreakdown';
 import {
   buildOptimisticEstimateWithDivisions,
+  cacheCurrentEstimateForProject,
+  getCachedCurrentEstimateForProject,
   loadCurrentEstimateForProject,
 } from './estimateWorkspaceLoad';
 import type {
@@ -80,6 +82,11 @@ import {
 import EstimateLineItemsBuilderPanel from './components/EstimateLineItemsBuilderPanel';
 import EstimateResetSetupConfirmModal from './components/EstimateResetSetupConfirmModal';
 import { useDefinitionsHelpStore } from '../../help/definitionsHelpStore';
+import {
+  hasDismissedEstimateGuide,
+  markEstimateGuideDismissed,
+  shouldShowConceptualEstimateGuideBadge,
+} from './conceptualEstimateGuide';
 import EstimateWorkspaceToolbarActions from './components/EstimateWorkspaceToolbarActions';
 import EstimateTotalsReviewPanel from './components/EstimateTotalsReviewPanel';
 import EstimateSchedulePreviewPanel from './components/EstimateSchedulePreviewPanel';
@@ -300,20 +307,26 @@ export default function EstimateWorkspacePage() {
     reload: reloadPlannerProject,
   } = usePlannerProject();
   const updateProject = useProjectStore((state) => state.updateProject);
+  const resolvedProjectId = projectId ?? routeProjectId ?? '';
+  const cachedEstimateForProject = getCachedCurrentEstimateForProject(resolvedProjectId);
+  const hasCachedEstimateForProject = cachedEstimateForProject !== undefined;
   const [projectCrewSizeSaving, setProjectCrewSizeSaving] = useState(false);
   const [optimisticProjectCrewSize, setOptimisticProjectCrewSize] = useState<number | null>(null);
   const [projectCrewSizeDraftDirty, setProjectCrewSizeDraftDirty] = useState(false);
   const projectCrewSizeInputRef = useRef<PositiveIntegerInputHandle>(null);
   const parsedTab = parseEstimateWorkspaceTabParam(estimateTab);
   const activeTab: EstimateWorkspaceTabId = parsedTab ?? DEFAULT_ESTIMATE_WORKSPACE_TAB;
-  const [dataLoading, setDataLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(!hasCachedEstimateForProject);
+  const [backgroundRefreshing, setBackgroundRefreshing] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
   const [saveToastMessage, setSaveToastMessage] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [currentEstimate, setCurrentEstimate] = useState<CurrentEstimate | null>(null);
+  const [currentEstimate, setCurrentEstimate] = useState<CurrentEstimate | null>(
+    cachedEstimateForProject ?? null,
+  );
   const [autoOpenScopeModalKey, setAutoOpenScopeModalKey] = useState<string | null>(null);
   const [selectedEstimateMethod, setSelectedEstimateMethod] = useState<EstimateType>(
     DEFAULT_ESTIMATE_METHOD,
@@ -362,8 +375,6 @@ export default function EstimateWorkspacePage() {
     () => (currentEstimate?.selectedDivisions ?? []).map((division) => division.code),
     [currentEstimate?.selectedDivisions],
   );
-
-  const resolvedProjectId = projectId ?? routeProjectId ?? '';
   const { hasFeature, plan, loading: subscriptionLoading } = useSubscription();
   const planDefaultEstimateType = useMemo(
     () => getDefaultEstimateTypeForPlan(plan),
@@ -775,10 +786,21 @@ export default function EstimateWorkspacePage() {
   const lineItemDraftRef = useRef(lineItemDraft);
   const estimateSettingsRef = useRef(estimateSettings);
   const scheduleSettingsRef = useRef(scheduleSettingsHook);
+  const localWorkspaceDirtyRef = useRef(false);
   estimateSetupRef.current = estimateSetup;
   lineItemDraftRef.current = lineItemDraft;
   estimateSettingsRef.current = estimateSettings;
   scheduleSettingsRef.current = scheduleSettingsHook;
+  localWorkspaceDirtyRef.current =
+    conceptualEstimate.dirty ||
+    estimateSettings.dirty ||
+    lineItemDraft.dirty ||
+    projectCrewSizeDraftDirty;
+
+  useEffect(() => {
+    if (!resolvedProjectId || !currentEstimate) return;
+    cacheCurrentEstimateForProject(resolvedProjectId, currentEstimate);
+  }, [currentEstimate, resolvedProjectId]);
 
   useEffect(() => {
     if (subscriptionLoading || dataLoading) return;
@@ -883,20 +905,35 @@ export default function EstimateWorkspacePage() {
       console.log('[Estimate Page] load start', { projectId, token });
     }
 
-    setDataLoading(true);
+    const cachedEstimate = getCachedCurrentEstimateForProject(projectId);
+    const hasCachedEstimate = cachedEstimate !== undefined;
+
+    setDataLoading(!hasCachedEstimate);
+    setBackgroundRefreshing(hasCachedEstimate);
     setLoadError(null);
     setCreateError(null);
     setSaveError(null);
     setSaveToastMessage(null);
-    setCurrentEstimate(null);
-    setActiveEstimateType(null);
-    setAutoOpenScopeModalKey(null);
-    setSelectedEstimateMethod(planDefaultEstimateType);
-    scheduleSourceRehydrateKeyRef.current = null;
-    estimateSetupRef.current.resetSetup(planDefaultEstimateType);
-    lineItemDraftRef.current.resetDraftSetup();
-    estimateSettingsRef.current.rehydrateFromEstimate(null);
-    scheduleSettingsRef.current.rehydrateFromEstimate(null, []);
+    if (hasCachedEstimate) {
+      if (cachedEstimate && currentEstimateRef.current?.id !== cachedEstimate.id) {
+        setCurrentEstimate(cachedEstimate);
+        const cachedType = cachedEstimate.estimateType
+          ? normalizeEstimateMethod(cachedEstimate.estimateType)
+          : planDefaultEstimateType;
+        setActiveEstimateType(cachedEstimate.estimateType);
+        setSelectedEstimateMethod(cachedType);
+      }
+    } else {
+      setCurrentEstimate(null);
+      setActiveEstimateType(null);
+      setAutoOpenScopeModalKey(null);
+      setSelectedEstimateMethod(planDefaultEstimateType);
+      scheduleSourceRehydrateKeyRef.current = null;
+      estimateSetupRef.current.resetSetup(planDefaultEstimateType);
+      lineItemDraftRef.current.resetDraftSetup();
+      estimateSettingsRef.current.rehydrateFromEstimate(null);
+      scheduleSettingsRef.current.rehydrateFromEstimate(null, []);
+    }
 
     void (async () => {
       try {
@@ -914,15 +951,30 @@ export default function EstimateWorkspacePage() {
         }
 
         if (loadedEstimate) {
+          cacheCurrentEstimateForProject(projectId, loadedEstimate);
+          const currentLoadedEstimate = currentEstimateRef.current;
+          const hasDirtyLocalState = localWorkspaceDirtyRef.current;
+          const shouldApplyLoadedEstimate =
+            !hasDirtyLocalState &&
+            (!currentLoadedEstimate ||
+              currentLoadedEstimate.id !== loadedEstimate.id ||
+              loadedEstimate.updatedAt >= currentLoadedEstimate.updatedAt);
+
+          if (!shouldApplyLoadedEstimate) {
+            return;
+          }
+
           setCurrentEstimate(loadedEstimate);
-          estimateSettingsRef.current.rehydrateFromEstimate(loadedEstimate);
+          if (!estimateSettingsRef.current.dirty) {
+            estimateSettingsRef.current.rehydrateFromEstimate(loadedEstimate);
+          }
           scheduleSourceRehydrateKeyRef.current = null;
           const loadedType = loadedEstimate.estimateType
             ? normalizeEstimateMethod(loadedEstimate.estimateType)
             : planDefaultEstimateType;
           setActiveEstimateType(loadedEstimate.estimateType);
           setSelectedEstimateMethod(loadedType);
-          if (loadedEstimate.estimateType) {
+          if (loadedEstimate.estimateType && !lineItemDraftRef.current.dirty) {
             estimateSetupRef.current.restoreSavedSetup(
               loadedType,
               loadedEstimate.selectedDivisions,
@@ -932,9 +984,13 @@ export default function EstimateWorkspacePage() {
             );
           }
         } else {
-          setActiveEstimateType(null);
-          estimateSettingsRef.current.rehydrateFromEstimate(null);
-          scheduleSettingsRef.current.rehydrateFromEstimate(null, []);
+          cacheCurrentEstimateForProject(projectId, null);
+          if (!localWorkspaceDirtyRef.current) {
+            setCurrentEstimate(null);
+            setActiveEstimateType(null);
+            estimateSettingsRef.current.rehydrateFromEstimate(null);
+            scheduleSettingsRef.current.rehydrateFromEstimate(null, []);
+          }
         }
       } catch (error) {
         if (!isStale()) {
@@ -943,6 +999,7 @@ export default function EstimateWorkspacePage() {
       } finally {
         if (!isStale()) {
           setDataLoading(false);
+          setBackgroundRefreshing(false);
         }
       }
     })();
@@ -1346,6 +1403,7 @@ export default function EstimateWorkspacePage() {
       workspaceSaveStatus.markSaving();
       setSaveError(null);
       setSaveToastMessage(null);
+      const conceptualPayloadForSave = conceptualEstimate.buildPayloadWithDraftItems();
 
       const saveAssumptions = mergeScheduleAssumptions(
         {
@@ -1364,7 +1422,7 @@ export default function EstimateWorkspacePage() {
       const result = await saveCurrentConceptualEstimate({
         estimateId: estimate.id,
         projectId: estimate.projectId,
-        payload: conceptualEstimate.rawPayload,
+        payload: conceptualPayloadForSave,
         estimateSettings: estimateSettings.settings,
         existingAssumptions: saveAssumptions,
         schedulingEnabled: currentEstimate?.schedulingEnabled,
@@ -2172,8 +2230,53 @@ export default function EstimateWorkspacePage() {
   }, []);
 
   const handleOpenHelp = useCallback(() => {
-    useDefinitionsHelpStore.getState().open();
+    const { lastSection, open } = useDefinitionsHelpStore.getState();
+    open(undefined, { section: lastSection });
   }, []);
+
+  const estimateIdForGuide = estimate?.id ?? null;
+  const [hasDismissedGuideForEstimate, setHasDismissedGuideForEstimate] = useState(false);
+
+  useEffect(() => {
+    if (!estimateIdForGuide) {
+      setHasDismissedGuideForEstimate(false);
+      return;
+    }
+    setHasDismissedGuideForEstimate(hasDismissedEstimateGuide(estimateIdForGuide));
+  }, [estimateIdForGuide]);
+
+  const dismissGuidedHelpForCurrentEstimate = useCallback(() => {
+    if (!estimateIdForGuide) return;
+    markEstimateGuideDismissed(estimateIdForGuide);
+    setHasDismissedGuideForEstimate(true);
+  }, [estimateIdForGuide]);
+
+  const handleOpenGuidedHelp = useCallback(() => {
+    useDefinitionsHelpStore.getState().open(undefined, { section: 'guide' });
+    dismissGuidedHelpForCurrentEstimate();
+  }, [dismissGuidedHelpForCurrentEstimate]);
+
+  const handleDismissGuidedHelp = useCallback(() => {
+    dismissGuidedHelpForCurrentEstimate();
+  }, [dismissGuidedHelpForCurrentEstimate]);
+
+  const showGuidedHelpBadge = useMemo(
+    () =>
+      shouldShowConceptualEstimateGuideBadge({
+        isConceptualEstimate,
+        hasEstimate: estimate != null,
+        estimateId: estimateIdForGuide,
+        payload: isConceptualEstimate ? conceptualEstimate.payload : null,
+        hasDismissedGuideForEstimate,
+      }),
+    [
+      conceptualEstimate.payload,
+      estimate,
+      estimateIdForGuide,
+      hasDismissedGuideForEstimate,
+      isConceptualEstimate,
+    ],
+  );
 
   const runGanttExport = useCallback(
     async (format: 'pdf' | 'excel') => {
@@ -2230,7 +2333,7 @@ export default function EstimateWorkspacePage() {
     void runGanttExport('excel');
   }, [runGanttExport]);
 
-  if (plannerLoading) {
+  if (plannerLoading && !currentEstimate) {
     return (
       <div className={PLANNER_PAGE_BG}>
         <EstimateWorkspaceLoading />
@@ -2441,6 +2544,9 @@ export default function EstimateWorkspacePage() {
           onDownloadImportTemplate={handleDownloadImportTemplate}
           onOpenHelp={handleOpenHelp}
           onConvertToDetailed={() => setConvertToDetailedModalOpen(true)}
+          showGuidedHelpBadge={showGuidedHelpBadge}
+          onOpenGuidedHelp={handleOpenGuidedHelp}
+          onDismissGuidedHelp={handleDismissGuidedHelp}
         />
       }
     />
@@ -2480,6 +2586,12 @@ export default function EstimateWorkspacePage() {
             >
               Retry
             </Button>
+          </div>
+        ) : null}
+
+        {!loadError && backgroundRefreshing && hasEstimate ? (
+          <div className={`mb-3 text-right text-xs ${PLANNER_MUTED}`} role="status">
+            Refreshing estimate...
           </div>
         ) : null}
 

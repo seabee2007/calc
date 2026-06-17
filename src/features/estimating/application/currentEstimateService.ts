@@ -24,6 +24,7 @@ import {
 } from './conceptualEstimateCalculations';
 import {
   conceptualEstimateFromAssumptions,
+  isConceptualEstimateAssumptions,
   conceptualEstimateToAssumptions,
 } from './conceptualEstimatePersistence';
 import type { ConceptualEstimatePayload } from '../domain/conceptualEstimateTypes';
@@ -123,6 +124,15 @@ export interface SaveCurrentConceptualEstimateParams {
   createdBy?: string | null;
 }
 
+export interface ConceptualEstimatePersistenceSnapshot {
+  payload: ConceptualEstimatePayload;
+  settings: EstimateSettings;
+  rollup: ReturnType<typeof buildConceptualEstimateRollup>;
+  totals: Record<string, unknown>;
+  summary: Record<string, unknown>;
+  assumptions: Record<string, unknown>;
+}
+
 const EMPTY_TOTALS: EstimateCostTotals = {
   directCost: 0,
   indirectCost: 0,
@@ -170,6 +180,12 @@ function parseTotals(value: unknown): EstimateCostTotals {
 
 function nowIso(): string {
   return new Date().toISOString();
+}
+
+function devLog(message: string, payload?: unknown): void {
+  if (import.meta.env.DEV) {
+    console.log(message, payload);
+  }
 }
 
 export function currentEstimateToSummary(estimate: CurrentEstimate) {
@@ -264,8 +280,10 @@ function hasMeaningfulCurrentEstimate(row: Record<string, unknown>): boolean {
   const hasDivisions = parseArray(row.selected_divisions).length > 0;
   const hasLineItems = parseArray(row.line_items).length > 0;
   const totals = parseRecord(row.totals);
+  const assumptions = parseRecord(row.assumptions);
   const hasTotals = Object.keys(totals).length > 0;
-  return hasType || hasDivisions || hasLineItems || hasTotals;
+  const hasAssumptions = Object.keys(assumptions).length > 0;
+  return hasType || hasDivisions || hasLineItems || hasTotals || hasAssumptions;
 }
 
 function parseEstimateModeConfig(value: unknown): EstimateModeConfig | null {
@@ -314,7 +332,14 @@ function mapEstimateRowToCurrentEstimate(
     typeof row.estimate_type === 'string' && row.estimate_type.trim() !== ''
       ? normalizeEstimateMethod(row.estimate_type as EstimateType)
       : null;
-  const estimateType = rawEstimateType ?? (hasPersistedWork ? 'detailed' : null);
+  const assumptions = parseRecord(row.assumptions);
+  const estimateType =
+    rawEstimateType ??
+    (isConceptualEstimateAssumptions(assumptions)
+      ? 'conceptual'
+      : hasPersistedWork
+        ? 'detailed'
+        : null);
   const createdAt = typeof row.created_at === 'string' ? row.created_at : nowIso();
   const schedulingEnabled = resolveSchedulingEnabled(
     estimateType,
@@ -339,7 +364,7 @@ function mapEstimateRowToCurrentEstimate(
     lineItems,
     totals,
     summary: parseRecord(row.summary),
-    assumptions: parseRecord(row.assumptions),
+    assumptions,
     createdBy: typeof row.created_by === 'string' ? row.created_by : null,
     createdAt,
     updatedAt: typeof row.updated_at === 'string' ? row.updated_at : createdAt,
@@ -401,7 +426,7 @@ function lineItemsFromDraftSnapshot(
 }
 
 async function findCurrentEstimateRow(projectId: string): Promise<RepositoryResult<Record<string, unknown> | null>> {
-  console.log('[Estimate Load] projectId', projectId);
+  devLog('[Estimate Load] projectId', projectId);
   const { data, error } = await supabase
     .from('estimates')
     .select('*')
@@ -411,8 +436,8 @@ async function findCurrentEstimateRow(projectId: string): Promise<RepositoryResu
     .maybeSingle();
 
   if (error) return failure(toErrorMessage(error));
-  console.log('[Estimate Load] result', data);
-  console.log('[Estimate Load] hasSavedEstimate', Boolean(data?.id));
+  devLog('[Estimate Load] result', data);
+  devLog('[Estimate Load] hasSavedEstimate', Boolean(data?.id));
   return success(data ? (data as Record<string, unknown>) : null);
 }
 
@@ -422,8 +447,8 @@ async function saveEstimateRow(
   const projectId = String(payload.project_id ?? '');
   const existingId = typeof payload.id === 'string' ? payload.id : null;
   let targetId = existingId;
-  console.log('[Estimate Save] projectId', projectId);
-  console.log('[Estimate Save] payload', payload);
+  devLog('[Estimate Save] projectId', projectId);
+  devLog('[Estimate Save] payload keys', Object.keys(payload));
 
   if (!targetId) {
     const existingResult = await findCurrentEstimateRow(projectId);
@@ -442,7 +467,10 @@ async function saveEstimateRow(
       .single();
 
     if (error) return failure(toErrorMessage(error));
-    console.log('[Estimate Save] result', data);
+    devLog('[Estimate Save] result', {
+      id: (data as Record<string, unknown> | null)?.id,
+      updated_at: (data as Record<string, unknown> | null)?.updated_at,
+    });
     const estimate = mapEstimateRowToCurrentEstimate(data as Record<string, unknown>, {
       allowEmpty: true,
     });
@@ -457,7 +485,10 @@ async function saveEstimateRow(
     .single();
 
   if (error) return failure(toErrorMessage(error));
-  console.log('[Estimate Save] result', data);
+  devLog('[Estimate Save] result', {
+    id: (data as Record<string, unknown> | null)?.id,
+    updated_at: (data as Record<string, unknown> | null)?.updated_at,
+  });
   const estimate = mapEstimateRowToCurrentEstimate(data as Record<string, unknown>, {
     allowEmpty: true,
   });
@@ -574,9 +605,9 @@ export async function saveCurrentEstimateWithLineItems(
   });
 }
 
-export async function saveCurrentConceptualEstimate(
+export function buildConceptualEstimatePersistenceSnapshot(
   params: SaveCurrentConceptualEstimateParams,
-): Promise<RepositoryResult<CurrentEstimate>> {
+): ConceptualEstimatePersistenceSnapshot {
   const settings = normalizeEstimateSettings(params.estimateSettings);
   const payload: ConceptualEstimatePayload = {
     ...params.payload,
@@ -598,14 +629,58 @@ export async function saveCurrentConceptualEstimate(
     settings,
     params.existingAssumptions ?? {},
   );
-  const conceptualAssumptions = conceptualEstimateToAssumptions(payload, {
-    estimateSettings: markupSnapshot.estimateSettings,
-  });
+  const conceptualAssumptions = conceptualEstimateToAssumptions(
+    payload,
+    {
+      estimateSettings: markupSnapshot.estimateSettings,
+    },
+    {
+      projectId: params.projectId,
+      estimateId: params.estimateId ?? null,
+      estimateType: 'conceptual',
+      savedAt: nowIso(),
+    },
+  );
   const assumptions = {
     ...(params.existingAssumptions ?? {}),
     ...conceptualAssumptions,
     estimateSettings: markupSnapshot.estimateSettings,
   };
+
+  return {
+    payload,
+    settings,
+    rollup,
+    totals,
+    summary: {
+      savedAt: nowIso(),
+      conceptualEstimate: true,
+      confidenceSummary: rollup.aggregateConfidence,
+      lastUpdated: nowIso(),
+    },
+    assumptions,
+  };
+}
+
+export async function saveCurrentConceptualEstimate(
+  params: SaveCurrentConceptualEstimateParams,
+): Promise<RepositoryResult<CurrentEstimate>> {
+  const snapshot = buildConceptualEstimatePersistenceSnapshot(params);
+
+  devLog('[Conceptual Estimate Save] payload keys', {
+    assumptionKeys: Object.keys(snapshot.assumptions),
+    conceptualKeys: [
+      'lineItems',
+      'assumptions',
+      'exclusions',
+      'allowanceNotes',
+      'risks',
+      'scenarios',
+      'revision',
+      'contingencyPercent',
+      'selectedScenarioId',
+    ].filter((key) => key in snapshot.assumptions),
+  });
 
   return saveEstimateRow({
     ...(params.estimateId ? { id: params.estimateId } : {}),
@@ -620,14 +695,9 @@ export async function saveCurrentConceptualEstimate(
     }),
     selected_divisions: [],
     line_items: [],
-    totals,
-    summary: {
-      savedAt: nowIso(),
-      conceptualEstimate: true,
-      confidenceSummary: rollup.aggregateConfidence,
-      lastUpdated: nowIso(),
-    },
-    assumptions,
+    totals: snapshot.totals,
+    summary: snapshot.summary,
+    assumptions: snapshot.assumptions,
     created_by: params.createdBy ?? null,
     updated_at: nowIso(),
   });
@@ -745,4 +815,5 @@ export const currentEstimateTestExports = {
   mapEstimateRowToCurrentEstimate,
   currentEstimateToDomainVersion,
   lineItemsFromDraftSnapshot,
+  buildConceptualEstimatePersistenceSnapshot,
 };

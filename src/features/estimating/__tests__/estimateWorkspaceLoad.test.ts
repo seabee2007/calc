@@ -15,7 +15,10 @@ vi.mock('../application/currentEstimateService', async (importOriginal) => {
 
 import {
   buildOptimisticEstimateWithDivisions,
+  cacheCurrentEstimateForProject,
+  getCachedCurrentEstimateForProject,
   loadCurrentEstimateForProject,
+  resetEstimateWorkspaceSessionCacheForTests,
 } from '../ui/estimateWorkspaceLoad';
 import { hasSelectedEstimateDivisions } from '../ui/estimateWorkspaceRenderRules';
 
@@ -40,6 +43,7 @@ function baseEstimate(overrides: Partial<CurrentEstimate> = {}): CurrentEstimate
 describe('estimateWorkspaceLoad', () => {
   beforeEach(() => {
     getCurrentEstimateMock.mockReset();
+    resetEstimateWorkspaceSessionCacheForTests();
   });
 
   it('deduplicates concurrent loads for the same projectId', async () => {
@@ -59,6 +63,23 @@ describe('estimateWorkspaceLoad', () => {
       expect.objectContaining({ id: 'estimate-1' }),
       expect.objectContaining({ id: 'estimate-1' }),
     ]);
+    expect(getCachedCurrentEstimateForProject('project-1')).toEqual(
+      expect.objectContaining({ id: 'estimate-1' }),
+    );
+  });
+
+  it('keeps last loaded estimate in session cache for fast remount rendering', () => {
+    expect(getCachedCurrentEstimateForProject('project-1')).toBeUndefined();
+    cacheCurrentEstimateForProject('project-1', baseEstimate({ id: 'estimate-cached' }));
+    expect(getCachedCurrentEstimateForProject('project-1')).toEqual(
+      expect.objectContaining({ id: 'estimate-cached' }),
+    );
+  });
+
+  it('distinguishes known empty estimate state from no cache', () => {
+    cacheCurrentEstimateForProject('project-empty', null);
+    expect(getCachedCurrentEstimateForProject('project-empty')).toBeNull();
+    expect(getCachedCurrentEstimateForProject('project-missing')).toBeUndefined();
   });
 
   it('builds optimistic estimate with selected divisions before save resolves', () => {

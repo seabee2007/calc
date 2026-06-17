@@ -171,7 +171,13 @@ export function parseEstimateSettingsFromAssumptions(
   if (!assumptions || typeof assumptions !== 'object') {
     return { ...DEFAULT_ESTIMATE_SETTINGS };
   }
-  const nested = assumptions.estimateSettings;
+  const nested =
+    assumptions.estimateSettings ??
+    (assumptions.markupSettings &&
+    typeof assumptions.markupSettings === 'object' &&
+    !Array.isArray(assumptions.markupSettings)
+      ? (assumptions.markupSettings as Record<string, unknown>).estimateSettings
+      : undefined);
   if (!nested || typeof nested !== 'object' || Array.isArray(nested)) {
     return { ...DEFAULT_ESTIMATE_SETTINGS };
   }

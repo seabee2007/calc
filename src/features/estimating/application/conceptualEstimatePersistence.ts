@@ -194,7 +194,7 @@ function parseRevision(value: unknown): ConceptualEstimateRevision {
 export function conceptualEstimateFromAssumptions(
   assumptions: Record<string, unknown> | null | undefined,
 ): ConceptualEstimatePayload | null {
-  if (!assumptions || assumptions.type !== CONCEPTUAL_ESTIMATE_ASSUMPTIONS_TYPE) {
+  if (!isConceptualEstimateAssumptions(assumptions)) {
     return null;
   }
 
@@ -257,9 +257,11 @@ export function conceptualEstimateFromAssumptions(
 export function conceptualEstimateToAssumptions(
   payload: ConceptualEstimatePayload,
   markupSettings?: Record<string, unknown> | null,
+  metadata?: Record<string, unknown> | null,
 ): Record<string, unknown> {
   return {
     type: CONCEPTUAL_ESTIMATE_ASSUMPTIONS_TYPE,
+    ...(metadata ? { metadata } : {}),
     lineItems: payload.lineItems,
     assumptions: payload.assumptions,
     exclusions: payload.exclusions,
@@ -276,5 +278,14 @@ export function conceptualEstimateToAssumptions(
 export function isConceptualEstimateAssumptions(
   assumptions: Record<string, unknown> | null | undefined,
 ): boolean {
-  return assumptions?.type === CONCEPTUAL_ESTIMATE_ASSUMPTIONS_TYPE;
+  if (!assumptions) return false;
+  if (assumptions.type === CONCEPTUAL_ESTIMATE_ASSUMPTIONS_TYPE) return true;
+  return (
+    Array.isArray(assumptions.lineItems) ||
+    Array.isArray(assumptions.exclusions) ||
+    Array.isArray(assumptions.allowanceNotes) ||
+    Array.isArray(assumptions.risks) ||
+    Array.isArray(assumptions.scenarios) ||
+    Boolean(parseRecord(assumptions.revision).name)
+  );
 }

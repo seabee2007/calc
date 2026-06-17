@@ -1,12 +1,16 @@
-import { useState } from 'react';
 import Button from '../../../../components/ui/Button';
 import Input from '../../../../components/ui/Input';
 import Select from '../../../../components/ui/Select';
 import type { ConceptualEstimateController } from '../hooks/useConceptualEstimate';
-import { ASSUMPTION_IMPACTS } from '../../domain/conceptualEstimateTypes';
+import { ASSUMPTION_IMPACTS, type AssumptionImpact } from '../../domain/conceptualEstimateTypes';
 import EstimateWorkspaceEmptyState from './EstimateWorkspaceEmptyState';
 import { PLANNER_MUTED, PLANNER_SECTION_TITLE, TEXT_BODY } from '../estimateWorkspaceTheme';
 import { formatEstimateCurrency } from '../estimateFormatters';
+import {
+  hasMeaningfulAllowanceNoteDraft,
+  hasMeaningfulAssumptionDraft,
+  hasMeaningfulExclusionDraft,
+} from '../hooks/useConceptualEstimate';
 
 interface Props {
   controller: ConceptualEstimateController;
@@ -19,25 +23,17 @@ export default function ConceptualAssumptionsExclusionsPanel({
 }: Props) {
   const {
     payload,
-    addAssumption,
+    draftItems,
+    updateAssumptionDraft,
+    updateExclusionDraft,
+    updateAllowanceNoteDraft,
+    commitAssumptionDraft,
+    commitExclusionDraft,
+    commitAllowanceNoteDraft,
     deleteAssumption,
-    addExclusion,
     deleteExclusion,
-    addAllowanceNote,
     deleteAllowanceNote,
   } = controller;
-
-  const [assumptionTitle, setAssumptionTitle] = useState('');
-  const [assumptionDescription, setAssumptionDescription] = useState('');
-  const [assumptionImpact, setAssumptionImpact] = useState<(typeof ASSUMPTION_IMPACTS)[number]>('cost');
-
-  const [exclusionTitle, setExclusionTitle] = useState('');
-  const [exclusionDescription, setExclusionDescription] = useState('');
-  const [exclusionReason, setExclusionReason] = useState('');
-
-  const [allowanceTitle, setAllowanceTitle] = useState('');
-  const [allowanceAmount, setAllowanceAmount] = useState('');
-  const [allowanceDescription, setAllowanceDescription] = useState('');
 
   const hasAny =
     payload.assumptions.length > 0 ||
@@ -56,32 +52,28 @@ export default function ConceptualAssumptionsExclusionsPanel({
       <section className="space-y-3">
         <h2 className={PLANNER_SECTION_TITLE}>Assumptions</h2>
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-          <Input label="Title" value={assumptionTitle} onChange={(e) => setAssumptionTitle(e.target.value)} />
+          <Input
+            label="Title"
+            value={draftItems.assumption.title}
+            onChange={(e) => updateAssumptionDraft({ title: e.target.value })}
+          />
           <Select
             label="Impact"
-            value={assumptionImpact}
+            value={draftItems.assumption.impact}
             onChange={(impact) =>
-              setAssumptionImpact(impact as (typeof ASSUMPTION_IMPACTS)[number])
+              updateAssumptionDraft({ impact: impact as AssumptionImpact })
             }
             options={ASSUMPTION_IMPACTS.map((impact) => ({ value: impact, label: impact }))}
           />
         </div>
         <Input
           label="Description"
-          value={assumptionDescription}
-          onChange={(e) => setAssumptionDescription(e.target.value)}
+          value={draftItems.assumption.description}
+          onChange={(e) => updateAssumptionDraft({ description: e.target.value })}
         />
         <Button
-          disabled={disabled || !assumptionTitle.trim()}
-          onClick={() => {
-            addAssumption({
-              title: assumptionTitle.trim(),
-              description: assumptionDescription.trim(),
-              impact: assumptionImpact,
-            });
-            setAssumptionTitle('');
-            setAssumptionDescription('');
-          }}
+          disabled={disabled || !hasMeaningfulAssumptionDraft(draftItems.assumption)}
+          onClick={commitAssumptionDraft}
         >
           Add assumption
         </Button>
@@ -106,26 +98,25 @@ export default function ConceptualAssumptionsExclusionsPanel({
       <section className="space-y-3">
         <h2 className={PLANNER_SECTION_TITLE}>Exclusions</h2>
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-          <Input label="Title" value={exclusionTitle} onChange={(e) => setExclusionTitle(e.target.value)} />
-          <Input label="Reason" value={exclusionReason} onChange={(e) => setExclusionReason(e.target.value)} />
+          <Input
+            label="Title"
+            value={draftItems.exclusion.title}
+            onChange={(e) => updateExclusionDraft({ title: e.target.value })}
+          />
+          <Input
+            label="Reason"
+            value={draftItems.exclusion.reason}
+            onChange={(e) => updateExclusionDraft({ reason: e.target.value })}
+          />
         </div>
         <Input
           label="Description"
-          value={exclusionDescription}
-          onChange={(e) => setExclusionDescription(e.target.value)}
+          value={draftItems.exclusion.description}
+          onChange={(e) => updateExclusionDraft({ description: e.target.value })}
         />
         <Button
-          disabled={disabled || !exclusionTitle.trim()}
-          onClick={() => {
-            addExclusion({
-              title: exclusionTitle.trim(),
-              description: exclusionDescription.trim(),
-              reason: exclusionReason.trim(),
-            });
-            setExclusionTitle('');
-            setExclusionDescription('');
-            setExclusionReason('');
-          }}
+          disabled={disabled || !hasMeaningfulExclusionDraft(draftItems.exclusion)}
+          onClick={commitExclusionDraft}
         >
           Add exclusion
         </Button>
@@ -150,30 +141,25 @@ export default function ConceptualAssumptionsExclusionsPanel({
       <section className="space-y-3">
         <h2 className={PLANNER_SECTION_TITLE}>Allowance notes</h2>
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-          <Input label="Title" value={allowanceTitle} onChange={(e) => setAllowanceTitle(e.target.value)} />
+          <Input
+            label="Title"
+            value={draftItems.allowanceNote.title}
+            onChange={(e) => updateAllowanceNoteDraft({ title: e.target.value })}
+          />
           <Input
             label="Included amount"
-            value={allowanceAmount}
-            onChange={(e) => setAllowanceAmount(e.target.value)}
+            value={draftItems.allowanceNote.includedAmount}
+            onChange={(e) => updateAllowanceNoteDraft({ includedAmount: e.target.value })}
           />
         </div>
         <Input
           label="Description"
-          value={allowanceDescription}
-          onChange={(e) => setAllowanceDescription(e.target.value)}
+          value={draftItems.allowanceNote.description}
+          onChange={(e) => updateAllowanceNoteDraft({ description: e.target.value })}
         />
         <Button
-          disabled={disabled || !allowanceTitle.trim()}
-          onClick={() => {
-            addAllowanceNote({
-              title: allowanceTitle.trim(),
-              includedAmount: Number(allowanceAmount) || 0,
-              description: allowanceDescription.trim(),
-            });
-            setAllowanceTitle('');
-            setAllowanceAmount('');
-            setAllowanceDescription('');
-          }}
+          disabled={disabled || !hasMeaningfulAllowanceNoteDraft(draftItems.allowanceNote)}
+          onClick={commitAllowanceNoteDraft}
         >
           Add allowance note
         </Button>

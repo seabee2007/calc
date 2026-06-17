@@ -18,6 +18,10 @@ const modalSource = readFileSync(
   resolve(dirname(fileURLToPath(import.meta.url)), '../DefinitionsHelpModal.tsx'),
   'utf8',
 );
+const estimateGuideContentSource = readFileSync(
+  resolve(dirname(fileURLToPath(import.meta.url)), '../estimateGuideContent.tsx'),
+  'utf8',
+);
 const plannerAppBarSource = readFileSync(
   resolve(dirname(fileURLToPath(import.meta.url)), '../../../components/planner/PlannerAppBar.tsx'),
   'utf8',
@@ -48,6 +52,13 @@ const estimateToolbarActionsSource = readFileSync(
   resolve(
     dirname(fileURLToPath(import.meta.url)),
     '../../estimating/ui/components/EstimateWorkspaceToolbarActions.tsx',
+  ),
+  'utf8',
+);
+const guidedHelpBadgeSource = readFileSync(
+  resolve(
+    dirname(fileURLToPath(import.meta.url)),
+    '../../estimating/ui/components/EstimateGuidedHelpBadge.tsx',
   ),
   'utf8',
 );
@@ -104,7 +115,12 @@ describe('filterDefinitions', () => {
 
 describe('definitions help UI wiring', () => {
   beforeEach(() => {
-    useDefinitionsHelpStore.setState({ isOpen: false, focusTerm: null });
+    useDefinitionsHelpStore.setState({
+      isOpen: false,
+      focusTerm: null,
+      activeSection: 'definitions',
+      lastSection: 'definitions',
+    });
   });
 
   it('opens the modal from the help button store', () => {
@@ -112,6 +128,21 @@ describe('definitions help UI wiring', () => {
     useDefinitionsHelpStore.getState().open('float');
     expect(useDefinitionsHelpStore.getState().isOpen).toBe(true);
     expect(useDefinitionsHelpStore.getState().focusTerm).toBe('float');
+    expect(useDefinitionsHelpStore.getState().activeSection).toBe('definitions');
+  });
+
+  it('opens the guide section when requested without a focus term', () => {
+    useDefinitionsHelpStore.getState().open(undefined, { section: 'guide' });
+    expect(useDefinitionsHelpStore.getState().activeSection).toBe('guide');
+    expect(useDefinitionsHelpStore.getState().lastSection).toBe('guide');
+    expect(useDefinitionsHelpStore.getState().focusTerm).toBeNull();
+  });
+
+  it('remembers the last selected section for generic opens', () => {
+    useDefinitionsHelpStore.getState().open(undefined, { section: 'guide' });
+    useDefinitionsHelpStore.getState().close();
+    useDefinitionsHelpStore.getState().open();
+    expect(useDefinitionsHelpStore.getState().activeSection).toBe('guide');
   });
 
   it('closes the modal and clears focus term', () => {
@@ -130,7 +161,15 @@ describe('definitions help UI wiring', () => {
     expect(estimateWorkspaceSource).not.toContain('HelpButton');
     expect(estimateWorkspaceSource).toContain('useDefinitionsHelpStore');
     expect(estimateWorkspaceSource).toContain('handleOpenHelp');
+    expect(estimateWorkspaceSource).toContain('handleOpenGuidedHelp');
+    expect(estimateWorkspaceSource).toContain('showGuidedHelpBadge');
+    expect(estimateWorkspaceSource).toContain("section: 'guide'");
+    expect(estimateWorkspaceSource).toContain('markEstimateGuideDismissed');
     expect(estimateToolbarActionsSource).not.toContain('HelpButton');
+    expect(estimateToolbarActionsSource).toContain('EstimateGuidedHelpBadge');
+    expect(estimateToolbarActionsSource).toContain('showGuidedHelpBadge');
+    expect(guidedHelpBadgeSource).toContain('aria-label="Open estimate help"');
+    expect(guidedHelpBadgeSource).toContain('Need help? Guide');
     expect(estimateActionsMenuSource).toContain('help-definitions');
     expect(estimateActionsMenuSource).toContain('HelpCircle');
     expect(estimateActionsMenuSource).toContain('onOpenHelp');
@@ -140,6 +179,10 @@ describe('definitions help UI wiring', () => {
   it('shows no-results state and close controls in the modal', () => {
     expect(modalSource).toContain('No definitions found');
     expect(modalSource).toContain('Definitions & Help');
+    expect(modalSource).toContain('EstimateGuideContent');
+    expect(estimateGuideContentSource).toContain('How to Fill Out This Estimate');
+    expect(modalSource).toContain('Guide');
+    expect(modalSource).toContain('Definitions');
     expect(modalSource).toContain('aria-label="Close definitions help"');
     expect(modalSource).toContain("event.key === 'Escape'");
   });

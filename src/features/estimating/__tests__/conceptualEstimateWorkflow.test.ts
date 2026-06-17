@@ -77,6 +77,27 @@ describe('conceptual estimate workflow', () => {
     expect(workspacePageSource).toContain('isConceptualEstimateType(resolvedEstimateType)');
   });
 
+  it('flushes conceptual draft items before the global save writes to the database', () => {
+    expect(workspacePageSource).toContain('const conceptualPayloadForSave = conceptualEstimate.buildPayloadWithDraftItems()');
+    expect(workspacePageSource).toContain('payload: conceptualPayloadForSave');
+  });
+
+  it('uses cached estimate workspace state on route remount before background refresh', () => {
+    expect(workspacePageSource).toContain('getCachedCurrentEstimateForProject');
+    expect(workspacePageSource).toContain('const hasCachedEstimateForProject = cachedEstimateForProject !== undefined');
+    expect(workspacePageSource).toContain('const [dataLoading, setDataLoading] = useState(!hasCachedEstimateForProject)');
+    expect(workspacePageSource).toContain('setBackgroundRefreshing(hasCachedEstimate)');
+    expect(workspacePageSource).toContain('setDataLoading(!hasCachedEstimate)');
+    expect(workspacePageSource).toContain('plannerLoading && !currentEstimate');
+    expect(workspacePageSource).toContain('Refreshing estimate...');
+  });
+
+  it('does not let background refresh overwrite dirty conceptual workspace state', () => {
+    expect(workspacePageSource).toContain('localWorkspaceDirtyRef');
+    expect(workspacePageSource).toContain('const hasDirtyLocalState = localWorkspaceDirtyRef.current');
+    expect(workspacePageSource).toContain('!hasDirtyLocalState');
+  });
+
   it('places Convert to Detailed Estimate in the Actions menu, not add-item toolbar', () => {
     expect(workspacePageSource).toContain('shouldShowConvertToDetailedAction');
     expect(workspacePageSource).toContain('onConvertToDetailed={() => setConvertToDetailedModalOpen(true)}');

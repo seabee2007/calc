@@ -8,12 +8,23 @@ import {
   findDefinitionByTerm,
   type DefinitionCategoryId,
 } from './definitions';
-import { useDefinitionsHelpStore } from './definitionsHelpStore';
+import {
+  useDefinitionsHelpStore,
+  type DefinitionsHelpSection,
+} from './definitionsHelpStore';
+import { EstimateGuideContent } from './estimateGuideContent';
+
+const SECTION_TABS: Array<{ id: DefinitionsHelpSection; label: string }> = [
+  { id: 'guide', label: 'Guide' },
+  { id: 'definitions', label: 'Definitions' },
+];
 
 export default function DefinitionsHelpModal() {
   const isOpen = useDefinitionsHelpStore((state) => state.isOpen);
   const focusTerm = useDefinitionsHelpStore((state) => state.focusTerm);
+  const activeSection = useDefinitionsHelpStore((state) => state.activeSection);
   const close = useDefinitionsHelpStore((state) => state.close);
+  const setActiveSection = useDefinitionsHelpStore((state) => state.setActiveSection);
 
   const [query, setQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<DefinitionCategoryId | 'all'>('all');
@@ -96,60 +107,105 @@ export default function DefinitionsHelpModal() {
           </button>
         </div>
 
-        <DefinitionSearch
-          query={query}
-          activeCategory={activeCategory}
-          onQueryChange={setQuery}
-          onCategoryChange={setActiveCategory}
-          resultCount={filteredDefinitions.length}
-        />
-
-        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
-          {filteredDefinitions.length === 0 ? (
-            <p className="rounded-lg border border-dashed border-slate-700 bg-slate-950/60 px-4 py-8 text-center text-sm text-slate-400">
-              No definitions found. Try another search word or category.
-            </p>
-          ) : (
-            <ul className="space-y-4">
-              {filteredDefinitions.map((definition) => (
-                <li
-                  key={definition.term}
-                  className="rounded-lg border border-slate-700 bg-slate-950/50 p-4"
+        <div className="border-b border-slate-700 px-5">
+          <div className="flex gap-1" role="tablist" aria-label="Help sections">
+            {SECTION_TABS.map((tab) => {
+              const isActive = activeSection === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  aria-controls={`definitions-help-panel-${tab.id}`}
+                  id={`definitions-help-tab-${tab.id}`}
+                  onClick={() => setActiveSection(tab.id)}
+                  className={[
+                    'border-b-2 px-4 py-3 text-sm font-medium transition-colors',
+                    isActive
+                      ? 'border-cyan-400 text-cyan-300'
+                      : 'border-transparent text-slate-400 hover:text-slate-200',
+                  ].join(' ')}
                 >
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="text-base font-semibold text-white">{definition.term}</h3>
-                    <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-slate-300">
-                      {categoryLabelById.get(definition.category) ?? definition.category}
-                    </span>
-                    {definition.relatedArea ? (
-                      <span className="rounded-full bg-cyan-950 px-2 py-0.5 text-[11px] text-cyan-300">
-                        {definition.relatedArea}
-                      </span>
-                    ) : null}
-                  </div>
-
-                  <p className="mt-2 text-sm font-medium text-slate-200">{definition.shortDefinition}</p>
-                  <p className="mt-2 text-sm leading-relaxed text-slate-300">{definition.plainEnglish}</p>
-
-                  {definition.example ? (
-                    <p className="mt-2 text-sm text-slate-400">
-                      <span className="font-medium text-slate-300">Example:</span> {definition.example}
-                    </p>
-                  ) : null}
-
-                  {definition.aliases && definition.aliases.length > 0 ? (
-                    <p className="mt-2 text-xs text-slate-500">
-                      Also called: {definition.aliases.join(', ')}
-                    </p>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          )}
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
+        {activeSection === 'guide' ? (
+          <div
+            id="definitions-help-panel-guide"
+            role="tabpanel"
+            aria-labelledby="definitions-help-tab-guide"
+            className="min-h-0 flex-1 overflow-y-auto px-5 py-4"
+          >
+            <EstimateGuideContent />
+          </div>
+        ) : (
+          <>
+            <DefinitionSearch
+              query={query}
+              activeCategory={activeCategory}
+              onQueryChange={setQuery}
+              onCategoryChange={setActiveCategory}
+              resultCount={filteredDefinitions.length}
+            />
+
+            <div
+              id="definitions-help-panel-definitions"
+              role="tabpanel"
+              aria-labelledby="definitions-help-tab-definitions"
+              className="min-h-0 flex-1 overflow-y-auto px-5 py-4"
+            >
+              {filteredDefinitions.length === 0 ? (
+                <p className="rounded-lg border border-dashed border-slate-700 bg-slate-950/60 px-4 py-8 text-center text-sm text-slate-400">
+                  No definitions found. Try another search word or category.
+                </p>
+              ) : (
+                <ul className="space-y-4">
+                  {filteredDefinitions.map((definition) => (
+                    <li
+                      key={definition.term}
+                      className="rounded-lg border border-slate-700 bg-slate-950/50 p-4"
+                    >
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="text-base font-semibold text-white">{definition.term}</h3>
+                        <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-slate-300">
+                          {categoryLabelById.get(definition.category) ?? definition.category}
+                        </span>
+                        {definition.relatedArea ? (
+                          <span className="rounded-full bg-cyan-950 px-2 py-0.5 text-[11px] text-cyan-300">
+                            {definition.relatedArea}
+                          </span>
+                        ) : null}
+                      </div>
+
+                      <p className="mt-2 text-sm font-medium text-slate-200">{definition.shortDefinition}</p>
+                      <p className="mt-2 text-sm leading-relaxed text-slate-300">{definition.plainEnglish}</p>
+
+                      {definition.example ? (
+                        <p className="mt-2 text-sm text-slate-400">
+                          <span className="font-medium text-slate-300">Example:</span> {definition.example}
+                        </p>
+                      ) : null}
+
+                      {definition.aliases && definition.aliases.length > 0 ? (
+                        <p className="mt-2 text-xs text-slate-500">
+                          Also called: {definition.aliases.join(', ')}
+                        </p>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </>
+        )}
+
         <div className="border-t border-slate-700 px-5 py-3 text-xs text-slate-500">
-          More guides and walkthroughs are coming soon.
+          Switch between Guide and Definitions any time you need more context.
         </div>
       </div>
     </div>,

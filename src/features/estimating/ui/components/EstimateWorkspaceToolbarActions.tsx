@@ -12,6 +12,7 @@ import { useEstimateWorkspaceHeaderCollapse } from '../EstimateWorkspaceHeaderCo
 import EstimateWorkspaceActionsMenu from './EstimateWorkspaceActionsMenu';
 import EstimateWorkspaceSaveStatusControl from './EstimateWorkspaceSaveStatusControl';
 import EstimateWorkspaceFocusModeButton from './EstimateWorkspaceFocusModeButton';
+import EstimateGuidedHelpBadge from './EstimateGuidedHelpBadge';
 
 interface Props {
   showAddDivision: boolean;
@@ -39,6 +40,9 @@ interface Props {
   onOpenHelp: () => void;
   onConvertToDetailed?: () => void;
   onActionsMenuOpenChange?: (open: boolean) => void;
+  showGuidedHelpBadge?: boolean;
+  onOpenGuidedHelp?: () => void;
+  onDismissGuidedHelp?: () => void;
 }
 
 const COMPACT_ICON_BUTTON_CLASS = 'h-10 w-10 px-0';
@@ -69,6 +73,9 @@ export default function EstimateWorkspaceToolbarActions({
   onOpenHelp,
   onConvertToDetailed,
   onActionsMenuOpenChange,
+  showGuidedHelpBadge = false,
+  onOpenGuidedHelp,
+  onDismissGuidedHelp,
 }: Props) {
   const headerCollapse = useEstimateWorkspaceHeaderCollapse();
   const showHeaderFocus = Boolean(headerCollapse?.enabled && !headerCollapse.isMobile);
@@ -162,7 +169,13 @@ export default function EstimateWorkspaceToolbarActions({
       ) : null}
       <EstimateWorkspaceFocusModeButton />
       {showDesktopActionsDropdown ? (
-        <div className="hidden sm:block">
+        <div className="relative hidden sm:block">
+          {showGuidedHelpBadge && onOpenGuidedHelp && onDismissGuidedHelp ? (
+            <EstimateGuidedHelpBadge
+              onOpenGuide={onOpenGuidedHelp}
+              onDismiss={onDismissGuidedHelp}
+            />
+          ) : null}
           <EstimateWorkspaceActionsMenu
             items={desktopMenuItems}
             disabled={saving}
@@ -180,7 +193,13 @@ export default function EstimateWorkspaceToolbarActions({
         </div>
       ) : null}
       {showMobileActionsDropdown ? (
-        <div className="sm:hidden">
+        <div className="relative flex w-full flex-col items-end gap-2 sm:hidden">
+          {showGuidedHelpBadge && onOpenGuidedHelp && onDismissGuidedHelp ? (
+            <EstimateGuidedHelpBadge
+              onOpenGuide={onOpenGuidedHelp}
+              onDismiss={onDismissGuidedHelp}
+            />
+          ) : null}
           <EstimateWorkspaceActionsMenu
             items={mobileMenuItems}
             disabled={saving}

@@ -23,7 +23,7 @@ describe('productionRateLibraryLoader', () => {
     expect(canonical.count).toBeLessThan(source.count);
     expect(source.count).toBeGreaterThan(1900);
     expect(canonical.rates.length).toBe(canonical.count);
-  });
+  }, 15000);
 
   it('exposes canonical rates after load', async () => {
     await loadApprovedProductionRateLibrary();

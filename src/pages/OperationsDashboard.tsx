@@ -34,9 +34,16 @@ import { startDashboardWidgetUpgrade } from '../components/dashboard/widgets/sta
 import { DASHBOARD_CARD_META, type DashboardCardId } from '../lib/dashboardLayout';
 import type { PlanId } from '../lib/entitlements';
 import { useSubscription } from '../contexts/SubscriptionContext';
+import ReviewRewardBadge from '../components/reviews/ReviewRewardBadge';
+import ReviewRewardModal from '../components/reviews/ReviewRewardModal';
+import { useReviewRewardEligibility } from '../hooks/useReviewRewardEligibility';
+import { useUsageSummary } from '../hooks/useUsageSummary';
 
 const OperationsDashboard: React.FC = () => {
   const { isOwner, user } = useAuth();
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const reviewEligibility = useReviewRewardEligibility(Boolean(isOwner));
+  const { refetch: refetchUsageSummary } = useUsageSummary(Boolean(isOwner));
   const { projects, loadProjects } = useProjectStore();
   const [changeOrders, setChangeOrders] = useState<ChangeOrder[]>([]);
   const [scheduleSnapshot, setScheduleSnapshot] = useState<ReturnType<
@@ -481,6 +488,21 @@ const OperationsDashboard: React.FC = () => {
           }}
         />
       )}
+
+      {isOwner ? (
+        <>
+          <ReviewRewardBadge onOpenModal={() => setReviewModalOpen(true)} enabled={Boolean(isOwner)} />
+          <ReviewRewardModal
+            isOpen={reviewModalOpen}
+            onClose={() => setReviewModalOpen(false)}
+            onSuccess={() => {
+              setReviewModalOpen(false);
+              void reviewEligibility.refresh();
+              void refetchUsageSummary();
+            }}
+          />
+        </>
+      ) : null}
     </motion.div>
   );
 };
