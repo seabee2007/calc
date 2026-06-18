@@ -39,6 +39,8 @@ interface Props {
   onEnsureDivisionsSelected?: (divisionCodes: string[]) => Promise<void>;
   /** Called after any add/delete so the workspace can refresh its schedule source. */
   onActivitiesChanged?: () => void;
+  /** Increment to trigger an immediate panel reload (e.g. after Excel import from parent). */
+  reloadKey?: number;
 }
 
 export type DivisionActivityGroup = {
@@ -88,6 +90,7 @@ export default function ConstructionActivityBuilderPanel({
   importCollapseDivisionCodesKey = null,
   onEnsureDivisionsSelected,
   onActivitiesChanged,
+  reloadKey,
 }: Props) {
   const {
     activities,
@@ -102,6 +105,15 @@ export default function ConstructionActivityBuilderPanel({
     updateActivity,
     remove,
   } = useConstructionActivities(projectId, estimateId);
+
+  // When the parent increments reloadKey (e.g. after Excel import), trigger panel reload.
+  const prevReloadKeyRef = useRef(reloadKey ?? 0);
+  useEffect(() => {
+    if (reloadKey === undefined) return;
+    if (reloadKey === prevReloadKeyRef.current) return;
+    prevReloadKeyRef.current = reloadKey;
+    reload();
+  }, [reloadKey, reload]);
 
   const [showPicker, setShowPicker] = useState(false);
   const [pickerInitialDivisionCode, setPickerInitialDivisionCode] = useState<string | undefined>();

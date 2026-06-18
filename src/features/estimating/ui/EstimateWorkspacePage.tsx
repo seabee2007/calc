@@ -122,6 +122,7 @@ import {
   type EstimateBuilderToolbarHandlers,
 } from './estimateWorkspaceToolbar';
 import EstimateImportModal from './EstimateImportModal';
+import ActivityExcelImportModal from './components/ActivityExcelImportModal';
 import ConstructionActivityBuilderPanel from './components/ConstructionActivityBuilderPanel';
 import ChooseEstimateTypeModal from './components/ChooseEstimateTypeModal';
 import ChangeEstimateTypeConfirmModal from './components/ChangeEstimateTypeConfirmModal';
@@ -148,6 +149,17 @@ import {
   downloadBlankEstimateTemplateWorkbook,
   downloadEstimateWorkbook,
 } from '../importExport/estimateExportBuilder';
+import {
+  applyActivityExcelImport,
+  downloadActivityExcelExport,
+  downloadEstimateExcelTemplate,
+  mapLoadedActivitiesToExportInput,
+  type ActivityExcelEstimateType,
+  type ActivityExcelImportMode,
+  type ParsedActivityGroup,
+} from '../excel';
+import { loadProjectActivitiesWithLineItems } from '../application/constructionActivityService';
+import { useProjectLaborRates } from './hooks/useProjectLaborRates';
 import { downloadGanttExcel } from '../export/ganttExcelExport';
 import { downloadGanttPdf } from '../export/ganttPdfExport';
 import { downloadLevelThreeGanttPdfFromElement } from '../export/levelThreeGanttPdfExport';
@@ -339,6 +351,7 @@ export default function EstimateWorkspacePage() {
   const [importCollapseDivisionCodesKey, setImportCollapseDivisionCodesKey] = useState<
     string | null
   >(null);
+  const [activitiesPanelReloadKey, setActivitiesPanelReloadKey] = useState(0);
   const [focusActivityCode, setFocusActivityCode] = useState<string | null>(null);
   const [estimateTypeModalOpen, setEstimateTypeModalOpen] = useState(false);
   const [estimateTypeChangeConfirmOpen, setEstimateTypeChangeConfirmOpen] = useState(false);
@@ -418,6 +431,8 @@ export default function EstimateWorkspacePage() {
   // scheduleActivitiesResult reads constructionActivities.
   const { constructionActivities, constructionActivitiesLoading, reloadConstructionActivities } =
     useProjectConstructionActivitiesForSchedule(resolvedProjectId, estimate?.id);
+
+  const { projectRates, ensureProjectLaborRatesReady } = useProjectLaborRates(resolvedProjectId);
 
   const overviewResourceTotalsEnabled =
     activeTab === 'overview' &&
@@ -1308,12 +1323,23 @@ export default function EstimateWorkspacePage() {
     user?.id,
   ]);
 
+  // Divisions are dirty only when the session division codes differ from the persisted ones.
+  // Using length > 0 was incorrect — it permanently flagged any estimate with saved divisions as dirty.
+  const sessionDivisionCodeKey = estimateSetup.session.selectedDivisions
+    .map((d) => d.code)
+    .sort()
+    .join(',');
+  const persistedDivisionCodeKey = (currentEstimate?.selectedDivisions ?? [])
+    .map((d) => d.code)
+    .sort()
+    .join(',');
+  const divisionsDirty = sessionDivisionCodeKey !== persistedDivisionCodeKey;
+
   const hasPendingEstimateChanges = isConceptualEstimate
     ? conceptualEstimate.dirty || estimateSettings.dirty
     : lineItemDraft.dirty ||
       estimateSettings.dirty ||
-      estimateSetup.session.selectedDivisions.length > 0 ||
-      (currentEstimate?.selectedDivisions.length ?? 0) > 0 ||
+      divisionsDirty ||
       projectCrewSizeDraftDirty;
 
   const workspaceSaveStatus = useEstimateWorkspaceSaveStatus({
@@ -1513,11 +1539,18 @@ export default function EstimateWorkspacePage() {
       return;
     }
 
+    const savedDivisionKey = (currentEstimate?.selectedDivisions ?? [])
+      .map((d) => d.code)
+      .sort()
+      .join(',');
+    const sessionDivisionKey = estimateSetup.session.selectedDivisions
+      .map((d) => d.code)
+      .sort()
+      .join(',');
     const hasEstimateChanges =
       lineItemDraft.dirty ||
       estimateSettings.dirty ||
-      estimateSetup.session.selectedDivisions.length > 0 ||
-      (currentEstimate?.selectedDivisions.length ?? 0) > 0;
+      sessionDivisionKey !== savedDivisionKey;
 
     if (!hasEstimateChanges) {
       return;
@@ -1876,10 +1909,94 @@ export default function EstimateWorkspacePage() {
     ],
   );
 
-  const handleExportEstimate = useCallback(() => {
-    if (!currentEstimate) return;
+  const handleApplyActivityExcelImport = useCallback(
+    async ({
+      mode,
+      groups,
+    }: {
+      mode: ActivityExcelImportMode;
+      groups: ParsedActivityGroup[];
+    }) => {
+      if (!estimate || saving || !resolvedProjectId) return;
+      const excelType: ActivityExcelEstimateType | null =
+        resolvedEstimateType === 'detailed' || resolvedEstimateType === 'bid'
+          ? resolvedEstimateType
+          : null;
+      if (!excelType) return;
+
+      setSaving(true);
+      setSaveError(null);
+      setSaveToastMessage(null);
+
+      const laborRates =
+        projectRates.length > 0 ? projectRates : await ensureProjectLaborRatesReady();
+      const existingResult = await loadProjectActivitiesWithLineItems(resolvedProjectId, estimate.id);
+      const existingLoaded = existingResult.data ?? [];
+      const existingLineItemsByActivityId = new Map(
+        existingLoaded.map((entry) => [entry.activity.id, entry.lineItems]),
+      );
+
+      const result = await applyActivityExcelImport({
+        mode,
+        groups,
+        projectId: resolvedProjectId,
+        estimateId: estimate.id,
+        projectLaborRates: laborRates,
+        existingActivities: existingLoaded.map((entry) => entry.activity),
+        existingLineItemsByActivityId,
+      });
+
+      if (result.error) {
+        setSaveError(result.error);
+        setSaving(false);
+        return;
+      }
+
+      await reloadConstructionActivities();
+      // Trigger the activities panel to reload its own state from DB.
+      setActivitiesPanelReloadKey((k) => k + 1);
+      setSaveToastMessage(
+        `Imported ${result.importedActivityCount} activit${result.importedActivityCount === 1 ? 'y' : 'ies'} (${result.importedLineItemCount} line items)`,
+      );
+      setImportModalOpen(false);
+      setSaving(false);
+    },
+    [
+      estimate,
+      saving,
+      resolvedProjectId,
+      resolvedEstimateType,
+      projectRates,
+      ensureProjectLaborRatesReady,
+      reloadConstructionActivities,
+    ],
+  );
+
+  const handleExportEstimate = useCallback(async () => {
+    if (!currentEstimate || !resolvedProjectId || !estimate?.id) return;
+    const excelType: ActivityExcelEstimateType | null =
+      resolvedEstimateType === 'detailed' || resolvedEstimateType === 'bid'
+        ? resolvedEstimateType
+        : null;
+
+    if (excelType) {
+      const loaded = await loadProjectActivitiesWithLineItems(resolvedProjectId, estimate.id);
+      if (loaded.error || !loaded.data) {
+        setSaveError(loaded.error ?? 'Failed to export construction activities.');
+        return;
+      }
+      downloadActivityExcelExport(
+        mapLoadedActivitiesToExportInput(
+          excelType,
+          project?.name ?? 'project',
+          loaded.data,
+        ),
+      );
+      return;
+    }
+
     downloadEstimateWorkbook(currentEstimate, project?.name ?? 'project');
-  }, [currentEstimate, project?.name]);
+  }, [currentEstimate, project?.name, resolvedProjectId, estimate?.id, resolvedEstimateType]);
 
   // ── Schedule save helpers ──────────────────────────────────────────────────
 
@@ -2284,8 +2401,16 @@ export default function EstimateWorkspacePage() {
   );
 
   const handleDownloadImportTemplate = useCallback(() => {
+    const excelType: ActivityExcelEstimateType | null =
+      resolvedEstimateType === 'detailed' || resolvedEstimateType === 'bid'
+        ? resolvedEstimateType
+        : null;
+    if (excelType) {
+      void downloadEstimateExcelTemplate(excelType, project?.name ?? 'project');
+      return;
+    }
     downloadBlankEstimateTemplateWorkbook();
-  }, []);
+  }, [project?.name, resolvedEstimateType]);
 
   const handleOpenHelp = useCallback(() => {
     const { lastSection, open } = useDefinitionsHelpStore.getState();
@@ -3100,6 +3225,7 @@ export default function EstimateWorkspacePage() {
                 importCollapseDivisionCodesKey={importCollapseDivisionCodesKey}
                 onEnsureDivisionsSelected={handleEnsureDivisionsSelected}
                 onActivitiesChanged={reloadConstructionActivities}
+                reloadKey={activitiesPanelReloadKey}
               />
             </FeatureGate>
           ) : (
@@ -3143,8 +3269,19 @@ export default function EstimateWorkspacePage() {
         onClose={() => setResetModalOpen(false)}
         onConfirm={handleConfirmResetSetup}
       />
+      <ActivityExcelImportModal
+        isOpen={importModalOpen && showImportExport}
+        saving={saving}
+        projectId={resolvedProjectId}
+        estimateId={estimate?.id ?? ''}
+        estimateType={
+          resolvedEstimateType === 'bid' ? 'bid' : 'detailed'
+        }
+        onClose={() => setImportModalOpen(false)}
+        onApply={handleApplyActivityExcelImport}
+      />
       <EstimateImportModal
-        isOpen={importModalOpen}
+        isOpen={importModalOpen && !showImportExport}
         saving={saving}
         onClose={() => setImportModalOpen(false)}
         onApply={handleApplyImportedEstimate}

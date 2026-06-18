@@ -58,6 +58,8 @@ describe('dashboardLayout', () => {
     expect(DASHBOARD_CARD_META.ardenCalc.requiredFeature).toBe('calculators');
     expect(DASHBOARD_CARD_META.accountingTaxLauncher.requiredFeature).toBe('accounting_exports');
     expect(DASHBOARD_CARD_META.newProjectShortcut.requiredFeature).toBeUndefined();
+    expect(DASHBOARD_CARD_META.plannerHubShortcut.requiredFeature).toBeUndefined();
+    expect(DASHBOARD_CARD_META.plannerHubShortcut.description).toMatch(/project workspace/i);
   });
 
   it('registers weather forecast widget metadata', () => {

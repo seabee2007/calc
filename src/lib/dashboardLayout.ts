@@ -378,14 +378,13 @@ export const DASHBOARD_CARD_META: Record<DashboardCardId, DashboardCardMeta> = {
   plannerHubShortcut: {
     id: 'plannerHubShortcut',
     title: 'Open Planner Hub',
-    description: 'Jump to the global planner hub across all projects.',
+    description: 'Jump to your project workspace for estimates, schedule, documents, and field workflows.',
     category: 'Shortcuts',
     default: { x: 8, y: 950, w: 4, h: 3 },
     minW: 4,
     minH: 3,
     allowedWidths: ALL_WIDTHS,
     defaultVisible: false,
-    requiredFeature: 'global_planner_hub',
     requiredRole: 'owner',
   },
   scheduleShortcut: {

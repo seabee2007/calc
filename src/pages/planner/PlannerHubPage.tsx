@@ -124,7 +124,7 @@ export default function PlannerHubPage() {
         header={
           <PageHeader
             title="Planner Hub"
-            subtitle="Open a project plan board to manage field tasks, assignments, and field updates."
+            subtitle="Your project workspace for estimates, schedule, documents, RFIs, FARs, change orders, and team activity."
             actions={headerActions}
           />
         }

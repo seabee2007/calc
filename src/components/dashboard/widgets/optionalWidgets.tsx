@@ -31,7 +31,7 @@ export function QuickActionsWidget({ ctx }: { ctx: DashboardCardContext }) {
     { label: 'New Project', icon: FolderPlus, onClick: ctx.onStartProject },
     { label: 'New Proposal', icon: FileText, onClick: () => navigate('/proposal-generator') },
     { label: 'Quick Estimate', icon: Calculator, onClick: ctx.onQuickQuote },
-    { label: 'Planner Hub', icon: LayoutDashboard, onClick: () => navigate('/planner') },
+    { label: 'Planner Hub', icon: LayoutDashboard, onClick: () => navigate('/planner/hub') },
   ];
   return (
     <OpsCard>
