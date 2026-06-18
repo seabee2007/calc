@@ -22,6 +22,7 @@ describe('entitlements', () => {
     expect(hasFeature('starter', 'quick_estimates')).toBe(true);
     expect(hasFeature('starter', 'conceptual_estimates')).toBe(true);
     expect(hasFeature('starter', 'calculators')).toBe(true);
+    expect(hasFeature('starter', 'global_ask_ai')).toBe(true);
     expect(hasFeature('starter', 'activity_based_estimating')).toBe(false);
     expect(hasFeature('starter', 'employee_portal')).toBe(false);
     expect(hasFeature('starter', 'logic_network')).toBe(false);
@@ -33,6 +34,7 @@ describe('entitlements', () => {
     expect(hasFeature('professional', 'employee_portal')).toBe(true);
     expect(hasFeature('professional', 'logic_network')).toBe(true);
     expect(hasFeature('professional', 'level_three_gantt')).toBe(true);
+    expect(hasFeature('professional', 'global_ask_ai')).toBe(true);
     expect(hasFeature('professional', 'level_three_gantt_export')).toBe(false);
     expect(hasFeature('professional', 'arden_calc_in_estimator')).toBe(true);
     expect(hasFeature('professional', 'accounting_exports')).toBe(false);
@@ -42,6 +44,7 @@ describe('entitlements', () => {
     expect(hasFeature('business', 'level_three_gantt_export')).toBe(true);
     expect(hasFeature('business', 'accounting_exports')).toBe(true);
     expect(hasFeature('business', 'financial_dashboard')).toBe(true);
+    expect(hasFeature('business', 'global_ask_ai')).toBe(true);
     expect(hasFeature('business', 'ai_concrete_chat')).toBe(true);
     expect(hasFeature('business', 'contract_builder')).toBe(true);
     expect(hasFeature('business', 'global_planner_hub')).toBe(true);
@@ -86,6 +89,7 @@ describe('entitlements', () => {
 
   it('minPlanForFeature resolves the lowest plan that includes a feature', () => {
     expect(minPlanForFeature('quick_estimates')).toBe('starter');
+    expect(minPlanForFeature('global_ask_ai')).toBe('starter');
     expect(minPlanForFeature('logic_network')).toBe('professional');
     expect(minPlanForFeature('ai_concrete_chat')).toBe('business');
   });
@@ -102,6 +106,7 @@ describe('entitlements', () => {
   it('Free plan has max_active_projects = 1 and no paid features', () => {
     expect(getPlanLimit('free', 'max_active_projects')).toBe(1);
     expect(hasFeature('free', 'quick_estimates')).toBe(true);
+    expect(hasFeature('free', 'global_ask_ai')).toBe(false);
     expect(hasFeature('free', 'conceptual_estimates')).toBe(false);
     expect(hasFeature('free', 'employee_portal')).toBe(false);
     expect(hasFeature('free', 'client_portal')).toBe(false);
@@ -121,6 +126,7 @@ describe('entitlements', () => {
         allFeatures.add(feature);
       }
     }
+    expect(allFeatures.has('global_ask_ai')).toBe(true);
     expect(allFeatures.has('arden_calc_in_estimator')).toBe(true);
     expect(allFeatures.has('global_planner_hub')).toBe(true);
   });

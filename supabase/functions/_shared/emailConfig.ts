@@ -70,6 +70,9 @@ export function resolveFromEmail(
     templateKey === "trialStarted" ||
     templateKey === "trialEndingSoon" ||
     templateKey === "subscriptionActive" ||
+    templateKey === "subscriptionWelcomeStarter" ||
+    templateKey === "subscriptionWelcomeProfessional" ||
+    templateKey === "subscriptionWelcomeBusiness" ||
     templateKey === "paymentFailed"
   ) {
     return config.notificationsFromEmail || config.fromEmail;

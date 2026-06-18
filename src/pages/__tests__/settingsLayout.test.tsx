@@ -40,6 +40,11 @@ describe('Settings page layout', () => {
     expect(settingsSource).not.toContain('CC_PAGE_HERO_TITLE');
   });
 
+  it('declares expandedSections state for collapsible sections', () => {
+    expect(settingsSource).toContain('const [expandedSections, setExpandedSections]');
+    expect(settingsSource).toContain('readExpandedSettingsSections()');
+  });
+
   it('uses collapsible settings sections collapsed by default', () => {
     expect(settingsSource).toContain('SettingsCollapsibleSection');
     expect(settingsSource).toContain('readExpandedSettingsSections');

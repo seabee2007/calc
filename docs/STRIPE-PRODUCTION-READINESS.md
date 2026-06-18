@@ -237,6 +237,7 @@ After deploying live secrets (do **not** skip test mode verification first):
 - `src/contexts/SubscriptionContext.tsx`
 - `src/pages/BillingPage.tsx`
 - `src/components/subscription/*`
+- `docs/SUBSCRIPTION-EMAILS.md` (upgrade welcome emails — unmetered billing/system mail)
 - `.env.example`
 - `netlify.toml`
 

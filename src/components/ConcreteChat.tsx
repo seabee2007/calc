@@ -3,6 +3,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { BRAND_NAME, goToAppAuth } from '../config/brand';
 import { MessageSquare, Send, X } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { useSubscription } from '../contexts/SubscriptionContext';
+import UpgradeRequiredCard from './subscription/UpgradeRequiredCard';
 import { useProjectStore } from '../store';
 import { supabase } from '../lib/supabase';
 import {
@@ -361,6 +363,7 @@ function ChatHeader({ onClose }: { onClose?: () => void }) {
 export default function ConcreteChat({ isModal, onClose }: ConcreteChatProps) {
   const [open, setOpen] = useState(false);
   const { user } = useAuth();
+  const { hasFeature, loading: subscriptionLoading } = useSubscription();
 
   const handleClose = () => {
     if (onClose) onClose();
@@ -370,6 +373,21 @@ export default function ConcreteChat({ isModal, onClose }: ConcreteChatProps) {
   if (!isModal) {
     if (!user) return null;
 
+    if (!subscriptionLoading && !hasFeature('global_ask_ai')) {
+      return (
+        <div
+          className="fixed bottom-20 right-4 z-50 md:bottom-6 md:right-6"
+          data-testid="global-ask-ai-upgrade"
+        >
+          <UpgradeRequiredCard
+            feature="global_ask_ai"
+            title="Ask AI is available on Starter"
+            className="max-w-sm p-4 shadow-lg"
+          />
+        </div>
+      );
+    }
+
     if (!open) {
       return (
         <div className="fixed bottom-20 right-4 z-50 md:bottom-6 md:right-6">
@@ -378,6 +396,7 @@ export default function ConcreteChat({ isModal, onClose }: ConcreteChatProps) {
             onClick={() => setOpen(true)}
             className="group flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-white/95 shadow-sm backdrop-blur-sm transition-[width,padding,gap,border-color,background-color] duration-200 ease-out hover:border-cyan-500/40 hover:bg-slate-50 dark:border-slate-700/70 dark:bg-slate-900/95 dark:hover:border-cyan-500/35 dark:hover:bg-slate-800/95 md:hover:w-auto md:hover:justify-start md:hover:gap-2 md:hover:px-3.5"
             aria-label="Open Project Assistant"
+            data-testid="global-ask-ai-open"
           >
             <MessageSquare
               className="h-5 w-5 shrink-0 text-cyan-600 dark:text-cyan-400"

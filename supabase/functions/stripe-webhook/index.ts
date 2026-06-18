@@ -79,6 +79,7 @@ async function syncSubscriptionById(
   stripe: Stripe,
   subscriptionId: string,
   userIdHint?: string | null,
+  stripeEventId?: string,
 ): Promise<void> {
   const subscription = await fetchStripeSubscription(stripe, subscriptionId);
   const userId = userIdHint ?? await resolveUserIdForSubscription(admin, subscription);
@@ -101,7 +102,7 @@ async function syncSubscriptionById(
     status: payload.status,
     stripeSubscriptionId: payload.stripe_subscription_id,
   });
-  await upsertSubscriptionRow(admin, payload);
+  await upsertSubscriptionRow(admin, payload, { stripeEventId });
 }
 
 async function updateStatusForCustomer(
@@ -210,7 +211,7 @@ async function handleStripeEvent(
 
       if (subscriptionId) {
         try {
-          await syncSubscriptionById(admin, stripe, subscriptionId, userId);
+          await syncSubscriptionById(admin, stripe, subscriptionId, userId, event.id);
         } catch (error) {
           console.error(
             "[stripe-webhook] checkout.session.completed sync failed; subscription events may retry",
@@ -250,7 +251,7 @@ async function handleStripeEvent(
       }
 
       const payload = buildSubscriptionUpsertPayload(userId, subscription);
-      await upsertSubscriptionRow(admin, payload);
+      await upsertSubscriptionRow(admin, payload, { stripeEventId: event.id });
       return;
     }
     case "customer.subscription.deleted": {
@@ -299,7 +300,7 @@ async function handleStripeEvent(
       });
 
       if (subscriptionId) {
-        await syncSubscriptionById(admin, stripe, subscriptionId);
+        await syncSubscriptionById(admin, stripe, subscriptionId, undefined, event.id);
         return;
       }
       if (!customerId) return;

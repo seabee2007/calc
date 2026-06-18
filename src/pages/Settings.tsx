@@ -80,6 +80,9 @@ const Settings: React.FC = () => {
   const { rates: laborRates } = useCompanyLaborRates();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [notificationPrefs, setNotificationPrefs] = useState<NotificationPreferences | null>(null);
+  const [expandedSections, setExpandedSections] = useState<Set<SettingsSectionId>>(
+    () => readExpandedSettingsSections(),
+  );
   
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);

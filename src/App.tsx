@@ -39,8 +39,8 @@ import { clearOnboardingDraft } from './lib/onboardingDraft';
 import FullscreenExperienceTipHost from './components/onboarding/FullscreenExperienceTipHost';
 import DefinitionsHelpHost from './features/help/DefinitionsHelpHost';
 import FeatureGate from './components/subscription/FeatureGate';
+import GlobalAskAiGate from './components/globalAskAi/GlobalAskAiGate';
 import { GatedLazyRoute } from './components/subscription/GatedLazyRoute';
-import { useSubscription } from './contexts/SubscriptionContext';
 import {
   LazyRoute,
   LazyConcreteCalculatorPage,
@@ -120,7 +120,6 @@ import {
   LazyEmployeeTaskDetailPage,
   LazyArdenFieldCalculatorPage,
   LazyOnboardingFlow,
-  LazyConcreteChat,
   LazyActivityEstimatePreview,
   LazyProductionRateReviewPage,
   LazyAdobeRejectedRecoveryPage,
@@ -163,20 +162,6 @@ export const useChatStore = () => {
   const [isVisible, setIsVisible] = React.useState(true);
   return { isVisible, setIsVisible };
 };
-
-function ConcreteChatGate() {
-  const { hasFeature, loading } = useSubscription();
-
-  if (loading || !hasFeature('ai_concrete_chat')) {
-    return null;
-  }
-
-  return (
-    <Suspense fallback={null}>
-      <LazyConcreteChat />
-    </Suspense>
-  );
-}
 
 function App() {
   const { user, profile, profileLoading, loading: authLoading, refreshProfile } = useAuth();
@@ -837,7 +822,7 @@ function App() {
 
         {chatStore.isVisible &&
           !location.pathname.startsWith('/proposal/') &&
-          !location.pathname.startsWith('/client/project/') && <ConcreteChatGate />}
+          !location.pathname.startsWith('/client/project/') && <GlobalAskAiGate />}
 
         <FullscreenExperienceTipHost />
         <DefinitionsHelpHost />

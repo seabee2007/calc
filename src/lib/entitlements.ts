@@ -32,6 +32,7 @@ export type FeatureKey =
   | 'accounting_exports'
   | 'financial_dashboard'
   | 'ai_concrete_chat'
+  | 'global_ask_ai'
   | 'ai_scope_summary'
   | 'ai_labor_crew_review'
   | 'ai_batch_plant_tools'
@@ -90,6 +91,7 @@ const STARTER_FEATURES: FeatureKey[] = [
   'calculators',
   'resources',
   'proposals',
+  'global_ask_ai',
 ];
 
 const PROFESSIONAL_FEATURES: FeatureKey[] = [
@@ -151,6 +153,7 @@ export const FEATURE_DESCRIPTIONS: Record<FeatureKey, string> = {
   accounting_exports: 'Accounting and tax export workflows.',
   financial_dashboard: 'Financial deep-dive dashboards and portfolio metrics.',
   ai_concrete_chat: 'Concrete Chat AI assistant.',
+  global_ask_ai: 'Global floating Ask AI assistant for project planning and concrete guidance.',
   ai_scope_summary: 'AI scope summarization for projects and estimates.',
   ai_labor_crew_review: 'AI labor crew review recommendations.',
   ai_batch_plant_tools: 'AI batch plant pricing and contact tools.',

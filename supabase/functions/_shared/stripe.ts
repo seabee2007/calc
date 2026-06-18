@@ -3,6 +3,10 @@
  * Lookup keys must stay in sync with `src/lib/stripeConfig.ts`.
  */
 import Stripe from "https://esm.sh/stripe@17.7.0?target=deno";
+import {
+  fetchSubscriptionRowSnapshot,
+  maybeSendSubscriptionWelcomeEmail,
+} from "./subscriptionEmails.ts";
 
 export type PlanId = "starter" | "professional" | "business";
 export type BillingInterval = "month" | "year";
@@ -324,10 +328,17 @@ export function buildSubscriptionUpsertPayload(
   };
 }
 
+export interface UpsertSubscriptionRowOptions {
+  stripeEventId?: string;
+}
+
 export async function upsertSubscriptionRow(
   admin: ReturnType<typeof import("https://esm.sh/@supabase/supabase-js@2.49.1").createClient>,
   payload: SubscriptionUpsertPayload,
+  options?: UpsertSubscriptionRowOptions,
 ): Promise<void> {
+  const previousRow = await fetchSubscriptionRowSnapshot(admin, payload.user_id);
+
   const { error } = await admin.from("subscriptions").upsert(payload, {
     onConflict: "user_id",
   });
@@ -341,6 +352,30 @@ export async function upsertSubscriptionRow(
       error,
     });
     throw error;
+  }
+
+  if (!options?.stripeEventId || !payload.stripe_subscription_id) {
+    return;
+  }
+
+  try {
+    await maybeSendSubscriptionWelcomeEmail(admin, {
+      userId: payload.user_id,
+      stripeSubscriptionId: payload.stripe_subscription_id,
+      stripeEventId: options.stripeEventId,
+      planId: payload.plan_id,
+      status: payload.status,
+      previousRow,
+    });
+  } catch (emailError) {
+    console.error("[stripe-webhook] subscription welcome email failed; subscription sync kept", {
+      userId: payload.user_id,
+      stripeSubscriptionId: payload.stripe_subscription_id,
+      stripeEventId: options.stripeEventId,
+      planId: payload.plan_id,
+      status: payload.status,
+      error: emailError,
+    });
   }
 }
 

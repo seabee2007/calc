@@ -346,6 +346,12 @@ describe('email validation', () => {
     expect(isAllowedTemplateKey('changeOrderSent')).toBe(true);
   });
 
+  it('allows subscription welcome template keys', () => {
+    expect(isAllowedTemplateKey('subscriptionWelcomeStarter')).toBe(true);
+    expect(isAllowedTemplateKey('subscriptionWelcomeProfessional')).toBe(true);
+    expect(isAllowedTemplateKey('subscriptionWelcomeBusiness')).toBe(true);
+  });
+
   it('maps Resend webhook events to email event statuses', () => {
     expect(mapResendWebhookStatus('email.delivered')).toBe('delivered');
     expect(mapResendWebhookStatus('email.bounced')).toBe('bounced');

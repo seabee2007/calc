@@ -64,6 +64,48 @@ function layout(input: {
   };
 }
 
+function featureListHtml(features: string[]): string {
+  return `<ul style="margin:12px 0 16px;padding-left:20px;">${
+    features.map((feature) =>
+      `<li style="margin:0 0 8px;">${escapeHtml(feature)}</li>`
+    ).join("")
+  }</ul>`;
+}
+
+function featureListText(features: string[]): string {
+  return features.map((feature) => `- ${feature}`).join("\n");
+}
+
+function subscriptionWelcomeTemplate(input: {
+  planLabel: string;
+  features: string[];
+  usageSummary: string;
+  data: Record<string, unknown>;
+}): RenderedEmail {
+  const firstName = str(input.data, "firstName").trim();
+  const greeting = firstName ? `Hi ${escapeHtml(firstName)},` : "Hi there,";
+  const greetingText = firstName ? `Hi ${firstName},` : "Hi there,";
+  const billingUrl = str(input.data, "billingUrl");
+  const dashboardUrl = str(input.data, "dashboardUrl");
+  const title = `Welcome to Arden Project OS ${input.planLabel}`;
+
+  const billingLinkHtml = billingUrl
+    ? `<p style="margin:16px 0 0;">Manage billing and usage anytime from <a href="${escapeHtml(billingUrl)}" style="color:#0891b2;text-decoration:underline;">Settings → Billing</a>.</p>`
+    : "";
+  const billingLinkText = billingUrl
+    ? `\n\nManage billing and usage anytime from Settings → Billing: ${billingUrl}`
+    : "";
+
+  return layout({
+    title,
+    heading: title,
+    bodyHtml: `<p style="margin:0 0 12px;">${greeting}</p><p style="margin:0 0 12px;">Thank you for upgrading to <strong>${escapeHtml(input.planLabel)}</strong>. Your workspace is ready with the features and usage limits below.</p>${featureListHtml(input.features)}<p style="margin:0 0 12px;"><strong>Usage &amp; billing:</strong> ${escapeHtml(input.usageSummary)}</p>${billingLinkHtml}`,
+    bodyText: `${greetingText}\n\nThank you for upgrading to ${input.planLabel}. Your workspace is ready with the features and usage limits below.\n\n${featureListText(input.features)}\n\nUsage & billing: ${input.usageSummary}${billingLinkText}`,
+    ctaLabel: dashboardUrl ? "Go to Dashboard" : undefined,
+    ctaUrl: dashboardUrl || undefined,
+  });
+}
+
 function str(data: Record<string, unknown>, key: string, fallback = ""): string {
   const value = data[key];
   return typeof value === "string" ? value : fallback;
@@ -248,6 +290,61 @@ export function renderEmailTemplate(
         bodyText: "Thank you. Your subscription is active and your workspace is ready.",
         ctaLabel: "Open Arden Project OS",
         ctaUrl: str(data, "appUrl"),
+      });
+    case "subscriptionWelcomeStarter":
+      return subscriptionWelcomeTemplate({
+        planLabel: "Starter",
+        features: [
+          "Up to 3 active projects",
+          "Starter monthly usage limits",
+          "Quick estimating tools",
+          "Basic proposal and project workflows",
+          "Arden calculators and core resources",
+        ],
+        usageSummary: str(
+          data,
+          "usageSummary",
+          "Starter includes 100 project emails, 250 weather lookups, and other monthly usage limits.",
+        ),
+        data,
+      });
+    case "subscriptionWelcomeProfessional":
+      return subscriptionWelcomeTemplate({
+        planLabel: "Professional",
+        features: [
+          "Up to 10 active projects",
+          "Up to 5 field seats",
+          "Detailed estimating and project controls",
+          "Client portal access",
+          "RFIs, FARs, QC, and change orders",
+          "Field workflows",
+          "Logic network, CPM, and Gantt scheduling",
+        ],
+        usageSummary: str(
+          data,
+          "usageSummary",
+          "Professional includes 500 project emails, 1,000 weather lookups, and higher monthly usage limits.",
+        ),
+        data,
+      });
+    case "subscriptionWelcomeBusiness":
+      return subscriptionWelcomeTemplate({
+        planLabel: "Business",
+        features: [
+          "Unlimited active projects",
+          "Up to 15 field seats",
+          "Business monthly usage limits",
+          "Accounting and tax exports",
+          "Financial dashboards",
+          "Advanced project and team management",
+          "Highest standard usage limits",
+        ],
+        usageSummary: str(
+          data,
+          "usageSummary",
+          "Business includes 2,000 project emails, 5,000 weather lookups, and the highest standard monthly usage limits.",
+        ),
+        data,
       });
     case "paymentFailed":
       return layout({
