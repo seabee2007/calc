@@ -1,8 +1,9 @@
 import type { NavigateFunction } from 'react-router-dom';
+import { PRODUCT_NAME, SUPPORT_EMAIL } from '../lib/companyInfo';
 
-export const BRAND_NAME = 'Arden Project OS';
+export const BRAND_NAME = PRODUCT_NAME;
 export const BRAND_SHORT_NAME = 'Arden';
-export const SUPPORT_EMAIL = 'support@ardenprojectos.com';
+export { SUPPORT_EMAIL };
 
 export const MARKETING_URL =
   import.meta.env.VITE_MARKETING_URL ?? 'https://ardenprojectos.com';

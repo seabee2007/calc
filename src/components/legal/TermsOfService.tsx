@@ -1,21 +1,21 @@
 import React from 'react';
 import {
   LEGAL_MODAL_H3,
-  LEGAL_MODAL_LINK,
   LEGAL_MODAL_LIST,
   LEGAL_MODAL_LIST_SPACED,
   LEGAL_MODAL_META,
   LEGAL_MODAL_ROOT,
   LEGAL_MODAL_SECTION,
 } from './legalModalStyles';
-import { BRAND_NAME, SUPPORT_EMAIL } from '../../config/brand';
+import { COMPANY_LEGAL_NAME, PRODUCT_NAME, PRODUCT_OPERATOR_PHRASE } from '../../lib/companyInfo';
+import LegalContactBlock from './LegalContactBlock';
 
 const TermsOfService: React.FC = () => {
   return (
     <div className={LEGAL_MODAL_ROOT}>
       <section className={LEGAL_MODAL_SECTION}>
         <h2 className={`${LEGAL_MODAL_H3} text-xl`}>Arden Project OS Terms of Service</h2>
-        <p className={LEGAL_MODAL_META}>Last Updated: 12 June 2026</p>
+        <p className={LEGAL_MODAL_META}>Last Updated: 18 June 2026</p>
         <p>
           These Terms of Service (&ldquo;Terms&rdquo;) govern your access to and use of Arden Project OS,
           including our websites, web application, mobile or progressive web application, calculators,
@@ -23,10 +23,11 @@ const TermsOfService: React.FC = () => {
           features, accounting and tax export tools, emails, APIs, and any related services we provide
           (collectively, the &ldquo;Service&rdquo;).
         </p>
+        <p>{PRODUCT_OPERATOR_PHRASE}</p>
         <p>
           These Terms form a legally binding agreement between you and{' '}
-          <strong>[Insert Legal Entity Name]</strong> doing business as Arden Project OS
-          (&ldquo;Arden Project OS,&rdquo; &ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;).
+          <strong>{COMPANY_LEGAL_NAME}</strong> doing business as {PRODUCT_NAME}
+          (&ldquo;{PRODUCT_NAME},&rdquo; &ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;).
         </p>
         <p>
           By creating an account, accessing the Service, using a free trial, subscribing to a paid plan,
@@ -607,20 +608,43 @@ const TermsOfService: React.FC = () => {
       </section>
 
       <section className={LEGAL_MODAL_SECTION}>
-        <h3 className={`${LEGAL_MODAL_H3} mb-2`}>28. Service Availability and Changes</h3>
+        <h3 className={`${LEGAL_MODAL_H3} mb-2`}>28. Availability, Outages, and Data Responsibility</h3>
         <p>
-          We strive to keep the Service available, but we do not guarantee uninterrupted, error-free, secure,
-          or timely operation.
+          Arden Project OS is provided on an <strong>&ldquo;AS IS&rdquo;</strong> and{' '}
+          <strong>&ldquo;AS AVAILABLE&rdquo;</strong> basis. We do not guarantee that the Service will be
+          uninterrupted, timely, secure, error-free, or continuously available. Access to the Service may be
+          affected by maintenance, outages, internet or network issues, database interruptions, third-party
+          provider failures, security events, or other circumstances beyond our control.
         </p>
         <p>
-          The Service may be unavailable due to maintenance, updates, internet issues, outages, third-party
-          failures, security incidents, force majeure events, or other causes.
+          While Arden Project OS may perform routine backups and use commercially reasonable safeguards, you
+          are ultimately responsible for maintaining independent, duplicate records of your critical business
+          and project information. This includes, without limitation, estimates, proposals, contracts, change
+          orders, RFIs, FARs, schedules, project records, client communications, documents, exports,
+          accounting records, and other business-critical data.
+        </p>
+        <p>
+          You should not rely on Arden Project OS as your only copy of information needed for bid deadlines,
+          contract performance, legal compliance, accounting, tax records, client obligations, or business
+          continuity. You should export or maintain duplicate records as needed for deadlines, bids, contracts,
+          accounting, legal, or compliance purposes.
         </p>
         <p>We may modify, suspend, restrict, or discontinue any part of the Service at any time.</p>
       </section>
 
       <section className={LEGAL_MODAL_SECTION}>
-        <h3 className={`${LEGAL_MODAL_H3} mb-2`}>29. Suspension and Termination</h3>
+        <h3 className={`${LEGAL_MODAL_H3} mb-2`}>29. Contractor Deadlines, Bids, and Project Outcomes</h3>
+        <p>
+          You are responsible for verifying all estimates, quantities, pricing, schedules, deadlines, bid
+          submissions, contract documents, project records, and exported materials before relying on them.
+          Arden Project OS is a project management and estimating tool. We do not guarantee bid submission,
+          contract award, profitability, deadline compliance, project performance, or any particular business
+          outcome.
+        </p>
+      </section>
+
+      <section className={LEGAL_MODAL_SECTION}>
+        <h3 className={`${LEGAL_MODAL_H3} mb-2`}>30. Suspension and Termination</h3>
         <p>We may suspend or terminate your access if:</p>
         <ul className={LEGAL_MODAL_LIST}>
           <li>You violate these Terms</li>
@@ -642,7 +666,7 @@ const TermsOfService: React.FC = () => {
       </section>
 
       <section className={LEGAL_MODAL_SECTION}>
-        <h3 className={`${LEGAL_MODAL_H3} mb-2`}>30. Disclaimers</h3>
+        <h3 className={`${LEGAL_MODAL_H3} mb-2`}>31. Disclaimers</h3>
         <p>THE SERVICE IS PROVIDED &ldquo;AS IS&rdquo; AND &ldquo;AS AVAILABLE.&rdquo;</p>
         <p>
           TO THE MAXIMUM EXTENT PERMITTED BY LAW, WE DISCLAIM ALL WARRANTIES, EXPRESS, IMPLIED, STATUTORY, OR
@@ -663,31 +687,37 @@ const TermsOfService: React.FC = () => {
       </section>
 
       <section className={LEGAL_MODAL_SECTION}>
-        <h3 className={`${LEGAL_MODAL_H3} mb-2`}>31. Limitation of Liability</h3>
+        <h3 className={`${LEGAL_MODAL_H3} mb-2`}>32. Exclusion of Consequential Damages</h3>
         <p>
-          TO THE MAXIMUM EXTENT PERMITTED BY LAW, CONCRETE CALC AND ITS OWNERS, OFFICERS, DIRECTORS, EMPLOYEES,
-          CONTRACTORS, AFFILIATES, AGENTS, SUPPLIERS, AND LICENSORS WILL NOT BE LIABLE FOR ANY INDIRECT,
-          INCIDENTAL, SPECIAL, CONSEQUENTIAL, EXEMPLARY, PUNITIVE, OR SIMILAR DAMAGES, INCLUDING LOST
-          PROFITS, LOST REVENUE, LOST BUSINESS, LOST DATA, LOST GOODWILL, BUSINESS INTERRUPTION, PROJECT
-          DELAYS, BID LOSSES, COST OVERRUNS, TAX PENALTIES, CONTRACT DAMAGES, OR PROCUREMENT LOSSES, EVEN IF
-          ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+          To the maximum extent permitted by law, in no event shall Arden Project OS, its owners, officers,
+          employees, contractors, affiliates, service providers, or licensors be liable for any indirect,
+          incidental, special, consequential, exemplary, or punitive damages, including without limitation
+          loss of profits, loss of revenue, loss of business opportunity, loss of bids or contracts, loss of
+          data, loss of use, loss of goodwill, business interruption, or other intangible losses, whether based
+          on warranty, contract, tort, negligence, strict liability, or any other legal theory, even if Arden
+          Project OS has been advised of the possibility of such damages.
         </p>
-        <p>
-          TO THE MAXIMUM EXTENT PERMITTED BY LAW, OUR TOTAL LIABILITY FOR ALL CLAIMS RELATING TO THE SERVICE OR
-          THESE TERMS WILL NOT EXCEED THE GREATER OF:
-        </p>
-        <ol className="list-decimal space-y-2 pl-5 marker:text-cyan-600 dark:marker:text-cyan-400">
-          <li>
-            THE AMOUNT YOU PAID TO US FOR THE SERVICE IN THE THREE MONTHS BEFORE THE EVENT GIVING RISE TO THE
-            CLAIM; OR
-          </li>
-          <li>ONE HUNDRED U.S. DOLLARS ($100).</li>
-        </ol>
-        <p>Some jurisdictions do not allow certain limitations, so some limitations may not apply to you.</p>
       </section>
 
       <section className={LEGAL_MODAL_SECTION}>
-        <h3 className={`${LEGAL_MODAL_H3} mb-2`}>32. Indemnification</h3>
+        <h3 className={`${LEGAL_MODAL_H3} mb-2`}>33. Limitation of Liability</h3>
+        <p>
+          To the maximum extent permitted by law, Arden Project OS&rsquo;s total liability for any claim
+          arising out of or relating to the Service shall not exceed the greater of: <strong>(a)</strong> the
+          total amount paid by you to Arden Project OS for use of the Service during the twelve (12) months
+          immediately preceding the event giving rise to the claim; or <strong>(b)</strong> one hundred U.S.
+          dollars ($100).
+        </p>
+        <p>
+          This limitation applies to all claims in the aggregate, including claims related to service outages,
+          data loss, delayed access, billing, errors, omissions, interrupted service, or use of the Service.
+          Some jurisdictions do not allow certain limitations of liability, so these limitations apply only to
+          the maximum extent permitted by applicable law.
+        </p>
+      </section>
+
+      <section className={LEGAL_MODAL_SECTION}>
+        <h3 className={`${LEGAL_MODAL_H3} mb-2`}>34. Indemnification</h3>
         <p>
           You agree to defend, indemnify, and hold harmless Arden Project OS and its owners, officers, directors,
           employees, contractors, affiliates, agents, suppliers, and licensors from and against all claims,
@@ -710,7 +740,7 @@ const TermsOfService: React.FC = () => {
       </section>
 
       <section className={LEGAL_MODAL_SECTION}>
-        <h3 className={`${LEGAL_MODAL_H3} mb-2`}>33. Dispute Resolution, Arbitration, and Class Action Waiver</h3>
+        <h3 className={`${LEGAL_MODAL_H3} mb-2`}>35. Dispute Resolution, Arbitration, and Class Action Waiver</h3>
         <p>Please review this section carefully. It may affect your legal rights.</p>
         <p>
           Before filing a claim, you agree to first contact us and attempt to resolve the dispute informally.
@@ -750,7 +780,7 @@ const TermsOfService: React.FC = () => {
       </section>
 
       <section className={LEGAL_MODAL_SECTION}>
-        <h3 className={`${LEGAL_MODAL_H3} mb-2`}>34. Governing Law and Venue</h3>
+        <h3 className={`${LEGAL_MODAL_H3} mb-2`}>36. Governing Law and Venue</h3>
         <p>
           These Terms are governed by the laws of the State of California, without regard to conflict-of-law
           rules, unless applicable law requires otherwise.
@@ -766,7 +796,7 @@ const TermsOfService: React.FC = () => {
       </section>
 
       <section className={LEGAL_MODAL_SECTION}>
-        <h3 className={`${LEGAL_MODAL_H3} mb-2`}>35. Export Control and Sanctions</h3>
+        <h3 className={`${LEGAL_MODAL_H3} mb-2`}>37. Export Control and Sanctions</h3>
         <p>
           You may not use the Service if you are located in, organized under the laws of, or ordinarily
           resident in a country or region subject to comprehensive U.S. sanctions, or if you are listed on any
@@ -779,7 +809,7 @@ const TermsOfService: React.FC = () => {
       </section>
 
       <section className={LEGAL_MODAL_SECTION}>
-        <h3 className={`${LEGAL_MODAL_H3} mb-2`}>36. Government Use</h3>
+        <h3 className={`${LEGAL_MODAL_H3} mb-2`}>38. Government Use</h3>
         <p>
           The Service is commercial computer software. If used by or on behalf of a government entity, the
           Service is provided with only the rights granted to other users under these Terms, unless a separate
@@ -788,7 +818,7 @@ const TermsOfService: React.FC = () => {
       </section>
 
       <section className={LEGAL_MODAL_SECTION}>
-        <h3 className={`${LEGAL_MODAL_H3} mb-2`}>37. Changes to These Terms</h3>
+        <h3 className={`${LEGAL_MODAL_H3} mb-2`}>39. Changes to These Terms</h3>
         <p>
           We may update these Terms from time to time. If changes are material, we will provide notice by email,
           in-app notice, or other reasonable means.
@@ -804,7 +834,7 @@ const TermsOfService: React.FC = () => {
       </section>
 
       <section className={LEGAL_MODAL_SECTION}>
-        <h3 className={`${LEGAL_MODAL_H3} mb-2`}>38. Assignment</h3>
+        <h3 className={`${LEGAL_MODAL_H3} mb-2`}>40. Assignment</h3>
         <p>
           You may not assign or transfer these Terms or your account without our prior written consent.
         </p>
@@ -815,7 +845,7 @@ const TermsOfService: React.FC = () => {
       </section>
 
       <section className={LEGAL_MODAL_SECTION}>
-        <h3 className={`${LEGAL_MODAL_H3} mb-2`}>39. Severability</h3>
+        <h3 className={`${LEGAL_MODAL_H3} mb-2`}>41. Severability</h3>
         <p>
           If any provision of these Terms is found invalid, illegal, or unenforceable, that provision will be
           modified to the minimum extent necessary to make it enforceable, or removed if modification is not
@@ -824,7 +854,7 @@ const TermsOfService: React.FC = () => {
       </section>
 
       <section className={LEGAL_MODAL_SECTION}>
-        <h3 className={`${LEGAL_MODAL_H3} mb-2`}>40. No Waiver</h3>
+        <h3 className={`${LEGAL_MODAL_H3} mb-2`}>42. No Waiver</h3>
         <p>
           Our failure to enforce any provision of these Terms does not waive our right to enforce that
           provision later.
@@ -832,7 +862,7 @@ const TermsOfService: React.FC = () => {
       </section>
 
       <section className={LEGAL_MODAL_SECTION}>
-        <h3 className={`${LEGAL_MODAL_H3} mb-2`}>41. Entire Agreement</h3>
+        <h3 className={`${LEGAL_MODAL_H3} mb-2`}>43. Entire Agreement</h3>
         <p>
           These Terms, together with the Privacy Policy, any applicable order form, subscription terms, plan
           terms, or written agreement between you and us, make up the entire agreement between you and
@@ -845,22 +875,9 @@ const TermsOfService: React.FC = () => {
       </section>
 
       <section className={LEGAL_MODAL_SECTION}>
-        <h3 className={`${LEGAL_MODAL_H3} mb-2`}>42. Contact Information</h3>
+        <h3 className={`${LEGAL_MODAL_H3} mb-2`}>44. Contact Information</h3>
         <p>If you have questions about these Terms, contact us at:</p>
-        <address className="not-italic mt-2 space-y-1">
-          <p>
-            <strong>{BRAND_NAME}</strong>
-          </p>
-          <p>
-            Email:{' '}
-            <a href={`mailto:${SUPPORT_EMAIL}`} className={LEGAL_MODAL_LINK}>
-              {SUPPORT_EMAIL}
-            </a>
-          </p>
-          <p>
-            <strong>Address:</strong> [Insert Legal Business Mailing Address]
-          </p>
-        </address>
+        <LegalContactBlock />
       </section>
     </div>
   );

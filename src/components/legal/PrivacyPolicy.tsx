@@ -2,26 +2,31 @@ import React from 'react';
 import {
   LEGAL_MODAL_H3,
   LEGAL_MODAL_H4,
-  LEGAL_MODAL_LINK,
   LEGAL_MODAL_LIST,
   LEGAL_MODAL_LIST_SPACED,
   LEGAL_MODAL_META,
   LEGAL_MODAL_ROOT,
   LEGAL_MODAL_SECTION,
 } from './legalModalStyles';
-import { BRAND_NAME, SUPPORT_EMAIL } from '../../config/brand';
+import {
+  COMPANY_LEGAL_NAME,
+  PRODUCT_NAME,
+  PRODUCT_OPERATOR_PHRASE,
+} from '../../lib/companyInfo';
+import LegalContactBlock from './LegalContactBlock';
 
 const PrivacyPolicy: React.FC = () => {
   return (
     <div className={LEGAL_MODAL_ROOT}>
       <section className={LEGAL_MODAL_SECTION}>
         <h2 className={`${LEGAL_MODAL_H3} text-xl`}>Arden Project OS Privacy Policy</h2>
-        <p className={LEGAL_MODAL_META}>Last Updated: 12 June 2026</p>
+        <p className={LEGAL_MODAL_META}>Last Updated: 18 June 2026</p>
+        <p>{PRODUCT_OPERATOR_PHRASE}</p>
         <p>
-          This Privacy Policy explains how <strong>[Insert Legal Entity Name]</strong> doing business as
-          Arden Project OS (&ldquo;Arden Project OS,&rdquo; &ldquo;we,&rdquo; &ldquo;us,&rdquo; or
-          &ldquo;our&rdquo;) collects, uses, stores, shares, and protects information when you access or use
-          Arden Project OS, including our websites, web application, mobile or progressive web application,
+          This Privacy Policy explains how <strong>{COMPANY_LEGAL_NAME}</strong> doing business as{' '}
+          {PRODUCT_NAME} (&ldquo;{PRODUCT_NAME},&rdquo; &ldquo;we,&rdquo; &ldquo;us,&rdquo; or
+          &ldquo;our&rdquo;) collects, uses, stores, shares, and protects information when you access or use{' '}
+          {PRODUCT_NAME}, including our websites, web application, mobile or progressive web application,
           calculators, estimating tools, proposal tools, scheduling tools, project management tools, client
           portal features, email features, accounting and tax export tools, integrations, and related services
           (collectively, the &ldquo;Service&rdquo;).
@@ -772,20 +777,7 @@ const PrivacyPolicy: React.FC = () => {
         <p>
           If you have questions about this Privacy Policy or want to exercise privacy rights, contact us at:
         </p>
-        <address className="not-italic mt-2 space-y-1">
-          <p>
-            <strong>{BRAND_NAME}</strong>
-          </p>
-          <p>
-            Email:{' '}
-            <a href={`mailto:${SUPPORT_EMAIL}`} className={LEGAL_MODAL_LINK}>
-              {SUPPORT_EMAIL}
-            </a>
-          </p>
-          <p>
-            <strong>Address:</strong> [Insert Legal Business Mailing Address]
-          </p>
-        </address>
+        <LegalContactBlock />
       </section>
     </div>
   );

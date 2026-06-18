@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import Footer from './Footer';
 import { BRAND_NAME } from '../../config/brand';
+import { COMPANY_LEGAL_NAME } from '../../lib/companyInfo';
 
 function renderFooter(props?: { reserveMobileNavSpace?: boolean }) {
   return render(
@@ -27,7 +28,7 @@ describe('Footer', () => {
       '/privacy-policy',
     );
     expect(screen.getByRole('link', { name: 'Contact Us' })).toHaveAttribute('href', '/contact');
-    expect(screen.getByText(new RegExp(`© \\d{4} ${BRAND_NAME}\\. All rights reserved\\.`))).toBeInTheDocument();
+    expect(screen.getByText(new RegExp(`© \\d{4} ${COMPANY_LEGAL_NAME}\\. All rights reserved\\.`))).toBeInTheDocument();
   });
 
   it('reserves space above mobile bottom nav when requested', () => {
