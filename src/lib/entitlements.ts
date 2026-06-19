@@ -47,7 +47,9 @@ export type LimitKey =
   | 'included_field_seats'
   | 'max_field_seats'
   | 'ai_requests_monthly'
-  | 'level_three_exports_monthly';
+  | 'level_three_exports_monthly'
+  | 'max_3d_models_per_project'
+  | 'max_3d_model_size_mb';
 
 /** -1 = unlimited */
 export const PLAN_LIMITS: Record<PlanId, Record<LimitKey, number>> = {
@@ -57,6 +59,8 @@ export const PLAN_LIMITS: Record<PlanId, Record<LimitKey, number>> = {
     max_field_seats: 0,
     ai_requests_monthly: 0,
     level_three_exports_monthly: 0,
+    max_3d_models_per_project: 0,
+    max_3d_model_size_mb: 0,
   },
   starter: {
     max_active_projects: 3,
@@ -64,6 +68,8 @@ export const PLAN_LIMITS: Record<PlanId, Record<LimitKey, number>> = {
     max_field_seats: 1,
     ai_requests_monthly: 0,
     level_three_exports_monthly: 0,
+    max_3d_models_per_project: 0,
+    max_3d_model_size_mb: 0,
   },
   professional: {
     max_active_projects: 10,
@@ -71,6 +77,8 @@ export const PLAN_LIMITS: Record<PlanId, Record<LimitKey, number>> = {
     max_field_seats: 25,
     ai_requests_monthly: 0,
     level_three_exports_monthly: 5,
+    max_3d_models_per_project: 10,
+    max_3d_model_size_mb: 100,
   },
   business: {
     max_active_projects: -1,
@@ -78,7 +86,38 @@ export const PLAN_LIMITS: Record<PlanId, Record<LimitKey, number>> = {
     max_field_seats: -1,
     ai_requests_monthly: 500,
     level_three_exports_monthly: -1,
+    max_3d_models_per_project: 50,
+    max_3d_model_size_mb: 500,
   },
+};
+
+export type ThreeDTakeoffCapability =
+  | 'viewDemo'
+  | 'uploadGlb'
+  | 'manualTakeoff'
+  | 'measureTool'
+  | 'snapMeasure'
+  | 'scaleCalibration'
+  | 'addToEstimate'
+  | 'saveModelLinkedTakeoffItems'
+  | 'ifcImport'
+  | 'modelVersionCompare'
+  | 'clientViewer'
+  | 'aiObjectMapping';
+
+export const THREE_D_TAKEOFF_ENTITLEMENTS: Record<ThreeDTakeoffCapability, PlanId[]> = {
+  viewDemo: ['free', 'starter', 'professional', 'business'],
+  uploadGlb: ['professional', 'business'],
+  manualTakeoff: ['professional', 'business'],
+  measureTool: ['professional', 'business'],
+  snapMeasure: ['professional', 'business'],
+  scaleCalibration: ['professional', 'business'],
+  addToEstimate: ['professional', 'business'],
+  saveModelLinkedTakeoffItems: ['professional', 'business'],
+  ifcImport: ['business'],
+  modelVersionCompare: ['business'],
+  clientViewer: ['business'],
+  aiObjectMapping: ['business'],
 };
 
 const FREE_FEATURES: FeatureKey[] = [
@@ -185,6 +224,22 @@ export function shouldEnforcePlanLimits(): boolean {
 
 export function hasFeature(plan: PlanId, feature: FeatureKey): boolean {
   return PLAN_FEATURES[plan].has(feature);
+}
+
+export function hasThreeDTakeoffCapability(
+  plan: PlanId,
+  capability: ThreeDTakeoffCapability,
+): boolean {
+  return THREE_D_TAKEOFF_ENTITLEMENTS[capability].includes(plan);
+}
+
+export function canUseThreeDTakeoffCapability(
+  plan: PlanId | null | undefined,
+  capability: ThreeDTakeoffCapability,
+): boolean {
+  if (!shouldEnforcePlanLimits()) return true;
+  if (!plan) return false;
+  return hasThreeDTakeoffCapability(plan, capability);
 }
 
 export function getPlanLimit(plan: PlanId, key: LimitKey): number {
