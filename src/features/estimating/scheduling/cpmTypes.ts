@@ -5,6 +5,16 @@ export interface CpmLogicLink {
   successorActivityCode: string;
   relationshipType: CpmRelationshipType;
   lagDays: number;
+  /** True for non-persisted, runtime-generated leveled links. */
+  generated?: boolean;
+  /** Generation source for non-baseline links. */
+  source?: 'resource_leveling';
+  /** Why the generated link exists. */
+  reason?: 'crew_limit';
+  /** For resource-dummy links: the provider activity that freed the constrained crew. */
+  resourceProviderActivityCode?: string;
+  /** For resource-dummy links: the activity that was delayed by resource leveling. */
+  delayedActivityCode?: string;
   /**
    * Stable runtime ids for the endpoints. When present these are the authoritative
    * identity (so repeated activity codes stay uniquely linkable); the activityCode
@@ -201,10 +211,17 @@ export interface MovedActivity {
   daysMoved: number;
   reason: string;
   dependentActivityCodes?: string[];
+  /**
+   * Activities that were occupying the constrained crew before this activity
+   * could start (resource providers). Used only to draw resource-dummy arrows
+   * in the Resource-Leveled Logic Network — never affects CPM/float math.
+   */
+  resourceProviderActivityCodes?: string[];
 }
 
 export interface ResourceLevelingResult {
   leveledActivities: CpmActivityResult[];
+  appliedOffsets: Record<string, number>;
   resourceHistogramBefore: ResourceHistogramDay[];
   resourceHistogramAfter: ResourceHistogramDay[];
   projectDurationBefore: number;
@@ -217,6 +234,14 @@ export interface ResourceLevelingResult {
   movedActivities: MovedActivity[];
   unmovedActivities: UnmovedActivity[];
   warnings: string[];
+  /**
+   * Provider-derived FS resource-dummy links (provider -> delayed activity).
+   * These are the explicit leveling logic: running CPM on
+   * `baseline logicLinks + resourceDummyLinks` reproduces the leveled schedule.
+   * They are NEVER persisted into baseline logicLinks; they are regenerated from
+   * the provider records when rebuilding the resource-leveled analysis.
+   */
+  resourceDummyLinks: CpmLogicLink[];
 }
 
 export const DEFAULT_SCHEDULE_SETTINGS: ScheduleSettings = {

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { BRAND_NAME } from '../../config/brand';
+import { COMPANY_LEGAL_NAME } from '../../lib/companyInfo';
 
 const legalLinkClassName =
   'text-slate-600 transition-colors hover:text-cyan-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50 focus-visible:ring-offset-2 dark:text-slate-400 dark:hover:text-cyan-300 dark:focus-visible:ring-cyan-400/50 dark:focus-visible:ring-offset-slate-950';
@@ -58,7 +59,7 @@ const Footer: React.FC<FooterProps> = ({ reserveMobileNavSpace = false }) => {
         <div className="h-px w-full max-w-4xl bg-slate-200 dark:bg-slate-800/70" />
 
         <p className="text-xs text-slate-500 dark:text-slate-500">
-          © {currentYear} {BRAND_NAME}. All rights reserved.
+          © {currentYear} {COMPANY_LEGAL_NAME}. All rights reserved.
         </p>
       </div>
     </footer>

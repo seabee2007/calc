@@ -312,9 +312,9 @@ export function shouldShowBidImportExportActions(
   activeEstimateType: EstimateType | null,
 ): boolean {
   return (
-    activeTab === 'line-items' &&
+    activeTab === 'activities' &&
     hasEstimate &&
-    activeEstimateType === 'bid'
+    (activeEstimateType === 'detailed' || activeEstimateType === 'bid')
   );
 }
 

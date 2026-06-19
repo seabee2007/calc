@@ -5,13 +5,13 @@ import {
   LayoutGrid,
   Menu,
   SquareChartGantt,
-  User,
   Wrench,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useToolsModalStore } from '../../store/toolsModalStore';
 import FieldNotificationsBell from '../field/FieldNotificationsBell';
 import AppProfileMenu from '../layout/AppProfileMenu';
+import UserAvatarButton from '../layout/UserAvatarButton';
 import { APP_NAV_HEADER, appNavIconButtonClass, isToolsPath } from '../layout/appNavStyles';
 
 interface PlannerAppBarProps {
@@ -21,7 +21,7 @@ interface PlannerAppBarProps {
 
 export default function PlannerAppBar({ onMenuClick, projectName }: PlannerAppBarProps) {
   const location = useLocation();
-  const { user, isOwner, isEmployee } = useAuth();
+  const { user, profile, isOwner, isEmployee } = useAuth();
   const [profileOpen, setProfileOpen] = useState(false);
   const openTools = useToolsModalStore((s) => s.open);
   const toolsModalOpen = useToolsModalStore((s) => s.isOpen);
@@ -140,15 +140,12 @@ export default function PlannerAppBar({ onMenuClick, projectName }: PlannerAppBa
         )}
 
         <div className="relative">
-          <button
-            type="button"
+          <UserAvatarButton
+            user={user}
+            profile={profile}
+            active={profileOpen}
             onClick={() => setProfileOpen((o) => !o)}
-            className={appNavIconButtonClass(profileOpen)}
-            aria-label="Profile menu"
-            title="Profile menu"
-          >
-            <User className="h-5 w-5" />
-          </button>
+          />
           {profileOpen && (
             <>
               <button

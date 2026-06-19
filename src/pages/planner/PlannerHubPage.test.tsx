@@ -72,7 +72,7 @@ describe('PlannerHubPage', () => {
 
     expect(screen.getByRole('heading', { name: 'Planner Hub' })).toBeInTheDocument();
     expect(
-      screen.getByText(/Open a project plan board to manage field tasks, assignments, and field updates/i),
+      screen.getByText(/Your project workspace for estimates, schedule, documents, RFIs, FARs, change orders, and team activity/i),
     ).toBeInTheDocument();
 
     expect(await screen.findByText('No project plans yet')).toBeInTheDocument();

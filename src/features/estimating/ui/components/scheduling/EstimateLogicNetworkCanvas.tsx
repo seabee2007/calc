@@ -42,9 +42,12 @@ import {
   resolveLogicTopologyLabel,
   type LogicNetworkTopology,
 } from '../../../scheduling/logic/logicNetworkTopology';
+import type { EffectiveScheduleAnalysis } from '../../../scheduling/effectiveSchedule';
 import { LOGIC_NETWORK_FULLSCREEN_CANVAS_WRAPPER_CLASS } from '../../../scheduling/logicNetworkFullscreen';
 import { autoLayoutLogicNetwork } from '../../../scheduling/logic/autoLayoutLogicNetwork';
 import {
+  LOGIC_NETWORK_AUTO_LAYOUT_X_SPACING,
+  LOGIC_NETWORK_AUTO_LAYOUT_Y_GAP,
   LOGIC_NETWORK_CANVAS_HEIGHT_CLASS,
   buildAutoLayoutFromActivities,
   resolveLogicNetworkNodePosition,
@@ -112,21 +115,71 @@ function resolveEndpointKey(
   return codeToGraphKey.get(activityCode) || activityCode;
 }
 
+/**
+ * A logic relationship is "driving" when it leaves zero slack at the successor
+ * under the active schedule's early dates — i.e. the relationship itself (not
+ * merely shared critical endpoints) controls when the successor can start or
+ * finish. Ties are allowed: multiple predecessors may each drive one target,
+ * which is how genuine parallel critical paths arise.
+ */
+export function isDrivingRelationship(cpmResult: CpmResult, link: CpmLogicLink): boolean {
+  const source = cpmResult.activities.find(
+    (activity) => activity.activityCode === link.predecessorActivityCode,
+  );
+  const target = cpmResult.activities.find(
+    (activity) => activity.activityCode === link.successorActivityCode,
+  );
+  if (!source || !target) return false;
+  const lag = link.lagDays ?? 0;
+  switch (link.relationshipType) {
+    case 'SS':
+      return target.earlyStart === source.earlyStart + lag;
+    case 'FF':
+      return target.earlyFinish === source.earlyFinish + lag;
+    case 'SF':
+      return target.earlyFinish === source.earlyStart + lag;
+    case 'FS':
+    default:
+      return target.earlyStart === source.earlyFinish + lag;
+  }
+}
+
 export function linkToEdge(
   link: CpmLogicLink,
   cpmResult: CpmResult | null,
   viewMode: LogicNetworkViewMode = 'logic-network',
   codeToGraphKey: Map<string, string> = new Map(),
   validGraphKeys?: Set<string>,
+  options?: { generatedLeveledFsLinkKeys?: Set<string> },
 ): Edge {
+  const generatedLeveledFsLinkKeys = options?.generatedLeveledFsLinkKeys ?? new Set<string>();
   const label =
     link.lagDays > 0 ? `${link.relationshipType}+${link.lagDays}d` : link.relationshipType;
+  const linkKey = `${link.predecessorActivityCode}::${link.successorActivityCode}::${link.relationshipType}::${link.lagDays}`;
+  const isGeneratedLeveledFs = link.generated === true || generatedLeveledFsLinkKeys.has(linkKey);
+  // A connector is critical ONLY when both endpoints are critical AND this
+  // specific relationship is mathematically driving the successor's schedule
+  // (zero gap for its relationship type/lag, using the active mode's dates).
+  // This single rule applies to baseline and resource-dummy links alike: because
+  // the active CPM is now a real run on baseline + resource-dummy links, a
+  // resource-dummy link that drives a critical target will have a critical
+  // provider on the chain, so the red critical path stays continuous without any
+  // dummy-specific special case.
+  const sourceIsCritical = cpmResult != null && isDisplayCritical(cpmResult, link.predecessorActivityCode);
+  const targetIsCritical = cpmResult != null && isDisplayCritical(cpmResult, link.successorActivityCode);
   const onDisplayCriticalPath =
     viewMode === 'precedence-diagram' &&
     cpmResult != null &&
-    isDisplayCritical(cpmResult, link.predecessorActivityCode) &&
-    isDisplayCritical(cpmResult, link.successorActivityCode);
-  const stroke = onDisplayCriticalPath ? '#ef4444' : '#64748b';
+    sourceIsCritical &&
+    targetIsCritical &&
+    isDrivingRelationship(cpmResult, link);
+  const stroke = isGeneratedLeveledFs
+    ? onDisplayCriticalPath
+      ? '#ef4444'
+      : '#f59e0b'
+    : onDisplayCriticalPath
+      ? '#ef4444'
+      : '#64748b';
   const predKey = resolveEndpointKey(
     link.predecessorRuntimeId,
     link.predecessorActivityCode,
@@ -143,15 +196,21 @@ export function linkToEdge(
     id: buildEdgeId(predKey, succKey),
     source: buildNodeId(predKey),
     target: buildNodeId(succKey),
-    label,
+    label: isGeneratedLeveledFs
+      ? `Resource leveling constraint${link.lagDays > 0 ? ` +${link.lagDays}d` : ''}`
+      : label,
     animated: false,
-    style: { stroke },
+    style: { stroke, strokeWidth: isGeneratedLeveledFs ? 2 : 1.5 },
     labelStyle: { fontSize: 10, fill: stroke },
     data: {
       predecessorActivityCode: link.predecessorActivityCode,
       successorActivityCode: link.successorActivityCode,
       relationshipType: link.relationshipType,
       lagDays: link.lagDays,
+      generatedLeveledFs: isGeneratedLeveledFs,
+      onCriticalPath: onDisplayCriticalPath,
+      source: link.source,
+      reason: link.reason,
     },
   };
 }
@@ -162,8 +221,11 @@ export function mapLogicLinksToEdges(
   viewMode: LogicNetworkViewMode = 'logic-network',
   codeToGraphKey: Map<string, string> = new Map(),
   validGraphKeys?: Set<string>,
+  options?: { generatedLeveledFsLinkKeys?: Set<string> },
 ): Edge[] {
-  return links.map((link) => linkToEdge(link, cpmResult, viewMode, codeToGraphKey, validGraphKeys));
+  return links.map((link) =>
+    linkToEdge(link, cpmResult, viewMode, codeToGraphKey, validGraphKeys, options),
+  );
 }
 
 export function buildLogicNetworkNodes(
@@ -174,9 +236,17 @@ export function buildLogicNetworkNodes(
     viewMode: LogicNetworkViewMode;
     logicTopology: LogicNetworkTopology;
     showCpmFields: boolean;
+    effectiveAnalysis?: EffectiveScheduleAnalysis | null;
+    leveledViewActive?: boolean;
   },
 ): Node<CpmActivityNodeData>[] {
-  const { viewMode, logicTopology, showCpmFields } = options;
+  const {
+    viewMode,
+    logicTopology,
+    showCpmFields,
+    effectiveAnalysis = null,
+    leveledViewActive = false,
+  } = options;
   const layoutByCode = new Map(layout.map((entry) => [entry.activityCode, entry]));
   // CPM results may be keyed by graph key (live preview) or activity code (committed).
   const cpmByKey = new Map(cpmResult?.activities.map((a) => [a.activityCode, a]) ?? []);
@@ -186,12 +256,24 @@ export function buildLogicNetworkNodes(
     const cpmActivity = cpmByKey.get(graphKey) ?? cpmByKey.get(activity.activityCode);
     // The key that actually matched the CPM result (graph key for live preview, else code).
     const cpmKey = cpmByKey.has(graphKey) ? graphKey : activity.activityCode;
-    const position = resolveLogicNetworkNodePosition(
-      activity,
-      index,
-      layoutByCode.get(activity.activityCode),
-      showCpmFields ? cpmActivity : undefined,
-    );
+    const savedLayout = layoutByCode.get(activity.activityCode);
+    // Effective leveled analysis is keyed by activity code (committed CPM).
+    const leveled = effectiveAnalysis?.byActivityCode.get(activity.activityCode) ?? null;
+    const useLeveledView = leveledViewActive && leveled != null && showCpmFields;
+    const position =
+      useLeveledView && leveled != null
+        ? {
+            x: leveled.leveledStartDayIndex * LOGIC_NETWORK_AUTO_LAYOUT_X_SPACING + 80,
+            y: savedLayout?.y ?? index * LOGIC_NETWORK_AUTO_LAYOUT_Y_GAP,
+          }
+        : resolveLogicNetworkNodePosition(
+            activity,
+            index,
+            savedLayout,
+            showCpmFields ? cpmActivity : undefined,
+          );
+    const baselineCritical =
+      showCpmFields && cpmResult != null ? isDisplayCritical(cpmResult, cpmKey) : false;
     return {
       id: buildNodeId(graphKey),
       type: 'cpmActivity',
@@ -207,10 +289,16 @@ export function buildLogicNetworkNodes(
           viewMode === 'logic-network'
             ? resolveLogicTopologyLabel(logicTopology, activity)
             : null,
-        isDisplayCritical:
-          showCpmFields && cpmResult != null
-            ? isDisplayCritical(cpmResult, cpmKey)
-            : false,
+        isDisplayCritical: useLeveledView
+          ? leveled!.controllingAfterLeveling
+          : baselineCritical,
+        leveledViewActive: useLeveledView,
+        leveledOffsetDays: leveled?.leveledOffsetDays ?? 0,
+        effectiveTotalFloat: leveled?.effectiveTotalFloat ?? null,
+        controllingAfterLeveling: leveled?.controllingAfterLeveling ?? false,
+        baselineEarlyStart: leveled?.cpmEarlyStart ?? null,
+        baselineEarlyFinish: leveled?.cpmEarlyFinish ?? null,
+        baselineTotalFloat: leveled?.baselineTotalFloat ?? null,
         topologyLabel:
           viewMode === 'precedence-diagram'
             ? resolveTopologyLabel(
@@ -236,6 +324,10 @@ interface Props {
   cpmResult: CpmResult | null;
   /** Live CPM preview computed in LogicNetworkWorkspace — shown in Logic Network mode. */
   livePreviewCpm?: CpmResult | null;
+  /** Resource-leveled effective schedule analysis (controlling path, offsets). */
+  effectiveAnalysis?: EffectiveScheduleAnalysis | null;
+  /** When true, color/annotate nodes from the leveled controlling path. */
+  leveledViewActive?: boolean;
   layout: LogicNetworkLayout[];
   onLinksChange: (links: CpmLogicLink[]) => void;
   onLayoutChange: (layout: LogicNetworkLayout[]) => void;
@@ -288,6 +380,8 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
     logicLinks,
     cpmResult,
     livePreviewCpm = null,
+    effectiveAnalysis = null,
+    leveledViewActive = false,
     layout,
     onLinksChange,
     onLayoutChange,
@@ -363,20 +457,40 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
     onLayoutChange(generated);
   }, [layout, onLayoutChange]);
 
-  const logicTopology = useMemo(
-    () => buildLogicNetworkTopology(activities, logicLinks),
-    [activities, logicLinks],
-  );
-
   // In Logic Network mode: show CPM fields if a live preview has been calculated.
   // In Precedence Diagram mode: show CPM fields only after Run CPM has been committed.
   const showCpmFields =
     (viewMode === 'logic-network' && livePreviewCpm != null) ||
     (viewMode === 'precedence-diagram' && (cpmResult?.hasRunCpm ?? false));
 
-  // The active CPM dataset: live preview in Logic Network mode, committed in Precedence mode.
+  const leveledGraphActive =
+    viewMode === 'precedence-diagram' &&
+    leveledViewActive &&
+    showCpmFields &&
+    (effectiveAnalysis?.effectiveLeveledLinks.length ?? 0) > 0 &&
+    effectiveAnalysis?.leveledCpmResult != null;
+
+  // The active CPM dataset:
+  // - Logic Network mode: live preview
+  // - Precedence Diagram baseline: committed CPM
+  // - Precedence Diagram leveled: CPM rerun on effective leveled links
   const activeCpmResult =
-    viewMode === 'logic-network' && livePreviewCpm != null ? livePreviewCpm : cpmResult;
+    viewMode === 'logic-network' && livePreviewCpm != null
+      ? livePreviewCpm
+      : leveledGraphActive
+        ? effectiveAnalysis!.leveledCpmResult
+        : cpmResult;
+
+  // Links used by the currently displayed graph.
+  const displayLogicLinks =
+    leveledGraphActive && effectiveAnalysis != null
+      ? effectiveAnalysis.effectiveLeveledLinks
+      : logicLinks;
+
+  const logicTopology = useMemo(
+    () => buildLogicNetworkTopology(activities, displayLogicLinks),
+    [activities, displayLogicLinks],
+  );
 
   const mappedNodes = useMemo(
     () =>
@@ -384,9 +498,21 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
         viewMode,
         logicTopology,
         showCpmFields,
+        effectiveAnalysis,
+        leveledViewActive,
       }),
-    [activities, activeCpmResult, effectiveLayout, logicTopology, showCpmFields, viewMode],
+    [
+      activities,
+      activeCpmResult,
+      effectiveLayout,
+      logicTopology,
+      showCpmFields,
+      viewMode,
+      effectiveAnalysis,
+      leveledViewActive,
+    ],
   );
+
 
   const codeToGraphKey = useMemo(() => buildCodeToGraphKey(activities), [activities]);
 
@@ -397,8 +523,18 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
 
   const sanitizedLogicLinks = useMemo(() => {
     const activityCodes = new Set(activities.map((activity) => activity.activityCode));
-    return sanitizeLogicLinksForActivities(logicLinks, activityCodes);
-  }, [activities, logicLinks]);
+    return sanitizeLogicLinksForActivities(displayLogicLinks, activityCodes);
+  }, [activities, displayLogicLinks]);
+
+  const generatedLeveledFsLinkKeys = useMemo(() => {
+    if (!leveledGraphActive || !effectiveAnalysis) return new Set<string>();
+    return new Set(
+      effectiveAnalysis.generatedLeveledFsLinks.map(
+        (link) =>
+          `${link.predecessorActivityCode}::${link.successorActivityCode}::${link.relationshipType}::${link.lagDays}`,
+      ),
+    );
+  }, [leveledGraphActive, effectiveAnalysis]);
 
   const mappedEdges = useMemo(
     () =>
@@ -408,8 +544,16 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
         viewMode,
         codeToGraphKey,
         validGraphKeys,
+        { generatedLeveledFsLinkKeys },
       ),
-    [activeCpmResult, sanitizedLogicLinks, viewMode, codeToGraphKey, validGraphKeys],
+    [
+      activeCpmResult,
+      sanitizedLogicLinks,
+      viewMode,
+      codeToGraphKey,
+      validGraphKeys,
+      generatedLeveledFsLinkKeys,
+    ],
   );
 
   useEffect(() => {
@@ -462,6 +606,7 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
   const handleNodesChange = useCallback(
     (changes: NodeChange[]) => {
       onNodesChange(changes);
+      if (leveledGraphActive) return;
       const positionChanges = changes.filter(
         (c): c is NodeChange & { type: 'position'; position?: { x: number; y: number } } =>
           c.type === 'position' && (c as { dragging?: boolean }).dragging === false,
@@ -481,7 +626,7 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
         });
       }, 500);
     },
-    [onNodesChange, setNodes, onLayoutChange],
+    [onNodesChange, setNodes, onLayoutChange, leveledGraphActive],
   );
 
   const handleEdgesChange = useCallback(
@@ -494,7 +639,7 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
   const handleAutoLayout = useCallback(() => {
     const { layout: autoLayout, warning } = autoLayoutLogicNetwork({
       activities,
-      logicLinks,
+      logicLinks: displayLogicLinks,
     });
     autoLayoutSnapshotRef.current = autoLayout;
     setNodes(
@@ -502,6 +647,8 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
         viewMode,
         logicTopology,
         showCpmFields,
+        effectiveAnalysis,
+        leveledViewActive,
       }),
     );
     onLayoutChange(autoLayout);
@@ -512,7 +659,7 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
   }, [
     activities,
     activeCpmResult,
-    logicLinks,
+    displayLogicLinks,
     logicTopology,
     onLayoutChange,
     setNodes,
@@ -520,6 +667,8 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
     showToast,
     viewMode,
     fitView,
+    effectiveAnalysis,
+    leveledViewActive,
   ]);
 
   const handleFitView = useCallback(() => {
@@ -558,6 +707,10 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
 
   const onConnect: OnConnect = useCallback(
     (connection: Connection) => {
+      if (leveledGraphActive) {
+        showToast('Switch to CPM Baseline to edit dependency links.');
+        return;
+      }
       const { source, target } = connection;
       if (!source || !target) return;
 
@@ -576,7 +729,7 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
       const predRuntimeId = predActivity?.runtimeActivityId;
       const succRuntimeId = succActivity?.runtimeActivityId;
 
-      const alreadyExists = logicLinks.some((l) => {
+      const alreadyExists = displayLogicLinks.some((l) => {
         const lPred = resolveEndpointKey(
           l.predecessorRuntimeId,
           l.predecessorActivityCode,
@@ -605,14 +758,23 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
         lagDays: 0,
       };
 
-      if (hasCycleWithNewLink(logicLinks, newLink)) {
+      if (hasCycleWithNewLink(displayLogicLinks, newLink)) {
         showToast('Adding this link would create a circular dependency.');
         return;
       }
 
       onLinksChange([...logicLinks, newLink]);
     },
-    [activityByGraphKey, codeToGraphKey, logicLinks, onLinksChange, showToast, validGraphKeys],
+    [
+      activityByGraphKey,
+      codeToGraphKey,
+      displayLogicLinks,
+      logicLinks,
+      onLinksChange,
+      showToast,
+      validGraphKeys,
+      leveledGraphActive,
+    ],
   );
 
   const onEdgeClick = useCallback((_event: React.MouseEvent, edge: Edge) => {
@@ -621,7 +783,12 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
       successorActivityCode: string;
       relationshipType: string;
       lagDays: number;
+      generatedLeveledFs?: boolean;
     };
+    if (leveledGraphActive || linkData?.generatedLeveledFs) {
+      showToast('Effective leveled links are view-only.');
+      return;
+    }
     if (!linkData?.predecessorActivityCode) return;
     setEditingLink({
       link: {
@@ -632,7 +799,7 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
       },
       edgeId: edge.id,
     });
-  }, []);
+  }, [leveledGraphActive, showToast]);
 
   const handleLinkSave = useCallback(
     (updated: CpmLogicLink) => {

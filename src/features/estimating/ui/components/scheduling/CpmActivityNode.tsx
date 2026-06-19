@@ -29,6 +29,14 @@ export interface CpmActivityNodeData {
   predecessorCount?: number;
   successorCount?: number;
   showCpmFields?: boolean;
+  /** Resource-leveled view overlay state. */
+  leveledViewActive?: boolean;
+  leveledOffsetDays?: number;
+  effectiveTotalFloat?: number | null;
+  controllingAfterLeveling?: boolean;
+  baselineEarlyStart?: number | null;
+  baselineEarlyFinish?: number | null;
+  baselineTotalFloat?: number | null;
   [key: string]: unknown;
 }
 
@@ -53,6 +61,13 @@ export const CpmActivityNode = memo(function CpmActivityNode({ data, selected }:
     predecessorCount = 0,
     successorCount = 0,
     showCpmFields = false,
+    leveledViewActive = false,
+    leveledOffsetDays = 0,
+    effectiveTotalFloat = null,
+    controllingAfterLeveling = false,
+    baselineEarlyStart = null,
+    baselineEarlyFinish = null,
+    baselineTotalFloat = null,
   } = data;
 
   const isLogicMode = viewMode === 'logic-network';
@@ -118,7 +133,15 @@ export const CpmActivityNode = memo(function CpmActivityNode({ data, selected }:
             </span>
           ) : null}
         </span>
-        <span className="ml-2 shrink-0 tabular-nums">
+        <span className="ml-2 flex shrink-0 items-center gap-1 tabular-nums">
+          {leveledViewActive && leveledOffsetDays > 0 ? (
+            <span
+              className="rounded bg-orange-200 px-1 text-[9px] font-bold text-orange-900 dark:bg-orange-700 dark:text-orange-100"
+              title={`Resource leveling delayed this activity by ${leveledOffsetDays} day(s)`}
+            >
+              +{leveledOffsetDays}d
+            </span>
+          ) : null}
           {activity.durationDays}d
           {activity.durationDays < 1 ? (
             <span className="ml-1 text-amber-500" title="Missing or invalid duration">
@@ -127,6 +150,27 @@ export const CpmActivityNode = memo(function CpmActivityNode({ data, selected }:
           ) : null}
         </span>
       </div>
+
+      {leveledViewActive ? (
+        <div
+          className={`border-t px-2 py-0.5 text-[10px] font-medium ${
+            controllingAfterLeveling
+              ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300'
+              : 'border-slate-200 bg-slate-50 text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
+          }`}
+        >
+          {controllingAfterLeveling
+            ? 'Controlling after leveling'
+            : `Leveled · eff. float ${effectiveTotalFloat ?? '–'}d`}
+        </div>
+      ) : null}
+
+      {leveledViewActive ? (
+        <div className="border-t border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+          Base ES/EF {formatDay(baselineEarlyStart)} / {formatDay(baselineEarlyFinish)} · Base TF{' '}
+          {formatDay(baselineTotalFloat ?? undefined)}
+        </div>
+      ) : null}
 
       {activeTopologyLabel ? (
         <div
@@ -195,10 +239,12 @@ export const CpmActivityNode = memo(function CpmActivityNode({ data, selected }:
 
           <div className="grid grid-cols-2 border-t border-slate-200 dark:border-slate-700">
             <div className="border-r border-slate-200 px-2 py-1 dark:border-slate-700">
-              <span className="text-slate-600 dark:text-slate-400">TF </span>
+              <span className="text-slate-600 dark:text-slate-400">
+                {leveledViewActive ? 'TF (leveled) ' : 'TF '}
+              </span>
               <span
                 className={`tabular-nums ${
-                  isDisplayCritical
+                  isDisplayCritical && !leveledViewActive
                     ? 'font-semibold text-red-700 dark:text-red-400'
                     : 'text-slate-900 dark:text-slate-100'
                 }`}

@@ -6,11 +6,15 @@ import {
 import type { EstimateScheduleDatePlanResult } from '../../application/estimateScheduleDatePlanner';
 import type { EstimateSchedulePlan } from '../../domain/estimateScheduleTypes';
 import type { EstimateDomainVersion } from '../../infrastructure/estimateDbTypes';
+import type { EffectiveScheduleSummary } from '../../scheduling/effectiveSchedule';
 import {
   extractScheduleDatePlanSummary,
   extractSchedulePreviewSummary,
+  formatSchedulePlannedDate,
   hasSchedulableSchedulePreview,
+  type EstimateScheduleDatePlanSummary,
 } from '../estimateScheduleDisplay';
+import { formatEstimateNumber } from '../estimateFormatters';
 import {
   BADGE_BASE,
   PLANNER_FORM_PANEL,
@@ -50,6 +54,11 @@ interface Props {
   version: EstimateDomainVersion | null;
   plan: EstimateSchedulePlan | null;
   datePlanResult: EstimateScheduleDatePlanResult | null;
+  /**
+   * Canonical CPM/resource-leveled schedule. Present only after CPM has run;
+   * when present, the planned summary reflects it instead of the draft planner.
+   */
+  effectiveSchedule?: EffectiveScheduleSummary | null;
   planControls: EstimateSchedulePlanControlValues;
   onPlanControlsChange: (patch: Partial<EstimateSchedulePlanControlValues>) => void;
   loading?: boolean;
@@ -81,6 +90,7 @@ export default function EstimateSchedulePreviewPanel({
   version,
   plan,
   datePlanResult,
+  effectiveSchedule = null,
   planControls,
   onPlanControlsChange,
   loading = false,
@@ -89,10 +99,30 @@ export default function EstimateSchedulePreviewPanel({
   legacyScheduleAvailable,
 }: Props) {
   const laborSummary = useMemo(() => extractSchedulePreviewSummary(plan), [plan]);
-  const datePlanSummary = useMemo(
+  const draftDatePlanSummary = useMemo(
     () => extractScheduleDatePlanSummary(datePlanResult, plan),
     [datePlanResult, plan],
   );
+  // Once CPM has run, the canonical (CPM + resource-leveled) schedule is the
+  // source of truth for project start/finish/duration so every surface agrees.
+  const datePlanSummary = useMemo<EstimateScheduleDatePlanSummary>(() => {
+    if (!effectiveSchedule) return draftDatePlanSummary;
+    const duration = effectiveSchedule.effectiveDurationDays;
+    return {
+      ...draftDatePlanSummary,
+      plannedProjectStart: effectiveSchedule.plannedProjectStart,
+      plannedProjectFinish: effectiveSchedule.plannedProjectFinish,
+      totalPlannedDurationDays: duration,
+      plannedProjectStartDisplay: formatSchedulePlannedDate(
+        effectiveSchedule.plannedProjectStart,
+      ),
+      plannedProjectFinishDisplay: formatSchedulePlannedDate(
+        effectiveSchedule.plannedProjectFinish,
+      ),
+      totalPlannedDurationDaysDisplay:
+        duration > 0 ? `${formatEstimateNumber(duration, { decimals: 0 })} days` : '—',
+    };
+  }, [draftDatePlanSummary, effectiveSchedule]);
   const dependencyPreview = useMemo(() => {
     const previewPlan = datePlanResult?.plan ?? plan;
     if (!previewPlan) return null;
@@ -101,6 +131,32 @@ export default function EstimateSchedulePreviewPanel({
       mapScheduleControlToDependencyPreviewMode(planControls.dependencyMode),
     );
   }, [datePlanResult, plan, planControls.dependencyMode]);
+  // Override per-activity planned dates from the canonical schedule so the
+  // division cards agree with the headline summary once CPM has run.
+  const effectivePlan = useMemo(() => {
+    const base = datePlanResult?.plan ?? null;
+    if (!base || !effectiveSchedule) return base;
+    return {
+      ...base,
+      divisions: base.divisions.map((division) => ({
+        ...division,
+        scopes: division.scopes.map((scope) => ({
+          ...scope,
+          tasks: scope.tasks.map((task) => {
+            const resolved = task.activityCode
+              ? effectiveSchedule.byActivityCode.get(task.activityCode)
+              : undefined;
+            if (!resolved) return task;
+            return {
+              ...task,
+              plannedStartDate: resolved.plannedStart,
+              plannedEndDate: resolved.plannedFinish,
+            };
+          }),
+        })),
+      })),
+    };
+  }, [datePlanResult, effectiveSchedule]);
 
   if (!loading && !version) {
     return (
@@ -139,15 +195,42 @@ export default function EstimateSchedulePreviewPanel({
     );
   }
 
+  const onEffectiveSchedule = Boolean(effectiveSchedule);
+  const levelingApplied = effectiveSchedule?.levelingApplied ?? false;
+
   return (
     <div className="space-y-4">
       <div>
-        <h2 className={PLANNER_SECTION_TITLE}>Draft Schedule Preview</h2>
+        <h2 className={PLANNER_SECTION_TITLE}>
+          {onEffectiveSchedule
+            ? levelingApplied
+              ? 'Resource-Leveled Schedule'
+              : 'CPM Baseline Schedule'
+            : 'Draft Schedule Preview'}
+        </h2>
         <p className={`mt-1 text-sm ${PLANNER_MUTED}`}>
-          Draft planned dates from saved construction activities and planning controls below.
-          This is not the CPM schedule until you run CPM from the Logic Network.
+          {onEffectiveSchedule
+            ? 'Preview reflects the calculated CPM schedule and any applied resource leveling. CPM logic dependencies are unchanged; resource leveling adjusts planned dates in the schedule layer.'
+            : 'Draft planned dates from saved construction activities and planning controls below. This is not the CPM schedule until you run CPM from the Logic Network.'}
         </p>
       </div>
+
+      {onEffectiveSchedule && effectiveSchedule ? (
+        <div className="rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-900 dark:border-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-100">
+          {levelingApplied ? (
+            <p>
+              <strong>Resource leveling applied.</strong> CPM baseline:{' '}
+              {effectiveSchedule.cpmBaselineDurationDays} days · Leveled schedule:{' '}
+              {effectiveSchedule.leveledDurationDays} days.
+            </p>
+          ) : (
+            <p>
+              <strong>CPM baseline schedule.</strong> Calculated project duration:{' '}
+              {effectiveSchedule.cpmBaselineDurationDays} days.
+            </p>
+          )}
+        </div>
+      ) : null}
 
       <div className={`${PLANNER_FORM_PANEL} space-y-2 text-sm ${TEXT_BODY}`}>
         <p className={PLANNER_MUTED}>{PREVIEW_NOTE}</p>
@@ -158,9 +241,17 @@ export default function EstimateSchedulePreviewPanel({
             {resolveSourceBadgeLabel(schedulePreviewSource)}
           </span>
           <span
-            className={`${BADGE_BASE} border border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200`}
+            className={`${BADGE_BASE} ${
+              onEffectiveSchedule
+                ? 'border border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-200'
+                : 'border border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200'
+            }`}
           >
-            Draft preview only
+            {onEffectiveSchedule
+              ? levelingApplied
+                ? 'Resource-leveled schedule'
+                : 'CPM baseline'
+              : 'Draft preview only'}
           </span>
         </p>
       </div>
@@ -219,7 +310,7 @@ export default function EstimateSchedulePreviewPanel({
             ))}
           </div>
         ) : (
-          datePlanResult?.plan.divisions.map((division) => (
+          (effectivePlan ?? datePlanResult?.plan)?.divisions.map((division) => (
             <EstimateScheduleGroupCard key={division.key} division={division} />
           ))
         )}

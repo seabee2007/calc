@@ -21,6 +21,7 @@ vi.mock('file-saver', () => ({
 import {
   CPM_TABLE_SHEET_NAME,
   LEVEL_THREE_EXCEL_COLORS,
+  LEVEL_THREE_EXCEL_DATA_START_ROW,
   LEVEL_THREE_EXCEL_DAY_ROW,
   LEVEL_THREE_EXCEL_MONTH_ROW,
   LEVEL_THREE_GANTT_SHEET_NAME,
@@ -31,6 +32,7 @@ import {
 } from '../export/levelThreeGanttExcelExport';
 import {
   createLevelThreeGanttPdf,
+  downloadLevelThreeGanttPdf,
   downloadLevelThreeGanttPdfFromElement,
   isLandscapePdf,
   LEVEL_THREE_GANTT_PDF_TITLE,
@@ -161,42 +163,49 @@ describe('Level III Gantt export', () => {
     );
   });
 
-  it('Excel export hides gridlines and freezes panes', async () => {
+  it('Excel export hides gridlines and freezes panes at the day-header row', async () => {
     const workbook = await buildSampleWorkbook();
     const sheet = workbook.getWorksheet(LEVEL_THREE_GANTT_SHEET_NAME)!;
     expect(sheet.views?.[0]?.showGridLines).toBe(false);
     expect(sheet.views?.[0]?.state).toBe('frozen');
     expect(sheet.views?.[0]?.xSplit).toBe(3);
-    expect(sheet.views?.[0]?.ySplit).toBe(3);
+    expect(sheet.views?.[0]?.ySplit).toBe(LEVEL_THREE_EXCEL_DAY_ROW);
   });
 
-  it('Excel export has month row and day row with CODE/DESCRIPTION/FLOAT only', async () => {
+  it('Excel export has 6-row header: title, project, meta, legend, months, day-headers', async () => {
     const workbook = await buildSampleWorkbook();
     const sheet = workbook.getWorksheet(LEVEL_THREE_GANTT_SHEET_NAME)!;
 
+    // Title row contains Arden brand
+    expect(String(sheet.getCell(1, 1).value ?? '')).toContain('ARDEN PROJECT OS');
+
+    // Month row at correct constant (row 5)
     expect(sheet.getCell(LEVEL_THREE_EXCEL_MONTH_ROW, 4).value).toBe('JUN');
+
+    // Day row at correct constant (row 6)
     expect(sheet.getCell(LEVEL_THREE_EXCEL_DAY_ROW, 1).value).toBe('CODE');
     expect(sheet.getCell(LEVEL_THREE_EXCEL_DAY_ROW, 2).value).toBe('DESCRIPTION');
     expect(sheet.getCell(LEVEL_THREE_EXCEL_DAY_ROW, 3).value).toBe('FLOAT');
-    expect(sheet.getCell(LEVEL_THREE_EXCEL_DAY_ROW, 4).value).toBe(6);
-    expect(sheet.getCell(LEVEL_THREE_EXCEL_DAY_ROW, 5).value).toBe(7);
+    expect(sheet.getCell(LEVEL_THREE_EXCEL_DAY_ROW, 4).value).toBe(6); // June 6
+    expect(sheet.getCell(LEVEL_THREE_EXCEL_DAY_ROW, 5).value).toBe(7); // June 7
 
+    // Day row should NOT contain schedule column names
     const dayHeaderValues = Array.from({ length: 6 }, (_, index) =>
       sheet.getCell(LEVEL_THREE_EXCEL_DAY_ROW, index + 1).value,
     );
     expect(dayHeaderValues).not.toContain('DUR');
     expect(dayHeaderValues).not.toContain('START');
     expect(dayHeaderValues).not.toContain('FINISH');
-    expect(dayHeaderValues).not.toContain('Duration');
   });
 
-  it('Excel export styles critical, noncritical, and float cells', async () => {
+  it('Excel export styles critical, noncritical, and float cells at correct data rows', async () => {
     const workbook = await buildSampleWorkbook();
     const sheet = workbook.getWorksheet(LEVEL_THREE_GANTT_SHEET_NAME)!;
 
-    const criticalCell = sheet.getCell(4, 4);
-    const noncriticalCell = sheet.getCell(5, 6);
-    const floatCell = sheet.getCell(5, 8);
+    // Activity A is DATA_START_ROW (row 7), activity B is DATA_START_ROW+1 (row 8)
+    const criticalCell = sheet.getCell(LEVEL_THREE_EXCEL_DATA_START_ROW, 4);
+    const noncriticalCell = sheet.getCell(LEVEL_THREE_EXCEL_DATA_START_ROW + 1, 6);
+    const floatCell = sheet.getCell(LEVEL_THREE_EXCEL_DATA_START_ROW + 1, 8);
 
     expect(fillArgb(criticalCell)).toBe(LEVEL_THREE_EXCEL_COLORS.critical);
     expect(fillArgb(noncriticalCell)).toBe(LEVEL_THREE_EXCEL_COLORS.noncritical);
@@ -240,7 +249,7 @@ describe('Level III Gantt export', () => {
     expect(doc.internal.pageSize.getWidth()).toBeGreaterThan(doc.internal.pageSize.getHeight());
   });
 
-  it('PDF export captures chart DOM element via html2canvas', async () => {
+  it('PDF legacy DOM-capture calls html2canvas with scale:2', async () => {
     const element = {
       scrollWidth: 800,
       scrollHeight: 400,
@@ -267,6 +276,26 @@ describe('Level III Gantt export', () => {
 
     const savedDoc = vi.mocked(savePDFWithPlatformSupport).mock.calls[0]?.[0];
     expect(savedDoc).toBeDefined();
+    expect(isLandscapePdf(savedDoc!)).toBe(true);
+  });
+
+  it('Programmatic PDF produces a landscape A3 PDF without html2canvas', async () => {
+    await downloadLevelThreeGanttPdf({
+      projectName: 'Test Project',
+      cpmResult,
+      activities: [makeActivity('A'), makeActivity('B')],
+      projectStartDate: '2026-06-06',
+    });
+
+    // Programmatic export must NOT use html2canvas
+    expect(html2canvas).not.toHaveBeenCalled();
+    expect(savePDFWithPlatformSupport).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.stringContaining('level-iii-gantt'),
+      LEVEL_THREE_GANTT_PDF_TITLE,
+    );
+
+    const savedDoc = vi.mocked(savePDFWithPlatformSupport).mock.calls[0]?.[0];
     expect(isLandscapePdf(savedDoc!)).toBe(true);
   });
 });

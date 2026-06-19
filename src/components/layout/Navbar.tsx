@@ -17,13 +17,13 @@ import {
   X,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
-import { getUserInitials } from '../../utils/getUserInitials';
 import { useToolsModalStore } from '../../store/toolsModalStore';
 import FieldNotificationsBell from '../field/FieldNotificationsBell';
 import ShareInviteModal from '../share/ShareInviteModal';
 import PilotSurveyModal from '../survey/PilotSurveyModal';
 import Button from '../ui/Button';
 import AppProfileMenu from './AppProfileMenu';
+import UserAvatarButton from './UserAvatarButton';
 import { APP_NAV_HEADER, APP_NAV_MOBILE_MENU, appNavIconButtonClass, isToolsPath } from './appNavStyles';
 import { isFieldOnlyRole } from '../../types/fieldPlanner';
 import {
@@ -196,22 +196,12 @@ const Navbar: React.FC<NavbarProps> = ({ showThemeToggle = true, softHeader = fa
 
         {user ? (
           <div className="relative">
-            <button
-              type="button"
+            <UserAvatarButton
+              user={user}
+              profile={profile}
+              active={profileOpen}
               onClick={() => setProfileOpen((o) => !o)}
-              className={`${appNavIconButtonClass(profileOpen)} !h-8 !w-8 !rounded-full !p-0`}
-              aria-label="Profile menu"
-              title="Profile menu"
-            >
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-cyan-600 text-[11px] font-semibold text-white">
-                {getUserInitials({
-                  firstName: profile?.firstName,
-                  lastName: profile?.lastName,
-                  displayName: profile?.displayName,
-                  email: user?.email,
-                })}
-              </span>
-            </button>
+            />
             {profileOpen && (
               <>
                 <button

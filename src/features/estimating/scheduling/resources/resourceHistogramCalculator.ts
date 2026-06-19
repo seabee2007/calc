@@ -51,7 +51,12 @@ function isActivityCriticalForHistogram(
   cpmResult: CpmResult | null | undefined,
   cpm: CpmActivityResult,
   activity: ScheduleActivity,
+  offset: number,
 ): boolean {
+  const adjustedFloat = Math.max(0, cpm.totalFloat - offset);
+  if (offset > 0 && adjustedFloat === 0) {
+    return true;
+  }
   if (cpmResult?.hasRunCpm) {
     return isDisplayCritical(cpmResult, activity.activityCode);
   }
@@ -100,7 +105,7 @@ export function calculateResourceHistogram(
       if (day < es || day >= ef) continue;
 
       const crewSize = resolveActivityCrewSize(activity);
-      const isCritical = isActivityCriticalForHistogram(cpmResult, cpm, activity);
+      const isCritical = isActivityCriticalForHistogram(cpmResult, cpm, activity, offset);
 
       requiredCrew += crewSize;
       if (isCritical) {

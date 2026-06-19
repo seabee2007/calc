@@ -21,6 +21,10 @@ export const RESOURCE_LEVELING_BALANCED_MESSAGE =
 export const RESOURCE_LEVELING_NO_FLOAT_MESSAGE =
   'No activities were moved within available total float.';
 
+/** Shown in extension mode when over-allocation remains and no moves were possible. */
+export const RESOURCE_LEVELING_NO_EXTENSION_MOVE_MESSAGE =
+  'No activities were moved. The remaining crew over-allocation is driven by demand that exceeds the available crew size on unmovable (critical-path) work, so shifting activities cannot resolve it. Increase the available crew size or revise activity crew sizes, logic, or durations.';
+
 /** Future feature pointer — separate from resource leveling. */
 export const CREW_OPTIMIZATION_FUTURE_NOTE =
   'To shorten durations by assigning extra crew on compressible activities, use Optimize Crew Plan (coming soon). That is crew optimization, not resource leveling.';

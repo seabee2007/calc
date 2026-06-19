@@ -122,6 +122,7 @@ import {
   type EstimateBuilderToolbarHandlers,
 } from './estimateWorkspaceToolbar';
 import EstimateImportModal from './EstimateImportModal';
+import ActivityExcelImportModal from './components/ActivityExcelImportModal';
 import ConstructionActivityBuilderPanel from './components/ConstructionActivityBuilderPanel';
 import ChooseEstimateTypeModal from './components/ChooseEstimateTypeModal';
 import ChangeEstimateTypeConfirmModal from './components/ChangeEstimateTypeConfirmModal';
@@ -148,9 +149,21 @@ import {
   downloadBlankEstimateTemplateWorkbook,
   downloadEstimateWorkbook,
 } from '../importExport/estimateExportBuilder';
+import {
+  applyActivityExcelImport,
+  downloadActivityExcelExport,
+  downloadEstimateExcelTemplate,
+  mapLoadedActivitiesToExportInput,
+  type ActivityExcelEstimateType,
+  type ActivityExcelImportMode,
+  type ParsedActivityGroup,
+} from '../excel';
+import { loadProjectActivitiesWithLineItems } from '../application/constructionActivityService';
+import { useProjectLaborRates } from './hooks/useProjectLaborRates';
 import { downloadGanttExcel } from '../export/ganttExcelExport';
 import { downloadGanttPdf } from '../export/ganttPdfExport';
-import { downloadLevelThreeGanttPdfFromElement } from '../export/levelThreeGanttPdfExport';
+import { downloadLevelThreeGanttPdf } from '../export/levelThreeGanttPdfExport';
+import type { GanttExportMode } from '../export/ganttExcelExport';
 import {
   isGanttExportReady,
   prepareGanttExport,
@@ -167,6 +180,7 @@ import type {
   CpmLogicLink,
   LogicNetworkLayout,
   LogicNetworkViewMode,
+  MovedActivity,
   ScheduleSettings,
 } from '../scheduling/cpmTypes';
 import { validateCpmReadiness } from '../scheduling/logic/validateCpmReadiness';
@@ -192,6 +206,11 @@ import LogicNetworkWorkspace from './components/scheduling/LogicNetworkWorkspace
 import LevelThreeGanttWorkspace from './components/scheduling/LevelThreeGanttWorkspace';
 import ResourceLevelingModal from './components/scheduling/ResourceLevelingModal';
 import { calculateResourceHistogram } from '../scheduling/resources/resourceHistogramCalculator';
+import {
+  getEffectiveScheduleAnalysis,
+  resolveEffectiveSchedule,
+} from '../scheduling/effectiveSchedule';
+import type { ResourceLeveledDelayRecord } from '../scheduling/effectiveSchedule';
 import { resourceLevelSchedule } from '../scheduling/resources/resourceLevelSchedule';
 import { resolveProjectAvailableCrewSize } from '../scheduling/resources/projectAvailableCrewSize';
 import {
@@ -339,6 +358,7 @@ export default function EstimateWorkspacePage() {
   const [importCollapseDivisionCodesKey, setImportCollapseDivisionCodesKey] = useState<
     string | null
   >(null);
+  const [activitiesPanelReloadKey, setActivitiesPanelReloadKey] = useState(0);
   const [focusActivityCode, setFocusActivityCode] = useState<string | null>(null);
   const [estimateTypeModalOpen, setEstimateTypeModalOpen] = useState(false);
   const [estimateTypeChangeConfirmOpen, setEstimateTypeChangeConfirmOpen] = useState(false);
@@ -418,6 +438,8 @@ export default function EstimateWorkspacePage() {
   // scheduleActivitiesResult reads constructionActivities.
   const { constructionActivities, constructionActivitiesLoading, reloadConstructionActivities } =
     useProjectConstructionActivitiesForSchedule(resolvedProjectId, estimate?.id);
+
+  const { projectRates, ensureProjectLaborRatesReady } = useProjectLaborRates(resolvedProjectId);
 
   const overviewResourceTotalsEnabled =
     activeTab === 'overview' &&
@@ -707,26 +729,6 @@ export default function EstimateWorkspacePage() {
     [projectAvailableCrewSize],
   );
 
-  const resourceHistogram = useMemo(() => {
-    if (!cpmResult || scheduleActivitiesResult.activities.length === 0) return [];
-    return calculateResourceHistogram({
-      activities: scheduleActivitiesResult.activities,
-      cpmActivities: cpmResult.activities,
-      projectStartDate:
-        scheduleSettingsHook.scheduleSettings.projectStartDate ||
-        getTodayScheduleDateYmd(),
-      availableCrewSize: projectAvailableCrewSize,
-      leveledOffsets: scheduleSettingsHook.leveledOffsets,
-      cpmResult,
-    });
-  }, [
-    cpmResult,
-    scheduleActivitiesResult.activities,
-    scheduleSettingsHook.scheduleSettings.projectStartDate,
-    scheduleSettingsHook.leveledOffsets,
-    projectAvailableCrewSize,
-  ]);
-
   const ganttExportReady = useMemo(
     () =>
       isGanttExportReady({
@@ -735,6 +737,96 @@ export default function EstimateWorkspacePage() {
       }),
     [estimateAdapter?.lineItems, scheduleDatePlanResult?.plan],
   );
+
+  // Draft Schedule Preview summary (offset-based). Separate surface from the
+  // Level III Gantt / Logic Network, which read the leveled CPM via
+  // effectiveAnalysis below.
+  const effectiveSchedule = useMemo(
+    () =>
+      resolveEffectiveSchedule({
+        activities: scheduleActivitiesResult.activities,
+        cpmResult,
+        projectStartDate:
+          scheduleSettingsHook.scheduleSettings.projectStartDate || getTodayScheduleDateYmd(),
+        leveledOffsets: scheduleSettingsHook.leveledOffsets,
+      }),
+    [
+      scheduleActivitiesResult.activities,
+      cpmResult,
+      scheduleSettingsHook.scheduleSettings.projectStartDate,
+      scheduleSettingsHook.leveledOffsets,
+    ],
+  );
+
+  // Provider/delay records that source the resource-dummy connector lines in the
+  // Resource-Leveled Logic Network. Prefer the live leveling result; otherwise
+  // fall back to the persisted result so connectors survive reload. This feeds
+  // ONLY connector rendering — never CPM/float/duration math.
+  const resourceLeveledDelayRecords = useMemo<ResourceLeveledDelayRecord[]>(() => {
+    const moved =
+      levelingModalResult?.movedActivities ??
+      (
+        (currentEstimate?.assumptions as Record<string, unknown> | undefined)
+          ?.resourceLevelingResults as { movedActivities?: MovedActivity[] } | undefined
+      )?.movedActivities;
+    if (!moved || moved.length === 0) return [];
+    return moved
+      .filter((entry) => (entry.resourceProviderActivityCodes?.length ?? 0) > 0)
+      .map((entry) => ({
+        activityCode: entry.activityCode,
+        resourceProviderActivityCodes: entry.resourceProviderActivityCodes ?? [],
+      }));
+  }, [levelingModalResult, currentEstimate?.assumptions]);
+
+  const effectiveAnalysis = useMemo(
+    () =>
+      getEffectiveScheduleAnalysis({
+        baselineCpmResult: cpmResult,
+        activities: scheduleActivitiesResult.activities,
+        logicLinks: scheduleSettingsHook.logicLinks,
+        leveledActivityOffsets: scheduleSettingsHook.leveledOffsets,
+        resourceLeveledDelayRecords,
+        projectStartDate:
+          scheduleSettingsHook.scheduleSettings.projectStartDate || getTodayScheduleDateYmd(),
+      }),
+    [
+      cpmResult,
+      scheduleActivitiesResult.activities,
+      scheduleSettingsHook.logicLinks,
+      scheduleSettingsHook.leveledOffsets,
+      resourceLeveledDelayRecords,
+      scheduleSettingsHook.scheduleSettings.projectStartDate,
+    ],
+  );
+
+  // Single source of truth after leveling: the Level III Gantt, histogram, and
+  // Logic Network all read the one leveled CPM result (baseline links + provider
+  // -derived resource-dummy links). Baseline mode uses the committed CPM.
+  const levelingApplied = effectiveAnalysis?.levelingApplied ?? false;
+  const activeScheduleCpmResult =
+    levelingApplied && effectiveAnalysis?.leveledCpmResult
+      ? effectiveAnalysis.leveledCpmResult
+      : cpmResult;
+
+  const resourceHistogram = useMemo(() => {
+    if (!activeScheduleCpmResult || scheduleActivitiesResult.activities.length === 0) return [];
+    return calculateResourceHistogram({
+      activities: scheduleActivitiesResult.activities,
+      cpmActivities: activeScheduleCpmResult.activities,
+      projectStartDate:
+        scheduleSettingsHook.scheduleSettings.projectStartDate || getTodayScheduleDateYmd(),
+      availableCrewSize: projectAvailableCrewSize,
+      // Leveled CPM already encodes the delayed positions, so no offsets are
+      // re-applied here; placement and critical shading come from one result.
+      leveledOffsets: {},
+      cpmResult: activeScheduleCpmResult,
+    });
+  }, [
+    activeScheduleCpmResult,
+    scheduleActivitiesResult.activities,
+    scheduleSettingsHook.scheduleSettings.projectStartDate,
+    projectAvailableCrewSize,
+  ]);
 
   const projectScopeContext = useMemo(
     () =>
@@ -1308,12 +1400,23 @@ export default function EstimateWorkspacePage() {
     user?.id,
   ]);
 
+  // Divisions are dirty only when the session division codes differ from the persisted ones.
+  // Using length > 0 was incorrect — it permanently flagged any estimate with saved divisions as dirty.
+  const sessionDivisionCodeKey = estimateSetup.session.selectedDivisions
+    .map((d) => d.code)
+    .sort()
+    .join(',');
+  const persistedDivisionCodeKey = (currentEstimate?.selectedDivisions ?? [])
+    .map((d) => d.code)
+    .sort()
+    .join(',');
+  const divisionsDirty = sessionDivisionCodeKey !== persistedDivisionCodeKey;
+
   const hasPendingEstimateChanges = isConceptualEstimate
     ? conceptualEstimate.dirty || estimateSettings.dirty
     : lineItemDraft.dirty ||
       estimateSettings.dirty ||
-      estimateSetup.session.selectedDivisions.length > 0 ||
-      (currentEstimate?.selectedDivisions.length ?? 0) > 0 ||
+      divisionsDirty ||
       projectCrewSizeDraftDirty;
 
   const workspaceSaveStatus = useEstimateWorkspaceSaveStatus({
@@ -1513,11 +1616,18 @@ export default function EstimateWorkspacePage() {
       return;
     }
 
+    const savedDivisionKey = (currentEstimate?.selectedDivisions ?? [])
+      .map((d) => d.code)
+      .sort()
+      .join(',');
+    const sessionDivisionKey = estimateSetup.session.selectedDivisions
+      .map((d) => d.code)
+      .sort()
+      .join(',');
     const hasEstimateChanges =
       lineItemDraft.dirty ||
       estimateSettings.dirty ||
-      estimateSetup.session.selectedDivisions.length > 0 ||
-      (currentEstimate?.selectedDivisions.length ?? 0) > 0;
+      sessionDivisionKey !== savedDivisionKey;
 
     if (!hasEstimateChanges) {
       return;
@@ -1876,10 +1986,94 @@ export default function EstimateWorkspacePage() {
     ],
   );
 
-  const handleExportEstimate = useCallback(() => {
-    if (!currentEstimate) return;
+  const handleApplyActivityExcelImport = useCallback(
+    async ({
+      mode,
+      groups,
+    }: {
+      mode: ActivityExcelImportMode;
+      groups: ParsedActivityGroup[];
+    }) => {
+      if (!estimate || saving || !resolvedProjectId) return;
+      const excelType: ActivityExcelEstimateType | null =
+        resolvedEstimateType === 'detailed' || resolvedEstimateType === 'bid'
+          ? resolvedEstimateType
+          : null;
+      if (!excelType) return;
+
+      setSaving(true);
+      setSaveError(null);
+      setSaveToastMessage(null);
+
+      const laborRates =
+        projectRates.length > 0 ? projectRates : await ensureProjectLaborRatesReady();
+      const existingResult = await loadProjectActivitiesWithLineItems(resolvedProjectId, estimate.id);
+      const existingLoaded = existingResult.data ?? [];
+      const existingLineItemsByActivityId = new Map(
+        existingLoaded.map((entry) => [entry.activity.id, entry.lineItems]),
+      );
+
+      const result = await applyActivityExcelImport({
+        mode,
+        groups,
+        projectId: resolvedProjectId,
+        estimateId: estimate.id,
+        projectLaborRates: laborRates,
+        existingActivities: existingLoaded.map((entry) => entry.activity),
+        existingLineItemsByActivityId,
+      });
+
+      if (result.error) {
+        setSaveError(result.error);
+        setSaving(false);
+        return;
+      }
+
+      await reloadConstructionActivities();
+      // Trigger the activities panel to reload its own state from DB.
+      setActivitiesPanelReloadKey((k) => k + 1);
+      setSaveToastMessage(
+        `Imported ${result.importedActivityCount} activit${result.importedActivityCount === 1 ? 'y' : 'ies'} (${result.importedLineItemCount} line items)`,
+      );
+      setImportModalOpen(false);
+      setSaving(false);
+    },
+    [
+      estimate,
+      saving,
+      resolvedProjectId,
+      resolvedEstimateType,
+      projectRates,
+      ensureProjectLaborRatesReady,
+      reloadConstructionActivities,
+    ],
+  );
+
+  const handleExportEstimate = useCallback(async () => {
+    if (!currentEstimate || !resolvedProjectId || !estimate?.id) return;
+    const excelType: ActivityExcelEstimateType | null =
+      resolvedEstimateType === 'detailed' || resolvedEstimateType === 'bid'
+        ? resolvedEstimateType
+        : null;
+
+    if (excelType) {
+      const loaded = await loadProjectActivitiesWithLineItems(resolvedProjectId, estimate.id);
+      if (loaded.error || !loaded.data) {
+        setSaveError(loaded.error ?? 'Failed to export construction activities.');
+        return;
+      }
+      downloadActivityExcelExport(
+        mapLoadedActivitiesToExportInput(
+          excelType,
+          project?.name ?? 'project',
+          loaded.data,
+        ),
+      );
+      return;
+    }
+
     downloadEstimateWorkbook(currentEstimate, project?.name ?? 'project');
-  }, [currentEstimate, project?.name]);
+  }, [currentEstimate, project?.name, resolvedProjectId, estimate?.id, resolvedEstimateType]);
 
   // ── Schedule save helpers ──────────────────────────────────────────────────
 
@@ -2167,10 +2361,7 @@ export default function EstimateWorkspacePage() {
     const estimate = currentEstimateRef.current;
     if (!levelingModalResult || !estimate || !estimateAdapter) return;
     if (levelingModalResult.movedActivities.length === 0) return;
-    const newOffsets: Record<string, number> = {};
-    for (const moved of levelingModalResult.movedActivities) {
-      newOffsets[moved.activityCode] = moved.daysMoved;
-    }
+    const newOffsets: Record<string, number> = { ...levelingModalResult.appliedOffsets };
     scheduleSettingsHook.setLeveledOffsets(newOffsets);
     const updatedAssumptions = mergeScheduleAssumptions(
       {
@@ -2179,10 +2370,13 @@ export default function EstimateWorkspacePage() {
         scheduleSettings: scheduleSettingsHook.scheduleSettings,
         leveledActivityOffsets: newOffsets,
         logicNetworkInitialized: true,
+        resourceLevelingResults: {
+          movedActivities: levelingModalResult.movedActivities,
+        },
       },
       estimate.assumptions as Record<string, unknown>,
     );
-    await saveCurrentEstimateWithLineItems({
+    const result = await saveCurrentEstimateWithLineItems({
       estimateId: estimate.id,
       projectId: estimate.projectId,
       estimateType: estimateAdapter.estimateType,
@@ -2191,6 +2385,16 @@ export default function EstimateWorkspacePage() {
       estimateSettings: estimateSettings.settings,
       existingAssumptions: updatedAssumptions,
       createdBy: user?.id ?? null,
+    });
+    // Close the post-Apply timing gap: make the saved leveling provider records
+    // (resourceLevelingResults.movedActivities[].resourceProviderActivityCodes)
+    // available in-memory immediately so resource-dummy connectors render right
+    // away, without requiring a reload/re-apply.
+    setCurrentEstimate((previous) => {
+      const nextAssumptions =
+        (result.data?.assumptions as Record<string, unknown> | undefined) ?? updatedAssumptions;
+      if (previous) return { ...previous, assumptions: nextAssumptions };
+      return result.data ?? previous;
     });
     setLevelingModalResult(null);
   }, [
@@ -2237,35 +2441,39 @@ export default function EstimateWorkspacePage() {
   );
 
   const runCpmGanttExport = useCallback(
-    async (format: 'pdf' | 'excel') => {
+    async (format: 'pdf' | 'excel', mode: GanttExportMode = 'leveled') => {
       if (!estimateAdapter || !cpmResult) return;
       setSaveToastMessage('Preparing CPM export…');
       try {
-        const exportParams = {
-          schedule: null as BuildGanttScheduleResult | null,
-          projectName: project?.name ?? 'project',
-          estimateType: estimateAdapter.estimateType,
-          cpmResult,
-          activities: scheduleActivitiesResult.activities,
-          logicLinks: scheduleSettingsHook.logicLinks,
-          projectStartDate:
-            scheduleSettingsHook.scheduleSettings.projectStartDate || getTodayScheduleDateYmd(),
-          scheduleSettings: scheduleSettingsHook.scheduleSettings,
-          leveledOffsets: scheduleSettingsHook.leveledOffsets,
-          resourceHistogram,
-        };
+        const effectiveLeveledOffsets =
+          mode === 'baseline' ? {} : scheduleSettingsHook.leveledOffsets;
+        const projectStartDate =
+          scheduleSettingsHook.scheduleSettings.projectStartDate || getTodayScheduleDateYmd();
+
         if (format === 'pdf') {
-          const chartElement = ganttExportRef.current;
-          if (!chartElement) {
-            setSaveToastMessage('Gantt chart is not ready for export.');
-            return;
-          }
-          await downloadLevelThreeGanttPdfFromElement({
-            chartElement,
+          await downloadLevelThreeGanttPdf({
             projectName: project?.name ?? 'project',
+            cpmResult,
+            activities: scheduleActivitiesResult.activities,
+            projectStartDate,
+            leveledOffsets: effectiveLeveledOffsets,
+            scheduleMode: mode,
           });
           setSaveToastMessage('Gantt PDF exported');
         } else {
+          const exportParams = {
+            schedule: null as BuildGanttScheduleResult | null,
+            projectName: project?.name ?? 'project',
+            estimateType: estimateAdapter.estimateType,
+            cpmResult,
+            activities: scheduleActivitiesResult.activities,
+            logicLinks: scheduleSettingsHook.logicLinks,
+            projectStartDate,
+            scheduleSettings: scheduleSettingsHook.scheduleSettings,
+            leveledOffsets: effectiveLeveledOffsets,
+            resourceHistogram,
+            scheduleMode: mode,
+          };
           await downloadGanttExcel(exportParams as Parameters<typeof downloadGanttExcel>[0]);
           setSaveToastMessage('Gantt Excel exported');
         }
@@ -2284,8 +2492,16 @@ export default function EstimateWorkspacePage() {
   );
 
   const handleDownloadImportTemplate = useCallback(() => {
+    const excelType: ActivityExcelEstimateType | null =
+      resolvedEstimateType === 'detailed' || resolvedEstimateType === 'bid'
+        ? resolvedEstimateType
+        : null;
+    if (excelType) {
+      void downloadEstimateExcelTemplate(excelType, project?.name ?? 'project');
+      return;
+    }
     downloadBlankEstimateTemplateWorkbook();
-  }, []);
+  }, [project?.name, resolvedEstimateType]);
 
   const handleOpenHelp = useCallback(() => {
     const { lastSection, open } = useDefinitionsHelpStore.getState();
@@ -2817,6 +3033,7 @@ export default function EstimateWorkspacePage() {
                 version={hasEstimateAdapter ? estimateAdapter : null}
                 plan={schedulePlan}
                 datePlanResult={scheduleDatePlanResult}
+                effectiveSchedule={effectiveSchedule}
                 planControls={schedulePlanControls}
                 onPlanControlsChange={handleSchedulePlanControlsChange}
                 loading={dataLoading}
@@ -2916,6 +3133,9 @@ export default function EstimateWorkspacePage() {
                     scheduleSettings={scheduleSettingsHook.scheduleSettings}
                     projectAvailableCrewSize={projectAvailableCrewSize}
                     projectName={project?.name}
+                    levelingApplied={levelingApplied}
+                    leveledDurationDays={effectiveAnalysis?.leveledDurationDays ?? null}
+                    effectiveAnalysis={effectiveAnalysis}
                   />
                 </div>
               );
@@ -2977,15 +3197,16 @@ export default function EstimateWorkspacePage() {
                   <LevelThreeGanttWorkspace
                     chartExportRef={ganttExportRef}
                     activities={scheduleActivitiesResult.activities}
-                    cpmResult={cpmResult}
+                    cpmResult={activeScheduleCpmResult}
+                    levelingApplied={levelingApplied}
                     scheduleSettings={scheduleSettingsHook.scheduleSettings}
-                    leveledOffsets={scheduleSettingsHook.leveledOffsets}
+                    leveledOffsets={{}}
                     logicLinks={scheduleSettingsHook.logicLinks}
                     lineItems={estimateAdapter?.lineItems ?? []}
                     onEditActivity={handleEditActivityFromGantt}
                     exportReady={Boolean(cpmResult?.hasRunCpm && cpmResult.hasValidPrecedenceDiagram)}
-                    onExportPdf={() => void runCpmGanttExport('pdf')}
-                    onExportExcel={() => void runCpmGanttExport('excel')}
+                    onExportPdf={(mode) => void runCpmGanttExport('pdf', mode)}
+                    onExportExcel={(mode) => void runCpmGanttExport('excel', mode)}
                     resourceHistogram={resourceHistogram}
                     onResourceLevel={
                       cpmResult?.hasRunCpm && scheduleActivitiesResult.activities.length > 0
@@ -3100,6 +3321,7 @@ export default function EstimateWorkspacePage() {
                 importCollapseDivisionCodesKey={importCollapseDivisionCodesKey}
                 onEnsureDivisionsSelected={handleEnsureDivisionsSelected}
                 onActivitiesChanged={reloadConstructionActivities}
+                reloadKey={activitiesPanelReloadKey}
               />
             </FeatureGate>
           ) : (
@@ -3143,8 +3365,19 @@ export default function EstimateWorkspacePage() {
         onClose={() => setResetModalOpen(false)}
         onConfirm={handleConfirmResetSetup}
       />
+      <ActivityExcelImportModal
+        isOpen={importModalOpen && showImportExport}
+        saving={saving}
+        projectId={resolvedProjectId}
+        estimateId={estimate?.id ?? ''}
+        estimateType={
+          resolvedEstimateType === 'bid' ? 'bid' : 'detailed'
+        }
+        onClose={() => setImportModalOpen(false)}
+        onApply={handleApplyActivityExcelImport}
+      />
       <EstimateImportModal
-        isOpen={importModalOpen}
+        isOpen={importModalOpen && !showImportExport}
         saving={saving}
         onClose={() => setImportModalOpen(false)}
         onApply={handleApplyImportedEstimate}

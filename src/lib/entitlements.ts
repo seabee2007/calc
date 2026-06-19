@@ -158,7 +158,8 @@ export const FEATURE_DESCRIPTIONS: Record<FeatureKey, string> = {
   ai_labor_crew_review: 'AI labor crew review recommendations.',
   ai_batch_plant_tools: 'AI batch plant pricing and contact tools.',
   contract_builder: 'Contract builder for client agreements.',
-  global_planner_hub: 'Global planner hub across RFIs, FARs, COs, and projects.',
+  global_planner_hub:
+    'Global Planner company-wide view across all projects, RFIs, FARs, change orders, deadlines, and schedule risks.',
   arden_calc_in_estimator: 'Arden Calc inside the estimator activity modal.',
 };
 

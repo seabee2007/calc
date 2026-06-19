@@ -5,6 +5,7 @@ import {
   PROJECT_EXTENSION_DISABLED_HELPER,
   PROJECT_EXTENSION_ENABLED_HELPER,
   RESOURCE_LEVELING_BALANCED_MESSAGE,
+  RESOURCE_LEVELING_NO_EXTENSION_MOVE_MESSAGE,
   RESOURCE_LEVELING_NO_FLOAT_MESSAGE,
   RESOURCE_LEVELING_SCOPE_NOTE,
 } from './resourceLevelingModalCopy';
@@ -29,7 +30,9 @@ export default function ResourceLevelingModal({
   const canApply = result.movedActivities.length > 0;
   const noMovesMessage =
     result.overallocatedDaysAfter > 0 || result.unmovedActivities.length > 0
-      ? RESOURCE_LEVELING_NO_FLOAT_MESSAGE
+      ? allowProjectExtension
+        ? RESOURCE_LEVELING_NO_EXTENSION_MOVE_MESSAGE
+        : RESOURCE_LEVELING_NO_FLOAT_MESSAGE
       : RESOURCE_LEVELING_BALANCED_MESSAGE;
 
   return (

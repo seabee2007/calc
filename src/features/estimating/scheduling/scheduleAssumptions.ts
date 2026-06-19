@@ -14,6 +14,7 @@ import {
   type CpmResult,
   type LogicNetworkLayout,
   type LogicNetworkViewMode,
+  type MovedActivity,
   type ScheduleSettings,
 } from './cpmTypes';
 import { wouldCreateCircularDependency } from './logic/logicCycleUtils';
@@ -370,6 +371,7 @@ export function mergeScheduleAssumptions(
     logicNetworkViewMode: LogicNetworkViewMode;
     precedenceDiagram: PrecedenceDiagramState | null;
     cpmResultCache: CpmResult | null;
+    resourceLevelingResults: { movedActivities: MovedActivity[] } | null;
   }>,
   existingAssumptions: Record<string, unknown> = {},
 ): Record<string, unknown> {
@@ -393,6 +395,14 @@ export function mergeScheduleAssumptions(
       ? { logicNetworkViewMode: patch.logicNetworkViewMode }
       : {}),
   };
+
+  if (patch.resourceLevelingResults !== undefined) {
+    if (patch.resourceLevelingResults === null) {
+      delete (next as Record<string, unknown>).resourceLevelingResults;
+    } else {
+      (next as Record<string, unknown>).resourceLevelingResults = patch.resourceLevelingResults;
+    }
+  }
 
   const withPrecedenceDiagram =
     patch.precedenceDiagram !== undefined

@@ -245,24 +245,25 @@ export function NewProposalShortcutWidget({ compact }: CompactProps) {
   );
 }
 
-/** Open Planner Hub — gated by global_planner_hub (Business). */
+/** Open Planner Hub — accessible project workspace landing. */
 export function PlannerHubShortcutWidget({ compact }: CompactProps) {
   const navigate = useNavigate();
 
   return (
-    <FeatureGate feature="global_planner_hub" inline>
-      <WidgetShell title="Planner Hub" hint="Global view across all project planners.">
-        <Button
-          variant="accent"
-          size="sm"
-          className="whitespace-nowrap"
-          onClick={() => navigate('/planner/hub')}
-          icon={<LayoutDashboard className="h-4 w-4" />}
-        >
-          {compact ? 'Planner' : 'Open Planner Hub'}
-        </Button>
-      </WidgetShell>
-    </FeatureGate>
+    <WidgetShell
+      title="Planner Hub"
+      hint="Project workspace for estimates, schedule, documents, RFIs, FARs, change orders, and team activity."
+    >
+      <Button
+        variant="accent"
+        size="sm"
+        className="whitespace-nowrap"
+        onClick={() => navigate('/planner/hub')}
+        icon={<LayoutDashboard className="h-4 w-4" />}
+      >
+        {compact ? 'Planner' : 'Open Planner Hub'}
+      </Button>
+    </WidgetShell>
   );
 }
 

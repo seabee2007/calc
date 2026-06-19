@@ -15,6 +15,7 @@ import type {
   ScheduleSettings,
 } from '../../../scheduling/cpmTypes';
 import { calculateCpm } from '../../../scheduling/cpm/calculateCpm';
+import type { EffectiveScheduleAnalysis } from '../../../scheduling/effectiveSchedule';
 import type { CpmReadinessResult } from '../../../scheduling/logic/validateCpmReadiness';
 import {
   exitBrowserFullscreen,
@@ -106,6 +107,12 @@ interface Props {
   canvasKey: string;
   activitySignature?: string;
   projectName?: string;
+  /** True when resource leveling offsets are applied to the committed CPM. */
+  levelingApplied?: boolean;
+  /** Effective project duration after resource leveling (activity-days). */
+  leveledDurationDays?: number | null;
+  /** Resource-leveled effective schedule analysis (controlling path, offsets). */
+  effectiveAnalysis?: EffectiveScheduleAnalysis | null;
 }
 
 export default function LogicNetworkWorkspace({
@@ -116,6 +123,9 @@ export default function LogicNetworkWorkspace({
   scheduleSettings,
   projectAvailableCrewSize,
   projectName = 'project',
+  levelingApplied = false,
+  leveledDurationDays = null,
+  effectiveAnalysis = null,
   ...canvasProps
 }: Props) {
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -128,6 +138,18 @@ export default function LogicNetworkWorkspace({
     variant: EstimateWorkspaceToastVariant;
   } | null>(null);
   const [viewport, setViewport] = useState<Viewport>(INITIAL_LOGIC_NETWORK_VIEWPORT);
+
+  // ── Resource-leveled overlay view (Logic Network) ─────────────────────────
+  // Defaults to the leveled view whenever leveling is applied; the user can
+  // switch back to the CPM baseline. CPM dependency logic itself is unchanged.
+  const [showLeveledView, setShowLeveledView] = useState(levelingApplied);
+  const previousLevelingAppliedRef = useRef(levelingApplied);
+  useEffect(() => {
+    if (previousLevelingAppliedRef.current !== levelingApplied) {
+      previousLevelingAppliedRef.current = levelingApplied;
+      setShowLeveledView(levelingApplied);
+    }
+  }, [levelingApplied]);
 
   // ── Live CPM preview state ────────────────────────────────────────────────
   const [livePreviewCpm, setLivePreviewCpm] = useState<CpmResult | null>(null);
@@ -259,6 +281,9 @@ export default function LogicNetworkWorkspace({
   const viewMode = canvasProps.viewMode ?? 'logic-network';
   const isPrecedenceMode = viewMode === 'precedence-diagram';
   const isLogicMode = viewMode === 'logic-network';
+  const hasRunCpm = canvasProps.cpmResult?.hasRunCpm ?? false;
+  const leveledToggleAvailable = isPrecedenceMode && hasRunCpm && levelingApplied;
+  const leveledViewActive = leveledToggleAvailable && showLeveledView;
   const cpmReadiness = canvasProps.cpmReadiness;
   const canRunCpm = cpmReadiness?.canRunCpm ?? false;
   const runCpmDisabledReason = cpmReadiness?.disabledReasons[0];
@@ -312,6 +337,34 @@ export default function LogicNetworkWorkspace({
           >
             Precedence Diagram
           </button>
+          {leveledToggleAvailable ? (
+            <div className="ml-1 inline-flex overflow-hidden rounded-lg border border-slate-300 dark:border-slate-600">
+              <button
+                type="button"
+                className={`px-3 py-1.5 text-xs font-semibold ${
+                  showLeveledView
+                    ? 'bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-300'
+                    : 'bg-cyan-50 text-cyan-800 dark:bg-cyan-950 dark:text-cyan-100'
+                }`}
+                onClick={() => setShowLeveledView(false)}
+                title="Show original CPM critical path and float"
+              >
+                CPM Baseline
+              </button>
+              <button
+                type="button"
+                className={`border-l border-slate-300 px-3 py-1.5 text-xs font-semibold dark:border-slate-600 ${
+                  showLeveledView
+                    ? 'bg-orange-50 text-orange-800 dark:bg-orange-950 dark:text-orange-100'
+                    : 'bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-300'
+                }`}
+                onClick={() => setShowLeveledView(true)}
+                title="Show the effective controlling path after resource leveling"
+              >
+                Resource-Leveled
+              </button>
+            </div>
+          ) : null}
         </div>
         <div className="flex flex-wrap gap-2">
           {isPrecedenceMode ? (
@@ -406,10 +459,29 @@ export default function LogicNetworkWorkspace({
               {cpmReadiness?.softWarnings[0]}
             </p>
           ) : null}
-          {isPrecedenceMode && canvasProps.cpmResult?.hasRunCpm ? (
+          {isPrecedenceMode && canvasProps.cpmResult?.hasRunCpm && !levelingApplied ? (
             <p className="text-xs text-emerald-700 dark:text-emerald-300">
               CPM calculated · project duration {canvasProps.cpmResult.projectDurationDays} days
             </p>
+          ) : null}
+          {isPrecedenceMode &&
+          canvasProps.cpmResult?.hasRunCpm &&
+          levelingApplied &&
+          leveledDurationDays != null ? (
+            <>
+              <p className="text-xs text-slate-600 dark:text-slate-300">
+                CPM baseline · {canvasProps.cpmResult.projectDurationDays} days
+                {'  ·  '}
+                <span className="font-semibold text-orange-700 dark:text-orange-300">
+                  Resource-leveled schedule · {leveledDurationDays} days
+                </span>
+              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                {leveledViewActive
+                  ? 'Showing the effective leveled logic used by the Gantt. Original CPM logic is preserved in Baseline mode.'
+                  : 'Showing the CPM baseline critical path and float. Switch to Resource-Leveled to see the crew-constrained schedule path.'}
+              </p>
+            </>
           ) : null}
           {isLogicMode && livePreviewCpm ? (
             <p className="text-xs text-indigo-700 dark:text-indigo-300">
@@ -444,6 +516,8 @@ export default function LogicNetworkWorkspace({
         viewport={viewport}
         onViewportChange={setViewport}
         hasFitInitialViewRef={hasFitInitialViewRef}
+        effectiveAnalysis={effectiveAnalysis}
+        leveledViewActive={leveledViewActive}
         {...canvasProps}
       />
 

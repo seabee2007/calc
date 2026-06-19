@@ -722,10 +722,17 @@ function App() {
               </AuthGuard>
             }
           >
-            <Route path="planner/hub" element={<GatedLazyRoute feature="global_planner_hub" Page={LazyPlannerHubPage} />} />
+            <Route path="planner" element={<Navigate to="/planner/hub" replace />} />
+            <Route path="planner/hub" element={<LazyRoute Page={LazyPlannerHubPage} />} />
             <Route path="planner/schedule" element={<LazyRoute Page={LazyScheduleWorkspacePage} />} />
-            <Route path="planner/rfis" element={<LazyRoute Page={LazyPlannerAllRfisPage} />} />
-            <Route path="planner/fars" element={<LazyRoute Page={LazyPlannerAllFarsPage} />} />
+            <Route
+              path="planner/rfis"
+              element={<GatedLazyRoute feature="rfis" Page={LazyPlannerAllRfisPage} />}
+            />
+            <Route
+              path="planner/fars"
+              element={<GatedLazyRoute feature="fars" Page={LazyPlannerAllFarsPage} />}
+            />
             <Route
               path="planner/change-orders"
               element={<GatedLazyRoute feature="change_orders" Page={LazyPlannerAllChangeOrdersPage} />}
@@ -736,8 +743,8 @@ function App() {
               <Route path="charts" element={<LazyRoute Page={LazyPlannerChartsPage} />} />
               <Route path="schedule" element={<LazyRoute Page={LazyPlannerSchedulePage} />} />
               <Route path="documents" element={<GatedLazyRoute feature="document_builder" Page={LazyPlannerDocumentsPage} />} />
-              <Route path="rfis" element={<LazyRoute Page={LazyPlannerRFIsPage} />} />
-              <Route path="adjustments" element={<LazyRoute Page={LazyPlannerAdjustmentsPage} />} />
+              <Route path="rfis" element={<GatedLazyRoute feature="rfis" Page={LazyPlannerRFIsPage} />} />
+              <Route path="adjustments" element={<GatedLazyRoute feature="fars" Page={LazyPlannerAdjustmentsPage} />} />
               <Route path="change-orders" element={<GatedLazyRoute feature="change_orders" Page={LazyPlannerChangeOrdersPage} />} />
               <Route
                 path="change-orders/:changeOrderId"

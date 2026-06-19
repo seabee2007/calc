@@ -127,11 +127,13 @@ describe('estimateWorkspaceToolbar', () => {
     expect(shouldShowQuickSaveAction('quick-estimate', false)).toBe(false);
   });
 
-  it('shows bid import/export actions only on the estimate tab for bid estimates', () => {
-    expect(shouldShowBidImportExportActions('line-items', true, 'bid')).toBe(true);
-    expect(shouldShowBidImportExportActions('line-items', true, 'budget')).toBe(false);
+  it('shows activity excel import/export actions on the activities tab for detailed and bid estimates', () => {
+    expect(shouldShowBidImportExportActions('activities', true, 'bid')).toBe(true);
+    expect(shouldShowBidImportExportActions('activities', true, 'detailed')).toBe(true);
+    expect(shouldShowBidImportExportActions('activities', true, 'budget')).toBe(false);
+    expect(shouldShowBidImportExportActions('line-items', true, 'bid')).toBe(false);
     expect(shouldShowBidImportExportActions('overview', true, 'bid')).toBe(false);
-    expect(shouldShowBidImportExportActions('line-items', false, 'bid')).toBe(false);
+    expect(shouldShowBidImportExportActions('activities', false, 'bid')).toBe(false);
   });
 
   it('shows convert to detailed in Actions menu for conceptual budget tab', () => {

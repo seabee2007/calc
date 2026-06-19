@@ -160,6 +160,24 @@ describe('Navbar logged-in owner', () => {
     expect(screen.queryByText('Tools')).not.toBeInTheDocument();
     expect(screen.getByText('Help')).toBeInTheDocument();
   });
+
+  it('renders user initials in the profile avatar button', () => {
+    mockUseAuth.mockReturnValue({
+      user: { id: 'user-1', email: 'owner@example.com' },
+      profile: { firstName: 'Donald', lastName: 'Duck', displayName: 'Donald Duck', role: 'owner' },
+      signOut: vi.fn(),
+      isOwner: true,
+      isEmployee: false,
+    });
+
+    render(
+      <MemoryRouter>
+        <Navbar />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByTestId('user-avatar-initials')).toHaveTextContent('DD');
+  });
 });
 
 describe('Navbar logged-in field employee', () => {

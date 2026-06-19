@@ -115,6 +115,9 @@ function buildDivisionSummaryRows(activities: GanttActivity[]): (string | number
     ]);
 }
 
+/** Whether the export reflects the resource-leveled schedule or the raw CPM baseline. */
+export type GanttExportMode = 'leveled' | 'baseline';
+
 export interface BuildGanttWorkbookParams {
   schedule: BuildGanttScheduleResult | null;
   projectName: string;
@@ -127,6 +130,8 @@ export interface BuildGanttWorkbookParams {
   projectStartDate?: string;
   leveledOffsets?: Record<string, number>;
   resourceHistogram?: ResourceHistogramDay[];
+  /** Controls the schedule-type label in the export header. Defaults to 'leveled'. */
+  scheduleMode?: GanttExportMode;
 }
 
 export function isLevelThreeGanttExcelExport(
