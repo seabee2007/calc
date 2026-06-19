@@ -4,6 +4,8 @@ import {
   calculateCalibrationScaleFactor,
   calculatePolygonArea3D,
   calculatePolylineLength,
+  formatFeetInchesFraction,
+  formatLengthMeasurement,
   convertModelUnitsToFeet,
 } from '../measurement/bimMeasurementMath';
 
@@ -119,5 +121,20 @@ describe('bim measurement math', () => {
 
     expect(result.quantity).toBe(25);
     expect(result.unit).toBe('SF');
+  });
+
+  it('formats feet-inch fractions with common fractions and overflow', () => {
+    expect(formatFeetInchesFraction(5.375)).toBe(`5'-4 1/2"`);
+    expect(formatFeetInchesFraction(3)).toBe(`3'-0"`);
+    expect(formatFeetInchesFraction(0.5)).toBe(`6"`);
+    expect(formatFeetInchesFraction(5 + 11.99 / 12, 16)).toBe(`6'-0"`);
+    expect(formatFeetInchesFraction(2 + 3.25 / 12, 16)).toBe(`2'-3 1/4"`);
+    expect(formatFeetInchesFraction(2 + 3.125 / 12, 16)).toBe(`2'-3 1/8"`);
+    expect(formatFeetInchesFraction(2 + 3.0625 / 12, 16)).toBe(`2'-3 1/16"`);
+  });
+
+  it('formats metric lengths as millimeters under one meter and meters above', () => {
+    expect(formatLengthMeasurement(0.5 / 0.3048, 'metric')).toBe('500 mm');
+    expect(formatLengthMeasurement(1.5 / 0.3048, 'metric')).toBe('1.50 m');
   });
 });

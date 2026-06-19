@@ -24,6 +24,8 @@ export interface BimMeasurementResult {
 
 export type CalibrationDistanceUnit = 'feet' | 'inches' | 'meters';
 
+export type MeasurementDisplayFormat = 'imperial_decimal' | 'feet_inches_fraction' | 'metric';
+
 export interface BimScaleCalibration {
   scaleFactor: number;
   knownDistance: number;
@@ -136,6 +138,60 @@ export function calculatePlanarityDeviation(points: readonly MeasurementPoint3D[
 
 export function roundMeasurement(value: number): number {
   return Math.round(value * 100) / 100;
+}
+
+function formatFraction(numerator: number, denominator: number): string {
+  if (numerator === 0) return '';
+  const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b));
+  const divisor = gcd(numerator, denominator);
+  return `${numerator / divisor}/${denominator / divisor}`;
+}
+
+export function formatFeetInchesFraction(feet: number, denominator = 16): string {
+  const sign = feet < 0 ? '-' : '';
+  const totalInches = Math.round(Math.abs(feet) * 12 * denominator) / denominator;
+  const wholeFeet = Math.floor(totalInches / 12);
+  const remainingInches = totalInches - wholeFeet * 12;
+  const wholeInches = Math.floor(remainingInches);
+  const fractionNumerator = Math.round((remainingInches - wholeInches) * denominator);
+
+  let displayFeet = wholeFeet;
+  let displayInches = wholeInches;
+  let displayNumerator = fractionNumerator;
+
+  if (displayNumerator === denominator) {
+    displayInches += 1;
+    displayNumerator = 0;
+  }
+  if (displayInches === 12) {
+    displayFeet += 1;
+    displayInches = 0;
+  }
+
+  const fraction = formatFraction(displayNumerator, denominator);
+  const inchText = fraction ? `${displayInches} ${fraction}` : `${displayInches}`;
+
+  if (displayFeet === 0) {
+    return `${sign}${inchText}"`;
+  }
+  return `${sign}${displayFeet}'-${inchText}"`;
+}
+
+export function formatLengthMeasurement(feet: number, format: MeasurementDisplayFormat): string {
+  if (format === 'feet_inches_fraction') return formatFeetInchesFraction(feet);
+  if (format === 'metric') {
+    const meters = feet * 0.3048;
+    if (Math.abs(meters) < 1) return `${Math.round(feet * 304.8)} mm`;
+    return `${meters.toFixed(2)} m`;
+  }
+  return `${feet.toFixed(2)} ft`;
+}
+
+export function formatAreaMeasurement(squareFeet: number, format: MeasurementDisplayFormat): string {
+  if (format === 'metric') {
+    return `${(squareFeet * 0.092903).toFixed(2)} m²`;
+  }
+  return `${squareFeet.toFixed(2)} SF`;
 }
 
 export function buildMeasurementResult(params: {

@@ -9,6 +9,8 @@ import {
 } from 'react';
 import { AlertTriangle, ChevronLeft, ChevronRight, Trash2, X } from 'lucide-react';
 import { useAuth } from '../../../hooks/useAuth';
+import Input from '../../../components/ui/Input';
+import Select from '../../../components/ui/Select';
 import { buildAssemblyGroupForRate } from '../../estimating/application/productionRateAssemblyBuilder';
 import { loadProjectActivitiesWithLineItems } from '../../estimating/application/constructionActivityService';
 import type { ProductionRateLibraryEntry } from '../../estimating/data/productionRates/productionRateTypes';
@@ -34,9 +36,12 @@ import { isViewerReadyBimFormat } from '../services/bimModelFormatRegistry';
 import {
   calculateCalibrationScaleFactor,
   convertModelUnitsToFeet,
+  formatAreaMeasurement,
+  formatLengthMeasurement,
   type BimMeasurementResult,
   type BimScaleCalibration,
   type CalibrationDistanceUnit,
+  type MeasurementDisplayFormat,
 } from '../measurement/bimMeasurementMath';
 import {
   BIM_VIEWER_DEFAULT_RIGHT_PANEL_WIDTH,
@@ -69,6 +74,10 @@ function leftPanelCollapsedKey(projectId: string, estimateId: string | null): st
   return `arden:3dTakeoff:leftPanelCollapsed:${projectId}:${estimateId ?? 'project'}`;
 }
 
+function measurementDisplayFormatKey(projectId: string, estimateId: string | null): string {
+  return `arden:3dTakeoff:measurementDisplayFormat:${projectId}:${estimateId ?? 'project'}`;
+}
+
 function readLeftPanelCollapsed(projectId: string, estimateId: string | null): boolean {
   try {
     const stored = localStorage.getItem(leftPanelCollapsedKey(projectId, estimateId));
@@ -77,6 +86,11 @@ function readLeftPanelCollapsed(projectId: string, estimateId: string | null): b
   } catch {
     return false;
   }
+}
+
+function readMeasurementDisplayFormat(projectId: string, estimateId: string | null): MeasurementDisplayFormat {
+  const stored = localStorage.getItem(measurementDisplayFormatKey(projectId, estimateId));
+  return stored === 'feet_inches_fraction' || stored === 'metric' ? stored : 'imperial_decimal';
 }
 
 function calibrationStorageKey(projectId: string, modelId: string): string {
@@ -124,6 +138,9 @@ export default function BimTakeoffPage({ projectId, estimateId, onTakeoffAdded }
     readLeftPanelCollapsed(projectId, estimateId),
   );
   const [viewerLayoutResizeSignal, setViewerLayoutResizeSignal] = useState(0);
+  const [measurementDisplayFormat, setMeasurementDisplayFormat] = useState<MeasurementDisplayFormat>(() =>
+    readMeasurementDisplayFormat(projectId, estimateId),
+  );
   const storageMode = isFocusMode ? 'focus' : 'normal';
   const storageKey = viewerSizeStorageKey(estimateId, projectId, storageMode);
   const [viewerPanelSize, setViewerPanelSize] = useState<BimViewerPanelSize>(() =>
@@ -163,6 +180,7 @@ export default function BimTakeoffPage({ projectId, estimateId, onTakeoffAdded }
 
   useEffect(() => {
     setLeftPanelCollapsed(readLeftPanelCollapsed(projectId, estimateId));
+    setMeasurementDisplayFormat(readMeasurementDisplayFormat(projectId, estimateId));
   }, [projectId, estimateId]);
 
   useEffect(() => {
@@ -423,6 +441,14 @@ export default function BimTakeoffPage({ projectId, estimateId, onTakeoffAdded }
     });
     setViewerLayoutResizeSignal((current) => current + 1);
   }, [projectId, estimateId]);
+
+  const updateMeasurementDisplayFormat = useCallback(
+    (format: MeasurementDisplayFormat) => {
+      localStorage.setItem(measurementDisplayFormatKey(projectId, estimateId), format);
+      setMeasurementDisplayFormat(format);
+    },
+    [projectId, estimateId],
+  );
 
   const handleAddToEstimate = useCallback(
     async (params: {
@@ -690,19 +716,19 @@ export default function BimTakeoffPage({ projectId, estimateId, onTakeoffAdded }
             </p>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900/70">
+          <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900/70">
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
               Model Scale Calibration
             </p>
-            <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">
+            <p className="text-xs leading-relaxed text-slate-600 dark:text-slate-400">
               If a known object is available, calibrate the model before measuring. Example: measure a 3 ft door opening.
             </p>
-            <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-2 text-xs text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
+            <div className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs leading-relaxed text-amber-950 shadow-sm dark:border-amber-700 dark:bg-amber-950/30 dark:text-amber-100">
               {scaleCalibration ? (
                 <>
-                  <p className="font-semibold">
-                    Scale calibrated: 1 model unit ={' '}
-                    {(convertModelUnitsToFeet(modelUnit) * scaleCalibration.scaleFactor).toFixed(4)} ft
+                  <p className="font-semibold">Scale calibrated</p>
+                  <p className="mt-1">
+                    1 model unit = {(convertModelUnitsToFeet(modelUnit) * scaleCalibration.scaleFactor).toFixed(4)} ft
                   </p>
                   <p className="mt-1">
                     Calibrated from known {scaleCalibration.knownDistance}{' '}
@@ -723,58 +749,62 @@ export default function BimTakeoffPage({ projectId, estimateId, onTakeoffAdded }
                 setCalibrationActive(true);
                 setCalibrationSample(null);
               }}
-              className="mt-3 w-full rounded-lg border border-cyan-300 bg-cyan-50 px-3 py-2 text-xs font-semibold text-cyan-800 transition hover:bg-cyan-100 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400 dark:border-cyan-500/30 dark:bg-cyan-500/10 dark:text-cyan-100 dark:hover:bg-cyan-500/20 dark:disabled:border-slate-700 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
+              className={`flex h-10 w-full items-center justify-center rounded-lg border px-3 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-cyan-500/30 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400 dark:disabled:border-slate-700 dark:disabled:bg-slate-800 dark:disabled:text-slate-500 ${
+                calibrationActive
+                  ? 'border-cyan-500 bg-cyan-600 text-white shadow-sm shadow-cyan-500/20 dark:border-cyan-400 dark:bg-cyan-500 dark:text-slate-950'
+                  : 'border-cyan-300 bg-cyan-50 text-cyan-800 hover:bg-cyan-100 dark:border-cyan-500/30 dark:bg-cyan-500/10 dark:text-cyan-100 dark:hover:bg-cyan-500/20'
+              }`}
             >
               Calibrate from known distance
             </button>
             {calibrationActive ? (
-              <p className="mt-2 text-xs font-medium text-cyan-700 dark:text-cyan-200">
+              <p className="text-xs font-medium text-cyan-700 dark:text-cyan-200">
                 Click two points on a known distance in the model.
               </p>
             ) : null}
-            <div className="mt-3 grid grid-cols-[1fr_auto] gap-2">
-              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
-                Known distance
-                <input
-                  type="number"
-                  min="0"
-                  step="any"
-                  value={knownDistance}
-                  onChange={(event) => setKnownDistance(event.target.value)}
-                  className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-slate-900 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-                />
-              </label>
-              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
-                Unit
-                <select
-                  value={knownDistanceUnit}
-                  onChange={(event) => setKnownDistanceUnit(event.target.value as CalibrationDistanceUnit)}
-                  className="mt-1 rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-slate-900 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-                >
-                  <option value="feet">Feet</option>
-                  <option value="inches">Inches</option>
-                  <option value="meters">Meters</option>
-                </select>
-              </label>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_120px]">
+              <Input
+                label="Known distance"
+                type="number"
+                min="0"
+                step="any"
+                value={knownDistance}
+                placeholder="3"
+                fullWidth
+                onChange={(event) => setKnownDistance(event.target.value)}
+                className="h-10 rounded-lg text-sm"
+              />
+              <Select
+                label="Unit"
+                value={knownDistanceUnit}
+                options={[
+                  { value: 'feet', label: 'Feet' },
+                  { value: 'inches', label: 'Inches' },
+                  { value: 'meters', label: 'Meters' },
+                ]}
+                fullWidth
+                onChange={(value) => setKnownDistanceUnit(value as CalibrationDistanceUnit)}
+                className="h-10 rounded-lg text-sm"
+              />
             </div>
             {calibrationSample?.rawDistance ? (
-              <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">
+              <p className="text-xs text-slate-600 dark:text-slate-400">
                 Picked model distance: {calibrationSample.rawDistance.toFixed(4)} raw units.
               </p>
             ) : null}
-            <div className="mt-3 grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
                 disabled={!calibrationSample?.rawDistance || Number(knownDistance) <= 0}
                 onClick={applyCalibration}
-                className="rounded-lg bg-cyan-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-cyan-500 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500 dark:bg-cyan-500 dark:text-slate-950 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
+                className="flex h-10 items-center justify-center rounded-lg bg-cyan-600 px-3 text-sm font-semibold text-white shadow-sm shadow-cyan-500/15 transition hover:bg-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/30 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 disabled:shadow-none dark:bg-cyan-500 dark:text-slate-950 dark:hover:bg-cyan-400 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
               >
                 Apply scale
               </button>
               <button
                 type="button"
                 onClick={resetCalibration}
-                className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-800"
+                className="flex h-10 items-center justify-center rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:border-red-300 hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500/20 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:border-red-700 dark:hover:bg-red-950/30 dark:hover:text-red-200"
               >
                 Reset calibration
               </button>
@@ -822,6 +852,8 @@ export default function BimTakeoffPage({ projectId, estimateId, onTakeoffAdded }
               onCalibrationSampleChange={setCalibrationSample}
               onMeasurementChange={setMeasurement}
               onUseMeasurement={setAppliedMeasurement}
+              measurementDisplayFormat={measurementDisplayFormat}
+              onMeasurementDisplayFormatChange={updateMeasurementDisplayFormat}
               layoutResizeSignal={viewerLayoutResizeSignal}
               onObjectsParsed={(snapshots) => {
                 setParsedObjects(snapshots);
@@ -871,6 +903,7 @@ export default function BimTakeoffPage({ projectId, estimateId, onTakeoffAdded }
           <BimMeasurementSummaryCard
             measurement={measurement}
             scaleConfirmed={effectiveScaleConfirmed}
+            measurementDisplayFormat={measurementDisplayFormat}
             onUse={() => {
               if (measurement) setAppliedMeasurement(measurement);
             }}
@@ -907,10 +940,12 @@ export default function BimTakeoffPage({ projectId, estimateId, onTakeoffAdded }
 function BimMeasurementSummaryCard({
   measurement,
   scaleConfirmed,
+  measurementDisplayFormat,
   onUse,
 }: {
   measurement: BimMeasurementResult | null;
   scaleConfirmed: boolean;
+  measurementDisplayFormat: MeasurementDisplayFormat;
   onUse: () => void;
 }) {
   if (!measurement) return null;
@@ -929,12 +964,12 @@ function BimMeasurementSummaryCard({
         </div>
         <div>
           <dt className="text-slate-500">Length</dt>
-          <dd>{measurement.totalLength} LF</dd>
+          <dd>{formatLengthMeasurement(measurement.totalLength, measurementDisplayFormat)}</dd>
         </div>
         {measurement.area != null ? (
           <div>
             <dt className="text-slate-500">Area</dt>
-            <dd>{measurement.area} SF</dd>
+            <dd>{formatAreaMeasurement(measurement.area, measurementDisplayFormat)}</dd>
           </div>
         ) : null}
         <div>
@@ -945,6 +980,11 @@ function BimMeasurementSummaryCard({
       {!measurement.calibrated ? (
         <p className="mt-2 text-xs font-medium text-amber-800 dark:text-amber-300">
           Scale not calibrated. Verify before bidding.
+        </p>
+      ) : null}
+      {measurementDisplayFormat === 'metric' ? (
+        <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">
+          Metric display is for measurement review. Estimate quantities are currently stored in LF/SF.
         </p>
       ) : null}
       {!scaleConfirmed ? (

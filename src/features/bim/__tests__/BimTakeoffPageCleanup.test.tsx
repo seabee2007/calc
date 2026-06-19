@@ -171,7 +171,8 @@ describe('BimTakeoffPage cleanup controls', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Pick calibration points' }));
     fireEvent.click(screen.getByRole('button', { name: 'Apply scale' }));
 
-    expect(screen.getByText(/Scale calibrated: 1 model unit = 0\.5000 ft/i)).toBeInTheDocument();
+    expect(screen.getByText('Scale calibrated')).toBeInTheDocument();
+    expect(screen.getByText(/1 model unit = 0\.5000 ft/i)).toBeInTheDocument();
     expect(localStorage.getItem('arden:3dTakeoff:modelCalibration:project-1:model-glb')).toContain(
       '"knownDistance":3',
     );

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import {
   buildSceneObjectRegistry,
+  buildMeasurementAreaGeometry,
   getVisibleRaycastTargets,
   isolateRegisteredObject,
   setRegisteredObjectVisibility,
@@ -81,5 +82,28 @@ describe('BIM viewer scene visibility registry', () => {
 
     expect(getVisibleRaycastTargets(registry)).not.toContain(slab);
     expect(getVisibleRaycastTargets(registry)).toHaveLength(2);
+  });
+
+  it('builds area fill geometry on the measured sloped plane', () => {
+    const points = [
+      new THREE.Vector3(0, 0, 0),
+      new THREE.Vector3(10, 0, 5),
+      new THREE.Vector3(10, 5, 5),
+      new THREE.Vector3(0, 5, 0),
+    ];
+
+    const result = buildMeasurementAreaGeometry(points);
+
+    expect(result).not.toBeNull();
+    const position = result!.geometry.getAttribute('position');
+    const zValues = Array.from({ length: position.count }, (_, index) => position.getZ(index));
+    expect(Math.max(...zValues) - Math.min(...zValues)).toBeGreaterThan(1);
+
+    const offset = result!.basis.normal.clone().multiplyScalar(result!.offset);
+    for (let index = 0; index < position.count; index += 1) {
+      expect(position.getX(index)).toBeCloseTo(points[index].x + offset.x);
+      expect(position.getY(index)).toBeCloseTo(points[index].y + offset.y);
+      expect(position.getZ(index)).toBeCloseTo(points[index].z + offset.z);
+    }
   });
 });

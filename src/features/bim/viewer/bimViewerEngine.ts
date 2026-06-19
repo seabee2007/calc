@@ -4,7 +4,10 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { formatBimViewerLoadError } from '../services/bimModelUploadValidation';
 import {
   buildMeasurementResult,
+  formatAreaMeasurement,
+  formatLengthMeasurement,
   type BimMeasurementResult,
+  type MeasurementDisplayFormat,
   type MeasurementPoint3D,
 } from '../measurement/bimMeasurementMath';
 import type { BimMeasurementMode, BimModelUnit, BimSelectedObjectSnapshot, GeometryMetrics } from '../types';
@@ -84,6 +87,7 @@ export class BimViewerEngine {
   private scaleConfirmed = false;
   private calibrationScaleFactor = 1;
   private calibrated = false;
+  private measurementDisplayFormat: MeasurementDisplayFormat = 'imperial_decimal';
   private pointerDown:
     | {
         x: number;
@@ -281,6 +285,12 @@ export class BimViewerEngine {
   setSnapEnabled(enabled: boolean): void {
     this.snapEnabled = enabled;
     this.snapMarker.visible = false;
+  }
+
+  setMeasurementDisplayFormat(format: MeasurementDisplayFormat): void {
+    this.measurementDisplayFormat = format;
+    this.renderMeasurementOverlay();
+    this.invalidateRender();
   }
 
   clearMeasurement(): void {
@@ -611,26 +621,29 @@ export class BimViewerEngine {
           calibrationScaleFactor: this.calibrationScaleFactor,
           calibrated: this.calibrated,
         }).totalLength;
-        this.measurementGroup.add(createTextSprite(`${length} LF`, mid));
+        this.measurementGroup.add(createTextSprite(formatLengthMeasurement(length, this.measurementDisplayFormat), mid));
       }
     }
 
     if (this.measurementMode === 'area' && this.measurementClosed && points.length >= 3) {
-      const shape = new THREE.Shape(points.map((point) => new THREE.Vector2(point.x, point.y)));
-      const fill = new THREE.Mesh(
-        new THREE.ShapeGeometry(shape),
-        new THREE.MeshBasicMaterial({
-          color: '#0891b2',
-          transparent: true,
-          opacity: 0.2,
-          depthWrite: false,
-          side: THREE.DoubleSide,
-        }),
-      );
-      const z = points.reduce((sum, point) => sum + point.z, 0) / points.length;
-      fill.position.z = z;
-      this.measurementGroup.add(fill);
-      const centroid = points.reduce((sum, point) => sum.add(point), new THREE.Vector3()).multiplyScalar(1 / points.length);
+      const areaGeometry = buildMeasurementAreaGeometry(points);
+      if (areaGeometry) {
+        const fill = new THREE.Mesh(
+          areaGeometry.geometry,
+          new THREE.MeshBasicMaterial({
+            color: '#0891b2',
+            transparent: true,
+            opacity: 0.2,
+            depthWrite: false,
+            side: THREE.DoubleSide,
+          }),
+        );
+        this.measurementGroup.add(fill);
+      }
+      const centroid = points
+        .reduce((sum, point) => sum.add(point), new THREE.Vector3())
+        .multiplyScalar(1 / points.length);
+      if (areaGeometry) centroid.add(areaGeometry.basis.normal.clone().multiplyScalar(areaGeometry.offset));
       const result = buildMeasurementResult({
         mode: 'area',
         points: points.map(vectorToPoint),
@@ -640,7 +653,9 @@ export class BimViewerEngine {
         calibrationScaleFactor: this.calibrationScaleFactor,
         calibrated: this.calibrated,
       });
-      this.measurementGroup.add(createTextSprite(`${result.area ?? 0} SF`, centroid));
+      this.measurementGroup.add(
+        createTextSprite(formatAreaMeasurement(result.area ?? 0, this.measurementDisplayFormat), centroid),
+      );
     }
 
     for (const point of calibrationPoints) {
@@ -809,6 +824,70 @@ function isObjectVisibleToRoot(object: THREE.Object3D): boolean {
 
 function vectorToPoint(vector: THREE.Vector3): MeasurementPoint3D {
   return { x: vector.x, y: vector.y, z: vector.z };
+}
+
+export interface MeasurementPlaneBasis {
+  origin: THREE.Vector3;
+  normal: THREE.Vector3;
+  u: THREE.Vector3;
+  v: THREE.Vector3;
+}
+
+export function createPlaneBasisFromPoints(points: readonly THREE.Vector3[]): MeasurementPlaneBasis | null {
+  if (points.length < 3) return null;
+  const origin = points[0].clone();
+  for (let firstIndex = 1; firstIndex < points.length - 1; firstIndex += 1) {
+    const uCandidate = points[firstIndex].clone().sub(origin);
+    if (uCandidate.lengthSq() < 1e-10) continue;
+    for (let secondIndex = firstIndex + 1; secondIndex < points.length; secondIndex += 1) {
+      const vCandidate = points[secondIndex].clone().sub(origin);
+      const normal = new THREE.Vector3().crossVectors(uCandidate, vCandidate);
+      if (normal.lengthSq() < 1e-10) continue;
+      const u = uCandidate.normalize();
+      normal.normalize();
+      const v = new THREE.Vector3().crossVectors(normal, u).normalize();
+      return { origin, normal, u, v };
+    }
+  }
+  return null;
+}
+
+export function projectPointToPlane2D(point: THREE.Vector3, basis: MeasurementPlaneBasis): THREE.Vector2 {
+  const relative = point.clone().sub(basis.origin);
+  return new THREE.Vector2(relative.dot(basis.u), relative.dot(basis.v));
+}
+
+export function unprojectPlane2DToWorld(point: THREE.Vector2, basis: MeasurementPlaneBasis): THREE.Vector3 {
+  return basis.origin
+    .clone()
+    .add(basis.u.clone().multiplyScalar(point.x))
+    .add(basis.v.clone().multiplyScalar(point.y));
+}
+
+export function buildMeasurementAreaGeometry(
+  points: readonly THREE.Vector3[],
+): { geometry: THREE.BufferGeometry; basis: MeasurementPlaneBasis; offset: number } | null {
+  const basis = createPlaneBasisFromPoints(points);
+  if (!basis) return null;
+
+  const projected = points.map((point) => projectPointToPlane2D(point, basis));
+  const triangles = THREE.ShapeUtils.triangulateShape(projected, []);
+  if (triangles.length === 0) return null;
+
+  const bounds = new THREE.Box3().setFromPoints(points);
+  const size = bounds.getSize(new THREE.Vector3()).length();
+  const offset = Math.max(size * 0.001, 0.002);
+  const offsetNormal = basis.normal.clone().multiplyScalar(offset);
+  const vertices = projected.flatMap((point2d) => {
+    const world = unprojectPlane2DToWorld(point2d, basis).add(offsetNormal);
+    return [world.x, world.y, world.z];
+  });
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+  geometry.setIndex(triangles.flat());
+  geometry.computeVertexNormals();
+  return { geometry, basis, offset };
 }
 
 function findNearestVertexScreenPoint(params: {
