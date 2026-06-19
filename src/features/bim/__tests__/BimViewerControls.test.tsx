@@ -80,7 +80,8 @@ describe('BimViewer measurement controls', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: /Measure: Off/i }));
-    expect(screen.getByText('On')).toHaveClass('text-cyan-300');
+    expect(screen.getByText('On')).toHaveClass('text-cyan-600');
+    expect(screen.getByText('On')).toHaveClass('dark:text-cyan-300');
 
     fireEvent.click(screen.getByRole('button', { name: /Snap On/i }));
     expect(screen.getByText('Off')).toHaveClass('text-slate-500');
