@@ -17,6 +17,7 @@ import {
 } from '../utils/estimateRoutes';
 import { useAuth } from '../../../hooks/useAuth';
 import { useSubscription } from '../../../contexts/SubscriptionContext';
+import { usePlannerWorkspaceFocus } from '../../../contexts/PlannerWorkspaceFocusContext';
 import FeatureGate from '../../../components/subscription/FeatureGate';
 import {
   canUseEstimateType,
@@ -204,6 +205,7 @@ import {
 import { useScheduleSettings } from './hooks/useScheduleSettings';
 import LogicNetworkWorkspace from './components/scheduling/LogicNetworkWorkspace';
 import LevelThreeGanttWorkspace from './components/scheduling/LevelThreeGanttWorkspace';
+import BimTakeoffPage from '../../bim/ui/BimTakeoffPage';
 import ResourceLevelingModal from './components/scheduling/ResourceLevelingModal';
 import { calculateResourceHistogram } from '../scheduling/resources/resourceHistogramCalculator';
 import {
@@ -427,6 +429,9 @@ export default function EstimateWorkspacePage() {
           return false;
         }
         if (tab.id === 'level-iii-gantt' && !hasFeature('level_three_gantt')) {
+          return false;
+        }
+        if (tab.id === '3d-takeoff' && !hasFeature('model_3d_takeoff')) {
           return false;
         }
         return true;
@@ -2734,6 +2739,33 @@ export default function EstimateWorkspacePage() {
   const headerCollapse = useEstimateWorkspaceHeaderCollapse();
   const headerCollapseEnabled = headerCollapse?.enabled ?? false;
   const setHeaderMiniStatus = headerCollapse?.setMiniStatus;
+  const plannerWorkspaceFocus = usePlannerWorkspaceFocus();
+  const setPlannerWorkspaceFocusMode = plannerWorkspaceFocus?.setWorkspaceFocusMode;
+  const isTakeoffFocusMode = activeTab === '3d-takeoff' && Boolean(headerCollapse?.focusMode);
+
+  useEffect(() => {
+    setPlannerWorkspaceFocusMode?.(isTakeoffFocusMode);
+    return () => {
+      setPlannerWorkspaceFocusMode?.(false);
+    };
+  }, [setPlannerWorkspaceFocusMode, isTakeoffFocusMode]);
+
+  useEffect(() => {
+    if (activeTab !== '3d-takeoff' && headerCollapse?.focusMode) {
+      headerCollapse.setFocusMode(false);
+    }
+  }, [activeTab, headerCollapse]);
+
+  useEffect(() => {
+    if (!isTakeoffFocusMode) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        headerCollapse?.setFocusMode(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isTakeoffFocusMode, headerCollapse]);
 
   const activeTabLabel =
     visibleWorkspaceTabs.find((tab) => tab.id === activeTab)?.label ??
@@ -3328,6 +3360,23 @@ export default function EstimateWorkspacePage() {
             <EstimateWorkspaceEmptyState
               title="No project"
               body="Open a project to manage construction activities."
+            />
+          )
+        ) : null}
+
+        {showWorkspaceTabPanels && !dataLoading && activeTab === '3d-takeoff' ? (
+          resolvedProjectId ? (
+            <FeatureGate feature="model_3d_takeoff">
+              <BimTakeoffPage
+                projectId={resolvedProjectId}
+                estimateId={estimate?.id ?? null}
+                onTakeoffAdded={reloadConstructionActivities}
+              />
+            </FeatureGate>
+          ) : (
+            <EstimateWorkspaceEmptyState
+              title="No project"
+              body="Open a project to use 3D Takeoff."
             />
           )
         ) : null}

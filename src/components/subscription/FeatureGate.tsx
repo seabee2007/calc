@@ -17,12 +17,13 @@ export default function FeatureGate({
   inline = false,
 }: FeatureGateProps) {
   const { hasFeature, loading } = useSubscription();
+  const allowed = hasFeature(feature);
 
   if (loading) {
     return null;
   }
 
-  if (hasFeature(feature)) {
+  if (allowed) {
     return <>{children}</>;
   }
 

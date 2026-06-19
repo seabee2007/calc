@@ -1723,7 +1723,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => {
     companySettingsHydrated: false,
 
     loadCompanySettings: async () => {
-      set({ loading: true, companySettingsHydrated: false });
+      const wasHydrated = get().companySettingsHydrated;
+      set({ loading: true, companySettingsHydrated: wasHydrated });
       try {
         const settings = await getCompanySettings();
 

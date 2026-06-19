@@ -20,7 +20,8 @@ export type EstimateWorkspaceTabId =
   | 'schedule-preview'
   | 'gantt-preview'   // kept for redirect only — not shown in tab bar
   | 'logic-network'
-  | 'level-iii-gantt';
+  | 'level-iii-gantt'
+  | '3d-takeoff';
 
 /** Default workspace tab — Construction Activities is the primary estimating workflow. */
 export const DEFAULT_ESTIMATE_WORKSPACE_TAB: EstimateWorkspaceTabId = 'activities';

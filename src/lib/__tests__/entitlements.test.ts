@@ -26,6 +26,7 @@ describe('entitlements', () => {
     expect(hasFeature('starter', 'activity_based_estimating')).toBe(false);
     expect(hasFeature('starter', 'employee_portal')).toBe(false);
     expect(hasFeature('starter', 'logic_network')).toBe(false);
+    expect(hasFeature('starter', 'model_3d_takeoff')).toBe(false);
     expect(hasFeature('starter', 'ai_concrete_chat')).toBe(false);
   });
 
@@ -37,6 +38,8 @@ describe('entitlements', () => {
     expect(hasFeature('professional', 'global_ask_ai')).toBe(true);
     expect(hasFeature('professional', 'level_three_gantt_export')).toBe(false);
     expect(hasFeature('professional', 'arden_calc_in_estimator')).toBe(true);
+    expect(hasFeature('professional', 'model_3d_takeoff')).toBe(true);
+    expect(hasFeature('professional', 'model_3d_extraction')).toBe(false);
     expect(hasFeature('professional', 'accounting_exports')).toBe(false);
   });
 
@@ -48,6 +51,7 @@ describe('entitlements', () => {
     expect(hasFeature('business', 'ai_concrete_chat')).toBe(true);
     expect(hasFeature('business', 'contract_builder')).toBe(true);
     expect(hasFeature('business', 'global_planner_hub')).toBe(true);
+    expect(hasFeature('business', 'model_3d_extraction')).toBe(true);
   });
 
   it('returns configured plan limits', () => {

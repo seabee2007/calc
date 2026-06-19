@@ -38,7 +38,9 @@ export type FeatureKey =
   | 'ai_batch_plant_tools'
   | 'contract_builder'
   | 'global_planner_hub'
-  | 'arden_calc_in_estimator';
+  | 'arden_calc_in_estimator'
+  | 'model_3d_takeoff'
+  | 'model_3d_extraction';
 
 export type LimitKey =
   | 'max_active_projects'
@@ -108,12 +110,14 @@ const PROFESSIONAL_FEATURES: FeatureKey[] = [
   'logic_network',
   'cpm',
   'level_three_gantt',
+  'model_3d_takeoff',
   'arden_calc_in_estimator',
 ];
 
 const BUSINESS_FEATURES: FeatureKey[] = [
   ...PROFESSIONAL_FEATURES,
   'level_three_gantt_export',
+  'model_3d_extraction',
   'accounting_exports',
   'financial_dashboard',
   'ai_concrete_chat',
@@ -161,6 +165,8 @@ export const FEATURE_DESCRIPTIONS: Record<FeatureKey, string> = {
   global_planner_hub:
     'Global Planner company-wide view across all projects, RFIs, FARs, change orders, deadlines, and schedule risks.',
   arden_calc_in_estimator: 'Arden Calc inside the estimator activity modal.',
+  model_3d_takeoff: 'Upload and view 3D models, select objects, and map manual takeoff into Detailed Estimates.',
+  model_3d_extraction: 'Advanced BIM extraction, model version comparison, and client 3D viewer (Business).',
 };
 
 export interface SubscriptionEntitlementInput {
