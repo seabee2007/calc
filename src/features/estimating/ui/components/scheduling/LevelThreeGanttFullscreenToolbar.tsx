@@ -2,14 +2,16 @@ import Button from '../../../../../components/ui/Button';
 import FeatureGate from '../../../../../components/subscription/FeatureGate';
 import UpgradeRequiredCard from '../../../../../components/subscription/UpgradeRequiredCard';
 import LevelThreeGanttExportMenu from './LevelThreeGanttExportMenu';
+import type { GanttExportMode } from '../../../export/ganttExcelExport';
 
 const FULLSCREEN_TOOLBAR_BUTTON_CLASS =
   'rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700';
 
 interface Props {
   exportReady: boolean;
-  onExportPdf?: () => void;
-  onExportExcel?: () => void;
+  hasLeveling?: boolean;
+  onExportPdf?: (mode: GanttExportMode) => void;
+  onExportExcel?: (mode: GanttExportMode) => void;
   onFitWidth: () => void;
   onZoomIn: () => void;
   onZoomOut: () => void;
@@ -21,6 +23,7 @@ interface Props {
 
 export default function LevelThreeGanttFullscreenToolbar({
   exportReady,
+  hasLeveling,
   onExportPdf,
   onExportExcel,
   onFitWidth,
@@ -87,6 +90,7 @@ export default function LevelThreeGanttFullscreenToolbar({
         >
           <LevelThreeGanttExportMenu
             exportReady={exportReady}
+            hasLeveling={hasLeveling}
             onExportPdf={onExportPdf}
             onExportExcel={onExportExcel}
             buttonClassName="border-slate-300 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"

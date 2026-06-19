@@ -42,6 +42,7 @@ import {
   resolveLogicTopologyLabel,
   type LogicNetworkTopology,
 } from '../../../scheduling/logic/logicNetworkTopology';
+import type { EffectiveScheduleAnalysis } from '../../../scheduling/effectiveSchedule';
 import { LOGIC_NETWORK_FULLSCREEN_CANVAS_WRAPPER_CLASS } from '../../../scheduling/logicNetworkFullscreen';
 import { autoLayoutLogicNetwork } from '../../../scheduling/logic/autoLayoutLogicNetwork';
 import {
@@ -174,9 +175,17 @@ export function buildLogicNetworkNodes(
     viewMode: LogicNetworkViewMode;
     logicTopology: LogicNetworkTopology;
     showCpmFields: boolean;
+    effectiveAnalysis?: EffectiveScheduleAnalysis | null;
+    leveledViewActive?: boolean;
   },
 ): Node<CpmActivityNodeData>[] {
-  const { viewMode, logicTopology, showCpmFields } = options;
+  const {
+    viewMode,
+    logicTopology,
+    showCpmFields,
+    effectiveAnalysis = null,
+    leveledViewActive = false,
+  } = options;
   const layoutByCode = new Map(layout.map((entry) => [entry.activityCode, entry]));
   // CPM results may be keyed by graph key (live preview) or activity code (committed).
   const cpmByKey = new Map(cpmResult?.activities.map((a) => [a.activityCode, a]) ?? []);
@@ -192,6 +201,11 @@ export function buildLogicNetworkNodes(
       layoutByCode.get(activity.activityCode),
       showCpmFields ? cpmActivity : undefined,
     );
+    // Effective leveled analysis is keyed by activity code (committed CPM).
+    const leveled = effectiveAnalysis?.byActivityCode.get(activity.activityCode) ?? null;
+    const useLeveledView = leveledViewActive && leveled != null && showCpmFields;
+    const baselineCritical =
+      showCpmFields && cpmResult != null ? isDisplayCritical(cpmResult, cpmKey) : false;
     return {
       id: buildNodeId(graphKey),
       type: 'cpmActivity',
@@ -207,10 +221,13 @@ export function buildLogicNetworkNodes(
           viewMode === 'logic-network'
             ? resolveLogicTopologyLabel(logicTopology, activity)
             : null,
-        isDisplayCritical:
-          showCpmFields && cpmResult != null
-            ? isDisplayCritical(cpmResult, cpmKey)
-            : false,
+        isDisplayCritical: useLeveledView
+          ? leveled!.controllingAfterLeveling
+          : baselineCritical,
+        leveledViewActive: useLeveledView,
+        leveledOffsetDays: leveled?.leveledOffsetDays ?? 0,
+        effectiveTotalFloat: leveled?.effectiveTotalFloat ?? null,
+        controllingAfterLeveling: leveled?.controllingAfterLeveling ?? false,
         topologyLabel:
           viewMode === 'precedence-diagram'
             ? resolveTopologyLabel(
@@ -236,6 +253,10 @@ interface Props {
   cpmResult: CpmResult | null;
   /** Live CPM preview computed in LogicNetworkWorkspace — shown in Logic Network mode. */
   livePreviewCpm?: CpmResult | null;
+  /** Resource-leveled effective schedule analysis (controlling path, offsets). */
+  effectiveAnalysis?: EffectiveScheduleAnalysis | null;
+  /** When true, color/annotate nodes from the leveled controlling path. */
+  leveledViewActive?: boolean;
   layout: LogicNetworkLayout[];
   onLinksChange: (links: CpmLogicLink[]) => void;
   onLayoutChange: (layout: LogicNetworkLayout[]) => void;
@@ -288,6 +309,8 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
     logicLinks,
     cpmResult,
     livePreviewCpm = null,
+    effectiveAnalysis = null,
+    leveledViewActive = false,
     layout,
     onLinksChange,
     onLayoutChange,
@@ -384,8 +407,19 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
         viewMode,
         logicTopology,
         showCpmFields,
+        effectiveAnalysis,
+        leveledViewActive,
       }),
-    [activities, activeCpmResult, effectiveLayout, logicTopology, showCpmFields, viewMode],
+    [
+      activities,
+      activeCpmResult,
+      effectiveLayout,
+      logicTopology,
+      showCpmFields,
+      viewMode,
+      effectiveAnalysis,
+      leveledViewActive,
+    ],
   );
 
   const codeToGraphKey = useMemo(() => buildCodeToGraphKey(activities), [activities]);
@@ -502,6 +536,8 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
         viewMode,
         logicTopology,
         showCpmFields,
+        effectiveAnalysis,
+        leveledViewActive,
       }),
     );
     onLayoutChange(autoLayout);
@@ -520,6 +556,8 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
     showToast,
     viewMode,
     fitView,
+    effectiveAnalysis,
+    leveledViewActive,
   ]);
 
   const handleFitView = useCallback(() => {

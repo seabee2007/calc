@@ -58,5 +58,16 @@ export async function sendSupportRequest(
     body: JSON.stringify(input),
   });
 
-  return parseEdgeFunctionJson<SendSupportRequestResponse>(res);
+  return parseEdgeFunctionJson<SendSupportRequestResponse>(res).then((body) => {
+    if (body.ok !== true) {
+      return {
+        ok: false,
+        error:
+          typeof body.error === 'string' && body.error.length > 0
+            ? body.error
+            : 'Could not send support request. Please try again or email support@ardenprojectos.com directly.',
+      };
+    }
+    return body;
+  });
 }

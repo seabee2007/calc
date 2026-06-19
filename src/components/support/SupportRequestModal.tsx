@@ -4,14 +4,12 @@ import ModalShell from '../ui/ModalShell';
 import Select from '../ui/Select';
 import { SUPPORT_EMAIL } from '../../config/brand';
 import { useAuth } from '../../hooks/useAuth';
-import { useSubscription } from '../../contexts/SubscriptionContext';
 import { sendSupportRequest } from '../../services/supportRequestService';
 import {
   SUPPORT_REQUEST_TOPIC_OPTIONS,
   buildSupportTopicDefaults,
   getBrowserInfo,
   type SupportRequestTopicId,
-  type SupportTemplateContext,
 } from '../../features/support/supportRequestTopics';
 import { validateSupportRequestForm } from '../../features/support/supportRequestValidation';
 
@@ -20,20 +18,10 @@ interface SupportRequestModalProps {
   onClose: () => void;
 }
 
-function buildTemplateContext(
-  contactEmail: string,
-  planName: string | null | undefined,
-): SupportTemplateContext {
-  return {
-    userEmail: contactEmail || '[Your account email]',
-    browserInfo: getBrowserInfo(),
-    planName,
-  };
-}
+const SUPPORT_REQUEST_SUCCESS_MESSAGE = "Support request sent. We'll get back to you soon.";
 
 export default function SupportRequestModal({ isOpen, onClose }: SupportRequestModalProps) {
   const { user } = useAuth();
-  const { plan } = useSubscription();
 
   const defaultContactEmail = user?.email?.trim() ?? '';
   const requireContactEmail = !defaultContactEmail;
@@ -44,25 +32,20 @@ export default function SupportRequestModal({ isOpen, onClose }: SupportRequestM
   const [contactEmail, setContactEmail] = useState(defaultContactEmail);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [successEmail, setSuccessEmail] = useState<string | null>(null);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
 
-  const appliedDefaultsRef = useRef(buildSupportTopicDefaults('billing', buildTemplateContext('', plan)));
-
-  const templateContext = useMemo(
-    () => buildTemplateContext(contactEmail || defaultContactEmail, plan),
-    [contactEmail, defaultContactEmail, plan],
-  );
+  const appliedDefaultsRef = useRef(buildSupportTopicDefaults('billing'));
 
   const resetForm = useCallback(() => {
-    const defaults = buildSupportTopicDefaults('billing', buildTemplateContext(defaultContactEmail, plan));
+    const defaults = buildSupportTopicDefaults('billing');
     appliedDefaultsRef.current = defaults;
     setTopicId(defaults.topicId);
     setSubject(defaults.subject);
     setMessage(defaults.message);
     setContactEmail(defaultContactEmail);
     setError(null);
-    setSuccessEmail(null);
-  }, [defaultContactEmail, plan]);
+    setSubmitSuccess(false);
+  }, [defaultContactEmail]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -71,7 +54,7 @@ export default function SupportRequestModal({ isOpen, onClose }: SupportRequestM
 
   const handleTopicChange = (nextTopicId: SupportRequestTopicId) => {
     const previousDefaults = appliedDefaultsRef.current;
-    const nextDefaults = buildSupportTopicDefaults(nextTopicId, templateContext);
+    const nextDefaults = buildSupportTopicDefaults(nextTopicId);
 
     setTopicId(nextTopicId);
     setSubject((current) =>
@@ -124,7 +107,7 @@ export default function SupportRequestModal({ isOpen, onClose }: SupportRequestM
         return;
       }
 
-      setSuccessEmail(resolvedEmail);
+      setSubmitSuccess(true);
     } catch (submitError) {
       setError(
         submitError instanceof Error
@@ -156,7 +139,7 @@ export default function SupportRequestModal({ isOpen, onClose }: SupportRequestM
       subtitle="Tell us what you need help with and we'll get back to you."
       size="lg"
       footer={
-        successEmail ? (
+        submitSuccess ? (
           <div className="flex w-full justify-end">
             <Button variant="primary" onClick={onClose}>
               Close
@@ -174,12 +157,12 @@ export default function SupportRequestModal({ isOpen, onClose }: SupportRequestM
         )
       }
     >
-      {successEmail ? (
+      {submitSuccess ? (
         <div
           role="status"
           className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-4 py-3 text-sm text-slate-800 dark:text-slate-100"
         >
-          Support request sent. We'll get back to you at {successEmail}.
+          {SUPPORT_REQUEST_SUCCESS_MESSAGE}
         </div>
       ) : (
         <div className="space-y-4">
@@ -213,7 +196,7 @@ export default function SupportRequestModal({ isOpen, onClose }: SupportRequestM
           {requireContactEmail ? (
             <div>
               <label htmlFor="support-contact-email" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
-                Your email
+                Contact email
               </label>
               <input
                 id="support-contact-email"

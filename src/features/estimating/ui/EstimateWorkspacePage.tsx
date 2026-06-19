@@ -162,7 +162,8 @@ import { loadProjectActivitiesWithLineItems } from '../application/constructionA
 import { useProjectLaborRates } from './hooks/useProjectLaborRates';
 import { downloadGanttExcel } from '../export/ganttExcelExport';
 import { downloadGanttPdf } from '../export/ganttPdfExport';
-import { downloadLevelThreeGanttPdfFromElement } from '../export/levelThreeGanttPdfExport';
+import { downloadLevelThreeGanttPdf } from '../export/levelThreeGanttPdfExport';
+import type { GanttExportMode } from '../export/ganttExcelExport';
 import {
   isGanttExportReady,
   prepareGanttExport,
@@ -204,6 +205,10 @@ import LogicNetworkWorkspace from './components/scheduling/LogicNetworkWorkspace
 import LevelThreeGanttWorkspace from './components/scheduling/LevelThreeGanttWorkspace';
 import ResourceLevelingModal from './components/scheduling/ResourceLevelingModal';
 import { calculateResourceHistogram } from '../scheduling/resources/resourceHistogramCalculator';
+import {
+  getEffectiveScheduleAnalysis,
+  resolveEffectiveSchedule,
+} from '../scheduling/effectiveSchedule';
 import { resourceLevelSchedule } from '../scheduling/resources/resourceLevelSchedule';
 import { resolveProjectAvailableCrewSize } from '../scheduling/resources/projectAvailableCrewSize';
 import {
@@ -749,6 +754,43 @@ export default function EstimateWorkspacePage() {
         plannedPlan: scheduleDatePlanResult?.plan ?? null,
       }),
     [estimateAdapter?.lineItems, scheduleDatePlanResult?.plan],
+  );
+
+  const effectiveSchedule = useMemo(
+    () =>
+      resolveEffectiveSchedule({
+        activities: scheduleActivitiesResult.activities,
+        cpmResult,
+        projectStartDate:
+          scheduleSettingsHook.scheduleSettings.projectStartDate ||
+          getTodayScheduleDateYmd(),
+        leveledOffsets: scheduleSettingsHook.leveledOffsets,
+      }),
+    [
+      scheduleActivitiesResult.activities,
+      cpmResult,
+      scheduleSettingsHook.scheduleSettings.projectStartDate,
+      scheduleSettingsHook.leveledOffsets,
+    ],
+  );
+
+  const effectiveAnalysis = useMemo(
+    () =>
+      getEffectiveScheduleAnalysis({
+        baselineCpmResult: cpmResult,
+        activities: scheduleActivitiesResult.activities,
+        logicLinks: scheduleSettingsHook.logicLinks,
+        leveledActivityOffsets: scheduleSettingsHook.leveledOffsets,
+        projectStartDate:
+          scheduleSettingsHook.scheduleSettings.projectStartDate || getTodayScheduleDateYmd(),
+      }),
+    [
+      cpmResult,
+      scheduleActivitiesResult.activities,
+      scheduleSettingsHook.logicLinks,
+      scheduleSettingsHook.leveledOffsets,
+      scheduleSettingsHook.scheduleSettings.projectStartDate,
+    ],
   );
 
   const projectScopeContext = useMemo(
@@ -2284,10 +2326,7 @@ export default function EstimateWorkspacePage() {
     const estimate = currentEstimateRef.current;
     if (!levelingModalResult || !estimate || !estimateAdapter) return;
     if (levelingModalResult.movedActivities.length === 0) return;
-    const newOffsets: Record<string, number> = {};
-    for (const moved of levelingModalResult.movedActivities) {
-      newOffsets[moved.activityCode] = moved.daysMoved;
-    }
+    const newOffsets: Record<string, number> = { ...levelingModalResult.appliedOffsets };
     scheduleSettingsHook.setLeveledOffsets(newOffsets);
     const updatedAssumptions = mergeScheduleAssumptions(
       {
@@ -2354,35 +2393,39 @@ export default function EstimateWorkspacePage() {
   );
 
   const runCpmGanttExport = useCallback(
-    async (format: 'pdf' | 'excel') => {
+    async (format: 'pdf' | 'excel', mode: GanttExportMode = 'leveled') => {
       if (!estimateAdapter || !cpmResult) return;
       setSaveToastMessage('Preparing CPM export…');
       try {
-        const exportParams = {
-          schedule: null as BuildGanttScheduleResult | null,
-          projectName: project?.name ?? 'project',
-          estimateType: estimateAdapter.estimateType,
-          cpmResult,
-          activities: scheduleActivitiesResult.activities,
-          logicLinks: scheduleSettingsHook.logicLinks,
-          projectStartDate:
-            scheduleSettingsHook.scheduleSettings.projectStartDate || getTodayScheduleDateYmd(),
-          scheduleSettings: scheduleSettingsHook.scheduleSettings,
-          leveledOffsets: scheduleSettingsHook.leveledOffsets,
-          resourceHistogram,
-        };
+        const effectiveLeveledOffsets =
+          mode === 'baseline' ? {} : scheduleSettingsHook.leveledOffsets;
+        const projectStartDate =
+          scheduleSettingsHook.scheduleSettings.projectStartDate || getTodayScheduleDateYmd();
+
         if (format === 'pdf') {
-          const chartElement = ganttExportRef.current;
-          if (!chartElement) {
-            setSaveToastMessage('Gantt chart is not ready for export.');
-            return;
-          }
-          await downloadLevelThreeGanttPdfFromElement({
-            chartElement,
+          await downloadLevelThreeGanttPdf({
             projectName: project?.name ?? 'project',
+            cpmResult,
+            activities: scheduleActivitiesResult.activities,
+            projectStartDate,
+            leveledOffsets: effectiveLeveledOffsets,
+            scheduleMode: mode,
           });
           setSaveToastMessage('Gantt PDF exported');
         } else {
+          const exportParams = {
+            schedule: null as BuildGanttScheduleResult | null,
+            projectName: project?.name ?? 'project',
+            estimateType: estimateAdapter.estimateType,
+            cpmResult,
+            activities: scheduleActivitiesResult.activities,
+            logicLinks: scheduleSettingsHook.logicLinks,
+            projectStartDate,
+            scheduleSettings: scheduleSettingsHook.scheduleSettings,
+            leveledOffsets: effectiveLeveledOffsets,
+            resourceHistogram,
+            scheduleMode: mode,
+          };
           await downloadGanttExcel(exportParams as Parameters<typeof downloadGanttExcel>[0]);
           setSaveToastMessage('Gantt Excel exported');
         }
@@ -2942,6 +2985,7 @@ export default function EstimateWorkspacePage() {
                 version={hasEstimateAdapter ? estimateAdapter : null}
                 plan={schedulePlan}
                 datePlanResult={scheduleDatePlanResult}
+                effectiveSchedule={effectiveSchedule}
                 planControls={schedulePlanControls}
                 onPlanControlsChange={handleSchedulePlanControlsChange}
                 loading={dataLoading}
@@ -3041,6 +3085,9 @@ export default function EstimateWorkspacePage() {
                     scheduleSettings={scheduleSettingsHook.scheduleSettings}
                     projectAvailableCrewSize={projectAvailableCrewSize}
                     projectName={project?.name}
+                    levelingApplied={effectiveSchedule?.levelingApplied ?? false}
+                    leveledDurationDays={effectiveSchedule?.leveledDurationDays ?? null}
+                    effectiveAnalysis={effectiveAnalysis}
                   />
                 </div>
               );
@@ -3109,8 +3156,8 @@ export default function EstimateWorkspacePage() {
                     lineItems={estimateAdapter?.lineItems ?? []}
                     onEditActivity={handleEditActivityFromGantt}
                     exportReady={Boolean(cpmResult?.hasRunCpm && cpmResult.hasValidPrecedenceDiagram)}
-                    onExportPdf={() => void runCpmGanttExport('pdf')}
-                    onExportExcel={() => void runCpmGanttExport('excel')}
+                    onExportPdf={(mode) => void runCpmGanttExport('pdf', mode)}
+                    onExportExcel={(mode) => void runCpmGanttExport('excel', mode)}
                     resourceHistogram={resourceHistogram}
                     onResourceLevel={
                       cpmResult?.hasRunCpm && scheduleActivitiesResult.activities.length > 0

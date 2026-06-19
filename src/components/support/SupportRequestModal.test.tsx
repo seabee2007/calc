@@ -11,12 +11,6 @@ vi.mock('../../hooks/useAuth', () => ({
   }),
 }));
 
-vi.mock('../../contexts/SubscriptionContext', () => ({
-  useSubscription: () => ({
-    plan: 'professional',
-  }),
-}));
-
 vi.mock('../../services/supportRequestService', () => ({
   sendSupportRequest: (...args: unknown[]) => mockSendSupportRequest(...args),
 }));
@@ -37,13 +31,20 @@ describe('SupportRequestModal', () => {
     expect(screen.getByRole('option', { name: 'Other / Not listed' })).toBeInTheDocument();
   });
 
-  it('auto-populates billing subject and body', () => {
+  it('auto-populates billing subject and body without exposing account email', () => {
     render(<SupportRequestModal isOpen onClose={vi.fn()} />);
 
     expect(screen.getByLabelText('Subject')).toHaveValue('Billing or subscription support');
-    expect((screen.getByLabelText('Message') as HTMLTextAreaElement).value).toContain(
-      'billing or my subscription',
-    );
+    const message = (screen.getByLabelText('Message') as HTMLTextAreaElement).value;
+    expect(message).toContain('billing or my subscription');
+    expect(message).not.toContain('owner@example.com');
+    expect(message).not.toContain('Account email:');
+  });
+
+  it('does not show contact email field for logged-in users', () => {
+    render(<SupportRequestModal isOpen onClose={vi.fn()} />);
+
+    expect(screen.queryByLabelText('Contact email')).not.toBeInTheDocument();
   });
 
   it('auto-populates bug report template when topic changes', async () => {
@@ -101,13 +102,25 @@ describe('SupportRequestModal', () => {
     });
   });
 
-  it('shows success message after submit', async () => {
+  it('shows generic success message without echoing personal email', async () => {
     const user = userEvent.setup();
     render(<SupportRequestModal isOpen onClose={vi.fn()} />);
 
     await user.click(screen.getByRole('button', { name: 'Send request' }));
 
-    expect(await screen.findByText(/Support request sent\. We'll get back to you at owner@example.com\./)).toBeInTheDocument();
+    expect(await screen.findByText("Support request sent. We'll get back to you soon.")).toBeInTheDocument();
+    expect(screen.queryByText(/owner@example.com/)).not.toBeInTheDocument();
+  });
+
+  it('shows error when support request fails', async () => {
+    mockSendSupportRequest.mockResolvedValue({ ok: false, error: 'Unable to send support email.' });
+    const user = userEvent.setup();
+    render(<SupportRequestModal isOpen onClose={vi.fn()} />);
+
+    await user.click(screen.getByRole('button', { name: 'Send request' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Unable to send support email.');
+    expect(screen.queryByText("Support request sent. We'll get back to you soon.")).not.toBeInTheDocument();
   });
 
   it('shows validation error when Other / Not listed has empty subject', async () => {

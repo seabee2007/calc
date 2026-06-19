@@ -99,12 +99,6 @@ export const SUPPORT_REQUEST_TOPIC_OPTIONS: readonly SupportRequestTopicOption[]
   },
 ] as const;
 
-export interface SupportTemplateContext {
-  userEmail: string;
-  browserInfo: string;
-  planName?: string | null;
-}
-
 export function getSupportTopicOption(topicId: SupportRequestTopicId): SupportRequestTopicOption {
   return (
     SUPPORT_REQUEST_TOPIC_OPTIONS.find((option) => option.id === topicId) ??
@@ -125,7 +119,7 @@ export function getBrowserInfo(): string {
   return navigator.userAgent.slice(0, 500);
 }
 
-function defaultTemplate(ctx: SupportTemplateContext): string {
+function defaultTemplate(): string {
   return `Hello Arden Support,
 
 I need help with:
@@ -149,19 +143,13 @@ Actual result:
 Error message, if any:
 [Paste error message here]
 
-Account email:
-${ctx.userEmail}
-
 Project name or ID, if applicable:
 [Project name or ID]
-
-Device/browser:
-${ctx.browserInfo}
 
 Thank you.`;
 }
 
-function bugTemplate(ctx: SupportTemplateContext): string {
+function bugTemplate(): string {
   return `Hello Arden Support,
 
 I found a bug.
@@ -186,16 +174,10 @@ Actual result:
 Error message, if any:
 [Paste error here]
 
-Account email:
-${ctx.userEmail}
-
-Device/browser:
-${ctx.browserInfo}
-
 Thank you.`;
 }
 
-function featureTemplate(ctx: SupportTemplateContext): string {
+function featureTemplate(): string {
   return `Hello Arden Support,
 
 I have a feature request.
@@ -209,17 +191,10 @@ Why it would help:
 Where it should appear:
 [Example: Estimates, Planner Hub, Dashboard, Client Portal]
 
-Account email:
-${ctx.userEmail}
-
 Thank you.`;
 }
 
-function billingTemplate(ctx: SupportTemplateContext): string {
-  const planLine = ctx.planName?.trim()
-    ? ctx.planName.trim()
-    : '[Your current plan]';
-
+function billingTemplate(): string {
   return `Hello Arden Support,
 
 I need help with billing or my subscription.
@@ -227,27 +202,18 @@ I need help with billing or my subscription.
 Issue:
 [Describe the billing question or issue]
 
-Current plan:
-${planLine}
-
-Account email:
-${ctx.userEmail}
-
 Stripe/customer reference if visible:
 [Optional]
 
 Thank you.`;
 }
 
-export function buildSupportMessageTemplate(
-  topicId: SupportRequestTopicId,
-  ctx: SupportTemplateContext,
-): string {
+export function buildSupportMessageTemplate(topicId: SupportRequestTopicId): string {
   const kind = getSupportTopicOption(topicId).templateKind;
-  if (kind === 'bug') return bugTemplate(ctx);
-  if (kind === 'feature') return featureTemplate(ctx);
-  if (kind === 'billing') return billingTemplate(ctx);
-  return defaultTemplate(ctx);
+  if (kind === 'bug') return bugTemplate();
+  if (kind === 'feature') return featureTemplate();
+  if (kind === 'billing') return billingTemplate();
+  return defaultTemplate();
 }
 
 export interface SupportTopicDefaults {
@@ -256,13 +222,10 @@ export interface SupportTopicDefaults {
   message: string;
 }
 
-export function buildSupportTopicDefaults(
-  topicId: SupportRequestTopicId,
-  ctx: SupportTemplateContext,
-): SupportTopicDefaults {
+export function buildSupportTopicDefaults(topicId: SupportRequestTopicId): SupportTopicDefaults {
   return {
     topicId,
     subject: getDefaultSubjectForTopic(topicId),
-    message: buildSupportMessageTemplate(topicId, ctx),
+    message: buildSupportMessageTemplate(topicId),
   };
 }

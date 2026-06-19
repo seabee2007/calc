@@ -21,6 +21,10 @@ export const RESOURCE_LEVELING_BALANCED_MESSAGE =
 export const RESOURCE_LEVELING_NO_FLOAT_MESSAGE =
   'No activities were moved within available total float.';
 
+/** Shown in extension mode when over-allocation remains and no moves were possible. */
+export const RESOURCE_LEVELING_NO_EXTENSION_MOVE_MESSAGE =
+  'No eligible activities could be delayed further due to dependency constraints.';
+
 /** Future feature pointer — separate from resource leveling. */
 export const CREW_OPTIMIZATION_FUTURE_NOTE =
   'To shorten durations by assigning extra crew on compressible activities, use Optimize Crew Plan (coming soon). That is crew optimization, not resource leveling.';

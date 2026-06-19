@@ -16,7 +16,7 @@ export function computeLevelThreeGanttWorkspaceSummary(
   cpmResult: CpmResult | null,
   resourceHistogram: ResourceHistogramDay[],
 ): LevelThreeGanttWorkspaceSummary {
-  const projectDurationDays = cpmResult?.projectDurationDays ?? 0;
+  const projectDurationDays = Math.max(cpmResult?.projectDurationDays ?? 0, resourceHistogram.length);
   const criticalActivityCount =
     cpmResult?.hasRunCpm === true
       ? activities.filter((activity) => isDisplayCritical(cpmResult, activity.activityCode)).length

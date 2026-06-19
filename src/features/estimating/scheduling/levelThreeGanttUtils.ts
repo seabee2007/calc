@@ -88,13 +88,7 @@ export function getLevelThreeGanttRows(
   leveledOffsets: Record<string, number> = {},
 ): LevelThreeGanttRow[] {
   const actByCode = new Map(activities.map((a) => [a.activityCode, a]));
-
-  return cpmResult.activities
-    .slice()
-    .sort((left, right) => {
-      if (left.earlyStart !== right.earlyStart) return left.earlyStart - right.earlyStart;
-      return left.activityCode.localeCompare(right.activityCode);
-    })
+  const unsortedRows = cpmResult.activities
     .map((cpm) => {
       const activity = actByCode.get(cpm.activityCode);
       if (!activity) return null;
@@ -110,6 +104,13 @@ export function getLevelThreeGanttRows(
       };
     })
     .filter((row): row is LevelThreeGanttRow => row !== null);
+
+  return unsortedRows.sort((left, right) => {
+    const leftStart = left.cpm.earlyStart + left.leveledOffset;
+    const rightStart = right.cpm.earlyStart + right.leveledOffset;
+    if (leftStart !== rightStart) return leftStart - rightStart;
+    return left.activity.activityCode.localeCompare(right.activity.activityCode);
+  });
 }
 
 export type GanttCellKind = 'critical' | 'noncritical' | 'float' | 'empty';
@@ -124,7 +125,8 @@ export function resolveGanttCellKind(
   const tf = Math.max(0, row.cpm.totalFloat - row.leveledOffset);
   const floatEnd = ef + tf;
   const displayCritical =
-    cpmResult != null && isDisplayCritical(cpmResult, row.activity.activityCode);
+    (cpmResult != null && isDisplayCritical(cpmResult, row.activity.activityCode)) ||
+    (row.leveledOffset > 0 && tf === 0);
 
   if (dayOffset >= es && dayOffset < ef) {
     return displayCritical ? 'critical' : 'noncritical';
@@ -139,13 +141,17 @@ export function resolveGanttRowCodeClassName(
   row: LevelThreeGanttRow,
   cpmResult: CpmResult | null,
 ): string {
-  if (cpmResult && isDisplayCritical(cpmResult, row.activity.activityCode)) {
+  const adjustedFloat = Math.max(0, row.cpm.totalFloat - row.leveledOffset);
+  if (
+    (cpmResult && isDisplayCritical(cpmResult, row.activity.activityCode)) ||
+    (row.leveledOffset > 0 && adjustedFloat === 0)
+  ) {
     return 'text-red-600 dark:text-red-400';
   }
 
   if (
     cpmResult &&
-    resolveTopologyLabel(cpmResult, row.activity.activityCode, row.cpm.totalFloat === 0)
+    resolveTopologyLabel(cpmResult, row.activity.activityCode, adjustedFloat === 0)
   ) {
     return 'text-amber-600 dark:text-amber-400';
   }

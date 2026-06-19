@@ -30,6 +30,7 @@ import LevelThreeGantt from './LevelThreeGantt';
 import FeatureGate from '../../../../../components/subscription/FeatureGate';
 import UpgradeRequiredCard from '../../../../../components/subscription/UpgradeRequiredCard';
 import LevelThreeGanttExportMenu from './LevelThreeGanttExportMenu';
+import type { GanttExportMode } from '../../../export/ganttExcelExport';
 import LevelThreeGanttFullscreenToolbar from './LevelThreeGanttFullscreenToolbar';
 import LevelThreeGanttLegend from './LevelThreeGanttLegend';
 import LevelThreeGanttWorkspaceOnboardingModal from './LevelThreeGanttWorkspaceOnboardingModal';
@@ -40,13 +41,15 @@ const TOOLBAR_BUTTON_CLASS =
 
 function GatedLevelThreeExportMenu({
   exportReady,
+  hasLeveling,
   onExportPdf,
   onExportExcel,
   buttonClassName,
 }: {
   exportReady: boolean;
-  onExportPdf?: () => void;
-  onExportExcel?: () => void;
+  hasLeveling?: boolean;
+  onExportPdf?: (mode: GanttExportMode) => void;
+  onExportExcel?: (mode: GanttExportMode) => void;
   buttonClassName?: string;
 }) {
   return (
@@ -63,6 +66,7 @@ function GatedLevelThreeExportMenu({
     >
       <LevelThreeGanttExportMenu
         exportReady={exportReady}
+        hasLeveling={hasLeveling}
         onExportPdf={onExportPdf}
         onExportExcel={onExportExcel}
         buttonClassName={buttonClassName}
@@ -79,8 +83,8 @@ interface Props {
   logicLinks?: CpmLogicLink[];
   lineItems?: EstimateDomainTask[];
   onEditActivity?: (activityCode: string) => void;
-  onExportPdf?: () => void;
-  onExportExcel?: () => void;
+  onExportPdf?: (mode: GanttExportMode) => void;
+  onExportExcel?: (mode: GanttExportMode) => void;
   exportReady?: boolean;
   chartExportRef?: Ref<HTMLDivElement>;
   resourceHistogram?: ResourceHistogramDay[];
@@ -115,7 +119,7 @@ export default function LevelThreeGanttWorkspace({
   const shellRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const projectDuration = cpmResult?.projectDurationDays ?? 0;
+  const projectDuration = Math.max(cpmResult?.projectDurationDays ?? 0, resourceHistogram.length, 0);
   const scheduleSummary = useMemo(
     () => computeLevelThreeGanttWorkspaceSummary(activities, cpmResult, resourceHistogram),
     [activities, cpmResult, resourceHistogram],
@@ -319,6 +323,7 @@ export default function LevelThreeGanttWorkspace({
           </button>
           <GatedLevelThreeExportMenu
             exportReady={exportReady}
+            hasLeveling={Object.keys(leveledOffsets).length > 0}
             onExportPdf={onExportPdf}
             onExportExcel={onExportExcel}
           />
@@ -339,6 +344,7 @@ export default function LevelThreeGanttWorkspace({
         <>
           <LevelThreeGanttFullscreenToolbar
             exportReady={exportReady}
+            hasLeveling={Object.keys(leveledOffsets).length > 0}
             onExportPdf={onExportPdf}
             onExportExcel={onExportExcel}
             onFitWidth={fitChartWidth}
@@ -385,7 +391,7 @@ export default function LevelThreeGanttWorkspace({
           <div className={isFullscreen ? 'shrink-0 border-t border-slate-300 px-4 py-2 dark:border-slate-800' : undefined}>
             <ResourceHistogram
               histogram={resourceHistogram}
-              projectDurationDays={cpmResult?.projectDurationDays ?? 0}
+              projectDurationDays={projectDuration}
               onResourceLevel={onResourceLevel}
               onClearLeveling={onClearLeveling}
               showClearLeveling={showClearLeveling}

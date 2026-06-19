@@ -205,6 +205,7 @@ export interface MovedActivity {
 
 export interface ResourceLevelingResult {
   leveledActivities: CpmActivityResult[];
+  appliedOffsets: Record<string, number>;
   resourceHistogramBefore: ResourceHistogramDay[];
   resourceHistogramAfter: ResourceHistogramDay[];
   projectDurationBefore: number;

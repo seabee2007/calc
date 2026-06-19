@@ -107,6 +107,7 @@ function enforceSuccessorConstraints(
   baseCpm: CpmActivityResult[],
   offsets: Record<string, number>,
   outgoingLinks: Map<string, CpmLogicLink[]>,
+  allowProjectExtension: boolean,
 ): { ok: boolean; dependentCodes: string[] } {
   const actByCode = new Map(activities.map((a) => [a.activityCode, a]));
   const cpmByCode = new Map(baseCpm.map((c) => [c.activityCode, c]));
@@ -136,7 +137,7 @@ function enforceSuccessorConstraints(
       if (currentStart >= minStart) continue;
 
       const neededOffset = minStart - succCpm.earlyStart;
-      if (neededOffset > succCpm.totalFloat) {
+      if (!allowProjectExtension && neededOffset > succCpm.totalFloat) {
         return false;
       }
 
@@ -206,6 +207,7 @@ export function resourceLevelSchedule(
   if (initialCpm.activities.length === 0) {
     return {
       leveledActivities: [],
+      appliedOffsets: {},
       resourceHistogramBefore: [],
       resourceHistogramAfter: [],
       projectDurationBefore: 0,
@@ -260,7 +262,6 @@ export function resourceLevelSchedule(
     const candidates = baseCpm
       .filter((cpm) => {
         if (cpm.isCritical) return false;
-        if (allowProjectExtension) return false;
         const act = activities.find((a) => a.activityCode === cpm.activityCode);
         if (!act) return false;
         const es = effectiveStart(cpm, offsets);
@@ -290,7 +291,9 @@ export function resourceLevelSchedule(
 
       const currentOffset = offsets[candidate.activityCode] ?? 0;
       const currentStart = candidate.earlyStart + currentOffset;
-      const maxStart = candidate.earlyStart + candidate.totalFloat;
+      const maxStart = allowProjectExtension
+        ? projectDurationFromOffsets(activities, baseCpm, offsets) + activities.length
+        : candidate.earlyStart + candidate.totalFloat;
 
       if (
         activityFitsAtStart(
@@ -317,6 +320,7 @@ export function resourceLevelSchedule(
           baseCpm,
           trialOffsets,
           outgoingLinks,
+          allowProjectExtension,
         );
         if (!cascade.ok) continue;
 
@@ -374,11 +378,15 @@ export function resourceLevelSchedule(
         unmovedActivities.push({
           activityCode: candidate.activityCode,
           reason:
-            'No valid start date within total float resolves overallocation without violating logic.',
+            allowProjectExtension
+              ? 'No valid delayed start resolves overallocation without violating dependency constraints.'
+              : 'No valid start date within total float resolves overallocation without violating logic.',
         });
       }
       warnings.push(
-        `Resources exceed availability on day ${firstOverDay}. No noncritical activity could be delayed within float.`,
+        allowProjectExtension
+          ? `Resources exceed availability on day ${firstOverDay}. No eligible activity can be delayed further due to dependency constraints.`
+          : `Resources exceed availability on day ${firstOverDay}. No noncritical activity could be delayed within float.`,
       );
       if (!allowProjectExtension) {
         warnings.push(
@@ -412,6 +420,7 @@ export function resourceLevelSchedule(
 
   return {
     leveledActivities: finalAdjusted,
+    appliedOffsets: { ...offsets },
     resourceHistogramBefore: histogramBefore,
     resourceHistogramAfter: histogramAfter,
     projectDurationBefore,

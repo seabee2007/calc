@@ -183,9 +183,16 @@ const LevelThreeGantt = forwardRef<HTMLDivElement, Props>(function LevelThreeGan
     return getLevelThreeGanttRows(activities, cpmResult, projectStartDate, leveledOffsets);
   }, [activities, cpmResult, projectStartDate, leveledOffsets]);
 
-  const projectDuration = Math.max(cpmResult?.projectDurationDays ?? 0, 1);
+  const maxRenderedFinishDay = rows.reduce((max, row) => {
+    const end = row.cpm.earlyStart + row.leveledOffset + row.activity.durationDays;
+    return Math.max(max, end);
+  }, 0);
+  const projectDuration = Math.max(cpmResult?.projectDurationDays ?? 0, maxRenderedFinishDay, 1);
   const timelineWidth = timelineWidthPx(projectDuration, pixelsPerDay);
   const gridTemplate = leftTableGridTemplateColumns();
+  const isRowDisplayCritical = (row: (typeof rows)[number]) =>
+    (cpmResult != null && isDisplayCritical(cpmResult, row.activity.activityCode)) ||
+    (row.leveledOffset > 0 && Math.max(0, row.cpm.totalFloat - row.leveledOffset) === 0);
 
   const timelineDays = useMemo(
     () => buildTimelineDays(projectStartDate, projectDuration, today),
@@ -439,7 +446,7 @@ const LevelThreeGantt = forwardRef<HTMLDivElement, Props>(function LevelThreeGan
                     )}
                     <ActivityBars
                       layout={layout}
-                      isCritical={isDisplayCritical(cpmResult!, row.activity.activityCode)}
+                      isCritical={isRowDisplayCritical(row)}
                       activityCode={row.activity.activityCode}
                       onBarClick={setSelectedActivityCode}
                     />
