@@ -8,6 +8,7 @@ import type {
   UnmovedActivity,
 } from '../cpmTypes';
 import { calculateCpm } from '../cpm/calculateCpm';
+import { buildResourceDummyLinks } from './resourceDummyLinks';
 import {
   buildCriticalOnlyHistogram,
   calculateResourceHistogram,
@@ -157,6 +158,60 @@ function enforceSuccessorConstraints(
   return { ok, dependentCodes };
 }
 
+/**
+ * Records, for each delayed activity, the activities that were occupying the
+ * constrained crew before it could start (resource providers). This is the
+ * "resource flow" relationship from the planning manual and is the ONLY source
+ * for resource-dummy arrows in the Resource-Leveled Logic Network. It is purely
+ * descriptive metadata — it never feeds CPM, float, or duration math.
+ *
+ * A provider A is recorded for a delayed activity B only when:
+ *   - B was actually delayed by leveling (offset > 0),
+ *   - A hands off directly to B (A's leveled finish == B's leveled start),
+ *   - A and B overlapped in the baseline (un-leveled) schedule, i.e. they
+ *     genuinely competed for the same crew window.
+ */
+function attachResourceProviders(
+  movedActivities: MovedActivity[],
+  activities: ScheduleActivity[],
+  baseCpm: CpmActivityResult[],
+  offsets: Record<string, number>,
+): void {
+  const actByCode = new Map(activities.map((a) => [a.activityCode, a]));
+  const cpmByCode = new Map(baseCpm.map((c) => [c.activityCode, c]));
+
+  for (const moved of movedActivities) {
+    const movedCpm = cpmByCode.get(moved.activityCode);
+    if (!movedCpm) continue;
+    const movedOffset = offsets[moved.activityCode] ?? 0;
+    if (movedOffset <= 0) {
+      moved.resourceProviderActivityCodes = [];
+      continue;
+    }
+    const movedStart = movedCpm.earlyStart + movedOffset;
+
+    const providers: string[] = [];
+    for (const candidate of baseCpm) {
+      if (candidate.activityCode === moved.activityCode) continue;
+      const candidateAct = actByCode.get(candidate.activityCode);
+      if (!candidateAct) continue;
+      const candidateOffset = offsets[candidate.activityCode] ?? 0;
+      const candidateLeveledFinish =
+        candidate.earlyStart + candidateOffset + candidateAct.durationDays;
+      // Direct resource handoff: the provider frees the constrained crew on the
+      // exact day the delayed activity starts (measured on the LEVELED timeline).
+      // This is the precise provider signal. We must NOT require baseline-window
+      // overlap here: resource leveling is precisely what serialized these
+      // activities, so they typically did NOT overlap in the pre-leveling
+      // schedule. Requiring baseline overlap dropped genuine providers and broke
+      // the resource-leveled critical chain.
+      if (candidateLeveledFinish !== movedStart) continue;
+      providers.push(candidate.activityCode);
+    }
+    moved.resourceProviderActivityCodes = providers;
+  }
+}
+
 function buildLeveledActivities(
   baseCpm: CpmActivityResult[],
   offsets: Record<string, number>,
@@ -220,6 +275,7 @@ export function resourceLevelSchedule(
       movedActivities: [],
       unmovedActivities,
       warnings,
+      resourceDummyLinks: [],
     };
   }
 
@@ -397,6 +453,16 @@ export function resourceLevelSchedule(
     }
   }
 
+  attachResourceProviders(movedActivities, activities, baseCpm, offsets);
+
+  const resourceDummyLinks = buildResourceDummyLinksFromMoves(
+    movedActivities,
+    activities,
+    baseCpm,
+    offsets,
+    logicLinks,
+  );
+
   const finalAdjusted = buildLeveledActivities(baseCpm, offsets);
   const histogramAfter = calculateResourceHistogram({
     activities,
@@ -435,5 +501,48 @@ export function resourceLevelSchedule(
     movedActivities,
     unmovedActivities,
     warnings,
+    resourceDummyLinks,
   };
+}
+
+/**
+ * Builds the provider-derived FS resource-dummy links for the leveling result,
+ * using the shared builder so they match exactly what the effective-schedule
+ * analysis regenerates from the same provider records.
+ */
+function buildResourceDummyLinksFromMoves(
+  movedActivities: MovedActivity[],
+  activities: ScheduleActivity[],
+  baseCpm: CpmActivityResult[],
+  offsets: Record<string, number>,
+  logicLinks: CpmLogicLink[],
+): CpmLogicLink[] {
+  const actByCode = new Map(activities.map((a) => [a.activityCode, a]));
+  const leveledStartByCode = new Map<string, number>();
+  const leveledFinishByCode = new Map<string, number>();
+  for (const cpm of baseCpm) {
+    const duration = actByCode.get(cpm.activityCode)?.durationDays ?? 1;
+    const start = cpm.earlyStart + (offsets[cpm.activityCode] ?? 0);
+    leveledStartByCode.set(cpm.activityCode, start);
+    leveledFinishByCode.set(cpm.activityCode, start + duration);
+  }
+  const validCodes = new Set(actByCode.keys());
+  const baselineEdges = new Set(
+    logicLinks
+      .filter((link) => !link.generated)
+      .map((link) => `${link.predecessorActivityCode}->${link.successorActivityCode}`),
+  );
+
+  return buildResourceDummyLinks({
+    delayRecords: movedActivities
+      .filter((moved) => (moved.resourceProviderActivityCodes?.length ?? 0) > 0)
+      .map((moved) => ({
+        activityCode: moved.activityCode,
+        resourceProviderActivityCodes: moved.resourceProviderActivityCodes ?? [],
+      })),
+    leveledStartByCode,
+    leveledFinishByCode,
+    hasBaselineEdge: (pred, succ) => baselineEdges.has(`${pred}->${succ}`),
+    isValidCode: (code) => validCodes.has(code),
+  });
 }

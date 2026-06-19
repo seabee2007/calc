@@ -180,6 +180,7 @@ import type {
   CpmLogicLink,
   LogicNetworkLayout,
   LogicNetworkViewMode,
+  MovedActivity,
   ScheduleSettings,
 } from '../scheduling/cpmTypes';
 import { validateCpmReadiness } from '../scheduling/logic/validateCpmReadiness';
@@ -209,6 +210,7 @@ import {
   getEffectiveScheduleAnalysis,
   resolveEffectiveSchedule,
 } from '../scheduling/effectiveSchedule';
+import type { ResourceLeveledDelayRecord } from '../scheduling/effectiveSchedule';
 import { resourceLevelSchedule } from '../scheduling/resources/resourceLevelSchedule';
 import { resolveProjectAvailableCrewSize } from '../scheduling/resources/projectAvailableCrewSize';
 import {
@@ -727,26 +729,6 @@ export default function EstimateWorkspacePage() {
     [projectAvailableCrewSize],
   );
 
-  const resourceHistogram = useMemo(() => {
-    if (!cpmResult || scheduleActivitiesResult.activities.length === 0) return [];
-    return calculateResourceHistogram({
-      activities: scheduleActivitiesResult.activities,
-      cpmActivities: cpmResult.activities,
-      projectStartDate:
-        scheduleSettingsHook.scheduleSettings.projectStartDate ||
-        getTodayScheduleDateYmd(),
-      availableCrewSize: projectAvailableCrewSize,
-      leveledOffsets: scheduleSettingsHook.leveledOffsets,
-      cpmResult,
-    });
-  }, [
-    cpmResult,
-    scheduleActivitiesResult.activities,
-    scheduleSettingsHook.scheduleSettings.projectStartDate,
-    scheduleSettingsHook.leveledOffsets,
-    projectAvailableCrewSize,
-  ]);
-
   const ganttExportReady = useMemo(
     () =>
       isGanttExportReady({
@@ -756,14 +738,16 @@ export default function EstimateWorkspacePage() {
     [estimateAdapter?.lineItems, scheduleDatePlanResult?.plan],
   );
 
+  // Draft Schedule Preview summary (offset-based). Separate surface from the
+  // Level III Gantt / Logic Network, which read the leveled CPM via
+  // effectiveAnalysis below.
   const effectiveSchedule = useMemo(
     () =>
       resolveEffectiveSchedule({
         activities: scheduleActivitiesResult.activities,
         cpmResult,
         projectStartDate:
-          scheduleSettingsHook.scheduleSettings.projectStartDate ||
-          getTodayScheduleDateYmd(),
+          scheduleSettingsHook.scheduleSettings.projectStartDate || getTodayScheduleDateYmd(),
         leveledOffsets: scheduleSettingsHook.leveledOffsets,
       }),
     [
@@ -774,6 +758,26 @@ export default function EstimateWorkspacePage() {
     ],
   );
 
+  // Provider/delay records that source the resource-dummy connector lines in the
+  // Resource-Leveled Logic Network. Prefer the live leveling result; otherwise
+  // fall back to the persisted result so connectors survive reload. This feeds
+  // ONLY connector rendering — never CPM/float/duration math.
+  const resourceLeveledDelayRecords = useMemo<ResourceLeveledDelayRecord[]>(() => {
+    const moved =
+      levelingModalResult?.movedActivities ??
+      (
+        (currentEstimate?.assumptions as Record<string, unknown> | undefined)
+          ?.resourceLevelingResults as { movedActivities?: MovedActivity[] } | undefined
+      )?.movedActivities;
+    if (!moved || moved.length === 0) return [];
+    return moved
+      .filter((entry) => (entry.resourceProviderActivityCodes?.length ?? 0) > 0)
+      .map((entry) => ({
+        activityCode: entry.activityCode,
+        resourceProviderActivityCodes: entry.resourceProviderActivityCodes ?? [],
+      }));
+  }, [levelingModalResult, currentEstimate?.assumptions]);
+
   const effectiveAnalysis = useMemo(
     () =>
       getEffectiveScheduleAnalysis({
@@ -781,6 +785,7 @@ export default function EstimateWorkspacePage() {
         activities: scheduleActivitiesResult.activities,
         logicLinks: scheduleSettingsHook.logicLinks,
         leveledActivityOffsets: scheduleSettingsHook.leveledOffsets,
+        resourceLeveledDelayRecords,
         projectStartDate:
           scheduleSettingsHook.scheduleSettings.projectStartDate || getTodayScheduleDateYmd(),
       }),
@@ -789,9 +794,39 @@ export default function EstimateWorkspacePage() {
       scheduleActivitiesResult.activities,
       scheduleSettingsHook.logicLinks,
       scheduleSettingsHook.leveledOffsets,
+      resourceLeveledDelayRecords,
       scheduleSettingsHook.scheduleSettings.projectStartDate,
     ],
   );
+
+  // Single source of truth after leveling: the Level III Gantt, histogram, and
+  // Logic Network all read the one leveled CPM result (baseline links + provider
+  // -derived resource-dummy links). Baseline mode uses the committed CPM.
+  const levelingApplied = effectiveAnalysis?.levelingApplied ?? false;
+  const activeScheduleCpmResult =
+    levelingApplied && effectiveAnalysis?.leveledCpmResult
+      ? effectiveAnalysis.leveledCpmResult
+      : cpmResult;
+
+  const resourceHistogram = useMemo(() => {
+    if (!activeScheduleCpmResult || scheduleActivitiesResult.activities.length === 0) return [];
+    return calculateResourceHistogram({
+      activities: scheduleActivitiesResult.activities,
+      cpmActivities: activeScheduleCpmResult.activities,
+      projectStartDate:
+        scheduleSettingsHook.scheduleSettings.projectStartDate || getTodayScheduleDateYmd(),
+      availableCrewSize: projectAvailableCrewSize,
+      // Leveled CPM already encodes the delayed positions, so no offsets are
+      // re-applied here; placement and critical shading come from one result.
+      leveledOffsets: {},
+      cpmResult: activeScheduleCpmResult,
+    });
+  }, [
+    activeScheduleCpmResult,
+    scheduleActivitiesResult.activities,
+    scheduleSettingsHook.scheduleSettings.projectStartDate,
+    projectAvailableCrewSize,
+  ]);
 
   const projectScopeContext = useMemo(
     () =>
@@ -2335,10 +2370,13 @@ export default function EstimateWorkspacePage() {
         scheduleSettings: scheduleSettingsHook.scheduleSettings,
         leveledActivityOffsets: newOffsets,
         logicNetworkInitialized: true,
+        resourceLevelingResults: {
+          movedActivities: levelingModalResult.movedActivities,
+        },
       },
       estimate.assumptions as Record<string, unknown>,
     );
-    await saveCurrentEstimateWithLineItems({
+    const result = await saveCurrentEstimateWithLineItems({
       estimateId: estimate.id,
       projectId: estimate.projectId,
       estimateType: estimateAdapter.estimateType,
@@ -2347,6 +2385,16 @@ export default function EstimateWorkspacePage() {
       estimateSettings: estimateSettings.settings,
       existingAssumptions: updatedAssumptions,
       createdBy: user?.id ?? null,
+    });
+    // Close the post-Apply timing gap: make the saved leveling provider records
+    // (resourceLevelingResults.movedActivities[].resourceProviderActivityCodes)
+    // available in-memory immediately so resource-dummy connectors render right
+    // away, without requiring a reload/re-apply.
+    setCurrentEstimate((previous) => {
+      const nextAssumptions =
+        (result.data?.assumptions as Record<string, unknown> | undefined) ?? updatedAssumptions;
+      if (previous) return { ...previous, assumptions: nextAssumptions };
+      return result.data ?? previous;
     });
     setLevelingModalResult(null);
   }, [
@@ -3085,8 +3133,8 @@ export default function EstimateWorkspacePage() {
                     scheduleSettings={scheduleSettingsHook.scheduleSettings}
                     projectAvailableCrewSize={projectAvailableCrewSize}
                     projectName={project?.name}
-                    levelingApplied={effectiveSchedule?.levelingApplied ?? false}
-                    leveledDurationDays={effectiveSchedule?.leveledDurationDays ?? null}
+                    levelingApplied={levelingApplied}
+                    leveledDurationDays={effectiveAnalysis?.leveledDurationDays ?? null}
                     effectiveAnalysis={effectiveAnalysis}
                   />
                 </div>
@@ -3149,9 +3197,10 @@ export default function EstimateWorkspacePage() {
                   <LevelThreeGanttWorkspace
                     chartExportRef={ganttExportRef}
                     activities={scheduleActivitiesResult.activities}
-                    cpmResult={cpmResult}
+                    cpmResult={activeScheduleCpmResult}
+                    levelingApplied={levelingApplied}
                     scheduleSettings={scheduleSettingsHook.scheduleSettings}
-                    leveledOffsets={scheduleSettingsHook.leveledOffsets}
+                    leveledOffsets={{}}
                     logicLinks={scheduleSettingsHook.logicLinks}
                     lineItems={estimateAdapter?.lineItems ?? []}
                     onEditActivity={handleEditActivityFromGantt}

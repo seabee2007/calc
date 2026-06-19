@@ -129,40 +129,49 @@ function findValidDisplayCriticalCodes(params: {
     return [];
   }
 
-  const onValidPaths = new Set<string>();
-
-  const collectPathCodes = (startCode: string) => {
-    const seen = new Set<string>();
-    const walk = (code: string): boolean => {
-      if (!zeroFloatCodes.has(code)) return false;
-      seen.add(code);
-
-      if (finishCandidates.has(code)) {
-        for (const pathCode of seen) {
-          onValidPaths.add(pathCode);
-        }
-        return true;
-      }
-
-      for (const next of forward.get(code) ?? []) {
-        if (seen.has(next)) continue;
-        if (walk(next)) {
-          return true;
-        }
-      }
-
-      seen.delete(code);
-      return false;
-    };
-
-    walk(startCode);
-  };
-
-  for (const startCode of validStarts) {
-    collectPathCodes(startCode);
+  // A zero-float activity is display-critical when it lies on ANY valid path
+  // from a valid open-start to a valid open-finish — i.e. it is forward-
+  // reachable from a valid start AND can still reach a finish candidate, walking
+  // only zero-float edges. Using the union of all such paths (instead of the
+  // first one found) correctly captures parallel and merged critical chains —
+  // e.g. after resource leveling, Decking → Railing → Stairs → Stain stays a
+  // continuous red chain even though Decking → Stairs is also a zero-float (but
+  // non-driving) edge.
+  const backward = new Map<string, Set<string>>();
+  for (const code of zeroFloatCodes) {
+    backward.set(code, new Set());
+  }
+  for (const [pred, succs] of forward) {
+    for (const succ of succs) {
+      backward.get(succ)!.add(pred);
+    }
   }
 
-  return [...onValidPaths];
+  const reachFrom = (seeds: Iterable<string>, adjacency: Map<string, Set<string>>): Set<string> => {
+    const seen = new Set<string>();
+    const queue: string[] = [];
+    for (const seed of seeds) {
+      if (zeroFloatCodes.has(seed) && !seen.has(seed)) {
+        seen.add(seed);
+        queue.push(seed);
+      }
+    }
+    while (queue.length > 0) {
+      const current = queue.shift()!;
+      for (const next of adjacency.get(current) ?? []) {
+        if (!seen.has(next)) {
+          seen.add(next);
+          queue.push(next);
+        }
+      }
+    }
+    return seen;
+  };
+
+  const forwardReachable = reachFrom(validStarts, forward);
+  const backwardReachable = reachFrom(finishCandidates, backward);
+
+  return [...forwardReachable].filter((code) => backwardReachable.has(code));
 }
 
 function invalidResult(

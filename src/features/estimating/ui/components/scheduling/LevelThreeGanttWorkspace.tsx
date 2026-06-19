@@ -80,6 +80,12 @@ interface Props {
   cpmResult: CpmResult | null;
   scheduleSettings: ScheduleSettings;
   leveledOffsets?: Record<string, number>;
+  /**
+   * True when the passed cpmResult is the resource-leveled CPM (baseline links +
+   * resource-dummy links). The leveled ES already encodes the delays, so
+   * leveledOffsets is empty; this flag drives the leveled export option.
+   */
+  levelingApplied?: boolean;
   logicLinks?: CpmLogicLink[];
   lineItems?: EstimateDomainTask[];
   onEditActivity?: (activityCode: string) => void;
@@ -98,6 +104,7 @@ export default function LevelThreeGanttWorkspace({
   cpmResult,
   scheduleSettings,
   leveledOffsets = {},
+  levelingApplied = false,
   logicLinks = [],
   lineItems = [],
   onEditActivity,
@@ -323,7 +330,7 @@ export default function LevelThreeGanttWorkspace({
           </button>
           <GatedLevelThreeExportMenu
             exportReady={exportReady}
-            hasLeveling={Object.keys(leveledOffsets).length > 0}
+            hasLeveling={levelingApplied}
             onExportPdf={onExportPdf}
             onExportExcel={onExportExcel}
           />
@@ -344,7 +351,7 @@ export default function LevelThreeGanttWorkspace({
         <>
           <LevelThreeGanttFullscreenToolbar
             exportReady={exportReady}
-            hasLeveling={Object.keys(leveledOffsets).length > 0}
+            hasLeveling={levelingApplied}
             onExportPdf={onExportPdf}
             onExportExcel={onExportExcel}
             onFitWidth={fitChartWidth}

@@ -34,6 +34,9 @@ export interface CpmActivityNodeData {
   leveledOffsetDays?: number;
   effectiveTotalFloat?: number | null;
   controllingAfterLeveling?: boolean;
+  baselineEarlyStart?: number | null;
+  baselineEarlyFinish?: number | null;
+  baselineTotalFloat?: number | null;
   [key: string]: unknown;
 }
 
@@ -62,6 +65,9 @@ export const CpmActivityNode = memo(function CpmActivityNode({ data, selected }:
     leveledOffsetDays = 0,
     effectiveTotalFloat = null,
     controllingAfterLeveling = false,
+    baselineEarlyStart = null,
+    baselineEarlyFinish = null,
+    baselineTotalFloat = null,
   } = data;
 
   const isLogicMode = viewMode === 'logic-network';
@@ -159,6 +165,13 @@ export const CpmActivityNode = memo(function CpmActivityNode({ data, selected }:
         </div>
       ) : null}
 
+      {leveledViewActive ? (
+        <div className="border-t border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+          Base ES/EF {formatDay(baselineEarlyStart)} / {formatDay(baselineEarlyFinish)} · Base TF{' '}
+          {formatDay(baselineTotalFloat ?? undefined)}
+        </div>
+      ) : null}
+
       {activeTopologyLabel ? (
         <div
           className={`border-t px-2 py-0.5 text-[10px] font-medium ${
@@ -227,7 +240,7 @@ export const CpmActivityNode = memo(function CpmActivityNode({ data, selected }:
           <div className="grid grid-cols-2 border-t border-slate-200 dark:border-slate-700">
             <div className="border-r border-slate-200 px-2 py-1 dark:border-slate-700">
               <span className="text-slate-600 dark:text-slate-400">
-                {leveledViewActive ? 'TF (base) ' : 'TF '}
+                {leveledViewActive ? 'TF (leveled) ' : 'TF '}
               </span>
               <span
                 className={`tabular-nums ${

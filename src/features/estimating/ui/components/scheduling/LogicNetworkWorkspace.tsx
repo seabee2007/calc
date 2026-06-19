@@ -478,8 +478,8 @@ export default function LogicNetworkWorkspace({
               </p>
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 {leveledViewActive
-                  ? 'Showing the resource-leveled effective schedule. CPM logic remains unchanged; resource leveling adjusts planned dates in the schedule layer.'
-                  : 'Showing the CPM baseline critical path and float. Switch to Resource-Leveled to see the effective controlling path.'}
+                  ? 'Showing the effective leveled logic used by the Gantt. Original CPM logic is preserved in Baseline mode.'
+                  : 'Showing the CPM baseline critical path and float. Switch to Resource-Leveled to see the crew-constrained schedule path.'}
               </p>
             </>
           ) : null}
