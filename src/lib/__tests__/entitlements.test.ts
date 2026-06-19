@@ -1,12 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   PLAN_FEATURES,
+  canUseThreeDTakeoffCapability,
   canCreateProject,
   canInviteFieldSeat,
   canInviteTeamMember,
   canUseFeature,
   getPlanLimit,
   hasFeature,
+  hasThreeDTakeoffCapability,
   minPlanForFeature,
   resolveEffectivePlan,
   type FeatureKey,
@@ -26,6 +28,7 @@ describe('entitlements', () => {
     expect(hasFeature('starter', 'activity_based_estimating')).toBe(false);
     expect(hasFeature('starter', 'employee_portal')).toBe(false);
     expect(hasFeature('starter', 'logic_network')).toBe(false);
+    expect(hasFeature('starter', 'model_3d_takeoff')).toBe(false);
     expect(hasFeature('starter', 'ai_concrete_chat')).toBe(false);
   });
 
@@ -37,6 +40,8 @@ describe('entitlements', () => {
     expect(hasFeature('professional', 'global_ask_ai')).toBe(true);
     expect(hasFeature('professional', 'level_three_gantt_export')).toBe(false);
     expect(hasFeature('professional', 'arden_calc_in_estimator')).toBe(true);
+    expect(hasFeature('professional', 'model_3d_takeoff')).toBe(true);
+    expect(hasFeature('professional', 'model_3d_extraction')).toBe(false);
     expect(hasFeature('professional', 'accounting_exports')).toBe(false);
   });
 
@@ -48,6 +53,7 @@ describe('entitlements', () => {
     expect(hasFeature('business', 'ai_concrete_chat')).toBe(true);
     expect(hasFeature('business', 'contract_builder')).toBe(true);
     expect(hasFeature('business', 'global_planner_hub')).toBe(true);
+    expect(hasFeature('business', 'model_3d_extraction')).toBe(true);
   });
 
   it('returns configured plan limits', () => {
@@ -55,6 +61,10 @@ describe('entitlements', () => {
     expect(getPlanLimit('professional', 'included_field_seats')).toBe(5);
     expect(getPlanLimit('business', 'max_active_projects')).toBe(-1);
     expect(getPlanLimit('business', 'ai_requests_monthly')).toBe(500);
+    expect(getPlanLimit('professional', 'max_3d_models_per_project')).toBe(10);
+    expect(getPlanLimit('professional', 'max_3d_model_size_mb')).toBe(100);
+    expect(getPlanLimit('business', 'max_3d_models_per_project')).toBe(50);
+    expect(getPlanLimit('business', 'max_3d_model_size_mb')).toBe(500);
   });
 
   it('canCreateProject respects active project limits', () => {
@@ -117,6 +127,26 @@ describe('entitlements', () => {
     vi.stubEnv('DEV', true);
     vi.stubEnv('VITE_ENFORCE_PLAN', 'false');
     expect(canUseFeature('starter', 'ai_concrete_chat')).toBe(true);
+  });
+
+  it('splits 3D Takeoff MVP and advanced BIM capabilities by plan', () => {
+    expect(hasThreeDTakeoffCapability('free', 'viewDemo')).toBe(true);
+    expect(hasThreeDTakeoffCapability('starter', 'viewDemo')).toBe(true);
+    expect(hasThreeDTakeoffCapability('starter', 'uploadGlb')).toBe(false);
+    expect(hasThreeDTakeoffCapability('professional', 'uploadGlb')).toBe(true);
+    expect(hasThreeDTakeoffCapability('professional', 'measureTool')).toBe(true);
+    expect(hasThreeDTakeoffCapability('professional', 'scaleCalibration')).toBe(true);
+    expect(hasThreeDTakeoffCapability('professional', 'addToEstimate')).toBe(true);
+    expect(hasThreeDTakeoffCapability('professional', 'ifcImport')).toBe(false);
+    expect(hasThreeDTakeoffCapability('business', 'ifcImport')).toBe(true);
+    expect(hasThreeDTakeoffCapability('business', 'modelVersionCompare')).toBe(true);
+    expect(hasThreeDTakeoffCapability('business', 'aiObjectMapping')).toBe(true);
+  });
+
+  it('canUseThreeDTakeoffCapability respects enforcement and missing plans', () => {
+    expect(canUseThreeDTakeoffCapability('professional', 'uploadGlb')).toBe(true);
+    expect(canUseThreeDTakeoffCapability('starter', 'uploadGlb')).toBe(false);
+    expect(canUseThreeDTakeoffCapability(null, 'uploadGlb')).toBe(false);
   });
 
   it('defines every feature key in at least one plan map entry', () => {

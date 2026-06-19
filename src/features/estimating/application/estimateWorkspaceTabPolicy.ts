@@ -84,6 +84,7 @@ export function getVisibleWorkspaceTabs(
     default:
       return [
         { id: 'activities', label: 'Activities' },
+        { id: '3d-takeoff', label: '3D Takeoff' },
         ...schedule,
         costs,
         settings,
@@ -153,6 +154,11 @@ export function getEstimateTypeEmptyState(
       return {
         title: 'No construction activities yet.',
         body: 'Add activities to build your detailed estimate.',
+      };
+    case '3d-takeoff':
+      return {
+        title: 'No 3D model yet',
+        body: 'Upload a single-file .glb model to start 3D takeoff and map objects to estimate activities.',
       };
     case 'quick-estimate':
       return {

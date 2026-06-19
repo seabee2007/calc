@@ -9,11 +9,16 @@ import PlannerSidebar from '../planner/PlannerSidebar';
 import ToolsModal from '../workflow/ToolsModal';
 import SiteBackground from './SiteBackground';
 import { COLOR_CANVAS_DARK, COLOR_CANVAS_LIGHT } from '../../theme/appTheme';
+import {
+  PlannerWorkspaceFocusProvider,
+  usePlannerWorkspaceFocus,
+} from '../../contexts/PlannerWorkspaceFocusContext';
 
 function PlannerWorkspaceMain() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const { projectId } = useParams<{ projectId: string }>();
   const location = useLocation();
+  const workspaceFocus = usePlannerWorkspaceFocus();
   const isProjectRoute = Boolean(projectId && location.pathname.includes('/planner'));
   const [projectName, setProjectName] = useState<string | null>(null);
 
@@ -38,7 +43,11 @@ function PlannerWorkspaceMain() {
 
   return (
     <div className="flex min-h-0 flex-1">
-      <PlannerSidebar mobileOpen={mobileNavOpen} onMobileClose={() => setMobileNavOpen(false)} />
+      <PlannerSidebar
+        mobileOpen={mobileNavOpen}
+        onMobileClose={() => setMobileNavOpen(false)}
+        collapsedForWorkspaceFocus={workspaceFocus?.workspaceFocusMode ?? false}
+      />
       <div className="flex min-w-0 flex-1 flex-col">
         <PlannerAppBar
           onMenuClick={() => setMobileNavOpen(true)}
@@ -94,7 +103,9 @@ const PlannerWorkspaceLayout: React.FC = () => {
     >
       <SiteBackground solidCanvas />
       <div className="relative z-10 flex min-h-0 min-h-[100dvh] flex-1 flex-col">
-        <PlannerWorkspaceMain />
+        <PlannerWorkspaceFocusProvider>
+          <PlannerWorkspaceMain />
+        </PlannerWorkspaceFocusProvider>
         {user && isOwner ? <NotificationAttentionToast /> : null}
         {user && isOwner && !isEmployee && <ToolsModal />}
       </div>

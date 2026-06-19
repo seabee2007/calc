@@ -37,9 +37,10 @@ describe('estimate workspace tab policy', () => {
     expect(getDefaultWorkspaceTabForEstimateType(undefined)).toBe('activities');
   });
 
-  it('shows activities and schedule tabs for detailed estimates', () => {
+  it('shows activities, 3D takeoff, and schedule tabs for detailed estimates', () => {
     const tabs = getVisibleWorkspaceTabs('detailed', true).map((tab) => tab.id);
     expect(tabs).toContain('activities');
+    expect(tabs).toContain('3d-takeoff');
     expect(tabs).toContain('schedule-preview');
     expect(tabs).toContain('logic-network');
     expect(tabs).toContain('level-iii-gantt');
@@ -47,9 +48,10 @@ describe('estimate workspace tab policy', () => {
     expect(tabs).toContain('settings');
   });
 
-  it('shows activities and schedule tabs for bid estimates', () => {
+  it('shows activities, 3D takeoff, and schedule tabs for bid estimates', () => {
     const tabs = getVisibleWorkspaceTabs('bid', true).map((tab) => tab.id);
     expect(tabs).toContain('activities');
+    expect(tabs).toContain('3d-takeoff');
     expect(tabs).toContain('schedule-preview');
   });
 
@@ -59,6 +61,7 @@ describe('estimate workspace tab policy', () => {
     expect(tabs).not.toContain('schedule-preview');
     expect(tabs).not.toContain('logic-network');
     expect(tabs).not.toContain('level-iii-gantt');
+    expect(tabs).not.toContain('3d-takeoff');
   });
 
   it('hides schedule tabs for conceptual estimates by default', () => {

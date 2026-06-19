@@ -26,6 +26,7 @@ interface SidebarProject {
 interface PlannerSidebarProps {
   mobileOpen: boolean;
   onMobileClose: () => void;
+  collapsedForWorkspaceFocus?: boolean;
 }
 
 interface SidebarProjectRow {
@@ -35,7 +36,11 @@ interface SidebarProjectRow {
   placement_order: Project['placementOrder'] | null;
 }
 
-export default function PlannerSidebar({ mobileOpen, onMobileClose }: PlannerSidebarProps) {
+export default function PlannerSidebar({
+  mobileOpen,
+  onMobileClose,
+  collapsedForWorkspaceFocus = false,
+}: PlannerSidebarProps) {
   const location = useLocation();
   const { user, isOwner, isEmployee } = useAuth();
   const [projects, setProjects] = useState<SidebarProject[]>([]);
@@ -218,8 +223,16 @@ export default function PlannerSidebar({ mobileOpen, onMobileClose }: PlannerSid
 
   return (
     <>
-      <aside className="hidden w-[220px] shrink-0 flex-col border-r border-slate-200 bg-white lg:flex dark:border-slate-800 dark:bg-slate-900">
-        {content}
+      <aside
+        className={[
+          'hidden shrink-0 overflow-hidden border-r border-slate-200 bg-white transition-[width,opacity,transform] duration-300 ease-out lg:flex dark:border-slate-800 dark:bg-slate-900',
+          collapsedForWorkspaceFocus
+            ? 'w-0 -translate-x-4 opacity-0 pointer-events-none'
+            : 'w-[220px] translate-x-0 opacity-100',
+        ].join(' ')}
+        aria-hidden={collapsedForWorkspaceFocus}
+      >
+        <div className="w-[220px] shrink-0">{content}</div>
       </aside>
 
       {mobileOpen && (
