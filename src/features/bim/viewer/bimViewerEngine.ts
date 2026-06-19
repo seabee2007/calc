@@ -36,6 +36,69 @@ export interface BimViewerEngineOptions {
   onCalibrationSampleChange?: (sample: BimCalibrationSample | null) => void;
 }
 
+export type BimViewerThemeMode = 'light' | 'dark';
+
+export interface BimViewerTheme {
+  clearColor: string;
+  sceneBackground: string;
+  ambientColor: string;
+  ambientIntensity: number;
+  directionalColor: string;
+  directionalIntensity: number;
+  measurementLine: string;
+  measurementFill: string;
+  measurementFillOpacity: number;
+  snapPoint: string;
+  placedPoint: string;
+  calibration: string;
+  selection: string;
+  selectionIntensity: number;
+  labelBackground: string;
+  labelBorder: string;
+  labelText: string;
+}
+
+export const BIM_VIEWER_THEMES: Record<BimViewerThemeMode, BimViewerTheme> = {
+  dark: {
+    clearColor: '#071225',
+    sceneBackground: '#071225',
+    ambientColor: '#ffffff',
+    ambientIntensity: 0.78,
+    directionalColor: '#ffffff',
+    directionalIntensity: 1.18,
+    measurementLine: '#22d3ee',
+    measurementFill: '#0891b2',
+    measurementFillOpacity: 0.22,
+    snapPoint: '#22d3ee',
+    placedPoint: '#22d3ee',
+    calibration: '#f59e0b',
+    selection: '#06b6d4',
+    selectionIntensity: 0.35,
+    labelBackground: 'rgba(15, 23, 42, 0.88)',
+    labelBorder: 'rgba(34, 211, 238, 0.65)',
+    labelText: '#e0f2fe',
+  },
+  light: {
+    clearColor: '#f6f8fb',
+    sceneBackground: '#f6f8fb',
+    ambientColor: '#ffffff',
+    ambientIntensity: 0.68,
+    directionalColor: '#ffffff',
+    directionalIntensity: 0.98,
+    measurementLine: '#0891b2',
+    measurementFill: '#0891b2',
+    measurementFillOpacity: 0.18,
+    snapPoint: '#0891b2',
+    placedPoint: '#0891b2',
+    calibration: '#d97706',
+    selection: '#0f766e',
+    selectionIntensity: 0.22,
+    labelBackground: 'rgba(15, 23, 42, 0.86)',
+    labelBorder: 'rgba(8, 145, 178, 0.55)',
+    labelText: '#f8fafc',
+  },
+};
+
 export interface BimCalibrationSample {
   points: MeasurementPoint3D[];
   rawDistance: number | null;
@@ -66,6 +129,8 @@ export class BimViewerEngine {
   private readonly selectableMeshes = new Map<string, THREE.Object3D>();
   private readonly originalMaterials = new Map<string, THREE.Material | THREE.Material[]>();
   private readonly measurementGroup = new THREE.Group();
+  private readonly ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
+  private readonly directionalLight = new THREE.DirectionalLight(0xffffff, 1.1);
   private readonly snapMarker = new THREE.Mesh(
     new THREE.RingGeometry(0.04, 0.055, 24),
     new THREE.MeshBasicMaterial({
@@ -103,6 +168,8 @@ export class BimViewerEngine {
   private isolatedExternalId: string | null = null;
   private sceneRegistry: SceneObjectRegistry = createEmptySceneRegistry();
   private readonly resizeObserver: ResizeObserver | null = null;
+  private viewerThemeMode: BimViewerThemeMode = 'dark';
+  private viewerTheme = BIM_VIEWER_THEMES.dark;
 
   constructor(private readonly options: BimViewerEngineOptions) {
     const { container } = options;
@@ -120,12 +187,15 @@ export class BimViewerEngine {
 
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.enableDamping = true;
+    this.controls.mouseButtons = {
+      LEFT: THREE.MOUSE.ROTATE,
+      MIDDLE: THREE.MOUSE.PAN,
+      RIGHT: THREE.MOUSE.ROTATE,
+    };
 
-    this.scene.background = new THREE.Color('#0f172a');
-    const ambient = new THREE.AmbientLight(0xffffff, 0.65);
-    const directional = new THREE.DirectionalLight(0xffffff, 1.1);
-    directional.position.set(5, 8, 6);
-    this.scene.add(ambient, directional);
+    this.directionalLight.position.set(5, 8, 6);
+    this.scene.add(this.ambientLight, this.directionalLight);
+    this.applyViewerTheme();
     this.snapMarker.visible = false;
     this.scene.add(this.measurementGroup, this.snapMarker);
 
@@ -133,6 +203,7 @@ export class BimViewerEngine {
     this.renderer.domElement.addEventListener('pointerup', this.handlePointerUp);
     this.renderer.domElement.addEventListener('pointermove', this.handlePointerMove);
     this.renderer.domElement.addEventListener('contextmenu', this.handleContextMenu);
+    this.renderer.domElement.addEventListener('auxclick', this.handleAuxClick);
     window.addEventListener('keydown', this.handleKeyDown);
     this.resizeObserver =
       typeof ResizeObserver !== 'undefined'
@@ -240,6 +311,7 @@ export class BimViewerEngine {
     this.renderer.domElement.removeEventListener('pointerup', this.handlePointerUp);
     this.renderer.domElement.removeEventListener('pointermove', this.handlePointerMove);
     this.renderer.domElement.removeEventListener('contextmenu', this.handleContextMenu);
+    this.renderer.domElement.removeEventListener('auxclick', this.handleAuxClick);
     window.removeEventListener('keydown', this.handleKeyDown);
     this.resizeObserver?.disconnect();
     window.removeEventListener('resize', this.handleResize);
@@ -293,6 +365,16 @@ export class BimViewerEngine {
     this.invalidateRender();
   }
 
+  setViewerTheme(mode: BimViewerThemeMode): void {
+    if (this.viewerThemeMode === mode) return;
+    this.viewerThemeMode = mode;
+    this.viewerTheme = BIM_VIEWER_THEMES[mode];
+    this.applyViewerTheme();
+    this.refreshSelectedHighlight();
+    this.renderMeasurementOverlay();
+    this.invalidateRender();
+  }
+
   clearMeasurement(): void {
     this.measurementPoints = [];
     this.measurementClosed = false;
@@ -327,6 +409,10 @@ export class BimViewerEngine {
   };
 
   private handlePointerDown = (event: PointerEvent): void => {
+    if (event.button === 1) {
+      event.preventDefault();
+      this.renderer.domElement.style.cursor = 'grabbing';
+    }
     this.pointerDown = {
       x: event.clientX,
       y: event.clientY,
@@ -338,9 +424,15 @@ export class BimViewerEngine {
   private handlePointerUp = (event: PointerEvent): void => {
     if (!this.modelRoot) return;
     if (!this.pointerDown) return;
+    const pointerButton = this.pointerDown.button;
     const dx = event.clientX - this.pointerDown.x;
     const dy = event.clientY - this.pointerDown.y;
     this.pointerDown = null;
+    this.renderer.domElement.style.cursor = '';
+    if (pointerButton === 1 || event.button === 1) {
+      event.preventDefault();
+      return;
+    }
     if (Math.hypot(dx, dy) > 5) return;
 
     if (this.calibrationActive) {
@@ -443,6 +535,12 @@ export class BimViewerEngine {
     }
   };
 
+  private handleAuxClick = (event: MouseEvent): void => {
+    if (event.button === 1) {
+      event.preventDefault();
+    }
+  };
+
   private clearModel(): void {
     if (this.modelRoot) {
       this.scene.remove(this.modelRoot);
@@ -484,8 +582,8 @@ export class BimViewerEngine {
     const material = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material;
     const highlight = material.clone();
     if ('emissive' in highlight) {
-      (highlight as THREE.MeshStandardMaterial).emissive = new THREE.Color('#06b6d4');
-      (highlight as THREE.MeshStandardMaterial).emissiveIntensity = 0.35;
+      (highlight as THREE.MeshStandardMaterial).emissive = new THREE.Color(this.viewerTheme.selection);
+      (highlight as THREE.MeshStandardMaterial).emissiveIntensity = this.viewerTheme.selectionIntensity;
     }
     mesh.material = highlight;
   }
@@ -506,6 +604,28 @@ export class BimViewerEngine {
 
   private invalidateRender(): void {
     this.renderer.render(this.scene, this.camera);
+  }
+
+  private applyViewerTheme(): void {
+    const theme = this.viewerTheme;
+    this.renderer.setClearColor(theme.clearColor, 1);
+    this.scene.background = new THREE.Color(theme.sceneBackground);
+    this.ambientLight.color.set(theme.ambientColor);
+    this.ambientLight.intensity = theme.ambientIntensity;
+    this.directionalLight.color.set(theme.directionalColor);
+    this.directionalLight.intensity = theme.directionalIntensity;
+    const snapMaterial = this.snapMarker.material;
+    if (snapMaterial instanceof THREE.MeshBasicMaterial) {
+      snapMaterial.color.set(theme.snapPoint);
+    }
+  }
+
+  private refreshSelectedHighlight(): void {
+    const selectedExternalId = this.selectedExternalId;
+    if (!selectedExternalId) return;
+    this.clearHighlight();
+    const object = this.selectableMeshes.get(selectedExternalId);
+    if (object) this.applyHighlight(object);
   }
 
   private emitVisibilityState(): void {
@@ -593,7 +713,7 @@ export class BimViewerEngine {
     for (const point of points) {
       const marker = new THREE.Mesh(
         new THREE.SphereGeometry(0.035, 12, 12),
-        new THREE.MeshBasicMaterial({ color: '#22d3ee', depthTest: false }),
+        new THREE.MeshBasicMaterial({ color: this.viewerTheme.placedPoint, depthTest: false }),
       );
       marker.position.copy(point);
       this.measurementGroup.add(marker);
@@ -604,7 +724,7 @@ export class BimViewerEngine {
       const geometry = new THREE.BufferGeometry().setFromPoints(linePoints);
       const line = new THREE.Line(
         geometry,
-        new THREE.LineBasicMaterial({ color: '#22d3ee', depthTest: false }),
+        new THREE.LineBasicMaterial({ color: this.viewerTheme.measurementLine, depthTest: false }),
       );
       this.measurementGroup.add(line);
 
@@ -621,7 +741,9 @@ export class BimViewerEngine {
           calibrationScaleFactor: this.calibrationScaleFactor,
           calibrated: this.calibrated,
         }).totalLength;
-        this.measurementGroup.add(createTextSprite(formatLengthMeasurement(length, this.measurementDisplayFormat), mid));
+        this.measurementGroup.add(
+          createTextSprite(formatLengthMeasurement(length, this.measurementDisplayFormat), mid, this.viewerTheme),
+        );
       }
     }
 
@@ -631,9 +753,9 @@ export class BimViewerEngine {
         const fill = new THREE.Mesh(
           areaGeometry.geometry,
           new THREE.MeshBasicMaterial({
-            color: '#0891b2',
+            color: this.viewerTheme.measurementFill,
             transparent: true,
-            opacity: 0.2,
+            opacity: this.viewerTheme.measurementFillOpacity,
             depthWrite: false,
             side: THREE.DoubleSide,
           }),
@@ -654,14 +776,18 @@ export class BimViewerEngine {
         calibrated: this.calibrated,
       });
       this.measurementGroup.add(
-        createTextSprite(formatAreaMeasurement(result.area ?? 0, this.measurementDisplayFormat), centroid),
+        createTextSprite(
+          formatAreaMeasurement(result.area ?? 0, this.measurementDisplayFormat),
+          centroid,
+          this.viewerTheme,
+        ),
       );
     }
 
     for (const point of calibrationPoints) {
       const marker = new THREE.Mesh(
         new THREE.SphereGeometry(0.04, 12, 12),
-        new THREE.MeshBasicMaterial({ color: '#f59e0b', depthTest: false }),
+        new THREE.MeshBasicMaterial({ color: this.viewerTheme.calibration, depthTest: false }),
       );
       marker.position.copy(point);
       this.measurementGroup.add(marker);
@@ -670,11 +796,11 @@ export class BimViewerEngine {
       const geometry = new THREE.BufferGeometry().setFromPoints(calibrationPoints);
       const line = new THREE.Line(
         geometry,
-        new THREE.LineBasicMaterial({ color: '#f59e0b', depthTest: false }),
+        new THREE.LineBasicMaterial({ color: this.viewerTheme.calibration, depthTest: false }),
       );
       this.measurementGroup.add(line);
       const mid = calibrationPoints[0].clone().add(calibrationPoints[1]).multiplyScalar(0.5);
-      this.measurementGroup.add(createTextSprite('Calibration distance', mid));
+      this.measurementGroup.add(createTextSprite('Calibration distance', mid, this.viewerTheme));
     }
   }
 }
@@ -922,14 +1048,14 @@ function findNearestVertexScreenPoint(params: {
   return best?.point ?? null;
 }
 
-function createTextSprite(text: string, position: THREE.Vector3): THREE.Sprite {
+function createTextSprite(text: string, position: THREE.Vector3, theme: BimViewerTheme): THREE.Sprite {
   const canvas = document.createElement('canvas');
   const context = canvas.getContext('2d');
   canvas.width = 256;
   canvas.height = 96;
   if (context) {
-    context.fillStyle = 'rgba(15, 23, 42, 0.88)';
-    context.strokeStyle = 'rgba(34, 211, 238, 0.65)';
+    context.fillStyle = theme.labelBackground;
+    context.strokeStyle = theme.labelBorder;
     context.lineWidth = 4;
     context.roundRect?.(8, 12, 240, 60, 10);
     if (context.roundRect) {
@@ -938,7 +1064,7 @@ function createTextSprite(text: string, position: THREE.Vector3): THREE.Sprite {
     } else {
       context.fillRect(8, 12, 240, 60);
     }
-    context.fillStyle = '#e0f2fe';
+    context.fillStyle = theme.labelText;
     context.font = 'bold 28px sans-serif';
     context.textAlign = 'center';
     context.textBaseline = 'middle';

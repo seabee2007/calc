@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ChevronDown, Info } from 'lucide-react';
 import {
   BimViewerEngine,
+  type BimViewerThemeMode,
   type BimCalibrationSample,
   type BimViewerObjectNode,
 } from '../../viewer/bimViewerEngine';
@@ -36,6 +37,24 @@ interface Props {
   layoutResizeSignal?: number;
   onHeightPreset?: (preset: BimViewerHeightPreset) => void;
   className?: string;
+}
+
+function useIsDarkMode(): boolean {
+  const [isDark, setIsDark] = useState(
+    () => typeof document !== 'undefined' && document.documentElement.classList.contains('dark'),
+  );
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const root = document.documentElement;
+    const syncTheme = () => setIsDark(root.classList.contains('dark'));
+    syncTheme();
+    const observer = new MutationObserver(syncTheme);
+    observer.observe(root, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
+
+  return isDark;
 }
 
 export default function BimViewer({
@@ -79,6 +98,7 @@ export default function BimViewer({
   const [showMeasureHelp, setShowMeasureHelp] = useState(false);
   const [viewMenuOpen, setViewMenuOpen] = useState(false);
   const [measureMenuOpen, setMeasureMenuOpen] = useState(false);
+  const isDarkMode = useIsDarkMode();
 
   useEffect(() => {
     onSelectRef.current = onSelect;
@@ -154,6 +174,11 @@ export default function BimViewer({
   useEffect(() => {
     engineRef.current?.setCalibrationActive(calibrationActive);
   }, [calibrationActive]);
+
+  useEffect(() => {
+    const mode: BimViewerThemeMode = isDarkMode ? 'dark' : 'light';
+    engineRef.current?.setViewerTheme(mode);
+  }, [isDarkMode]);
 
   useEffect(() => {
     const engine = engineRef.current;
@@ -303,7 +328,9 @@ export default function BimViewer({
                   onClick={() => setMeasurementMode(mode)}
                 >
                   {mode}
-                  {measurementMode === mode ? <span className="text-cyan-600 dark:text-cyan-300">Active</span> : null}
+                  {measurementMode === mode && mode !== 'off' ? (
+                    <span className="text-cyan-600 dark:text-cyan-300">Active</span>
+                  ) : null}
                 </button>
               ))}
               <div className="my-2 border-t border-slate-200 dark:border-slate-800" />
@@ -374,8 +401,10 @@ export default function BimViewer({
             >
               <p className="font-semibold text-cyan-700 dark:text-cyan-100">Measure controls</p>
               <ul className="mt-2 space-y-1 text-slate-600 dark:text-slate-300">
-                <li>Left click: add point</li>
-                <li>Right click: undo last point</li>
+                <li>Left click: select/add point</li>
+                <li>Middle mouse drag: pan view</li>
+                <li>Wheel: zoom</li>
+                <li>Right click: undo point in Measure mode</li>
                 <li>Esc: stop measuring</li>
                 <li>Clear: remove measurement</li>
                 <li>Snap: toggle point snapping</li>

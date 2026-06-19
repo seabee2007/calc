@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import BimViewer from '../ui/components/BimViewer';
 
@@ -20,6 +20,7 @@ const engineMethods = {
   closeMeasurement: vi.fn(),
   resize: vi.fn(),
   setMeasurementDisplayFormat: vi.fn(),
+  setViewerTheme: vi.fn(),
 };
 
 vi.mock('../viewer/bimViewerEngine', () => ({
@@ -31,6 +32,7 @@ vi.mock('../viewer/bimViewerEngine', () => ({
 describe('BimViewer measurement controls', () => {
   beforeEach(() => {
     Object.values(engineMethods).forEach((method) => method.mockClear());
+    document.documentElement.classList.remove('dark');
   });
 
   it('shows the quick measure controls tooltip', () => {
@@ -46,8 +48,10 @@ describe('BimViewer measurement controls', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Measure controls' }));
 
     expect(screen.getByText('Measure controls')).toBeInTheDocument();
-    expect(screen.getByText('Left click: add point')).toBeInTheDocument();
-    expect(screen.getByText('Right click: undo last point')).toBeInTheDocument();
+    expect(screen.getByText('Left click: select/add point')).toBeInTheDocument();
+    expect(screen.getByText('Middle mouse drag: pan view')).toBeInTheDocument();
+    expect(screen.getByText('Wheel: zoom')).toBeInTheDocument();
+    expect(screen.getByText('Right click: undo point in Measure mode')).toBeInTheDocument();
     expect(screen.getByText('Esc: stop measuring')).toBeInTheDocument();
   });
 
@@ -166,5 +170,25 @@ describe('BimViewer measurement controls', () => {
 
     expect(engineMethods.setCalibrationActive).toHaveBeenCalledWith(true);
     expect(engineMethods.setMeasurementContext).toHaveBeenCalledWith('feet', true, 0.5, true);
+  });
+
+  it('updates viewer theme when the app dark class changes without remounting', async () => {
+    document.documentElement.classList.remove('dark');
+    render(
+      <BimViewer
+        signedUrl={null}
+        onSelect={() => undefined}
+        modelUnit="feet"
+        scaleConfirmed={false}
+      />,
+    );
+
+    expect(engineMethods.setViewerTheme).toHaveBeenCalledWith('light');
+
+    document.documentElement.classList.add('dark');
+
+    await waitFor(() => {
+      expect(engineMethods.setViewerTheme).toHaveBeenCalledWith('dark');
+    });
   });
 });
