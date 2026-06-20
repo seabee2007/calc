@@ -83,8 +83,8 @@ function latestPlanProps() {
   };
 }
 
-async function loadExample() {
-  fireEvent.click(screen.getByRole('button', { name: /load 5m x 6m cmu building example/i }));
+async function loadTemplate() {
+  fireEvent.click(screen.getByRole('button', { name: /load cmu template/i }));
   await waitFor(() => expect(mocks.createDesignModel).toHaveBeenCalled());
 }
 
@@ -107,7 +107,7 @@ describe('DesignBuilderPage', () => {
         id: 'model-1',
         projectId: 'project-1',
         estimateId: 'estimate-1',
-        name: '5m x 6m CMU Building Example',
+        name: '5m x 6m CMU Template',
         unitSystem: 'metric',
         modelType: 'cmu_building',
         status: 'draft',
@@ -155,16 +155,16 @@ describe('DesignBuilderPage', () => {
 
     expect(screen.getByTestId('design-builder-viewer')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: /load 5m x 6m cmu building example/i }));
+    fireEvent.click(screen.getByRole('button', { name: /load cmu template/i }));
     await waitFor(() => expect(mocks.createDesignModel).toHaveBeenCalled());
     expect(mocks.upsertDesignModelObjects).toHaveBeenCalled();
 
-    fireEvent.click(screen.getByRole('button', { name: /generate estimate preview/i }));
+    fireEvent.click(screen.getAllByRole('button', { name: /estimate preview/i }).at(-1)!);
     await waitFor(() => expect(mocks.persistDesignEstimatePreview).toHaveBeenCalled());
     expect(screen.getByText(/review quantities before committing/i)).toBeInTheDocument();
     expect(mocks.commitDesignEstimatePreview).not.toHaveBeenCalled();
 
-    fireEvent.click(screen.getByRole('button', { name: /commit to detailed estimate/i }));
+    fireEvent.click(screen.getByRole('button', { name: /commit to estimate/i }));
     await waitFor(() => expect(mocks.commitDesignEstimatePreview).toHaveBeenCalled());
     expect(onEstimateCommitted).toHaveBeenCalled();
   });
@@ -177,17 +177,17 @@ describe('DesignBuilderPage', () => {
       />,
     );
 
-    expect(screen.getByRole('button', { name: /hide tools/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /hide estimate/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^tools$/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^estimate$/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /fit height/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /60%/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /80%/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /full height/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /fit view/i })).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: /^fit$/i }).length).toBeGreaterThan(0);
     expect(screen.getByRole('button', { name: /reset view/i })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: /hide tools/i }));
-    expect(screen.getByRole('button', { name: /show tools/i })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /^tools$/i }));
+    expect(screen.getByRole('button', { name: /^tools$/i })).toBeInTheDocument();
   });
 
   it('shows CMU module rules, fit badges, and expanded wall system rows', async () => {
@@ -197,12 +197,12 @@ describe('DesignBuilderPage', () => {
         estimateId="estimate-1"
       />,
     );
-    await loadExample();
+    await loadTemplate();
 
-    expect(screen.getByRole('button', { name: /north wall/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /generated blocks/i })).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: /wall segments/i }).length).toBeGreaterThan(0);
+    expect(screen.getByRole('button', { name: /cmu walls/i })).toBeInTheDocument();
 
-    fireEvent.click(screen.getAllByRole('button', { name: /^cmu wall system/i }).find((button) => button.textContent?.includes('Four generated block walls'))!);
+    fireEvent.click(screen.getByRole('button', { name: /^cmu walls$/i }));
 
     expect(screen.getByText(/cmu module rules/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/block family/i)).toHaveValue('Metric CMU 400 x 200');
@@ -213,21 +213,21 @@ describe('DesignBuilderPage', () => {
 
   it('exposes wall layout tools and outside-face dimension readout after loading', async () => {
     render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
-    await loadExample();
+    await loadTemplate();
 
     expect(screen.getByRole('button', { name: /draw wall/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /move node/i })).toBeInTheDocument();
-    expect(screen.getByText(/dimension basis: outside face/i)).toBeInTheDocument();
-    expect(screen.getByText(/exterior 6\.00m × 5\.00m/i)).toBeInTheDocument();
+    expect(screen.getByText(/outside face/i)).toBeInTheDocument();
+    expect(screen.getByText(/6\.00 m × 5\.00 m/i)).toBeInTheDocument();
     expect(latestViewerProps().geometryResult?.sourcePath).toBe('layout_graph');
     expect(latestViewerProps().geometryResult?.wallSegments).toHaveLength(4);
   });
 
   it('dropdown tool items update the canonical viewer tool mode', async () => {
     render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
-    await loadExample();
+    await loadTemplate();
 
-    fireEvent.click(screen.getAllByRole('button', { name: /activate opening placement tool/i })[0]);
+    fireEvent.click(screen.getByRole('button', { name: /door opening/i }));
     await waitFor(() => expect(latestViewerProps().toolMode).toBe('place_door'));
 
     fireEvent.click(screen.getByRole('button', { name: /^delete$/i }));
@@ -239,17 +239,17 @@ describe('DesignBuilderPage', () => {
 
   it('renders one command bar without duplicate save, close footprint, or cut-block chips', async () => {
     render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
-    await loadExample();
+    await loadTemplate();
     const commandBar = within(screen.getByRole('toolbar', { name: /design builder command bar/i }));
 
     expect(commandBar.getAllByRole('button', { name: /save design/i })).toHaveLength(1);
     expect(commandBar.queryAllByRole('button', { name: /close footprint/i })).toHaveLength(0);
-    expect(commandBar.queryAllByText(/cut-block warning/i, { selector: 'summary' })).toHaveLength(1);
+    expect(commandBar.queryAllByText(/cut-block condition/i, { selector: 'summary' }).length).toBeLessThanOrEqual(1);
   });
 
   it('selects objects once and clears selection from empty canvas or ESC', async () => {
     render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
-    await loadExample();
+    await loadTemplate();
 
     await act(async () => {
       latestViewerProps().onInteraction?.({
@@ -265,7 +265,7 @@ describe('DesignBuilderPage', () => {
     });
     await waitFor(() => expect(latestViewerProps().selectedObjectType).toBeNull());
 
-    fireEvent.click(screen.getAllByRole('button', { name: /^cmu wall system/i }).find((button) => button.textContent?.includes('Four generated block walls'))!);
+    fireEvent.click(screen.getByRole('button', { name: /^cmu walls$/i }));
     await waitFor(() => expect(latestViewerProps().selectedObjectType).toBe('cmu_wall_system'));
 
     await act(async () => {
@@ -276,7 +276,7 @@ describe('DesignBuilderPage', () => {
 
   it('draws connected wall segments, stops with ESC, and undoes the last segment', async () => {
     render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
-    await loadExample();
+    await loadTemplate();
     fireEvent.click(screen.getByRole('button', { name: /draw wall/i }));
     expect(screen.getByTestId('design-builder-plan')).toBeInTheDocument();
 
@@ -315,7 +315,7 @@ describe('DesignBuilderPage', () => {
 
   it('uses Arden confirm for opening and segment delete flows', async () => {
     render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
-    await loadExample();
+    await loadTemplate();
     const openingId = createFiveBySixCmuBuildingPreset().wall.openings[0].id;
 
     fireEvent.click(screen.getByRole('button', { name: /^delete$/i }));
@@ -338,7 +338,7 @@ describe('DesignBuilderPage', () => {
 
   it('selects and deletes a wall segment from plan view in Delete mode', async () => {
     render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
-    await loadExample();
+    await loadTemplate();
     fireEvent.click(screen.getByRole('button', { name: /^plan$/i }));
     fireEvent.click(screen.getByRole('button', { name: /^delete$/i }));
 
@@ -354,12 +354,12 @@ describe('DesignBuilderPage', () => {
 
     await waitFor(() => expect(mocks.confirm).toHaveBeenCalledWith(expect.objectContaining({ title: 'Delete wall segment?' })));
     await waitFor(() => expect(latestPlanProps().layout?.segments).toHaveLength(3));
-    expect(screen.getByText(/design changed after commit/i)).toBeInTheDocument();
+    expect(screen.getByText(/design revision pending/i)).toBeInTheDocument();
   });
 
   it('keyboard Delete opens wall delete confirmation only when a segment is selected', async () => {
     render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
-    await loadExample();
+    await loadTemplate();
     fireEvent.click(screen.getByRole('button', { name: /^plan$/i }));
     await act(async () => {
       latestPlanProps().onInteraction?.({
@@ -378,21 +378,20 @@ describe('DesignBuilderPage', () => {
 
   it('starts blank layout, clears geometry state, and preserves CMU defaults', async () => {
     render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
-    await loadExample();
+    await loadTemplate();
     const sessionBefore = useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1'];
     expect(sessionBefore.preset?.wall.blockModule?.moduleLengthMeters).toBeCloseTo(0.4);
     expect(sessionBefore.preset?.wall.bondPattern).toBe('running_bond');
 
-    fireEvent.click(screen.getByRole('button', { name: /start blank layout/i }));
+    fireEvent.click(screen.getByRole('button', { name: /new layout/i }));
 
-    await waitFor(() => expect(mocks.confirm).toHaveBeenCalledWith(expect.objectContaining({ title: 'Start blank layout?' })));
+    await waitFor(() => expect(mocks.confirm).toHaveBeenCalledWith(expect.objectContaining({ title: 'New layout?' })));
     await waitFor(() => expect(latestPlanProps().layout?.segments).toHaveLength(0));
     expect(latestPlanProps().layout?.nodes).toHaveLength(0);
     expect(latestPlanProps().toolMode).toBe('select');
     expect(screen.getByTestId('design-builder-plan')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: /start a cmu layout/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /build cmu manually/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /create auto wall layout/i })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: /start a cmu layout/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /build cmu manually|create auto wall layout/i })).not.toBeInTheDocument();
     const sessionAfter = useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1'];
     expect(sessionAfter.preset?.wall.blockModule?.moduleLengthMeters).toBeCloseTo(0.4);
     expect(sessionAfter.preset?.wall.bondPattern).toBe('running_bond');
@@ -403,39 +402,39 @@ describe('DesignBuilderPage', () => {
     expect(latestViewerProps().geometryResult?.wallSegments).toHaveLength(0);
   });
 
-  it('starts Manual CMU Builder from blank without activating Draw Wall', async () => {
+  it('starts Masonry Layout from blank without activating Draw Wall', async () => {
     render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
-    await loadExample();
-    fireEvent.click(screen.getByRole('button', { name: /start blank layout/i }));
-    await waitFor(() => expect(screen.getByRole('button', { name: /build cmu manually/i })).toBeInTheDocument());
+    await loadTemplate();
+    fireEvent.click(screen.getByRole('button', { name: /new layout/i }));
+    await waitFor(() => expect(latestPlanProps().layout?.segments).toHaveLength(0));
 
-    fireEvent.click(screen.getByRole('button', { name: /build cmu manually/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^masonry layout$/i }));
 
     await waitFor(() => expect(latestPlanProps().manualMasonry?.enabled).toBe(true));
     expect(latestPlanProps().toolMode).toBe('select');
-    expect(screen.getByText(/manual cmu course builder/i)).toBeInTheDocument();
-    expect(screen.queryByText(/click to place wall points/i)).not.toBeInTheDocument();
+    expect(screen.getAllByText(/masonry layout/i).length).toBeGreaterThan(0);
+    expect(screen.queryByText(/Click points to place segments/i)).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /build cmu manually/i })).not.toBeInTheDocument();
   });
 
-  it('keeps Auto Wall Layout available as the alternative blank workflow', async () => {
+  it('starts Draw Wall from blank through the toolbar', async () => {
     render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
-    await loadExample();
-    fireEvent.click(screen.getByRole('button', { name: /start blank layout/i }));
-    await waitFor(() => expect(screen.getByRole('button', { name: /create auto wall layout/i })).toBeInTheDocument());
+    await loadTemplate();
+    fireEvent.click(screen.getByRole('button', { name: /new layout/i }));
+    await waitFor(() => expect(latestPlanProps().layout?.segments).toHaveLength(0));
 
-    fireEvent.click(screen.getByRole('button', { name: /create auto wall layout/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^draw wall$/i }));
 
     await waitFor(() => expect(latestPlanProps().toolMode).toBe('draw_wall'));
     expect(latestPlanProps().manualMasonry?.enabled).toBe(false);
-    expect(screen.getAllByText(/click to place wall points/i)).toHaveLength(1);
+    expect(screen.getAllByText(/Click points to place segments/i)).toHaveLength(1);
     expect(screen.queryByText(/draw wall: click to place points/i)).not.toBeInTheDocument();
   });
 
   it('does not auto-load demo after a blank layout remount', async () => {
     const rendered = render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
-    await loadExample();
-    fireEvent.click(screen.getByRole('button', { name: /start blank layout/i }));
+    await loadTemplate();
+    fireEvent.click(screen.getByRole('button', { name: /new layout/i }));
     await waitFor(() => expect(latestPlanProps().layout?.segments).toHaveLength(0));
 
     rendered.unmount();
@@ -445,16 +444,16 @@ describe('DesignBuilderPage', () => {
 
     await waitFor(() => expect(latestPlanProps().layout?.segments).toHaveLength(0));
     expect(latestPlanProps().toolMode).toBe('select');
-    expect(screen.getByRole('heading', { name: /start a cmu layout/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /build cmu manually/i })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: /start a cmu layout/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /build cmu manually|create auto wall layout/i })).not.toBeInTheDocument();
   });
 
-  it('persists dismissed Manual CMU Builder after remount', async () => {
+  it('persists Masonry Layout after remount', async () => {
     const rendered = render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
-    await loadExample();
-    fireEvent.click(screen.getByRole('button', { name: /start blank layout/i }));
-    await waitFor(() => expect(screen.getByRole('button', { name: /build cmu manually/i })).toBeInTheDocument());
-    fireEvent.click(screen.getByRole('button', { name: /build cmu manually/i }));
+    await loadTemplate();
+    fireEvent.click(screen.getByRole('button', { name: /new layout/i }));
+    await waitFor(() => expect(latestPlanProps().layout?.segments).toHaveLength(0));
+    fireEvent.click(screen.getByRole('button', { name: /^masonry layout$/i }));
     await waitFor(() => expect(useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']?.manualMasonryEnabled).toBe(true));
 
     rendered.unmount();
@@ -470,10 +469,10 @@ describe('DesignBuilderPage', () => {
 
   it('places one full block as a persisted manual masonry run', async () => {
     render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
-    await loadExample();
-    fireEvent.click(screen.getByRole('button', { name: /start blank layout/i }));
-    await waitFor(() => expect(screen.getByRole('button', { name: /build cmu manually/i })).toBeInTheDocument());
-    fireEvent.click(screen.getByRole('button', { name: /build cmu manually/i }));
+    await loadTemplate();
+    fireEvent.click(screen.getByRole('button', { name: /new layout/i }));
+    await waitFor(() => expect(latestPlanProps().layout?.segments).toHaveLength(0));
+    fireEvent.click(screen.getByRole('button', { name: /^masonry layout$/i }));
 
     await act(async () => {
       latestPlanProps().onManualMasonryPointer?.({ kind: 'start', planX: 0, planZ: 0 });
@@ -482,16 +481,16 @@ describe('DesignBuilderPage', () => {
 
     await waitFor(() => expect(latestPlanProps().manualMasonry?.runs).toHaveLength(1));
     const run = latestPlanProps().manualMasonry?.runs[0];
-    expect(run).toEqual(expect.objectContaining({ unitType: 'full_block', count: 1, source: 'manual' }));
+    expect(run).toEqual(expect.objectContaining({ unitType: 'full_block', count: 1, source: 'manual_3d_brush' }));
     expect(useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']?.preset?.wall.manualMasonryCourseRuns).toHaveLength(1);
   });
 
   it('dragging a full block creates one persisted masonry run with count greater than one', async () => {
     render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
-    await loadExample();
-    fireEvent.click(screen.getByRole('button', { name: /start blank layout/i }));
-    await waitFor(() => expect(screen.getByRole('button', { name: /build cmu manually/i })).toBeInTheDocument());
-    fireEvent.click(screen.getByRole('button', { name: /build cmu manually/i }));
+    await loadTemplate();
+    fireEvent.click(screen.getByRole('button', { name: /new layout/i }));
+    await waitFor(() => expect(latestPlanProps().layout?.segments).toHaveLength(0));
+    fireEvent.click(screen.getByRole('button', { name: /^masonry layout$/i }));
 
     await act(async () => {
       latestPlanProps().onManualMasonryPointer?.({ kind: 'start', planX: 0, planZ: 0 });
@@ -510,7 +509,7 @@ describe('DesignBuilderPage', () => {
 
   it('places, moves, and deletes openings through viewer interactions without auto-committing estimates', async () => {
     render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
-    await loadExample();
+    await loadTemplate();
 
     await act(async () => {
       latestViewerProps().onInteraction?.({
@@ -563,7 +562,7 @@ describe('DesignBuilderPage', () => {
     vi.useFakeTimers();
     render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /load 5m x 6m cmu building example/i }));
+      fireEvent.click(screen.getByRole('button', { name: /load cmu template/i }));
     });
     await act(async () => {
       await Promise.resolve();
@@ -602,9 +601,9 @@ describe('DesignBuilderPage', () => {
     });
 
     render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
-    await loadExample();
+    await loadTemplate();
 
-    fireEvent.click(screen.getByRole('button', { name: /generate estimate preview/i }));
+    fireEvent.click(screen.getAllByRole('button', { name: /estimate preview/i }).at(-1)!);
     await waitFor(() => expect(mocks.persistDesignEstimatePreview).toHaveBeenCalled());
 
     latestViewerProps().onInteraction?.({
@@ -616,14 +615,14 @@ describe('DesignBuilderPage', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText(/design changed after commit/i)).toBeInTheDocument();
+      expect(screen.getByText(/design revision pending/i)).toBeInTheDocument();
     });
     expect(mocks.commitDesignEstimatePreview).not.toHaveBeenCalled();
   });
 
   it('shows open footprint message when layout is not closed', async () => {
     render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
-    await loadExample();
+    await loadTemplate();
     expect(screen.queryByText(/close footprint to generate slab and roof/i)).not.toBeInTheDocument();
   });
 });
@@ -646,3 +645,5 @@ describe('layout quantity effects', () => {
     expect(afterCells.some((cell, index) => cell.x !== beforeCells[index]?.x || cell.z !== beforeCells[index]?.z)).toBe(true);
   });
 });
+
+

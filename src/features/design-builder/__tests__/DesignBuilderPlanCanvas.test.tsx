@@ -37,27 +37,113 @@ describe('DesignBuilderPlanCanvas', () => {
     const svg = screen.getByLabelText(/design builder wall layout plan view/i) as SVGSVGElement;
     Object.defineProperty(svg, 'viewBox', {
       configurable: true,
-      value: { baseVal: { x: 0, y: 0, width: 464, height: 368 } },
+      value: { baseVal: { x: 0, y: 0, width: 384, height: 288 } },
     });
     vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({
       left: 0,
       top: 0,
-      width: 928,
-      height: 936,
-      right: 928,
-      bottom: 936,
+      width: 768,
+      height: 576,
+      right: 768,
+      bottom: 576,
       x: 0,
       y: 0,
       toJSON: () => ({}),
     } as DOMRect);
 
-    fireEvent.pointerMove(svg, { clientX: 464, clientY: 468 });
+    fireEvent.pointerMove(svg, { clientX: 384, clientY: 288 });
 
     expect(onInteraction).toHaveBeenCalledWith(expect.objectContaining({
       kind: 'draw_preview',
       planX: 0,
       planZ: 0,
     }));
+  });
+
+  it('emits committed draw point from the same plan surface transform', () => {
+    const onInteraction = vi.fn();
+    render(
+      <DesignBuilderPlanCanvas
+        layout={createEmptyWallLayout()}
+        toolMode="draw_wall"
+        onInteraction={onInteraction}
+      />,
+    );
+
+    const svg = screen.getByLabelText(/design builder wall layout plan view/i) as SVGSVGElement;
+    Object.defineProperty(svg, 'viewBox', {
+      configurable: true,
+      value: { baseVal: { x: 0, y: 0, width: 384, height: 288 } },
+    });
+    vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({
+      left: 240,
+      top: 120,
+      width: 768,
+      height: 576,
+      right: 1008,
+      bottom: 696,
+      x: 240,
+      y: 120,
+      toJSON: () => ({}),
+    } as DOMRect);
+
+    fireEvent.pointerDown(svg, { button: 0, clientX: 624, clientY: 408 });
+
+    expect(onInteraction).toHaveBeenCalledWith(expect.objectContaining({
+      kind: 'draw_point',
+      planX: 0,
+      planZ: 0,
+    }));
+  });
+
+  it('does not create draw events for clicks outside the plan surface', () => {
+    const onInteraction = vi.fn();
+    render(
+      <DesignBuilderPlanCanvas
+        layout={createEmptyWallLayout()}
+        toolMode="draw_wall"
+        onInteraction={onInteraction}
+      />,
+    );
+
+    const svg = screen.getByLabelText(/design builder wall layout plan view/i) as SVGSVGElement;
+    vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({
+      left: 100,
+      top: 100,
+      width: 400,
+      height: 300,
+      right: 500,
+      bottom: 400,
+      x: 100,
+      y: 100,
+      toJSON: () => ({}),
+    } as DOMRect);
+
+    fireEvent.pointerDown(svg, { button: 0, clientX: 80, clientY: 200 });
+
+    expect(onInteraction).not.toHaveBeenCalled();
+  });
+
+  it('renders preview endpoint and snap marker at the same projected point', () => {
+    const layout = createEmptyWallLayout({
+      nodes: [{ id: 'node-1', x: 0, z: 0 }],
+    });
+    render(
+      <DesignBuilderPlanCanvas
+        layout={layout}
+        toolMode="draw_wall"
+        activeNodeId="node-1"
+        draftEnd={{ x: 2, z: 1 }}
+        onInteraction={vi.fn()}
+      />,
+    );
+
+    const svg = screen.getByLabelText(/design builder wall layout plan view/i);
+    const previewLine = Array.from(svg.querySelectorAll('line')).find((line) => line.getAttribute('stroke-width') === '3');
+    const snapCircle = Array.from(svg.querySelectorAll('circle')).find((circle) => circle.getAttribute('fill') === 'none');
+
+    expect(previewLine?.getAttribute('x2')).toBe(snapCircle?.getAttribute('cx'));
+    expect(previewLine?.getAttribute('y2')).toBe(snapCircle?.getAttribute('cy'));
   });
 
   it('prevents context menu and undoes the last draw segment on right-click', () => {

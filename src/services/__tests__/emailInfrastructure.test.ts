@@ -154,6 +154,29 @@ describe('email templates', () => {
     expect(rendered.text.split(portalUrl).length - 1).toBe(1);
   });
 
+  it('renders branded employee invite email with role, CTA, company, and expiry', () => {
+    const inviteUrl = 'https://app.example.com/signup?invite=token-abc';
+    const rendered = renderEmailTemplate('teamInvite', {
+      inviteUrl,
+      companyName: 'Concrete Co',
+      inviterName: 'Avery Owner',
+      roleLabel: 'Foreman',
+      expiresAt: 'Jul 4, 2026',
+      supportContact: 'support@ardenprojectos.com',
+    });
+
+    expect(rendered.subject).toBe(
+      'You’ve been invited to join Concrete Co on Arden Project OS',
+    );
+    expect(rendered.html).toContain('Concrete Co');
+    expect(rendered.html).toContain('Avery Owner');
+    expect(rendered.html).toContain('Assigned role:</strong> Foreman');
+    expect(rendered.html).toContain('Accept Invitation');
+    expect(rendered.html).toContain(inviteUrl);
+    expect(rendered.text).toContain('You have been invited to access assigned project work');
+    expect(rendered.text).toContain('Jul 4, 2026');
+  });
+
   it('renders subject, html, and text for changeOrderSent', () => {
     const changeOrderUrl = 'https://app.example.com/change-order/co-token';
     const rendered = renderEmailTemplate('changeOrderSent', {
@@ -426,5 +449,38 @@ describe('proposal pages defer sent status to successful email send', () => {
     const source = readSource('supabase/functions/send-transactional-email/index.ts');
     expect(source).toContain('templateKey === "proposalFollowUp"');
     expect(source).toMatch(/if \(templateKey === "proposalSent"\)/);
+  });
+});
+
+describe('employee invite delivery safeguards', () => {
+  it('uses Resend delivery status and does not return raw invite links as the normal payload', () => {
+    const source = readSource('supabase/functions/invite-employee/index.ts');
+    expect(source).toContain('sendTransactionalEmail');
+    expect(source).toContain('new Set(["starter", "professional", "business"])');
+    expect(source).toContain('starter: 1');
+    expect(source).toContain('email_status: "sent"');
+    expect(source).toContain('email_status: "failed"');
+    expect(source).toContain('action === "revoke"');
+    expect(source).toContain('status: "revoked"');
+    expect(source).toContain('revoked_by');
+    expect(source).not.toContain('admin.auth.admin.inviteUserByEmail');
+    expect(source).not.toContain('inviteLink');
+  });
+
+  it('reuses existing pending invites and blocks seat limits before new invite creation', () => {
+    const source = readSource('supabase/functions/invite-employee/index.ts');
+    const createOrReuseBody = source.slice(
+      source.indexOf('async function createOrReuseInvite'),
+      source.indexOf('async function markInviteAttempt'),
+    );
+    const reuseIndex = createOrReuseBody.indexOf('findPendingInviteByEmail');
+    const insertIndex = createOrReuseBody.indexOf('.insert({');
+    const seatCheckIndex = createOrReuseBody.indexOf('assertSeatAvailableForNewInvite');
+    expect(reuseIndex).toBeGreaterThan(-1);
+    expect(seatCheckIndex).toBeGreaterThan(reuseIndex);
+    expect(insertIndex).toBeGreaterThan(seatCheckIndex);
+    expect(source).toContain(
+      'Field seat limit reached. Starter includes 1 field seat. Remove a pending invite, deactivate a field user, or upgrade for additional field seats.',
+    );
   });
 });

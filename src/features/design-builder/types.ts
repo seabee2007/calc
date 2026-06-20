@@ -303,16 +303,15 @@ export type MasonryUnitType =
   | 'full_block'
   | 'half_block'
   | 'end_block'
-  | 'corner_block'
   | 'jamb_block'
-  | 'bond_beam_block';
+  | 'bond_beam_block'
+  | 'grout_rebar_cell';
 
 export type MasonryToolMode =
   | 'select'
   | 'full_block'
   | 'half_block'
   | 'end_block'
-  | 'corner_block'
   | 'jamb_block'
   | 'bond_beam_block'
   | 'grout_rebar_cell'
@@ -321,13 +320,20 @@ export type MasonryToolMode =
 export interface MasonryCourseRun {
   id: string;
   wallSegmentId: string;
+  origin: { x: number; y: number; z: number };
+  tangent: { x: number; z: number };
   courseIndex: number;
   startModuleIndex: number;
   unitType: MasonryUnitType;
   count: number;
+  moduleLengthMeters: number;
+  moduleHeightMeters: number;
+  wallThicknessMeters: number;
   direction: 'forward' | 'reverse';
-  source: 'manual';
+  source: 'manual' | 'manual_3d_brush';
+  /** @deprecated Prefer origin.x */
   originX: number;
+  /** @deprecated Prefer origin.z */
   originZ: number;
   orientation: 'east' | 'west' | 'north' | 'south';
 }

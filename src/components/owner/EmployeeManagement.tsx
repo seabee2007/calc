@@ -1,16 +1,16 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { UserPlus, Mail, Users, Clock, FolderKanban, Link2, Trash2, Smartphone, Copy, Check, Loader2 } from 'lucide-react';
+import { UserPlus, Mail, Users, Clock, FolderKanban, Link2, Trash2, Smartphone, Copy, Check, Loader2, MoreHorizontal, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useSubscription } from '../../contexts/SubscriptionContext';
 import UpgradeRequiredCard from '../subscription/UpgradeRequiredCard';
 import {
   assignEmployeeToProject,
   createEmployeeInvite,
-  employeeInviteLoginHref,
   employeeInviteSignupHref,
   fetchAssignmentsForProject,
   fetchPendingInvites,
   removeEmployeeFromProject,
+  revokeEmployeeInvite,
   sendEmployeeInviteEmail,
 } from '../../services/employeeService';
 import { fetchTeamProfiles, DEFAULT_PROFILE_DISPLAY_NAME } from '../../services/profileService';
@@ -19,6 +19,7 @@ import Input from '../ui/Input';
 import Select from '../ui/Select';
 import Button from '../ui/Button';
 import InlineNotice from '../ui/InlineNotice';
+import ConfirmModal from '../ui/ConfirmModal';
 import { useProjectStore } from '../../store';
 import {
   BORDER_DEFAULT,
@@ -60,6 +61,18 @@ function formatSentDate(iso: string): string {
   });
 }
 
+function inviteExpired(expiresAt: string): boolean {
+  const date = new Date(expiresAt);
+  return !expiresAt || Number.isNaN(date.getTime()) || date.getTime() <= Date.now();
+}
+
+function inviteStatusLabel(invite: EmployeeInvite): string {
+  if (inviteExpired(invite.expiresAt)) return 'Expired';
+  if (invite.emailStatus === 'sent') return 'Sent';
+  if (invite.emailStatus === 'failed') return 'Delivery failed';
+  return 'Pending';
+}
+
 export default function EmployeeManagement() {
   const { user } = useAuth();
   const { hasFeature, canInviteTeamMember } = useSubscription();
@@ -77,6 +90,10 @@ export default function EmployeeManagement() {
   const [inviteSending, setInviteSending] = useState(false);
   const inviteSendingRef = useRef(false);
   const [copiedMemberId, setCopiedMemberId] = useState<string | null>(null);
+  const [openInviteActionsId, setOpenInviteActionsId] = useState<string | null>(null);
+  const [resendingInviteId, setResendingInviteId] = useState<string | null>(null);
+  const [revokingInviteId, setRevokingInviteId] = useState<string | null>(null);
+  const [invitePendingRevoke, setInvitePendingRevoke] = useState<EmployeeInvite | null>(null);
 
   useEffect(() => {
     void loadProjects();
@@ -132,7 +149,8 @@ export default function EmployeeManagement() {
     setMessageTone(tone);
   };
 
-  const seatUsageCount = team.length + invites.length;
+  const activePendingInviteCount = invites.filter((invite) => !inviteExpired(invite.expiresAt)).length;
+  const seatUsageCount = team.length + activePendingInviteCount;
   const canUseTeamInvites = hasFeature('employee_portal');
   const inviteAllowed = canUseTeamInvites && canInviteTeamMember(seatUsageCount);
   const seatLimitReached = canUseTeamInvites && !canInviteTeamMember(seatUsageCount);
@@ -148,7 +166,7 @@ export default function EmployeeManagement() {
 
     if (!canInviteTeamMember(seatUsageCount)) {
       showMessage(
-        'Field seat limit reached. Upgrade your plan or remove a pending invite.',
+        'Field seat limit reached. Starter includes 1 field seat. Remove a pending invite, deactivate a field user, or upgrade for additional field seats.',
         'warning',
       );
       return;
@@ -160,28 +178,16 @@ export default function EmployeeManagement() {
     const submittedEmail = email.trim();
 
     try {
-      const invite = await createEmployeeInvite(
+      const result = await createEmployeeInvite(
         user.id,
         submittedEmail,
         role as import('../../types/fieldPlanner').UserRole,
       );
-      const signupLink = employeeInviteSignupHref(invite.token);
-      try {
-        const result = await sendEmployeeInviteEmail(invite.id);
-        const link = result.inviteLink || signupLink;
-        if (result.existingUser) {
-          showMessage(
-            `Account already exists for ${submittedEmail}. Share this login link: ${result.inviteLink || employeeInviteLoginHref(invite.token)}`,
-            'warning',
-          );
-        } else {
-          showMessage(`Invite sent to ${submittedEmail}. Backup link: ${link}`, 'success');
-        }
-      } catch (err) {
+      if (result.emailStatus === 'sent') {
+        showMessage(`Invitation sent to ${submittedEmail}.`, 'success');
+      } else {
         showMessage(
-          `Invite created. Share this signup link: ${signupLink}${
-            err instanceof Error ? ` (${err.message})` : ''
-          }`,
+          'Invite created, but email delivery failed. Resend from Pending Invites.',
           'warning',
         );
       }
@@ -222,14 +228,60 @@ export default function EmployeeManagement() {
     }
   };
 
-  const handleCopyFieldLinkByToken = async (memberId: string, token: string) => {
-    const link = employeeInviteLoginHref(token);
+  const handleCopyInviteLinkByToken = async (memberId: string, token: string) => {
+    const link = employeeInviteSignupHref(token);
     try {
       await navigator.clipboard.writeText(link);
       setCopiedMemberId(memberId);
       setTimeout(() => setCopiedMemberId(null), 2000);
+      showMessage('Invite link copied as fallback.', 'info');
     } catch {
-      showMessage(`Field login link: ${link}`, 'info');
+      showMessage('Could not copy invite link. Try resending the invitation email.', 'warning');
+    }
+  };
+
+  const handleResendInvite = async (invite: EmployeeInvite) => {
+    setResendingInviteId(invite.id);
+    setOpenInviteActionsId(null);
+    try {
+      const result = await sendEmployeeInviteEmail(invite.id);
+      if (result.emailStatus === 'sent') {
+        showMessage(`Invitation sent to ${invite.email}.`, 'success');
+      } else {
+        showMessage(
+          'Invite created, but email delivery failed. Resend from Pending Invites.',
+          'warning',
+        );
+      }
+      await reload();
+    } catch (err) {
+      showMessage(err instanceof Error ? err.message : 'Could not resend invite', 'warning');
+    } finally {
+      setResendingInviteId(null);
+    }
+  };
+
+  const requestRevokeInvite = (invite: EmployeeInvite) => {
+    setOpenInviteActionsId(null);
+    setInvitePendingRevoke(invite);
+  };
+
+  const handleConfirmRevokeInvite = async () => {
+    const invite = invitePendingRevoke;
+    if (!invite) return;
+    setRevokingInviteId(invite.id);
+    setOpenInviteActionsId(null);
+    setInvitePendingRevoke(null);
+    showMessage(`Revoking invite for ${invite.email}...`, 'info');
+    try {
+      await revokeEmployeeInvite(invite.id);
+      setInvites((current) => current.filter((item) => item.id !== invite.id));
+      showMessage(`Invite revoked for ${invite.email}.`, 'success');
+      await reload();
+    } catch (err) {
+      showMessage(err instanceof Error ? err.message : 'Could not revoke invite', 'warning');
+    } finally {
+      setRevokingInviteId(null);
     }
   };
 
@@ -237,6 +289,18 @@ export default function EmployeeManagement() {
 
   return (
     <div className="space-y-6">
+      <ConfirmModal
+        isOpen={Boolean(invitePendingRevoke)}
+        title="Revoke invitation?"
+        message="This immediately disables the invitation link and releases the reserved field seat. The recipient will no longer be able to join using this invitation."
+        cancelLabel="Cancel"
+        confirmLabel="Revoke invitation"
+        confirmVariant="danger"
+        showWarningIcon
+        onCancel={() => setInvitePendingRevoke(null)}
+        onConfirm={() => void handleConfirmRevokeInvite()}
+      />
+
       {inviteSending ? (
         <div
           className="fixed inset-0 z-[10050] flex items-center justify-center bg-slate-950/60 px-4 backdrop-blur-sm dark:bg-slate-950/70"
@@ -298,10 +362,10 @@ export default function EmployeeManagement() {
           </div>
         ) : seatLimitReached ? (
           <div className="mt-6">
-            <UpgradeRequiredCard
-              feature="employee_portal"
+            <InlineNotice
+              variant="warning"
               title="Field seat limit reached"
-              description="Field seat limit reached. Upgrade your plan or remove a pending invite."
+              description="Starter includes 1 field seat. Remove a pending invite, deactivate a field user, or upgrade for additional field seats."
             />
           </div>
         ) : (
@@ -356,19 +420,84 @@ export default function EmployeeManagement() {
             </p>
           ) : (
             <ul className={`divide-y ${BORDER_DEFAULT}`}>
-              {invites.map((inv) => (
-                <li key={inv.id} className="flex flex-col gap-2 py-4 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="min-w-0">
-                    <p className={`font-medium ${TEXT_FOREGROUND}`}>{inv.email}</p>
-                    <p className={`mt-1 text-sm ${TEXT_MUTED}`}>
-                      {formatRoleLabel(inv.role)} · Sent {formatSentDate(inv.createdAt)} · Pending
-                    </p>
-                    <p className={`mt-2 break-all text-xs ${TEXT_SUBTLE}`}>
-                      {employeeInviteSignupHref(inv.token)}
-                    </p>
-                  </div>
-                </li>
-              ))}
+              {invites.map((inv) => {
+                const status = inviteStatusLabel(inv);
+                const isCopied = copiedMemberId === `inv-${inv.id}`;
+                const isBusy = resendingInviteId === inv.id || revokingInviteId === inv.id;
+                return (
+                  <li key={inv.id} className="flex flex-col gap-3 py-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0">
+                      <p className={`font-medium ${TEXT_FOREGROUND}`}>{inv.email}</p>
+                      <p className={`mt-1 text-sm ${TEXT_MUTED}`}>
+                        {formatRoleLabel(inv.role)} · Sent {formatSentDate(inv.emailSentAt ?? inv.createdAt)} · Expires {formatSentDate(inv.expiresAt)}
+                      </p>
+                      <span
+                        className={`mt-2 inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                          status === 'Sent'
+                            ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+                            : status === 'Delivery failed' || status === 'Expired'
+                              ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300'
+                              : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200'
+                        }`}
+                      >
+                        {status}
+                      </span>
+                      {inv.emailLastError ? (
+                        <p className={`mt-2 text-xs ${TEXT_SUBTLE}`}>
+                          Last delivery error: {inv.emailLastError}
+                        </p>
+                      ) : null}
+                    </div>
+                    <div className="relative flex justify-end">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={isBusy}
+                        icon={<MoreHorizontal className="h-4 w-4" />}
+                        onClick={() =>
+                          setOpenInviteActionsId((current) => (current === inv.id ? null : inv.id))
+                        }
+                        aria-expanded={openInviteActionsId === inv.id}
+                        data-testid={`invite-actions-${inv.id}`}
+                      >
+                        Actions
+                      </Button>
+                      {openInviteActionsId === inv.id ? (
+                        <div className="absolute right-0 top-10 z-20 w-48 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-xl dark:border-slate-700 dark:bg-slate-900">
+                          <button
+                            type="button"
+                            className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                            onClick={() => void handleResendInvite(inv)}
+                            data-testid={`resend-invite-${inv.id}`}
+                          >
+                            <RefreshCw className="h-4 w-4" />
+                            Resend invite
+                          </button>
+                          <button
+                            type="button"
+                            className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                            onClick={() => void handleCopyInviteLinkByToken(`inv-${inv.id}`, inv.token)}
+                            data-testid={`copy-invite-link-${inv.id}`}
+                          >
+                            {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                            {isCopied ? 'Copied!' : 'Copy invite link'}
+                          </button>
+                          <button
+                            type="button"
+                            className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-rose-700 hover:bg-rose-50 dark:text-rose-300 dark:hover:bg-rose-950/40"
+                            onClick={() => requestRevokeInvite(inv)}
+                            data-testid={`revoke-invite-${inv.id}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            Revoke invite
+                          </button>
+                        </div>
+                      ) : null}
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>
@@ -574,48 +703,6 @@ export default function EmployeeManagement() {
                 );
               })}
             </ul>
-          )}
-
-          {/* Pending invite links */}
-          {invites.length > 0 && (
-            <div className="mt-6 border-t pt-4 border-slate-200 dark:border-slate-800">
-              <h3 className={`text-sm font-semibold ${TEXT_FOREGROUND} mb-3`}>
-                Pending Field Portal invites
-              </h3>
-              <ul className={`divide-y ${BORDER_DEFAULT}`}>
-                {invites.map((inv) => {
-                  const isCopied = copiedMemberId === `inv-${inv.id}`;
-                  return (
-                    <li key={inv.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div>
-                        <p className={`text-sm font-medium ${TEXT_FOREGROUND}`}>{inv.email}</p>
-                        <p className={`text-xs ${TEXT_MUTED}`}>
-                          {formatRoleLabel(inv.role)} · Sent {formatSentDate(inv.createdAt)}
-                        </p>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        icon={
-                          isCopied ? (
-                            <Check className="h-3.5 w-3.5 text-emerald-400" />
-                          ) : (
-                            <Copy className="h-3.5 w-3.5" />
-                          )
-                        }
-                        onClick={() =>
-                          void handleCopyFieldLinkByToken(`inv-${inv.id}`, inv.token)
-                        }
-                        data-testid={`copy-invite-link-${inv.id}`}
-                      >
-                        {isCopied ? 'Copied!' : 'Copy Invite Link'}
-                      </Button>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
           )}
         </div>
       </section>

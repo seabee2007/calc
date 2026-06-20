@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { describe, expect, it, vi } from 'vitest';
 import {
+  createPlanViewportTransform,
   getNormalizedPointerFromClient,
   getPlanPointFromPointer,
   getSvgPlanPointFromPointer,
@@ -91,5 +92,29 @@ describe('pointerPlanMapping', () => {
 
     expect(screenPointerToPlanPoint({ clientX: 500, clientY: 350 }, svg, 400, 200, 50)).toEqual({ x: 0, z: 0 });
     expect(screenPointerToPlanPoint({ clientX: 100, clientY: 150 }, svg, 400, 200, 50)).toEqual({ x: -8, z: 4 });
+  });
+
+  it('creates a reversible plan viewport transform from the actual plan surface rect', () => {
+    const svg = {
+      getBoundingClientRect: vi.fn(() => ({
+        left: 320,
+        top: 140,
+        width: 480,
+        height: 360,
+        right: 800,
+        bottom: 500,
+        x: 320,
+        y: 140,
+        toJSON: () => ({}),
+      } as DOMRect)),
+      viewBox: { baseVal: { x: 0, y: 0, width: 480, height: 360 } },
+    } as SVGSVGElement;
+
+    const transform = createPlanViewportTransform(svg, { minX: -5, maxX: 5, minZ: -4, maxZ: 3.5 }, 48);
+
+    expect(transform?.containsClientPoint(320, 140)).toBe(true);
+    expect(transform?.containsClientPoint(100, 140)).toBe(false);
+    expect(transform?.screenToPlanPoint(560, 320)).toEqual({ x: 0, z: -0.25 });
+    expect(transform?.planToScreenPoint({ x: 0, z: -0.25 })).toEqual({ x: 240, y: 180 });
   });
 });

@@ -8,9 +8,10 @@ import type {
   MasonryCourseRun,
   MasonryToolMode,
 } from '../types';
-import { screenPointerToPlanPoint } from '../domain/pointerPlanMapping';
+import { createPlanViewportTransform } from '../domain/pointerPlanMapping';
 import { ENDPOINT_SNAP_TOLERANCE_METERS } from '../domain/wallLayoutRules';
 import { resolveCmuModuleConfig } from '../domain/cmuModuleRules';
+import { DESIGN_BUILDER_COPY } from '../domain/designBuilderCopy';
 import { unitModuleSpan } from '../domain/manualMasonryRules';
 
 const PIXELS_PER_METER = 48;
@@ -39,13 +40,6 @@ interface DesignBuilderPlanCanvasProps {
   }) => void;
 }
 
-function toScreen(x: number, z: number, centerX: number, centerY: number) {
-  return {
-    sx: centerX + x * PIXELS_PER_METER,
-    sy: centerY - z * PIXELS_PER_METER,
-  };
-}
-
 export default function DesignBuilderPlanCanvas({
   layout,
   toolMode,
@@ -62,32 +56,42 @@ export default function DesignBuilderPlanCanvas({
   const manualDragActiveRef = useRef(false);
 
   const bounds = useMemo(() => {
+    const defaultBounds = { minX: -4, maxX: 4, minZ: -3, maxZ: 3 };
     if (layout.nodes.length === 0) {
-      return { minX: -4, maxX: 4, minZ: -3, maxZ: 3 };
+      return defaultBounds;
     }
     const xs = layout.nodes.map((node) => node.x);
     const zs = layout.nodes.map((node) => node.z);
     return {
-      minX: Math.min(...xs) - 1,
-      maxX: Math.max(...xs) + 1,
-      minZ: Math.min(...zs) - 1,
-      maxZ: Math.max(...zs) + 1,
+      minX: Math.min(defaultBounds.minX, ...xs.map((x) => x - 1)),
+      maxX: Math.max(defaultBounds.maxX, ...xs.map((x) => x + 1)),
+      minZ: Math.min(defaultBounds.minZ, ...zs.map((z) => z - 1)),
+      maxZ: Math.max(defaultBounds.maxZ, ...zs.map((z) => z + 1)),
     };
   }, [layout.nodes]);
 
   const viewBox = useMemo(() => {
-    const width = (bounds.maxX - bounds.minX) * PIXELS_PER_METER + 80;
-    const height = (bounds.maxZ - bounds.minZ) * PIXELS_PER_METER + 80;
-    return { width, height, centerX: width / 2, centerY: height / 2 };
+    const width = Math.max(1, (bounds.maxX - bounds.minX) * PIXELS_PER_METER);
+    const height = Math.max(1, (bounds.maxZ - bounds.minZ) * PIXELS_PER_METER);
+    return { width, height };
   }, [bounds]);
+
+  const planToSurfacePoint = useCallback(
+    (point: { x: number; z: number }) => ({
+      sx: (point.x - bounds.minX) * PIXELS_PER_METER,
+      sy: (bounds.maxZ - point.z) * PIXELS_PER_METER,
+    }),
+    [bounds.maxZ, bounds.minX],
+  );
 
   const screenFromEvent = useCallback(
     (event: PointerEvent<SVGSVGElement>) => {
       const svg = svgRef.current;
       if (!svg) return null;
-      return screenPointerToPlanPoint(event, svg, viewBox.centerX, viewBox.centerY, PIXELS_PER_METER);
+      const transform = createPlanViewportTransform(svg, bounds, PIXELS_PER_METER);
+      return transform?.screenToPlanPoint(event.clientX, event.clientY) ?? null;
     },
-    [viewBox.centerX, viewBox.centerY],
+    [bounds],
   );
 
   const handlePointerMove = (event: PointerEvent<SVGSVGElement>) => {
@@ -214,14 +218,14 @@ export default function DesignBuilderPlanCanvas({
   const gridLines = [];
   const gridStep = layout.gridSpacingMeters || 0.5;
   for (let x = Math.floor(bounds.minX); x <= Math.ceil(bounds.maxX); x += gridStep) {
-    const start = toScreen(x, bounds.minZ, viewBox.centerX, viewBox.centerY);
-    const end = toScreen(x, bounds.maxZ, viewBox.centerX, viewBox.centerY);
-    gridLines.push(<line key={`gx-${x}`} x1={start.sx} y1={start.sy} x2={end.sx} y2={end.sy} stroke="currentColor" strokeOpacity={0.08} />);
+    const start = planToSurfacePoint({ x, z: bounds.minZ });
+    const end = planToSurfacePoint({ x, z: bounds.maxZ });
+    gridLines.push(<line key={`gx-${x}`} x1={start.sx} y1={start.sy} x2={end.sx} y2={end.sy} stroke="currentColor" strokeOpacity={0.08} pointerEvents="none" />);
   }
   for (let z = Math.floor(bounds.minZ); z <= Math.ceil(bounds.maxZ); z += gridStep) {
-    const start = toScreen(bounds.minX, z, viewBox.centerX, viewBox.centerY);
-    const end = toScreen(bounds.maxX, z, viewBox.centerX, viewBox.centerY);
-    gridLines.push(<line key={`gz-${z}`} x1={start.sx} y1={start.sy} x2={end.sx} y2={end.sy} stroke="currentColor" strokeOpacity={0.08} />);
+    const start = planToSurfacePoint({ x: bounds.minX, z });
+    const end = planToSurfacePoint({ x: bounds.maxX, z });
+    gridLines.push(<line key={`gz-${z}`} x1={start.sx} y1={start.sy} x2={end.sx} y2={end.sy} stroke="currentColor" strokeOpacity={0.08} pointerEvents="none" />);
   }
 
   const activeNode = layout.nodes.find((node) => node.id === activeNodeId) ?? null;
@@ -230,8 +234,8 @@ export default function DesignBuilderPlanCanvas({
   const closesFootprint =
     Boolean(firstNode && draftEnd && layout.segments.length >= 2 && Math.hypot(draftEnd.x - firstNode.x, draftEnd.z - firstNode.z) <= Math.max(ENDPOINT_SNAP_TOLERANCE_METERS, layout.gridSpacingMeters));
   const invalidPreview = Boolean(activeNode && draftEnd && previewLength < MIN_SEGMENT_LENGTH_METERS && !closesFootprint);
-  const previewMidpoint = activeNode && draftEnd ? toScreen((activeNode.x + draftEnd.x) / 2, (activeNode.z + draftEnd.z) / 2, viewBox.centerX, viewBox.centerY) : null;
-  const snapMarker = draftEnd ? toScreen(draftEnd.x, draftEnd.z, viewBox.centerX, viewBox.centerY) : null;
+  const previewMidpoint = activeNode && draftEnd ? planToSurfacePoint({ x: (activeNode.x + draftEnd.x) / 2, z: (activeNode.z + draftEnd.z) / 2 }) : null;
+  const snapMarker = draftEnd ? planToSurfacePoint(draftEnd) : null;
   const manualModule = manualMasonry ? resolveCmuModuleConfig(manualMasonry.wall) : null;
   const manualModuleLength = manualModule?.moduleLengthMeters ?? manualMasonry?.wall.blockLengthMeters ?? 0.4;
   const manualModuleDepth = manualModule?.nominalDepthMeters ?? manualMasonry?.wall.wallThicknessMeters ?? 0.19;
@@ -242,10 +246,17 @@ export default function DesignBuilderPlanCanvas({
     const span = unitModuleSpan(run.unitType);
     const unitLength = manualModuleLength * span;
     return Array.from({ length: run.count }, (_, index) => {
-      const x = run.originX + index * unitLength;
-      const z = run.originZ;
-      const topLeft = toScreen(x, z + manualModuleDepth, viewBox.centerX, viewBox.centerY);
-      const bottomRight = toScreen(x + unitLength, z, viewBox.centerX, viewBox.centerY);
+      const orientation = run.orientation ?? 'east';
+      const alongX = orientation === 'east' || orientation === 'west';
+      const direction = orientation === 'west' || orientation === 'north' ? -1 : 1;
+      const x = run.originX + (alongX ? index * unitLength * direction : 0);
+      const z = run.originZ + (!alongX ? index * unitLength * direction : 0);
+      const minX = alongX ? Math.min(x, x + unitLength * direction) : x;
+      const maxX = alongX ? Math.max(x, x + unitLength * direction) : x + manualModuleDepth;
+      const minZ = alongX ? z : Math.min(z, z + unitLength * direction);
+      const maxZ = alongX ? z + manualModuleDepth : Math.max(z, z + unitLength * direction);
+      const topLeft = planToSurfacePoint({ x: minX, z: maxZ });
+      const bottomRight = planToSurfacePoint({ x: maxX, z: minZ });
       return (
         <rect
           key={`${keyPrefix}-${index}`}
@@ -269,14 +280,15 @@ export default function DesignBuilderPlanCanvas({
       <div className="absolute left-3 top-3 rounded-full border border-cyan-700 bg-slate-900/90 px-3 py-1 text-xs font-medium text-cyan-200">
         Plan layout · {layout.dimensionBasis === 'outside_face' ? 'Outside face' : layout.dimensionBasis}
       </div>
-      {layout.segments.length === 0 ? (
+      {layout.segments.length === 0 && manualRuns.length === 0 ? (
         <div className="pointer-events-none absolute bottom-3 left-3 z-10 rounded-lg bg-slate-900/70 px-3 py-1.5 text-xs text-slate-300">
-          Choose Draw Wall to begin.
+          {DESIGN_BUILDER_COPY.hints.blankPlan}
         </div>
       ) : null}
       <svg
         ref={svgRef}
         viewBox={`0 0 ${viewBox.width} ${viewBox.height}`}
+        preserveAspectRatio="none"
         className="h-full w-full touch-none"
         onPointerMove={handlePointerMove}
         onPointerDown={handlePointerDown}
@@ -292,8 +304,8 @@ export default function DesignBuilderPlanCanvas({
           const start = layout.nodes.find((node) => node.id === segment.startNodeId);
           const end = layout.nodes.find((node) => node.id === segment.endNodeId);
           if (!start || !end) return null;
-          const a = toScreen(start.x, start.z, viewBox.centerX, viewBox.centerY);
-          const b = toScreen(end.x, end.z, viewBox.centerX, viewBox.centerY);
+                const a = planToSurfacePoint(start);
+                const b = planToSurfacePoint(end);
           const selected = selectedSegmentId === segment.id;
           return (
             <g key={segment.id}>
@@ -305,22 +317,10 @@ export default function DesignBuilderPlanCanvas({
                 stroke="transparent"
                 strokeWidth={18}
                 strokeLinecap="round"
+                pointerEvents="none"
                 data-selectable="true"
                 data-selectable-type="wall_segment"
                 data-segment-id={segment.id}
-                onPointerDown={(event) => {
-                  if (event.button !== 0) return;
-                  event.stopPropagation();
-                  const point = screenFromEvent(event);
-                  if (!point) return;
-                  onInteraction({
-                    kind: 'segment_pick',
-                    toolMode,
-                    phase: 'commit',
-                    planX: point.x,
-                    planZ: point.z,
-                  });
-                }}
               />
               <line
                 x1={a.sx}
@@ -337,8 +337,8 @@ export default function DesignBuilderPlanCanvas({
         })}
         {activeNode && draftEnd ? (
           (() => {
-            const a = toScreen(activeNode.x, activeNode.z, viewBox.centerX, viewBox.centerY);
-            const b = toScreen(draftEnd.x, draftEnd.z, viewBox.centerX, viewBox.centerY);
+            const a = planToSurfacePoint(activeNode);
+            const b = planToSurfacePoint(draftEnd);
             return (
               <line
                 x1={a.sx}
@@ -349,6 +349,7 @@ export default function DesignBuilderPlanCanvas({
                 strokeWidth={3}
                 strokeDasharray="8 6"
                 strokeLinecap="round"
+                pointerEvents="none"
               />
             );
           })()
@@ -362,6 +363,7 @@ export default function DesignBuilderPlanCanvas({
             stroke={invalidPreview ? '#fb7185' : closesFootprint ? '#22d3ee' : '#fbbf24'}
             strokeOpacity={0.95}
             strokeWidth={closesFootprint ? 3 : 2.5}
+            pointerEvents="none"
           />
         ) : null}
         {previewMidpoint && previewLength > 0 ? (
@@ -374,12 +376,13 @@ export default function DesignBuilderPlanCanvas({
             paintOrder="stroke"
             stroke="#0f172a"
             strokeWidth={4}
+            pointerEvents="none"
           >
             {previewLength.toFixed(2)} m
           </text>
         ) : null}
         {layout.nodes.map((node) => {
-          const point = toScreen(node.x, node.z, viewBox.centerX, viewBox.centerY);
+          const point = planToSurfacePoint(node);
           const selected = selectedNodeId === node.id || activeNodeId === node.id;
           return (
             <circle
@@ -390,6 +393,7 @@ export default function DesignBuilderPlanCanvas({
               fill={selected ? '#22d3ee' : node.id === firstNode?.id && toolMode === 'draw_wall' ? '#34d399' : '#e2e8f0'}
               stroke="#0f172a"
               strokeWidth={2}
+              pointerEvents="none"
             />
           );
         })}

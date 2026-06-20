@@ -55,6 +55,12 @@ interface DesignBuilderViewerProps {
   showOpeningLayout?: boolean;
   showGroutCells?: boolean;
   showClosureWarnings?: boolean;
+  manualMasonryEnabled?: boolean;
+  onManualMasonryPointer?: (event: {
+    kind: 'preview' | 'start' | 'commit' | 'cancel_preview' | 'undo';
+    planX?: number;
+    planZ?: number;
+  }) => void;
 }
 
 function isDarkMode(): boolean {
@@ -95,11 +101,14 @@ export default function DesignBuilderViewer({
   showOpeningLayout = true,
   showGroutCells = false,
   showClosureWarnings = false,
+  manualMasonryEnabled = false,
+  onManualMasonryPointer,
 }: DesignBuilderViewerProps) {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const onSelectRef = useRef(onSelectObjectType);
   const onInteractionRef = useRef(onInteraction);
   const onCameraSnapshotRef = useRef(onCameraSnapshotChange);
+  const onManualMasonryPointerRef = useRef(onManualMasonryPointer);
   const initialCameraSnapshotRef = useRef(initialCameraSnapshot);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const controlsRef = useRef<OrbitControls | null>(null);
@@ -107,6 +116,7 @@ export default function DesignBuilderViewer({
   const toolModeRef = useRef(toolMode);
   const selectedOpeningIdRef = useRef(selectedOpeningId);
   const placementPreviewRef = useRef(placementPreview);
+  const manualMasonryEnabledRef = useRef(manualMasonryEnabled);
   const rebuildModelRef = useRef<(() => void) | null>(null);
   const updateGhostRef = useRef<(() => void) | null>(null);
   const modelParamsRef = useRef({
@@ -136,9 +146,11 @@ export default function DesignBuilderViewer({
   onSelectRef.current = onSelectObjectType;
   onInteractionRef.current = onInteraction;
   onCameraSnapshotRef.current = onCameraSnapshotChange;
+  onManualMasonryPointerRef.current = onManualMasonryPointer;
   toolModeRef.current = toolMode;
   selectedOpeningIdRef.current = selectedOpeningId;
   placementPreviewRef.current = placementPreview;
+  manualMasonryEnabledRef.current = manualMasonryEnabled;
 
   useEffect(() => {
     updateGhostRef.current?.();
@@ -186,6 +198,7 @@ export default function DesignBuilderViewer({
     const grid = new THREE.GridHelper(14, 28);
     scene.add(grid);
     const raycaster = new THREE.Raycaster();
+    const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
     const selectable: THREE.Object3D[] = [];
     const wallPickables: THREE.Object3D[] = [];
     const materialsToDispose: THREE.Material[] = [];
@@ -193,6 +206,7 @@ export default function DesignBuilderViewer({
     let ghostMaterials: THREE.Material[] = [];
 
     let pointerDown: { x: number; y: number; button: number } | null = null;
+    let manualBrushActive = false;
     let dragOpeningId: string | null = null;
     let dragWallFace: WallOpeningParameters['wallFace'] | null = null;
 
@@ -289,6 +303,13 @@ export default function DesignBuilderViewer({
           const priorityDelta = (b.data.selectionPriority ?? 0) - (a.data.selectionPriority ?? 0);
           return priorityDelta !== 0 ? priorityDelta : a.hit.distance - b.hit.distance;
         })[0] ?? null;
+    }
+
+    function pickManualBrushPoint(event: PointerEvent) {
+      setPointerFromEvent(event);
+      const hit = new THREE.Vector3();
+      if (!raycaster.ray.intersectPlane(groundPlane, hit)) return null;
+      return { x: hit.x, z: hit.z };
     }
 
     function clearGhost() {
@@ -527,16 +548,26 @@ export default function DesignBuilderViewer({
       const manualRuns = currentWall.manualMasonryCourseRuns ?? [];
       if (manualRuns.length > 0) {
         const manualBlocks = manualRuns.flatMap((run) => {
-          const span = run.unitType === 'half_block' ? 0.5 : 1;
-          const length = currentWall.blockLengthMeters * span;
-          const rotationY = run.orientation === 'north' || run.orientation === 'south' ? Math.PI / 2 : 0;
+          const length = run.moduleLengthMeters || currentWall.blockLengthMeters * (run.unitType === 'half_block' ? 0.5 : 1);
+          const height = run.moduleHeightMeters || currentWall.blockHeightMeters;
+          const thickness = run.wallThicknessMeters || currentWall.wallThicknessMeters;
+          const tangentLength = Math.hypot(run.tangent?.x ?? 1, run.tangent?.z ?? 0) || 1;
+          const tangent = {
+            x: (run.tangent?.x ?? 1) / tangentLength,
+            z: (run.tangent?.z ?? 0) / tangentLength,
+          };
+          const normal = { x: -tangent.z, z: tangent.x };
+          const origin = run.origin ?? { x: run.originX, y: run.courseIndex * height, z: run.originZ };
+          const rotationY = Math.atan2(tangent.z, tangent.x);
           return Array.from({ length: run.count }, (_, index) => ({
             id: `${run.id}:${index}`,
             unitType: run.unitType,
             length,
-            x: run.originX + index * length + length / 2,
-            y: currentWall.blockHeightMeters / 2 + run.courseIndex * currentWall.blockHeightMeters,
-            z: run.originZ + currentWall.wallThicknessMeters / 2,
+            height,
+            thickness,
+            x: origin.x + tangent.x * (index * length + length / 2) + normal.x * (thickness / 2),
+            y: origin.y + height / 2,
+            z: origin.z + tangent.z * (index * length + length / 2) + normal.z * (thickness / 2),
             rotationY,
           }));
         });
@@ -547,7 +578,7 @@ export default function DesignBuilderViewer({
           manualBlocksByType.set(block.unitType, blocks);
         });
         manualBlocksByType.forEach((instances, unitType) => {
-          const blockGeometry = trackGeometry(new THREE.BoxGeometry(1, 1, currentWall.wallThicknessMeters));
+          const blockGeometry = trackGeometry(new THREE.BoxGeometry(1, 1, 1));
           const blockMaterial = makeMaterial(manualBlockColor(unitType), currentSelectedObjectType === 'cmu_wall_system');
           const blocks = new THREE.InstancedMesh(blockGeometry, blockMaterial, instances.length);
           blocks.userData.manualMasonry = true;
@@ -558,7 +589,7 @@ export default function DesignBuilderViewer({
             matrix.compose(
               new THREE.Vector3(block.x, currentSlab.slabThicknessMeters + block.y, block.z),
               quaternion,
-              new THREE.Vector3(block.length, currentWall.blockHeightMeters, 1),
+              new THREE.Vector3(block.length, block.height, block.thickness),
             );
             blocks.setMatrixAt(index, matrix);
           });
@@ -671,6 +702,15 @@ export default function DesignBuilderViewer({
       if (event.button === 1) event.preventDefault();
       pointerDown = { x: event.clientX, y: event.clientY, button: event.button };
       const mode = toolModeRef.current;
+      if (manualMasonryEnabledRef.current && event.button === 0) {
+        const point = pickManualBrushPoint(event);
+        if (!point) return;
+        event.preventDefault();
+        manualBrushActive = true;
+        controls.enabled = false;
+        onManualMasonryPointerRef.current?.({ kind: 'start', planX: point.x, planZ: point.z });
+        return;
+      }
       if (mode === 'move_opening' && event.button === 0) {
         const hit = pickSelectable(event);
         const openingId = hit?.data.openingId;
@@ -684,6 +724,12 @@ export default function DesignBuilderViewer({
 
     const handlePointerMove = (event: PointerEvent) => {
       const mode = toolModeRef.current;
+      if (manualMasonryEnabledRef.current) {
+        const point = pickManualBrushPoint(event);
+        if (!point) return;
+        onManualMasonryPointerRef.current?.({ kind: 'preview', planX: point.x, planZ: point.z });
+        return;
+      }
       if (dragOpeningId && dragWallFace) {
         const pick = pickWall(event);
         if (!pick || pick.wallFace !== dragWallFace) return;
@@ -711,6 +757,14 @@ export default function DesignBuilderViewer({
     };
 
     const handlePointerUp = (event: PointerEvent) => {
+      if (manualMasonryEnabledRef.current && manualBrushActive && event.button === 0) {
+        const point = pickManualBrushPoint(event);
+        manualBrushActive = false;
+        controls.enabled = true;
+        pointerDown = null;
+        if (point) onManualMasonryPointerRef.current?.({ kind: 'commit', planX: point.x, planZ: point.z });
+        return;
+      }
       if (event.button !== 0 || pointerDown?.button !== 0) {
         pointerDown = null;
         return;
@@ -774,16 +828,33 @@ export default function DesignBuilderViewer({
     };
 
     const handleKeyDown = (event: KeyboardEvent) => {
+      if (manualMasonryEnabledRef.current && (event.key === 'Backspace' || event.key === 'Delete')) {
+        event.preventDefault();
+        onManualMasonryPointerRef.current?.({ kind: 'undo' });
+        return;
+      }
       if (event.key !== 'Escape') return;
       dragOpeningId = null;
       dragWallFace = null;
+      manualBrushActive = false;
       controls.enabled = true;
+      if (manualMasonryEnabledRef.current) {
+        onManualMasonryPointerRef.current?.({ kind: 'cancel_preview' });
+        return;
+      }
       onInteractionRef.current?.({ kind: 'cancel', toolMode: toolModeRef.current });
+    };
+
+    const handleContextMenu = (event: MouseEvent) => {
+      if (!manualMasonryEnabledRef.current) return;
+      event.preventDefault();
+      onManualMasonryPointerRef.current?.({ kind: 'undo' });
     };
 
     renderer.domElement.addEventListener('pointerdown', handlePointerDown);
     renderer.domElement.addEventListener('pointermove', handlePointerMove);
     renderer.domElement.addEventListener('pointerup', handlePointerUp);
+    renderer.domElement.addEventListener('contextmenu', handleContextMenu);
     window.addEventListener('keydown', handleKeyDown);
 
     return () => {
@@ -791,6 +862,7 @@ export default function DesignBuilderViewer({
       renderer.domElement.removeEventListener('pointerdown', handlePointerDown);
       renderer.domElement.removeEventListener('pointermove', handlePointerMove);
       renderer.domElement.removeEventListener('pointerup', handlePointerUp);
+      renderer.domElement.removeEventListener('contextmenu', handleContextMenu);
       window.removeEventListener('keydown', handleKeyDown);
       controls.removeEventListener('end', emitCameraSnapshot);
       observer.disconnect();
@@ -848,7 +920,7 @@ export default function DesignBuilderViewer({
       <div ref={hostRef} className="h-full min-h-0" aria-label="Design Builder generated 3D preview" />
       {!modelLoaded ? (
         <div className="absolute inset-0 flex items-center justify-center bg-white/75 p-6 text-center text-sm font-medium text-slate-700 backdrop-blur-sm dark:bg-slate-950/70 dark:text-slate-200">
-          Load the 5m x 6m CMU Building Example to begin.
+          Load a CMU template or start a new layout.
         </div>
       ) : toolHint ? (
         <div className="absolute left-4 top-4 rounded-full border border-cyan-200 bg-white/90 px-3 py-1 text-xs font-medium text-cyan-800 shadow-sm dark:border-cyan-800 dark:bg-slate-900/90 dark:text-cyan-200">
@@ -1017,7 +1089,6 @@ function manualBlockColor(unitType: string): number {
   switch (unitType) {
     case 'half_block':
       return 0xcbd5e1;
-    case 'corner_block':
     case 'end_block':
       return 0xbfc7d2;
     case 'jamb_block':

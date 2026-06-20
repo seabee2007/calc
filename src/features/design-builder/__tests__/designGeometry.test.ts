@@ -1,15 +1,78 @@
 import { describe, expect, it } from 'vitest';
-import { createFiveBySixCmuBuildingPreset } from '../domain/designBuilderPreset';
+import { createBlankCmuBuildingPreset, createFiveBySixCmuBuildingPreset } from '../domain/designBuilderPreset';
 import {
   buildDesignGeometryInputFromLayout,
   findExteriorFootprintBoundaryViolations,
   generateCmuBlockInstances,
   generateCmuLayout,
   generateDesignGeometry,
+  resolveWallLayoutGeometry,
 } from '../geometry/designGeometry';
 import { addWallSegment, createOutsideFaceRectangleLayout, moveWallNode } from '../domain/wallLayoutRules';
 
 describe('Design Builder generated geometry', () => {
+  it('uses blank source path without legacy geometry for an empty blank layout', () => {
+    const preset = createBlankCmuBuildingPreset();
+    const geometry = generateDesignGeometry(
+      buildDesignGeometryInputFromLayout({
+        wallLayout: preset.wallLayout,
+        cmuSettings: { ...preset.wall, openings: [], manualMasonryCourseRuns: [] },
+        openings: [],
+        slabSettings: preset.slab,
+        roofSettings: preset.roof,
+        trussSettings: preset.truss,
+      }),
+    );
+
+    expect(geometry.sourcePath).toBe('blank');
+    expect(geometry.wallSegments).toHaveLength(0);
+    expect(geometry.blockInstances).toHaveLength(0);
+    expect(geometry.wallCmuLayout.blocks).toHaveLength(0);
+    expect(geometry.blockCount).toBe(0);
+  });
+
+  it('uses manual masonry source path without legacy geometry when only manual runs exist', () => {
+    const preset = createBlankCmuBuildingPreset();
+    const geometry = generateDesignGeometry(
+      buildDesignGeometryInputFromLayout({
+        wallLayout: preset.wallLayout,
+        cmuSettings: {
+          ...preset.wall,
+          openings: [],
+          manualMasonryCourseRuns: [
+            {
+              id: 'run-1',
+              wallSegmentId: 'manual-plan-course',
+              origin: { x: 0, y: 0, z: 0 },
+              tangent: { x: 1, z: 0 },
+              courseIndex: 0,
+              startModuleIndex: 0,
+              unitType: 'full_block',
+              count: 3,
+              moduleLengthMeters: 0.4,
+              moduleHeightMeters: 0.2,
+              wallThicknessMeters: 0.19,
+              direction: 'forward',
+              source: 'manual_3d_brush',
+              originX: 0,
+              originZ: 0,
+              orientation: 'east',
+            },
+          ],
+        },
+        openings: [],
+        slabSettings: preset.slab,
+        roofSettings: preset.roof,
+        trussSettings: preset.truss,
+      }),
+    );
+
+    expect(geometry.sourcePath).toBe('manual_masonry');
+    expect(geometry.wallSegments).toHaveLength(0);
+    expect(geometry.blockInstances).toHaveLength(0);
+    expect(geometry.wallCmuLayout.blocks).toHaveLength(0);
+  });
+
   it('generates CMU block instances from wall parameters without storing per-block source objects', () => {
     const preset = createFiveBySixCmuBuildingPreset();
     const instances = generateCmuBlockInstances(preset.wall);
@@ -327,6 +390,105 @@ describe('Design Builder generated geometry', () => {
     expect(geometry.sourcePath).toBe('layout_graph');
     expect(geometry.exteriorFootprint).toHaveLength(4);
     expect(geometry.boundaryViolations).toHaveLength(0);
+  });
+
+  it('resolves a 6m by 5m outside-face rectangle to exact exterior extents', () => {
+    const preset = createFiveBySixCmuBuildingPreset();
+    const layout = createOutsideFaceRectangleLayout({
+      lengthMeters: 6,
+      widthMeters: 5,
+      wallHeightMeters: preset.wall.heightMeters,
+      wallThicknessMeters: 0.2,
+    });
+    const resolved = resolveWallLayoutGeometry(layout, { wallThicknessMeters: 0.2 });
+    const xs = resolved.exteriorFacePolygon.map((point) => point.x);
+    const zs = resolved.exteriorFacePolygon.map((point) => point.z);
+
+    expect(resolved.dimensionBasis).toBe('outside_face');
+    expect(Math.min(...xs)).toBeCloseTo(-3, 6);
+    expect(Math.max(...xs)).toBeCloseTo(3, 6);
+    expect(Math.min(...zs)).toBeCloseTo(-2.5, 6);
+    expect(Math.max(...zs)).toBeCloseTo(2.5, 6);
+    expect(Math.max(...xs) - Math.min(...xs)).toBeCloseTo(6, 6);
+    expect(Math.max(...zs) - Math.min(...zs)).toBeCloseTo(5, 6);
+  });
+
+  it('derives centerline and interior dimensions from outside-face basis and wall thickness', () => {
+    const layout = createOutsideFaceRectangleLayout({
+      lengthMeters: 6,
+      widthMeters: 5,
+      wallThicknessMeters: 0.2,
+    });
+    const resolved = resolveWallLayoutGeometry(layout, { wallThicknessMeters: 0.2 });
+    const centerXs = resolved.centerlinePolyline.map((point) => point.x);
+    const centerZs = resolved.centerlinePolyline.map((point) => point.z);
+    const interiorXs = resolved.interiorFacePolygon.map((point) => point.x);
+    const interiorZs = resolved.interiorFacePolygon.map((point) => point.z);
+
+    expect(Math.max(...centerXs) - Math.min(...centerXs)).toBeCloseTo(5.8, 6);
+    expect(Math.max(...centerZs) - Math.min(...centerZs)).toBeCloseTo(4.8, 6);
+    expect(Math.max(...interiorXs) - Math.min(...interiorXs)).toBeCloseTo(5.6, 6);
+    expect(Math.max(...interiorZs) - Math.min(...interiorZs)).toBeCloseTo(4.6, 6);
+  });
+
+  it('resolves inside-clear and centerline basis back to exterior faces', () => {
+    const outsideLayout = createOutsideFaceRectangleLayout({
+      lengthMeters: 6,
+      widthMeters: 5,
+      wallThicknessMeters: 0.2,
+    });
+    const insideLayout = {
+      ...outsideLayout,
+      dimensionBasis: 'inside_clear' as const,
+      nodes: outsideLayout.nodes.map((node) => ({
+        ...node,
+        x: Math.sign(node.x) * 2.8,
+        z: Math.sign(node.z) * 2.3,
+      })),
+    };
+    const centerlineLayout = {
+      ...outsideLayout,
+      dimensionBasis: 'wall_centerline' as const,
+      nodes: outsideLayout.nodes.map((node) => ({
+        ...node,
+        x: Math.sign(node.x) * 2.9,
+        z: Math.sign(node.z) * 2.4,
+      })),
+    };
+
+    for (const layout of [insideLayout, centerlineLayout]) {
+      const resolved = resolveWallLayoutGeometry(layout, { wallThicknessMeters: 0.2 });
+      const xs = resolved.exteriorFacePolygon.map((point) => point.x);
+      const zs = resolved.exteriorFacePolygon.map((point) => point.z);
+      expect(Math.max(...xs) - Math.min(...xs)).toBeCloseTo(6, 6);
+      expect(Math.max(...zs) - Math.min(...zs)).toBeCloseTo(5, 6);
+    }
+  });
+
+  it('identifies four convex outside corners from ordered perimeter traversal', () => {
+    const preset = createFiveBySixCmuBuildingPreset();
+    const layout = createOutsideFaceRectangleLayout({
+      lengthMeters: 6,
+      widthMeters: 5,
+      wallHeightMeters: preset.wall.heightMeters,
+      wallThicknessMeters: preset.wall.wallThicknessMeters,
+    });
+    const geometry = generateDesignGeometry(
+      buildDesignGeometryInputFromLayout({
+        wallLayout: layout,
+        cmuSettings: { ...preset.wall, openings: [], bondPattern: 'running_bond' },
+        openings: [],
+        slabSettings: preset.slab,
+        roofSettings: preset.roof,
+        trussSettings: preset.truss,
+      }),
+    );
+    const courseZeroAssemblies = geometry.wallCmuLayout.cornerAssemblies?.filter((assembly) => assembly.courseIndex === 0) ?? [];
+
+    expect(courseZeroAssemblies).toHaveLength(4);
+    expect(courseZeroAssemblies.every((assembly) => assembly.cornerType === 'convex_outside')).toBe(true);
+    expect(new Set(courseZeroAssemblies.map((assembly) => assembly.exteriorCornerPoint.x)).size).toBe(2);
+    expect(new Set(courseZeroAssemblies.map((assembly) => assembly.exteriorCornerPoint.z)).size).toBe(2);
   });
 
   it('keeps outside-face CMU corners flush with the exterior dimensions', () => {

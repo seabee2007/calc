@@ -20,13 +20,13 @@ describe('entitlements', () => {
     vi.stubEnv('VITE_ENFORCE_PLAN', 'true');
   });
 
-  it('Starter includes core foundation features only', () => {
+  it('Starter includes core foundation features and one employee field portal seat', () => {
     expect(hasFeature('starter', 'quick_estimates')).toBe(true);
     expect(hasFeature('starter', 'conceptual_estimates')).toBe(true);
     expect(hasFeature('starter', 'calculators')).toBe(true);
     expect(hasFeature('starter', 'global_ask_ai')).toBe(true);
+    expect(hasFeature('starter', 'employee_portal')).toBe(true);
     expect(hasFeature('starter', 'activity_based_estimating')).toBe(false);
-    expect(hasFeature('starter', 'employee_portal')).toBe(false);
     expect(hasFeature('starter', 'logic_network')).toBe(false);
     expect(hasFeature('starter', 'model_3d_takeoff')).toBe(false);
     expect(hasFeature('starter', 'design_builder')).toBe(false);
@@ -60,6 +60,7 @@ describe('entitlements', () => {
 
   it('returns configured plan limits', () => {
     expect(getPlanLimit('starter', 'max_active_projects')).toBe(3);
+    expect(getPlanLimit('starter', 'included_field_seats')).toBe(1);
     expect(getPlanLimit('professional', 'included_field_seats')).toBe(5);
     expect(getPlanLimit('business', 'max_active_projects')).toBe(-1);
     expect(getPlanLimit('business', 'ai_requests_monthly')).toBe(500);
@@ -88,8 +89,8 @@ describe('entitlements', () => {
     expect(canInviteFieldSeat('business', 20)).toBe(true);
   });
 
-  it('canInviteTeamMember requires employee_portal and included field seats', () => {
-    expect(canInviteTeamMember('starter', 0)).toBe(false);
+  it('canInviteTeamMember allows Starter one included field seat and blocks only capacity', () => {
+    expect(canInviteTeamMember('starter', 0)).toBe(true);
     expect(canInviteTeamMember('starter', 1)).toBe(false);
     expect(canInviteTeamMember('professional', 0)).toBe(true);
     expect(canInviteTeamMember('professional', 4)).toBe(true);
@@ -102,6 +103,7 @@ describe('entitlements', () => {
   it('minPlanForFeature resolves the lowest plan that includes a feature', () => {
     expect(minPlanForFeature('quick_estimates')).toBe('starter');
     expect(minPlanForFeature('global_ask_ai')).toBe('starter');
+    expect(minPlanForFeature('employee_portal')).toBe('starter');
     expect(minPlanForFeature('logic_network')).toBe('professional');
     expect(minPlanForFeature('ai_concrete_chat')).toBe('business');
   });

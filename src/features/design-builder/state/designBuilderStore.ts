@@ -23,6 +23,7 @@ export interface DesignBuilderViewerSizeState {
 
 export interface DesignBuilderSessionState {
   layoutState: DesignBuilderLayoutMode;
+  layoutEpoch: number;
   preset: CmuBuildingPreset | null;
   designModel: DesignModel | null;
   objects: DesignModelObject[];
@@ -85,6 +86,7 @@ export const useDesignBuilderSessionStore = create<DesignBuilderSessionStore>((s
       const current = state.sessions[key];
       const nextSession: DesignBuilderSessionState = {
         layoutState: 'blank',
+        layoutEpoch: 0,
         preset: null,
         designModel: null,
         objects: [],

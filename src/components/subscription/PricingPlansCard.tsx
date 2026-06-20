@@ -1,6 +1,6 @@
 import { Check } from 'lucide-react';
 import type { PlanId } from '../../lib/entitlements';
-import { getPlanMarketingCards, getPlanRank, formatUsd } from '../../lib/planMarketing';
+import { getPlanMarketingCards, getPlanRank, formatUsd, getAnnualSavings, getMaxAnnualSavingsPercent } from '../../lib/planMarketing';
 
 interface PricingPlansCardProps {
   /** Paid tier currently subscribed via Stripe, or null for Free / no-subscription users. */
@@ -49,6 +49,7 @@ export default function PricingPlansCard({
 }: PricingPlansCardProps) {
   const cards = getPlanMarketingCards();
   const isAnnual = billingInterval === 'year';
+  const maxAnnualSavingsPercent = getMaxAnnualSavingsPercent();
 
   return (
     <section className="space-y-5" data-testid="pricing-plans-card">
@@ -93,9 +94,11 @@ export default function PricingPlansCard({
             data-testid="billing-interval-year"
           >
             Annual
-            <span className="ml-1.5 inline-flex items-center rounded-full bg-cyan-100 px-1.5 py-0.5 text-[10px] font-semibold text-cyan-800 dark:bg-cyan-900/40 dark:text-cyan-300">
-              Save 15%
-            </span>
+            {maxAnnualSavingsPercent > 0 ? (
+              <span className="ml-1.5 inline-flex items-center rounded-full bg-cyan-100 px-1.5 py-0.5 text-[10px] font-semibold text-cyan-800 dark:bg-cyan-900/40 dark:text-cyan-300">
+                Save up to {maxAnnualSavingsPercent}%
+              </span>
+            ) : null}
           </button>
         </div>
       </div>
@@ -112,8 +115,7 @@ export default function PricingPlansCard({
           const displayPrice = isAnnual
             ? card.pricing.annualMonthlyUsd
             : card.pricing.monthlyUsd;
-          const annualSavings =
-            (card.pricing.monthlyUsd - card.pricing.annualMonthlyUsd) * 12;
+          const { annualSavingsUsd } = getAnnualSavings(card.planId);
 
           // Visual treatment: recommended card gets cyan glow; current plan gets subtle fill
           const cardClass = isCurrent
@@ -163,6 +165,7 @@ export default function PricingPlansCard({
                 <p className="text-xs font-medium uppercase tracking-widest text-slate-400 dark:text-slate-500">
                   {card.longName}
                 </p>
+                <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">{card.audience}</p>
               </div>
 
               {/* Pricing */}
@@ -175,13 +178,13 @@ export default function PricingPlansCard({
                 </div>
                 <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
                   {isAnnual
-                    ? `${formatUsd(card.pricing.annualTotalUsd)} billed annually · save ${formatUsd(annualSavings)}/yr`
+                    ? `${formatUsd(card.pricing.annualTotalUsd)} billed annually · save ${formatUsd(annualSavingsUsd)}/yr`
                     : 'Billed monthly · cancel anytime'}
                 </p>
               </div>
 
               {/* Features */}
-              <ul className="mb-6 flex-1 space-y-2.5">
+              <ul className="mb-4 flex-1 space-y-2.5">
                 {card.highlights.map((item) => (
                   <li key={item} className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300">
                     <Check
@@ -192,6 +195,11 @@ export default function PricingPlansCard({
                   </li>
                 ))}
               </ul>
+
+              <p className="mb-6 text-xs text-slate-400 dark:text-slate-500">
+                <span className="font-medium text-slate-500 dark:text-slate-400">Plan limits and usage:</span>{' '}
+                {card.usageSummary}
+              </p>
 
               {/* CTA */}
               <button

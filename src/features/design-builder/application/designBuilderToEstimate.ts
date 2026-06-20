@@ -175,7 +175,7 @@ function buildIdentity(group: PreviewLineGroup): ActivityInstanceIdentityInput {
   return {
     activityName: `Design Builder ${group.divisionName}`,
     instanceLabel: 'Parametric',
-    location: '5m x 6m CMU Building Example',
-    notes: 'Generated from Arden Design Builder parameterized quantities. Verify before bidding.',
+    location: '5m x 6m CMU Template',
+    notes: 'Generated from Arden Design Builder parametric quantities. Verify quantities and structural requirements before pricing.',
   };
 }

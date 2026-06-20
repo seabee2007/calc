@@ -66,6 +66,34 @@ describe('Owner-only route guards (App.tsx)', () => {
     expect(slice).toContain('EmployeeGuard');
   });
 
+  it('employee field workflow routes are not individually gated by Professional-only features', () => {
+    const employeeIdx = appSource.indexOf('path="employee"');
+    const publicIdx = appSource.indexOf('path="/proposal/:token"', employeeIdx);
+    const employeeBlock = appSource.slice(employeeIdx, publicIdx);
+    const starterFieldRoutes = [
+      'path="tasks"',
+      'path="rfi"',
+      'path="far"',
+      'path="documents"',
+      'path="uploads"',
+      'path="projects"',
+    ];
+
+    for (const route of starterFieldRoutes) {
+      const routeIdx = employeeBlock.indexOf(route);
+      expect(routeIdx, `${route} missing from employee routes`).toBeGreaterThan(-1);
+      const nextRouteIdx = employeeBlock.indexOf('<Route', routeIdx + 1);
+      const routeBlock = employeeBlock.slice(
+        routeIdx,
+        nextRouteIdx === -1 ? undefined : nextRouteIdx,
+      );
+      expect(routeBlock).not.toContain('GatedLazyRoute');
+      expect(routeBlock).not.toContain('feature="rfis"');
+      expect(routeBlock).not.toContain('feature="fars"');
+      expect(routeBlock).not.toContain('feature="document_builder"');
+    }
+  });
+
   it('public token routes have no AuthGuard or OwnerGuard', () => {
     // Routes are defined with leading slash at the root level
     const publicTokenPaths = ['/proposal/:token', '/change-order/:token', '/contract/:token'];

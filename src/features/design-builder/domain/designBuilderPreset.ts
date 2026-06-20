@@ -82,7 +82,7 @@ export function createFiveBySixCmuBuildingPreset(): CmuBuildingPreset {
     },
   ];
   return {
-    name: '5m x 6m CMU Building Example',
+    name: '5m x 6m CMU Template',
     wallLayout,
     footprint: {
       kind: 'rectangle',

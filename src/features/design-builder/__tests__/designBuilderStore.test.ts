@@ -50,7 +50,7 @@ describe('Design Builder session store', () => {
 
     const session = useDesignBuilderSessionStore.getState().getSession(key);
 
-    expect(session?.preset?.name).toBe('5m x 6m CMU Building Example');
+    expect(session?.preset?.name).toBe('5m x 6m CMU Template');
     expect(session?.selectedObjectType).toBe('door_opening');
     expect(session?.selectedOpeningId).toBe(preset.wall.openings[0]?.id);
     expect(session?.toolMode).toBe('move_opening');

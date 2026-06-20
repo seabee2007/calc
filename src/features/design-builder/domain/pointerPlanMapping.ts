@@ -5,6 +5,27 @@ export interface ClientPointerLike {
   clientY: number;
 }
 
+export type PlanViewportTransform = {
+  screenToPlanPoint: (
+    clientX: number,
+    clientY: number,
+  ) => { x: number; z: number } | null;
+  planToScreenPoint: (
+    point: { x: number; z: number },
+  ) => { x: number; y: number };
+  containsClientPoint: (
+    clientX: number,
+    clientY: number,
+  ) => boolean;
+};
+
+export interface PlanViewportBounds {
+  minX: number;
+  maxX: number;
+  minZ: number;
+  maxZ: number;
+}
+
 export function getNormalizedPointerFromClient(
   event: ClientPointerLike,
   canvasElement: Pick<HTMLElement, 'getBoundingClientRect'>,
@@ -63,5 +84,52 @@ export function screenPointerToPlanPoint(
   return {
     x: (svgX - centerX) / pixelsPerMeter,
     z: (centerY - svgY) / pixelsPerMeter,
+  };
+}
+
+export function createPlanViewportTransform(
+  planSurfaceElement: SVGSVGElement,
+  bounds: PlanViewportBounds,
+  pixelsPerMeter: number,
+): PlanViewportTransform | null {
+  const rect = planSurfaceElement.getBoundingClientRect();
+  const viewBox = planSurfaceElement.viewBox.baseVal;
+  if (
+    rect.width <= 0 ||
+    rect.height <= 0 ||
+    viewBox.width <= 0 ||
+    viewBox.height <= 0 ||
+    pixelsPerMeter <= 0
+  ) {
+    return null;
+  }
+
+  const containsClientPoint = (clientX: number, clientY: number) =>
+    clientX >= rect.left &&
+    clientX <= rect.right &&
+    clientY >= rect.top &&
+    clientY <= rect.bottom;
+
+  const svgPointFromClient = (clientX: number, clientY: number) => ({
+    x: (viewBox.x ?? 0) + ((clientX - rect.left) / rect.width) * viewBox.width,
+    y: (viewBox.y ?? 0) + ((clientY - rect.top) / rect.height) * viewBox.height,
+  });
+
+  const planToScreenPoint = (point: { x: number; z: number }) => ({
+    x: (point.x - bounds.minX) * pixelsPerMeter,
+    y: (bounds.maxZ - point.z) * pixelsPerMeter,
+  });
+
+  return {
+    containsClientPoint,
+    screenToPlanPoint: (clientX: number, clientY: number) => {
+      if (!containsClientPoint(clientX, clientY)) return null;
+      const svg = svgPointFromClient(clientX, clientY);
+      return {
+        x: bounds.minX + svg.x / pixelsPerMeter,
+        z: bounds.maxZ - svg.y / pixelsPerMeter,
+      };
+    },
+    planToScreenPoint,
   };
 }

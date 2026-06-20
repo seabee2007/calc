@@ -1,5 +1,6 @@
 import type {
   CmuWallSystemParameters,
+  DesignWallDimensionBasis,
   DesignWallLayoutParameters,
   GableRoofSystemParameters,
   SteelTrussSystemParameters,
@@ -20,7 +21,9 @@ import {
   type ResolvedCmuOpening,
 } from '../domain/cmuOpeningRules';
 
-export type DesignGeometrySourcePath = 'layout_graph' | 'legacy_preset';
+export type DesignGeometrySourcePath = 'blank' | 'layout_graph' | 'legacy_preset' | 'manual_masonry';
+
+export type DimensionBasis = DesignWallDimensionBasis;
 
 export interface DesignGeometryInput {
   sourcePath: DesignGeometrySourcePath;
@@ -46,6 +49,12 @@ export type SegmentFrame = {
   segmentId: string;
   start: { x: number; z: number };
   end: { x: number; z: number };
+  exteriorStart: { x: number; z: number };
+  exteriorEnd: { x: number; z: number };
+  interiorStart: { x: number; z: number };
+  interiorEnd: { x: number; z: number };
+  centerlineStart: { x: number; z: number };
+  centerlineEnd: { x: number; z: number };
   lengthMeters: number;
   tangent: { x: number; z: number };
   inwardNormal: { x: number; z: number };
@@ -61,6 +70,18 @@ export type OrderedPerimeterSegment = {
   endNodeId: string;
   index: number;
   tangent: { x: number; z: number };
+  startPoint: { x: number; z: number };
+  endPoint: { x: number; z: number };
+};
+
+export type ResolvedWallLayoutGeometry = {
+  dimensionBasis: DimensionBasis;
+  sourcePolyline: DesignGeometryPoint[];
+  exteriorFacePolygon: DesignGeometryPoint[];
+  interiorFacePolygon: DesignGeometryPoint[];
+  centerlinePolyline: DesignGeometryPoint[];
+  orderedPerimeter: OrderedPerimeterSegment[];
+  winding: 'clockwise' | 'counterclockwise';
 };
 
 export type LayoutCornerAssembly = {
@@ -73,6 +94,8 @@ export type LayoutCornerAssembly = {
   ownerEndTrimMeters: number;
   buttingStartTrimMeters: number;
   exteriorCornerPoint: { x: number; z: number };
+  cornerType: 'convex_outside' | 'concave_inside' | 'end' | 'tee';
+  generatedUnitType: 'full' | 'half' | 'corner' | 'end' | 'cut';
   strategy: 'interlocked_running_bond';
 };
 
@@ -246,10 +269,11 @@ export function buildDesignGeometryInputFromLayout(params: {
   roofSettings: GableRoofSystemParameters;
   trussSettings: SteelTrussSystemParameters;
 }): DesignGeometryInput {
-  const wallLayout = params.wallLayout && params.wallLayout.segments.length > 0 ? params.wallLayout : null;
+  const hasLayoutGraph = Boolean(params.wallLayout && params.wallLayout.segments.length > 0);
+  const hasManualMasonry = Boolean(params.cmuSettings.manualMasonryCourseRuns?.length);
   return {
-    sourcePath: wallLayout ? 'layout_graph' : 'legacy_preset',
-    wallLayout,
+    sourcePath: hasLayoutGraph ? 'layout_graph' : hasManualMasonry ? 'manual_masonry' : 'blank',
+    wallLayout: hasLayoutGraph ? params.wallLayout : null,
     wall: {
       ...params.cmuSettings,
       bondPattern: normalizeBondPattern(params.cmuSettings.bondPattern),
@@ -268,6 +292,20 @@ export function generateDesignGeometry(input: DesignGeometryInput): DesignGeomet
   };
   if (import.meta.env.DEV && !input.wall.bondPattern) {
     console.warn('[DesignBuilder] Missing bond pattern; defaulting to running_bond.');
+  }
+  if (input.sourcePath === 'blank' || input.sourcePath === 'manual_masonry') {
+    const wallCmuLayout = emptyCmuLayout({ ...wall, openings: [] });
+    return {
+      sourcePath: input.sourcePath,
+      wallSegments: [],
+      blockInstances: [],
+      cornerCourseLayouts: [],
+      exteriorFootprint: [],
+      boundaryViolations: [],
+      blockCount: 0,
+      bondPattern: normalizeBondPattern(wall.bondPattern),
+      wallCmuLayout,
+    };
   }
   if (input.sourcePath !== 'layout_graph' || !input.wallLayout) {
     const wallCmuLayout = generateCmuLayout(wall);
@@ -294,8 +332,9 @@ export function generateDesignGeometry(input: DesignGeometryInput): DesignGeomet
     };
   }
 
-  const wallCmuLayout = generateCmuLayoutFromWallLayout(input.wallLayout, wall);
-  const exteriorFootprint = wallCmuLayout.segmentFrames?.length ? deriveExteriorFootprint(input.wallLayout) : [];
+  const resolvedWallGeometry = resolveWallLayoutGeometry(input.wallLayout, wall);
+  const wallCmuLayout = generateCmuLayoutFromWallLayout(input.wallLayout, wall, resolvedWallGeometry);
+  const exteriorFootprint = wallCmuLayout.segmentFrames?.length ? resolvedWallGeometry.exteriorFacePolygon : [];
   const wallSegments = (wallCmuLayout.segmentFrames ?? []).map((frame) => ({
     segmentId: frame.segmentId,
     lengthMeters: frame.lengthMeters,
@@ -326,6 +365,7 @@ export function generateDesignGeometry(input: DesignGeometryInput): DesignGeomet
     console.warn('[DesignBuilder] CMU unit outside exterior footprint', {
       boundaryViolations,
       exteriorFootprint,
+      dimensionBasis: resolvedWallGeometry.dimensionBasis,
     });
   }
   return {
@@ -338,11 +378,11 @@ export function generateDesignGeometry(input: DesignGeometryInput): DesignGeomet
       courseIndex: assembly.courseIndex,
       ownerSegmentId: assembly.ownerSegmentId,
       buttingSegmentId: assembly.buttingSegmentId,
-      cornerType: 'outside',
+      cornerType: assembly.cornerType === 'convex_outside' ? 'outside' : assembly.cornerType === 'concave_inside' ? 'inside' : assembly.cornerType,
       strategy: 'interlocked_running_bond',
       ownerStartTrim: assembly.ownerEndTrimMeters,
       buttingStartTrim: assembly.buttingStartTrimMeters,
-      generatedUnitType: 'corner_block',
+      generatedUnitType: generatedCornerUnitType(assembly.generatedUnitType),
     })) ?? [],
     exteriorFootprint,
     boundaryViolations,
@@ -360,6 +400,7 @@ export function generateCmuBlockInstances(params: CmuWallSystemParameters): CmuB
 export function generateCmuLayoutFromWallLayout(
   layout: DesignWallLayoutParameters,
   params: CmuWallSystemParameters,
+  resolvedGeometry = resolveWallLayoutGeometry(layout, params),
 ): CmuLayoutResult {
   const moduleConfig = resolveCmuModuleConfig(params);
   const moduleLength = moduleConfig.moduleLengthMeters;
@@ -371,10 +412,10 @@ export function generateCmuLayoutFromWallLayout(
   const warnings = [
     'Layout graph CMU geometry is segment-based; detailed L-corner unit visualization is approximate in this milestone.',
   ];
-  const segmentFrames = buildSegmentFrames(layout, params, warnings);
+  const segmentFrames = buildSegmentFrames(layout, params, warnings, resolvedGeometry);
   const frameById = new Map(segmentFrames.map((frame) => [frame.segmentId, frame]));
   const courseCount = Math.max(1, ...segmentFrames.map((frame) => courseCountFromHeight(frame.wallHeightMeters, moduleHeight)));
-  const cornerAssemblies = buildLayoutCornerAssemblies(layout, segmentFrames, courseCount, params, warnings);
+  const cornerAssemblies = buildLayoutCornerAssemblies(layout, segmentFrames, courseCount, params, warnings, resolvedGeometry);
   const assemblyBySegmentCourse = new Map<string, { startTrim: number; endTrim: number; ownerStart: boolean; ownerEnd: boolean }>();
   cornerAssemblies.forEach((assembly) => {
     const incomingKey = `${assembly.incomingSegmentId}:${assembly.courseIndex}`;
@@ -549,41 +590,101 @@ type LayoutResolvedOpening = ResolvedCmuOpening & {
   wallThicknessMeters?: number;
 };
 
+export function resolveWallLayoutGeometry(
+  layout: DesignWallLayoutParameters,
+  wall: Pick<CmuWallSystemParameters, 'wallThicknessMeters'>,
+  warnings: string[] = [],
+): ResolvedWallLayoutGeometry {
+  const orderedPerimeter = buildOrderedPerimeter(layout, warnings);
+  const sourcePolyline = orderedPerimeter.map((item) => item.startPoint);
+  const wallThicknessMeters = Math.max(0, layout.defaultWallThicknessMeters || wall.wallThicknessMeters || 0);
+  const dimensionBasis = layout.dimensionBasis ?? 'outside_face';
+  const sourceWinding = signedPolygonArea(sourcePolyline) >= 0 ? 'counterclockwise' : 'clockwise';
+  const offsetPolygon = (inwardOffsetMeters: number) =>
+    offsetClosedPolyline(sourcePolyline, inwardOffsetMeters, sourceWinding);
+
+  if (sourcePolyline.length < 3) {
+    return {
+      dimensionBasis,
+      sourcePolyline,
+      exteriorFacePolygon: [],
+      interiorFacePolygon: [],
+      centerlinePolyline: [],
+      orderedPerimeter,
+      winding: sourceWinding,
+    };
+  }
+
+  const offsetsByBasis: Record<DimensionBasis, { exterior: number; centerline: number; interior: number }> = {
+    outside_face: { exterior: 0, centerline: wallThicknessMeters / 2, interior: wallThicknessMeters },
+    inside_clear: { exterior: -wallThicknessMeters, centerline: -wallThicknessMeters / 2, interior: 0 },
+    wall_centerline: { exterior: -wallThicknessMeters / 2, centerline: 0, interior: wallThicknessMeters / 2 },
+  };
+  const offsets = offsetsByBasis[dimensionBasis];
+
+  return {
+    dimensionBasis,
+    sourcePolyline,
+    exteriorFacePolygon: offsetPolygon(offsets.exterior),
+    interiorFacePolygon: offsetPolygon(offsets.interior),
+    centerlinePolyline: offsetPolygon(offsets.centerline),
+    orderedPerimeter,
+    winding: sourceWinding,
+  };
+}
+
 function buildSegmentFrames(
   layout: DesignWallLayoutParameters,
   wall: CmuWallSystemParameters,
   warnings: string[],
+  resolvedGeometry = resolveWallLayoutGeometry(layout, wall, warnings),
 ): SegmentFrame[] {
-  const perimeter = buildOrderedPerimeter(layout, warnings);
-  const exteriorFootprint = perimeter.length > 0
-    ? perimeter.map((item) => {
-        const node = layout.nodes.find((candidate) => candidate.id === item.startNodeId);
-        return node ? { x: node.x, z: node.z } : null;
-      }).filter((point): point is DesignGeometryPoint => point != null)
-    : deriveExteriorFootprint(layout);
-  const inwardSign = signedPolygonArea(exteriorFootprint) >= 0 ? 1 : -1;
+  const perimeter = resolvedGeometry.orderedPerimeter;
+  const exteriorByNodeId = new Map(perimeter.map((item, index) => [item.startNodeId, resolvedGeometry.exteriorFacePolygon[index]]));
+  const interiorByNodeId = new Map(perimeter.map((item, index) => [item.startNodeId, resolvedGeometry.interiorFacePolygon[index]]));
+  const centerlineByNodeId = new Map(perimeter.map((item, index) => [item.startNodeId, resolvedGeometry.centerlinePolyline[index]]));
   const orderedIds = new Set(perimeter.map((item) => item.segmentId));
-  const orderedSegments = [
-    ...perimeter.map((item) => layout.segments.find((segment) => segment.id === item.segmentId)).filter((segment): segment is DesignWallLayoutParameters['segments'][number] => segment != null),
-    ...layout.segments.filter((segment) => !orderedIds.has(segment.id)),
+  const frameSources = [
+    ...perimeter
+      .map((item) => {
+        const segment = layout.segments.find((candidate) => candidate.id === item.segmentId);
+        return segment ? { segment, startNodeId: item.startNodeId, endNodeId: item.endNodeId } : null;
+      })
+      .filter((source): source is { segment: DesignWallLayoutParameters['segments'][number]; startNodeId: string; endNodeId: string } => source != null),
+    ...layout.segments
+      .filter((segment) => !orderedIds.has(segment.id))
+      .map((segment) => ({ segment, startNodeId: segment.startNodeId, endNodeId: segment.endNodeId })),
   ];
 
-  return orderedSegments.map((segment) => {
-    const start = layout.nodes.find((node) => node.id === segment.startNodeId);
-    const end = layout.nodes.find((node) => node.id === segment.endNodeId);
-    if (!start || !end) return null;
-    const dx = end.x - start.x;
-    const dz = end.z - start.z;
+  return frameSources.map(({ segment, startNodeId, endNodeId }) => {
+    const fallbackStart = layout.nodes.find((node) => node.id === startNodeId);
+    const fallbackEnd = layout.nodes.find((node) => node.id === endNodeId);
+    const exteriorStart = exteriorByNodeId.get(startNodeId) ?? fallbackStart;
+    const exteriorEnd = exteriorByNodeId.get(endNodeId) ?? fallbackEnd;
+    const interiorStart = interiorByNodeId.get(startNodeId) ?? exteriorStart;
+    const interiorEnd = interiorByNodeId.get(endNodeId) ?? exteriorEnd;
+    const centerlineStart = centerlineByNodeId.get(startNodeId) ?? exteriorStart;
+    const centerlineEnd = centerlineByNodeId.get(endNodeId) ?? exteriorEnd;
+    if (!exteriorStart || !exteriorEnd || !interiorStart || !interiorEnd || !centerlineStart || !centerlineEnd) return null;
+    const dx = exteriorEnd.x - exteriorStart.x;
+    const dz = exteriorEnd.z - exteriorStart.z;
     const lengthMeters = Math.hypot(dx, dz);
     if (lengthMeters <= 0) return null;
     const tangent = { x: dx / lengthMeters, z: dz / lengthMeters };
-    const inwardNormal = exteriorFootprint.length >= 3
+    const inwardSign = resolvedGeometry.winding === 'counterclockwise' ? 1 : -1;
+    const inwardNormal = resolvedGeometry.exteriorFacePolygon.length >= 3
       ? { x: -tangent.z * inwardSign, z: tangent.x * inwardSign }
       : { x: 0, z: 0 };
     return {
       segmentId: segment.id,
-      start: { x: start.x, z: start.z },
-      end: { x: end.x, z: end.z },
+      start: { x: exteriorStart.x, z: exteriorStart.z },
+      end: { x: exteriorEnd.x, z: exteriorEnd.z },
+      exteriorStart: { x: exteriorStart.x, z: exteriorStart.z },
+      exteriorEnd: { x: exteriorEnd.x, z: exteriorEnd.z },
+      interiorStart: { x: interiorStart.x, z: interiorStart.z },
+      interiorEnd: { x: interiorEnd.x, z: interiorEnd.z },
+      centerlineStart: { x: centerlineStart.x, z: centerlineStart.z },
+      centerlineEnd: { x: centerlineEnd.x, z: centerlineEnd.z },
       lengthMeters,
       tangent,
       inwardNormal,
@@ -617,6 +718,8 @@ function buildOrderedPerimeter(
     endNodeId: first.endNodeId,
     index: 0,
     tangent: { x: (firstEndNode.x - firstStartNode.x) / firstLength, z: (firstEndNode.z - firstStartNode.z) / firstLength },
+    startPoint: { x: firstStartNode.x, z: firstStartNode.z },
+    endPoint: { x: firstEndNode.x, z: firstEndNode.z },
   });
   visited.add(first.id);
   let currentNodeId = first.endNodeId;
@@ -641,6 +744,8 @@ function buildOrderedPerimeter(
       endNodeId: nextNodeId,
       index,
       tangent: { x: (endNode.x - startNode.x) / length, z: (endNode.z - startNode.z) / length },
+      startPoint: { x: startNode.x, z: startNode.z },
+      endPoint: { x: endNode.x, z: endNode.z },
     });
     visited.add(segment.id);
     currentNodeId = nextNodeId;
@@ -653,14 +758,68 @@ function buildOrderedPerimeter(
   return ordered;
 }
 
+function offsetClosedPolyline(
+  points: readonly DesignGeometryPoint[],
+  inwardOffsetMeters: number,
+  winding: ResolvedWallLayoutGeometry['winding'],
+): DesignGeometryPoint[] {
+  if (points.length < 3 || Math.abs(inwardOffsetMeters) <= 1e-9) {
+    return points.map((point) => ({ x: point.x, z: point.z }));
+  }
+  const inwardSign = winding === 'counterclockwise' ? 1 : -1;
+  return points.map((point, index) => {
+    const previous = points[(index + points.length - 1) % points.length];
+    const next = points[(index + 1) % points.length];
+    const previousOffset = offsetSegmentLine(previous, point, inwardOffsetMeters, inwardSign);
+    const nextOffset = offsetSegmentLine(point, next, inwardOffsetMeters, inwardSign);
+    return intersectInfiniteLines(previousOffset.start, previousOffset.end, nextOffset.start, nextOffset.end) ?? nextOffset.start;
+  });
+}
+
+function offsetSegmentLine(
+  start: DesignGeometryPoint,
+  end: DesignGeometryPoint,
+  inwardOffsetMeters: number,
+  inwardSign: 1 | -1,
+): { start: DesignGeometryPoint; end: DesignGeometryPoint } {
+  const dx = end.x - start.x;
+  const dz = end.z - start.z;
+  const length = Math.hypot(dx, dz);
+  if (length <= 0) return { start, end };
+  const inwardNormal = { x: (-dz / length) * inwardSign, z: (dx / length) * inwardSign };
+  return {
+    start: { x: start.x + inwardNormal.x * inwardOffsetMeters, z: start.z + inwardNormal.z * inwardOffsetMeters },
+    end: { x: end.x + inwardNormal.x * inwardOffsetMeters, z: end.z + inwardNormal.z * inwardOffsetMeters },
+  };
+}
+
+function intersectInfiniteLines(
+  aStart: DesignGeometryPoint,
+  aEnd: DesignGeometryPoint,
+  bStart: DesignGeometryPoint,
+  bEnd: DesignGeometryPoint,
+): DesignGeometryPoint | null {
+  const ax = aEnd.x - aStart.x;
+  const az = aEnd.z - aStart.z;
+  const bx = bEnd.x - bStart.x;
+  const bz = bEnd.z - bStart.z;
+  const denominator = ax * bz - az * bx;
+  if (Math.abs(denominator) <= 1e-9) return null;
+  const cx = bStart.x - aStart.x;
+  const cz = bStart.z - aStart.z;
+  const t = (cx * bz - cz * bx) / denominator;
+  return { x: aStart.x + ax * t, z: aStart.z + az * t };
+}
+
 function buildLayoutCornerAssemblies(
   layout: DesignWallLayoutParameters,
   frames: readonly SegmentFrame[],
   courseCount: number,
   wall: CmuWallSystemParameters,
   warnings: string[],
+  resolvedGeometry = resolveWallLayoutGeometry(layout, wall, warnings),
 ): LayoutCornerAssembly[] {
-  const ordered = buildOrderedPerimeter(layout, warnings);
+  const ordered = resolvedGeometry.orderedPerimeter;
   if (ordered.length < 3 || normalizeBondPattern(wall.bondPattern) !== 'running_bond') return [];
   const frameById = new Map(frames.map((frame) => [frame.segmentId, frame]));
   const assemblies: LayoutCornerAssembly[] = [];
@@ -669,8 +828,10 @@ function buildLayoutCornerAssemblies(
     const outgoing = ordered[index];
     const incomingFrame = frameById.get(incoming.segmentId);
     const outgoingFrame = frameById.get(outgoing.segmentId);
-    const cornerNode = layout.nodes.find((node) => node.id === outgoing.startNodeId);
-    if (!incomingFrame || !outgoingFrame || !cornerNode) continue;
+    const exteriorCornerPoint = resolvedGeometry.exteriorFacePolygon[index];
+    if (!incomingFrame || !outgoingFrame || !exteriorCornerPoint) continue;
+    const cornerType = classifyOrderedCorner(incoming.tangent, outgoing.tangent, resolvedGeometry.winding);
+    if (cornerType !== 'convex_outside') continue;
     const cornerSetbackMeters = Math.max(incomingFrame.wallThicknessMeters, outgoingFrame.wallThicknessMeters);
     for (let courseIndex = 0; courseIndex < courseCount; courseIndex += 1) {
       const incomingOwns = courseIndex % 2 === 0;
@@ -683,12 +844,43 @@ function buildLayoutCornerAssemblies(
         buttingSegmentId: incomingOwns ? outgoing.segmentId : incoming.segmentId,
         ownerEndTrimMeters: incomingOwns ? 0 : cornerSetbackMeters,
         buttingStartTrimMeters: incomingOwns ? cornerSetbackMeters : 0,
-        exteriorCornerPoint: { x: cornerNode.x, z: cornerNode.z },
+        exteriorCornerPoint: { x: exteriorCornerPoint.x, z: exteriorCornerPoint.z },
+        cornerType,
+        generatedUnitType: 'corner',
         strategy: 'interlocked_running_bond',
       });
     }
   }
   return assemblies;
+}
+
+function classifyOrderedCorner(
+  incomingTangent: DesignGeometryPoint,
+  outgoingTangent: DesignGeometryPoint,
+  winding: ResolvedWallLayoutGeometry['winding'],
+): LayoutCornerAssembly['cornerType'] {
+  const cross = incomingTangent.x * outgoingTangent.z - incomingTangent.z * outgoingTangent.x;
+  if (Math.abs(cross) <= 1e-6) return 'end';
+  const leftTurnIsConvex = winding === 'counterclockwise';
+  return (cross > 0) === leftTurnIsConvex ? 'convex_outside' : 'concave_inside';
+}
+
+function generatedCornerUnitType(
+  unitType: LayoutCornerAssembly['generatedUnitType'],
+): CmuCornerCourseLayout['generatedUnitType'] {
+  switch (unitType) {
+    case 'full':
+      return 'full_block';
+    case 'half':
+      return 'half_block';
+    case 'end':
+      return 'end_block';
+    case 'cut':
+      return 'cut_block';
+    case 'corner':
+    default:
+      return 'corner_block';
+  }
 }
 
 function resolveLayoutOpeningGeometry(params: {

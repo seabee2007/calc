@@ -136,13 +136,34 @@ export function renderEmailTemplate(
         ctaUrl: str(data, "appUrl"),
       });
     case "teamInvite":
-      return layout({
-        title: "You have been invited to join a Arden Project OS team",
-        bodyHtml: `<p style="margin:0 0 12px;">${escapeHtml(str(data, "inviterName", "A team owner"))} invited you to join ${escapeHtml(str(data, "companyName", "their company"))} on Arden Project OS.</p>`,
-        bodyText: `${str(data, "inviterName", "A team owner")} invited you to join ${str(data, "companyName", "their company")} on Arden Project OS.`,
-        ctaLabel: "Accept invite",
-        ctaUrl: str(data, "inviteUrl"),
-      });
+      {
+        const companyName = str(data, "companyName", "your company");
+        const inviterName = str(data, "inviterName").trim();
+        const roleLabel = str(data, "roleLabel", "Employee");
+        const expiresAt = str(data, "expiresAt");
+        const supportContact = str(data, "supportContact", "your manager");
+        const inviterLineHtml = inviterName
+          ? `<p style="margin:0 0 12px;">${escapeHtml(inviterName)} invited you to join <strong>${escapeHtml(companyName)}</strong> on Arden Project OS.</p>`
+          : `<p style="margin:0 0 12px;">You have been invited to join <strong>${escapeHtml(companyName)}</strong> on Arden Project OS.</p>`;
+        const inviterLineText = inviterName
+          ? `${inviterName} invited you to join ${companyName} on Arden Project OS.`
+          : `You have been invited to join ${companyName} on Arden Project OS.`;
+        const expiryHtml = expiresAt
+          ? `<p style="margin:0 0 12px;">This invitation expires on ${escapeHtml(expiresAt)}.</p>`
+          : `<p style="margin:0 0 12px;">This invitation expires in 14 days.</p>`;
+        const expiryText = expiresAt
+          ? `This invitation expires on ${expiresAt}.`
+          : "This invitation expires in 14 days.";
+        return layout({
+          title: `You’ve been invited to join ${companyName} on Arden Project OS`,
+          heading: `Join ${companyName} on Arden Project OS`,
+          bodyHtml: `${inviterLineHtml}<p style="margin:0 0 12px;">You have been invited to access assigned project work in Arden Project OS.</p><p style="margin:0 0 12px;"><strong>Assigned role:</strong> ${escapeHtml(roleLabel)}</p>${expiryHtml}<p style="margin:0;">Questions? Contact ${escapeHtml(supportContact)}.</p>`,
+          bodyText: `${inviterLineText}\n\nYou have been invited to access assigned project work in Arden Project OS.\n\nAssigned role: ${roleLabel}\n\n${expiryText}\n\nQuestions? Contact ${supportContact}.`,
+          ctaLabel: "Accept Invitation",
+          ctaUrl: str(data, "inviteUrl"),
+          textLinkMode: "fallback-only",
+        });
+      }
     case "clientPortalInvite": {
       const emailSubject = str(data, "emailSubject", "Your project portal is ready");
       const messageBody = str(data, "messageBody");
@@ -296,6 +317,8 @@ export function renderEmailTemplate(
         planLabel: "Starter",
         features: [
           "Up to 3 active projects",
+          "1 field seat included",
+          "Employee field portal for assigned project work",
           "Starter monthly usage limits",
           "Quick estimating tools",
           "Basic proposal and project workflows",
@@ -314,6 +337,7 @@ export function renderEmailTemplate(
         features: [
           "Up to 10 active projects",
           "Up to 5 field seats",
+          "Expanded field capacity and project controls",
           "Detailed estimating and project controls",
           "Client portal access",
           "RFIs, FARs, QC, and change orders",

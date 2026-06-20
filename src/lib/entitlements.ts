@@ -133,6 +133,7 @@ const STARTER_FEATURES: FeatureKey[] = [
   'calculators',
   'resources',
   'proposals',
+  'employee_portal',
   'global_ask_ai',
 ];
 
@@ -296,7 +297,7 @@ export function canInviteFieldSeat(
   return true;
 }
 
-/** Whether the owner can send another team/field invite (feature + included seat limit). */
+/** Whether the owner can send another team/field invite (employee portal + included seat limit). */
 export function canInviteTeamMember(
   plan: PlanId | null | undefined,
   seatUsageCount: number,

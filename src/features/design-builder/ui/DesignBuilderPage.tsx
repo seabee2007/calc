@@ -18,6 +18,7 @@ import {
   createFiveBySixCmuBuildingPreset,
   type CmuBuildingPreset,
 } from '../domain/designBuilderPreset';
+import { DESIGN_BUILDER_COPY } from '../domain/designBuilderCopy';
 import { resolveDesignSnapPoint } from '../domain/designSnapRules';
 import { useConfirm } from '../../../contexts/ConfirmContext';
 import {
@@ -221,7 +222,7 @@ export default function DesignBuilderPage({
   const savingRef = useRef(false);
   const hydratedSessionKeyRef = useRef<string | null>(null);
   const [layoutState, setLayoutState] = useState<DesignBuilderLayoutMode>(() => storedSession?.layoutState ?? 'blank');
-  const [onboardingVisible, setOnboardingVisible] = useState(() => storedSession?.onboardingVisible ?? true);
+  const [layoutEpoch, setLayoutEpoch] = useState(() => storedSession?.layoutEpoch ?? 0);
   const [preset, setPreset] = useState<CmuBuildingPreset | null>(() => storedSession?.preset ?? createBlankCmuBuildingPreset());
   const [designModel, setDesignModel] = useState<DesignModel | null>(() => storedSession?.designModel ?? null);
   const [objects, setObjects] = useState<DesignModelObject[]>(() => storedSession?.objects ?? []);
@@ -291,6 +292,7 @@ export default function DesignBuilderPage({
     if (storedSession) {
       setPreset(storedSession.preset);
       setLayoutState(storedSession.layoutState ?? (storedSession.preset?.wallLayout?.segments.length ? 'editing' : 'blank'));
+      setLayoutEpoch(storedSession.layoutEpoch ?? 0);
       setDesignModel(storedSession.designModel);
       setObjects(storedSession.objects);
       setUnitSystem(storedSession.unitSystem);
@@ -333,6 +335,7 @@ export default function DesignBuilderPage({
   useEffect(() => {
     saveDesignBuilderSession(sessionKey, {
       layoutState,
+      layoutEpoch,
       preset,
       designModel,
       objects,
@@ -358,6 +361,7 @@ export default function DesignBuilderPage({
     cameraSnapshot,
     designModel,
     leftPanelCollapsed,
+    layoutEpoch,
     layoutState,
     manualMasonryEnabled,
     masonryToolMode,
@@ -569,10 +573,10 @@ export default function DesignBuilderPage({
             cmuLayout.counts.jamb +
             cmuLayout.counts.cut +
             manualMasonrySummary.half_block +
-            manualMasonrySummary.corner_block +
             manualMasonrySummary.end_block +
             manualMasonrySummary.jamb_block +
-            manualMasonrySummary.bond_beam_block
+            manualMasonrySummary.bond_beam_block +
+            manualMasonrySummary.grout_rebar_cell
           : 0,
         unit: 'EA',
         objectType: 'cmu_wall_system' as DesignObjectType,
@@ -673,10 +677,6 @@ export default function DesignBuilderPage({
     return summarizeOpeningPlacementStatus({ ...draft, widthMeters: placementPreview.widthMeters, heightMeters: placementPreview.heightMeters, sillHeightMeters: placementPreview.sillHeightMeters }, resolvedPreset.wall, peers);
   }, [placementPreview, resolvedPreset.wall]);
   const livePlacementStatus = previewPlacementStatus ?? selectedOpeningStatus;
-  const blankState: DesignBuilderBlankState = {
-    layoutMode: layoutState,
-    onboardingVisible,
-  };
   const activeSelection: DesignBuilderSelection = selectedSegmentId
     ? { kind: 'wall_segment', id: selectedSegmentId }
     : selectedNodeId
@@ -805,7 +805,7 @@ export default function DesignBuilderPage({
     });
     setStatus({
       tone: 'success',
-      message: `${label}. Manual masonry layout quantities — verify against structural drawings and field conditions before bidding.`,
+      message: `${label}. Masonry layout quantities — verify field conditions and structural requirements before pricing.`,
     });
     scheduleDebouncedSave();
   }
@@ -849,7 +849,7 @@ export default function DesignBuilderPage({
       return;
     }
     if (event.kind === 'commit' && preview) {
-      const nextRun = commitManualMasonryRun(preview);
+      const nextRun = commitManualMasonryRun(preview, effectiveWall);
       commitManualMasonryRuns([...manualMasonryRuns, nextRun], nextRun.count === 1 ? 'Manual CMU block placed' : `Manual CMU run placed (${nextRun.count} units)`);
       setManualMasonryPreview(null);
       manualMasonryDragStartRef.current = null;
@@ -1003,8 +1003,8 @@ export default function DesignBuilderPage({
     setStatus({
       tone: 'success',
       message: attachedOpenings.length > 0
-        ? `Wall segment and ${attachedOpenings.length} attached opening${attachedOpenings.length === 1 ? '' : 's'} removed. Design changed after commit. Regenerate/update estimate lines before bidding.`
-        : 'Wall segment removed. Design changed after commit. Regenerate/update estimate lines before bidding.',
+        ? `Wall segment and ${attachedOpenings.length} attached opening${attachedOpenings.length === 1 ? '' : 's'} removed. ${DESIGN_BUILDER_COPY.status.estimateRequiresUpdate}`
+        : `Wall segment removed. ${DESIGN_BUILDER_COPY.status.estimateRequiresUpdate}`,
     });
   }
 
@@ -1474,7 +1474,6 @@ export default function DesignBuilderPage({
     setManualMasonryEnabled(false);
     setToolMode(mode);
     if (mode === 'draw_wall') {
-      setOnboardingVisible(false);
       setViewMode('plan');
     }
     if (mode === 'move_wall_node') setViewMode('plan');
@@ -1482,47 +1481,13 @@ export default function DesignBuilderPage({
     event?.currentTarget.closest('details')?.removeAttribute('open');
   }
 
-  function startManualCmuBuilder() {
-    setOnboardingVisible(false);
-    setManualMasonryEnabled(true);
-    setMasonryToolMode('full_block');
-    setToolMode('select');
-    setViewMode('plan');
-    setStatus({
-      tone: 'info',
-      message: 'Manual CMU Builder ready. Choose a unit, click to place one block, or drag to paint a run.',
-    });
-    saveDesignBuilderSession(sessionKey, {
-      onboardingVisible: false,
-      manualMasonryEnabled: true,
-      masonryToolMode: 'full_block',
-      toolMode: 'select',
-      viewMode: 'plan',
-    });
-  }
-
-  function startAutoWallLayout() {
-    setOnboardingVisible(false);
-    setManualMasonryEnabled(false);
-    setToolMode('draw_wall');
-    setViewMode('plan');
-    setStatus({ tone: 'info', message: 'Auto Wall Layout ready. Use the plan canvas to place wall points and close the footprint.' });
-    saveDesignBuilderSession(sessionKey, {
-      onboardingVisible: false,
-      manualMasonryEnabled: false,
-      toolMode: 'draw_wall',
-      viewMode: 'plan',
-    });
-  }
-
-  async function handleLoadExample() {
+  async function handleLoadTemplate() {
     setBusy(true);
-    setStatus({ tone: 'info', message: 'Loading 5m x 6m CMU Building Example...' });
+    setStatus({ tone: 'info', message: DESIGN_BUILDER_COPY.status.loadingTemplate });
     try {
       const nextPreset = createFiveBySixCmuBuildingPreset();
       setPreset(nextPreset);
       setLayoutState('demo_loaded');
-      setOnboardingVisible(false);
       setManualMasonryEnabled(false);
       setMasonryToolMode('full_block');
       setManualMasonryRuns([]);
@@ -1546,7 +1511,7 @@ export default function DesignBuilderPage({
         setDesignModel(null);
         setStatus({
           tone: 'success',
-          message: 'Example loaded locally. Sign in to save and commit it to an estimate.',
+          message: DESIGN_BUILDER_COPY.status.templateLoadedLocal,
         });
         return;
       }
@@ -1584,7 +1549,7 @@ export default function DesignBuilderPage({
       setObjects(objectResult.data);
       setStatus({
         tone: 'success',
-        message: 'Example loaded. Geometry and quantities are generated from saved parameters.',
+        message: DESIGN_BUILDER_COPY.status.templateLoaded,
       });
     } finally {
       setBusy(false);
@@ -1601,10 +1566,10 @@ export default function DesignBuilderPage({
       layoutState !== 'blank';
     if (hasDesignData) {
       const confirmed = await confirm({
-        title: 'Start blank layout?',
+        title: 'New layout?',
         message:
           'This removes all walls, openings, generated CMU geometry, and current Design Builder preview quantities from this design. Your global CMU settings will remain. Previously committed estimate lines will not be deleted automatically.',
-        confirmLabel: 'Start blank',
+        confirmLabel: 'New layout',
         confirmVariant: 'danger',
         showWarningIcon: true,
       });
@@ -1629,8 +1594,9 @@ export default function DesignBuilderPage({
       roof: { ...resolvedPreset.roof, lengthMeters: 0, widthMeters: 0 },
       truss: { ...resolvedPreset.truss, buildingLengthMeters: 0 },
     });
+    const nextEpoch = layoutEpoch + 1;
     setLayoutState('blank');
-    setOnboardingVisible(true);
+    setLayoutEpoch(nextEpoch);
     setManualMasonryEnabled(false);
     setMasonryToolMode('full_block');
     setManualMasonryRuns([]);
@@ -1651,13 +1617,26 @@ export default function DesignBuilderPage({
     setChangedAfterCommit((current) => current || persistedQuantityItems.some((item) => item.estimateLineId));
     setToolMode('select');
     setViewMode('plan');
-    setStatus({ tone: 'success', message: 'Blank layout ready. Choose Build CMU Manually or Create Auto Wall Layout.' });
+    setStatus({ tone: 'success', message: DESIGN_BUILDER_COPY.status.blankReady });
+    saveDesignBuilderSession(sessionKey, {
+      layoutState: 'blank',
+      layoutEpoch: nextEpoch,
+      manualMasonryEnabled: false,
+      masonryToolMode: 'full_block',
+      preset: { ...blankPreset, wallLayout: blankLayout },
+      selectedObjectType: null,
+      selectedOpeningId: null,
+      previewLines: [],
+      persistedQuantityItems: [],
+      toolMode: 'select',
+      viewMode: 'plan',
+    });
     scheduleDebouncedSave();
   }
 
   async function handleGeneratePreview() {
     if (!modelLoaded) {
-      setStatus({ tone: 'info', message: 'Load the 5m x 6m CMU Building Example before generating an estimate preview.' });
+      setStatus({ tone: 'info', message: 'Load a CMU template or create a layout before generating an estimate preview.' });
       return;
     }
     if (generatedPreview.length === 0) {
@@ -1721,7 +1700,7 @@ export default function DesignBuilderPage({
       setChangedAfterCommit(false);
       setStatus({
         tone: 'success',
-        message: `Committed ${result.data.committedQuantityItems.length} Design Builder quantities to Detailed Estimate.`,
+        message: `Committed ${result.data.committedQuantityItems.length} Design Builder quantities to estimate.`,
       });
     } finally {
       setBusy(false);
@@ -1729,15 +1708,15 @@ export default function DesignBuilderPage({
   }
 
   const activeToolLabel = TOOL_MODE_OPTIONS.find((option) => option.mode === toolMode)?.label ?? 'Select';
-  const drawWallInstruction = 'Click to place wall points · Right-click/Backspace to undo · Esc to stop · Click first point to close';
+  const drawWallInstruction = DESIGN_BUILDER_COPY.hints.drawWall;
   const toolInstruction = toolMode === 'place_door'
-    ? 'Click a wall to place door • Esc to cancel'
+    ? DESIGN_BUILDER_COPY.hints.opening
     : toolMode === 'place_window'
-      ? 'Click a wall to place window • Esc to cancel'
+      ? DESIGN_BUILDER_COPY.hints.opening
       : toolMode === 'move_wall_node'
-        ? 'Drag a node • Esc to cancel'
+        ? 'Drag node · Esc exits'
         : toolMode === 'move_opening'
-          ? 'Drag selected opening along wall'
+          ? 'Drag selected opening along wall segment'
           : null;
   const activeOpeningTool = toolMode === 'place_door' ? 'door' : toolMode === 'place_window' ? 'window' : null;
   const activeOpeningSettings = activeOpeningTool ? openingToolSettings[activeOpeningTool] : null;
@@ -1749,7 +1728,7 @@ export default function DesignBuilderPage({
   const cutBlockWarningText =
     livePlacementStatus?.warnings.join(' ') ||
     moduleWarnings.join(' ') ||
-    'Some opening or wall lengths require cut CMU blocks. Review warnings in the estimate panel.';
+    'Cut-block condition detected. Review CMU module fit and opening placement.';
 
   return (
     <div
@@ -1776,7 +1755,7 @@ export default function DesignBuilderPage({
             className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
             aria-pressed={leftPanelCollapsed}
           >
-            {leftPanelCollapsed ? 'Show Tools' : 'Hide Tools'}
+            {DESIGN_BUILDER_COPY.actions.tools}
           </button>
           <button
             type="button"
@@ -1784,15 +1763,15 @@ export default function DesignBuilderPage({
             className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
             aria-pressed={rightPanelCollapsed}
           >
-            {rightPanelCollapsed ? 'Show Estimate' : 'Hide Estimate'}
+            {DESIGN_BUILDER_COPY.actions.estimate}
           </button>
           <button
             type="button"
-            onClick={() => void handleLoadExample()}
+            onClick={() => void handleLoadTemplate()}
             disabled={busy}
             className="rounded-xl bg-cyan-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Load 5m x 6m CMU Building Example
+            {DESIGN_BUILDER_COPY.actions.loadTemplate}
           </button>
           <button
             type="button"
@@ -1800,7 +1779,7 @@ export default function DesignBuilderPage({
             disabled={busy}
             className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
           >
-            Start Blank Layout
+            {DESIGN_BUILDER_COPY.actions.newLayout}
           </button>
         </div>
       </div>
@@ -1864,7 +1843,9 @@ export default function DesignBuilderPage({
                           }`}
                         >
                           <span className="font-medium">{item.label}</span>
-                          <span className="mt-0.5 block text-xs text-slate-500 dark:text-slate-400">{item.description}</span>
+                          {item.description ? (
+                            <span className="mt-0.5 block text-xs text-slate-500 dark:text-slate-400">{item.description}</span>
+                          ) : null}
                         </button>
                       ))}
                     </div>
@@ -2019,6 +2000,7 @@ export default function DesignBuilderPage({
                 type="button"
                 aria-label="Activate wall drawing"
                 onClick={() => {
+                  setManualMasonryEnabled(false);
                   setToolMode('draw_wall');
                   setViewMode('plan');
                 }}
@@ -2033,28 +2015,42 @@ export default function DesignBuilderPage({
                 Draw Wall
               </button>
 
+              <button
+                type="button"
+                onClick={() => {
+                  setManualMasonryEnabled(true);
+                  setMasonryToolMode('full_block');
+                  setToolMode('select');
+                  setViewMode('plan');
+                }}
+                disabled={!modelLoaded}
+                aria-pressed={manualMasonryEnabled}
+                className={`h-9 rounded-lg px-3 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                  manualMasonryEnabled
+                    ? 'bg-cyan-600 text-white'
+                    : 'border border-slate-200 text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800'
+                }`}
+              >
+                Masonry Layout
+              </button>
+
               <details className="group relative">
                 <summary className={`flex h-9 cursor-pointer list-none items-center gap-1 rounded-lg border px-3 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-cyan-400/40 ${
                   toolMode === 'place_door' || toolMode === 'place_window' || toolMode === 'move_opening'
                     ? 'border-cyan-400 bg-cyan-50 text-cyan-800 dark:border-cyan-600 dark:bg-cyan-950/50 dark:text-cyan-100'
                     : 'border-slate-200 text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800'
                 }`}>
-                  Opening <span aria-hidden>▾</span>
+                  Openings <span aria-hidden>▾</span>
                 </summary>
                 <div className="absolute left-0 z-30 mt-2 w-52 rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-slate-700 dark:bg-slate-900">
                   {([
-                    ['place_door', 'Place Door'],
-                    ['place_window', 'Place Window'],
+                    ['place_door', 'Door Opening'],
+                    ['place_window', 'Window Opening'],
                     ['move_opening', 'Move Opening'],
                   ] as Array<[DesignBuilderToolMode, string]>).map(([mode, label]) => (
                     <button
                       key={mode}
                       type="button"
-                      aria-label={
-                        mode === 'place_door' || mode === 'place_window'
-                          ? 'Activate opening placement tool'
-                          : undefined
-                      }
                       onClick={(event) => activateToolMode(mode, event)}
                       disabled={!modelLoaded}
                       className={`block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-50 ${
@@ -2116,7 +2112,7 @@ export default function DesignBuilderPage({
                   <button type="button" onClick={(event) => { setViewMode('plan'); closeCommandMenu(event); }} className={`block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold ${viewMode === 'plan' ? 'bg-cyan-600 text-white' : 'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800'}`}>Plan</button>
                   <button type="button" onClick={(event) => { setViewMode('3d'); closeCommandMenu(event); }} className={`block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold ${viewMode === '3d' ? 'bg-cyan-600 text-white' : 'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800'}`}>3D</button>
                   <div className="my-1 border-t border-slate-200 dark:border-slate-700" />
-                  <button type="button" onClick={(event) => { setViewCommand({ id: Date.now(), action: 'fit' }); closeCommandMenu(event); }} className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800">Fit view</button>
+                  <button type="button" onClick={(event) => { setViewCommand({ id: Date.now(), action: 'fit' }); closeCommandMenu(event); }} className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800">Fit</button>
                   <button type="button" onClick={(event) => { setViewCommand({ id: Date.now(), action: 'reset' }); closeCommandMenu(event); }} className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800">Reset view</button>
                   {(['fit', '60', '80', 'full'] as ViewerHeightPreset[]).map((preset) => (
                     <button
@@ -2141,7 +2137,25 @@ export default function DesignBuilderPage({
                 <div className="absolute left-0 z-30 mt-2 w-64 space-y-2 rounded-xl border border-slate-200 bg-white p-3 text-xs shadow-xl dark:border-slate-700 dark:bg-slate-900">
                   <ToggleField label="Show opening layout" checked={showOpeningLayout} onChange={setShowOpeningLayout} />
                   <ToggleField label="Show grout/rebar cells" checked={showGroutCells} onChange={setShowGroutCells} />
-                  <ToggleField label="Show cut-block warnings" checked={showClosureWarnings} onChange={setShowClosureWarnings} />
+                  <ToggleField label="Show Cut-Block Conditions" checked={showClosureWarnings} onChange={setShowClosureWarnings} />
+                </div>
+              </details>
+
+              <details className="group relative">
+                <summary className="flex h-9 cursor-pointer list-none items-center gap-1 rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-cyan-400/40 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
+                  Actions <span aria-hidden>▾</span>
+                </summary>
+                <div className="absolute left-0 z-30 mt-2 w-48 rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-slate-700 dark:bg-slate-900">
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      setStatus({ tone: 'info', message: DESIGN_BUILDER_COPY.hints.help });
+                      closeCommandMenu(event);
+                    }}
+                    className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                  >
+                    Help
+                  </button>
                 </div>
               </details>
 
@@ -2186,22 +2200,30 @@ export default function DesignBuilderPage({
                 disabled={busy || !modelLoaded}
                 className="h-9 rounded-lg bg-slate-900 px-3 text-xs font-semibold text-white shadow-sm hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-cyan-500 dark:text-slate-950 dark:hover:bg-cyan-400"
               >
-                Save Design
+                {DESIGN_BUILDER_COPY.actions.saveDesign}
               </button>
 
               <div className="ml-auto flex flex-wrap items-center gap-2 text-[11px]">
                 <span className="rounded-full border border-slate-200 px-2.5 py-1 font-semibold text-slate-600 dark:border-slate-700 dark:text-slate-300">
-                  Dimension basis: Outside face
+                  Outside Face
                 </span>
                 {layoutBounds ? (
                   <span className="rounded-full border border-slate-200 px-2.5 py-1 font-semibold text-slate-600 dark:border-slate-700 dark:text-slate-300">
-                    Exterior {layoutBounds.exteriorLengthMeters.toFixed(2)}m × {layoutBounds.exteriorWidthMeters.toFixed(2)}m
+                    {layoutBounds.exteriorLengthMeters.toFixed(2)} m × {layoutBounds.exteriorWidthMeters.toFixed(2)} m
+                  </span>
+                ) : null}
+                {modelLoaded && !footprintClosed ? (
+                  <span
+                    className="rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 font-semibold text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100"
+                    title={DESIGN_BUILDER_COPY.status.footprintOpen}
+                  >
+                    Footprint Open
                   </span>
                 ) : null}
                 {hasCutBlockWarnings ? (
                   <details className="relative">
                     <summary className="cursor-pointer list-none rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 font-semibold text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-400/40 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100">
-                      Cut-block warning
+                      Cut-Block Condition
                     </summary>
                     <div className="absolute right-0 z-30 mt-2 w-72 rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900 shadow-xl dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100">
                       {cutBlockWarningText}
@@ -2218,7 +2240,14 @@ export default function DesignBuilderPage({
               {manualMasonryEnabled ? (
                 <>
                   <span className="rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 font-semibold text-cyan-800 dark:border-cyan-800 dark:bg-cyan-950/40 dark:text-cyan-100">
-                    Manual CMU Course Builder · click one block or drag a run
+                    Masonry Layout
+                  </span>
+                  <span
+                    className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-slate-300 text-[11px] font-bold text-slate-600 dark:border-slate-700 dark:text-slate-300"
+                    title={DESIGN_BUILDER_COPY.hints.masonry}
+                    aria-label={DESIGN_BUILDER_COPY.hints.masonry}
+                  >
+                    i
                   </span>
                   {MASONRY_TOOL_OPTIONS.map((option) => (
                     <button
@@ -2402,44 +2431,13 @@ export default function DesignBuilderPage({
                 showOpeningLayout={showOpeningLayout}
                 showGroutCells={showGroutCells}
                 showClosureWarnings={showClosureWarnings}
+                manualMasonryEnabled={manualMasonryEnabled}
+                onManualMasonryPointer={handleManualMasonryPointer}
               />
             )}
-            {viewMode === 'plan' && toolMode === 'draw_wall' && !onboardingVisible ? (
+            {viewMode === 'plan' && toolMode === 'draw_wall' ? (
               <div className="pointer-events-none absolute left-3 top-12 z-10 rounded-xl border border-amber-400/60 bg-slate-900/95 px-3 py-2 text-xs font-medium text-amber-100 shadow-lg">
                 {drawWallInstruction}
-              </div>
-            ) : null}
-            {blankState.onboardingVisible ? (
-              <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center p-6">
-                <div className="pointer-events-auto max-w-md rounded-2xl border border-cyan-200 bg-white/95 p-5 text-center shadow-xl backdrop-blur dark:border-cyan-800 dark:bg-slate-900/95">
-                  <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Start a CMU layout</h3>
-                  <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                    Build CMU manually by placing blocks and runs, or create an auto wall layout from drawn wall segments.
-                  </p>
-                  <div className="mt-4 flex flex-wrap justify-center gap-2">
-                    <button
-                      type="button"
-                      onClick={startManualCmuBuilder}
-                      className="rounded-lg bg-cyan-600 px-3 py-2 text-sm font-semibold text-white hover:bg-cyan-700"
-                    >
-                      Build CMU Manually
-                    </button>
-                    <button
-                      type="button"
-                      onClick={startAutoWallLayout}
-                      className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
-                    >
-                      Create Auto Wall Layout
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => void handleLoadExample()}
-                      className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
-                    >
-                      Load 5m x 6m Example
-                    </button>
-                  </div>
-                </div>
               </div>
             ) : null}
           </div>
@@ -2455,7 +2453,7 @@ export default function DesignBuilderPage({
           ) : null}
           {changedAfterCommit ? (
             <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100" role="alert">
-              Design changed after commit. Regenerate/update estimate lines before bidding.
+              {DESIGN_BUILDER_COPY.status.estimateRequiresUpdate}
             </div>
           ) : null}
           <div className={`${statusClassName(status.tone)} ${focusMode ? 'mt-3 shrink-0' : ''}`} role="status">
@@ -2563,7 +2561,7 @@ export default function DesignBuilderPage({
                 disabled={busy}
                 className="rounded-xl border border-cyan-300 px-4 py-2 text-sm font-semibold text-cyan-800 hover:bg-cyan-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-cyan-700 dark:text-cyan-200 dark:hover:bg-cyan-950/60"
               >
-                Generate Estimate Preview
+                {DESIGN_BUILDER_COPY.actions.generatePreview}
               </button>
               <button
                 type="button"
@@ -2571,7 +2569,7 @@ export default function DesignBuilderPage({
                 disabled={busy || previewLines.length === 0 || generatedPreview.length === 0}
                 className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-cyan-500 dark:text-slate-950 dark:hover:bg-cyan-400"
               >
-                Commit to Detailed Estimate
+                Commit to Estimate
               </button>
             </div>
           </Panel>
@@ -2579,7 +2577,7 @@ export default function DesignBuilderPage({
           <Panel title="Warnings">
             <div className="space-y-2 text-sm text-slate-600 dark:text-slate-300">
               <p>
-                CMU layout is conceptual for estimating. Verify block layout, lintels, reinforcement, bond beams, and structural requirements before bidding.
+                CMU layout is conceptual for estimating. Verify block layout, lintels, reinforcement, bond beams, and structural requirements before pricing.
               </p>
               <p>This tool does not provide structural engineering or code compliance.</p>
               {moduleWarnings.map((warning) => (
@@ -2629,13 +2627,12 @@ const TOOL_MODE_OPTIONS: Array<{ mode: DesignBuilderToolMode; label: string }> =
 
 const MASONRY_TOOL_OPTIONS: Array<{ mode: MasonryToolMode; label: string }> = [
   { mode: 'select', label: 'Select' },
-  { mode: 'full_block', label: 'Full block' },
-  { mode: 'half_block', label: 'Half block' },
-  { mode: 'end_block', label: 'End block' },
-  { mode: 'corner_block', label: 'Corner course' },
-  { mode: 'jamb_block', label: 'Jamb block' },
-  { mode: 'bond_beam_block', label: 'Bond beam block' },
-  { mode: 'grout_rebar_cell', label: 'Grout/rebar cell' },
+  { mode: 'full_block', label: 'Full CMU' },
+  { mode: 'half_block', label: 'Half CMU' },
+  { mode: 'end_block', label: 'End Unit' },
+  { mode: 'jamb_block', label: 'Jamb Unit' },
+  { mode: 'bond_beam_block', label: 'Bond Beam' },
+  { mode: 'grout_rebar_cell', label: 'Grout/Rebar Cell' },
   { mode: 'erase', label: 'Erase' },
 ];
 
@@ -2656,29 +2653,21 @@ function PlacementStatusBadge({ status }: { status: OpeningPlacementStatus }) {
 }
 
 const OBJECT_TREE_ITEMS: Array<{ id: string; objectType: DesignObjectType; label: string; description: string }> = [
-  { id: 'footprint', objectType: 'building_footprint', label: 'Rectangle Footprint', description: '6m x 5m building footprint' },
-  { id: 'slab', objectType: 'thickened_edge_slab', label: 'Thickened Edge Slab', description: 'Slab field and perimeter beam' },
-  { id: 'cmu', objectType: 'cmu_wall_system', label: 'CMU Wall System', description: 'Four generated block walls' },
-  { id: 'north-wall', objectType: 'cmu_wall_system', label: 'North Wall', description: 'Generated courses and corner units' },
-  { id: 'south-wall', objectType: 'cmu_wall_system', label: 'South Wall', description: 'Door opening, jambs, lintel' },
-  { id: 'east-wall', objectType: 'cmu_wall_system', label: 'East Wall', description: 'Window opening, jambs, lintel' },
-  { id: 'west-wall', objectType: 'cmu_wall_system', label: 'West Wall', description: 'Generated courses and corner units' },
-  { id: 'openings', objectType: 'door_opening', label: 'Openings', description: 'Door and window parameters' },
-  { id: 'door', objectType: 'door_opening', label: 'Door Opening', description: 'Framed opening on wall face' },
-  { id: 'door-rough', objectType: 'door_opening', label: 'Door Rough Opening', description: 'Wall cutout and rough tolerance' },
-  { id: 'door-jamb-grout', objectType: 'cmu_wall_system', label: 'Door Jamb Grout Cells', description: 'Generated grout/rebar cells beside door' },
-  { id: 'door-lintel', objectType: 'cmu_wall_system', label: 'Door Lintel', description: 'Bearing zone above door opening' },
-  { id: 'window', objectType: 'window_opening', label: 'Window Opening', description: 'Framed opening with sill height' },
-  { id: 'window-rough', objectType: 'window_opening', label: 'Window Rough Opening', description: 'Wall cutout and rough tolerance' },
-  { id: 'window-jamb-grout', objectType: 'cmu_wall_system', label: 'Window Jamb Grout Cells', description: 'Generated grout/rebar cells beside window' },
-  { id: 'window-sill', objectType: 'window_opening', label: 'Window Sill/Bottom Condition', description: 'Conceptual bottom/sill condition' },
-  { id: 'window-lintel', objectType: 'cmu_wall_system', label: 'Window Lintel', description: 'Bearing zone above window opening' },
-  { id: 'lintels', objectType: 'cmu_wall_system', label: 'Lintels', description: 'Bearing above each opening' },
-  { id: 'bond-beams', objectType: 'cmu_wall_system', label: 'Bond Beams', description: 'Top course and opening zones' },
-  { id: 'pilasters', objectType: 'cmu_wall_system', label: 'Columns/Pilasters', description: 'Conceptual reinforced locations' },
-  { id: 'generated-blocks', objectType: 'cmu_wall_system', label: 'Generated Blocks', description: 'Instanced full and special units' },
-  { id: 'roof', objectType: 'gable_roof_system', label: 'Gable Roof System', description: 'Pitched roof planes and overhang' },
-  { id: 'trusses', objectType: 'steel_truss_system', label: 'Steel Truss System', description: 'Truss preview by spacing' },
+  { id: 'footprint', objectType: 'building_footprint', label: 'Nodes', description: '' },
+  { id: 'segments', objectType: 'cmu_wall_system', label: 'Wall Segments', description: '' },
+  { id: 'corners', objectType: 'cmu_wall_system', label: 'Corners', description: '' },
+  { id: 'cmu', objectType: 'cmu_wall_system', label: 'CMU Walls', description: '' },
+  { id: 'openings', objectType: 'door_opening', label: 'Openings', description: '' },
+  { id: 'lintels', objectType: 'cmu_wall_system', label: 'Lintels', description: '' },
+  { id: 'bond-beams', objectType: 'cmu_wall_system', label: 'Bond Beams', description: '' },
+  { id: 'grout-rebar', objectType: 'cmu_wall_system', label: 'Grout/Rebar Cells', description: '' },
+  { id: 'manual-runs', objectType: 'cmu_wall_system', label: 'Manual Runs', description: '' },
+  { id: 'slab', objectType: 'thickened_edge_slab', label: 'Slab', description: '' },
+  { id: 'roof', objectType: 'gable_roof_system', label: 'Roof', description: '' },
+  { id: 'trusses', objectType: 'steel_truss_system', label: 'Trusses', description: '' },
+  { id: 'quantity-summary', objectType: 'cmu_wall_system', label: 'Quantity Summary', description: '' },
+  { id: 'estimate-preview', objectType: 'cmu_wall_system', label: 'Estimate Preview', description: '' },
+  { id: 'warnings', objectType: 'cmu_wall_system', label: 'Warnings', description: '' },
 ];
 
 const OBJECT_TREE_GROUPS: Array<{
@@ -2689,30 +2678,22 @@ const OBJECT_TREE_GROUPS: Array<{
   {
     id: 'layout',
     label: 'Layout',
-    items: [
-      { id: 'footprint', objectType: 'building_footprint', label: 'Wall nodes', description: 'Plan layout corner and junction points' },
-      { id: 'cmu', objectType: 'cmu_wall_system', label: 'Wall segments', description: 'Exterior face wall segments' },
-      { id: 'corners', objectType: 'cmu_wall_system', label: 'Corners', description: 'Derived corner bond conditions' },
-    ],
+    items: OBJECT_TREE_ITEMS.filter((item) => ['footprint', 'segments', 'corners'].includes(item.id)),
   },
   {
-    id: 'cmu',
-    label: 'CMU Wall System',
-    items: OBJECT_TREE_ITEMS.filter((item) =>
-      ['cmu', 'north-wall', 'south-wall', 'east-wall', 'west-wall', 'generated-blocks', 'lintels', 'bond-beams'].includes(item.id),
-    ),
+    id: 'masonry',
+    label: 'Masonry',
+    items: OBJECT_TREE_ITEMS.filter((item) => ['cmu', 'openings', 'lintels', 'bond-beams', 'grout-rebar', 'manual-runs'].includes(item.id)),
   },
   {
-    id: 'openings',
-    label: 'Openings',
-    items: OBJECT_TREE_ITEMS.filter((item) =>
-      item.objectType === 'door_opening' || item.objectType === 'window_opening' || item.id.includes('jamb') || item.id.includes('lintel') || item.id === 'openings',
-    ),
-  },
-  {
-    id: 'secondary',
-    label: 'Slab / Roof / Trusses',
+    id: 'structure',
+    label: 'Structure',
     items: OBJECT_TREE_ITEMS.filter((item) => ['slab', 'roof', 'trusses'].includes(item.id)),
+  },
+  {
+    id: 'estimate',
+    label: 'Estimate',
+    items: OBJECT_TREE_ITEMS.filter((item) => ['quantity-summary', 'estimate-preview', 'warnings'].includes(item.id)),
   },
 ];
 
@@ -3117,7 +3098,7 @@ function ModuleFitBadge({ fit }: { fit: 'full' | 'half' | 'cut' }) {
       : fit === 'half'
         ? 'bg-cyan-100 text-cyan-800 dark:bg-cyan-950 dark:text-cyan-200'
         : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200';
-  const label = fit === 'full' ? 'Full-module fit' : fit === 'half' ? 'Half-module fit' : 'Cut-block warning';
+  const label = fit === 'full' ? 'Full-module fit' : fit === 'half' ? 'Half-module fit' : 'Cut-Block Condition';
   return <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${className}`}>{label}</span>;
 }
 
@@ -3185,3 +3166,4 @@ function objectTypeForPreviewLine(line: DesignEstimatePreviewLine): DesignObject
   if (line.quantityType.includes('truss')) return 'steel_truss_system';
   return 'cmu_wall_system';
 }
+

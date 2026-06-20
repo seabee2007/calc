@@ -258,7 +258,7 @@ export function summarizeOpeningPlacementStatus(
   if (cutCount > 0) {
     return {
       kind: 'cut_block',
-      label: 'Cut-block warning',
+      label: 'Cut-Block Condition',
       warnings: [
         ...validation.warnings,
         `Opening creates non-modular jamb cuts on ${cutCount} course${cutCount === 1 ? '' : 's'}.`,

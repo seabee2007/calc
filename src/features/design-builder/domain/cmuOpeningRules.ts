@@ -2,7 +2,7 @@ import type { CmuWallSystemParameters, WallOpeningParameters } from '../types';
 import { resolveCmuModuleConfig } from './cmuModuleRules';
 
 export const OPENING_GROUT_CONCEPTUAL_WARNING =
-  'Opening grout/reinforcement quantities are conceptual. Verify lintels, jamb reinforcement, grout, rebar, and code requirements before bidding or construction.';
+  'Opening grout/reinforcement quantities are conceptual. Verify lintels, jamb reinforcement, grout, rebar, and code requirements before pricing or construction.';
 
 export interface ResolvedCmuOpening {
   id: string;
@@ -193,7 +193,7 @@ export function validateResolvedOpenings(
       warnings.push(`${opening.type} rough opening ${opening.id} does not fit within wall height.`);
     }
     if (opening.lintelType === 'none') {
-      warnings.push(`No lintel/bond beam is assigned above opening ${opening.id}. Verify opening support before bidding.`);
+      warnings.push(`No lintel/bond beam is assigned above opening ${opening.id}. Verify opening support before pricing.`);
     }
     if (!opening.jambGroutEnabled) {
       warnings.push('Jamb grout disabled. Verify opening reinforcement requirements.');

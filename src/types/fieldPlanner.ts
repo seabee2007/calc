@@ -55,9 +55,17 @@ export interface EmployeeInvite {
   employerId: string;
   email: string;
   role: string;
+  status: 'pending' | 'accepted' | 'revoked' | 'expired';
   token: string;
   expiresAt: string;
   acceptedAt: string | null;
+  revokedAt: string | null;
+  revokedBy: string | null;
+  emailStatus: 'pending' | 'sent' | 'failed';
+  emailSentAt: string | null;
+  emailLastError: string | null;
+  emailSendCount: number;
+  emailLastAttemptAt: string | null;
   createdAt: string;
 }
 

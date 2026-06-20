@@ -174,8 +174,8 @@ Frontend (`src/lib/stripeConfig.ts`) and edge function (`supabase/functions/_sha
 | Check | Status |
 |-------|--------|
 | Free: only `quick_estimates`, `calculators`, `resources` | ✅ |
-| Starter: adds `conceptual_estimates`, `proposals` | ✅ |
-| Professional: adds `employee_portal`, `rfis`, `client_portal`, `change_orders`, `schedule` | ✅ |
+| Starter: adds `conceptual_estimates`, `proposals`, `employee_portal` with 1 included field seat | ✅ |
+| Professional: adds expanded field capacity, `rfis`, `client_portal`, `change_orders`, `schedule` | ✅ |
 | Business: adds `ai_*`, `financial_dashboard`, `contract_builder`, `global_planner_hub` | ✅ |
 | `canUseFeature` → false when `VITE_ENFORCE_PLAN=true` and plan gate not met | ✅ |
 | `shouldEnforcePlanLimits()` always returns `true` in production | ✅ |
