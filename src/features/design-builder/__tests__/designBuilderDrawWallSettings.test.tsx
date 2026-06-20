@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import DesignBuilderPage from '../ui/DesignBuilderPage';
 import { useDesignBuilderSessionStore } from '../state/designBuilderStore';
@@ -52,6 +52,20 @@ vi.mock('../application/designBuilderToEstimate', () => ({
   commitDesignEstimatePreview: vi.fn(),
 }));
 
+function commandBar() {
+  return screen.getByRole('toolbar', { name: /design builder command bar/i });
+}
+
+function openMenuByKind(kind: string) {
+  const menu = commandBar().querySelector(`[data-menu-kind="${kind}"]`);
+  if (!menu) throw new Error(`Command menu kind ${kind} not found`);
+  fireEvent.click(within(menu as HTMLElement).getByRole('button'));
+}
+
+function chooseCommandMenuItem(name: RegExp | string) {
+  fireEvent.click(screen.getByRole('menuitem', { name }));
+}
+
 function latestPlanProps() {
   return (mocks.plan.mock.calls.at(-1)?.[0] ?? {}) as {
     toolMode?: string;
@@ -70,14 +84,16 @@ describe('Design Builder draw wall settings', () => {
 
   it('starts Draw Wall with orthogonal guides enabled on a blank layout', async () => {
     render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
-    fireEvent.click(screen.getByRole('button', { name: /activate wall drawing/i }));
+    openMenuByKind('tools');
+    chooseCommandMenuItem(/^draw wall$/i);
     await waitFor(() => expect(latestPlanProps().toolMode).toBe('draw_wall'));
     expect(latestPlanProps().layout?.orthogonalLock).toBe(true);
   });
 
   it('returns to Select on Escape without exiting Focus mode', async () => {
     render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
-    fireEvent.click(screen.getByRole('button', { name: /activate wall drawing/i }));
+    openMenuByKind('tools');
+    chooseCommandMenuItem(/^draw wall$/i);
     await waitFor(() => expect(latestPlanProps().toolMode).toBe('draw_wall'));
 
     fireEvent.keyDown(window, { key: 'Escape' });

@@ -6,6 +6,18 @@ import type {
   DesignWallLayoutParameters,
 } from '../types';
 import type { DesignSnapTarget } from '../domain/designSnapRules';
+import type { SegmentFrame } from '../geometry/designGeometry';
+import type { ResolvedOpeningPlacement } from '../domain/openingPlacementResolver';
+import {
+  buildPlanOpeningGeometry,
+  buildWallRunsExcludingRoughOpenings,
+  hitTestPlanOpeningGeometry,
+  planPointOnWall,
+} from '../domain/planOpeningGraphics';
+import {
+  PlanOpeningSymbol,
+  buildPlanOpeningRenderItem,
+} from '../domain/planOpeningSymbols';
 import {
   DEFAULT_PLAN_VIEWPORT,
   createPlanCameraController,
@@ -17,8 +29,8 @@ import {
   formatPlanGridSpacingMeters,
   projectCellWidthPx,
 } from '../domain/planGridState';
-import { fitPlanToLayout, type DesignLayoutBounds } from '../domain/designLayoutBounds';
-import { listOrthogonalGuideDirections, resolveDrawWallGuidance } from '../domain/wallLayoutRules';
+import { fitPlanToLayout, logDesignFramingDiagnostics, resetPlanView, type DesignLayoutBounds } from '../domain/designLayoutBounds';
+import { listOrthogonalGuideDirections, resolveDrawWallGuidance, type OrthogonalClosureAssist } from '../domain/wallLayoutRules';
 import { resolveCmuModuleConfig } from '../domain/cmuModuleRules';
 import { DESIGN_BUILDER_COPY } from '../domain/designBuilderCopy';
 import { formatDrawWallStatusChip } from '../domain/designDrawWallFeedback';
@@ -26,6 +38,25 @@ import { formatDrawWallStatusChip } from '../domain/designDrawWallFeedback';
 const MIN_SEGMENT_LENGTH_METERS = 0.08;
 const FALLBACK_SURFACE_SIZE = { width: 900, height: 520 };
 const PLAN_RULER_TICKS_METERS = [0, 5, 10, 50];
+
+export type PlanOpeningCanvasItem = {
+  openingId: string;
+  openingType: 'door' | 'window';
+  resolved: ResolvedOpeningPlacement;
+  isValid: boolean;
+  statusKind?: 'clean' | 'half_block' | 'cut_block' | 'invalid';
+  swingDirection?: 'left' | 'right';
+  swingType?: 'inswing' | 'outswing';
+};
+
+export type PlanOpeningCanvasPreview = {
+  resolvedPlacement: ResolvedOpeningPlacement;
+  openingType: 'door' | 'window';
+  isValid: boolean;
+  statusKind?: 'clean' | 'half_block' | 'cut_block' | 'invalid';
+  swingDirection?: 'left' | 'right';
+  swingType?: 'inswing' | 'outswing';
+};
 
 interface DesignBuilderPlanCanvasProps {
   layout: DesignWallLayoutParameters;
@@ -42,9 +73,15 @@ interface DesignBuilderPlanCanvasProps {
   drawStartNodeId?: string | null;
   selectedSegmentId?: string | null;
   selectedNodeId?: string | null;
+  selectedOpeningId?: string | null;
+  segmentFrames?: readonly SegmentFrame[];
+  openingItems?: readonly PlanOpeningCanvasItem[];
+  openingPreview?: PlanOpeningCanvasPreview | null;
   snapTarget?: DesignSnapTarget | null;
   shiftConstraintLabel?: string | null;
   previewMetrics?: { lengthMeters: number; angleDegrees: number } | null;
+  orthogonalClosureAssist?: OrthogonalClosureAssist | null;
+  closureCornerSnap?: { point: { x: number; z: number }; captured: boolean } | null;
   onInteraction: (event: DesignBuilderInteractionEvent) => void;
 }
 
@@ -63,9 +100,15 @@ export default function DesignBuilderPlanCanvas({
   drawStartNodeId = null,
   selectedSegmentId = null,
   selectedNodeId = null,
+  selectedOpeningId = null,
+  segmentFrames = [],
+  openingItems = [],
+  openingPreview = null,
   snapTarget = null,
   shiftConstraintLabel = null,
   previewMetrics = null,
+  orthogonalClosureAssist = null,
+  closureCornerSnap = null,
   onInteraction,
 }: DesignBuilderPlanCanvasProps) {
   const svgRef = useRef<SVGSVGElement | null>(null);
@@ -73,6 +116,121 @@ export default function DesignBuilderPlanCanvas({
   const spaceHeldRef = useRef(false);
   const lastViewCommandIdRef = useRef<number | null>(null);
   const [surfaceSize, setSurfaceSize] = useState(FALLBACK_SURFACE_SIZE);
+  const [hoveredOpeningId, setHoveredOpeningId] = useState<string | null>(null);
+
+  const framesBySegmentId = useMemo(
+    () => new Map(segmentFrames.map((frame) => [frame.segmentId, frame])),
+    [segmentFrames],
+  );
+
+  const roughOpeningsBySegmentId = useMemo(() => {
+    const bySegment = new Map<string, { roughOpeningStartMeters: number; roughOpeningEndMeters: number }[]>();
+    openingItems.forEach((item) => {
+      const list = bySegment.get(item.resolved.hostSegmentId) ?? [];
+      list.push({
+        roughOpeningStartMeters: item.resolved.roughOpeningStartMeters,
+        roughOpeningEndMeters: item.resolved.roughOpeningEndMeters,
+      });
+      bySegment.set(item.resolved.hostSegmentId, list);
+    });
+    if (openingPreview?.resolvedPlacement) {
+      const preview = openingPreview.resolvedPlacement;
+      const list = bySegment.get(preview.hostSegmentId) ?? [];
+      const alreadyListed = list.some(
+        (gap) =>
+          Math.abs(gap.roughOpeningStartMeters - preview.roughOpeningStartMeters) < 0.001 &&
+          Math.abs(gap.roughOpeningEndMeters - preview.roughOpeningEndMeters) < 0.001,
+      );
+      if (!alreadyListed) {
+        list.push({
+          roughOpeningStartMeters: preview.roughOpeningStartMeters,
+          roughOpeningEndMeters: preview.roughOpeningEndMeters,
+        });
+      }
+      bySegment.set(preview.hostSegmentId, list);
+    }
+    return bySegment;
+  }, [openingItems, openingPreview]);
+
+  const openingRenderItems = useMemo(
+    () =>
+      openingItems.map((item) => {
+        const frame = framesBySegmentId.get(item.resolved.hostSegmentId);
+        if (!frame) return null;
+        return buildPlanOpeningRenderItem({
+          key: item.openingId,
+          openingType: item.openingType,
+          resolved: item.resolved,
+          frame,
+          isValid: item.isValid,
+          statusKind: item.statusKind,
+          selected: selectedOpeningId === item.openingId,
+          hovered: hoveredOpeningId === item.openingId,
+          placing: false,
+          zoom: viewport.zoom,
+          swingDirection: item.swingDirection,
+          swingType: item.swingType,
+        });
+      }).filter((item): item is NonNullable<typeof item> => item != null),
+    [framesBySegmentId, hoveredOpeningId, openingItems, selectedOpeningId, viewport.zoom],
+  );
+
+  const previewRenderItem = useMemo(() => {
+    if (!openingPreview) return null;
+    const frame = framesBySegmentId.get(openingPreview.resolvedPlacement.hostSegmentId);
+    if (!frame) return null;
+    return buildPlanOpeningRenderItem({
+      key: 'placement-preview',
+      openingType: openingPreview.openingType,
+      resolved: openingPreview.resolvedPlacement,
+      frame,
+      isValid: openingPreview.isValid,
+      statusKind: openingPreview.statusKind,
+      selected: false,
+      hovered: false,
+      placing: true,
+      zoom: viewport.zoom,
+      swingDirection: openingPreview.swingDirection,
+      swingType: openingPreview.swingType,
+    });
+  }, [framesBySegmentId, openingPreview, viewport.zoom]);
+
+  const emitSegmentPick = useCallback(
+    (phase: 'preview' | 'commit', point: { x: number; z: number }) => {
+      onInteraction({
+        kind: 'segment_pick',
+        toolMode,
+        phase,
+        planX: point.x,
+        planZ: point.z,
+      });
+    },
+    [onInteraction, toolMode],
+  );
+
+  const updateHoveredOpening = useCallback(
+    (point: { x: number; z: number } | null) => {
+      if (!point || openingItems.length === 0) {
+        setHoveredOpeningId(null);
+        return;
+      }
+      let bestId: string | null = null;
+      let bestDistance = Number.POSITIVE_INFINITY;
+      openingItems.forEach((item) => {
+        const frame = framesBySegmentId.get(item.resolved.hostSegmentId);
+        if (!frame) return;
+        const geometry = buildPlanOpeningGeometry(item.resolved, frame);
+        if (!hitTestPlanOpeningGeometry({ planX: point.x, planZ: point.z, geometry })) return;
+        const distance = Math.hypot(point.x - geometry.center.x, point.z - geometry.center.z);
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          bestId = item.openingId;
+        }
+      });
+      setHoveredOpeningId(bestId);
+    },
+    [framesBySegmentId, openingItems],
+  );
 
   const contentBounds = useMemo(() => {
     if (layoutBounds) {
@@ -154,14 +312,20 @@ export default function DesignBuilderPlanCanvas({
     if (!viewCommand || lastViewCommandIdRef.current === viewCommand.id) return;
     lastViewCommandIdRef.current = viewCommand.id;
     if (viewCommand.action === 'reset') {
-      const center = layoutBounds?.center ?? { x: 0, z: 0 };
-      onViewportChange?.({ centerX: center.x, centerZ: center.z, zoom: DEFAULT_PLAN_VIEWPORT.zoom });
+      onViewportChange?.(resetPlanView());
       return;
     }
     if (viewCommand.action === 'grid_scale') {
       return;
     }
-    onViewportChange?.(fitPlanToLayout(layoutBounds, surfaceSize));
+    const nextViewport = fitPlanToLayout(layoutBounds, surfaceSize);
+    logDesignFramingDiagnostics({
+      mode: 'plan',
+      bounds: layoutBounds,
+      cameraTargetX: nextViewport.centerX,
+      cameraTargetZ: nextViewport.centerZ,
+    });
+    onViewportChange?.(nextViewport);
   }, [layout.gridSpacingMeters, layoutBounds, onViewportChange, surfaceSize, viewCommand, viewport]);
 
   useEffect(() => {
@@ -226,6 +390,11 @@ export default function DesignBuilderPlanCanvas({
     }
     const point = screenFromEvent(event);
     if (!point) return;
+    if (toolMode === 'select' || toolMode === 'move_opening') {
+      updateHoveredOpening(point);
+    } else {
+      setHoveredOpeningId(null);
+    }
     if (toolMode === 'draw_wall') {
       onInteraction({
         kind: 'draw_preview',
@@ -247,6 +416,9 @@ export default function DesignBuilderPlanCanvas({
         planZ: point.z,
         nodeId: activeNodeId,
       });
+    }
+    if (toolMode === 'place_door' || toolMode === 'place_window' || (toolMode === 'move_opening' && selectedOpeningId)) {
+      emitSegmentPick('preview', point);
     }
   };
 
@@ -287,13 +459,11 @@ export default function DesignBuilderPlanCanvas({
       return;
     }
     if (toolMode === 'place_door' || toolMode === 'place_window') {
-      onInteraction({
-        kind: 'segment_pick',
-        toolMode,
-        phase: 'preview',
-        planX: point.x,
-        planZ: point.z,
-      });
+      emitSegmentPick('preview', point);
+      return;
+    }
+    if (toolMode === 'move_opening' && selectedOpeningId) {
+      emitSegmentPick('preview', point);
       return;
     }
     if (toolMode === 'select' || toolMode === 'delete') {
@@ -321,13 +491,13 @@ export default function DesignBuilderPlanCanvas({
     if (toolMode === 'place_door' || toolMode === 'place_window') {
       const point = screenFromEvent(event);
       if (!point) return;
-      onInteraction({
-        kind: 'segment_pick',
-        toolMode,
-        phase: 'commit',
-        planX: point.x,
-        planZ: point.z,
-      });
+      emitSegmentPick('commit', point);
+      return;
+    }
+    if (toolMode === 'move_opening' && selectedOpeningId) {
+      const point = screenFromEvent(event);
+      if (!point) return;
+      emitSegmentPick('commit', point);
       return;
     }
     if (toolMode !== 'move_wall_node' || !activeNodeId) return;
@@ -420,7 +590,19 @@ export default function DesignBuilderPlanCanvas({
   const shiftConstrained = Boolean(shiftConstraintLabel);
   const previewMidpoint = activeNode && draftEnd ? planToSurfacePoint({ x: (activeNode.x + draftEnd.x) / 2, z: (activeNode.z + draftEnd.z) / 2 }) : null;
   const snapMarker = draftEnd ? planToSurfacePoint(draftEnd) : null;
+  const closureAssistMarker = orthogonalClosureAssist?.isEligible
+    ? planToSurfacePoint(orthogonalClosureAssist.candidatePoint)
+    : null;
+  const closureCornerMarker = closureCornerSnap ? planToSurfacePoint(closureCornerSnap.point) : null;
+  const closureAssistMidpoint =
+    orthogonalClosureAssist?.isEligible
+      ? planToSurfacePoint({
+          x: (orthogonalClosureAssist.candidatePoint.x + orthogonalClosureAssist.firstNode.x) / 2,
+          z: (orthogonalClosureAssist.candidatePoint.z + orthogonalClosureAssist.firstNode.z) / 2,
+        })
+      : null;
   const snapCaptured = Boolean(snapTarget?.captured && snapTarget.type !== 'raw');
+  const closureAssistActive = Boolean(orthogonalClosureAssist?.isEligible);
   const originPoint = planToSurfacePoint({ x: 0, z: 0 });
   const xAxisStart = planToSurfacePoint({ x: visibleBounds.minX, z: 0 });
   const xAxisEnd = planToSurfacePoint({ x: visibleBounds.maxX, z: 0 });
@@ -506,9 +688,42 @@ export default function DesignBuilderPlanCanvas({
           const start = layout.nodes.find((node) => node.id === segment.startNodeId);
           const end = layout.nodes.find((node) => node.id === segment.endNodeId);
           if (!start || !end) return null;
-                const a = planToSurfacePoint(start);
-                const b = planToSurfacePoint(end);
           const selected = selectedSegmentId === segment.id;
+          const stroke = toolMode === 'delete' && selected ? '#f97316' : selected ? '#22d3ee' : '#94a3b8';
+          const strokeWidth = selected ? 6 : 4;
+          const frame = framesBySegmentId.get(segment.id);
+          const roughOpenings = roughOpeningsBySegmentId.get(segment.id) ?? [];
+          if (frame && roughOpenings.length > 0) {
+            const runs = buildWallRunsExcludingRoughOpenings({
+              segmentLengthMeters: frame.lengthMeters,
+              roughOpenings,
+            });
+            return (
+              <g key={segment.id}>
+                {runs.map((run, index) => {
+                  const runStart = planToSurfacePoint(planPointOnWall(frame, run.startAlongMeters));
+                  const runEnd = planToSurfacePoint(planPointOnWall(frame, run.endAlongMeters));
+                  return (
+                    <line
+                      key={`${segment.id}-run-${index}`}
+                      x1={runStart.sx}
+                      y1={runStart.sy}
+                      x2={runEnd.sx}
+                      y2={runEnd.sy}
+                      stroke={stroke}
+                      strokeWidth={strokeWidth}
+                      strokeLinecap="round"
+                      pointerEvents="none"
+                      data-segment-id={segment.id}
+                      data-wall-run="true"
+                    />
+                  );
+                })}
+              </g>
+            );
+          }
+          const a = planToSurfacePoint(start);
+          const b = planToSurfacePoint(end);
           return (
             <g key={segment.id}>
               <line
@@ -529,14 +744,20 @@ export default function DesignBuilderPlanCanvas({
                 y1={a.sy}
                 x2={b.sx}
                 y2={b.sy}
-                stroke={toolMode === 'delete' && selected ? '#f97316' : selected ? '#22d3ee' : '#94a3b8'}
-                strokeWidth={selected ? 6 : 4}
+                stroke={stroke}
+                strokeWidth={strokeWidth}
                 strokeLinecap="round"
                 pointerEvents="none"
               />
             </g>
           );
         })}
+        {openingRenderItems.map((item) => (
+          <PlanOpeningSymbol key={item.key} item={item} project={planToSurfacePoint} zoom={viewport.zoom} />
+        ))}
+        {previewRenderItem ? (
+          <PlanOpeningSymbol item={previewRenderItem} project={planToSurfacePoint} zoom={viewport.zoom} />
+        ) : null}
         {orthogonalGuideRays.map((guide, index) => {
           const start = planToSurfacePoint(guide.start);
           const end = planToSurfacePoint(guide.end);
@@ -574,6 +795,45 @@ export default function DesignBuilderPlanCanvas({
             );
           })()
         ) : null}
+        {orthogonalClosureAssist?.isEligible ? (
+          (() => {
+            const start = planToSurfacePoint(orthogonalClosureAssist.candidatePoint);
+            const end = planToSurfacePoint(orthogonalClosureAssist.firstNode);
+            return (
+              <>
+                <line
+                  x1={start.sx}
+                  y1={start.sy}
+                  x2={end.sx}
+                  y2={end.sy}
+                  stroke="#67e8f9"
+                  strokeOpacity={0.45}
+                  strokeWidth={2}
+                  strokeDasharray="5 7"
+                  strokeLinecap="round"
+                  pointerEvents="none"
+                  data-orthogonal-closure-assist="true"
+                />
+                {closureAssistMidpoint ? (
+                  <text
+                    x={closureAssistMidpoint.sx + 8}
+                    y={closureAssistMidpoint.sy + 14}
+                    fill="#7dd3fc"
+                    fontSize={11}
+                    fontWeight={600}
+                    paintOrder="stroke"
+                    stroke="#0f172a"
+                    strokeWidth={3}
+                    pointerEvents="none"
+                    data-orthogonal-closure-label="true"
+                  >
+                    {`Final leg: ${orthogonalClosureAssist.closingLengthMeters.toFixed(2)} m · ${orthogonalClosureAssist.closingAngleDegrees}°`}
+                  </text>
+                ) : null}
+              </>
+            );
+          })()
+        ) : null}
         {activeNode && draftEnd ? (
           (() => {
             const a = planToSurfacePoint(activeNode);
@@ -597,13 +857,27 @@ export default function DesignBuilderPlanCanvas({
           <circle
             cx={snapMarker.sx}
             cy={snapMarker.sy}
-            r={snapCaptured ? 7 : 6}
-            fill={snapCaptured ? '#22d3ee' : 'none'}
-            stroke={invalidPreview ? '#fb7185' : snapCaptured ? '#22d3ee' : '#fbbf24'}
-            strokeOpacity={0.95}
-            strokeWidth={snapCaptured ? 2.5 : 2}
+            r={snapCaptured || closureAssistActive ? 7 : 6}
+            fill={snapCaptured ? '#22d3ee' : closureAssistActive ? 'none' : 'none'}
+            stroke={invalidPreview ? '#fb7185' : snapCaptured ? '#22d3ee' : closureAssistActive ? '#22d3ee' : '#fbbf24'}
+            strokeOpacity={closureAssistActive && !snapCaptured ? 0.85 : 0.95}
+            strokeWidth={snapCaptured || closureAssistActive ? 2.5 : 2}
             pointerEvents="none"
             data-snap-captured={snapCaptured ? 'true' : 'false'}
+            data-closure-assist-marker={closureAssistActive ? 'true' : 'false'}
+          />
+        ) : null}
+        {closureCornerMarker && !closureAssistActive ? (
+          <circle
+            cx={closureCornerMarker.sx}
+            cy={closureCornerMarker.sy}
+            r={7}
+            fill={closureCornerSnap?.captured ? '#22d3ee' : 'none'}
+            stroke="#22d3ee"
+            strokeOpacity={0.85}
+            strokeWidth={2.5}
+            pointerEvents="none"
+            data-closure-corner-snap="true"
           />
         ) : null}
         {previewMidpoint && previewLength > 0 ? (

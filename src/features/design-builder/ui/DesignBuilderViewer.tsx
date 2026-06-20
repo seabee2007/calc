@@ -3,12 +3,24 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import {
   generateCmuLayout,
+  logOpeningCoursePlacementsTableForDev,
   type CmuBlockType,
   type DesignGeometryBlockInstance,
   type DesignGeometryResult,
 } from '../geometry/designGeometry';
 import { resolveCmuModuleConfig } from '../domain/cmuModuleRules';
-import { fit3dToLayout, reset3dView, type DesignLayoutBounds } from '../domain/designLayoutBounds';
+import {
+  fitPerspectiveCameraToBounds,
+  logDesignFramingDiagnostics,
+  reset3dView,
+  resolveSceneGridLayout,
+  type DesignLayoutBounds,
+} from '../domain/designLayoutBounds';
+import {
+  createOpeningRenderGroups,
+  populateOpeningAssemblyRenderGroups,
+} from '../domain/openingAssembly3dRender';
+import { createOpeningFrame3dGroup } from '../domain/openingFrame3dGraphics';
 import type { ResolvedCmuOpening } from '../domain/cmuOpeningRules';
 import { getNormalizedPointerFromClient } from '../domain/pointerPlanMapping';
 import { buildSegmentFrameMap, projectPointToSegmentStation } from '../domain/openingPlacementResolver';
@@ -144,7 +156,7 @@ export default function DesignBuilderViewer({
   initialCameraSnapshot = null,
   onCameraSnapshotChange,
   onUserCameraChange,
-  showOpeningLayout = true,
+  showOpeningLayout = false,
   showGroutCells = false,
   showClosureWarnings = false,
   showFootprintSetout = false,
@@ -165,6 +177,7 @@ export default function DesignBuilderViewer({
   const selectedOpeningIdRef = useRef(selectedOpeningId);
   const placementPreviewRef = useRef(placementPreview);
   const manualMasonryEnabledRef = useRef(manualMasonryEnabled);
+  const hoveredOpeningIdRef = useRef<string | null>(null);
   const rebuildModelRef = useRef<(() => void) | null>(null);
   const updateGhostRef = useRef<(() => void) | null>(null);
   const modelParamsRef = useRef({
@@ -248,8 +261,25 @@ export default function DesignBuilderViewer({
     const ghostRoot = new THREE.Group();
     scene.add(root, ghostRoot);
 
-    const grid = new THREE.GridHelper(14, 28);
+    const initialGridLayout = resolveSceneGridLayout(modelParamsRef.current.layoutBounds);
+    let grid = new THREE.GridHelper(initialGridLayout.gridSize, initialGridLayout.gridDivisions);
+    grid.position.set(initialGridLayout.centerX, 0, initialGridLayout.centerZ);
     scene.add(grid);
+    const floorMaterial = new THREE.MeshBasicMaterial({
+      color: isDarkMode() ? 0x1e293b : 0xe2e8f0,
+      transparent: true,
+      opacity: 0.28,
+      side: THREE.DoubleSide,
+    });
+    const floorMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(initialGridLayout.gridSize, initialGridLayout.gridSize),
+      floorMaterial,
+    );
+    floorMesh.rotation.x = -Math.PI / 2;
+    floorMesh.position.set(initialGridLayout.centerX, -0.004, initialGridLayout.centerZ);
+    scene.add(floorMesh);
+    let activeGridSize = initialGridLayout.gridSize;
+    let activeGridDivisions = initialGridLayout.gridDivisions;
     const raycaster = new THREE.Raycaster();
     const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
     const selectable: THREE.Object3D[] = [];
@@ -309,11 +339,32 @@ export default function DesignBuilderViewer({
       return mesh;
     }
 
+    function applySceneFraming(bounds: DesignLayoutBounds | null) {
+      const layout = resolveSceneGridLayout(bounds);
+      if (Math.abs(activeGridSize - layout.gridSize) > 0.01 || activeGridDivisions !== layout.gridDivisions) {
+        scene.remove(grid);
+        grid.geometry.dispose();
+        (grid.material as THREE.Material).dispose();
+        grid = new THREE.GridHelper(layout.gridSize, layout.gridDivisions);
+        activeGridSize = layout.gridSize;
+        activeGridDivisions = layout.gridDivisions;
+        scene.add(grid);
+        applyTheme();
+      }
+      grid.position.set(layout.centerX, 0, layout.centerZ);
+      floorMesh.position.set(layout.centerX, -0.004, layout.centerZ);
+      if (floorMesh.geometry instanceof THREE.PlaneGeometry) {
+        floorMesh.geometry.dispose();
+      }
+      floorMesh.geometry = new THREE.PlaneGeometry(layout.gridSize, layout.gridSize);
+    }
+
     function applyTheme() {
       const dark = isDarkMode();
       scene.background = new THREE.Color(dark ? 0x0f172a : 0xf8fafc);
       (grid.material as THREE.Material).opacity = dark ? 0.35 : 0.22;
       (grid.material as THREE.Material).transparent = true;
+      floorMaterial.color.set(dark ? 0x1e293b : 0xe2e8f0);
     }
 
     function setPointerFromEvent(event: PointerEvent) {
@@ -469,10 +520,11 @@ export default function DesignBuilderViewer({
               : { placementStatusKind: preview.statusKind }),
           };
 
-      const frame = createOpeningFrame(resolvedLike, ghostWall, ghostSlab.slabThicknessMeters, {
+      const frame = createOpeningFrame3dGroup(resolvedLike, ghostWall, ghostSlab.slabThicknessMeters, {
         preview: true,
         valid: preview.isValid,
         selected: Boolean(preview.openingId && preview.openingId === selectedOpeningIdRef.current),
+        showOpeningLayout: modelParamsRef.current.showOpeningLayout,
       });
       frame.traverse((child) => {
         if (child instanceof THREE.Mesh || child instanceof THREE.LineSegments) {
@@ -492,6 +544,7 @@ export default function DesignBuilderViewer({
         roof: currentRoof,
         truss: currentTruss,
         geometryResult: currentGeometry,
+        layoutBounds: currentLayoutBounds,
         selectedObjectType: currentSelectedObjectType,
         showOpeningLayout: currentShowOpeningLayout,
         showGroutCells: currentShowGroutCells,
@@ -504,7 +557,7 @@ export default function DesignBuilderViewer({
       geometriesToDispose.splice(0).forEach((geometry) => geometry.dispose());
       materialsToDispose.splice(0).forEach((material) => material.dispose());
 
-      addGroundPlane(root, isDarkMode());
+      applySceneFraming(currentLayoutBounds);
       const blankGeometryActive = currentGeometry?.sourcePath === 'blank';
       sceneSizeRef.current = {
         length: blankGeometryActive ? 6 : currentWall.lengthMeters,
@@ -546,6 +599,20 @@ export default function DesignBuilderViewer({
       addSelectable(slabMesh, 'building_footprint');
 
       const cmuLayout = layoutGraphActive && currentGeometry ? currentGeometry.wallCmuLayout : generateCmuLayout(currentWall);
+      if (import.meta.env.DEV && selectedOpeningIdRef.current) {
+        const selectedOpening = cmuLayout.roughOpenings.find(
+          (opening) => opening.id === selectedOpeningIdRef.current,
+        );
+        if (selectedOpening) {
+          const moduleConfig = resolveCmuModuleConfig(currentWall);
+          logOpeningCoursePlacementsTableForDev(
+            cmuLayout.unitPlacements,
+            selectedOpening,
+            moduleConfig.moduleHeightMeters,
+            selectedOpening.wallSegmentId ?? selectedOpening.wallFace ?? undefined,
+          );
+        }
+      }
       if (layoutGraphActive) {
         if (import.meta.env.DEV && currentShowFootprintSetout && currentGeometry.resolvedFootprint) {
           [
@@ -781,61 +848,53 @@ export default function DesignBuilderViewer({
         });
       }
 
-      if (currentShowOpeningLayout) {
-        cmuLayout.roughOpenings.forEach((opening) => {
-          const frame = createOpeningFrame(opening, currentWall, currentSlab.slabThicknessMeters, {
-            selected: opening.id === selectedOpeningIdRef.current,
-          });
-          const objectType: DesignObjectType = opening.type === 'door' ? 'door_opening' : 'window_opening';
-          frame.traverse((child) => {
-            child.userData.selectable = true;
-            child.userData.designObjectType = objectType;
-            child.userData.openingId = opening.id;
-            child.userData.selectionPriority = 100;
-            if (child instanceof THREE.Mesh || child instanceof THREE.LineSegments) selectable.push(child);
-          });
-          root.add(frame);
-        });
-      }
+      const openingRenderGroups = createOpeningRenderGroups();
+      populateOpeningAssemblyRenderGroups(openingRenderGroups, {
+        cmuLayout,
+        wall: currentWall,
+        slabTopMeters: currentSlab.slabThicknessMeters,
+        showGroutCells: currentShowGroutCells,
+        showOpeningLayout: currentShowOpeningLayout,
+        selectedOpeningId: selectedOpeningIdRef.current,
+        hoveredOpeningId: hoveredOpeningIdRef.current,
+        trackGeometry,
+        makeMaterial,
+      });
 
-      if (currentShowGroutCells) {
-        const groutFills = cmuLayout.groutFillPlacements.length > 0
-          ? cmuLayout.groutFillPlacements
-          : cmuLayout.jambGroutCells.map((cell) => ({
-              id: cell.id,
-              openingId: cell.openingId,
-              hostSegmentId: cell.segmentId ?? cell.face,
-              kind: 'jamb_cell' as const,
-              courseIndex: cell.courseIndex,
-              center: { x: cell.x, y: cell.y, z: cell.z },
-              rotationY: cell.rotationY,
-              lengthMeters: cell.widthMeters,
-              heightMeters: cell.heightMeters,
-              depthMeters: currentWall.wallThicknessMeters,
-              grossVolumeCubicMeters: 0,
-              wastePercent: 0,
-              netVolumeCubicMeters: 0,
-              source: 'opening_assembly_solver' as const,
-            }));
-        const groutGroup = new THREE.Group();
-        groutGroup.userData.groutSolidGroup = true;
-        groutFills.forEach((fill) => {
-          const groutColor = fill.kind === 'lintel_cell' || fill.kind === 'bond_beam_cell' ? 0x64748b : 0x5eead4;
-          const groutMaterial = makeMaterial(groutColor, false);
-          const cellMesh = new THREE.Mesh(
-            trackGeometry(new THREE.BoxGeometry(fill.lengthMeters, fill.heightMeters, fill.depthMeters)),
-            groutMaterial,
-          );
-          cellMesh.position.set(fill.center.x, currentSlab.slabThicknessMeters + fill.center.y, fill.center.z);
-          cellMesh.rotation.y = fill.rotationY;
-          cellMesh.userData.groutFillPlacement = true;
-          cellMesh.userData.groutSolid = true;
-          groutGroup.add(cellMesh);
-          addSelectable(cellMesh, 'cmu_wall_system', undefined, 10);
-        });
-        if (groutGroup.children.length > 0) {
-          root.add(groutGroup);
+      openingRenderGroups.frameGroup.traverse((child) => {
+        const openingId = child.userData.openingId as string | undefined;
+        if (!openingId) return;
+        const opening = cmuLayout.roughOpenings.find((candidate) => candidate.id === openingId);
+        const objectType: DesignObjectType = opening?.type === 'door' ? 'door_opening' : 'window_opening';
+        child.userData.selectable = true;
+        child.userData.designObjectType = objectType;
+        child.userData.openingId = openingId;
+        child.userData.selectionPriority = 100;
+        if (child instanceof THREE.Mesh || child instanceof THREE.LineSegments) selectable.push(child);
+      });
+      openingRenderGroups.lintelGroup.traverse((child) => {
+        if (child instanceof THREE.Mesh && child.userData.lintelSolid) {
+          child.userData.selectable = true;
+          child.userData.designObjectType = 'cmu_wall_system';
+          child.userData.selectionPriority = 40;
+          selectable.push(child);
         }
+      });
+      root.add(openingRenderGroups.lintelGroup);
+      root.add(openingRenderGroups.frameGroup);
+      if (currentShowGroutCells) {
+        openingRenderGroups.groutCellGroup.traverse((child) => {
+          if (child instanceof THREE.Mesh && child.userData.groutSolid) {
+            child.userData.selectable = true;
+            child.userData.designObjectType = 'cmu_wall_system';
+            child.userData.selectionPriority = 10;
+            selectable.push(child);
+          }
+        });
+        root.add(openingRenderGroups.groutCellGroup);
+      }
+      if (currentShowOpeningLayout) {
+        root.add(openingRenderGroups.roughOpeningGuideGroup);
       }
 
       if (currentShowClosureWarnings) {
@@ -856,26 +915,6 @@ export default function DesignBuilderViewer({
             marker.userData.explicitHelperMarker = true;
             addSelectable(marker, 'cmu_wall_system', undefined, 5);
           });
-      }
-
-      if (currentShowOpeningLayout) {
-        const lintelMaterial = makeMaterial(0x9ca3af, currentSelectedObjectType === 'cmu_wall_system');
-        const lintelGroup = new THREE.Group();
-        lintelGroup.userData.lintelSolidGroup = true;
-        cmuLayout.lintels.forEach((lintel) => {
-          const lintelMesh = new THREE.Mesh(
-            trackGeometry(new THREE.BoxGeometry(lintel.lengthMeters, lintel.heightMeters, lintel.depthMeters ?? currentWall.wallThicknessMeters)),
-            lintelMaterial,
-          );
-          lintelMesh.position.set(lintel.x, currentSlab.slabThicknessMeters + lintel.y, lintel.z);
-          lintelMesh.rotation.y = lintel.rotationY;
-          lintelMesh.userData.lintelSolid = true;
-          lintelGroup.add(lintelMesh);
-          addSelectable(lintelMesh, 'cmu_wall_system', undefined, 40);
-        });
-        if (lintelGroup.children.length > 0) {
-          root.add(lintelGroup);
-        }
       }
 
       updateGhost();
@@ -984,6 +1023,15 @@ export default function DesignBuilderViewer({
           hitPointZ: pick.hitPoint?.z,
           openingType: mode === 'place_door' ? 'door' : 'window',
         });
+        return;
+      }
+      if (mode === 'select' && !dragOpeningId) {
+        const hit = pickSelectable(event);
+        const nextHoveredOpeningId = hit?.data.openingId ?? null;
+        if (nextHoveredOpeningId !== hoveredOpeningIdRef.current) {
+          hoveredOpeningIdRef.current = nextHoveredOpeningId;
+          rebuildModelRef.current?.();
+        }
       }
     };
 
@@ -1120,15 +1168,26 @@ export default function DesignBuilderViewer({
 
   useEffect(() => {
     if (modelLoaded) rebuildModelRef.current?.();
-  }, [geometryResult, modelLoaded, roof, selectedObjectType, selectedOpeningId, showClosureWarnings, showFootprintSetout, showGroutCells, showOpeningLayout, slab, truss, wall]);
+  }, [geometryResult, layoutBounds, modelLoaded, roof, selectedObjectType, selectedOpeningId, showClosureWarnings, showFootprintSetout, showGroutCells, showOpeningLayout, slab, truss, wall]);
 
   useEffect(() => {
     if (!viewCommand) return;
     const camera = cameraRef.current;
     const controls = controlsRef.current;
-    if (!camera || !controls) return;
+    const host = hostRef.current;
+    if (!camera || !controls || !host) return;
     if (viewCommand.action === 'grid_scale') return;
-    const fit = viewCommand.action === 'fit' ? fit3dToLayout(layoutBounds) : reset3dView();
+    if (viewCommand.action === 'fit' && !layoutBounds) return;
+    const width = Math.max(1, host.clientWidth);
+    const height = Math.max(1, host.clientHeight);
+    const fit =
+      viewCommand.action === 'fit'
+        ? fitPerspectiveCameraToBounds({
+            bounds: layoutBounds!,
+            camera: { fov: camera.fov, aspect: width / height },
+            padding: 1.2,
+          })
+        : reset3dView();
     controls.target.set(fit.target.x, fit.target.y, fit.target.z);
     camera.position.set(fit.position.x, fit.position.y, fit.position.z);
     camera.near = fit.near;
@@ -1136,6 +1195,12 @@ export default function DesignBuilderViewer({
     camera.lookAt(controls.target);
     camera.updateProjectionMatrix();
     controls.update();
+    logDesignFramingDiagnostics({
+      mode: '3d',
+      bounds: layoutBounds,
+      cameraTargetX: controls.target.x,
+      cameraTargetZ: controls.target.z,
+    });
     onCameraSnapshotRef.current?.({
       position: camera.position.toArray() as [number, number, number],
       target: controls.target.toArray() as [number, number, number],
@@ -1169,27 +1234,13 @@ export default function DesignBuilderViewer({
       ) : null}
       {modelLoaded && showGroutCells ? (
         <div className="pointer-events-none absolute bottom-4 left-4 rounded-lg border border-slate-200 bg-white/90 px-3 py-2 text-[11px] text-slate-700 shadow-sm dark:border-slate-700 dark:bg-slate-900/90 dark:text-slate-200">
-          <div className="font-semibold">Grout / lintel legend</div>
-          <div className="mt-1 flex items-center gap-2"><span className="inline-block h-2.5 w-2.5 rounded-sm bg-teal-300/80" /> Grout fill</div>
-          <div className="mt-1 flex items-center gap-2"><span className="inline-block h-2.5 w-2.5 rounded-sm bg-slate-500/80" /> Lintel / bond beam</div>
-          <div className="mt-1 flex items-center gap-2"><span className="inline-block h-2.5 w-2.5 rounded-sm bg-teal-400/80" /> Jamb cells</div>
+          <div className="font-semibold">Grout / reinforced cells</div>
+          <div className="mt-1 flex items-center gap-2"><span className="inline-block h-2.5 w-2.5 rounded-sm bg-stone-400/80" /> Core / closure grout fill</div>
+          <div className="mt-1 flex items-center gap-2"><span className="inline-block h-2.5 w-2.5 rounded-sm bg-slate-400/80" /> Precast lintel (always visible)</div>
         </div>
       ) : null}
     </div>
   );
-}
-
-function addGroundPlane(root: THREE.Group, dark: boolean) {
-  const material = new THREE.MeshBasicMaterial({
-    color: dark ? 0x1e293b : 0xe2e8f0,
-    transparent: true,
-    opacity: 0.28,
-    side: THREE.DoubleSide,
-  });
-  const plane = new THREE.Mesh(new THREE.PlaneGeometry(14, 14), material);
-  plane.rotation.x = -Math.PI / 2;
-  plane.position.y = -0.004;
-  root.add(plane);
 }
 
 function addLabel(root: THREE.Group, text: string, position: THREE.Vector3, color: number) {
@@ -1229,89 +1280,6 @@ function roundRect(context: CanvasRenderingContext2D, x: number, y: number, widt
   context.lineTo(x, y + radius);
   context.quadraticCurveTo(x, y, x + radius, y);
   context.closePath();
-}
-
-function createOpeningFrame(
-  opening: ResolvedCmuOpening,
-  wall: CmuWallSystemParameters,
-  slabTop: number,
-  options?: { preview?: boolean; valid?: boolean; selected?: boolean },
-): THREE.Group {
-  const group = new THREE.Group();
-  const preview = options?.preview ?? false;
-  const valid = options?.valid ?? true;
-  const selected = options?.selected ?? false;
-  const previewStatus = options?.preview ? (opening as ResolvedCmuOpening & { placementStatusKind?: string }).placementStatusKind : undefined;
-  const previewColor = !valid ? 0xef4444 : previewStatus === 'cut_block' || previewStatus === 'half_block' ? 0xf59e0b : 0x22d3ee;
-  const outlineColor = preview ? previewColor : selected ? 0x22d3ee : 0x0f172a;
-  const frameMaterial = new THREE.MeshStandardMaterial({
-    color: opening.type === 'door' ? 0x92400e : 0x2563eb,
-    roughness: 0.55,
-    metalness: 0.05,
-    transparent: preview,
-    opacity: preview ? 0.72 : 1,
-  });
-  const outlineMaterial = new THREE.LineBasicMaterial({ color: outlineColor, transparent: preview, opacity: preview ? 0.95 : 1 });
-  const unitMaterial = new THREE.MeshStandardMaterial({
-    color: opening.type === 'door' ? 0x78350f : 0x60a5fa,
-    roughness: 0.6,
-    transparent: true,
-    opacity: preview ? 0.28 : 0.42,
-  });
-  const centerY = slabTop + opening.actualBottomMeters + opening.actualHeightMeters / 2;
-  const along = (opening.actualStartAlongMeters + opening.actualEndAlongMeters) / 2;
-  const width = opening.roughOpeningWidthMeters;
-  const height = opening.roughOpeningHeightMeters;
-  const actualWidth = opening.actualWidthMeters;
-  const actualHeight = opening.actualHeightMeters;
-  const roughCenterAlong = (opening.roughStartAlongMeters + opening.roughEndAlongMeters) / 2;
-  const actualCenterAlong = along;
-  const roughOutlineOffsetX = roughCenterAlong - actualCenterAlong;
-  const roughCenterY = opening.roughBottomMeters + opening.roughOpeningHeightMeters / 2;
-  const actualCenterY = opening.actualBottomMeters + opening.actualHeightMeters / 2;
-  const roughOutlineOffsetY = roughCenterY - actualCenterY;
-  const renderEpsilonMeters = 0.001;
-  const depth = wall.wallThicknessMeters;
-  const frame = 0.055;
-  const horizontalGeom = new THREE.BoxGeometry(actualWidth + frame * 2, frame, depth + renderEpsilonMeters);
-  const verticalGeom = new THREE.BoxGeometry(frame, actualHeight + frame * 2, depth + renderEpsilonMeters);
-  const outlineGeom = new THREE.EdgesGeometry(new THREE.BoxGeometry(width, height, depth + renderEpsilonMeters));
-  const unitGeom = new THREE.BoxGeometry(actualWidth, actualHeight, depth + renderEpsilonMeters);
-  const pieces = [
-    new THREE.LineSegments(outlineGeom, outlineMaterial),
-    new THREE.Mesh(unitGeom, unitMaterial),
-    new THREE.Mesh(horizontalGeom, frameMaterial),
-    new THREE.Mesh(horizontalGeom, frameMaterial),
-    new THREE.Mesh(verticalGeom, frameMaterial),
-    new THREE.Mesh(verticalGeom, frameMaterial),
-  ];
-  pieces[0].position.set(roughOutlineOffsetX, roughOutlineOffsetY, 0);
-  pieces[1].position.set(0, 0, renderEpsilonMeters);
-  pieces[2].position.set(0, actualHeight / 2 + frame / 2, 0);
-  pieces[3].position.set(0, -actualHeight / 2 - frame / 2, 0);
-  pieces[4].position.set(-actualWidth / 2 - frame / 2, 0, 0);
-  pieces[5].position.set(actualWidth / 2 + frame / 2, 0, 0);
-  pieces.forEach((piece) => group.add(piece));
-
-  const layoutOpening = opening as ResolvedCmuOpening & {
-    worldX?: number;
-    worldZ?: number;
-    rotationY?: number;
-  };
-  if (typeof layoutOpening.worldX === 'number' && typeof layoutOpening.worldZ === 'number') {
-    group.position.set(layoutOpening.worldX, centerY, layoutOpening.worldZ);
-    group.rotation.y = layoutOpening.rotationY ?? 0;
-  } else if (opening.wallFace === 'north' || opening.wallFace === 'south') {
-    const x = along - wall.lengthMeters / 2;
-    const z = opening.wallFace === 'north' ? -wall.widthMeters / 2 - renderEpsilonMeters : wall.widthMeters / 2 + renderEpsilonMeters;
-    group.position.set(x, centerY, z);
-  } else {
-    const z = along - wall.widthMeters / 2;
-    const x = opening.wallFace === 'east' ? wall.lengthMeters / 2 + renderEpsilonMeters : -wall.lengthMeters / 2 - renderEpsilonMeters;
-    group.position.set(x, centerY, z);
-    group.rotation.y = Math.PI / 2;
-  }
-  return group;
 }
 
 function groupBlocksByType<T extends { blockType: CmuBlockType }>(blocks: T[]): Map<CmuBlockType, T[]> {

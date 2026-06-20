@@ -31,6 +31,7 @@ export function resolveDesignSnapPoint(params: {
     drawStartNodeId?: string | null;
     orthogonalLock?: boolean;
     shiftHeld?: boolean;
+    closureCornerCandidate?: { x: number; z: number } | null;
   };
   previousSnap?: DesignSnapTarget | null;
 }): DesignSnapTarget {
@@ -80,6 +81,20 @@ export function resolveDesignSnapPoint(params: {
 
   const endpointSnap = findNearestEndpointSnap(params.layout, params.point, captureMeters, pixelsPerMeter);
   if (endpointSnap) candidates.push(endpointSnap);
+
+  if (params.drawContext?.shiftHeld && params.drawContext.closureCornerCandidate) {
+    const corner = params.drawContext.closureCornerCandidate;
+    const distanceMeters = distance(params.point, corner);
+    candidates.push({
+      type: 'guide',
+      point: corner,
+      distancePx: distanceMeters * pixelsPerMeter,
+      priority: 1,
+      label: 'Rectangle corner',
+      valid: true,
+      captured: distanceMeters * pixelsPerMeter <= guideCaptureMeters,
+    });
+  }
 
   if (params.drawContext?.shiftHeld && params.drawContext.activeNodeId && params.drawContext.orthogonalLock) {
     const constrained = resolveShiftConstrainedPoint({

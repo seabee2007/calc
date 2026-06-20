@@ -1250,7 +1250,7 @@ describe('Design Builder generated geometry', () => {
     const trimmedJambs = layout.blocks.filter(
       (block) =>
         block.blockType === 'cut' &&
-        block.source === 'opening_assembly_solver' &&
+        block.source === 'opening_jamb_closure' &&
         typeof block.startAlongMeters === 'number' &&
         typeof block.endAlongMeters === 'number' &&
         (Math.abs(block.endAlongMeters! - door!.actualStartAlongMeters) < 0.02 ||
@@ -1269,11 +1269,11 @@ describe('Design Builder generated geometry', () => {
       .filter(
         (block) =>
           block.blockType === 'cut' &&
-          block.source === 'opening_assembly_solver' &&
+          block.source === 'opening_jamb_closure' &&
           typeof block.startAlongMeters === 'number' &&
           typeof block.endAlongMeters === 'number' &&
-          (Math.abs(block.endAlongMeters! - door!.roughStartAlongMeters) < 0.02 ||
-            Math.abs(block.startAlongMeters! - door!.roughEndAlongMeters) < 0.02),
+          (Math.abs(block.endAlongMeters! - door!.actualStartAlongMeters) < 0.02 ||
+            Math.abs(block.startAlongMeters! - door!.actualEndAlongMeters) < 0.02),
       )
       .slice(0, 4);
 

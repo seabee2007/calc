@@ -27,11 +27,29 @@ export type ResolvedOpeningPlacement = {
   roughOpeningEndMeters: number;
   actualOpeningStartMeters: number;
   actualOpeningEndMeters: number;
+  wallCenterLineStart: { x: number; z: number };
+  wallCenterLineEnd: { x: number; z: number };
+  interiorSideSign: 1 | -1;
   wallRotationY: number;
   frameOrigin: { x: number; y: number; z: number };
   isValid: boolean;
   validationMessages: string[];
 };
+
+function enrichResolvedOpeningPlacement(
+  placement: Omit<
+    ResolvedOpeningPlacement,
+    'wallCenterLineStart' | 'wallCenterLineEnd' | 'interiorSideSign'
+  >,
+  frame: SegmentFrame,
+): ResolvedOpeningPlacement {
+  return {
+    ...placement,
+    wallCenterLineStart: { x: frame.centerlineStart.x, z: frame.centerlineStart.z },
+    wallCenterLineEnd: { x: frame.centerlineEnd.x, z: frame.centerlineEnd.z },
+    interiorSideSign: 1,
+  };
+}
 
 export function projectPointToSegmentStation(
   point: Pick<PlacementHitPoint, 'x' | 'z'>,
@@ -96,7 +114,7 @@ function snapStationMeters(
   return roundMeters(stationMeters);
 }
 
-function resolveRoughAndActualSpans(
+export function resolveRoughAndActualSpans(
   centerStationMeters: number,
   openingDefinition: OpeningPlacementDefinition,
 ): {
@@ -208,23 +226,26 @@ export function resolveOpeningPlacementFromWallHit(params: {
       ? params.openingDefinition.heightMeters / 2
       : (params.openingDefinition.sillHeightMeters ?? 0) + params.openingDefinition.heightMeters / 2;
 
-  return {
-    hostSegmentId: params.hostSegmentId,
-    positionAlongSegmentMeters: openingCenterStationMeters,
-    roughOpeningStartMeters: spans.roughOpeningStartMeters,
-    roughOpeningEndMeters: spans.roughOpeningEndMeters,
-    actualOpeningStartMeters: spans.actualOpeningStartMeters,
-    actualOpeningEndMeters: spans.actualOpeningEndMeters,
-    wallRotationY: params.segmentFrame.rotationY,
-    frameOrigin: pointOnExteriorFace(
-      params.segmentFrame,
-      openingCenterStationMeters,
-      params.slabTopMeters ?? 0,
-      verticalMeters,
-    ),
-    isValid: validation.isValid,
-    validationMessages: validation.validationMessages,
-  };
+  return enrichResolvedOpeningPlacement(
+    {
+      hostSegmentId: params.hostSegmentId,
+      positionAlongSegmentMeters: openingCenterStationMeters,
+      roughOpeningStartMeters: spans.roughOpeningStartMeters,
+      roughOpeningEndMeters: spans.roughOpeningEndMeters,
+      actualOpeningStartMeters: spans.actualOpeningStartMeters,
+      actualOpeningEndMeters: spans.actualOpeningEndMeters,
+      wallRotationY: params.segmentFrame.rotationY,
+      frameOrigin: pointOnExteriorFace(
+        params.segmentFrame,
+        openingCenterStationMeters,
+        params.slabTopMeters ?? 0,
+        verticalMeters,
+      ),
+      isValid: validation.isValid,
+      validationMessages: validation.validationMessages,
+    },
+    params.segmentFrame,
+  );
 }
 
 export function resolveOpeningPlacementFromLegacyFaceOffset(params: {
@@ -312,7 +333,61 @@ export function openingDraftFromResolvedPlacement(
     groutCellsEachSide: wall.jambCellsEachSide ?? 1,
     openingFrameMaterial: openingDefinition.type === 'door' ? 'hollow_metal' : 'vinyl',
     offsetMeters: resolved.actualOpeningStartMeters,
+    ...(openingDefinition.type === 'door'
+      ? {
+          swingDirection: 'left' as const,
+          swingType: 'inswing' as const,
+        }
+      : {}),
   };
+}
+
+export function resolveOpeningPlacementFromStoredOpening(params: {
+  opening: WallOpeningParameters;
+  segmentFrame: SegmentFrame;
+  wall: CmuWallSystemParameters;
+  slabTopMeters?: number;
+}): ResolvedOpeningPlacement {
+  const openingDefinition: OpeningPlacementDefinition = {
+    type: params.opening.type,
+    widthMeters: params.opening.widthMeters,
+    heightMeters: params.opening.heightMeters,
+    sillHeightMeters: params.opening.sillHeightMeters,
+    roughOpeningAllowanceMeters: params.opening.roughOpeningAllowanceMeters,
+  };
+  const centerStationMeters = openingCenterStationFromStored(params.opening);
+  const spans = resolveRoughAndActualSpans(centerStationMeters, openingDefinition);
+  const validation = validatePlacement({
+    frame: params.segmentFrame,
+    centerStationMeters,
+    openingDefinition,
+    minimumEdgeDistanceMeters: 0,
+    wallHeightMeters: params.segmentFrame.wallHeightMeters,
+  });
+  const verticalMeters =
+    params.opening.type === 'door'
+      ? params.opening.heightMeters / 2
+      : (params.opening.sillHeightMeters ?? 0) + params.opening.heightMeters / 2;
+  return enrichResolvedOpeningPlacement(
+    {
+      hostSegmentId: params.segmentFrame.segmentId,
+      positionAlongSegmentMeters: centerStationMeters,
+      roughOpeningStartMeters: spans.roughOpeningStartMeters,
+      roughOpeningEndMeters: spans.roughOpeningEndMeters,
+      actualOpeningStartMeters: spans.actualOpeningStartMeters,
+      actualOpeningEndMeters: spans.actualOpeningEndMeters,
+      wallRotationY: params.segmentFrame.rotationY,
+      frameOrigin: pointOnExteriorFace(
+        params.segmentFrame,
+        centerStationMeters,
+        params.slabTopMeters ?? 0,
+        verticalMeters,
+      ),
+      isValid: validation.isValid,
+      validationMessages: validation.validationMessages,
+    },
+    params.segmentFrame,
+  );
 }
 
 export function segmentFrameById(

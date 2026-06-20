@@ -36,10 +36,12 @@ import {
 } from '../domain/designBuilderInteractionRules';
 import {
   resolveOpeningPlacementFromPlanPoint,
+  resolveOpeningPlacementFromStoredOpening,
   segmentFrameById,
   type OpeningPlacementDefinition,
   type ResolvedOpeningPlacement,
 } from '../domain/openingPlacementResolver';
+import { pickOpeningAtPlanPoint } from '../domain/planOpeningGraphics';
 import { getSegmentFramesForWallLayout } from '../geometry/designGeometry';
 import {
   canGenerateSlabAndRoof,
@@ -68,9 +70,13 @@ import {
   projectExactSegmentLength,
   removeLastSegment,
   resolveDrawWallGuidance,
+  resolveOrthogonalClosureAssist,
+  resolveOrthogonalCornerPoint,
   resolveSegmentAtPoint,
   resolveShiftConstrainedPoint,
   snapPlanPoint,
+  GUIDE_CAPTURE_RADIUS_PX,
+  type OrthogonalClosureAssist,
 } from '../domain/wallLayoutRules';
 import {
   canRedoDesignHistory,
@@ -107,6 +113,10 @@ import {
 } from '../domain/moduleFitEngine';
 import { resolveCmuOpening } from '../domain/cmuOpeningRules';
 import {
+  lintelCourseAssemblyRequiresCutWarning,
+  summarizeLintelCourseClosureSide,
+} from '../domain/lintelCourseClosureSolver';
+import {
   buildDesignGeometryInputFromLayout,
   generateCmuLayout,
   generateDesignGeometry,
@@ -126,6 +136,8 @@ import {
   upsertDesignModelObjects,
 } from '../services/designBuilderService';
 import type {
+  BuilderViewMode,
+  BuildingSystemMode,
   DesignBuilderCameraSnapshot,
   DesignBuilderInteractionEvent,
   DesignBuilderLayoutMode,
@@ -147,6 +159,11 @@ import type {
   WallOpeningParameters,
 } from '../types';
 import {
+  BUILDING_SYSTEM_MODE_LABELS,
+  builderViewModeFromStored,
+  storedViewModeFromBuilder,
+} from '../types';
+import {
   DEFAULT_OBJECT_TREE_EXPANSION,
   designBuilderSessionKey,
   type ObjectTreeExpansionState,
@@ -157,7 +174,7 @@ import {
   PLAN_GRID_SCALE_PRESETS,
   type PlanViewportState,
 } from '../domain/pointerPlanMapping';
-import { deriveDesignLayoutBounds } from '../domain/designLayoutBounds';
+import { buildLayoutFramingKey, deriveDesignLayoutBounds, logDesignFramingDiagnostics } from '../domain/designLayoutBounds';
 import { formatDrawWallSnapTargetFeedback } from '../domain/designDrawWallFeedback';
 import DesignBuilderViewer, { type DesignBuilderPlacementPreview } from './DesignBuilderViewer';
 import DesignBuilderPlanCanvas from './DesignBuilderPlanCanvas';
@@ -283,6 +300,7 @@ export default function DesignBuilderPage({
   const prevFootprintClosedRef = useRef(false);
   const autoFitPlanForLayoutKeyRef = useRef<string | null>(null);
   const autoFit3dForLayoutKeyRef = useRef<string | null>(null);
+  const sessionFramingValidatedRef = useRef(false);
   const orthogonalGuidesPreferenceTouchedRef = useRef(storedSession?.orthogonalGuidesPreferenceTouched ?? false);
   const resizeFrameRef = useRef<number | null>(null);
   const saveDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -306,6 +324,8 @@ export default function DesignBuilderPage({
   const [draftSnapTarget, setDraftSnapTarget] = useState<DesignSnapTarget | null>(null);
   const [drawWallConstraintLabel, setDrawWallConstraintLabel] = useState<string | null>(null);
   const [drawWallPreviewMetrics, setDrawWallPreviewMetrics] = useState<{ lengthMeters: number; angleDegrees: number } | null>(null);
+  const [orthogonalClosureAssist, setOrthogonalClosureAssist] = useState<OrthogonalClosureAssist | null>(null);
+  const [closureCornerSnap, setClosureCornerSnap] = useState<{ point: { x: number; z: number }; captured: boolean } | null>(null);
   const [manualMasonryRuns, setManualMasonryRuns] = useState<MasonryCourseRun[]>(
     () => storedSession?.preset?.wall.manualMasonryCourseRuns ?? [],
   );
@@ -331,11 +351,12 @@ export default function DesignBuilderPage({
   const [viewCommand, setViewCommand] = useState<{ id: number; action: 'fit' | 'reset' | 'grid_scale'; spacingMeters?: number } | null>(null);
   const [cameraSnapshot, setCameraSnapshot] = useState<DesignBuilderCameraSnapshot | null>(() => storedSession?.camera ?? null);
   const [planViewport, setPlanViewport] = useState<PlanViewportState>(() => storedSession?.planViewport ?? DEFAULT_PLAN_VIEWPORT);
-  const [showOpeningLayout, setShowOpeningLayout] = useState(true);
+  const [showOpeningLayout, setShowOpeningLayout] = useState(false);
   const [showGroutCells, setShowGroutCells] = useState(false);
   const [showClosureWarnings, setShowClosureWarnings] = useState(false);
   const [showFootprintSetout, setShowFootprintSetout] = useState(false);
   const [viewMode, setViewMode] = useState<'plan' | '3d'>(() => storedSession?.viewMode ?? '3d');
+  const builderViewMode = builderViewModeFromStored(viewMode);
   const [snapMode, setSnapMode] = useState<DesignBuilderSnapMode>(() => storedSession?.snapMode ?? 'grid');
   const [moduleFitMode, setModuleFitMode] = useState<ModuleFitMode>(() => storedSession?.moduleFitMode ?? 'exact');
   const [designHistory, setDesignHistory] = useState<DesignHistoryState>(() => createDesignHistoryState());
@@ -346,9 +367,24 @@ export default function DesignBuilderPage({
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [segmentLengthInput, setSegmentLengthInput] = useState('');
   const [openingToolSettings, setOpeningToolSettings] = useState<
-    Record<'door' | 'window', { widthMeters: string; heightMeters: string; roughOpeningAllowanceMeters: string }>
+    Record<
+      'door' | 'window',
+      {
+        widthMeters: string;
+        heightMeters: string;
+        roughOpeningAllowanceMeters: string;
+        swingDirection?: 'left' | 'right';
+        swingType?: 'inswing' | 'outswing';
+      }
+    >
   >({
-    door: { widthMeters: '', heightMeters: '', roughOpeningAllowanceMeters: '' },
+    door: {
+      widthMeters: '',
+      heightMeters: '',
+      roughOpeningAllowanceMeters: '',
+      swingDirection: 'left',
+      swingType: 'inswing',
+    },
     window: { widthMeters: '', heightMeters: '', roughOpeningAllowanceMeters: '' },
   });
   const [objectTreeExpanded, setObjectTreeExpanded] = useState<ObjectTreeExpansionState>(
@@ -635,6 +671,31 @@ export default function DesignBuilderPage({
       }),
     [designGeometryResult, footprintClosed, manualMasonryRuns, resolvedPreset.roof, resolvedPreset.slab, resolvedPreset.truss, wallLayout],
   );
+  const layoutFramingKey = useMemo(
+    () => buildLayoutFramingKey(layoutEpoch, designLayoutBounds),
+    [designLayoutBounds, layoutEpoch],
+  );
+
+  const setBuilderViewMode = useCallback((mode: BuilderViewMode) => {
+    const nextViewMode = storedViewModeFromBuilder(mode);
+    if (nextViewMode === '3d' && viewMode === 'plan' && designLayoutBounds && !hasUserAdjusted3dViewRef.current) {
+      pending3dFitRef.current = true;
+    }
+    setViewMode(nextViewMode);
+  }, [designLayoutBounds, viewMode]);
+
+  useEffect(() => {
+    if (sessionFramingValidatedRef.current || !storedSession?.camera || !designLayoutBounds) return;
+    sessionFramingValidatedRef.current = true;
+    const [targetX, , targetZ] = storedSession.camera.target;
+    const dx = Math.abs(targetX - designLayoutBounds.center.x);
+    const dz = Math.abs(targetZ - designLayoutBounds.center.z);
+    if (dx > 2 || dz > 2) {
+      hasUserAdjusted3dViewRef.current = false;
+      autoFit3dForLayoutKeyRef.current = null;
+      if (viewMode === '3d') pending3dFitRef.current = true;
+    }
+  }, [designLayoutBounds, storedSession?.camera, viewMode]);
   useEffect(() => {
     if (!modelLoaded) return;
     if (footprintClosed && !prevFootprintClosedRef.current && viewMode === 'plan' && !hasUserAdjustedPlanViewRef.current) {
@@ -644,10 +705,19 @@ export default function DesignBuilderPage({
   }, [footprintClosed, modelLoaded, viewMode]);
 
   useEffect(() => {
-    if (!modelLoaded || viewMode !== '3d' || !pending3dFitRef.current || hasUserAdjusted3dViewRef.current) return;
+    if (!modelLoaded || !designLayoutBounds) return;
+    if (wallLayout.segments.length === 0 && !footprintClosed) return;
+    if (viewMode === 'plan' && !hasUserAdjustedPlanViewRef.current && autoFitPlanForLayoutKeyRef.current !== layoutFramingKey) {
+      autoFitPlanForLayoutKeyRef.current = layoutFramingKey;
+      issueViewCommand('fit');
+      return;
+    }
+    if (viewMode !== '3d' || hasUserAdjusted3dViewRef.current) return;
+    if (autoFit3dForLayoutKeyRef.current === layoutFramingKey && !pending3dFitRef.current) return;
+    autoFit3dForLayoutKeyRef.current = layoutFramingKey;
     pending3dFitRef.current = false;
     issueViewCommand('fit');
-  }, [modelLoaded, viewMode, designLayoutBounds]);
+  }, [designLayoutBounds, footprintClosed, layoutFramingKey, modelLoaded, viewMode, wallLayout.segments.length]);
   const objectIds = useMemo(() => {
     const byKey = new Map(
       objects.map((object) => [objectSaveKey(object.objectType, object.parameters as { kind?: string }), object.id]),
@@ -682,6 +752,59 @@ export default function DesignBuilderPage({
   const visiblePreviewLines = modelLoaded ? (previewLines.length > 0 ? previewLines : generatedPreview) : [];
   const cmuModule = useMemo(() => resolveCmuModuleConfig(effectiveWall), [effectiveWall]);
   const wallModuleFits = useMemo(() => summarizeWallModuleFits(effectiveWall), [effectiveWall]);
+  const planSegmentFrames = useMemo(
+    () => designGeometryResult.wallCmuLayout.segmentFrames ?? getSegmentFramesForWallLayout(wallLayout, effectiveWall),
+    [designGeometryResult.wallCmuLayout.segmentFrames, effectiveWall, wallLayout],
+  );
+  const planResolvedOpeningsById = useMemo(() => {
+    const map = new Map<string, ResolvedOpeningPlacement>();
+    effectiveWall.openings.forEach((opening) => {
+      const segmentId = opening.wallSegmentId;
+      if (!segmentId) return;
+      const frame = segmentFrameById(planSegmentFrames, segmentId);
+      if (!frame) return;
+      map.set(
+        opening.id,
+        resolveOpeningPlacementFromStoredOpening({
+          opening,
+          segmentFrame: frame,
+          wall: effectiveWall,
+          slabTopMeters: resolvedPreset.slab.slabThicknessMeters,
+        }),
+      );
+    });
+    return map;
+  }, [effectiveWall, planSegmentFrames, resolvedPreset.slab.slabThicknessMeters]);
+  const planOpeningItems = useMemo(
+    () =>
+      effectiveWall.openings.flatMap((opening) => {
+        const resolved = planResolvedOpeningsById.get(opening.id);
+        if (!resolved) return [];
+        const status = summarizeOpeningPlacementStatus(opening, effectiveWall);
+        return [{
+          openingId: opening.id,
+          openingType: opening.type,
+          resolved,
+          isValid: resolved.isValid && status.isValid,
+          statusKind: status.kind,
+          swingDirection: opening.swingDirection ?? 'left',
+          swingType: opening.swingType ?? 'inswing',
+        }];
+      }),
+    [effectiveWall, planResolvedOpeningsById],
+  );
+  const planOpeningPreview = useMemo(() => {
+    if (!placementPreview?.resolvedPlacement) return null;
+    const draft = placementPreview.openingDraft;
+    return {
+      resolvedPlacement: placementPreview.resolvedPlacement,
+      openingType: placementPreview.openingType,
+      isValid: placementPreview.isValid,
+      statusKind: placementPreview.statusKind,
+      swingDirection: draft?.swingDirection ?? openingToolSettings.door.swingDirection ?? 'left',
+      swingType: draft?.swingType ?? openingToolSettings.door.swingType ?? 'inswing',
+    };
+  }, [openingToolSettings.door.swingDirection, openingToolSettings.door.swingType, placementPreview]);
   const cmuLayout = designGeometryResult.wallCmuLayout;
   const manualMasonrySummary = useMemo(() => summarizeManualMasonryRuns(manualMasonryRuns), [manualMasonryRuns]);
   const moduleWarnings = useMemo(
@@ -897,6 +1020,22 @@ export default function DesignBuilderPage({
     setViewCommand({ id: Date.now() + Math.random(), action, spacingMeters });
   }
 
+  function resetDesignViewFraming(options?: { blank?: boolean }) {
+    hasUserAdjustedPlanViewRef.current = false;
+    hasUserAdjusted3dViewRef.current = false;
+    autoFitPlanForLayoutKeyRef.current = null;
+    autoFit3dForLayoutKeyRef.current = null;
+    sessionFramingValidatedRef.current = false;
+    pending3dFitRef.current = true;
+    if (options?.blank) {
+      setPlanViewport(DEFAULT_PLAN_VIEWPORT);
+      setCameraSnapshot(null);
+      issueViewCommand('reset');
+      return;
+    }
+    issueViewCommand('fit');
+  }
+
   function resolvePresetName(): string {
     return preset?.name ?? createBlankCmuBuildingPreset().name;
   }
@@ -1062,7 +1201,7 @@ export default function DesignBuilderPage({
     });
   }
 
-  function handleSetBuildingSystemMode(mode: import('../types').BuildingSystemMode) {
+  function handleSetBuildingSystemMode(mode: BuildingSystemMode) {
     applyPresetPatch((current) => setBuildingSystemMode(current, mode), 'Change building system mode', 'structure_update');
   }
 
@@ -1121,7 +1260,7 @@ export default function DesignBuilderPage({
     const width = Number(settings.widthMeters);
     const height = Number(settings.heightMeters);
     const roughOpeningAllowance = Number(settings.roughOpeningAllowanceMeters);
-    return snapOpeningToCmuModule(
+    const nextOpening = snapOpeningToCmuModule(
       {
         ...opening,
         ...(Number.isFinite(width) && width > 0 ? { widthMeters: width } : {}),
@@ -1129,9 +1268,16 @@ export default function DesignBuilderPage({
         ...(Number.isFinite(roughOpeningAllowance) && roughOpeningAllowance >= 0
           ? { roughOpeningAllowanceMeters: roughOpeningAllowance }
           : {}),
+        ...(opening.type === 'door'
+          ? {
+              swingDirection: settings.swingDirection ?? opening.swingDirection ?? 'left',
+              swingType: settings.swingType ?? opening.swingType ?? 'inswing',
+            }
+          : {}),
       },
       resolvedPreset.wall,
     );
+    return nextOpening;
   }
 
   function buildOpeningPlacementDefinition(type: WallOpeningParameters['type']): OpeningPlacementDefinition {
@@ -1181,6 +1327,7 @@ export default function DesignBuilderPage({
       frameOrigin: resolved.frameOrigin,
       hitPoint: options?.hitPoint,
       openingDraft: { ...draft, id: openingId },
+      resolvedPlacement: resolved,
     });
   }
 
@@ -1340,6 +1487,8 @@ export default function DesignBuilderPage({
     setDraftSnapTarget(null);
     setDrawWallConstraintLabel(null);
     setDrawWallPreviewMetrics(null);
+    setOrthogonalClosureAssist(null);
+    setClosureCornerSnap(null);
     lastSnapTargetRef.current = null;
     setSegmentLengthInput('');
     setActiveDrawNodeId(null);
@@ -1452,6 +1601,14 @@ export default function DesignBuilderPage({
       z: node.z < centerZ ? centerZ - halfWidth : centerZ + halfWidth,
     }));
     commitWallLayout({ ...wallLayout, nodes: nextNodes }, 'Apply module fit', 'module_fit_apply');
+    if (!hasUserAdjustedPlanViewRef.current) {
+      autoFitPlanForLayoutKeyRef.current = null;
+      issueViewCommand('fit');
+    }
+    if (!hasUserAdjusted3dViewRef.current) {
+      autoFit3dForLayoutKeyRef.current = null;
+      pending3dFitRef.current = true;
+    }
     const adjustmentMessage = [
       nearestLength
         ? `Length: requested ${bounds.exteriorLengthMeters.toFixed(2)} m → ${resolvedLength.toFixed(2)} m (${nearestLength.status}).`
@@ -1487,6 +1644,9 @@ export default function DesignBuilderPage({
             drawStartNodeId,
             orthogonalLock: wallLayout.orthogonalLock,
             shiftHeld: options?.shiftHeld,
+            closureCornerCandidate: activeDrawNodeId
+              ? resolveOrthogonalCornerPoint({ layout: wallLayout, activeNodeId: activeDrawNodeId })
+              : null,
           }
         : undefined,
       previousSnap: lastSnapTargetRef.current,
@@ -1597,6 +1757,25 @@ export default function DesignBuilderPage({
         if (modularLength > 0) point = projectExactSegmentLength(start, point.x, point.z, modularLength);
       }
       setDraftPlanEnd(point);
+      const assist = layout.orthogonalLock
+        ? resolveOrthogonalClosureAssist({
+            layout,
+            activeNodeId: currentActiveDrawNodeId,
+            candidatePoint: point,
+          })
+        : null;
+      setOrthogonalClosureAssist(assist?.isEligible ? assist : null);
+      const cornerPoint = resolveOrthogonalCornerPoint({
+        layout,
+        activeNodeId: currentActiveDrawNodeId,
+      });
+      setClosureCornerSnap(
+        cornerPoint &&
+          Math.hypot(rawPoint.x - cornerPoint.x, rawPoint.z - cornerPoint.z) * planViewport.zoom <=
+            GUIDE_CAPTURE_RADIUS_PX
+          ? { point: cornerPoint, captured: Boolean(event.shiftHeld) }
+          : null,
+      );
       return;
     }
 
@@ -1675,6 +1854,8 @@ export default function DesignBuilderPage({
       setDraftPlanEnd(null);
       setDrawWallConstraintLabel(null);
       setDrawWallPreviewMetrics(null);
+      setOrthogonalClosureAssist(null);
+      setClosureCornerSnap(null);
       setDraftSnapTarget(null);
       lastSnapTargetRef.current = null;
       setSegmentLengthInput('');
@@ -1703,6 +1884,50 @@ export default function DesignBuilderPage({
     }
 
     if (event.kind === 'segment_pick' && event.planX != null && event.planZ != null) {
+      const openingHit =
+        toolMode === 'select' || toolMode === 'delete' || toolMode === 'move_opening'
+          ? pickOpeningAtPlanPoint({
+              planX: event.planX,
+              planZ: event.planZ,
+              openings: effectiveWall.openings,
+              resolvedByOpeningId: planResolvedOpeningsById,
+              framesBySegmentId: new Map(planSegmentFrames.map((frame) => [frame.segmentId, frame])),
+            })
+          : null;
+      if (openingHit && toolMode === 'delete') {
+        if (event.phase !== 'commit') return;
+        const opening = effectiveWall.openings.find((item) => item.id === openingHit.openingId);
+        if (!opening) return;
+        void (async () => {
+          const confirmed = await confirm({
+            title: 'Delete opening?',
+            message:
+              'This will update CMU blocks, grout, lintels, and estimate preview quantities. This will not delete committed estimate lines automatically.',
+            confirmLabel: 'Delete opening',
+            confirmVariant: 'danger',
+            showWarningIcon: true,
+          });
+          if (!confirmed) return;
+          deleteOpening(openingHit.openingId);
+          setStatus({
+            tone: 'success',
+            message: `${opening.type === 'door' ? 'Door' : 'Window'} opening removed from the wall system.`,
+          });
+        })();
+        return;
+      }
+      if (openingHit && (toolMode === 'select' || toolMode === 'move_opening')) {
+        if (event.phase !== 'commit') return;
+        setSelectedOpeningId(openingHit.openingId);
+        setSelectedSegmentId(null);
+        setSelectedNodeId(null);
+        const opening = effectiveWall.openings.find((item) => item.id === openingHit.openingId);
+        if (opening) {
+          setSelectedObjectType(opening.type === 'door' ? 'door_opening' : 'window_opening');
+        }
+        if (toolMode === 'move_opening') return;
+        return;
+      }
       const hit = resolveSegmentAtPoint(layout, event.planX, event.planZ);
       if (!hit) {
         if (toolMode === 'select' || toolMode === 'delete') clearSelection();
@@ -1757,6 +1982,47 @@ export default function DesignBuilderPage({
         }
         addOpening(draft);
         setPlacementPreview(null);
+      }
+      if (toolMode === 'move_opening' && selectedOpeningId) {
+        const opening = effectiveWall.openings.find((item) => item.id === selectedOpeningId);
+        if (!opening) return;
+        const frame = segmentFrameById(planSegmentFrames, hit.segment.id);
+        if (!frame) return;
+        const openingDefinition: OpeningPlacementDefinition = {
+          type: opening.type,
+          widthMeters: opening.widthMeters,
+          heightMeters: opening.heightMeters,
+          sillHeightMeters: opening.sillHeightMeters,
+          roughOpeningAllowanceMeters: opening.roughOpeningAllowanceMeters,
+        };
+        const resolved = resolveOpeningPlacementFromPlanPoint({
+          planX: event.planX,
+          planZ: event.planZ,
+          hostSegmentId: hit.segment.id,
+          segmentFrame: frame,
+          openingDefinition,
+          snapMode,
+          gridSpacingMeters: layout.gridSpacingMeters,
+          wall: effectiveWall,
+          slabTopMeters: resolvedPreset.slab.slabThicknessMeters,
+        });
+        const draft = applyOpeningToolSettings(
+          openingDraftFromPlacementResolution(resolved, openingDefinition, effectiveWall, layout, opening.id),
+        );
+        if (event.phase === 'preview') {
+          setPlacementPreviewFromResolved(resolved, draft, opening.type, {
+            hitPoint: { x: event.planX, z: event.planZ },
+            openingId: opening.id,
+          });
+          return;
+        }
+        const status = summarizeOpeningPlacementStatus(draft, effectiveWall);
+        if (!resolved.isValid || !status.isValid) {
+          setPlacementPreview(null);
+          setStatus({ tone: 'error', message: status.warnings[0] ?? resolved.validationMessages[0] ?? 'Opening move was not valid.' });
+          return;
+        }
+        moveOpening(opening.id, draft);
       }
     }
   };
@@ -2412,6 +2678,7 @@ export default function DesignBuilderPage({
         setDesignHistory(createDesignHistoryState());
         recordDesignHistoryCommand('Load template', 'layout_reset', before, after);
         finalizeMutationAfterCommand();
+        resetDesignViewFraming();
         setStatus({
           tone: 'success',
           message: DESIGN_BUILDER_COPY.status.templateLoadedLocal,
@@ -2470,6 +2737,7 @@ export default function DesignBuilderPage({
       setDesignHistory(createDesignHistoryState());
       recordDesignHistoryCommand('Load template', 'layout_reset', before, after);
       finalizeMutationAfterCommand();
+      resetDesignViewFraming();
       setStatus({
         tone: 'success',
         message: DESIGN_BUILDER_COPY.status.templateLoaded,
@@ -2560,7 +2828,9 @@ export default function DesignBuilderPage({
     orthogonalGuidesPreferenceTouchedRef.current = false;
     autoFitPlanForLayoutKeyRef.current = null;
     autoFit3dForLayoutKeyRef.current = null;
+    sessionFramingValidatedRef.current = false;
     setPlanViewport(DEFAULT_PLAN_VIEWPORT);
+    setCameraSnapshot(null);
     issueViewCommand('reset');
     setStatus({ tone: 'success', message: DESIGN_BUILDER_COPY.status.blankReady });
     if (import.meta.env.DEV) {
@@ -2667,6 +2937,9 @@ export default function DesignBuilderPage({
   }
 
   const activeToolLabel = TOOL_MODE_OPTIONS.find((option) => option.mode === toolMode)?.label ?? 'Select';
+  const activeBuildingSystemMode = resolvedPreset.buildingSystemMode;
+  const activeStructureLabel = BUILDING_SYSTEM_MODE_LABELS[activeBuildingSystemMode];
+  const isFrameStructureMode = activeBuildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill';
   const drawWallInstruction = DESIGN_BUILDER_COPY.hints.drawWall;
   const drawWallSnapFeedback = formatDrawWallSnapTargetFeedback({
     snapTarget: draftSnapTarget,
@@ -2691,7 +2964,8 @@ export default function DesignBuilderPage({
   const hasCutBlockWarnings =
     moduleWarnings.length > 0 ||
     livePlacementStatus?.kind === 'cut_block' ||
-    cmuLayout.openingCourseClosures.some((closure) => closure.closureType === 'cut_block');
+    cmuLayout.openingCourseClosures.some((closure) => closure.closureType === 'cut_block') ||
+    cmuLayout.lintelCourseAssemblies.some(lintelCourseAssemblyRequiresCutWarning);
   const cutBlockWarningText =
     livePlacementStatus?.warnings.join(' ') ||
     moduleWarnings.join(' ') ||
@@ -2972,20 +3246,38 @@ export default function DesignBuilderPage({
                 ))}
               </DesignBuilderCommandMenu>
 
-              <button
-                type="button"
-                aria-label="Activate wall drawing"
-                onClick={() => activateDrawWallTool()}
-                disabled={!modelLoaded}
-                aria-pressed={toolMode === 'draw_wall'}
-                className={`h-9 rounded-lg px-3 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
-                  toolMode === 'draw_wall'
-                    ? 'bg-cyan-600 text-white'
-                    : 'border border-slate-200 text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800'
-                }`}
+              <div
+                role="group"
+                aria-label="Switch between 2D plan and 3D view"
+                className="inline-flex h-9 overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700"
               >
-                Draw Wall
-              </button>
+                <button
+                  type="button"
+                  aria-label="Switch to 2D plan view"
+                  aria-pressed={builderViewMode === '2d'}
+                  onClick={() => setBuilderViewMode('2d')}
+                  className={`px-3 text-xs font-semibold transition ${
+                    builderViewMode === '2d'
+                      ? 'bg-cyan-600 text-white'
+                      : 'text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  2D
+                </button>
+                <button
+                  type="button"
+                  aria-label="Switch to 3D view"
+                  aria-pressed={builderViewMode === '3d'}
+                  onClick={() => setBuilderViewMode('3d')}
+                  className={`border-l border-slate-200 px-3 text-xs font-semibold transition dark:border-slate-700 ${
+                    builderViewMode === '3d'
+                      ? 'bg-cyan-600 text-white'
+                      : 'text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  3D
+                </button>
+              </div>
 
               <DesignBuilderCommandMenu
                 menuKind="openings"
@@ -3020,42 +3312,52 @@ export default function DesignBuilderPage({
 
               <DesignBuilderCommandMenu
                 menuKind="structure"
-                label={<>Structure <span aria-hidden>▾</span></>}
+                label={<>Structure: {activeStructureLabel} <span aria-hidden>▾</span></>}
                 panelClassName="w-56"
-                summaryClassName="flex h-9 items-center gap-1 rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-cyan-400/40 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                summaryClassName="flex h-9 items-center gap-1 rounded-lg border border-cyan-400 bg-cyan-50 px-3 text-xs font-semibold text-cyan-800 focus:outline-none focus:ring-2 focus:ring-cyan-400/40 dark:border-cyan-600 dark:bg-cyan-950/50 dark:text-cyan-100"
               >
                 <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400">System Mode</div>
                 <CommandMenuAction
                   onClick={() => handleSetBuildingSystemMode('cmu_bearing_wall')}
-                  className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                  aria-pressed={activeBuildingSystemMode === 'cmu_bearing_wall'}
+                  className={`block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold ${
+                    activeBuildingSystemMode === 'cmu_bearing_wall'
+                      ? 'bg-cyan-600 text-white'
+                      : 'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800'
+                  }`}
                 >
                   CMU Bearing Wall
                 </CommandMenuAction>
                 <CommandMenuAction
                   onClick={() => handleSetBuildingSystemMode('reinforced_concrete_frame_with_cmu_infill')}
-                  className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                  aria-pressed={activeBuildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill'}
+                  className={`block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold ${
+                    activeBuildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill'
+                      ? 'bg-cyan-600 text-white'
+                      : 'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800'
+                  }`}
                 >
                   RC Frame + CMU Infill
                 </CommandMenuAction>
                 <div className="my-1 border-t border-slate-200 dark:border-slate-700" />
                 <CommandMenuAction
                   onClick={() => handleAddCornerColumns()}
-                  disabled={!modelLoaded || !footprintClosed}
-                  className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold disabled:opacity-50 text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                  disabled={!modelLoaded || !footprintClosed || !isFrameStructureMode}
+                  className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-50 text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
                 >
                   Add Corner Columns
                 </CommandMenuAction>
                 <CommandMenuAction
                   onClick={() => handleAutoFrameLayout()}
-                  disabled={!modelLoaded || !footprintClosed}
-                  className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold disabled:opacity-50 text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                  disabled={!modelLoaded || !footprintClosed || !isFrameStructureMode}
+                  className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-50 text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
                 >
                   Auto Frame Layout
                 </CommandMenuAction>
                 <CommandMenuAction
                   onClick={() => handleAddPerimeterBeams()}
-                  disabled={!modelLoaded || !footprintClosed}
-                  className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold disabled:opacity-50 text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                  disabled={!modelLoaded || !footprintClosed || !isFrameStructureMode}
+                  className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-50 text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
                 >
                   Add Grade / Ring Beams
                 </CommandMenuAction>
@@ -3177,13 +3479,10 @@ export default function DesignBuilderPage({
 
               <DesignBuilderCommandMenu
                 menuKind="view"
-                label={<>View: {viewMode === 'plan' ? 'Plan' : '3D'} <span aria-hidden>▾</span></>}
+                label={<>View <span aria-hidden>▾</span></>}
                 panelClassName="w-56 p-2"
                 summaryClassName="flex h-9 items-center gap-1 rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-cyan-400/40 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
               >
-                  <CommandMenuAction onClick={() => setViewMode('plan')} className={`block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold ${viewMode === 'plan' ? 'bg-cyan-600 text-white' : 'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800'}`}>Plan</CommandMenuAction>
-                  <CommandMenuAction onClick={() => setViewMode('3d')} className={`block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold ${viewMode === '3d' ? 'bg-cyan-600 text-white' : 'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800'}`}>3D</CommandMenuAction>
-                  <div className="my-1 border-t border-slate-200 dark:border-slate-700" />
                   <CommandMenuAction onClick={() => setViewCommand({ id: Date.now(), action: 'fit' })} className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800">Fit</CommandMenuAction>
                   <CommandMenuAction onClick={() => setViewCommand({ id: Date.now(), action: 'reset' })} className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800">Reset view</CommandMenuAction>
                   {(['fit', '60', '80', 'full'] as ViewerHeightPreset[]).map((preset) => (
@@ -3205,7 +3504,12 @@ export default function DesignBuilderPage({
                 summaryClassName="flex h-9 items-center gap-1 rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-cyan-400/40 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
               >
                   <ToggleField label="Show opening layout" checked={showOpeningLayout} onChange={setShowOpeningLayout} />
-                  <ToggleField label="Show grout/rebar cells" checked={showGroutCells} onChange={setShowGroutCells} />
+                  <ToggleField
+                    label="Show Grout / Reinforced Cells"
+                    title="Shows only calculated CMU core fills, bond-beam cells, and valid closure voids. Does not represent the rough opening itself."
+                    checked={showGroutCells}
+                    onChange={setShowGroutCells}
+                  />
                   <ToggleField label="Show Cut-Block Conditions" checked={showClosureWarnings} onChange={setShowClosureWarnings} />
                   {import.meta.env.DEV ? (
                     <ToggleField label="Show footprint setout" checked={showFootprintSetout} onChange={setShowFootprintSetout} />
@@ -3395,6 +3699,48 @@ export default function DesignBuilderPage({
                       placeholder="m"
                     />
                   </label>
+                  {activeOpeningTool === 'door' ? (
+                    <>
+                      <label className="flex items-center gap-2 font-medium text-slate-600 dark:text-slate-300">
+                        Swing
+                        <select
+                          value={activeOpeningSettings.swingType ?? 'inswing'}
+                          onChange={(event) =>
+                            setOpeningToolSettings((current) => ({
+                              ...current,
+                              door: {
+                                ...current.door,
+                                swingType: event.target.value as 'inswing' | 'outswing',
+                              },
+                            }))
+                          }
+                          className="h-8 rounded border border-slate-300 bg-white px-2 dark:border-slate-700 dark:bg-slate-950"
+                        >
+                          <option value="inswing">Inswing</option>
+                          <option value="outswing">Outswing</option>
+                        </select>
+                      </label>
+                      <label className="flex items-center gap-2 font-medium text-slate-600 dark:text-slate-300">
+                        Handing
+                        <select
+                          value={activeOpeningSettings.swingDirection ?? 'left'}
+                          onChange={(event) =>
+                            setOpeningToolSettings((current) => ({
+                              ...current,
+                              door: {
+                                ...current.door,
+                                swingDirection: event.target.value as 'left' | 'right',
+                              },
+                            }))
+                          }
+                          className="h-8 rounded border border-slate-300 bg-white px-2 dark:border-slate-700 dark:bg-slate-950"
+                        >
+                          <option value="left">Left</option>
+                          <option value="right">Right</option>
+                        </select>
+                      </label>
+                    </>
+                  ) : null}
                   <span className="rounded-full border border-slate-200 px-2.5 py-1 font-semibold text-slate-600 dark:border-slate-700 dark:text-slate-300">
                     Snap to CMU: {snapMode === 'cmu_module' ? 'On' : 'Available'}
                   </span>
@@ -3446,9 +3792,15 @@ export default function DesignBuilderPage({
                 drawStartNodeId={drawStartNodeId}
                 selectedSegmentId={selectedSegmentId}
                 selectedNodeId={selectedNodeId}
+                selectedOpeningId={selectedOpeningId}
                 snapTarget={draftSnapTarget}
                 shiftConstraintLabel={drawWallConstraintLabel}
                 previewMetrics={drawWallPreviewMetrics}
+                orthogonalClosureAssist={orthogonalClosureAssist}
+                closureCornerSnap={closureCornerSnap}
+                segmentFrames={planSegmentFrames}
+                openingItems={planOpeningItems}
+                openingPreview={planOpeningPreview}
                 onInteraction={handlePlanInteraction}
               />
             ) : (
@@ -4050,7 +4402,12 @@ function EditableControls({
   const openingClosures = cmuLayout.openingCourseClosures.filter((closure) => closure.openingId === opening.id);
   const leftClosures = openingClosures.filter((closure) => closure.side === 'left');
   const rightClosures = openingClosures.filter((closure) => closure.side === 'right');
+  const lintelCourseAssembly =
+    cmuLayout.lintelCourseAssemblies.find((assembly) => assembly.openingId === opening.id) ?? null;
   const cutWarnings = openingClosures.filter((closure) => closure.closureType === 'cut_block').length;
+  const lintelCourseCutRequired = lintelCourseAssembly
+    ? lintelCourseAssemblyRequiresCutWarning(lintelCourseAssembly)
+    : false;
   const closureGroutVolume = openingClosures.reduce(
     (sum, closure) => sum + (closure.closureType === 'grout_fill' ? closure.groutVolume ?? 0 : 0),
     0,
@@ -4083,6 +4440,18 @@ function EditableControls({
           <div>Jamb grout volume is based on selected grouted cells and course closure conditions, not the full rough opening area.</div>
         </div>
       </div>
+      {lintelCourseAssembly && resolvedOpening.lintelType !== 'none' ? (
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm dark:border-slate-700 dark:bg-slate-800/60">
+          <div className="font-semibold text-slate-800 dark:text-slate-100">Lintel course closure</div>
+          <div className="mt-2 grid gap-1 text-xs text-slate-600 dark:text-slate-300">
+            <div>Left: {summarizeLintelCourseClosureSide(lintelCourseAssembly.leftPlacements)}</div>
+            <div>Right: {summarizeLintelCourseClosureSide(lintelCourseAssembly.rightPlacements)}</div>
+            {lintelCourseCutRequired ? (
+              <div className="text-amber-700 dark:text-amber-300">Custom CMU cut required beside lintel.</div>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
       <SelectField
         label="Wall face"
         value={opening.wallFace}
@@ -4114,7 +4483,28 @@ function EditableControls({
             ]}
           />
         </>
-      ) : null}
+      ) : (
+        <>
+          <SelectField
+            label="Swing"
+            value={opening.swingType ?? 'inswing'}
+            onChange={(value) => onOpeningChange(opening.id, { swingType: value as WallOpeningParameters['swingType'] })}
+            options={[
+              { value: 'inswing', label: 'Inswing' },
+              { value: 'outswing', label: 'Outswing' },
+            ]}
+          />
+          <SelectField
+            label="Handing"
+            value={opening.swingDirection ?? 'left'}
+            onChange={(value) => onOpeningChange(opening.id, { swingDirection: value as WallOpeningParameters['swingDirection'] })}
+            options={[
+              { value: 'left', label: 'Left-hand' },
+              { value: 'right', label: 'Right-hand' },
+            ]}
+          />
+        </>
+      )}
       <SelectField
         label="Lintel type"
         value={opening.lintelType ?? preset.wall.lintelType ?? 'bond_beam'}
@@ -4267,13 +4657,18 @@ function ToggleField({
   label,
   checked,
   onChange,
+  title,
 }: {
   label: string;
   checked: boolean;
   onChange: (checked: boolean) => void;
+  title?: string;
 }) {
   return (
-    <label className="flex items-center gap-2 rounded-lg px-2 py-1 text-slate-600 dark:text-slate-300">
+    <label
+      className="flex items-center gap-2 rounded-lg px-2 py-1 text-slate-600 dark:text-slate-300"
+      title={title}
+    >
       <input
         type="checkbox"
         checked={checked}

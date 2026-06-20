@@ -6,6 +6,24 @@ export type BuildingSystemMode =
   | 'cmu_bearing_wall'
   | 'reinforced_concrete_frame_with_cmu_infill';
 
+/** Plan (2D) vs perspective (3D) builder canvas mode. */
+export type BuilderViewMode = '2d' | '3d';
+
+export type DesignBuilderStoredViewMode = 'plan' | '3d';
+
+export function builderViewModeFromStored(stored: DesignBuilderStoredViewMode): BuilderViewMode {
+  return stored === 'plan' ? '2d' : '3d';
+}
+
+export function storedViewModeFromBuilder(mode: BuilderViewMode): DesignBuilderStoredViewMode {
+  return mode === '2d' ? 'plan' : '3d';
+}
+
+export const BUILDING_SYSTEM_MODE_LABELS: Record<BuildingSystemMode, string> = {
+  cmu_bearing_wall: 'CMU Bearing Wall',
+  reinforced_concrete_frame_with_cmu_infill: 'RC Frame + CMU Infill',
+};
+
 export type DesignObjectType =
   | 'building_footprint'
   | 'wall_layout'
@@ -174,6 +192,10 @@ export interface WallOpeningParameters {
   groutCellsBelowWindow?: number;
   sillCondition?: 'none' | 'reinforced_sill' | 'grouted_sill_course';
   openingFrameMaterial?: 'hollow_metal' | 'vinyl' | 'wood' | 'aluminum' | 'none';
+  /** Door plan/3D handing when hinge is viewed from increasing wall-station direction. */
+  swingDirection?: 'left' | 'right';
+  /** Door plan/3D swing relative to wall interior side. */
+  swingType?: 'inswing' | 'outswing';
   notes?: string;
 }
 

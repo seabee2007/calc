@@ -8,6 +8,10 @@ import type {
 } from '../types';
 import { generateCmuLayout } from '../geometry/designGeometry';
 import {
+  collectLintelClosureCutBlockMetadata,
+  countLintelClosureCutBlocks,
+} from '../domain/lintelCourseClosureSolver';
+import {
   OPENING_GROUT_CONCEPTUAL_WARNING,
   calculateCmuOpeningGroutSummary,
 } from '../domain/cmuOpeningRules';
@@ -271,7 +275,7 @@ export function buildCmuBuildingEstimatePreview(input: CmuBuildingQuantityInput)
       designModelId: input.designModelId,
       designObjectId: input.wallObjectId,
       quantityType: 'cmu_lintels',
-      description: 'CMU lintels above openings',
+      description: 'Precast concrete lintel',
       quantity: openingGrout.lintelCount,
       unit: 'EA',
       formula: 'one_lintel_per_opening_with_configured_bearing',
@@ -353,7 +357,7 @@ export function buildCmuBuildingEstimatePreview(input: CmuBuildingQuantityInput)
       designModelId: input.designModelId,
       designObjectId: input.wallObjectId,
       quantityType: 'cmu_jamb_grout',
-      description: 'Jamb grout fill at door/window openings',
+      description: 'Jamb/core fill around openings',
       quantity: roundQuantity(cubicMetersToCubicYards(openingGrout.jambGroutVolumeCubicMeters), 2),
       unit: 'CY',
       formula: 'jamb_grout = sum(jamb_cell_fill_placements.net_volume_cubic_meters)',
@@ -373,7 +377,7 @@ export function buildCmuBuildingEstimatePreview(input: CmuBuildingQuantityInput)
       designModelId: input.designModelId,
       designObjectId: input.wallObjectId,
       quantityType: 'cmu_lintel_grout',
-      description: 'Lintel grout at door/window openings',
+      description: 'Bond-beam lintel grout',
       quantity: roundQuantity(cubicMetersToCubicYards(openingGrout.lintelGroutVolumeCubicMeters), 2),
       unit: 'CY',
       formula: 'lintel_grout = sum(lintel_cell_fill_placements.net_volume_cubic_meters)',
@@ -442,7 +446,7 @@ export function buildCmuBuildingEstimatePreview(input: CmuBuildingQuantityInput)
       designModelId: input.designModelId,
       designObjectId: input.wallObjectId,
       quantityType: 'cmu_closure_grout',
-      description: 'Course closure grout at opening jambs',
+      description: 'Closure grout at opening jambs',
       quantity: roundQuantity(cubicMetersToCubicYards(openingGrout.closureGroutVolumeCubicMeters), 2),
       unit: 'CY',
       formula: 'closure_grout_volume = sum(course residual gaps * wall thickness * course height * fill factor), only for grout_fill closures',
@@ -468,6 +472,25 @@ export function buildCmuBuildingEstimatePreview(input: CmuBuildingQuantityInput)
       parameterSnapshot: {
         openingCourseClosures: cmuLayout.openingCourseClosures,
         openingGrout,
+        warning: OPENING_GROUT_CONCEPTUAL_WARNING,
+      },
+      source: 'parametric_design_builder',
+      confidence: 'calculated_from_parameters',
+      divisionCode: '04',
+      divisionName: 'Masonry',
+    },
+    {
+      id: 'cmu-lintel-closure-cut-blocks',
+      designModelId: input.designModelId,
+      designObjectId: input.wallObjectId,
+      quantityType: 'cmu_lintel_closure_cut_blocks',
+      description: 'CMU lintel closure cut blocks',
+      quantity: countLintelClosureCutBlocks(cmuLayout.lintelCourseAssemblies),
+      unit: 'EA',
+      formula: 'lintel_closure_cut_blocks = count(lintel_course cut_block placements)',
+      parameterSnapshot: {
+        lintelClosureCutBlocks: collectLintelClosureCutBlockMetadata(cmuLayout.lintelCourseAssemblies),
+        lintelCourseAssemblies: cmuLayout.lintelCourseAssemblies,
         warning: OPENING_GROUT_CONCEPTUAL_WARNING,
       },
       source: 'parametric_design_builder',
@@ -535,7 +558,7 @@ export function buildCmuBuildingEstimatePreview(input: CmuBuildingQuantityInput)
       designModelId: input.designModelId,
       designObjectId: input.wallObjectId,
       quantityType: 'grouted_cells_columns',
-      description: 'Conceptual grouted cells / pilasters',
+      description: 'Vertical reinforced/grouted cells',
       quantity: reinforcedCellCount + cmuLayout.pilasters.length,
       unit: 'EA',
       formula: 'ceil(wall_perimeter / grouted_cell_spacing) + generated_pilasters',

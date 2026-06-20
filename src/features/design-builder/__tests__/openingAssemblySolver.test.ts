@@ -48,12 +48,21 @@ describe('opening assembly solver', () => {
         block.face === door?.wallFace &&
         block.course === lintelCourse &&
         block.source !== 'opening_assembly_solver' &&
+        block.source !== 'lintel_closure' &&
         block.startAlongMeters < (door?.actualEndAlongMeters ?? 0) + (door?.lintelBearingMeters ?? 0) &&
         block.endAlongMeters > (door?.actualStartAlongMeters ?? 0) - (door?.lintelBearingMeters ?? 0),
     );
 
     expect(lintel).toBeDefined();
     expect(overlappingBlocks).toHaveLength(0);
+    expect(
+      layout.blocks.some(
+        (block) =>
+          block.face === door?.wallFace &&
+          block.course === lintelCourse &&
+          block.source === 'lintel_closure',
+      ),
+    ).toBe(true);
   });
 
   it('generates jamb grout course-by-course at actual cell positions', () => {

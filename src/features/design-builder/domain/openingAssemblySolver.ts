@@ -15,7 +15,8 @@ export type GroutFillKind =
   | 'lintel_cell'
   | 'bond_beam_cell'
   | 'sill_cell'
-  | 'reinforced_cell';
+  | 'reinforced_cell'
+  | 'closure_void';
 
 export interface LintelSolidPlacement {
   id: string;
@@ -306,6 +307,15 @@ export type OpeningUnitDisposition =
       reason: 'rough' | 'lintel';
     };
 
+export type OpeningUnitSplitSegment = {
+  startAlongMeters: number;
+  endAlongMeters: number;
+  lengthMeters: number;
+  source: 'wall_run' | 'opening_jamb_closure';
+  adjacentTo?: 'rough_opening_start' | 'rough_opening_end';
+  openingId?: string;
+};
+
 const DEFAULT_OPENING_JAMB_MIN_CUT_LENGTH_METERS = 0.02;
 
 function overlapsAlongSpan(start: number, end: number, spanStart: number, spanEnd: number): boolean {
@@ -331,6 +341,31 @@ function resolveHorizontalOpeningDisposition(params: {
   const extendsPastLeft = startAlongMeters < spanStart && endAlongMeters > spanStart;
   const extendsPastRight = startAlongMeters < spanEnd && endAlongMeters > spanEnd;
   if (extendsPastLeft && extendsPastRight) {
+    const leftLengthMeters = spanStart - startAlongMeters;
+    const rightLengthMeters = endAlongMeters - spanEnd;
+    if (leftLengthMeters >= minimumCutLengthMeters && rightLengthMeters >= minimumCutLengthMeters) {
+      return { action: 'skip', reason };
+    }
+    if (leftLengthMeters >= minimumCutLengthMeters) {
+      return {
+        action: 'trim',
+        startAlongMeters,
+        endAlongMeters: spanStart,
+        lengthMeters: leftLengthMeters,
+        side: 'left',
+        reason,
+      };
+    }
+    if (rightLengthMeters >= minimumCutLengthMeters) {
+      return {
+        action: 'trim',
+        startAlongMeters: spanEnd,
+        endAlongMeters,
+        lengthMeters: rightLengthMeters,
+        side: 'right',
+        reason,
+      };
+    }
     return { action: 'skip', reason };
   }
   if (extendsPastLeft && endAlongMeters <= spanEnd) {
@@ -362,6 +397,174 @@ function resolveHorizontalOpeningDisposition(params: {
     return { action: 'skip', reason };
   }
   return { action: 'skip', reason };
+}
+
+function resolveHorizontalOpeningSplits(params: {
+  startAlongMeters: number;
+  endAlongMeters: number;
+  spanStart: number;
+  spanEnd: number;
+  minimumCutLengthMeters: number;
+  openingId?: string;
+}): OpeningUnitSplitSegment[] | 'outside' | 'inside' {
+  const { startAlongMeters, endAlongMeters, spanStart, spanEnd, minimumCutLengthMeters } = params;
+  if (!overlapsAlongSpan(startAlongMeters, endAlongMeters, spanStart, spanEnd)) {
+    return 'outside';
+  }
+  if (startAlongMeters >= spanStart && endAlongMeters <= spanEnd) {
+    return 'inside';
+  }
+
+  const segments: OpeningUnitSplitSegment[] = [];
+  if (startAlongMeters < spanStart && endAlongMeters > spanStart) {
+    const lengthMeters = spanStart - startAlongMeters;
+    if (lengthMeters >= minimumCutLengthMeters) {
+      segments.push({
+        startAlongMeters,
+        endAlongMeters: spanStart,
+        lengthMeters,
+        source: 'opening_jamb_closure',
+        adjacentTo: 'rough_opening_start',
+        openingId: params.openingId,
+      });
+    }
+  }
+  if (endAlongMeters > spanEnd && startAlongMeters < spanEnd) {
+    const lengthMeters = endAlongMeters - spanEnd;
+    if (lengthMeters >= minimumCutLengthMeters) {
+      segments.push({
+        startAlongMeters: spanEnd,
+        endAlongMeters,
+        lengthMeters,
+        source: 'opening_jamb_closure',
+        adjacentTo: 'rough_opening_end',
+        openingId: params.openingId,
+      });
+    }
+  }
+  return segments;
+}
+
+export function resolveOpeningUnitSplits(params: {
+  opening: ResolvedCmuOpening;
+  startAlongMeters: number;
+  endAlongMeters: number;
+  courseIndex: number;
+  courseBottomMeters: number;
+  courseTopMeters: number;
+  moduleHeightMeters: number;
+  moduleLengthMeters?: number;
+  wallLengthMeters?: number;
+  resolvedLintelSpans?: ReadonlyMap<string, ResolvedLintelSpan>;
+  minimumCutLengthMeters?: number;
+  inheritedSource?: OpeningUnitSplitSegment['source'];
+  inheritedAdjacentTo?: OpeningUnitSplitSegment['adjacentTo'];
+  inheritedOpeningId?: string;
+}): OpeningUnitSplitSegment[] {
+  const minimumCutLengthMeters = params.minimumCutLengthMeters ?? DEFAULT_OPENING_JAMB_MIN_CUT_LENGTH_METERS;
+  const unitLengthMeters = params.endAlongMeters - params.startAlongMeters;
+  if (unitLengthMeters <= 0) return [];
+
+  if (params.opening.lintelType !== 'none') {
+    const lintelCourseIndex = resolveLintelCourseIndex(params.opening.roughTopMeters, params.moduleHeightMeters);
+    if (params.courseIndex === lintelCourseIndex) {
+      const lintelSpan =
+        params.moduleLengthMeters && params.wallLengthMeters
+          ? resolveEffectiveLintelSpan(
+              params.opening,
+              params.moduleLengthMeters,
+              params.wallLengthMeters,
+              params.resolvedLintelSpans,
+            )
+          : resolveLintelAlongSpan(params.opening);
+      const lintelDisposition = resolveHorizontalOpeningDisposition({
+        startAlongMeters: params.startAlongMeters,
+        endAlongMeters: params.endAlongMeters,
+        spanStart: lintelSpan.startAlongMeters,
+        spanEnd: lintelSpan.endAlongMeters,
+        minimumCutLengthMeters,
+        reason: 'lintel',
+      });
+      if (lintelDisposition.action !== 'place') {
+        return [];
+      }
+    }
+  }
+
+  const voidBounds = resolveOpeningBlockVoidBounds(params.opening);
+  const inOpeningVertical =
+    params.courseBottomMeters < voidBounds.topMeters &&
+    params.courseTopMeters > voidBounds.bottomMeters;
+  const passthroughSegment = (): OpeningUnitSplitSegment => ({
+    startAlongMeters: params.startAlongMeters,
+    endAlongMeters: params.endAlongMeters,
+    lengthMeters: unitLengthMeters,
+    source: params.inheritedSource ?? 'wall_run',
+    adjacentTo: params.inheritedAdjacentTo,
+    openingId: params.inheritedOpeningId,
+  });
+
+  if (!inOpeningVertical) {
+    return [passthroughSegment()];
+  }
+
+  const voidSplits = resolveHorizontalOpeningSplits({
+    startAlongMeters: params.startAlongMeters,
+    endAlongMeters: params.endAlongMeters,
+    spanStart: voidBounds.startAlongMeters,
+    spanEnd: voidBounds.endAlongMeters,
+    minimumCutLengthMeters,
+    openingId: params.opening.id,
+  });
+  if (voidSplits === 'outside') {
+    return [passthroughSegment()];
+  }
+  if (voidSplits === 'inside') {
+    return [];
+  }
+  return voidSplits;
+}
+
+export function resolveUnitSegmentsAroundOpenings(params: {
+  startAlongMeters: number;
+  endAlongMeters: number;
+  openings: readonly ResolvedCmuOpening[];
+  courseIndex: number;
+  courseBottomMeters: number;
+  courseTopMeters: number;
+  moduleHeightMeters: number;
+  moduleLengthMeters?: number;
+  wallLengthMeters?: number;
+  resolvedLintelSpans?: ReadonlyMap<string, ResolvedLintelSpan>;
+  minimumCutLengthMeters?: number;
+}): OpeningUnitSplitSegment[] {
+  let segments: OpeningUnitSplitSegment[] = [{
+    startAlongMeters: params.startAlongMeters,
+    endAlongMeters: params.endAlongMeters,
+    lengthMeters: params.endAlongMeters - params.startAlongMeters,
+    source: 'wall_run',
+  }];
+  params.openings.forEach((opening) => {
+    segments = segments.flatMap((segment) =>
+      resolveOpeningUnitSplits({
+        opening,
+        startAlongMeters: segment.startAlongMeters,
+        endAlongMeters: segment.endAlongMeters,
+        courseIndex: params.courseIndex,
+        courseBottomMeters: params.courseBottomMeters,
+        courseTopMeters: params.courseTopMeters,
+        moduleHeightMeters: params.moduleHeightMeters,
+        moduleLengthMeters: params.moduleLengthMeters,
+        wallLengthMeters: params.wallLengthMeters,
+        resolvedLintelSpans: params.resolvedLintelSpans,
+        minimumCutLengthMeters: params.minimumCutLengthMeters,
+        inheritedSource: segment.source,
+        inheritedAdjacentTo: segment.adjacentTo,
+        inheritedOpeningId: segment.openingId,
+      }),
+    );
+  });
+  return segments;
 }
 
 export function resolveOpeningUnitDisposition(params: {
@@ -962,7 +1165,10 @@ export function buildLintelGroutFillPlacements(
   const placements: GroutFillPlacement[] = [];
 
   openings.forEach((opening) => {
-    if (opening.lintelType === 'none') return;
+    if (opening.lintelType === 'none' || opening.lintelType === 'precast_concrete' || opening.lintelType === 'steel_placeholder') {
+      return;
+    }
+    if (opening.lintelType !== 'bond_beam') return;
     const wallLength =
       wallLengthByOpeningId?.get(opening.id) ??
       (opening.wallFace === 'north' || opening.wallFace === 'south' ? params.lengthMeters : params.widthMeters);
@@ -1193,7 +1399,8 @@ export function summarizeGroutFillPlacements(params: {
   const sillGroutVolumeCubicMeters = sumByKind('sill_cell');
   const bondBeamFromPlacements = sumByKind('bond_beam_cell');
   const bondBeamGroutVolumeCubicMeters = params.bondBeamGroutVolumeCubicMeters ?? bondBeamFromPlacements;
-  const closureGroutVolumeCubicMeters = params.closureGroutVolumeCubicMeters ?? 0;
+  const closureGroutVolumeCubicMeters =
+    params.closureGroutVolumeCubicMeters ?? sumByKind('closure_void') + sumByKind('sill_cell');
   const standardCoreFillCubicMeters = params.standardCoreFillCubicMeters ?? 0;
 
   const totalGroutVolumeCubicMeters =
@@ -1221,7 +1428,7 @@ export function summarizeGroutFillPlacements(params: {
   };
 }
 
-function pointOnSegmentFrame(
+export function pointOnSegmentFrame(
   frame: SegmentFrameLike,
   alongMeters: number,
   inwardOffsetMeters: number,

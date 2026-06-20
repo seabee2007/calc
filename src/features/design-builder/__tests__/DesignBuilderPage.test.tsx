@@ -155,8 +155,15 @@ function selectOpeningTool(label: RegExp | string) {
 }
 
 function selectViewMode(mode: 'plan' | '3d') {
-  openMenuByKind('view');
-  chooseCommandMenuItem(new RegExp(`^${mode}$`, 'i'));
+  fireEvent.click(
+    screen.getByRole('button', {
+      name: mode === 'plan' ? /switch to 2d plan view/i : /switch to 3d view/i,
+    }),
+  );
+}
+
+function clickDrawWall() {
+  selectToolMode(/^draw wall$/i);
 }
 
 function openSnapMenu() {
@@ -167,12 +174,8 @@ function openDisplayMenu() {
   openMenuByKind('display');
 }
 
-function clickDrawWall() {
-  fireEvent.click(screen.getByRole('button', { name: /activate wall drawing/i }));
-}
-
 function openViewMenuItems() {
-  openCommandMenu(/^view:/i);
+  openCommandMenu(/^view\b/i);
   return screen.getAllByRole('menuitem');
 }
 
@@ -450,8 +453,9 @@ describe('DesignBuilderPage', () => {
     render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
     await loadTemplate();
 
-    expect(screen.getByRole('button', { name: /activate wall drawing/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /activate wall drawing/i })).not.toBeInTheDocument();
     openMenuByKind('tools');
+    expect(screen.getByRole('menuitem', { name: /draw wall/i })).toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: /move node/i })).toBeInTheDocument();
     expect(screen.getByText(/outside face/i)).toBeInTheDocument();
     expect(screen.getByText(/6\.00 m × 5\.00 m/i)).toBeInTheDocument();
@@ -586,7 +590,7 @@ describe('DesignBuilderPage', () => {
         kind: 'segment_pick',
         toolMode: 'delete',
         phase: 'commit',
-        planX: 0,
+        planX: -2,
         planZ: -2.5,
       });
     });
@@ -605,7 +609,7 @@ describe('DesignBuilderPage', () => {
         kind: 'segment_pick',
         toolMode: 'select',
         phase: 'commit',
-        planX: 0,
+        planX: -2,
         planZ: -2.5,
       });
     });
@@ -697,7 +701,7 @@ describe('DesignBuilderPage', () => {
     expect(screen.queryByRole('button', { name: /^masonry layout$/i })).not.toBeInTheDocument();
   });
 
-  it('starts Draw Wall from blank through the toolbar', async () => {
+  it('starts Draw Wall from blank through the tools menu', async () => {
     render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
     await loadTemplate();
     fireEvent.click(screen.getByRole('button', { name: /new layout/i }));

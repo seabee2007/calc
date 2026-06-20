@@ -70,6 +70,8 @@ export function createFiveBySixCmuBuildingPreset(): CmuBuildingPreset {
       jambRebarEnabled: true,
       groutCellsEachSide: 1,
       openingFrameMaterial: 'hollow_metal',
+      swingDirection: 'left',
+      swingType: 'inswing',
     },
     {
       id: 'window-east-01',

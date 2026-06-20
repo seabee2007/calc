@@ -283,6 +283,163 @@ export function resolveDrawWallGuidance(params: {
   };
 }
 
+export const ORTHOGONAL_TOLERANCE_DEGREES = 3;
+
+export type OrthogonalClosureAssist = {
+  candidatePoint: { x: number; z: number };
+  firstNode: { x: number; z: number };
+  isEligible: boolean;
+  closingLengthMeters: number;
+  closingAngleDegrees: number;
+};
+
+function angleBetweenDirectionsDegrees(
+  left: { x: number; z: number },
+  right: { x: number; z: number },
+): number {
+  const leftLength = Math.hypot(left.x, left.z);
+  const rightLength = Math.hypot(right.x, right.z);
+  if (leftLength <= 1e-9 || rightLength <= 1e-9) return 0;
+  const dot = (left.x * right.x + left.z * right.z) / (leftLength * rightLength);
+  const clamped = Math.max(-1, Math.min(1, dot));
+  return (Math.acos(clamped) * 180) / Math.PI;
+}
+
+export function areDirectionsPerpendicular(
+  left: { x: number; z: number },
+  right: { x: number; z: number },
+  toleranceDegrees = ORTHOGONAL_TOLERANCE_DEGREES,
+): boolean {
+  const angle = angleBetweenDirectionsDegrees(left, right);
+  return Math.abs(angle - 90) <= toleranceDegrees;
+}
+
+function nearPlanPoint(
+  left: { x: number; z: number },
+  right: { x: number; z: number },
+  toleranceMeters = 1e-4,
+): boolean {
+  return Math.hypot(left.x - right.x, left.z - right.z) <= toleranceMeters;
+}
+
+function segmentCrossesCommittedInterior(params: {
+  start: { x: number; z: number };
+  end: { x: number; z: number };
+  layout: DesignWallLayoutParameters;
+}): boolean {
+  return params.layout.segments.some((segment) => {
+    const segStart = params.layout.nodes.find((node) => node.id === segment.startNodeId);
+    const segEnd = params.layout.nodes.find((node) => node.id === segment.endNodeId);
+    if (!segStart || !segEnd) return false;
+    if (!segmentIntersection(params.start, params.end, segStart, segEnd)) return false;
+    const touchesAtEndpoint =
+      nearPlanPoint(params.start, segStart) ||
+      nearPlanPoint(params.start, segEnd) ||
+      nearPlanPoint(params.end, segStart) ||
+      nearPlanPoint(params.end, segEnd);
+    return !touchesAtEndpoint;
+  });
+}
+
+export function resolveOrthogonalCornerPoint(params: {
+  layout: DesignWallLayoutParameters;
+  activeNodeId: string;
+}): { x: number; z: number } | null {
+  if (params.layout.segments.length < 2) return null;
+  const firstSegment = params.layout.segments[0];
+  const lastSegment = params.layout.segments[params.layout.segments.length - 1];
+  if (lastSegment.endNodeId !== params.activeNodeId) return null;
+  const firstNode = params.layout.nodes.find((node) => node.id === firstSegment.startNodeId);
+  const previousNode = params.layout.nodes.find((node) => node.id === lastSegment.startNodeId);
+  const activeNode = params.layout.nodes.find((node) => node.id === params.activeNodeId);
+  if (!firstNode || !previousNode || !activeNode) return null;
+  return {
+    x: activeNode.x + (firstNode.x - previousNode.x),
+    z: activeNode.z + (firstNode.z - previousNode.z),
+  };
+}
+
+export function resolveOrthogonalClosureAssist(params: {
+  layout: DesignWallLayoutParameters;
+  activeNodeId: string;
+  candidatePoint: { x: number; z: number };
+}): OrthogonalClosureAssist | null {
+  if (params.layout.segments.length < 2) return null;
+
+  const firstSegment = params.layout.segments[0];
+  const lastSegment = params.layout.segments[params.layout.segments.length - 1];
+  if (lastSegment.endNodeId !== params.activeNodeId) return null;
+
+  const activeNode = params.layout.nodes.find((node) => node.id === params.activeNodeId);
+  const firstNode = params.layout.nodes.find((node) => node.id === firstSegment.startNodeId);
+  const previousNode = params.layout.nodes.find((node) => node.id === lastSegment.startNodeId);
+  if (!activeNode || !firstNode || !previousNode) return null;
+
+  const committedNodeCount = params.layout.segments.length + 1;
+  if (committedNodeCount < 3) return null;
+
+  const activeLengthMeters = Math.hypot(
+    params.candidatePoint.x - activeNode.x,
+    params.candidatePoint.z - activeNode.z,
+  );
+  if (activeLengthMeters < MIN_WALL_SEGMENT_LENGTH_METERS) return null;
+
+  const distanceToFirstNode = Math.hypot(
+    params.candidatePoint.x - firstNode.x,
+    params.candidatePoint.z - firstNode.z,
+  );
+  if (distanceToFirstNode < MIN_WALL_SEGMENT_LENGTH_METERS) return null;
+  if (nearPlanPoint(params.candidatePoint, activeNode, MIN_WALL_SEGMENT_LENGTH_METERS)) return null;
+
+  const previousVector = {
+    x: activeNode.x - previousNode.x,
+    z: activeNode.z - previousNode.z,
+  };
+  const activeVector = {
+    x: params.candidatePoint.x - activeNode.x,
+    z: params.candidatePoint.z - activeNode.z,
+  };
+  const closingVector = {
+    x: firstNode.x - params.candidatePoint.x,
+    z: firstNode.z - params.candidatePoint.z,
+  };
+
+  if (!areDirectionsPerpendicular(previousVector, activeVector)) return null;
+  if (!areDirectionsPerpendicular(activeVector, closingVector)) return null;
+
+  const closingLengthMeters = Math.hypot(closingVector.x, closingVector.z);
+  if (closingLengthMeters < MIN_WALL_SEGMENT_LENGTH_METERS) return null;
+
+  if (
+    segmentCrossesCommittedInterior({
+      start: activeNode,
+      end: params.candidatePoint,
+      layout: params.layout,
+    })
+  ) {
+    return null;
+  }
+  if (
+    segmentCrossesCommittedInterior({
+      start: params.candidatePoint,
+      end: firstNode,
+      layout: params.layout,
+    })
+  ) {
+    return null;
+  }
+
+  const closingAngleDegrees = Math.round(angleBetweenDirectionsDegrees(activeVector, closingVector));
+
+  return {
+    candidatePoint: params.candidatePoint,
+    firstNode,
+    isEligible: true,
+    closingLengthMeters,
+    closingAngleDegrees,
+  };
+}
+
 export function projectExactSegmentLength(
   start: Pick<DesignWallNode, 'x' | 'z'>,
   targetX: number,

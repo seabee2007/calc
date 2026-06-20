@@ -1,6 +1,9 @@
 import { createEvent, fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+import { createFiveBySixCmuBuildingPreset } from '../domain/designBuilderPreset';
+import { resolveOpeningPlacementFromPlanPoint } from '../domain/openingPlacementResolver';
 import { createEmptyWallLayout, createOutsideFaceRectangleLayout } from '../domain/wallLayoutRules';
+import { getSegmentFramesForWallLayout } from '../geometry/designGeometry';
 import { projectCellWidthPx } from '../domain/planGridState';
 import DesignBuilderPlanCanvas from '../ui/DesignBuilderPlanCanvas';
 
@@ -322,5 +325,120 @@ describe('DesignBuilderPlanCanvas', () => {
 
     expect(event.defaultPrevented).toBe(true);
     expect(onInteraction).toHaveBeenCalledWith(expect.objectContaining({ kind: 'undo_last_segment' }));
+  });
+
+  it('renders door and window placement previews on the wall line', () => {
+    const preset = createFiveBySixCmuBuildingPreset();
+    const frames = getSegmentFramesForWallLayout(preset.wallLayout, preset.wall);
+    const frame = frames[0]!;
+    const resolved = resolveOpeningPlacementFromPlanPoint({
+      planX: frame.exteriorStart.x + frame.tangent.x * (frame.lengthMeters * 0.5),
+      planZ: frame.exteriorStart.z + frame.tangent.z * (frame.lengthMeters * 0.5),
+      hostSegmentId: frame.segmentId,
+      segmentFrame: frame,
+      openingDefinition: {
+        type: 'door',
+        widthMeters: 0.9,
+        heightMeters: 2.1,
+        roughOpeningAllowanceMeters: 0.05,
+      },
+      snapMode: 'grid',
+      gridSpacingMeters: 0.1,
+      wall: { ...preset.wall, snapToModule: false },
+    });
+
+    const { container } = render(
+      <DesignBuilderPlanCanvas
+        layout={preset.wallLayout}
+        toolMode="place_door"
+        segmentFrames={frames}
+        openingPreview={{
+          resolvedPlacement: resolved,
+          openingType: 'door',
+          isValid: true,
+          statusKind: 'clean',
+        }}
+        onInteraction={vi.fn()}
+      />,
+    );
+
+    expect(container.querySelector('[data-plan-opening="door"]')).toBeTruthy();
+    expect(container.querySelector('[data-plan-opening-state="valid"]')).toBeTruthy();
+  });
+
+  it('breaks wall lines at committed rough openings and renders opening symbols', () => {
+    const preset = createFiveBySixCmuBuildingPreset();
+    const frames = getSegmentFramesForWallLayout(preset.wallLayout, preset.wall);
+    const frame = frames[0]!;
+    const resolved = resolveOpeningPlacementFromPlanPoint({
+      planX: frame.exteriorStart.x + frame.tangent.x * 2.5,
+      planZ: frame.exteriorStart.z + frame.tangent.z * 2.5,
+      hostSegmentId: frame.segmentId,
+      segmentFrame: frame,
+      openingDefinition: {
+        type: 'window',
+        widthMeters: 1.2,
+        heightMeters: 0.9,
+        sillHeightMeters: 1,
+        roughOpeningAllowanceMeters: 0.05,
+      },
+      snapMode: 'grid',
+      gridSpacingMeters: 0.1,
+      wall: { ...preset.wall, snapToModule: false },
+    });
+
+    const { container } = render(
+      <DesignBuilderPlanCanvas
+        layout={preset.wallLayout}
+        toolMode="select"
+        segmentFrames={frames}
+        selectedOpeningId="window-1"
+        openingItems={[{
+          openingId: 'window-1',
+          openingType: 'window',
+          resolved,
+          isValid: true,
+          statusKind: 'clean',
+        }]}
+        onInteraction={vi.fn()}
+      />,
+    );
+
+    expect(container.querySelectorAll('[data-wall-run="true"]').length).toBeGreaterThan(0);
+    expect(container.querySelector('[data-plan-opening="window"]')).toBeTruthy();
+  });
+
+  it('emits segment preview while hovering during place door', () => {
+    const preset = createFiveBySixCmuBuildingPreset();
+    const onInteraction = vi.fn();
+    render(
+      <DesignBuilderPlanCanvas
+        layout={preset.wallLayout}
+        toolMode="place_door"
+        segmentFrames={getSegmentFramesForWallLayout(preset.wallLayout, preset.wall)}
+        onInteraction={onInteraction}
+      />,
+    );
+
+    const svg = screen.getByLabelText(/design builder wall layout plan view/i) as SVGSVGElement;
+    vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({
+      left: 0,
+      top: 0,
+      width: 900,
+      height: 520,
+      right: 900,
+      bottom: 520,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    } as DOMRect);
+
+    fireEvent.pointerMove(svg, { clientX: 450, clientY: 260 });
+
+    expect(onInteraction).toHaveBeenCalledWith(expect.objectContaining({
+      kind: 'segment_pick',
+      phase: 'preview',
+      toolMode: 'place_door',
+    }));
   });
 });

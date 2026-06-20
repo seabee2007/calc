@@ -21,9 +21,14 @@ import {
 } from '../domain/moduleFitReport';
 import { deriveExteriorBounds } from '../domain/wallLayoutRules';
 import {
+  buildLayoutLintelCourseAssemblies,
+  lintelCourseClosureToBlockType,
+  type LintelCourseAssembly,
+  type LintelCourseClosurePlacement,
+} from '../domain/lintelCourseClosureSolver';
+import {
   blockOverlapsOpeningAssembly,
   buildDerivedOpeningSupports,
-  buildLayoutJambGroutFillPlacements,
   buildLayoutLintelBearingSupportBlocks,
   buildLayoutLintelSolidPlacements,
   buildLegacyJambGroutFillPlacements,
@@ -35,7 +40,9 @@ import {
   groutFillsToJambGroutCells,
   lintelSolidToInstance,
   resolveLintelCourseIndex,
+  resolveEffectiveLintelSpan,
   resolveOpeningUnitDisposition,
+  resolveUnitSegmentsAroundOpenings,
   resolveLintelModuleSpan,
   summarizeGroutFillPlacements,
   supportBlockPlacementToBlockInstance,
@@ -43,17 +50,24 @@ import {
   type GroutFillPlacement,
   type LintelSolidKind,
   type OpeningSupportBlockPlacement,
+  type OpeningUnitSplitSegment,
   type ResolvedLintelSpan,
+  type SegmentFrameLike,
 } from '../domain/openingAssemblySolver';
 import {
-  buildOpeningClosureBlockFromGap,
+  classifyClosureGapLength,
+  closureClassificationToBlockType,
   computeOpeningJambGapsForCourse,
   openingJambGapToCourseClosure,
-  resolveClosureRole,
   shouldPlaceJambClosureBlock,
+  type CourseUnitSpan,
   type OpeningClosureRole,
 } from '../domain/openingCourseClosureSolver';
 import { resolveCmuCoreGeometry } from '../domain/cmuCoreGeometry';
+import {
+  buildClosureGroutFillPlacements,
+  buildLayoutJambGroutFillPlacementsFromBlocks,
+} from '../domain/groutCellPlacements';
 import {
   calculateCmuOpeningGroutSummary,
   OPENING_GROUT_CONCEPTUAL_WARNING,
@@ -333,6 +347,7 @@ export interface CmuBlockInstance {
   endAlongMeters: number;
   nearOpeningId?: string;
   closureRole?: OpeningClosureRole;
+  adjacentTo?: 'rough_opening_start' | 'rough_opening_end';
 }
 
 export type CmuUnitPlacement = {
@@ -367,7 +382,11 @@ export type CmuUnitPlacement = {
     | 'auto_layout'
     | 'closed_perimeter_solver'
     | 'manual_override'
-    | 'opening_assembly_solver';
+    | 'opening_assembly_solver'
+    | 'opening_jamb_closure'
+    | 'lintel_closure';
+  openingId?: string;
+  adjacentTo?: 'rough_opening_start' | 'rough_opening_end';
   terminalClosure?: TerminalClosureUnit;
 };
 
@@ -485,6 +504,7 @@ export interface CmuLayoutResult {
   jambGroutCells: CmuJambGroutCellInstance[];
   groutFillPlacements: GroutFillPlacement[];
   openingCourseClosures: CmuOpeningCourseClosure[];
+  lintelCourseAssemblies: LintelCourseAssembly[];
   derivedOpeningSupports: DerivedOpeningSupport[];
   openingGrout: CmuOpeningGroutSummary;
   terminalClosures: TerminalClosureUnit[];
@@ -814,127 +834,127 @@ export function generateCmuLayoutFromWallLayout(
         const frameSpan = stationAlignment.masonrySpanToFrame(masonrySpan);
         const courseBottomMeters = plan.courseIndex * moduleHeight;
         const courseTopMeters = plan.courseIndex * moduleHeight + actualHeight;
-        let placementStartAlongMeters = frameSpan.startAlongMeters;
-        let placementEndAlongMeters = frameSpan.endAlongMeters;
-        let placementLengthMeters = unit.lengthMeters;
-        let openingTrimApplied = false;
-        for (const opening of segmentOpenings) {
-          const disposition = resolveOpeningUnitDisposition({
-            opening,
-            startAlongMeters: frameSpan.startAlongMeters,
-            endAlongMeters: frameSpan.endAlongMeters,
-            courseIndex: plan.courseIndex,
-            courseBottomMeters,
-            courseTopMeters,
-            moduleHeightMeters: moduleHeight,
-            moduleLengthMeters: moduleLength,
-            wallLengthMeters: frame.lengthMeters,
-            resolvedLintelSpans,
-          });
-          if (disposition.action === 'skip') {
-            return;
-          }
-          if (disposition.action === 'trim') {
-            placementStartAlongMeters = disposition.startAlongMeters;
-            placementEndAlongMeters = disposition.endAlongMeters;
-            placementLengthMeters = disposition.lengthMeters;
-            openingTrimApplied = true;
-          }
-        }
+        const segments = resolveUnitSegmentsAroundOpenings({
+          startAlongMeters: frameSpan.startAlongMeters,
+          endAlongMeters: frameSpan.endAlongMeters,
+          openings: segmentOpenings,
+          courseIndex: plan.courseIndex,
+          courseBottomMeters,
+          courseTopMeters,
+          moduleHeightMeters: moduleHeight,
+          moduleLengthMeters: moduleLength,
+          wallLengthMeters: frame.lengthMeters,
+          resolvedLintelSpans,
+        });
+        if (segments.length === 0) return;
         const isFirstUnit = column === 0;
         const isLastUnit = column === segmentPlan.units.length - 1;
-        const blockType =
-          openingTrimApplied
+        const defaultBlockType =
+          unit.unitType === 'cut'
             ? 'cut'
-            : unit.unitType === 'cut'
-              ? 'cut'
-              : unit.unitType === 'half'
-                ? 'half'
-                : (isFirstUnit && segmentPlan.ownerAtStart) || (isLastUnit && segmentPlan.ownerAtEnd)
-                  ? 'corner'
-                  : (isFirstUnit && segmentPlan.buttingAtStart) || (isLastUnit && segmentPlan.buttingAtEnd)
-                      ? 'end'
-                      : 'full';
-        const terminalClosure: TerminalClosureUnit | undefined = unit.terminalClosureReason
-          ? {
-              segmentId: frame.segmentId,
-              courseIndex: plan.courseIndex,
-              direction: 'clockwise',
-              startStationMeters: frameSpan.startAlongMeters,
-              endStationMeters: frameSpan.endAlongMeters,
-              remainingLengthMeters: unit.lengthMeters,
-              unitType: 'cut',
-              location: 'outgoing_corner',
-              reason: unit.terminalClosureReason,
-            }
-          : undefined;
-        const placement = createCmuBlockPlacement({
-          id: `${frame.segmentId}-${plan.courseIndex}-${globalModuleIndex}`,
-          segmentId: frame.segmentId,
-          cornerId: isFirstUnit ? segmentPlan.startCornerId : isLastUnit ? segmentPlan.endCornerId : undefined,
-          courseIndex: plan.courseIndex,
-          moduleIndex: globalModuleIndex,
-          unitType: placementUnitFromBlockType(blockType),
-          stationMeters: openingTrimApplied ? placementStartAlongMeters : frameSpan.startAlongMeters,
-          nominalLengthMeters: openingTrimApplied ? placementLengthMeters : frameSpan.endAlongMeters - frameSpan.startAlongMeters,
-          actualLengthMeters: openingTrimApplied ? placementLengthMeters : unit.lengthMeters,
-          heightMeters: actualHeight,
-          depthMeters: frame.wallThicknessMeters,
-          wallStart: frame.exteriorStart,
-          tangent: frame.tangent,
-          inwardNormal: frame.inwardNormal,
-          moduleHeightMeters: moduleHeight,
-          rotationY: frame.rotationY,
-          source: openingTrimApplied
-            ? 'opening_assembly_solver'
-            : terminalClosure
-              ? 'terminal_closure'
-              : blockType === 'corner' || blockType === 'end'
-                ? 'corner_assembly'
-                : 'wall_run',
-          kind:
-            blockType === 'corner'
-              ? 'corner_block'
-              : blockType === 'end'
-                ? 'end_block'
-                : blockType === 'half'
-                  ? 'half_block'
-                  : blockType === 'cut'
-                    ? 'cut_block'
-                    : 'stretcher',
-          startStationMeters: placementStartAlongMeters,
-          endStationMeters: placementEndAlongMeters,
-          terminalClosure,
+            : unit.unitType === 'half'
+              ? 'half'
+              : (isFirstUnit && segmentPlan.ownerAtStart) || (isLastUnit && segmentPlan.ownerAtEnd)
+                ? 'corner'
+                : (isFirstUnit && segmentPlan.buttingAtStart) || (isLastUnit && segmentPlan.buttingAtEnd)
+                  ? 'end'
+                  : 'full';
+        const terminalClosure: TerminalClosureUnit | undefined =
+          unit.terminalClosureReason && segments.length === 1 && segments[0].source === 'wall_run'
+            ? {
+                segmentId: frame.segmentId,
+                courseIndex: plan.courseIndex,
+                direction: 'clockwise',
+                startStationMeters: frameSpan.startAlongMeters,
+                endStationMeters: frameSpan.endAlongMeters,
+                remainingLengthMeters: unit.lengthMeters,
+                unitType: 'cut',
+                location: 'outgoing_corner',
+                reason: unit.terminalClosureReason,
+              }
+            : undefined;
+        segments.forEach((segment, segmentIndex) => {
+          const isJambClosure = segment.source === 'opening_jamb_closure';
+          const blockType = blockTypeForOpeningSegment(segment, moduleLength, defaultBlockType);
+          const placementStartAlongMeters = segment.startAlongMeters;
+          const placementEndAlongMeters = segment.endAlongMeters;
+          const placementLengthMeters = segment.lengthMeters;
+          const actualLengthMeters = actualLengthForOpeningSegment(segment, unit.lengthMeters);
+          const placement = createCmuBlockPlacement({
+            id:
+              segments.length === 1
+                ? `${frame.segmentId}-${plan.courseIndex}-${globalModuleIndex}`
+                : `${frame.segmentId}-${plan.courseIndex}-${globalModuleIndex}-s${segmentIndex}`,
+            segmentId: frame.segmentId,
+            cornerId: isFirstUnit ? segmentPlan.startCornerId : isLastUnit ? segmentPlan.endCornerId : undefined,
+            courseIndex: plan.courseIndex,
+            moduleIndex: globalModuleIndex,
+            unitType: placementUnitFromBlockType(blockType),
+            stationMeters: placementStartAlongMeters,
+            nominalLengthMeters: placementLengthMeters,
+            actualLengthMeters,
+            heightMeters: actualHeight,
+            depthMeters: frame.wallThicknessMeters,
+            wallStart: frame.exteriorStart,
+            tangent: frame.tangent,
+            inwardNormal: frame.inwardNormal,
+            moduleHeightMeters: moduleHeight,
+            rotationY: frame.rotationY,
+            source: isJambClosure
+              ? 'opening_jamb_closure'
+              : terminalClosure
+                ? 'terminal_closure'
+                : blockType === 'corner' || blockType === 'end'
+                  ? 'corner_assembly'
+                  : 'wall_run',
+            kind:
+              blockType === 'corner'
+                ? 'corner_block'
+                : blockType === 'end'
+                  ? 'end_block'
+                  : blockType === 'half'
+                    ? 'half_block'
+                    : blockType === 'cut'
+                      ? 'cut_block'
+                      : 'stretcher',
+            startStationMeters: placementStartAlongMeters,
+            endStationMeters: placementEndAlongMeters,
+            terminalClosure: isJambClosure ? undefined : terminalClosure,
+            openingId: segment.openingId,
+            adjacentTo: segment.adjacentTo,
+          });
+          globalModuleIndex += 1;
+          unitPlacements.push(placement);
+          blocks.push({
+            id: placement.id,
+            face: 'north',
+            segmentId: frame.segmentId,
+            cornerId: placement.cornerId,
+            course: plan.courseIndex,
+            courseIndex: placement.courseIndex,
+            moduleIndex: placement.moduleIndex,
+            blockType,
+            unitType: placement.unitType,
+            kind: placement.kind,
+            stationMeters: placement.stationMeters,
+            nominalLengthMeters: placement.nominalLengthMeters,
+            actualLengthMeters: placement.actualLengthMeters,
+            heightMeters: placement.heightMeters,
+            depthMeters: placement.depthMeters,
+            source: placement.source,
+            terminalClosure: placement.terminalClosure,
+            x: placement.center.x,
+            y: placement.center.y,
+            z: placement.center.z,
+            rotationY: placement.rotationY,
+            lengthMeters: placement.lengthMeters,
+            startAlongMeters: placementStartAlongMeters,
+            endAlongMeters: placementEndAlongMeters,
+            nearOpeningId: segment.openingId,
+            adjacentTo: segment.adjacentTo,
+          });
+          counts[blockType] += 1;
         });
-        globalModuleIndex += 1;
-        unitPlacements.push(placement);
-        blocks.push({
-          id: placement.id,
-          face: 'north',
-          segmentId: frame.segmentId,
-          cornerId: placement.cornerId,
-          course: plan.courseIndex,
-          courseIndex: placement.courseIndex,
-          moduleIndex: placement.moduleIndex,
-          blockType,
-          unitType: placement.unitType,
-          kind: placement.kind,
-          stationMeters: placement.stationMeters,
-          nominalLengthMeters: placement.nominalLengthMeters,
-          actualLengthMeters: placement.actualLengthMeters,
-          heightMeters: placement.heightMeters,
-          depthMeters: placement.depthMeters,
-          source: placement.source,
-          terminalClosure: placement.terminalClosure,
-          x: placement.center.x,
-          y: placement.center.y,
-          z: placement.center.z,
-          rotationY: placement.rotationY,
-          lengthMeters: placement.lengthMeters,
-          startAlongMeters: placementStartAlongMeters,
-          endAlongMeters: placementEndAlongMeters,
-        });
-        counts[blockType] += 1;
       });
     });
   });
@@ -963,15 +983,26 @@ export function generateCmuLayoutFromWallLayout(
   const layoutCourseUnitsBySegment = new Map<string, { startAlongMeters: number; endAlongMeters: number }[]>();
   coursePlans.forEach((plan) => {
     plan.segmentPlans.forEach((segmentPlan) => {
-      layoutCourseUnitsBySegment.set(
-        `${segmentPlan.segmentId}-${plan.courseIndex}`,
-        segmentPlan.units.map((unit) => ({
-          startAlongMeters: unit.startAlongMeters,
-          endAlongMeters: unit.endAlongMeters,
-        })),
-      );
+      const masonryUnits = segmentPlan.units.map((unit) => ({
+        startAlongMeters: unit.startAlongMeters,
+        endAlongMeters: unit.endAlongMeters,
+      }));
+      layoutCourseUnitsBySegment.set(`${segmentPlan.segmentId}-${plan.courseIndex}`, masonryUnits);
     });
   });
+  const lintelCourseAssemblies = buildLayoutLintelCourseAssemblies({
+    openings: roughOpenings,
+    framesById: frameById,
+    moduleLengthMeters: moduleLength,
+    moduleHeightMeters: moduleHeight,
+    actualHeightMeters: actualHeight,
+    resolvedLintelSpans,
+    courseUnitsBySegmentCourse: layoutCourseUnitsBySegment,
+    placedBlocksBySegmentCourse: placedCourseBlocksBySegmentCourse(blocks),
+    openingsBySegmentId: getLayoutOpeningSegmentId,
+    runningBond: normalizeBondPattern(params.bondPattern) === 'running_bond',
+  });
+  appendLintelCourseClosuresToLayout(lintelCourseAssemblies, blocks, counts);
   const closureKeys = new Set<string>();
   const segmentStationAlignments = new Map<string, ReturnType<typeof resolveSegmentStationAlignment>>();
   if (clockwisePerimeter) {
@@ -1037,15 +1068,16 @@ export function generateCmuLayoutFromWallLayout(
 
   const core = resolveCmuCoreGeometry(params);
   const wastePercent = Math.max(0, params.groutWastePercent ?? 0.1) * 100;
-  const jambGroutFills = buildLayoutJambGroutFillPlacements(
-    roughOpenings,
-    frameById,
-    moduleLength,
-    moduleHeight,
-    actualHeight,
+  const jambGroutFills = buildLayoutJambGroutFillPlacementsFromBlocks({
+    openings: roughOpenings,
+    framesById: frameById,
+    blocks,
+    moduleLengthMeters: moduleLength,
+    moduleHeightMeters: moduleHeight,
+    actualHeightMeters: actualHeight,
     core,
     wastePercent,
-  );
+  });
   const lintelGroutFills = buildLintelGroutFillPlacements(
     params,
     roughOpenings,
@@ -1081,10 +1113,20 @@ export function generateCmuLayoutFromWallLayout(
       depthMeters: frame.wallThicknessMeters,
     };
   });
+  const closureGroutFills = buildClosureGroutFillPlacements({
+    closures: openingCourseClosures,
+    openings: roughOpenings,
+    framesById: frameById,
+    moduleHeightMeters: moduleHeight,
+    actualHeightMeters: actualHeight,
+    wallThicknessMeters: params.wallThicknessMeters,
+    wastePercent,
+  });
   const { placements: groutFillPlacements, overlapDeduplicationCubicMeters } = deduplicateGroutFillPlacements([
     ...jambGroutFills,
     ...lintelGroutFills,
     ...sillGroutFills,
+    ...closureGroutFills,
   ]);
   const jambGroutCells = groutFillsToJambGroutCells(groutFillPlacements);
   const derivedOpeningSupports = buildDerivedOpeningSupports({
@@ -1123,12 +1165,13 @@ export function generateCmuLayoutFromWallLayout(
     lintelCount: lintels.length,
     lintelLengthMeters: lintels.reduce((sum, lintel) => sum + lintel.lengthMeters, 0),
     jambGroutVolumeCubicMeters: groutSummary.jambGroutVolumeCubicMeters,
-    closureGroutVolumeCubicMeters: 0,
+    closureGroutVolumeCubicMeters: groutSummary.closureGroutVolumeCubicMeters,
     lintelGroutVolumeCubicMeters: groutSummary.lintelGroutVolumeCubicMeters,
     openingGroutVolumeCubicMeters:
       groutSummary.jambGroutVolumeCubicMeters +
       groutSummary.lintelGroutVolumeCubicMeters +
-      groutSummary.sillGroutVolumeCubicMeters,
+      groutSummary.sillGroutVolumeCubicMeters +
+      groutSummary.closureGroutVolumeCubicMeters,
     sillGroutVolumeCubicMeters: groutSummary.sillGroutVolumeCubicMeters,
     bondBeamGroutVolumeCubicMeters: groutSummary.bondBeamGroutVolumeCubicMeters,
     overlapDeduplicationCubicMeters,
@@ -1176,14 +1219,9 @@ export function generateCmuLayoutFromWallLayout(
     jambGroutCells,
     groutFillPlacements,
     openingCourseClosures,
+    lintelCourseAssemblies,
     derivedOpeningSupports,
-    openingGrout: buildLayoutOpeningGroutSummary({
-      params,
-      base: openingGrout,
-      jambGroutCells,
-      openingCourseClosures,
-      moduleHeight,
-    }),
+    openingGrout,
     terminalClosures: unitPlacements.flatMap((placement) => placement.terminalClosure ? [placement.terminalClosure] : []),
     counts,
     totalBlocks: Object.values(counts).reduce((sum, value) => sum + value, 0),
@@ -1667,6 +1705,53 @@ function resolveSegmentStationAlignment(
   };
 }
 
+function blockTypeForOpeningSegment(
+  segment: OpeningUnitSplitSegment,
+  moduleLengthMeters: number,
+  defaultBlockType: CmuBlockType,
+): CmuBlockType {
+  if (segment.source !== 'opening_jamb_closure') {
+    return defaultBlockType;
+  }
+  const classification = classifyClosureGapLength(segment.lengthMeters, moduleLengthMeters, false);
+  return closureClassificationToBlockType(classification) ?? 'cut';
+}
+
+function actualLengthForOpeningSegment(
+  segment: OpeningUnitSplitSegment,
+  unitActualLengthMeters: number,
+): number {
+  return segment.source === 'opening_jamb_closure' ? segment.lengthMeters : unitActualLengthMeters;
+}
+
+export function logOpeningCoursePlacementsTableForDev(
+  unitPlacements: readonly CmuUnitPlacement[],
+  opening: ResolvedCmuOpening,
+  moduleHeightMeters: number,
+  segmentId?: string,
+): void {
+  if (!import.meta.env.DEV) return;
+  const hostSegmentId = segmentId ?? opening.wallSegmentId ?? opening.wallFace ?? '';
+  const lintelCourseIndex = resolveLintelCourseIndex(opening.roughTopMeters, moduleHeightMeters);
+  const rows = unitPlacements
+    .filter((placement) => {
+      if (placement.segmentId !== hostSegmentId) return false;
+      if (placement.courseIndex >= lintelCourseIndex) return false;
+      const courseBottom = placement.courseIndex * moduleHeightMeters;
+      const courseTop = courseBottom + placement.heightMeters;
+      return courseBottom < opening.roughTopMeters && courseTop > opening.roughBottomMeters;
+    })
+    .map((placement) => ({
+      course: placement.courseIndex,
+      kind: placement.kind,
+      source: placement.source,
+      start: placement.startStationMeters ?? placement.stationMeters,
+      end: placement.endStationMeters,
+      length: (placement.endStationMeters ?? 0) - (placement.startStationMeters ?? placement.stationMeters ?? 0),
+    }));
+  console.table(rows);
+}
+
 function blockOverlapsOpeningVoid(params: {
   block: CmuBlockInstance;
   opening: ResolvedCmuOpening;
@@ -1676,6 +1761,8 @@ function blockOverlapsOpeningVoid(params: {
   actualHeight: number;
   resolvedLintelSpans: ReadonlyMap<string, ResolvedLintelSpan>;
 }): boolean {
+  if (params.block.source === 'lintel_closure') return false;
+  if (params.block.source === 'opening_jamb_closure') return false;
   const courseIndex = params.block.courseIndex ?? params.block.course ?? 0;
   const courseBottomMeters = courseIndex * params.moduleHeight;
   const courseTopMeters = courseBottomMeters + (params.block.heightMeters ?? params.actualHeight);
@@ -1791,6 +1878,136 @@ function buildResolvedLintelSpanMap(
   );
 }
 
+function placedCourseBlocksBySegmentCourse(
+  blocks: readonly CmuBlockInstance[],
+): Map<string, CourseUnitSpan[]> {
+  const grouped = new Map<string, CourseUnitSpan[]>();
+  blocks.forEach((block) => {
+    if (block.source === 'lintel_closure') return;
+    const segmentId = block.segmentId ?? block.face;
+    const courseIndex = block.courseIndex ?? block.course ?? 0;
+    const startAlongMeters = block.startAlongMeters ?? block.stationMeters ?? 0;
+    const endAlongMeters =
+      block.endAlongMeters ?? startAlongMeters + (block.actualLengthMeters ?? block.lengthMeters);
+    const key = `${segmentId}-${courseIndex}`;
+    const existing = grouped.get(key) ?? [];
+    existing.push({ startAlongMeters, endAlongMeters });
+    grouped.set(key, existing);
+  });
+  grouped.forEach((spans, key) => {
+    grouped.set(
+      key,
+      spans.sort((left, right) => left.startAlongMeters - right.startAlongMeters),
+    );
+  });
+  return grouped;
+}
+
+function appendLintelCourseClosuresToLayout(
+  assemblies: readonly LintelCourseAssembly[],
+  blocks: CmuBlockInstance[],
+  counts: Record<CmuBlockType, number>,
+): void {
+  assemblies.forEach((assembly) => {
+    [...assembly.leftPlacements, ...assembly.rightPlacements].forEach((placement) => {
+      appendLintelCourseClosurePlacement(placement, blocks, counts);
+    });
+  });
+}
+
+function buildLegacySegmentFramesById(params: CmuWallSystemParameters): Map<string, SegmentFrameLike> {
+  const wallThickness = Math.max(0, params.wallThicknessMeters);
+  const halfLength = params.lengthMeters / 2;
+  const halfWidth = params.widthMeters / 2;
+  const inset = wallThickness / 2;
+  return new Map([
+    [
+      'north',
+      {
+        segmentId: 'north',
+        start: { x: -halfLength, z: -halfWidth + inset },
+        tangent: { x: 1, z: 0 },
+        inwardNormal: { x: 0, z: 1 },
+        rotationY: 0,
+        lengthMeters: params.lengthMeters,
+        wallThicknessMeters: wallThickness,
+      },
+    ],
+    [
+      'south',
+      {
+        segmentId: 'south',
+        start: { x: halfLength, z: halfWidth - inset },
+        tangent: { x: -1, z: 0 },
+        inwardNormal: { x: 0, z: -1 },
+        rotationY: Math.PI,
+        lengthMeters: params.lengthMeters,
+        wallThicknessMeters: wallThickness,
+      },
+    ],
+    [
+      'east',
+      {
+        segmentId: 'east',
+        start: { x: halfLength - inset, z: halfWidth },
+        tangent: { x: 0, z: -1 },
+        inwardNormal: { x: -1, z: 0 },
+        rotationY: Math.PI / 2,
+        lengthMeters: params.widthMeters,
+        wallThicknessMeters: wallThickness,
+      },
+    ],
+    [
+      'west',
+      {
+        segmentId: 'west',
+        start: { x: -halfLength + inset, z: -halfWidth },
+        tangent: { x: 0, z: 1 },
+        inwardNormal: { x: 1, z: 0 },
+        rotationY: -Math.PI / 2,
+        lengthMeters: params.widthMeters,
+        wallThicknessMeters: wallThickness,
+      },
+    ],
+  ]);
+}
+
+function appendLintelCourseClosurePlacement(
+  placement: LintelCourseClosurePlacement,
+  blocks: CmuBlockInstance[],
+  counts: Record<CmuBlockType, number>,
+): void {
+  const blockType = lintelCourseClosureToBlockType(placement.kind);
+  const wallFaces = new Set<CmuBlockInstanceWallFace>(['north', 'east', 'south', 'west']);
+  const legacyFace = wallFaces.has(placement.hostSegmentId as CmuBlockInstanceWallFace)
+    ? (placement.hostSegmentId as CmuBlockInstanceWallFace)
+    : 'north';
+  blocks.push({
+    id: placement.id,
+    face: legacyFace,
+    segmentId: wallFaces.has(placement.hostSegmentId as CmuBlockInstanceWallFace) ? undefined : placement.hostSegmentId,
+    course: placement.courseIndex,
+    courseIndex: placement.courseIndex,
+    blockType,
+    unitType: blockType === 'full' ? 'full' : blockType === 'half' ? 'half' : 'cut',
+    x: placement.center.x,
+    y: placement.center.y,
+    z: placement.center.z,
+    rotationY: placement.rotationY,
+    lengthMeters: placement.lengthMeters,
+    actualLengthMeters: placement.lengthMeters,
+    heightMeters: placement.heightMeters,
+    depthMeters: placement.depthMeters,
+    startAlongMeters: placement.startAlongMeters,
+    endAlongMeters: placement.endAlongMeters,
+    source: 'lintel_closure',
+    nearOpeningId: placement.openingId,
+    closureRole:
+      placement.side === 'left' ? 'lintel_left_bearing' : 'lintel_right_bearing',
+  });
+  counts[blockType] += 1;
+}
+
 function appendSupportBlocksToLayout(
   supportBlocks: OpeningSupportBlockPlacement[],
   blocks: CmuBlockInstance[],
@@ -1863,12 +2080,6 @@ function appendOpeningJambClosureBlocks(params: {
   const closures: CmuOpeningCourseClosure[] = [];
   const fillFactor = params.fillFactor ?? 0.5;
   const wasteMultiplier = 1 + Math.max(0, params.groutWastePercent ?? 0.1);
-  const supportCourseIndexByOpening = new Map(
-    params.openings.map((opening) => [
-      opening.id,
-      resolveLintelCourseIndex(opening.roughTopMeters, params.moduleHeight) - 1,
-    ]),
-  );
 
   params.openings.forEach((opening) => {
     const wallFace = opening.wallFace ?? 'north';
@@ -1881,6 +2092,10 @@ function appendOpeningJambClosureBlocks(params: {
     for (let course = 0; course < params.courseCount; course += 1) {
       const courseBottom = course * params.moduleHeight;
       const courseTop = courseBottom + params.moduleHeight;
+      const lintelCourseIndex = resolveLintelCourseIndex(opening.roughTopMeters, params.moduleHeight);
+      if (opening.lintelType !== 'none' && course === lintelCourseIndex) {
+        continue;
+      }
       const horizontalOwnsCorners = !params.runningBond || course % 2 === 0;
       const ownsCorner = horizontalWall ? horizontalOwnsCorners : !horizontalOwnsCorners;
       const cornerTrim =
@@ -1942,104 +2157,10 @@ function appendOpeningJambClosureBlocks(params: {
           return;
         }
 
-        const supportCourseIndex = supportCourseIndexByOpening.get(opening.id) ?? -1;
-        const onLintelSupportCourse = gap.courseIndex === supportCourseIndex;
-        const closureRole = resolveClosureRole(gap.side, onLintelSupportCourse);
         const key = `${segmentId}-${opening.id}-${course}-${gap.side}`;
         if (params.closureKeys.has(key)) return;
         params.closureKeys.add(key);
-
-        const centerAlong = (gap.gapStartMeters + gap.gapEndMeters) / 2;
-        const y = course * params.moduleHeight + params.actualHeight / 2;
-        let center: { x: number; y: number; z: number };
-        let rotationY = 0;
-
-        if (frame) {
-          const point = pointOnSegmentFrame(frame, centerAlong, frame.wallThicknessMeters / 2);
-          center = { x: point.x, y, z: point.z };
-          rotationY = frame.rotationY;
-        } else if (legacyWall) {
-          const centeredAlong = centerAlong - wallLength / 2;
-          const x = 'x' in legacyWall && legacyWall.x != null ? legacyWall.x : centeredAlong;
-          const z = 'z' in legacyWall && legacyWall.z != null ? legacyWall.z : centeredAlong;
-          center = { x, y, z };
-          rotationY = legacyWall.rotationY;
-        } else {
-          return;
-        }
-
-        const spec = buildOpeningClosureBlockFromGap({
-          gap,
-          hostSegmentId: segmentId,
-          closureRole,
-          heightMeters: params.actualHeight,
-          depthMeters: frame?.wallThicknessMeters ?? params.wallThickness,
-          center,
-          rotationY,
-        });
-        if (!spec) return;
-
-        if (frame) {
-          const candidateBlock: CmuBlockInstance = {
-            id: spec.id,
-            face: wallFace,
-            segmentId,
-            course: spec.courseIndex,
-            courseIndex: spec.courseIndex,
-            blockType: spec.blockType,
-            x: spec.center.x,
-            y: spec.center.y,
-            z: spec.center.z,
-            rotationY: spec.rotationY,
-            lengthMeters: spec.lengthMeters,
-            actualLengthMeters: spec.lengthMeters,
-            heightMeters: spec.heightMeters,
-            depthMeters: spec.depthMeters,
-            startAlongMeters: spec.startAlongMeters,
-            endAlongMeters: spec.endAlongMeters,
-            source: 'opening_assembly_solver',
-            nearOpeningId: spec.openingId,
-            closureRole: spec.closureRole,
-          };
-          if (
-            blockOverlapsOpeningVoid({
-              block: candidateBlock,
-              opening,
-              frame,
-              moduleHeight: params.moduleHeight,
-              moduleLength: params.moduleLength,
-              actualHeight: params.actualHeight,
-              resolvedLintelSpans: params.resolvedLintelSpans,
-            })
-          ) {
-            return;
-          }
-        }
-
-        const blockType = spec.blockType;
-        params.blocks.push({
-          id: spec.id,
-          face: wallFace,
-          segmentId: frame ? segmentId : undefined,
-          course: spec.courseIndex,
-          courseIndex: spec.courseIndex,
-          blockType,
-          unitType: blockType,
-          x: spec.center.x,
-          y: spec.center.y,
-          z: spec.center.z,
-          rotationY: spec.rotationY,
-          lengthMeters: spec.lengthMeters,
-          actualLengthMeters: spec.lengthMeters,
-          heightMeters: spec.heightMeters,
-          depthMeters: spec.depthMeters,
-          startAlongMeters: spec.startAlongMeters,
-          endAlongMeters: spec.endAlongMeters,
-          source: 'opening_assembly_solver',
-          nearOpeningId: spec.openingId,
-          closureRole: spec.closureRole,
-        });
-        params.counts[blockType] += 1;
+        // Jamb closure geometry is emitted per nominal unit via resolveUnitSegmentsAroundOpenings.
       });
     }
   });
@@ -2130,6 +2251,7 @@ export function generateCmuLayout(params: CmuWallSystemParameters): CmuLayoutRes
   const counts = createEmptyCounts();
   const moduleFits = summarizeWallModuleFits(params);
   const closureKeys = new Set<string>();
+  const legacyCourseUnitsBySegment = new Map<string, { startAlongMeters: number; endAlongMeters: number }[]>();
   const wallThickness = Math.max(0, params.wallThicknessMeters);
   const wallFaces = [
     { face: 'north', length: params.lengthMeters, z: -params.widthMeters / 2 + wallThickness / 2, rotationY: 0, fit: moduleFits.north },
@@ -2161,116 +2283,125 @@ export function generateCmuLayout(params: CmuWallSystemParameters): CmuLayoutRes
         course,
         globalJointOffset: courseContext.globalJointOffset,
       });
+      legacyCourseUnitsBySegment.set(
+        `${wall.face}-${course}`,
+        courseUnits.map((unit) => ({
+          startAlongMeters: unit.startAlongMeters + cornerTrim,
+          endAlongMeters: unit.endAlongMeters + cornerTrim,
+        })),
+      );
       courseUnits.forEach((unit, column) => {
         const stationMeters = unit.nominalStartMeters + cornerTrim;
         const startAlongMeters = unit.startAlongMeters + cornerTrim;
         const endAlongMeters = unit.endAlongMeters + cornerTrim;
-        const verticalBand = {
+        const courseBottomMeters = course * moduleHeight;
+        const courseTopMeters = course * moduleHeight + actualHeight;
+        const wallOpenings = roughOpenings.filter((opening) => opening.wallFace === wall.face);
+        const segments = resolveUnitSegmentsAroundOpenings({
           startAlongMeters,
           endAlongMeters,
-          bottomMeters: course * moduleHeight,
-          topMeters: course * moduleHeight + actualHeight,
+          openings: wallOpenings,
           courseIndex: course,
-        };
-        let placementStartAlongMeters = startAlongMeters;
-        let placementEndAlongMeters = endAlongMeters;
-        let placementLengthMeters = unit.lengthMeters;
-        let openingTrimApplied = false;
-        for (const opening of roughOpenings) {
-          if (opening.wallFace !== wall.face) continue;
-          const disposition = resolveOpeningUnitDisposition({
-            opening,
-            startAlongMeters,
-            endAlongMeters,
-            courseIndex: course,
-            courseBottomMeters: verticalBand.bottomMeters,
-            courseTopMeters: verticalBand.topMeters,
-            moduleHeightMeters: moduleHeight,
-            moduleLengthMeters: moduleLength,
-            wallLengthMeters: wall.length,
-            resolvedLintelSpans,
-          });
-          if (disposition.action === 'skip') {
-            return;
-          }
-          if (disposition.action === 'trim') {
-            placementStartAlongMeters = disposition.startAlongMeters;
-            placementEndAlongMeters = disposition.endAlongMeters;
-            placementLengthMeters = disposition.lengthMeters;
-            openingTrimApplied = true;
-          }
-        }
-
-        const blockType = openingTrimApplied
-          ? 'cut'
-          : resolveBlockType(params, { ...unit, startAlongMeters, endAlongMeters }, wall.length, wall.fit, ownsCorner);
-        const centeredAlong = placementStartAlongMeters - wall.length / 2 + placementLengthMeters / 2;
-        const y = course * moduleHeight + actualHeight / 2;
-        const x = 'x' in wall ? wall.x : centeredAlong;
-        const z = 'z' in wall ? wall.z : centeredAlong;
-        const terminalClosure: TerminalClosureUnit | undefined = unit.terminalClosureReason
-          ? {
-              segmentId: wall.face,
-              courseIndex: course,
-              direction: 'clockwise',
-              startStationMeters: stationMeters,
-              endStationMeters: endAlongMeters,
-              remainingLengthMeters: unit.lengthMeters,
-              unitType: 'cut',
-              location: 'outgoing_corner',
-              reason: unit.terminalClosureReason,
-            }
-          : undefined;
-        const placement: CmuUnitPlacement = {
-          id: `${wall.face}-${course}-${column}`,
-          segmentId: wall.face,
-          courseIndex: course,
-          moduleIndex: column,
-          unitType: placementUnitFromBlockType(blockType),
-          kind:
-            blockType === 'corner'
-              ? 'corner_block'
-              : blockType === 'end'
-                ? 'end_block'
-                : blockType === 'half'
-                  ? 'half_block'
-                  : blockType === 'cut'
-                    ? 'cut_block'
-                    : 'stretcher',
-          nominalLengthMeters: openingTrimApplied ? placementLengthMeters : unit.nominalLengthMeters,
-          actualLengthMeters: placementLengthMeters,
-          heightMeters: actualHeight,
-          depthMeters: wallThickness,
-          center: { x, y, z },
-          rotationY: wall.rotationY,
-          source: openingTrimApplied ? 'opening_assembly_solver' : 'auto_layout',
-          terminalClosure,
-        };
-        unitPlacements.push(placement);
-        blocks.push({
-          id: placement.id,
-          face: wall.face,
-          course,
-          courseIndex: placement.courseIndex,
-          moduleIndex: placement.moduleIndex,
-          blockType,
-          unitType: placement.unitType,
-          stationMeters: openingTrimApplied ? placementStartAlongMeters : stationMeters,
-          nominalLengthMeters: placement.nominalLengthMeters,
-          actualLengthMeters: placement.actualLengthMeters,
-          heightMeters: placement.heightMeters,
-          depthMeters: placement.depthMeters,
-          source: placement.source,
-          terminalClosure: placement.terminalClosure,
-          x,
-          y,
-          z,
-          rotationY: wall.rotationY,
-          lengthMeters: placementLengthMeters,
-          startAlongMeters: placementStartAlongMeters,
-          endAlongMeters: placementEndAlongMeters,
+          courseBottomMeters,
+          courseTopMeters,
+          moduleHeightMeters: moduleHeight,
+          moduleLengthMeters: moduleLength,
+          wallLengthMeters: wall.length,
+          resolvedLintelSpans,
         });
-        counts[blockType] += 1;
+        if (segments.length === 0) return;
+        const defaultBlockType = resolveBlockType(
+          params,
+          { ...unit, startAlongMeters, endAlongMeters },
+          wall.length,
+          wall.fit,
+          ownsCorner,
+        );
+        const terminalClosure: TerminalClosureUnit | undefined =
+          unit.terminalClosureReason && segments.length === 1 && segments[0].source === 'wall_run'
+            ? {
+                segmentId: wall.face,
+                courseIndex: course,
+                direction: 'clockwise',
+                startStationMeters: stationMeters,
+                endStationMeters: endAlongMeters,
+                remainingLengthMeters: unit.lengthMeters,
+                unitType: 'cut',
+                location: 'outgoing_corner',
+                reason: unit.terminalClosureReason,
+              }
+            : undefined;
+        segments.forEach((segment, segmentIndex) => {
+          const isJambClosure = segment.source === 'opening_jamb_closure';
+          const blockType = blockTypeForOpeningSegment(segment, moduleLength, defaultBlockType);
+          const placementStartAlongMeters = segment.startAlongMeters;
+          const placementEndAlongMeters = segment.endAlongMeters;
+          const placementLengthMeters = segment.lengthMeters;
+          const actualLengthMeters = actualLengthForOpeningSegment(segment, unit.lengthMeters);
+          const centeredAlong = placementStartAlongMeters - wall.length / 2 + actualLengthMeters / 2;
+          const y = course * moduleHeight + actualHeight / 2;
+          const x = 'x' in wall ? wall.x : centeredAlong;
+          const z = 'z' in wall ? wall.z : centeredAlong;
+          const placement: CmuUnitPlacement = {
+            id:
+              segments.length === 1
+                ? `${wall.face}-${course}-${column}`
+                : `${wall.face}-${course}-${column}-s${segmentIndex}`,
+            segmentId: wall.face,
+            courseIndex: course,
+            moduleIndex: column,
+            unitType: placementUnitFromBlockType(blockType),
+            kind:
+              blockType === 'corner'
+                ? 'corner_block'
+                : blockType === 'end'
+                  ? 'end_block'
+                  : blockType === 'half'
+                    ? 'half_block'
+                    : blockType === 'cut'
+                      ? 'cut_block'
+                      : 'stretcher',
+            nominalLengthMeters: placementLengthMeters,
+            actualLengthMeters,
+            heightMeters: actualHeight,
+            depthMeters: wallThickness,
+            center: { x, y, z },
+            rotationY: wall.rotationY,
+            source: isJambClosure ? 'opening_jamb_closure' : 'auto_layout',
+            terminalClosure: isJambClosure ? undefined : terminalClosure,
+            startStationMeters: placementStartAlongMeters,
+            endStationMeters: placementEndAlongMeters,
+            openingId: segment.openingId,
+            adjacentTo: segment.adjacentTo,
+          };
+          unitPlacements.push(placement);
+          blocks.push({
+            id: placement.id,
+            face: wall.face,
+            course,
+            courseIndex: placement.courseIndex,
+            moduleIndex: placement.moduleIndex,
+            blockType,
+            unitType: placement.unitType,
+            stationMeters: placementStartAlongMeters,
+            nominalLengthMeters: placement.nominalLengthMeters,
+            actualLengthMeters: placement.actualLengthMeters,
+            heightMeters: placement.heightMeters,
+            depthMeters: placement.depthMeters,
+            source: placement.source,
+            terminalClosure: placement.terminalClosure,
+            x,
+            y,
+            z,
+            rotationY: wall.rotationY,
+            lengthMeters: actualLengthMeters,
+            startAlongMeters: placementStartAlongMeters,
+            endAlongMeters: placementEndAlongMeters,
+            nearOpeningId: segment.openingId,
+            adjacentTo: segment.adjacentTo,
+          });
+          counts[blockType] += 1;
+        });
       });
     }
   }
@@ -2279,6 +2410,21 @@ export function generateCmuLayout(params: CmuWallSystemParameters): CmuLayoutRes
     counts.lintel_bond_beam += 1;
   });
   appendSupportBlocksToLayout(lintelSupportBlocks, blocks, counts);
+  const legacyPlacedBlocksBySegmentCourse = placedCourseBlocksBySegmentCourse(blocks);
+  const legacyFramesById = buildLegacySegmentFramesById(params);
+  const lintelCourseAssemblies = buildLayoutLintelCourseAssemblies({
+    openings: roughOpenings,
+    framesById: legacyFramesById,
+    moduleLengthMeters: moduleLength,
+    moduleHeightMeters: moduleHeight,
+    actualHeightMeters: actualHeight,
+    resolvedLintelSpans,
+    courseUnitsBySegmentCourse: legacyCourseUnitsBySegment,
+    placedBlocksBySegmentCourse: legacyPlacedBlocksBySegmentCourse,
+    openingsBySegmentId: (opening) => opening.wallFace ?? 'north',
+    runningBond: (params.bondPattern ?? 'running_bond') === 'running_bond',
+  });
+  appendLintelCourseClosuresToLayout(lintelCourseAssemblies, blocks, counts);
   const openingCourseClosures = appendOpeningJambClosureBlocks({
     openings: roughOpenings,
     lintelSupportBlocks,
@@ -2375,6 +2521,7 @@ export function generateCmuLayout(params: CmuWallSystemParameters): CmuLayoutRes
     jambGroutCells,
     groutFillPlacements,
     openingCourseClosures,
+    lintelCourseAssemblies,
     derivedOpeningSupports,
     openingGrout,
     terminalClosures: unitPlacements.flatMap((placement) => placement.terminalClosure ? [placement.terminalClosure] : []),
@@ -2453,6 +2600,7 @@ export function emptyCmuLayout(params?: CmuWallSystemParameters): CmuLayoutResul
     jambGroutCells: [],
     groutFillPlacements: [],
     openingCourseClosures: [],
+    lintelCourseAssemblies: [],
     derivedOpeningSupports: [],
     openingGrout,
     terminalClosures: [],
@@ -3019,6 +3167,8 @@ export function createCmuBlockPlacement(params: {
   startStationMeters?: number;
   endStationMeters?: number;
   terminalClosure?: TerminalClosureUnit;
+  openingId?: string;
+  adjacentTo?: 'rough_opening_start' | 'rough_opening_end';
 }): CmuBlockPlacement {
   const centerStation = params.stationMeters + params.nominalLengthMeters / 2;
   return {
@@ -3045,6 +3195,8 @@ export function createCmuBlockPlacement(params: {
     rotationY: params.rotationY,
     source: params.source ?? 'auto_layout',
     terminalClosure: params.terminalClosure,
+    openingId: params.openingId,
+    adjacentTo: params.adjacentTo,
   };
 }
 
