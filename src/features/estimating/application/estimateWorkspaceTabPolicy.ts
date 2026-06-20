@@ -85,6 +85,7 @@ export function getVisibleWorkspaceTabs(
       return [
         { id: 'activities', label: 'Activities' },
         { id: '3d-takeoff', label: '3D Takeoff' },
+        { id: 'design-builder', label: 'Design Builder' },
         ...schedule,
         costs,
         settings,
@@ -159,6 +160,11 @@ export function getEstimateTypeEmptyState(
       return {
         title: 'No 3D model yet',
         body: 'Upload a single-file .glb model to start 3D takeoff and map objects to estimate activities.',
+      };
+    case 'design-builder':
+      return {
+        title: 'No design model yet',
+        body: 'Load the 5m x 6m CMU building example to generate parametric geometry, quantities, and an estimate preview.',
       };
     case 'quick-estimate':
       return {

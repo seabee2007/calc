@@ -1,0 +1,3187 @@
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type MouseEvent as ReactMouseEvent,
+  type PointerEvent as ReactPointerEvent,
+} from 'react';
+import { useAuth } from '../../../hooks/useAuth';
+import {
+  commitDesignEstimatePreview,
+  persistDesignEstimatePreview,
+} from '../application/designBuilderToEstimate';
+import {
+  buildPresetObjects,
+  createBlankCmuBuildingPreset,
+  createFiveBySixCmuBuildingPreset,
+  type CmuBuildingPreset,
+} from '../domain/designBuilderPreset';
+import { resolveDesignSnapPoint } from '../domain/designSnapRules';
+import { useConfirm } from '../../../contexts/ConfirmContext';
+import {
+  applyOpeningPlacementPatch,
+  createOpeningDraft,
+  createOpeningDraftForSegment,
+  summarizeOpeningPlacementStatus,
+} from '../domain/designBuilderInteractionRules';
+import {
+  canGenerateSlabAndRoof,
+  layoutFromPreset,
+  syncPresetFromLayout,
+  wallParamsWithLegacyOpenings,
+} from '../domain/layoutWallAdapter';
+import {
+  commitManualMasonryRun,
+  createManualMasonryPreview,
+  removeLatestManualMasonryRun,
+  summarizeManualMasonryRuns,
+} from '../domain/manualMasonryRules';
+import {
+  addWallSegment,
+  closeFootprint,
+  constrainAngle,
+  createEmptyWallLayout,
+  createBlankWallLayout,
+  createWallLayoutId,
+  deleteWallSegment,
+  deriveExteriorBounds,
+  ENDPOINT_SNAP_TOLERANCE_METERS,
+  moveWallNode,
+  projectExactSegmentLength,
+  removeLastSegment,
+  resolveSegmentAtPoint,
+  snapPlanPoint,
+} from '../domain/wallLayoutRules';
+import {
+  applyWallLayoutCommand,
+  canRedoWallLayout,
+  canUndoWallLayout,
+  createWallLayoutHistory,
+  redoWallLayoutHistory,
+  type WallLayoutHistoryState,
+  undoWallLayoutHistory,
+} from '../domain/wallLayoutHistory';
+import {
+  resolveCmuModuleConfig,
+  snapLengthToCmuModule,
+  snapOpeningToCmuModule,
+  summarizeWallModuleFits,
+  validateCmuOpenings,
+} from '../domain/cmuModuleRules';
+import { resolveCmuOpening } from '../domain/cmuOpeningRules';
+import {
+  buildDesignGeometryInputFromLayout,
+  generateCmuLayout,
+  generateDesignGeometry,
+} from '../geometry/designGeometry';
+import { useEstimateWorkspaceHeaderCollapse } from '../../estimating/ui/EstimateWorkspaceHeaderCollapseContext';
+import { buildCmuBuildingEstimatePreview } from '../quantity/designQuantityFormulas';
+import {
+  createDesignModel,
+  upsertDesignModelObjects,
+} from '../services/designBuilderService';
+import type {
+  DesignBuilderCameraSnapshot,
+  DesignBuilderInteractionEvent,
+  DesignBuilderLayoutMode,
+  DesignBuilderSelection,
+  DesignBuilderToolMode,
+  DesignBuilderSnapMode,
+  DesignEstimatePreviewLine,
+  DesignModel,
+  DesignModelObject,
+  DesignObjectType,
+  DesignQuantityItem,
+  DesignUnitSystem,
+  DesignWallLayoutParameters,
+  ManualMasonryPlacementPreview,
+  MasonryCourseRun,
+  MasonryToolMode,
+  OpeningPlacementStatus,
+  WallOpeningParameters,
+} from '../types';
+import {
+  designBuilderSessionKey,
+  useDesignBuilderSessionStore,
+} from '../state/designBuilderStore';
+import DesignBuilderViewer, { type DesignBuilderPlacementPreview } from './DesignBuilderViewer';
+import DesignBuilderPlanCanvas from './DesignBuilderPlanCanvas';
+
+interface DesignBuilderPageProps {
+  projectId: string;
+  estimateId: string | null;
+  onEstimateCommitted?: () => void;
+}
+
+type StatusTone = 'info' | 'success' | 'error';
+type ViewerHeightPreset = 'fit' | '60' | '80' | 'full';
+
+interface PageStatus {
+  tone: StatusTone;
+  message: string;
+}
+
+const VIEWER_MIN_HEIGHT = 360;
+const VIEWER_DEFAULT_HEIGHT = 560;
+const RIGHT_PANEL_DEFAULT_WIDTH = 360;
+const RIGHT_PANEL_MIN_WIDTH = 320;
+const RIGHT_PANEL_MAX_WIDTH = 520;
+const DESIGN_SAVE_DEBOUNCE_MS = 1000;
+
+function leftPanelCollapsedKey(projectId: string, estimateId: string | null): string {
+  return `arden:designBuilder:leftPanelCollapsed:${projectId}:${estimateId ?? 'project'}`;
+}
+
+function rightPanelCollapsedKey(projectId: string, estimateId: string | null): string {
+  return `arden:designBuilder:rightPanelCollapsed:${projectId}:${estimateId ?? 'project'}`;
+}
+
+function viewerSizeKey(projectId: string, estimateId: string | null, focusMode: boolean): string {
+  return `arden:designBuilder:viewerSize:${projectId}:${estimateId ?? 'project'}:${focusMode ? 'focus' : 'normal'}`;
+}
+
+function readBooleanStorage(key: string, fallback: boolean): boolean {
+  try {
+    const stored = localStorage.getItem(key);
+    return stored == null ? fallback : stored === 'true';
+  } catch {
+    return fallback;
+  }
+}
+
+function writeBooleanStorage(key: string, value: boolean) {
+  try {
+    localStorage.setItem(key, String(value));
+  } catch {
+    // Ignore storage failures.
+  }
+}
+
+function maxViewerHeight(focusMode: boolean): number {
+  const viewport = typeof window === 'undefined' ? 900 : window.innerHeight;
+  return Math.max(VIEWER_MIN_HEIGHT, viewport - (focusMode ? 172 : 280));
+}
+
+function resolveViewerHeightPreset(preset: ViewerHeightPreset, focusMode: boolean): number {
+  const viewport = typeof window === 'undefined' ? 900 : window.innerHeight;
+  const max = maxViewerHeight(focusMode);
+  if (preset === '60') return clampNumber(Math.round(viewport * 0.6), VIEWER_MIN_HEIGHT, max);
+  if (preset === '80') return clampNumber(Math.round(viewport * 0.8), VIEWER_MIN_HEIGHT, max);
+  if (preset === 'full') return max;
+  return clampNumber(VIEWER_DEFAULT_HEIGHT, VIEWER_MIN_HEIGHT, max);
+}
+
+function readViewerSize(projectId: string, estimateId: string | null, focusMode: boolean) {
+  const fallback = {
+    height: resolveViewerHeightPreset(focusMode ? 'full' : 'fit', focusMode),
+    rightPanelWidth: RIGHT_PANEL_DEFAULT_WIDTH,
+  };
+  try {
+    const raw = localStorage.getItem(viewerSizeKey(projectId, estimateId, focusMode));
+    if (!raw) return fallback;
+    const parsed = JSON.parse(raw) as Partial<typeof fallback>;
+    return {
+      height: clampNumber(Number(parsed.height) || fallback.height, VIEWER_MIN_HEIGHT, maxViewerHeight(focusMode)),
+      rightPanelWidth: clampNumber(Number(parsed.rightPanelWidth) || fallback.rightPanelWidth, RIGHT_PANEL_MIN_WIDTH, RIGHT_PANEL_MAX_WIDTH),
+    };
+  } catch {
+    return fallback;
+  }
+}
+
+function writeViewerSize(projectId: string, estimateId: string | null, focusMode: boolean, size: { height: number; rightPanelWidth: number }) {
+  try {
+    localStorage.setItem(viewerSizeKey(projectId, estimateId, focusMode), JSON.stringify(size));
+  } catch {
+    // Ignore storage failures.
+  }
+}
+
+function clampNumber(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
+
+export default function DesignBuilderPage({
+  projectId,
+  estimateId,
+  onEstimateCommitted,
+}: DesignBuilderPageProps) {
+  const { user } = useAuth();
+  const headerCollapse = useEstimateWorkspaceHeaderCollapse();
+  const focusMode = Boolean(headerCollapse?.focusMode);
+  const sessionKey = designBuilderSessionKey(projectId, estimateId);
+  const storedSession = useDesignBuilderSessionStore((store) => store.sessions[sessionKey]);
+  const saveDesignBuilderSession = useDesignBuilderSessionStore((store) => store.saveSession);
+  const confirm = useConfirm();
+  const resizeCleanupRef = useRef<(() => void) | null>(null);
+  const resizeFrameRef = useRef<number | null>(null);
+  const saveDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const savingRef = useRef(false);
+  const hydratedSessionKeyRef = useRef<string | null>(null);
+  const [layoutState, setLayoutState] = useState<DesignBuilderLayoutMode>(() => storedSession?.layoutState ?? 'blank');
+  const [onboardingVisible, setOnboardingVisible] = useState(() => storedSession?.onboardingVisible ?? true);
+  const [preset, setPreset] = useState<CmuBuildingPreset | null>(() => storedSession?.preset ?? createBlankCmuBuildingPreset());
+  const [designModel, setDesignModel] = useState<DesignModel | null>(() => storedSession?.designModel ?? null);
+  const [objects, setObjects] = useState<DesignModelObject[]>(() => storedSession?.objects ?? []);
+  const [unitSystem, setUnitSystem] = useState<DesignUnitSystem>(() => storedSession?.unitSystem ?? 'metric');
+  const [selectedObjectType, setSelectedObjectType] = useState<DesignObjectType | null>(
+    () => storedSession?.selectedObjectType ?? 'building_footprint',
+  );
+  const [selectedOpeningId, setSelectedOpeningId] = useState<string | null>(
+    () => storedSession?.selectedOpeningId ?? null,
+  );
+  const [toolMode, setToolMode] = useState<DesignBuilderToolMode>(() => storedSession?.toolMode ?? 'select');
+  const [manualMasonryEnabled, setManualMasonryEnabled] = useState(() => storedSession?.manualMasonryEnabled ?? false);
+  const [masonryToolMode, setMasonryToolMode] = useState<MasonryToolMode>(() => storedSession?.masonryToolMode ?? 'full_block');
+  const [manualMasonryRuns, setManualMasonryRuns] = useState<MasonryCourseRun[]>(
+    () => storedSession?.preset?.wall.manualMasonryCourseRuns ?? [],
+  );
+  const [manualMasonryPreview, setManualMasonryPreview] = useState<ManualMasonryPlacementPreview | null>(null);
+  const manualMasonryDragStartRef = useRef<{ x: number; z: number } | null>(null);
+  const [changedAfterCommit, setChangedAfterCommit] = useState(() => storedSession?.changedAfterCommit ?? false);
+  const [placementPreview, setPlacementPreview] = useState<DesignBuilderPlacementPreview | null>(null);
+  const [previewLines, setPreviewLines] = useState<DesignEstimatePreviewLine[]>(() => storedSession?.previewLines ?? []);
+  const [persistedQuantityItems, setPersistedQuantityItems] = useState<DesignQuantityItem[]>(
+    () => storedSession?.persistedQuantityItems ?? [],
+  );
+  const [status, setStatus] = useState<PageStatus>({
+    tone: 'info',
+    message: 'Load the example to generate parametric geometry and quantities.',
+  });
+  const [busy, setBusy] = useState(false);
+  const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(() =>
+    storedSession?.leftPanelCollapsed ?? readBooleanStorage(leftPanelCollapsedKey(projectId, estimateId), false),
+  );
+  const [rightPanelCollapsed, setRightPanelCollapsed] = useState(() =>
+    storedSession?.rightPanelCollapsed ?? readBooleanStorage(rightPanelCollapsedKey(projectId, estimateId), false),
+  );
+  const [viewerSize, setViewerSize] = useState(() => storedSession?.viewerSize ?? readViewerSize(projectId, estimateId, focusMode));
+  const [viewCommand, setViewCommand] = useState<{ id: number; action: 'fit' | 'reset' } | null>(null);
+  const [cameraSnapshot, setCameraSnapshot] = useState<DesignBuilderCameraSnapshot | null>(() => storedSession?.camera ?? null);
+  const [showOpeningLayout, setShowOpeningLayout] = useState(true);
+  const [showGroutCells, setShowGroutCells] = useState(false);
+  const [showClosureWarnings, setShowClosureWarnings] = useState(false);
+  const [viewMode, setViewMode] = useState<'plan' | '3d'>(() => storedSession?.viewMode ?? '3d');
+  const [snapMode, setSnapMode] = useState<DesignBuilderSnapMode>(() => storedSession?.snapMode ?? 'grid');
+  const [layoutHistory, setLayoutHistory] = useState<WallLayoutHistoryState>(() =>
+    createWallLayoutHistory(storedSession?.preset?.wallLayout ?? createEmptyWallLayout()),
+  );
+  const [activeDrawNodeId, setActiveDrawNodeId] = useState<string | null>(null);
+  const [drawStartNodeId, setDrawStartNodeId] = useState<string | null>(null);
+  const [draftPlanEnd, setDraftPlanEnd] = useState<{ x: number; z: number } | null>(null);
+  const [selectedSegmentId, setSelectedSegmentId] = useState<string | null>(null);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [segmentLengthInput, setSegmentLengthInput] = useState('');
+  const [openingToolSettings, setOpeningToolSettings] = useState<
+    Record<'door' | 'window', { widthMeters: string; heightMeters: string; roughOpeningAllowanceMeters: string }>
+  >({
+    door: { widthMeters: '', heightMeters: '', roughOpeningAllowanceMeters: '' },
+    window: { widthMeters: '', heightMeters: '', roughOpeningAllowanceMeters: '' },
+  });
+  const [objectTreeExpanded, setObjectTreeExpanded] = useState<Record<string, boolean>>(
+    () => storedSession?.objectTreeExpanded ?? {},
+  );
+  const modelLoaded = preset != null;
+
+  useEffect(() => {
+    if (hydratedSessionKeyRef.current === sessionKey) return;
+    hydratedSessionKeyRef.current = sessionKey;
+    if (storedSession) {
+      setPreset(storedSession.preset);
+      setLayoutState(storedSession.layoutState ?? (storedSession.preset?.wallLayout?.segments.length ? 'editing' : 'blank'));
+      setDesignModel(storedSession.designModel);
+      setObjects(storedSession.objects);
+      setUnitSystem(storedSession.unitSystem);
+      setSelectedObjectType(storedSession.selectedObjectType);
+      setSelectedOpeningId(storedSession.selectedOpeningId ?? null);
+      setToolMode(storedSession.toolMode ?? 'select');
+      setManualMasonryEnabled(storedSession.manualMasonryEnabled ?? false);
+      setMasonryToolMode(storedSession.masonryToolMode ?? 'full_block');
+      setManualMasonryRuns(storedSession.preset?.wall.manualMasonryCourseRuns ?? []);
+      setManualMasonryPreview(null);
+      setChangedAfterCommit(storedSession.changedAfterCommit ?? false);
+      setPreviewLines(storedSession.previewLines);
+      setPersistedQuantityItems(storedSession.persistedQuantityItems);
+      setLeftPanelCollapsed(storedSession.leftPanelCollapsed);
+      setRightPanelCollapsed(storedSession.rightPanelCollapsed);
+      if (storedSession.viewerSize) setViewerSize(storedSession.viewerSize);
+      setCameraSnapshot(storedSession.camera);
+      if (storedSession.preset?.wallLayout) {
+        setLayoutHistory(createWallLayoutHistory(storedSession.preset.wallLayout));
+      } else if ((storedSession.layoutState ?? 'blank') === 'blank') {
+        setPreset(createBlankCmuBuildingPreset());
+        setLayoutHistory(createWallLayoutHistory(createBlankWallLayout()));
+      }
+      setViewMode(storedSession.viewMode ?? '3d');
+      setSnapMode(storedSession.snapMode ?? 'grid');
+      setObjectTreeExpanded(storedSession.objectTreeExpanded ?? {});
+      return;
+    }
+    setLeftPanelCollapsed(readBooleanStorage(leftPanelCollapsedKey(projectId, estimateId), false));
+    setRightPanelCollapsed(readBooleanStorage(rightPanelCollapsedKey(projectId, estimateId), false));
+    setViewerSize(readViewerSize(projectId, estimateId, focusMode));
+  }, [projectId, estimateId, focusMode, sessionKey, storedSession]);
+
+  useEffect(() => {
+    if (!storedSession?.viewerSize) {
+      setViewerSize(readViewerSize(projectId, estimateId, focusMode));
+    }
+  }, [projectId, estimateId, focusMode, storedSession?.viewerSize]);
+
+  useEffect(() => {
+    saveDesignBuilderSession(sessionKey, {
+      layoutState,
+      preset,
+      designModel,
+      objects,
+      unitSystem,
+      selectedObjectType,
+      selectedOpeningId,
+      toolMode,
+      manualMasonryEnabled,
+      masonryToolMode,
+      changedAfterCommit,
+      viewMode,
+      snapMode,
+      objectTreeExpanded,
+      previewLines,
+      persistedQuantityItems,
+      leftPanelCollapsed,
+      rightPanelCollapsed,
+      viewerSize,
+      camera: cameraSnapshot,
+      dirty: modelLoaded,
+    });
+  }, [
+    cameraSnapshot,
+    designModel,
+    leftPanelCollapsed,
+    layoutState,
+    manualMasonryEnabled,
+    masonryToolMode,
+    modelLoaded,
+    objects,
+    persistedQuantityItems,
+    preset,
+    previewLines,
+    rightPanelCollapsed,
+    saveDesignBuilderSession,
+    selectedObjectType,
+    selectedOpeningId,
+    toolMode,
+    changedAfterCommit,
+    viewMode,
+    snapMode,
+    objectTreeExpanded,
+    sessionKey,
+    unitSystem,
+    viewerSize,
+  ]);
+
+  useEffect(() => {
+    return () => {
+      resizeCleanupRef.current?.();
+      if (resizeFrameRef.current != null) cancelAnimationFrame(resizeFrameRef.current);
+    };
+  }, []);
+
+  const updateViewerSize = useCallback(
+    (updater: (current: { height: number; rightPanelWidth: number }) => { height: number; rightPanelWidth: number }) => {
+      setViewerSize((current) => {
+        const raw = updater(current);
+        const next = {
+          height: clampNumber(raw.height, VIEWER_MIN_HEIGHT, maxViewerHeight(focusMode)),
+          rightPanelWidth: clampNumber(raw.rightPanelWidth, RIGHT_PANEL_MIN_WIDTH, RIGHT_PANEL_MAX_WIDTH),
+        };
+        writeViewerSize(projectId, estimateId, focusMode, next);
+        return next;
+      });
+    },
+    [estimateId, focusMode, projectId],
+  );
+
+  const applyViewerHeightPreset = useCallback(
+    (preset: ViewerHeightPreset) => {
+      updateViewerSize((current) => ({
+        ...current,
+        height: resolveViewerHeightPreset(preset, focusMode),
+      }));
+    },
+    [focusMode, updateViewerSize],
+  );
+
+  const beginHeightResize = useCallback(
+    (event: ReactPointerEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      const startY = event.clientY;
+      const startHeight = viewerSize.height;
+      const previousUserSelect = document.body.style.userSelect;
+      document.body.style.userSelect = 'none';
+      const handleMove = (moveEvent: PointerEvent) => {
+        const delta = moveEvent.clientY - startY;
+        if (resizeFrameRef.current != null) cancelAnimationFrame(resizeFrameRef.current);
+        resizeFrameRef.current = requestAnimationFrame(() => {
+          updateViewerSize((current) => ({ ...current, height: startHeight + delta }));
+        });
+      };
+      const cleanup = () => {
+        document.body.style.userSelect = previousUserSelect;
+        window.removeEventListener('pointermove', handleMove);
+        window.removeEventListener('pointerup', cleanup);
+        resizeCleanupRef.current = null;
+      };
+      resizeCleanupRef.current?.();
+      resizeCleanupRef.current = cleanup;
+      window.addEventListener('pointermove', handleMove);
+      window.addEventListener('pointerup', cleanup);
+    },
+    [updateViewerSize, viewerSize.height],
+  );
+
+  const beginRightPanelResize = useCallback(
+    (event: ReactPointerEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      const startX = event.clientX;
+      const startWidth = viewerSize.rightPanelWidth;
+      const previousUserSelect = document.body.style.userSelect;
+      document.body.style.userSelect = 'none';
+      const handleMove = (moveEvent: PointerEvent) => {
+        const delta = startX - moveEvent.clientX;
+        updateViewerSize((current) => ({ ...current, rightPanelWidth: startWidth + delta }));
+      };
+      const cleanup = () => {
+        document.body.style.userSelect = previousUserSelect;
+        window.removeEventListener('pointermove', handleMove);
+        window.removeEventListener('pointerup', cleanup);
+      };
+      window.addEventListener('pointermove', handleMove);
+      window.addEventListener('pointerup', cleanup);
+    },
+    [updateViewerSize, viewerSize.rightPanelWidth],
+  );
+
+  const toggleLeftPanel = useCallback(() => {
+    setLeftPanelCollapsed((current) => {
+      const next = !current;
+      writeBooleanStorage(leftPanelCollapsedKey(projectId, estimateId), next);
+      return next;
+    });
+  }, [estimateId, projectId]);
+
+  const toggleRightPanel = useCallback(() => {
+    setRightPanelCollapsed((current) => {
+      const next = !current;
+      writeBooleanStorage(rightPanelCollapsedKey(projectId, estimateId), next);
+      return next;
+    });
+  }, [estimateId, projectId]);
+
+  const resolvedPreset = useMemo(() => {
+    const base = preset ?? createBlankCmuBuildingPreset();
+    const wallLayout = layoutHistory.present;
+    return syncPresetFromLayout({ ...base, wallLayout }, wallLayout);
+  }, [layoutHistory.present, preset]);
+  const wallLayout = resolvedPreset.wallLayout;
+  const footprintClosed = canGenerateSlabAndRoof(wallLayout);
+  const layoutBounds = useMemo(() => deriveExteriorBounds(wallLayout), [wallLayout]);
+  const effectiveWall = useMemo(
+    () => ({
+      ...wallParamsWithLegacyOpenings(resolvedPreset.wall, wallLayout),
+      manualMasonryCourseRuns: manualMasonryRuns,
+    }),
+    [manualMasonryRuns, resolvedPreset.wall, wallLayout],
+  );
+  const designGeometryInput = useMemo(
+    () =>
+      buildDesignGeometryInputFromLayout({
+        wallLayout,
+        cmuSettings: effectiveWall,
+        openings: effectiveWall.openings,
+        slabSettings: footprintClosed ? resolvedPreset.slab : { ...resolvedPreset.slab, lengthMeters: 0, widthMeters: 0 },
+        roofSettings: footprintClosed ? resolvedPreset.roof : { ...resolvedPreset.roof, lengthMeters: 0, widthMeters: 0 },
+        trussSettings: footprintClosed ? resolvedPreset.truss : { ...resolvedPreset.truss, buildingLengthMeters: 0 },
+      }),
+    [effectiveWall, footprintClosed, resolvedPreset.roof, resolvedPreset.slab, resolvedPreset.truss, wallLayout],
+  );
+  const designGeometryResult = useMemo(
+    () => generateDesignGeometry(designGeometryInput),
+    [designGeometryInput],
+  );
+  const objectIds = useMemo(() => {
+    const byType = new Map(objects.map((object) => [object.objectType, object.id]));
+    return {
+      slabObjectId: byType.get('thickened_edge_slab') ?? 'local-slab',
+      wallObjectId: byType.get('cmu_wall_system') ?? 'local-wall',
+      roofObjectId: byType.get('gable_roof_system') ?? 'local-roof',
+      trussObjectId: byType.get('steel_truss_system') ?? 'local-truss',
+    };
+  }, [objects]);
+
+  const generatedPreview = useMemo(() => {
+    const modelId = designModel?.id ?? 'local-design-model';
+    return buildCmuBuildingEstimatePreview({
+      designModelId: modelId,
+      ...objectIds,
+      wall: effectiveWall,
+      slab: footprintClosed ? resolvedPreset.slab : { ...resolvedPreset.slab, lengthMeters: 0, widthMeters: 0 },
+      roof: footprintClosed ? resolvedPreset.roof : { ...resolvedPreset.roof, lengthMeters: 0, widthMeters: 0 },
+      truss: footprintClosed ? resolvedPreset.truss : { ...resolvedPreset.truss, buildingLengthMeters: 0 },
+    });
+  }, [designModel?.id, effectiveWall, footprintClosed, objectIds, resolvedPreset]);
+  const visiblePreviewLines = modelLoaded ? (previewLines.length > 0 ? previewLines : generatedPreview) : [];
+  const cmuModule = useMemo(() => resolveCmuModuleConfig(effectiveWall), [effectiveWall]);
+  const wallModuleFits = useMemo(() => summarizeWallModuleFits(effectiveWall), [effectiveWall]);
+  const cmuLayout = designGeometryResult.wallCmuLayout;
+  const manualMasonrySummary = useMemo(() => summarizeManualMasonryRuns(manualMasonryRuns), [manualMasonryRuns]);
+  const moduleWarnings = useMemo(
+    () => [...new Set([...designGeometryResult.wallCmuLayout.warnings, ...validateCmuOpenings(effectiveWall)])],
+    [designGeometryResult.wallCmuLayout.warnings, effectiveWall],
+  );
+
+  const quantityCards = useMemo(
+    () => [
+      {
+        label: 'Thickened edge slab concrete',
+        value: modelLoaded ? (generatedPreview.find((line) => line.id === 'slab-concrete')?.quantity ?? 0) : 0,
+        unit: 'CY',
+        objectType: 'thickened_edge_slab' as DesignObjectType,
+      },
+      {
+        label: 'CMU blocks including waste',
+        value: modelLoaded ? designGeometryResult.blockCount + manualMasonrySummary.total : 0,
+        unit: 'EA',
+        objectType: 'cmu_wall_system' as DesignObjectType,
+      },
+      {
+        label: 'CMU full blocks',
+        value: modelLoaded ? cmuLayout.counts.full + manualMasonrySummary.full_block : 0,
+        unit: 'EA',
+        objectType: 'cmu_wall_system' as DesignObjectType,
+      },
+      {
+        label: 'CMU special blocks',
+        value: modelLoaded
+          ? cmuLayout.counts.half +
+            cmuLayout.counts.corner +
+            cmuLayout.counts.end +
+            cmuLayout.counts.jamb +
+            cmuLayout.counts.cut +
+            manualMasonrySummary.half_block +
+            manualMasonrySummary.corner_block +
+            manualMasonrySummary.end_block +
+            manualMasonrySummary.jamb_block +
+            manualMasonrySummary.bond_beam_block
+          : 0,
+        unit: 'EA',
+        objectType: 'cmu_wall_system' as DesignObjectType,
+      },
+      {
+        label: 'Lintels',
+        value: modelLoaded ? cmuLayout.lintels.length : 0,
+        unit: 'EA',
+        objectType: 'cmu_wall_system' as DesignObjectType,
+      },
+      {
+        label: 'Rough opening area',
+        value: modelLoaded ? Number(cmuLayout.openingGrout.roughOpeningAreaSquareMeters.toFixed(2)) : 0,
+        unit: 'M2',
+        objectType: 'door_opening' as DesignObjectType,
+      },
+      {
+        label: 'Actual opening area',
+        value: modelLoaded ? Number(cmuLayout.openingGrout.actualOpeningAreaSquareMeters.toFixed(2)) : 0,
+        unit: 'M2',
+        objectType: 'window_opening' as DesignObjectType,
+      },
+      {
+        label: 'Jamb grouted cells',
+        value: modelLoaded ? cmuLayout.jambGroutCells.length : 0,
+        unit: 'EA',
+        objectType: 'cmu_wall_system' as DesignObjectType,
+      },
+      {
+        label: 'Closure cut blocks',
+        value: modelLoaded ? cmuLayout.openingGrout.courseClosureCutBlockCount : 0,
+        unit: 'EA',
+        objectType: 'cmu_wall_system' as DesignObjectType,
+      },
+      {
+        label: 'Closure grout volume',
+        value: modelLoaded ? Number(cmuLayout.openingGrout.closureGroutVolumeCubicMeters.toFixed(3)) : 0,
+        unit: 'M3',
+        objectType: 'cmu_wall_system' as DesignObjectType,
+      },
+      {
+        label: 'Bond beam length',
+        value: modelLoaded ? cmuLayout.bondBeamLengthMeters : 0,
+        unit: 'M',
+        objectType: 'cmu_wall_system' as DesignObjectType,
+      },
+      {
+        label: 'Opening grout volume',
+        value: modelLoaded ? Number(cmuLayout.openingGrout.totalGroutVolumeCubicMeters.toFixed(3)) : 0,
+        unit: 'M3',
+        objectType: 'cmu_wall_system' as DesignObjectType,
+      },
+      {
+        label: 'Grouted cells',
+        value: modelLoaded ? cmuLayout.groutedCellCount : 0,
+        unit: 'EA',
+        objectType: 'cmu_wall_system' as DesignObjectType,
+      },
+      {
+        label: 'Gable roof surface area',
+        value: modelLoaded ? (generatedPreview.find((line) => line.id === 'roof-area')?.quantity ?? 0) : 0,
+        unit: 'SF',
+        objectType: 'gable_roof_system' as DesignObjectType,
+      },
+      {
+        label: 'Steel trusses by spacing',
+        value: modelLoaded ? (generatedPreview.find((line) => line.id === 'steel-trusses')?.quantity ?? 0) : 0,
+        unit: 'EA',
+        objectType: 'steel_truss_system' as DesignObjectType,
+      },
+    ],
+    [cmuLayout, designGeometryResult.blockCount, generatedPreview, manualMasonrySummary, modelLoaded],
+  );
+
+  const selectedObjectLabel = selectedObjectType
+    ? OBJECT_TREE_ITEMS.find((item) => item.objectType === selectedObjectType)?.label ?? 'Selected object'
+    : 'No selection';
+  const linkedPreviewLines = selectedObjectType
+    ? generatedPreview.filter((line) => line.designObjectId === objectIdForType(selectedObjectType, objectIds))
+    : [];
+  const selectedOpening = resolvedPreset.wall.openings.find((item) => item.id === selectedOpeningId) ?? null;
+  const selectedOpeningStatus = useMemo<OpeningPlacementStatus | null>(() => {
+    if (!selectedOpening) return null;
+    return summarizeOpeningPlacementStatus(selectedOpening, resolvedPreset.wall);
+  }, [resolvedPreset.wall, selectedOpening]);
+  const previewPlacementStatus = useMemo<OpeningPlacementStatus | null>(() => {
+    if (!placementPreview) return null;
+    const draft = createOpeningDraft(
+      placementPreview.openingType,
+      placementPreview.wallFace,
+      placementPreview.offsetMeters,
+      resolvedPreset.wall,
+      placementPreview.openingId ?? 'preview',
+    );
+    const peers = placementPreview.openingId
+      ? resolvedPreset.wall.openings.filter((item) => item.id !== placementPreview.openingId)
+      : resolvedPreset.wall.openings;
+    return summarizeOpeningPlacementStatus({ ...draft, widthMeters: placementPreview.widthMeters, heightMeters: placementPreview.heightMeters, sillHeightMeters: placementPreview.sillHeightMeters }, resolvedPreset.wall, peers);
+  }, [placementPreview, resolvedPreset.wall]);
+  const livePlacementStatus = previewPlacementStatus ?? selectedOpeningStatus;
+  const blankState: DesignBuilderBlankState = {
+    layoutMode: layoutState,
+    onboardingVisible,
+  };
+  const activeSelection: DesignBuilderSelection = selectedSegmentId
+    ? { kind: 'wall_segment', id: selectedSegmentId }
+    : selectedNodeId
+      ? { kind: 'wall_node', id: selectedNodeId }
+      : selectedOpeningId
+        ? { kind: 'opening', id: selectedOpeningId }
+        : { kind: 'none' };
+
+  const buildObjectsForSave = useCallback(() => {
+    if (!designModel || !preset) return [];
+    const byType = new Map(objects.map((object) => [object.objectType, object.id]));
+    return buildPresetObjects({
+      designModelId: designModel.id,
+      projectId,
+      preset: syncPresetFromLayout(preset, layoutHistory.present),
+      includeStableIds: false,
+    }).map((input) => ({
+      ...input,
+      ...(byType.get(input.objectType) ? { id: byType.get(input.objectType) } : {}),
+    }));
+  }, [designModel, layoutHistory.present, objects, preset, projectId]);
+
+  const persistDesignObjects = useCallback(async () => {
+    if (!user?.id || !designModel || !preset || savingRef.current) return;
+    const payload = buildObjectsForSave();
+    if (payload.length === 0) return;
+    savingRef.current = true;
+    try {
+      const objectResult = await upsertDesignModelObjects(payload);
+      if (objectResult.error || !objectResult.data) {
+        setStatus({ tone: 'error', message: objectResult.error ?? 'Could not save design objects.' });
+        return;
+      }
+      setObjects(objectResult.data);
+    } finally {
+      savingRef.current = false;
+    }
+  }, [buildObjectsForSave, designModel, preset, user?.id]);
+
+  const scheduleDebouncedSave = useCallback(() => {
+    if (!designModel || !user?.id) return;
+    if (saveDebounceRef.current) clearTimeout(saveDebounceRef.current);
+    saveDebounceRef.current = setTimeout(() => {
+      void persistDesignObjects();
+    }, DESIGN_SAVE_DEBOUNCE_MS);
+  }, [designModel, persistDesignObjects, user?.id]);
+
+  useEffect(() => {
+    return () => {
+      if (saveDebounceRef.current) clearTimeout(saveDebounceRef.current);
+    };
+  }, []);
+
+  function commitWallLayout(nextLayout: DesignWallLayoutParameters, label: string) {
+    if (import.meta.env.DEV) {
+      const base = preset ?? createBlankCmuBuildingPreset();
+      const nextPreset = syncPresetFromLayout({ ...base, wallLayout: nextLayout }, nextLayout);
+      const nextWall = wallParamsWithLegacyOpenings(nextPreset.wall, nextLayout);
+      const nextInput = buildDesignGeometryInputFromLayout({
+        wallLayout: nextLayout,
+        cmuSettings: nextWall,
+        openings: nextWall.openings,
+        slabSettings: canGenerateSlabAndRoof(nextLayout) ? nextPreset.slab : { ...nextPreset.slab, lengthMeters: 0, widthMeters: 0 },
+        roofSettings: canGenerateSlabAndRoof(nextLayout) ? nextPreset.roof : { ...nextPreset.roof, lengthMeters: 0, widthMeters: 0 },
+        trussSettings: canGenerateSlabAndRoof(nextLayout) ? nextPreset.truss : { ...nextPreset.truss, buildingLengthMeters: 0 },
+      });
+      const nextGeometry = generateDesignGeometry(nextInput);
+      console.table({
+        action: label,
+        nodes: nextLayout.nodes.length,
+        segments: nextLayout.segments.length,
+        openings: nextWall.openings.length,
+        sourcePath: nextGeometry.sourcePath,
+        bondPattern: nextGeometry.bondPattern,
+        generatedWalls: nextGeometry.wallSegments.length,
+        generatedBlocks: nextGeometry.blockCount,
+      });
+    }
+    setLayoutHistory((current) =>
+      applyWallLayoutCommand(current, { type: 'set_layout', layout: nextLayout, label }),
+    );
+    setPersistedQuantityItems((current) => {
+      if (current.some((item) => item.estimateLineId)) setChangedAfterCommit(true);
+      return [];
+    });
+    setPreviewLines([]);
+    setLayoutState(nextLayout.segments.length > 0 ? 'editing' : 'blank');
+    setPreset((current) => {
+      const base = current ?? createBlankCmuBuildingPreset();
+      return syncPresetFromLayout({ ...base, wallLayout: nextLayout }, nextLayout);
+    });
+    scheduleDebouncedSave();
+  }
+
+  function applyPresetPatch(updater: (current: CmuBuildingPreset) => CmuBuildingPreset) {
+    setPersistedQuantityItems((current) => {
+      if (current.some((item) => item.estimateLineId)) {
+        setChangedAfterCommit(true);
+      }
+      return [];
+    });
+    setPreviewLines([]);
+    setLayoutState((current) => (current === 'blank' && wallLayout.segments.length > 0 ? 'editing' : current));
+    setPreset((current) => updater(current ?? createBlankCmuBuildingPreset()));
+    scheduleDebouncedSave();
+  }
+
+  function commitManualMasonryRuns(nextRuns: MasonryCourseRun[], label: string) {
+    setManualMasonryRuns(nextRuns);
+    setLayoutState('editing');
+    setPersistedQuantityItems((current) => {
+      if (current.some((item) => item.estimateLineId)) setChangedAfterCommit(true);
+      return [];
+    });
+    setPreviewLines([]);
+    setPreset((current) => {
+      const base = current ?? createBlankCmuBuildingPreset();
+      return {
+        ...base,
+        wall: {
+          ...base.wall,
+          manualMasonryCourseRuns: nextRuns,
+          manualMasonryCellOverrides: base.wall.manualMasonryCellOverrides ?? [],
+        },
+      };
+    });
+    setStatus({
+      tone: 'success',
+      message: `${label}. Manual masonry layout quantities — verify against structural drawings and field conditions before bidding.`,
+    });
+    scheduleDebouncedSave();
+  }
+
+  function handleManualMasonryPointer(event: { kind: 'preview' | 'start' | 'commit' | 'cancel_preview' | 'undo'; planX?: number; planZ?: number }) {
+    if (!manualMasonryEnabled) return;
+    if (event.kind === 'undo') {
+      const nextRuns = removeLatestManualMasonryRun(manualMasonryRuns);
+      commitManualMasonryRuns(nextRuns, 'Latest manual masonry run removed');
+      setManualMasonryPreview(null);
+      manualMasonryDragStartRef.current = null;
+      return;
+    }
+    if (event.kind === 'cancel_preview') {
+      setManualMasonryPreview(null);
+      manualMasonryDragStartRef.current = null;
+      return;
+    }
+    if (event.planX == null || event.planZ == null) return;
+    const point = { x: event.planX, z: event.planZ };
+    if (event.kind === 'start') {
+      manualMasonryDragStartRef.current = point;
+      const preview = createManualMasonryPreview({
+        start: point,
+        current: point,
+        wall: effectiveWall,
+        tool: masonryToolMode,
+      });
+      setManualMasonryPreview(preview);
+      return;
+    }
+    const start = manualMasonryDragStartRef.current ?? point;
+    const preview = createManualMasonryPreview({
+      start,
+      current: point,
+      wall: effectiveWall,
+      tool: masonryToolMode,
+    });
+    if (event.kind === 'preview') {
+      setManualMasonryPreview(preview);
+      return;
+    }
+    if (event.kind === 'commit' && preview) {
+      const nextRun = commitManualMasonryRun(preview);
+      commitManualMasonryRuns([...manualMasonryRuns, nextRun], nextRun.count === 1 ? 'Manual CMU block placed' : `Manual CMU run placed (${nextRun.count} units)`);
+      setManualMasonryPreview(null);
+      manualMasonryDragStartRef.current = null;
+    }
+  }
+
+  function addOpening(opening: WallOpeningParameters) {
+    applyPresetPatch((current) => ({
+      ...current,
+      wall: {
+        ...current.wall,
+        openings: [...current.wall.openings, opening],
+      },
+    }));
+    setSelectedOpeningId(opening.id);
+    setSelectedObjectType(opening.type === 'door' ? 'door_opening' : 'window_opening');
+    setPlacementPreview(null);
+  }
+
+  function applyOpeningToolSettings(opening: WallOpeningParameters): WallOpeningParameters {
+    const settings = openingToolSettings[opening.type];
+    const width = Number(settings.widthMeters);
+    const height = Number(settings.heightMeters);
+    const roughOpeningAllowance = Number(settings.roughOpeningAllowanceMeters);
+    return snapOpeningToCmuModule(
+      {
+        ...opening,
+        ...(Number.isFinite(width) && width > 0 ? { widthMeters: width } : {}),
+        ...(Number.isFinite(height) && height > 0 ? { heightMeters: height } : {}),
+        ...(Number.isFinite(roughOpeningAllowance) && roughOpeningAllowance >= 0
+          ? { roughOpeningAllowanceMeters: roughOpeningAllowance }
+          : {}),
+      },
+      resolvedPreset.wall,
+    );
+  }
+
+  function moveOpening(openingId: string, nextOpening: WallOpeningParameters) {
+    applyPresetPatch((current) => ({
+      ...current,
+      wall: {
+        ...current.wall,
+        openings: current.wall.openings.map((opening) => (opening.id === openingId ? nextOpening : opening)),
+      },
+    }));
+    setPlacementPreview(null);
+  }
+
+  function deleteOpening(openingId: string) {
+    applyPresetPatch((current) => ({
+      ...current,
+      wall: {
+        ...current.wall,
+        openings: current.wall.openings.filter((opening) => opening.id !== openingId),
+      },
+    }));
+    if (selectedOpeningId === openingId) setSelectedOpeningId(null);
+    setPlacementPreview(null);
+    setToolMode('select');
+  }
+
+  function handleDeleteSelectedOpening() {
+    if (!selectedOpeningId) {
+      setStatus({ tone: 'info', message: 'Select an opening to delete.' });
+      return;
+    }
+    const opening = resolvedPreset.wall.openings.find((item) => item.id === selectedOpeningId);
+    if (!opening) return;
+    void (async () => {
+      const confirmed = await confirm({
+        title: 'Delete opening?',
+        message:
+          'This will update CMU blocks, grout, lintels, and estimate preview quantities. This will not delete committed estimate lines automatically.',
+        confirmLabel: 'Delete opening',
+        confirmVariant: 'danger',
+        showWarningIcon: true,
+      });
+      if (!confirmed) return;
+      deleteOpening(selectedOpeningId);
+      setStatus({ tone: 'success', message: `${opening.type === 'door' ? 'Door' : 'Window'} opening removed from the wall system.` });
+    })();
+  }
+
+  function handleUndoLayout() {
+    setLayoutHistory((current) => {
+      const next = undoWallLayoutHistory(current);
+      setLayoutState(next.present.segments.length > 0 ? 'editing' : 'blank');
+      setPreset((base) => syncPresetFromLayout({ ...(base ?? createBlankCmuBuildingPreset()), wallLayout: next.present }, next.present));
+      return next;
+    });
+  }
+
+  function handleRedoLayout() {
+    setLayoutHistory((current) => {
+      const next = redoWallLayoutHistory(current);
+      setLayoutState(next.present.segments.length > 0 ? 'editing' : 'blank');
+      setPreset((base) => syncPresetFromLayout({ ...(base ?? createBlankCmuBuildingPreset()), wallLayout: next.present }, next.present));
+      return next;
+    });
+  }
+
+  function resolveActiveDrawNodeId(layout: DesignWallLayoutParameters): string | null {
+    if (layout.segments.length === 0) return layout.nodes[0]?.id ?? null;
+    return layout.segments[layout.segments.length - 1]?.endNodeId ?? null;
+  }
+
+  function undoLastDrawSegment() {
+    if (wallLayout.segments.length === 0) return;
+    const removed = wallLayout.segments.at(-1);
+    const next = removeLastSegment(wallLayout);
+    commitWallLayout(next, 'undo last segment');
+    setActiveDrawNodeId(removed?.startNodeId ?? resolveActiveDrawNodeId(next));
+    if (drawStartNodeId && !next.nodes.some((node) => node.id === drawStartNodeId)) setDrawStartNodeId(null);
+    setDraftPlanEnd(null);
+    setSegmentLengthInput('');
+  }
+
+  function cancelPlanDraw() {
+    setDraftPlanEnd(null);
+    setSegmentLengthInput('');
+    setActiveDrawNodeId(null);
+    setDrawStartNodeId(null);
+    setToolMode('select');
+  }
+
+  async function confirmDeleteWallSegment(segmentId: string) {
+    const attachedOpenings = resolvedPreset.wall.openings.filter((opening) => opening.wallSegmentId === segmentId);
+    const confirmed = await confirm({
+      title: 'Delete wall segment?',
+      message:
+        'This will remove the wall segment and any openings attached to it. CMU quantities, corners, grout, lintels, and estimate preview quantities will update. Previously committed estimate lines will not be deleted automatically.',
+      confirmLabel: 'Delete wall',
+      confirmVariant: 'danger',
+      showWarningIcon: true,
+    });
+    if (!confirmed) return;
+    const nextLayout = deleteWallSegment(wallLayout, segmentId);
+    commitWallLayout(nextLayout, 'delete wall segment');
+    applyPresetPatch((current) => ({
+      ...current,
+      wall: {
+        ...current.wall,
+        openings: current.wall.openings.filter((opening) => opening.wallSegmentId !== segmentId),
+      },
+    }));
+    setSelectedSegmentId(null);
+    setSelectedNodeId(null);
+    setSelectedOpeningId(null);
+    setSelectedObjectType(null);
+    setActiveDrawNodeId(resolveActiveDrawNodeId(nextLayout));
+    setStatus({
+      tone: 'success',
+      message: attachedOpenings.length > 0
+        ? `Wall segment and ${attachedOpenings.length} attached opening${attachedOpenings.length === 1 ? '' : 's'} removed. Design changed after commit. Regenerate/update estimate lines before bidding.`
+        : 'Wall segment removed. Design changed after commit. Regenerate/update estimate lines before bidding.',
+    });
+  }
+
+  function handleDeleteSelectedSegment() {
+    if (!selectedSegmentId) {
+      setStatus({ tone: 'info', message: 'Select a wall segment to delete.' });
+      return;
+    }
+    void confirmDeleteWallSegment(selectedSegmentId);
+  }
+
+  const handlePlanInteraction = (event: DesignBuilderInteractionEvent) => {
+    if (!modelLoaded) return;
+
+    if (event.kind === 'cancel') {
+      cancelPlanDraw();
+      return;
+    }
+
+    if (event.kind === 'undo_last_segment') {
+      if (toolMode === 'draw_wall') undoLastDrawSegment();
+      return;
+    }
+
+    const moduleLength = cmuModule.moduleLengthMeters;
+    const layout = wallLayout;
+    const snapLayout = {
+      ...layout,
+      snapToGrid: snapMode === 'grid' || snapMode === 'cmu_module',
+      snapToModule: snapMode === 'cmu_module',
+    };
+
+    if (event.kind === 'draw_preview' && event.planX != null && event.planZ != null && activeDrawNodeId) {
+      const start = layout.nodes.find((node) => node.id === activeDrawNodeId);
+      if (!start) return;
+      const rawPoint = { x: event.planX, z: event.planZ };
+      const snapTarget = resolveDesignSnapPoint({
+        layout,
+        point: rawPoint,
+        snapMode,
+        moduleLengthMeters: moduleLength,
+      });
+      let point = snapTarget.point;
+      const firstNode = drawStartNodeId ? layout.nodes.find((node) => node.id === drawStartNodeId) : null;
+      if (
+        firstNode &&
+        layout.segments.length >= 2 &&
+        (Math.hypot(rawPoint.x - firstNode.x, rawPoint.z - firstNode.z) <= Math.max(ENDPOINT_SNAP_TOLERANCE_METERS, layout.gridSpacingMeters) ||
+          Math.hypot(point.x - firstNode.x, point.z - firstNode.z) <= Math.max(ENDPOINT_SNAP_TOLERANCE_METERS, layout.gridSpacingMeters))
+      ) {
+        setDraftPlanEnd({ x: firstNode.x, z: firstNode.z });
+        return;
+      }
+      if (snapTarget.type !== 'node' && snapTarget.type !== 'endpoint' && snapTarget.type !== 'line') {
+        point = constrainAngle(start, point.x, point.z, layout.orthogonalLock, event.shiftHeld ?? false);
+      }
+      const exactLength = segmentLengthInput ? Number(segmentLengthInput) : undefined;
+      if (exactLength && exactLength > 0) {
+        point = projectExactSegmentLength(start, point.x, point.z, exactLength);
+      }
+      setDraftPlanEnd(point);
+      return;
+    }
+
+    if (event.kind === 'draw_preview' && event.planX != null && event.planZ != null) {
+      const snapTarget = resolveDesignSnapPoint({
+        layout,
+        point: { x: event.planX, z: event.planZ },
+        snapMode,
+        moduleLengthMeters: moduleLength,
+      });
+      setDraftPlanEnd(snapTarget.point);
+      return;
+    }
+
+    if (event.kind === 'draw_point' && event.planX != null && event.planZ != null) {
+      const rawPoint = { x: event.planX, z: event.planZ };
+      const snapTarget = resolveDesignSnapPoint({
+        layout,
+        point: rawPoint,
+        snapMode,
+        moduleLengthMeters: moduleLength,
+      });
+      let point = snapTarget.point;
+      const firstNode = drawStartNodeId ? layout.nodes.find((node) => node.id === drawStartNodeId) : null;
+      if (
+        activeDrawNodeId &&
+        firstNode &&
+        layout.segments.length >= 2 &&
+        (Math.hypot(rawPoint.x - firstNode.x, rawPoint.z - firstNode.z) <= Math.max(ENDPOINT_SNAP_TOLERANCE_METERS, layout.gridSpacingMeters) ||
+          Math.hypot(point.x - firstNode.x, point.z - firstNode.z) <= Math.max(ENDPOINT_SNAP_TOLERANCE_METERS, layout.gridSpacingMeters))
+      ) {
+        const next = addWallSegment(layout, activeDrawNodeId, firstNode.x, firstNode.z, {
+          wallHeightMeters: layout.defaultWallHeightMeters,
+        });
+        commitWallLayout(next, 'close footprint');
+        setActiveDrawNodeId(null);
+        setDrawStartNodeId(null);
+        setDraftPlanEnd(null);
+        setSegmentLengthInput('');
+        setToolMode('select');
+        return;
+      }
+      if (activeDrawNodeId) {
+        const start = layout.nodes.find((node) => node.id === activeDrawNodeId);
+        if (start && snapTarget.type !== 'node' && snapTarget.type !== 'endpoint' && snapTarget.type !== 'line') {
+          point = constrainAngle(start, point.x, point.z, layout.orthogonalLock, event.shiftHeld ?? false);
+        }
+      }
+      const exactLength = segmentLengthInput ? Number(segmentLengthInput) : undefined;
+      if (!activeDrawNodeId) {
+        const snappedNodeId =
+          (snapTarget.type === 'node' || snapTarget.type === 'endpoint') && snapTarget.sourceId
+            ? snapTarget.sourceId
+            : null;
+        if (snappedNodeId) {
+          setActiveDrawNodeId(snappedNodeId);
+          setDrawStartNodeId(snappedNodeId);
+          setDraftPlanEnd(null);
+          return;
+        }
+        const nodeId = createWallLayoutId('node');
+        const next = {
+          ...layout,
+          nodes: [...layout.nodes, { id: nodeId, x: point.x, z: point.z }],
+        };
+        commitWallLayout(next, 'add first node');
+        setActiveDrawNodeId(nodeId);
+        setDrawStartNodeId(nodeId);
+        setDraftPlanEnd(null);
+        return;
+      }
+      const next = addWallSegment(layout, activeDrawNodeId, point.x, point.z, {
+        exactLengthMeters: exactLength,
+        wallHeightMeters: layout.defaultWallHeightMeters,
+      });
+      commitWallLayout(next, 'add wall segment');
+      setActiveDrawNodeId(next.segments.at(-1)?.endNodeId ?? null);
+      if (snapTarget.type === 'line') {
+        setStatus({ tone: 'info', message: 'Line snap selected. Segment split coming later.' });
+      }
+      setDraftPlanEnd(null);
+      setSegmentLengthInput('');
+      return;
+    }
+
+    if (event.kind === 'move_node' && event.nodeId && event.planX != null && event.planZ != null) {
+      let point = snapPlanPoint(event.planX, event.planZ, snapLayout, moduleLength);
+      if (event.phase === 'preview') {
+        setDraftPlanEnd(point);
+        return;
+      }
+      const next = moveWallNode(layout, event.nodeId, point.x, point.z);
+      commitWallLayout(next, 'move wall node');
+      setDraftPlanEnd(null);
+      return;
+    }
+
+    if (event.kind === 'select_node' && event.nodeId) {
+      setSelectedNodeId(event.nodeId);
+      setSelectedSegmentId(null);
+      setSelectedOpeningId(null);
+      setSelectedObjectType(null);
+      if (toolMode === 'move_wall_node') setActiveDrawNodeId(event.nodeId);
+      return;
+    }
+
+    if (event.kind === 'segment_pick' && event.planX != null && event.planZ != null) {
+      const hit = resolveSegmentAtPoint(layout, event.planX, event.planZ);
+      if (!hit) {
+        if (toolMode === 'select' || toolMode === 'delete') clearSelection();
+        return;
+      }
+      setSelectedSegmentId(hit.segment.id);
+      setSelectedNodeId(null);
+      setSelectedOpeningId(null);
+      setSelectedObjectType(null);
+      if (toolMode === 'delete') {
+        void confirmDeleteWallSegment(hit.segment.id);
+        return;
+      }
+      if (toolMode === 'place_door' || toolMode === 'place_window') {
+        const openingType = toolMode === 'place_door' ? 'door' : 'window';
+        if (event.phase === 'preview') {
+          const draft = applyOpeningToolSettings(
+            createOpeningDraftForSegment(openingType, hit.segment.id, hit.positionAlongSegment, effectiveWall, layout),
+          );
+          const status = summarizeOpeningPlacementStatus(draft, effectiveWall);
+          setPlacementPreview({
+            wallFace: draft.wallFace ?? 'south',
+            offsetMeters: hit.positionAlongSegment,
+            openingType,
+            widthMeters: draft.widthMeters,
+            heightMeters: draft.heightMeters,
+            sillHeightMeters: draft.sillHeightMeters,
+            isValid: status.isValid,
+            openingId: undefined,
+            wallSegmentId: hit.segment.id,
+          });
+          return;
+        }
+        const draft = applyOpeningToolSettings(
+          createOpeningDraftForSegment(openingType, hit.segment.id, hit.positionAlongSegment, effectiveWall, layout),
+        );
+        addOpening(draft);
+        setToolMode('select');
+        setPlacementPreview(null);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (viewMode !== 'plan' || !modelLoaded) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) return;
+
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        if (toolMode === 'draw_wall') {
+          cancelPlanDraw();
+        } else {
+          clearSelection();
+        }
+        return;
+      }
+
+      if (event.key === 'Backspace' && toolMode === 'draw_wall') {
+        event.preventDefault();
+        undoLastDrawSegment();
+        return;
+      }
+
+      if ((event.key === 'Delete' || event.key === 'Backspace') && selectedSegmentId) {
+        event.preventDefault();
+        void confirmDeleteWallSegment(selectedSegmentId);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [modelLoaded, selectedSegmentId, toolMode, viewMode, wallLayout]);
+
+  const handleViewerInteraction = (event: DesignBuilderInteractionEvent) => {
+      if (!modelLoaded) return;
+      const wall = resolvedPreset.wall;
+
+      switch (event.kind) {
+        case 'cancel':
+          if (placementPreview || toolMode !== 'select') {
+            setPlacementPreview(null);
+            setToolMode('select');
+          } else {
+            clearSelection();
+          }
+          break;
+        case 'clear_selection':
+          clearSelection();
+          break;
+        case 'select_object':
+          setSelectedObjectType(event.objectType ?? null);
+          setSelectedOpeningId(null);
+          setSelectedSegmentId(null);
+          setSelectedNodeId(null);
+          setPlacementPreview(null);
+          break;
+        case 'select_opening':
+          if (event.openingId) {
+            setSelectedOpeningId(event.openingId);
+            setSelectedSegmentId(null);
+            setSelectedNodeId(null);
+            const opening = wall.openings.find((item) => item.id === event.openingId);
+            if (opening) {
+              setSelectedObjectType(opening.type === 'door' ? 'door_opening' : 'window_opening');
+            }
+          }
+          break;
+        case 'wall_pick':
+          if (event.wallFace != null && event.offsetMeters != null && event.openingType) {
+            const draft = applyOpeningToolSettings(
+              createOpeningDraft(event.openingType, event.wallFace, event.offsetMeters, wall),
+            );
+            const status = summarizeOpeningPlacementStatus(draft, wall);
+            setPlacementPreview({
+              wallFace: draft.wallFace,
+              offsetMeters: draft.offsetMeters,
+              openingType: draft.type,
+              widthMeters: draft.widthMeters,
+              heightMeters: draft.heightMeters,
+              sillHeightMeters: draft.sillHeightMeters,
+              isValid: status.isValid,
+            });
+          }
+          break;
+        case 'place_commit':
+          if (event.wallFace != null && event.offsetMeters != null && event.openingType) {
+            const draft = applyOpeningToolSettings(
+              createOpeningDraft(event.openingType, event.wallFace, event.offsetMeters, wall),
+            );
+            addOpening(draft);
+            setToolMode('select');
+            setStatus({
+              tone: 'success',
+              message: `${event.openingType === 'door' ? 'Door' : 'Window'} placed on ${event.wallFace} wall.`,
+            });
+          }
+          break;
+        case 'opening_move':
+          if (event.openingId && event.wallFace != null && event.offsetMeters != null) {
+            const opening = wall.openings.find((item) => item.id === event.openingId);
+            if (!opening) return;
+            const patched = applyOpeningPlacementPatch(opening, wall, {
+              wallFace: event.wallFace,
+              offsetMeters: event.offsetMeters,
+            });
+            const status = summarizeOpeningPlacementStatus(patched, wall);
+            if (event.phase === 'commit') {
+              moveOpening(event.openingId, patched);
+            } else {
+              setPlacementPreview({
+                wallFace: patched.wallFace,
+                offsetMeters: patched.offsetMeters,
+                openingType: patched.type,
+                widthMeters: patched.widthMeters,
+                heightMeters: patched.heightMeters,
+                sillHeightMeters: patched.sillHeightMeters,
+                isValid: status.isValid,
+                openingId: event.openingId,
+              });
+            }
+          }
+          break;
+        default:
+          break;
+      }
+  };
+
+  async function handleSaveDesign() {
+    if (!modelLoaded) {
+      setStatus({ tone: 'info', message: 'Load the example before saving design parameters.' });
+      return;
+    }
+    if (!designModel) {
+      setStatus({ tone: 'info', message: 'Sign in and load the example to save design parameters to the project.' });
+      return;
+    }
+    if (saveDebounceRef.current) {
+      clearTimeout(saveDebounceRef.current);
+      saveDebounceRef.current = null;
+    }
+    setBusy(true);
+    setStatus({ tone: 'info', message: 'Saving design parameters...' });
+    try {
+      await persistDesignObjects();
+      setStatus({ tone: 'success', message: 'Design parameters saved.' });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function updateFootprint(field: 'lengthMeters' | 'widthMeters', value: number) {
+    const rawValue = positiveOrFallback(value, resolvedPreset.footprint[field]);
+    const safeValue = resolvedPreset.wall.snapToModule
+      ? snapLengthToCmuModule(rawValue, cmuModule.moduleLengthMeters)
+      : rawValue;
+    applyPresetPatch((current) => ({
+      ...current,
+      footprint: { ...current.footprint, [field]: safeValue },
+      slab: { ...current.slab, [field]: safeValue },
+      wall: { ...current.wall, [field]: safeValue },
+      roof: { ...current.roof, [field]: safeValue },
+      truss: field === 'lengthMeters' ? { ...current.truss, buildingLengthMeters: safeValue } : current.truss,
+    }));
+  }
+
+  function updateWallField(field: keyof Pick<typeof resolvedPreset.wall, 'heightMeters' | 'wallThicknessMeters' | 'blockLengthMeters' | 'blockHeightMeters' | 'blockDepthMeters' | 'wasteFactor'>, value: number) {
+    const safeValue = field === 'wasteFactor' ? Math.max(0, value) : positiveOrFallback(value, Number(resolvedPreset.wall[field]));
+    applyPresetPatch((current) => ({
+      ...current,
+      wall: { ...current.wall, [field]: safeValue },
+    }));
+  }
+
+  function updateShowIndividualBlocks(showIndividualBlocks: boolean) {
+    applyPresetPatch((current) => ({
+      ...current,
+      wall: { ...current.wall, showIndividualBlocks },
+    }));
+  }
+
+  function updateWallOption(patch: Partial<CmuBuildingPreset['wall']>) {
+    applyPresetPatch((current) => ({
+      ...current,
+      wall: { ...current.wall, ...patch },
+    }));
+  }
+
+  function updateBlockModuleField(field: keyof NonNullable<CmuBuildingPreset['wall']['blockModule']>, value: number | string) {
+    applyPresetPatch((current) => {
+      const currentModule = resolveCmuModuleConfig(current.wall);
+      const nextModule = {
+        ...currentModule,
+        [field]: typeof value === 'number' ? Math.max(0, value) : value,
+      };
+      return {
+        ...current,
+        wall: {
+          ...current.wall,
+          blockModule: nextModule,
+          blockLengthMeters: nextModule.moduleLengthMeters,
+          blockHeightMeters: nextModule.moduleHeightMeters,
+          blockDepthMeters: nextModule.nominalDepthMeters,
+          wallThicknessMeters: nextModule.nominalDepthMeters,
+          mortarJointMeters: nextModule.mortarJointMeters,
+        },
+      };
+    });
+  }
+
+  function updateSlabField(field: keyof Pick<typeof resolvedPreset.slab, 'slabThicknessMeters' | 'edgeWidthMeters' | 'edgeDepthMeters'>, value: number) {
+    applyPresetPatch((current) => ({
+      ...current,
+      slab: { ...current.slab, [field]: positiveOrFallback(value, Number(current.slab[field])) },
+    }));
+  }
+
+  function updateRoofField(field: keyof Pick<typeof resolvedPreset.roof, 'pitchRisePerRun' | 'overhangMeters'>, value: number) {
+    applyPresetPatch((current) => ({
+      ...current,
+      roof: { ...current.roof, [field]: Math.max(0, value) },
+    }));
+  }
+
+  function updateTrussSpacing(value: number) {
+    applyPresetPatch((current) => ({
+      ...current,
+      truss: { ...current.truss, spacingMeters: positiveOrFallback(value, current.truss.spacingMeters) },
+    }));
+  }
+
+  function updateOpening(openingId: string, patch: Partial<WallOpeningParameters>) {
+    applyPresetPatch((current) => ({
+      ...current,
+      wall: {
+        ...current.wall,
+        openings: current.wall.openings.map((opening) =>
+          opening.id === openingId
+            ? snapOpeningToCmuModule({ ...opening, ...patch }, current.wall)
+            : opening,
+        ),
+      },
+    }));
+  }
+
+  function clearSelection() {
+    setSelectedObjectType(null);
+    setSelectedOpeningId(null);
+    setSelectedSegmentId(null);
+    setSelectedNodeId(null);
+    setPlacementPreview(null);
+  }
+
+  function closeCommandMenu(event: ReactMouseEvent<HTMLButtonElement>) {
+    event.currentTarget.closest('details')?.removeAttribute('open');
+  }
+
+  function activateToolMode(mode: DesignBuilderToolMode, event?: ReactMouseEvent<HTMLButtonElement>) {
+    setManualMasonryEnabled(false);
+    setToolMode(mode);
+    if (mode === 'draw_wall') {
+      setOnboardingVisible(false);
+      setViewMode('plan');
+    }
+    if (mode === 'move_wall_node') setViewMode('plan');
+    if (mode === 'select') setPlacementPreview(null);
+    event?.currentTarget.closest('details')?.removeAttribute('open');
+  }
+
+  function startManualCmuBuilder() {
+    setOnboardingVisible(false);
+    setManualMasonryEnabled(true);
+    setMasonryToolMode('full_block');
+    setToolMode('select');
+    setViewMode('plan');
+    setStatus({
+      tone: 'info',
+      message: 'Manual CMU Builder ready. Choose a unit, click to place one block, or drag to paint a run.',
+    });
+    saveDesignBuilderSession(sessionKey, {
+      onboardingVisible: false,
+      manualMasonryEnabled: true,
+      masonryToolMode: 'full_block',
+      toolMode: 'select',
+      viewMode: 'plan',
+    });
+  }
+
+  function startAutoWallLayout() {
+    setOnboardingVisible(false);
+    setManualMasonryEnabled(false);
+    setToolMode('draw_wall');
+    setViewMode('plan');
+    setStatus({ tone: 'info', message: 'Auto Wall Layout ready. Use the plan canvas to place wall points and close the footprint.' });
+    saveDesignBuilderSession(sessionKey, {
+      onboardingVisible: false,
+      manualMasonryEnabled: false,
+      toolMode: 'draw_wall',
+      viewMode: 'plan',
+    });
+  }
+
+  async function handleLoadExample() {
+    setBusy(true);
+    setStatus({ tone: 'info', message: 'Loading 5m x 6m CMU Building Example...' });
+    try {
+      const nextPreset = createFiveBySixCmuBuildingPreset();
+      setPreset(nextPreset);
+      setLayoutState('demo_loaded');
+      setOnboardingVisible(false);
+      setManualMasonryEnabled(false);
+      setMasonryToolMode('full_block');
+      setManualMasonryRuns([]);
+      setManualMasonryPreview(null);
+      setLayoutHistory(createWallLayoutHistory(nextPreset.wallLayout));
+      setActiveDrawNodeId(null);
+      setDrawStartNodeId(null);
+      setDraftPlanEnd(null);
+      setSelectedSegmentId(null);
+      setSelectedNodeId(null);
+      setSelectedObjectType('building_footprint');
+      setSelectedOpeningId(null);
+      setToolMode('select');
+      setChangedAfterCommit(false);
+      setPlacementPreview(null);
+      setPreviewLines([]);
+      setPersistedQuantityItems([]);
+
+      if (!user?.id) {
+        setObjects([]);
+        setDesignModel(null);
+        setStatus({
+          tone: 'success',
+          message: 'Example loaded locally. Sign in to save and commit it to an estimate.',
+        });
+        return;
+      }
+
+      const modelResult = await createDesignModel({
+        projectId,
+        estimateId,
+        name: nextPreset.name,
+        unitSystem: 'metric',
+        createdBy: user.id,
+        metadata: {
+          preset: '5m_x_6m_cmu_building',
+          source: 'parametric_design_builder',
+        },
+      });
+      if (modelResult.error || !modelResult.data) {
+        setStatus({ tone: 'error', message: modelResult.error ?? 'Could not save design model.' });
+        return;
+      }
+
+      const objectResult = await upsertDesignModelObjects(
+        buildPresetObjects({
+          designModelId: modelResult.data.id,
+          projectId,
+          preset: nextPreset,
+          includeStableIds: false,
+        }),
+      );
+      if (objectResult.error || !objectResult.data) {
+        setStatus({ tone: 'error', message: objectResult.error ?? 'Could not save design objects.' });
+        return;
+      }
+
+      setDesignModel(modelResult.data);
+      setObjects(objectResult.data);
+      setStatus({
+        tone: 'success',
+        message: 'Example loaded. Geometry and quantities are generated from saved parameters.',
+      });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleStartBlankLayout() {
+    const hasDesignData =
+      wallLayout.nodes.length > 0 ||
+      wallLayout.segments.length > 0 ||
+      resolvedPreset.wall.openings.length > 0 ||
+      previewLines.length > 0 ||
+      persistedQuantityItems.length > 0 ||
+      layoutState !== 'blank';
+    if (hasDesignData) {
+      const confirmed = await confirm({
+        title: 'Start blank layout?',
+        message:
+          'This removes all walls, openings, generated CMU geometry, and current Design Builder preview quantities from this design. Your global CMU settings will remain. Previously committed estimate lines will not be deleted automatically.',
+        confirmLabel: 'Start blank',
+        confirmVariant: 'danger',
+        showWarningIcon: true,
+      });
+      if (!confirmed) return;
+    }
+
+    const blankLayout = createBlankWallLayout({
+      defaultWallHeightMeters: resolvedPreset.wall.heightMeters,
+      defaultWallThicknessMeters: resolvedPreset.wall.wallThicknessMeters,
+      dimensionBasis: 'outside_face',
+    });
+    const blankPreset = createBlankCmuBuildingPreset({
+      wall: {
+        ...resolvedPreset.wall,
+        lengthMeters: 0,
+        widthMeters: 0,
+        openings: [],
+        manualMasonryCourseRuns: [],
+        manualMasonryCellOverrides: [],
+      },
+      slab: { ...resolvedPreset.slab, lengthMeters: 0, widthMeters: 0 },
+      roof: { ...resolvedPreset.roof, lengthMeters: 0, widthMeters: 0 },
+      truss: { ...resolvedPreset.truss, buildingLengthMeters: 0 },
+    });
+    setLayoutState('blank');
+    setOnboardingVisible(true);
+    setManualMasonryEnabled(false);
+    setMasonryToolMode('full_block');
+    setManualMasonryRuns([]);
+    setManualMasonryPreview(null);
+    manualMasonryDragStartRef.current = null;
+    setPreset({ ...blankPreset, wallLayout: blankLayout });
+    setLayoutHistory(createWallLayoutHistory(blankLayout));
+    setSelectedObjectType(null);
+    setSelectedOpeningId(null);
+    setSelectedSegmentId(null);
+    setSelectedNodeId(null);
+    setActiveDrawNodeId(null);
+    setDrawStartNodeId(null);
+    setDraftPlanEnd(null);
+    setPlacementPreview(null);
+    setPreviewLines([]);
+    setPersistedQuantityItems([]);
+    setChangedAfterCommit((current) => current || persistedQuantityItems.some((item) => item.estimateLineId));
+    setToolMode('select');
+    setViewMode('plan');
+    setStatus({ tone: 'success', message: 'Blank layout ready. Choose Build CMU Manually or Create Auto Wall Layout.' });
+    scheduleDebouncedSave();
+  }
+
+  async function handleGeneratePreview() {
+    if (!modelLoaded) {
+      setStatus({ tone: 'info', message: 'Load the 5m x 6m CMU Building Example before generating an estimate preview.' });
+      return;
+    }
+    if (generatedPreview.length === 0) {
+      setStatus({ tone: 'error', message: 'No valid generated quantities are available for preview.' });
+      return;
+    }
+
+    if (!designModel) {
+      setPreviewLines(generatedPreview);
+      setStatus({ tone: 'info', message: 'Preview generated locally. Save the model before committing.' });
+      return;
+    }
+
+    setBusy(true);
+    setStatus({ tone: 'info', message: 'Generating estimate preview...' });
+    try {
+      const persistResult = await persistDesignEstimatePreview({
+        projectId,
+        estimateId,
+        designModelId: designModel.id,
+        lines: generatedPreview,
+      });
+      if (persistResult.error || !persistResult.data) {
+        setStatus({ tone: 'error', message: persistResult.error ?? 'Could not save estimate preview.' });
+        return;
+      }
+      setPreviewLines(generatedPreview);
+      setPersistedQuantityItems(persistResult.data);
+      setStatus({
+        tone: 'success',
+        message: 'Estimate preview generated. Review quantities before committing to Detailed Estimate.',
+      });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleCommitPreview() {
+    if (!designModel || persistedQuantityItems.length === 0 || previewLines.length === 0 || generatedPreview.length === 0) {
+      setStatus({ tone: 'error', message: 'Generate and save the estimate preview before committing.' });
+      return;
+    }
+
+    setBusy(true);
+    setStatus({ tone: 'info', message: 'Committing Design Builder preview to Detailed Estimate...' });
+    try {
+      const result = await commitDesignEstimatePreview({
+        projectId,
+        estimateId,
+        designModelId: designModel.id,
+        previewLines,
+        persistedQuantityItems,
+        existingActivities: [],
+        projectLaborRates: [],
+      });
+      if (result.error || !result.data) {
+        setStatus({ tone: 'error', message: result.error ?? 'Could not commit estimate preview.' });
+        return;
+      }
+      onEstimateCommitted?.();
+      setChangedAfterCommit(false);
+      setStatus({
+        tone: 'success',
+        message: `Committed ${result.data.committedQuantityItems.length} Design Builder quantities to Detailed Estimate.`,
+      });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const activeToolLabel = TOOL_MODE_OPTIONS.find((option) => option.mode === toolMode)?.label ?? 'Select';
+  const drawWallInstruction = 'Click to place wall points · Right-click/Backspace to undo · Esc to stop · Click first point to close';
+  const toolInstruction = toolMode === 'place_door'
+    ? 'Click a wall to place door • Esc to cancel'
+    : toolMode === 'place_window'
+      ? 'Click a wall to place window • Esc to cancel'
+      : toolMode === 'move_wall_node'
+        ? 'Drag a node • Esc to cancel'
+        : toolMode === 'move_opening'
+          ? 'Drag selected opening along wall'
+          : null;
+  const activeOpeningTool = toolMode === 'place_door' ? 'door' : toolMode === 'place_window' ? 'window' : null;
+  const activeOpeningSettings = activeOpeningTool ? openingToolSettings[activeOpeningTool] : null;
+  const closeFootprintEnabled = modelLoaded && !footprintClosed && wallLayout.segments.length >= 2;
+  const hasCutBlockWarnings =
+    moduleWarnings.length > 0 ||
+    livePlacementStatus?.kind === 'cut_block' ||
+    cmuLayout.openingCourseClosures.some((closure) => closure.closureType === 'cut_block');
+  const cutBlockWarningText =
+    livePlacementStatus?.warnings.join(' ') ||
+    moduleWarnings.join(' ') ||
+    'Some opening or wall lengths require cut CMU blocks. Review warnings in the estimate panel.';
+
+  return (
+    <div
+      className={`bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 ${
+        focusMode
+          ? 'flex h-[calc(100dvh-7rem)] min-h-0 flex-col overflow-hidden p-3 sm:h-[calc(100dvh-6rem)]'
+          : 'min-h-[720px] p-4'
+      }`}
+    >
+      <div className={`flex shrink-0 flex-wrap items-start justify-between gap-3 ${focusMode ? 'mb-3' : 'mb-4'}`}>
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-700 dark:text-cyan-300">
+            Arden Design Builder
+          </p>
+          <h2 className="mt-1 text-2xl font-semibold">CMU Building Design Builder</h2>
+          <p className="mt-1 max-w-3xl text-sm text-slate-600 dark:text-slate-300">
+            Build construction-aware objects, edit dimensions, review generated quantities, then commit only after confirmation.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={toggleLeftPanel}
+            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+            aria-pressed={leftPanelCollapsed}
+          >
+            {leftPanelCollapsed ? 'Show Tools' : 'Hide Tools'}
+          </button>
+          <button
+            type="button"
+            onClick={toggleRightPanel}
+            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+            aria-pressed={rightPanelCollapsed}
+          >
+            {rightPanelCollapsed ? 'Show Estimate' : 'Hide Estimate'}
+          </button>
+          <button
+            type="button"
+            onClick={() => void handleLoadExample()}
+            disabled={busy}
+            className="rounded-xl bg-cyan-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Load 5m x 6m CMU Building Example
+          </button>
+          <button
+            type="button"
+            onClick={() => void handleStartBlankLayout()}
+            disabled={busy}
+            className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+          >
+            Start Blank Layout
+          </button>
+        </div>
+      </div>
+
+      <div
+        className={`relative grid min-h-0 gap-4 ${
+          focusMode ? 'h-full flex-1 overflow-hidden' : ''
+        }`}
+        style={{
+          gridTemplateColumns: `${leftPanelCollapsed ? '0px' : '320px'} minmax(0, 1fr) ${
+            rightPanelCollapsed ? '0px' : `${viewerSize.rightPanelWidth}px`
+          }`,
+        }}
+      >
+        <button
+          type="button"
+          onClick={toggleLeftPanel}
+          className="absolute left-0 top-1/2 z-20 -translate-x-1/2 rounded-full border border-slate-200 bg-white px-2 py-3 text-xs font-bold text-slate-700 shadow-lg hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+          aria-label={leftPanelCollapsed ? 'Expand Design Builder tools panel' : 'Collapse Design Builder tools panel'}
+        >
+          {leftPanelCollapsed ? '›' : '‹'}
+        </button>
+
+        <aside
+          className={`space-y-4 overflow-hidden transition-opacity ${
+            leftPanelCollapsed ? 'pointer-events-none opacity-0' : 'opacity-100'
+          } ${focusMode ? 'min-h-0 overflow-y-auto pr-1' : ''}`}
+        >
+          <Panel title="Object Tree">
+            {OBJECT_TREE_GROUPS.map((group) => {
+              const expanded = objectTreeExpanded[group.id] ?? true;
+              return (
+                <div key={group.id} className="mb-2">
+                  <button
+                    type="button"
+                    onClick={() => setObjectTreeExpanded((current) => ({ ...current, [group.id]: !expanded }))}
+                    className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800"
+                  >
+                    <span>{group.label}</span>
+                    <span>{expanded ? '−' : '+'}</span>
+                  </button>
+                  {expanded ? (
+                    <div className="mt-1 space-y-1">
+                      {group.items.map((item) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedObjectType(item.objectType);
+                            setSelectedSegmentId(null);
+                            setSelectedNodeId(null);
+                            setPlacementPreview(null);
+                            if (item.objectType !== 'door_opening' && item.objectType !== 'window_opening') {
+                              setSelectedOpeningId(null);
+                            }
+                          }}
+                          className={`w-full rounded-lg border px-3 py-2 text-left text-sm transition ${
+                            selectedObjectType === item.objectType && !selectedOpeningId
+                              ? 'border-cyan-400 bg-cyan-50 text-cyan-900 dark:border-cyan-600 dark:bg-cyan-950/50 dark:text-cyan-100'
+                              : 'border-slate-200 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800'
+                          }`}
+                        >
+                          <span className="font-medium">{item.label}</span>
+                          <span className="mt-0.5 block text-xs text-slate-500 dark:text-slate-400">{item.description}</span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
+            {modelLoaded && wallLayout.segments.length > 0 ? (
+              <div className="mt-2 space-y-1 border-t border-slate-200 pt-2 dark:border-slate-700">
+                <div className="px-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Wall segments</div>
+                {wallLayout.segments.map((segment, index) => (
+                  <button
+                    key={segment.id}
+                    type="button"
+                    onClick={() => {
+                      setSelectedSegmentId(segment.id);
+                      setSelectedObjectType(null);
+                      setSelectedOpeningId(null);
+                      setSelectedNodeId(null);
+                      setPlacementPreview(null);
+                    }}
+                    className={`w-full rounded-lg border px-3 py-2 text-left text-sm transition ${
+                      selectedSegmentId === segment.id
+                        ? 'border-cyan-400 bg-cyan-50 text-cyan-900 dark:border-cyan-600 dark:bg-cyan-950/50 dark:text-cyan-100'
+                        : 'border-slate-200 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800'
+                    }`}
+                  >
+                    Segment {index + 1}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+            {modelLoaded && resolvedPreset.wall.openings.length > 0 ? (
+              <div className="mt-2 space-y-1 border-t border-slate-200 pt-2 dark:border-slate-700">
+                <div className="px-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                  Placed openings
+                </div>
+                {resolvedPreset.wall.openings.map((opening) => (
+                  <button
+                    key={opening.id}
+                    type="button"
+                    onClick={() => {
+                      setSelectedOpeningId(opening.id);
+                      setSelectedObjectType(opening.type === 'door' ? 'door_opening' : 'window_opening');
+                      setSelectedSegmentId(null);
+                      setSelectedNodeId(null);
+                      setPlacementPreview(null);
+                    }}
+                    className={`w-full rounded-lg border px-3 py-2 text-left text-sm transition ${
+                      selectedOpeningId === opening.id
+                        ? 'border-cyan-400 bg-cyan-50 text-cyan-900 dark:border-cyan-600 dark:bg-cyan-950/50 dark:text-cyan-100'
+                        : 'border-slate-200 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800'
+                    }`}
+                  >
+                    <span className="font-medium capitalize">
+                      {opening.type}
+                      {opening.wallSegmentId ? ` · segment` : opening.wallFace ? ` · ${opening.wallFace}` : ''}
+                    </span>
+                    <span className="mt-0.5 block text-xs text-slate-500 dark:text-slate-400">
+                      Offset {(opening.positionAlongSegment ?? opening.offsetMeters ?? 0).toFixed(2)}m
+                    </span>
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </Panel>
+
+          <Panel title={`Edit ${selectedObjectLabel}`}>
+            <EditableControls
+              selectedObjectType={selectedObjectType ?? 'building_footprint'}
+              preset={resolvedPreset}
+              unitSystem={unitSystem}
+              onUnitSystemChange={setUnitSystem}
+              onFootprintChange={updateFootprint}
+              onWallChange={updateWallField}
+              onShowIndividualBlocksChange={updateShowIndividualBlocks}
+              onWallOptionChange={updateWallOption}
+              onBlockModuleChange={updateBlockModuleField}
+              cmuModule={cmuModule}
+              wallModuleFits={wallModuleFits}
+              moduleWarnings={moduleWarnings}
+              cmuLayout={cmuLayout}
+              onSlabChange={updateSlabField}
+              onRoofChange={updateRoofField}
+              onTrussSpacingChange={updateTrussSpacing}
+              onOpeningChange={updateOpening}
+              selectedOpeningId={selectedOpeningId}
+            />
+          </Panel>
+
+          <Panel title="Linked Quantities">
+            {linkedPreviewLines.length > 0 ? (
+              <div className="space-y-2">
+                {linkedPreviewLines.map((line) => (
+                  <div key={line.id} className="rounded-lg bg-slate-100 p-2 text-sm dark:bg-slate-800">
+                    <div className="font-medium">{line.description}</div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400">
+                      {line.quantity} {line.unit}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Select a quantity card or estimate line to see linked quantities for this object.
+              </p>
+            )}
+          </Panel>
+        </aside>
+
+        <main className={`min-h-0 ${focusMode ? 'flex flex-col overflow-hidden' : 'space-y-4'}`}>
+          <div
+            role="toolbar"
+            aria-label="Design Builder command bar"
+            className="mb-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm dark:border-slate-700 dark:bg-slate-900"
+          >
+            <div className="flex flex-wrap items-center gap-2">
+              <details className="group relative">
+                <summary className={`flex h-9 cursor-pointer list-none items-center gap-1 rounded-lg border px-3 text-xs font-semibold transition focus:outline-none focus:ring-2 focus:ring-cyan-400/40 ${
+                  toolMode === 'select'
+                    ? 'border-cyan-400 bg-cyan-50 text-cyan-800 dark:border-cyan-600 dark:bg-cyan-950/50 dark:text-cyan-100'
+                    : 'border-slate-200 text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800'
+                }`}>
+                  {activeToolLabel} <span aria-hidden>▾</span>
+                </summary>
+                <div className="absolute left-0 z-30 mt-2 w-48 rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-slate-700 dark:bg-slate-900">
+                  {TOOL_MODE_OPTIONS.map((option) => (
+                    <button
+                      key={option.mode}
+                      type="button"
+                      aria-label={
+                        option.mode === 'place_door' || option.mode === 'place_window'
+                          ? 'Activate opening placement tool'
+                          : undefined
+                      }
+                      onClick={(event) => activateToolMode(option.mode, event)}
+                      disabled={!modelLoaded}
+                      aria-pressed={toolMode === option.mode}
+                      className={`block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                        toolMode === option.mode
+                          ? 'bg-cyan-600 text-white'
+                          : 'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800'
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </details>
+
+              <button
+                type="button"
+                aria-label="Activate wall drawing"
+                onClick={() => {
+                  setToolMode('draw_wall');
+                  setViewMode('plan');
+                }}
+                disabled={!modelLoaded}
+                aria-pressed={toolMode === 'draw_wall'}
+                className={`h-9 rounded-lg px-3 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                  toolMode === 'draw_wall'
+                    ? 'bg-cyan-600 text-white'
+                    : 'border border-slate-200 text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800'
+                }`}
+              >
+                Draw Wall
+              </button>
+
+              <details className="group relative">
+                <summary className={`flex h-9 cursor-pointer list-none items-center gap-1 rounded-lg border px-3 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-cyan-400/40 ${
+                  toolMode === 'place_door' || toolMode === 'place_window' || toolMode === 'move_opening'
+                    ? 'border-cyan-400 bg-cyan-50 text-cyan-800 dark:border-cyan-600 dark:bg-cyan-950/50 dark:text-cyan-100'
+                    : 'border-slate-200 text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800'
+                }`}>
+                  Opening <span aria-hidden>▾</span>
+                </summary>
+                <div className="absolute left-0 z-30 mt-2 w-52 rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-slate-700 dark:bg-slate-900">
+                  {([
+                    ['place_door', 'Place Door'],
+                    ['place_window', 'Place Window'],
+                    ['move_opening', 'Move Opening'],
+                  ] as Array<[DesignBuilderToolMode, string]>).map(([mode, label]) => (
+                    <button
+                      key={mode}
+                      type="button"
+                      aria-label={
+                        mode === 'place_door' || mode === 'place_window'
+                          ? 'Activate opening placement tool'
+                          : undefined
+                      }
+                      onClick={(event) => activateToolMode(mode, event)}
+                      disabled={!modelLoaded}
+                      className={`block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-50 ${
+                        toolMode === mode
+                          ? 'bg-cyan-600 text-white'
+                          : 'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </details>
+
+              <details className="group relative">
+                <summary className="flex h-9 cursor-pointer list-none items-center gap-1 rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-cyan-400/40 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
+                  Snap: {snapMode === 'cmu_module' ? 'CMU' : snapMode === 'grid' ? 'Grid' : 'Off'} <span aria-hidden>▾</span>
+                </summary>
+                <div className="absolute left-0 z-30 mt-2 w-56 rounded-xl border border-slate-200 bg-white p-2 shadow-xl dark:border-slate-700 dark:bg-slate-900">
+                  {(['grid', 'cmu_module', 'off'] as DesignBuilderSnapMode[]).map((mode) => (
+                    <button
+                      key={mode}
+                      type="button"
+                      onClick={(event) => {
+                        setSnapMode(mode);
+                        closeCommandMenu(event);
+                      }}
+                      className={`block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold ${
+                        snapMode === mode
+                          ? 'bg-cyan-600 text-white'
+                          : 'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800'
+                      }`}
+                    >
+                      {mode === 'cmu_module' ? 'CMU' : mode === 'grid' ? 'Grid' : 'Off'}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      commitWallLayout({ ...wallLayout, orthogonalLock: !wallLayout.orthogonalLock }, 'toggle orthogonal');
+                      closeCommandMenu(event);
+                    }}
+                    className={`mt-1 block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold ${
+                      wallLayout.orthogonalLock
+                        ? 'bg-slate-900 text-white dark:bg-cyan-500 dark:text-slate-950'
+                        : 'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800'
+                    }`}
+                  >
+                    Orthogonal {wallLayout.orthogonalLock ? 'On' : 'Off'}
+                  </button>
+                </div>
+              </details>
+
+              <details className="group relative">
+                <summary className="flex h-9 cursor-pointer list-none items-center gap-1 rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-cyan-400/40 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
+                  View: {viewMode === 'plan' ? 'Plan' : '3D'} <span aria-hidden>▾</span>
+                </summary>
+                <div className="absolute left-0 z-30 mt-2 w-56 rounded-xl border border-slate-200 bg-white p-2 shadow-xl dark:border-slate-700 dark:bg-slate-900">
+                  <button type="button" onClick={(event) => { setViewMode('plan'); closeCommandMenu(event); }} className={`block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold ${viewMode === 'plan' ? 'bg-cyan-600 text-white' : 'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800'}`}>Plan</button>
+                  <button type="button" onClick={(event) => { setViewMode('3d'); closeCommandMenu(event); }} className={`block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold ${viewMode === '3d' ? 'bg-cyan-600 text-white' : 'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800'}`}>3D</button>
+                  <div className="my-1 border-t border-slate-200 dark:border-slate-700" />
+                  <button type="button" onClick={(event) => { setViewCommand({ id: Date.now(), action: 'fit' }); closeCommandMenu(event); }} className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800">Fit view</button>
+                  <button type="button" onClick={(event) => { setViewCommand({ id: Date.now(), action: 'reset' }); closeCommandMenu(event); }} className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800">Reset view</button>
+                  {(['fit', '60', '80', 'full'] as ViewerHeightPreset[]).map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={(event) => {
+                        applyViewerHeightPreset(preset);
+                        closeCommandMenu(event);
+                      }}
+                      className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                    >
+                      {preset === 'fit' ? 'Fit height' : preset === 'full' ? 'Full height' : `${preset}%`}
+                    </button>
+                  ))}
+                </div>
+              </details>
+
+              <details className="group relative">
+                <summary className="flex h-9 cursor-pointer list-none items-center gap-1 rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-cyan-400/40 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
+                  Display <span aria-hidden>▾</span>
+                </summary>
+                <div className="absolute left-0 z-30 mt-2 w-64 space-y-2 rounded-xl border border-slate-200 bg-white p-3 text-xs shadow-xl dark:border-slate-700 dark:bg-slate-900">
+                  <ToggleField label="Show opening layout" checked={showOpeningLayout} onChange={setShowOpeningLayout} />
+                  <ToggleField label="Show grout/rebar cells" checked={showGroutCells} onChange={setShowGroutCells} />
+                  <ToggleField label="Show cut-block warnings" checked={showClosureWarnings} onChange={setShowClosureWarnings} />
+                </div>
+              </details>
+
+              <button
+                type="button"
+                onClick={handleUndoLayout}
+                disabled={!canUndoWallLayout(layoutHistory)}
+                className="h-9 rounded-lg px-3 text-xs font-semibold text-slate-600 hover:bg-slate-100 disabled:opacity-40 dark:text-slate-300 dark:hover:bg-slate-800"
+              >
+                Undo
+              </button>
+              <button
+                type="button"
+                onClick={handleRedoLayout}
+                disabled={!canRedoWallLayout(layoutHistory)}
+                className="h-9 rounded-lg px-3 text-xs font-semibold text-slate-600 hover:bg-slate-100 disabled:opacity-40 dark:text-slate-300 dark:hover:bg-slate-800"
+              >
+                Redo
+              </button>
+
+              {modelLoaded && !footprintClosed ? (
+                <button
+                  type="button"
+                  onClick={() => commitWallLayout(closeFootprint(wallLayout), 'close footprint')}
+                  disabled={!closeFootprintEnabled}
+                  className="h-9 rounded-lg border border-amber-300 px-3 text-xs font-semibold text-amber-800 hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-amber-800 dark:text-amber-200 dark:hover:bg-amber-950/40"
+                >
+                  Close Footprint
+                </button>
+              ) : null}
+
+              <button
+                type="button"
+                onClick={() => setViewCommand({ id: Date.now(), action: 'fit' })}
+                className="ml-auto hidden h-9 rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800 lg:inline-flex lg:items-center"
+              >
+                Fit
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleSaveDesign()}
+                disabled={busy || !modelLoaded}
+                className="h-9 rounded-lg bg-slate-900 px-3 text-xs font-semibold text-white shadow-sm hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-cyan-500 dark:text-slate-950 dark:hover:bg-cyan-400"
+              >
+                Save Design
+              </button>
+
+              <div className="ml-auto flex flex-wrap items-center gap-2 text-[11px]">
+                <span className="rounded-full border border-slate-200 px-2.5 py-1 font-semibold text-slate-600 dark:border-slate-700 dark:text-slate-300">
+                  Dimension basis: Outside face
+                </span>
+                {layoutBounds ? (
+                  <span className="rounded-full border border-slate-200 px-2.5 py-1 font-semibold text-slate-600 dark:border-slate-700 dark:text-slate-300">
+                    Exterior {layoutBounds.exteriorLengthMeters.toFixed(2)}m × {layoutBounds.exteriorWidthMeters.toFixed(2)}m
+                  </span>
+                ) : null}
+                {hasCutBlockWarnings ? (
+                  <details className="relative">
+                    <summary className="cursor-pointer list-none rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 font-semibold text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-400/40 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100">
+                      Cut-block warning
+                    </summary>
+                    <div className="absolute right-0 z-30 mt-2 w-72 rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900 shadow-xl dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100">
+                      {cutBlockWarningText}
+                    </div>
+                  </details>
+                ) : null}
+                {livePlacementStatus && livePlacementStatus.kind !== 'cut_block' ? <PlacementStatusBadge status={livePlacementStatus} /> : null}
+              </div>
+            </div>
+          </div>
+
+          {(manualMasonryEnabled || toolInstruction || toolMode === 'delete') ? (
+            <div className="mb-2 flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-xs shadow-sm dark:border-slate-700 dark:bg-slate-900/90">
+              {manualMasonryEnabled ? (
+                <>
+                  <span className="rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 font-semibold text-cyan-800 dark:border-cyan-800 dark:bg-cyan-950/40 dark:text-cyan-100">
+                    Manual CMU Course Builder · click one block or drag a run
+                  </span>
+                  {MASONRY_TOOL_OPTIONS.map((option) => (
+                    <button
+                      key={option.mode}
+                      type="button"
+                      onClick={() => setMasonryToolMode(option.mode)}
+                      className={`h-8 rounded-lg px-2.5 font-semibold ${
+                        masonryToolMode === option.mode
+                          ? 'bg-slate-900 text-white dark:bg-cyan-500 dark:text-slate-950'
+                          : 'border border-slate-200 text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800'
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                  <span className="rounded-full border border-slate-200 px-2.5 py-1 font-semibold text-slate-600 dark:border-slate-700 dark:text-slate-300">
+                    Runs: {manualMasonryRuns.length} · Units: {manualMasonrySummary.total}
+                  </span>
+                </>
+              ) : null}
+              {toolInstruction ? (
+                <span className="rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 font-semibold text-cyan-800 dark:border-cyan-800 dark:bg-cyan-950/40 dark:text-cyan-100">
+                  {toolInstruction}
+                </span>
+              ) : null}
+              {toolMode === 'draw_wall' ? (
+                <>
+                  <label className="flex items-center gap-2 font-medium text-slate-600 dark:text-slate-300">
+                    Length
+                    <input
+                      value={segmentLengthInput}
+                      onChange={(event) => setSegmentLengthInput(event.target.value)}
+                      className="h-8 w-20 rounded border border-slate-300 bg-white px-2 dark:border-slate-700 dark:bg-slate-950"
+                      placeholder="m"
+                    />
+                  </label>
+                  <label className="flex items-center gap-2 font-medium text-slate-600 dark:text-slate-300">
+                    Wall height
+                    <input
+                      type="number"
+                      value={wallLayout.defaultWallHeightMeters}
+                      onChange={(event) =>
+                        commitWallLayout(
+                          { ...wallLayout, defaultWallHeightMeters: Math.max(0.5, Number(event.target.value) || wallLayout.defaultWallHeightMeters) },
+                          'wall height',
+                        )
+                      }
+                      className="h-8 w-20 rounded border border-slate-300 bg-white px-2 dark:border-slate-700 dark:bg-slate-950"
+                    />
+                    m
+                  </label>
+                  <span className="rounded-full border border-slate-200 px-2.5 py-1 font-semibold text-slate-600 dark:border-slate-700 dark:text-slate-300">
+                    Unit: {unitSystem === 'metric' ? 'meters' : 'feet/inches'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => commitWallLayout({ ...wallLayout, orthogonalLock: !wallLayout.orthogonalLock }, 'toggle orthogonal')}
+                    className={`h-8 rounded-lg px-2.5 font-semibold ${
+                      wallLayout.orthogonalLock
+                        ? 'bg-slate-900 text-white dark:bg-cyan-500 dark:text-slate-950'
+                        : 'border border-slate-200 text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800'
+                    }`}
+                  >
+                    Orthogonal {wallLayout.orthogonalLock ? 'On' : 'Off'}
+                  </button>
+                </>
+              ) : null}
+              {activeOpeningTool && activeOpeningSettings ? (
+                <>
+                  <label className="flex items-center gap-2 font-medium text-slate-600 dark:text-slate-300">
+                    Width
+                    <input
+                      value={activeOpeningSettings.widthMeters}
+                      onChange={(event) =>
+                        setOpeningToolSettings((current) => ({
+                          ...current,
+                          [activeOpeningTool]: { ...current[activeOpeningTool], widthMeters: event.target.value },
+                        }))
+                      }
+                      className="h-8 w-20 rounded border border-slate-300 bg-white px-2 dark:border-slate-700 dark:bg-slate-950"
+                      placeholder="m"
+                    />
+                  </label>
+                  <label className="flex items-center gap-2 font-medium text-slate-600 dark:text-slate-300">
+                    Height
+                    <input
+                      value={activeOpeningSettings.heightMeters}
+                      onChange={(event) =>
+                        setOpeningToolSettings((current) => ({
+                          ...current,
+                          [activeOpeningTool]: { ...current[activeOpeningTool], heightMeters: event.target.value },
+                        }))
+                      }
+                      className="h-8 w-20 rounded border border-slate-300 bg-white px-2 dark:border-slate-700 dark:bg-slate-950"
+                      placeholder="m"
+                    />
+                  </label>
+                  <label className="flex items-center gap-2 font-medium text-slate-600 dark:text-slate-300">
+                    Rough allowance
+                    <input
+                      value={activeOpeningSettings.roughOpeningAllowanceMeters}
+                      onChange={(event) =>
+                        setOpeningToolSettings((current) => ({
+                          ...current,
+                          [activeOpeningTool]: { ...current[activeOpeningTool], roughOpeningAllowanceMeters: event.target.value },
+                        }))
+                      }
+                      className="h-8 w-20 rounded border border-slate-300 bg-white px-2 dark:border-slate-700 dark:bg-slate-950"
+                      placeholder="m"
+                    />
+                  </label>
+                  <span className="rounded-full border border-slate-200 px-2.5 py-1 font-semibold text-slate-600 dark:border-slate-700 dark:text-slate-300">
+                    Snap to CMU: {snapMode === 'cmu_module' ? 'On' : 'Available'}
+                  </span>
+                </>
+              ) : null}
+              {toolMode === 'delete' ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleDeleteSelectedOpening}
+                    disabled={!selectedOpeningId}
+                    className="h-8 rounded-lg border border-red-300 px-2.5 font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-950/40"
+                  >
+                    Delete selected opening
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDeleteSelectedSegment}
+                    disabled={activeSelection.kind !== 'wall_segment'}
+                    title={activeSelection.kind !== 'wall_segment' ? 'Select a wall segment to delete.' : 'Delete selected wall'}
+                    className="h-8 rounded-lg border border-red-300 px-2.5 font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-950/40"
+                  >
+                    Delete selected wall
+                  </button>
+                </>
+              ) : null}
+            </div>
+          ) : null}
+          <div
+            className={focusMode ? 'relative min-h-0 flex-1 overflow-hidden' : 'relative overflow-hidden'}
+            style={focusMode ? undefined : { height: viewerSize.height }}
+          >
+            {viewMode === 'plan' ? (
+              <DesignBuilderPlanCanvas
+                layout={wallLayout}
+                toolMode={toolMode}
+                draftEnd={draftPlanEnd}
+                activeNodeId={activeDrawNodeId}
+                drawStartNodeId={drawStartNodeId}
+                selectedSegmentId={selectedSegmentId}
+                selectedNodeId={selectedNodeId}
+                manualMasonry={{
+                  enabled: manualMasonryEnabled,
+                  tool: masonryToolMode,
+                  wall: effectiveWall,
+                  runs: manualMasonryRuns,
+                  preview: manualMasonryPreview,
+                }}
+                onInteraction={handlePlanInteraction}
+                onManualMasonryPointer={handleManualMasonryPointer}
+              />
+            ) : (
+              <DesignBuilderViewer
+                modelLoaded={modelLoaded}
+                slab={footprintClosed ? resolvedPreset.slab : { ...resolvedPreset.slab, lengthMeters: 0, widthMeters: 0 }}
+                wall={effectiveWall}
+                roof={footprintClosed ? resolvedPreset.roof : { ...resolvedPreset.roof, lengthMeters: 0, widthMeters: 0 }}
+                truss={footprintClosed ? resolvedPreset.truss : { ...resolvedPreset.truss, buildingLengthMeters: 0 }}
+                geometryResult={designGeometryResult}
+                selectedObjectType={selectedObjectType}
+                selectedOpeningId={selectedOpeningId}
+                toolMode={toolMode}
+                placementPreview={placementPreview}
+                onInteraction={handleViewerInteraction}
+                onSelectObjectType={setSelectedObjectType}
+                fitContainer={focusMode}
+                viewCommand={viewCommand}
+                initialCameraSnapshot={cameraSnapshot}
+                onCameraSnapshotChange={setCameraSnapshot}
+                showOpeningLayout={showOpeningLayout}
+                showGroutCells={showGroutCells}
+                showClosureWarnings={showClosureWarnings}
+              />
+            )}
+            {viewMode === 'plan' && toolMode === 'draw_wall' && !onboardingVisible ? (
+              <div className="pointer-events-none absolute left-3 top-12 z-10 rounded-xl border border-amber-400/60 bg-slate-900/95 px-3 py-2 text-xs font-medium text-amber-100 shadow-lg">
+                {drawWallInstruction}
+              </div>
+            ) : null}
+            {blankState.onboardingVisible ? (
+              <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center p-6">
+                <div className="pointer-events-auto max-w-md rounded-2xl border border-cyan-200 bg-white/95 p-5 text-center shadow-xl backdrop-blur dark:border-cyan-800 dark:bg-slate-900/95">
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Start a CMU layout</h3>
+                  <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                    Build CMU manually by placing blocks and runs, or create an auto wall layout from drawn wall segments.
+                  </p>
+                  <div className="mt-4 flex flex-wrap justify-center gap-2">
+                    <button
+                      type="button"
+                      onClick={startManualCmuBuilder}
+                      className="rounded-lg bg-cyan-600 px-3 py-2 text-sm font-semibold text-white hover:bg-cyan-700"
+                    >
+                      Build CMU Manually
+                    </button>
+                    <button
+                      type="button"
+                      onClick={startAutoWallLayout}
+                      className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+                    >
+                      Create Auto Wall Layout
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void handleLoadExample()}
+                      className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+                    >
+                      Load 5m x 6m Example
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+          </div>
+          {!focusMode ? (
+            <div
+              role="separator"
+              aria-label="Resize Design Builder viewer height"
+              className="group -mt-2 flex h-5 cursor-row-resize items-center justify-center rounded-b-2xl"
+              onPointerDown={beginHeightResize}
+            >
+              <span className="h-1 w-20 rounded-full bg-slate-300 transition group-hover:bg-cyan-500 dark:bg-slate-700" />
+            </div>
+          ) : null}
+          {changedAfterCommit ? (
+            <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100" role="alert">
+              Design changed after commit. Regenerate/update estimate lines before bidding.
+            </div>
+          ) : null}
+          <div className={`${statusClassName(status.tone)} ${focusMode ? 'mt-3 shrink-0' : ''}`} role="status">
+            {status.message}
+          </div>
+          {!focusMode ? (
+            <Panel title="Source of Truth">
+              <p className="text-sm text-slate-600 dark:text-slate-300">
+                The saved model stores parametric source objects only. Individual CMU blocks are generated with THREE.InstancedMesh and are not database rows.
+              </p>
+            </Panel>
+          ) : null}
+        </main>
+
+        <button
+          type="button"
+          onClick={toggleRightPanel}
+          className="absolute right-0 top-1/2 z-20 translate-x-1/2 rounded-full border border-slate-200 bg-white px-2 py-3 text-xs font-bold text-slate-700 shadow-lg hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+          aria-label={rightPanelCollapsed ? 'Expand Design Builder estimate panel' : 'Collapse Design Builder estimate panel'}
+        >
+          {rightPanelCollapsed ? '‹' : '›'}
+        </button>
+
+        <aside
+          className={`relative space-y-4 overflow-hidden transition-opacity ${
+            rightPanelCollapsed ? 'pointer-events-none opacity-0' : 'opacity-100'
+          } ${focusMode ? 'min-h-0 overflow-y-auto pr-1' : ''}`}
+        >
+          {!rightPanelCollapsed ? (
+            <div
+              role="separator"
+              aria-label="Resize Design Builder estimate panel"
+              className="absolute -left-2 top-0 hidden h-full w-3 cursor-col-resize xl:block"
+              onPointerDown={beginRightPanelResize}
+            />
+          ) : null}
+          <Panel title="Quantity Summary">
+            <div className="grid grid-cols-2 gap-2">
+              {quantityCards.map((card) => (
+                <button
+                  key={card.label}
+                  type="button"
+                  onClick={() => {
+                    setSelectedObjectType(card.objectType);
+                    setSelectedOpeningId(null);
+                    setSelectedSegmentId(null);
+                    setSelectedNodeId(null);
+                    setPlacementPreview(null);
+                  }}
+                  className={`rounded-xl p-3 text-left transition ${
+                    selectedObjectType === card.objectType
+                      ? 'bg-cyan-100 ring-2 ring-cyan-400 dark:bg-cyan-950/60'
+                      : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/70 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  <div className="text-xs text-slate-500 dark:text-slate-400">{card.label}</div>
+                  <div className="mt-1 font-semibold">
+                    {card.value} {card.unit}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </Panel>
+
+          <Panel title="Estimate Preview — not committed yet">
+            <div className="space-y-2">
+              {visiblePreviewLines.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-slate-300 p-4 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
+                  Load the example to generate estimate-ready quantities.
+                </div>
+              ) : null}
+              {visiblePreviewLines.map((line) => (
+                <button
+                  key={line.id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedObjectType(objectTypeForPreviewLine(line));
+                    setSelectedOpeningId(null);
+                    setSelectedSegmentId(null);
+                    setSelectedNodeId(null);
+                    setPlacementPreview(null);
+                  }}
+                  className="w-full rounded-xl border border-slate-200 p-3 text-left text-sm transition hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="font-medium">{line.description}</div>
+                    <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200">
+                      Calculated from parameters
+                    </span>
+                  </div>
+                  <div className="mt-1 text-slate-600 dark:text-slate-300">
+                    {line.quantity} {line.unit} · Division {line.divisionCode} {line.divisionName}
+                  </div>
+                  <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    Source object: {OBJECT_TREE_ITEMS.find((item) => item.objectType === objectTypeForPreviewLine(line))?.label}
+                  </div>
+                  <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">{line.formula}</div>
+                </button>
+              ))}
+            </div>
+            <div className="mt-4 grid gap-2">
+              <button
+                type="button"
+                onClick={() => void handleGeneratePreview()}
+                disabled={busy}
+                className="rounded-xl border border-cyan-300 px-4 py-2 text-sm font-semibold text-cyan-800 hover:bg-cyan-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-cyan-700 dark:text-cyan-200 dark:hover:bg-cyan-950/60"
+              >
+                Generate Estimate Preview
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleCommitPreview()}
+                disabled={busy || previewLines.length === 0 || generatedPreview.length === 0}
+                className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-cyan-500 dark:text-slate-950 dark:hover:bg-cyan-400"
+              >
+                Commit to Detailed Estimate
+              </button>
+            </div>
+          </Panel>
+
+          <Panel title="Warnings">
+            <div className="space-y-2 text-sm text-slate-600 dark:text-slate-300">
+              <p>
+                CMU layout is conceptual for estimating. Verify block layout, lintels, reinforcement, bond beams, and structural requirements before bidding.
+              </p>
+              <p>This tool does not provide structural engineering or code compliance.</p>
+              {moduleWarnings.map((warning) => (
+                <div key={warning} className="rounded-lg border border-amber-200 bg-amber-50 p-2 text-xs text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
+                  {warning}
+                </div>
+              ))}
+            </div>
+          </Panel>
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+function Panel({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+      <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+        {title}
+      </h3>
+      {children}
+    </section>
+  );
+}
+
+function statusClassName(tone: StatusTone): string {
+  const base = 'rounded-xl border px-4 py-3 text-sm';
+  if (tone === 'success') {
+    return `${base} border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200`;
+  }
+  if (tone === 'error') {
+    return `${base} border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-800 dark:bg-rose-950/50 dark:text-rose-200`;
+  }
+  return `${base} border-cyan-200 bg-cyan-50 text-cyan-800 dark:border-cyan-800 dark:bg-cyan-950/50 dark:text-cyan-200`;
+}
+
+const TOOL_MODE_OPTIONS: Array<{ mode: DesignBuilderToolMode; label: string }> = [
+  { mode: 'select', label: 'Select' },
+  { mode: 'draw_wall', label: 'Draw Wall' },
+  { mode: 'move_wall_node', label: 'Move Node' },
+  { mode: 'place_door', label: 'Place Door' },
+  { mode: 'place_window', label: 'Place Window' },
+  { mode: 'move_opening', label: 'Move Opening' },
+  { mode: 'delete', label: 'Delete' },
+];
+
+const MASONRY_TOOL_OPTIONS: Array<{ mode: MasonryToolMode; label: string }> = [
+  { mode: 'select', label: 'Select' },
+  { mode: 'full_block', label: 'Full block' },
+  { mode: 'half_block', label: 'Half block' },
+  { mode: 'end_block', label: 'End block' },
+  { mode: 'corner_block', label: 'Corner course' },
+  { mode: 'jamb_block', label: 'Jamb block' },
+  { mode: 'bond_beam_block', label: 'Bond beam block' },
+  { mode: 'grout_rebar_cell', label: 'Grout/rebar cell' },
+  { mode: 'erase', label: 'Erase' },
+];
+
+function PlacementStatusBadge({ status }: { status: OpeningPlacementStatus }) {
+  const toneClass =
+    status.kind === 'invalid'
+      ? 'border-red-300 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950/40 dark:text-red-200'
+      : status.kind === 'cut_block'
+        ? 'border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100'
+        : status.kind === 'half_block'
+          ? 'border-yellow-300 bg-yellow-50 text-yellow-900 dark:border-yellow-800 dark:bg-yellow-950/40 dark:text-yellow-100'
+          : 'border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200';
+  return (
+    <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${toneClass}`} title={status.warnings.join(' ')}>
+      {status.label}
+    </span>
+  );
+}
+
+const OBJECT_TREE_ITEMS: Array<{ id: string; objectType: DesignObjectType; label: string; description: string }> = [
+  { id: 'footprint', objectType: 'building_footprint', label: 'Rectangle Footprint', description: '6m x 5m building footprint' },
+  { id: 'slab', objectType: 'thickened_edge_slab', label: 'Thickened Edge Slab', description: 'Slab field and perimeter beam' },
+  { id: 'cmu', objectType: 'cmu_wall_system', label: 'CMU Wall System', description: 'Four generated block walls' },
+  { id: 'north-wall', objectType: 'cmu_wall_system', label: 'North Wall', description: 'Generated courses and corner units' },
+  { id: 'south-wall', objectType: 'cmu_wall_system', label: 'South Wall', description: 'Door opening, jambs, lintel' },
+  { id: 'east-wall', objectType: 'cmu_wall_system', label: 'East Wall', description: 'Window opening, jambs, lintel' },
+  { id: 'west-wall', objectType: 'cmu_wall_system', label: 'West Wall', description: 'Generated courses and corner units' },
+  { id: 'openings', objectType: 'door_opening', label: 'Openings', description: 'Door and window parameters' },
+  { id: 'door', objectType: 'door_opening', label: 'Door Opening', description: 'Framed opening on wall face' },
+  { id: 'door-rough', objectType: 'door_opening', label: 'Door Rough Opening', description: 'Wall cutout and rough tolerance' },
+  { id: 'door-jamb-grout', objectType: 'cmu_wall_system', label: 'Door Jamb Grout Cells', description: 'Generated grout/rebar cells beside door' },
+  { id: 'door-lintel', objectType: 'cmu_wall_system', label: 'Door Lintel', description: 'Bearing zone above door opening' },
+  { id: 'window', objectType: 'window_opening', label: 'Window Opening', description: 'Framed opening with sill height' },
+  { id: 'window-rough', objectType: 'window_opening', label: 'Window Rough Opening', description: 'Wall cutout and rough tolerance' },
+  { id: 'window-jamb-grout', objectType: 'cmu_wall_system', label: 'Window Jamb Grout Cells', description: 'Generated grout/rebar cells beside window' },
+  { id: 'window-sill', objectType: 'window_opening', label: 'Window Sill/Bottom Condition', description: 'Conceptual bottom/sill condition' },
+  { id: 'window-lintel', objectType: 'cmu_wall_system', label: 'Window Lintel', description: 'Bearing zone above window opening' },
+  { id: 'lintels', objectType: 'cmu_wall_system', label: 'Lintels', description: 'Bearing above each opening' },
+  { id: 'bond-beams', objectType: 'cmu_wall_system', label: 'Bond Beams', description: 'Top course and opening zones' },
+  { id: 'pilasters', objectType: 'cmu_wall_system', label: 'Columns/Pilasters', description: 'Conceptual reinforced locations' },
+  { id: 'generated-blocks', objectType: 'cmu_wall_system', label: 'Generated Blocks', description: 'Instanced full and special units' },
+  { id: 'roof', objectType: 'gable_roof_system', label: 'Gable Roof System', description: 'Pitched roof planes and overhang' },
+  { id: 'trusses', objectType: 'steel_truss_system', label: 'Steel Truss System', description: 'Truss preview by spacing' },
+];
+
+const OBJECT_TREE_GROUPS: Array<{
+  id: string;
+  label: string;
+  items: Array<{ id: string; objectType: DesignObjectType; label: string; description: string }>;
+}> = [
+  {
+    id: 'layout',
+    label: 'Layout',
+    items: [
+      { id: 'footprint', objectType: 'building_footprint', label: 'Wall nodes', description: 'Plan layout corner and junction points' },
+      { id: 'cmu', objectType: 'cmu_wall_system', label: 'Wall segments', description: 'Exterior face wall segments' },
+      { id: 'corners', objectType: 'cmu_wall_system', label: 'Corners', description: 'Derived corner bond conditions' },
+    ],
+  },
+  {
+    id: 'cmu',
+    label: 'CMU Wall System',
+    items: OBJECT_TREE_ITEMS.filter((item) =>
+      ['cmu', 'north-wall', 'south-wall', 'east-wall', 'west-wall', 'generated-blocks', 'lintels', 'bond-beams'].includes(item.id),
+    ),
+  },
+  {
+    id: 'openings',
+    label: 'Openings',
+    items: OBJECT_TREE_ITEMS.filter((item) =>
+      item.objectType === 'door_opening' || item.objectType === 'window_opening' || item.id.includes('jamb') || item.id.includes('lintel') || item.id === 'openings',
+    ),
+  },
+  {
+    id: 'secondary',
+    label: 'Slab / Roof / Trusses',
+    items: OBJECT_TREE_ITEMS.filter((item) => ['slab', 'roof', 'trusses'].includes(item.id)),
+  },
+];
+
+function EditableControls({
+  selectedObjectType,
+  preset,
+  unitSystem,
+  onUnitSystemChange,
+  onFootprintChange,
+  onWallChange,
+  onShowIndividualBlocksChange,
+  onWallOptionChange,
+  onBlockModuleChange,
+  cmuModule,
+  wallModuleFits,
+  moduleWarnings,
+  cmuLayout,
+  onSlabChange,
+  onRoofChange,
+  onTrussSpacingChange,
+  onOpeningChange,
+  selectedOpeningId,
+}: {
+  selectedObjectType: DesignObjectType;
+  preset: CmuBuildingPreset;
+  unitSystem: DesignUnitSystem;
+  onUnitSystemChange: (unitSystem: DesignUnitSystem) => void;
+  onFootprintChange: (field: 'lengthMeters' | 'widthMeters', value: number) => void;
+  onWallChange: (
+    field: 'heightMeters' | 'wallThicknessMeters' | 'blockLengthMeters' | 'blockHeightMeters' | 'blockDepthMeters' | 'wasteFactor',
+    value: number,
+  ) => void;
+  onShowIndividualBlocksChange: (showIndividualBlocks: boolean) => void;
+  onWallOptionChange: (patch: Partial<CmuBuildingPreset['wall']>) => void;
+  onBlockModuleChange: (field: keyof NonNullable<CmuBuildingPreset['wall']['blockModule']>, value: number | string) => void;
+  cmuModule: ReturnType<typeof resolveCmuModuleConfig>;
+  wallModuleFits: ReturnType<typeof summarizeWallModuleFits>;
+  moduleWarnings: string[];
+  cmuLayout: ReturnType<typeof generateCmuLayout>;
+  onSlabChange: (field: 'slabThicknessMeters' | 'edgeWidthMeters' | 'edgeDepthMeters', value: number) => void;
+  onRoofChange: (field: 'pitchRisePerRun' | 'overhangMeters', value: number) => void;
+  onTrussSpacingChange: (value: number) => void;
+  onOpeningChange: (openingId: string, patch: Partial<WallOpeningParameters>) => void;
+  selectedOpeningId: string | null;
+}) {
+  if (selectedObjectType === 'building_footprint') {
+    return (
+      <div className="space-y-3">
+        <SelectField
+          label="Unit system"
+          value={unitSystem}
+          onChange={(value) => onUnitSystemChange(value as DesignUnitSystem)}
+          options={[
+            { value: 'metric', label: 'Metric display' },
+            { value: 'imperial', label: 'Imperial display' },
+          ]}
+        />
+        <NumberField label="Length" value={preset.footprint.lengthMeters} suffix="m" onChange={(value) => onFootprintChange('lengthMeters', value)} />
+        <NumberField label="Width" value={preset.footprint.widthMeters} suffix="m" onChange={(value) => onFootprintChange('widthMeters', value)} />
+      </div>
+    );
+  }
+
+  if (selectedObjectType === 'cmu_wall_system') {
+    return (
+      <div className="space-y-3">
+        <div className="rounded-xl border border-cyan-200 bg-cyan-50 p-3 dark:border-cyan-800 dark:bg-cyan-950/40">
+          <div className="text-sm font-semibold text-cyan-900 dark:text-cyan-100">CMU Module Rules</div>
+          <div className="mt-3 space-y-3">
+            <TextField
+              label="Block family"
+              value={cmuModule.familyName}
+              onChange={(value) => onBlockModuleChange('familyName', value)}
+            />
+            <NumberField label="Module length" value={cmuModule.moduleLengthMeters} suffix="m" step={0.01} onChange={(value) => onBlockModuleChange('moduleLengthMeters', value)} />
+            <NumberField label="Module height" value={cmuModule.moduleHeightMeters} suffix="m" step={0.01} onChange={(value) => onBlockModuleChange('moduleHeightMeters', value)} />
+            <NumberField label="Nominal depth" value={cmuModule.nominalDepthMeters} suffix="m" step={0.01} onChange={(value) => onBlockModuleChange('nominalDepthMeters', value)} />
+            <NumberField label="Mortar joint" value={cmuModule.mortarJointMeters} suffix="m" step={0.001} onChange={(value) => onBlockModuleChange('mortarJointMeters', value)} />
+            <label className="flex items-center justify-between rounded-lg bg-white px-3 py-2 text-sm dark:bg-slate-900">
+              <span>Snap building dimensions to CMU module</span>
+              <input
+                type="checkbox"
+                checked={preset.wall.snapToModule ?? false}
+                onChange={(event) => onWallOptionChange({ snapToModule: event.currentTarget.checked })}
+                className="h-4 w-4"
+              />
+            </label>
+            <div className="grid gap-2">
+              {Object.entries(wallModuleFits).map(([face, fit]) => (
+                <div key={face} className="rounded-lg bg-white p-2 text-xs dark:bg-slate-900">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-semibold capitalize">{face} wall</span>
+                    <ModuleFitBadge fit={fit.fit} />
+                  </div>
+                  <div className="mt-1 text-slate-600 dark:text-slate-300">
+                    {fit.lengthMeters.toFixed(2)}m = {formatModuleCount(fit.moduleCount)} modules
+                  </div>
+                  {fit.fit === 'cut' ? (
+                    <div className="mt-1 text-amber-700 dark:text-amber-300">
+                      Suggested clean lengths: {fit.suggestedLengthsMeters.map((value) => `${value.toFixed(2)}m`).join(' or ')}
+                    </div>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+            {moduleWarnings.length > 0 ? (
+              <div className="space-y-1 rounded-lg border border-amber-200 bg-amber-50 p-2 text-xs text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
+                {moduleWarnings.map((warning) => (
+                  <div key={warning}>{warning}</div>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </div>
+        <NumberField label="Wall height" value={preset.wall.heightMeters} suffix="m" onChange={(value) => onWallChange('heightMeters', value)} />
+        <NumberField label="Wall thickness" value={preset.wall.wallThicknessMeters} suffix="m" onChange={(value) => onWallChange('wallThicknessMeters', value)} />
+        <NumberField label="Block length" value={preset.wall.blockLengthMeters} suffix="m" onChange={(value) => onWallChange('blockLengthMeters', value)} />
+        <NumberField label="Block height" value={preset.wall.blockHeightMeters} suffix="m" onChange={(value) => onWallChange('blockHeightMeters', value)} />
+        <NumberField label="Block depth" value={preset.wall.blockDepthMeters} suffix="m" onChange={(value) => onWallChange('blockDepthMeters', value)} />
+        <NumberField label="Waste" value={preset.wall.wasteFactor * 100} suffix="%" onChange={(value) => onWallChange('wasteFactor', value / 100)} />
+        <SelectField
+          label="Bond pattern"
+          value={preset.wall.bondPattern ?? 'running_bond'}
+          onChange={(value) => onWallOptionChange({ bondPattern: value as CmuBuildingPreset['wall']['bondPattern'] })}
+          options={[
+            { value: 'running_bond', label: 'Running bond' },
+            { value: 'stack_bond', label: 'Stack bond' },
+          ]}
+        />
+        <SelectField
+          label="Lintel type"
+          value={preset.wall.lintelType ?? 'bond_beam'}
+          onChange={(value) => onWallOptionChange({ lintelType: value as CmuBuildingPreset['wall']['lintelType'] })}
+          options={[
+            { value: 'bond_beam', label: 'Bond beam lintel' },
+            { value: 'precast_concrete', label: 'Precast concrete' },
+            { value: 'none', label: 'None' },
+          ]}
+        />
+        <NumberField label="Lintel bearing" value={preset.wall.lintelBearingMeters ?? 0.2} suffix="m" onChange={(value) => onWallOptionChange({ lintelBearingMeters: Math.max(0, value) })} />
+        <NumberField label="Lintel courses" value={preset.wall.lintelCourseCount ?? 1} suffix="courses" step={1} onChange={(value) => onWallOptionChange({ lintelCourseCount: Math.max(1, Math.round(value)) })} />
+        <NumberField label="Core fill factor" value={preset.wall.coreFillFactor ?? 0.5} suffix="x" step={0.05} onChange={(value) => onWallOptionChange({ coreFillFactor: Math.max(0, Math.min(1, value)) })} />
+        <NumberField label="Grout waste" value={(preset.wall.groutWastePercent ?? 0.1) * 100} suffix="%" step={1} onChange={(value) => onWallOptionChange({ groutWastePercent: Math.max(0, value / 100) })} />
+        <NumberField label="Default jamb cells each side" value={preset.wall.jambCellsEachSide ?? 1} suffix="cells" step={1} onChange={(value) => onWallOptionChange({ jambCellsEachSide: Math.max(0, Math.round(value)) })} />
+        <NumberField label="Grouted cell spacing" value={preset.wall.groutedCellSpacingMeters ?? 1.2} suffix="m" onChange={(value) => onWallOptionChange({ groutedCellSpacingMeters: positiveOrFallback(value, 1.2) })} />
+        <NumberField label="Vertical reinforcement spacing" value={preset.wall.verticalReinforcementSpacingMeters ?? 1.2} suffix="m" onChange={(value) => onWallOptionChange({ verticalReinforcementSpacingMeters: positiveOrFallback(value, 1.2) })} />
+        <label className="flex items-center justify-between rounded-lg bg-slate-100 px-3 py-2 text-sm dark:bg-slate-800">
+          <span>Lintel bond beam enabled</span>
+          <input
+            type="checkbox"
+            checked={preset.wall.lintelBondBeamEnabled ?? true}
+            onChange={(event) => onWallOptionChange({ lintelBondBeamEnabled: event.currentTarget.checked })}
+            className="h-4 w-4"
+          />
+        </label>
+        <label className="flex items-center justify-between rounded-lg bg-slate-100 px-3 py-2 text-sm dark:bg-slate-800">
+          <span>Top course bond beam</span>
+          <input
+            type="checkbox"
+            checked={preset.wall.bondBeamEnabled ?? true}
+            onChange={(event) => onWallOptionChange({ bondBeamEnabled: event.currentTarget.checked })}
+            className="h-4 w-4"
+          />
+        </label>
+        <label className="flex items-center justify-between rounded-lg bg-slate-100 px-3 py-2 text-sm dark:bg-slate-800">
+          <span>Conceptual columns/pilasters</span>
+          <input
+            type="checkbox"
+            checked={preset.wall.pilasterEnabled ?? true}
+            onChange={(event) => onWallOptionChange({ pilasterEnabled: event.currentTarget.checked })}
+            className="h-4 w-4"
+          />
+        </label>
+        <label className="flex items-center justify-between rounded-lg bg-slate-100 px-3 py-2 text-sm dark:bg-slate-800">
+          <span>Show individual CMU blocks</span>
+          <input
+            type="checkbox"
+            checked={preset.wall.showIndividualBlocks}
+            onChange={(event) => onShowIndividualBlocksChange(event.currentTarget.checked)}
+            className="h-4 w-4"
+          />
+        </label>
+      </div>
+    );
+  }
+
+  if (selectedObjectType === 'thickened_edge_slab') {
+    return (
+      <div className="space-y-3">
+        <NumberField label="Slab thickness" value={preset.slab.slabThicknessMeters} suffix="m" onChange={(value) => onSlabChange('slabThicknessMeters', value)} />
+        <NumberField label="Edge width" value={preset.slab.edgeWidthMeters} suffix="m" onChange={(value) => onSlabChange('edgeWidthMeters', value)} />
+        <NumberField label="Edge depth" value={preset.slab.edgeDepthMeters} suffix="m" onChange={(value) => onSlabChange('edgeDepthMeters', value)} />
+      </div>
+    );
+  }
+
+  if (selectedObjectType === 'gable_roof_system') {
+    return (
+      <div className="space-y-3">
+        <NumberField label="Pitch rise/run" value={preset.roof.pitchRisePerRun} suffix=":1" step={0.05} onChange={(value) => onRoofChange('pitchRisePerRun', value)} />
+        <NumberField label="Overhang" value={preset.roof.overhangMeters} suffix="m" onChange={(value) => onRoofChange('overhangMeters', value)} />
+        <SelectField label="Ridge direction" value={preset.roof.ridgeDirection} onChange={() => undefined} options={[{ value: 'length', label: 'Along building length' }]} />
+      </div>
+    );
+  }
+
+  if (selectedObjectType === 'steel_truss_system') {
+    return (
+      <div className="space-y-3">
+        <NumberField label="Spacing" value={preset.truss.spacingMeters} suffix="m" onChange={onTrussSpacingChange} />
+        <SelectField label="Type" value="steel_preview" onChange={() => undefined} options={[{ value: 'steel_preview', label: 'Steel truss preview' }]} />
+      </div>
+    );
+  }
+
+  const opening =
+    (selectedOpeningId ? preset.wall.openings.find((item) => item.id === selectedOpeningId) : null) ??
+    preset.wall.openings.find((item) =>
+      selectedObjectType === 'door_opening' ? item.type === 'door' : item.type === 'window',
+    );
+  if (!opening) return <p className="text-sm text-slate-500 dark:text-slate-400">No opening selected.</p>;
+  const resolvedOpening = resolveCmuOpening(preset.wall, opening);
+  const openingClosures = cmuLayout.openingCourseClosures.filter((closure) => closure.openingId === opening.id);
+  const leftClosures = openingClosures.filter((closure) => closure.side === 'left');
+  const rightClosures = openingClosures.filter((closure) => closure.side === 'right');
+  const cutWarnings = openingClosures.filter((closure) => closure.closureType === 'cut_block').length;
+  const closureGroutVolume = openingClosures.reduce(
+    (sum, closure) => sum + (closure.closureType === 'grout_fill' ? closure.groutVolume ?? 0 : 0),
+    0,
+  );
+
+  return (
+    <div className="space-y-3">
+      <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm dark:border-slate-700 dark:bg-slate-800/60">
+        <div className="font-semibold text-slate-800 dark:text-slate-100">
+          {opening.type === 'door' ? 'Door' : 'Window'} opening sizing
+        </div>
+        <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-slate-600 dark:text-slate-300">
+          <div>
+            Actual: {resolvedOpening.actualWidthMeters.toFixed(2)}m x {resolvedOpening.actualHeightMeters.toFixed(2)}m
+          </div>
+          <div>
+            Rough: {resolvedOpening.roughOpeningWidthMeters.toFixed(2)}m x {resolvedOpening.roughOpeningHeightMeters.toFixed(2)}m
+          </div>
+        </div>
+      </div>
+      <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm dark:border-amber-800 dark:bg-amber-950/40">
+        <div className="font-semibold text-amber-900 dark:text-amber-100">Opening Course Layout</div>
+        <div className="mt-2 grid gap-1 text-xs text-amber-800 dark:text-amber-200">
+          <div>Left jamb closures: {summarizeClosures(leftClosures)}</div>
+          <div>Right jamb closures: {summarizeClosures(rightClosures)}</div>
+          <div>Cut block warnings: {cutWarnings}</div>
+          <div>Jamb grout cells: {cmuLayout.jambGroutCells.filter((cell) => cell.openingId === opening.id).length}</div>
+          <div>Lintel length: {resolvedOpening.lintelLengthMeters.toFixed(2)}m</div>
+          <div>Estimated closure grout: {closureGroutVolume.toFixed(4)} m3</div>
+          <div>Jamb grout volume is based on selected grouted cells and course closure conditions, not the full rough opening area.</div>
+        </div>
+      </div>
+      <SelectField
+        label="Wall face"
+        value={opening.wallFace}
+        onChange={(value) => onOpeningChange(opening.id, { wallFace: value as WallOpeningParameters['wallFace'] })}
+        options={[
+          { value: 'north', label: 'North' },
+          { value: 'east', label: 'East' },
+          { value: 'south', label: 'South' },
+          { value: 'west', label: 'West' },
+        ]}
+      />
+      <NumberField label="Position along wall" value={opening.offsetMeters} suffix="m" onChange={(value) => onOpeningChange(opening.id, { offsetMeters: Math.max(0, value) })} />
+      <NumberField label="Actual width" value={opening.widthMeters} suffix="m" onChange={(value) => onOpeningChange(opening.id, { widthMeters: positiveOrFallback(value, opening.widthMeters) })} />
+      <NumberField label="Actual height" value={opening.heightMeters} suffix="m" onChange={(value) => onOpeningChange(opening.id, { heightMeters: positiveOrFallback(value, opening.heightMeters) })} />
+      <NumberField label="Rough opening allowance" value={opening.roughOpeningAllowanceMeters ?? 0.05} suffix="m" step={0.005} onChange={(value) => onOpeningChange(opening.id, { roughOpeningAllowanceMeters: Math.max(0, value), roughOpeningWidthMeters: undefined, roughOpeningHeightMeters: undefined })} />
+      <NumberField label="Rough opening width override" value={opening.roughOpeningWidthMeters ?? resolvedOpening.roughOpeningWidthMeters} suffix="m" onChange={(value) => onOpeningChange(opening.id, { roughOpeningWidthMeters: positiveOrFallback(value, resolvedOpening.roughOpeningWidthMeters) })} />
+      <NumberField label="Rough opening height override" value={opening.roughOpeningHeightMeters ?? resolvedOpening.roughOpeningHeightMeters} suffix="m" onChange={(value) => onOpeningChange(opening.id, { roughOpeningHeightMeters: positiveOrFallback(value, resolvedOpening.roughOpeningHeightMeters) })} />
+      {opening.type === 'window' ? (
+        <NumberField label="Sill height" value={opening.sillHeightMeters ?? 0} suffix="m" onChange={(value) => onOpeningChange(opening.id, { sillHeightMeters: Math.max(0, value) })} />
+      ) : null}
+      <SelectField
+        label="Lintel type"
+        value={opening.lintelType ?? preset.wall.lintelType ?? 'bond_beam'}
+        onChange={(value) => onOpeningChange(opening.id, { lintelType: value as WallOpeningParameters['lintelType'] })}
+        options={[
+          { value: 'bond_beam', label: 'Bond beam lintel' },
+          { value: 'precast_concrete', label: 'Precast concrete' },
+          { value: 'steel_placeholder', label: 'Steel placeholder' },
+          { value: 'none', label: 'None' },
+        ]}
+      />
+      <NumberField label="Lintel bearing" value={opening.lintelBearingMeters ?? preset.wall.lintelBearingMeters ?? 0.2} suffix="m" onChange={(value) => onOpeningChange(opening.id, { lintelBearingMeters: Math.max(0, value) })} />
+      <NumberField label="Jamb cells each side" value={opening.groutCellsEachSide ?? preset.wall.jambCellsEachSide ?? 1} suffix="cells" step={1} onChange={(value) => onOpeningChange(opening.id, { groutCellsEachSide: Math.max(0, Math.round(value)) })} />
+      <label className="flex items-center justify-between rounded-lg bg-slate-100 px-3 py-2 text-sm dark:bg-slate-800">
+        <span>Jamb grout enabled</span>
+        <input
+          type="checkbox"
+          checked={opening.jambGroutEnabled ?? true}
+          onChange={(event) => onOpeningChange(opening.id, { jambGroutEnabled: event.currentTarget.checked })}
+          className="h-4 w-4"
+        />
+      </label>
+      <label className="flex items-center justify-between rounded-lg bg-slate-100 px-3 py-2 text-sm dark:bg-slate-800">
+        <span>Jamb rebar enabled</span>
+        <input
+          type="checkbox"
+          checked={opening.jambRebarEnabled ?? false}
+          onChange={(event) => onOpeningChange(opening.id, { jambRebarEnabled: event.currentTarget.checked })}
+          className="h-4 w-4"
+        />
+      </label>
+      {opening.type === 'window' ? (
+        <NumberField label="Grout cells below window" value={opening.groutCellsBelowWindow ?? 0} suffix="cells" step={1} onChange={(value) => onOpeningChange(opening.id, { groutCellsBelowWindow: Math.max(0, Math.round(value)) })} />
+      ) : null}
+      <TextField
+        label="Notes"
+        value={opening.notes ?? ''}
+        onChange={(value) => onOpeningChange(opening.id, { notes: value })}
+      />
+    </div>
+  );
+}
+
+function NumberField({
+  label,
+  value,
+  suffix,
+  step = 0.01,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  suffix: string;
+  step?: number;
+  onChange: (value: number) => void;
+}) {
+  return (
+    <label className="block text-sm">
+      <span className="mb-1 block text-slate-600 dark:text-slate-300">{label}</span>
+      <div className="flex overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-950">
+        <input
+          type="number"
+          step={step}
+          value={Number.isFinite(value) ? value : 0}
+          onChange={(event) => onChange(Number(event.currentTarget.value))}
+          className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm outline-none"
+        />
+        <span className="border-l border-slate-200 px-3 py-2 text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">
+          {suffix}
+        </span>
+      </div>
+    </label>
+  );
+}
+
+function TextField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <label className="block text-sm">
+      <span className="mb-1 block text-slate-600 dark:text-slate-300">{label}</span>
+      <input
+        type="text"
+        value={value}
+        onChange={(event) => onChange(event.currentTarget.value)}
+        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none dark:border-slate-700 dark:bg-slate-950"
+      />
+    </label>
+  );
+}
+
+function ToggleField({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <label className="flex items-center gap-2 rounded-lg px-2 py-1 text-slate-600 dark:text-slate-300">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(event) => onChange(event.currentTarget.checked)}
+        className="h-4 w-4"
+      />
+      <span>{label}</span>
+    </label>
+  );
+}
+
+function ModuleFitBadge({ fit }: { fit: 'full' | 'half' | 'cut' }) {
+  const className =
+    fit === 'full'
+      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200'
+      : fit === 'half'
+        ? 'bg-cyan-100 text-cyan-800 dark:bg-cyan-950 dark:text-cyan-200'
+        : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200';
+  const label = fit === 'full' ? 'Full-module fit' : fit === 'half' ? 'Half-module fit' : 'Cut-block warning';
+  return <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${className}`}>{label}</span>;
+}
+
+function formatModuleCount(value: number): string {
+  return Number.isInteger(value) ? value.toFixed(0) : value.toFixed(2).replace(/\.?0+$/, '');
+}
+
+function summarizeClosures(closures: ReturnType<typeof generateCmuLayout>['openingCourseClosures']): string {
+  if (closures.length === 0) return 'none';
+  const counts = closures.reduce<Record<string, number>>((acc, closure) => {
+    acc[closure.closureType] = (acc[closure.closureType] ?? 0) + 1;
+    return acc;
+  }, {});
+  return Object.entries(counts)
+    .map(([type, count]) => `${type.replace(/_/g, ' ')} ${count}`)
+    .join(', ');
+}
+
+function SelectField({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  options: Array<{ value: string; label: string }>;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <label className="block text-sm">
+      <span className="mb-1 block text-slate-600 dark:text-slate-300">{label}</span>
+      <select
+        value={value}
+        onChange={(event) => onChange(event.currentTarget.value)}
+        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none dark:border-slate-700 dark:bg-slate-950"
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function positiveOrFallback(value: number, fallback: number): number {
+  return Number.isFinite(value) && value > 0 ? value : fallback;
+}
+
+function objectIdForType(
+  objectType: DesignObjectType,
+  objectIds: { slabObjectId: string; wallObjectId: string; roofObjectId: string; trussObjectId: string },
+): string {
+  if (objectType === 'thickened_edge_slab') return objectIds.slabObjectId;
+  if (objectType === 'gable_roof_system') return objectIds.roofObjectId;
+  if (objectType === 'steel_truss_system') return objectIds.trussObjectId;
+  return objectIds.wallObjectId;
+}
+
+function objectTypeForPreviewLine(line: DesignEstimatePreviewLine): DesignObjectType {
+  if (line.quantityType.includes('slab')) return 'thickened_edge_slab';
+  if (line.quantityType.includes('roof')) return 'gable_roof_system';
+  if (line.quantityType.includes('truss')) return 'steel_truss_system';
+  return 'cmu_wall_system';
+}

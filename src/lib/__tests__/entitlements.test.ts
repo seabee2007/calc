@@ -29,6 +29,7 @@ describe('entitlements', () => {
     expect(hasFeature('starter', 'employee_portal')).toBe(false);
     expect(hasFeature('starter', 'logic_network')).toBe(false);
     expect(hasFeature('starter', 'model_3d_takeoff')).toBe(false);
+    expect(hasFeature('starter', 'design_builder')).toBe(false);
     expect(hasFeature('starter', 'ai_concrete_chat')).toBe(false);
   });
 
@@ -41,6 +42,7 @@ describe('entitlements', () => {
     expect(hasFeature('professional', 'level_three_gantt_export')).toBe(false);
     expect(hasFeature('professional', 'arden_calc_in_estimator')).toBe(true);
     expect(hasFeature('professional', 'model_3d_takeoff')).toBe(true);
+    expect(hasFeature('professional', 'design_builder')).toBe(true);
     expect(hasFeature('professional', 'model_3d_extraction')).toBe(false);
     expect(hasFeature('professional', 'accounting_exports')).toBe(false);
   });
@@ -159,5 +161,6 @@ describe('entitlements', () => {
     expect(allFeatures.has('global_ask_ai')).toBe(true);
     expect(allFeatures.has('arden_calc_in_estimator')).toBe(true);
     expect(allFeatures.has('global_planner_hub')).toBe(true);
+    expect(allFeatures.has('design_builder')).toBe(true);
   });
 });

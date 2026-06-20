@@ -206,6 +206,7 @@ import { useScheduleSettings } from './hooks/useScheduleSettings';
 import LogicNetworkWorkspace from './components/scheduling/LogicNetworkWorkspace';
 import LevelThreeGanttWorkspace from './components/scheduling/LevelThreeGanttWorkspace';
 import BimTakeoffPage from '../../bim/ui/BimTakeoffPage';
+import DesignBuilderPage from '../../design-builder/ui/DesignBuilderPage';
 import ResourceLevelingModal from './components/scheduling/ResourceLevelingModal';
 import { calculateResourceHistogram } from '../scheduling/resources/resourceHistogramCalculator';
 import {
@@ -432,6 +433,9 @@ export default function EstimateWorkspacePage() {
           return false;
         }
         if (tab.id === '3d-takeoff' && !hasFeature('model_3d_takeoff')) {
+          return false;
+        }
+        if (tab.id === 'design-builder' && !hasFeature('design_builder')) {
           return false;
         }
         return true;
@@ -2741,23 +2745,25 @@ export default function EstimateWorkspacePage() {
   const setHeaderMiniStatus = headerCollapse?.setMiniStatus;
   const plannerWorkspaceFocus = usePlannerWorkspaceFocus();
   const setPlannerWorkspaceFocusMode = plannerWorkspaceFocus?.setWorkspaceFocusMode;
-  const isTakeoffFocusMode = activeTab === '3d-takeoff' && Boolean(headerCollapse?.focusMode);
+  const isModelWorkspaceTab = activeTab === '3d-takeoff' || activeTab === 'design-builder';
+  const isModelWorkspaceFocusMode = isModelWorkspaceTab && Boolean(headerCollapse?.focusMode);
+  const isDesignBuilderFocusMode = activeTab === 'design-builder' && Boolean(headerCollapse?.focusMode);
 
   useEffect(() => {
-    setPlannerWorkspaceFocusMode?.(isTakeoffFocusMode);
+    setPlannerWorkspaceFocusMode?.(isModelWorkspaceFocusMode);
     return () => {
       setPlannerWorkspaceFocusMode?.(false);
     };
-  }, [setPlannerWorkspaceFocusMode, isTakeoffFocusMode]);
+  }, [setPlannerWorkspaceFocusMode, isModelWorkspaceFocusMode]);
 
   useEffect(() => {
-    if (activeTab !== '3d-takeoff' && headerCollapse?.focusMode) {
+    if (!isModelWorkspaceTab && headerCollapse?.focusMode) {
       headerCollapse.setFocusMode(false);
     }
-  }, [activeTab, headerCollapse]);
+  }, [isModelWorkspaceTab, headerCollapse]);
 
   useEffect(() => {
-    if (!isTakeoffFocusMode) return;
+    if (!isModelWorkspaceFocusMode) return;
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         headerCollapse?.setFocusMode(false);
@@ -2765,7 +2771,7 @@ export default function EstimateWorkspacePage() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isTakeoffFocusMode, headerCollapse]);
+  }, [isModelWorkspaceFocusMode, headerCollapse]);
 
   const activeTabLabel =
     visibleWorkspaceTabs.find((tab) => tab.id === activeTab)?.label ??
@@ -2874,7 +2880,13 @@ export default function EstimateWorkspacePage() {
             ? estimateWorkspaceTabBar
             : null}
 
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+        <div
+          className={
+            isDesignBuilderFocusMode
+              ? 'min-h-0 flex-1 overflow-hidden p-0'
+              : 'flex-1 overflow-y-auto p-4 sm:p-6'
+          }
+        >
         {loadError ? (
           <div className="mb-4 space-y-3">
             <EstimateWorkspaceEmptyState
@@ -3377,6 +3389,23 @@ export default function EstimateWorkspacePage() {
             <EstimateWorkspaceEmptyState
               title="No project"
               body="Open a project to use 3D Takeoff."
+            />
+          )
+        ) : null}
+
+        {showWorkspaceTabPanels && !dataLoading && activeTab === 'design-builder' ? (
+          resolvedProjectId ? (
+            <FeatureGate feature="design_builder">
+              <DesignBuilderPage
+                projectId={resolvedProjectId}
+                estimateId={estimate?.id ?? null}
+                onEstimateCommitted={reloadConstructionActivities}
+              />
+            </FeatureGate>
+          ) : (
+            <EstimateWorkspaceEmptyState
+              title="No project"
+              body="Open a project to use Design Builder."
             />
           )
         ) : null}
