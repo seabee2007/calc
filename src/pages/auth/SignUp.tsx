@@ -137,6 +137,12 @@ const SignUp: React.FC = () => {
           setInviteLoadError('This invite has expired. Ask your manager to send a new invite.');
           return;
         }
+        if (preview.revoked) {
+          setInviteLoadError(
+            'This invitation has been revoked. Contact the company administrator for a new invitation.',
+          );
+          return;
+        }
         setInvitePreview(preview);
         setValue('email', preview.email);
       } catch {

@@ -278,9 +278,8 @@ for (const tier of GATE_TIERS) {
 
     test('RFIs gate matches tier', async ({ page }) => {
       if (!tier.hasRfisFarsQc) {
-        await gotoRoute(page, '/employees', tier);
-        await waitForTestId(page, 'team-employees-page');
-        await expect(page.getByTestId('upgrade-required-employee_portal')).toBeVisible();
+        await gotoRoute(page, '/planner/rfis', tier);
+        await expect(page.getByText('QA RFI')).toHaveCount(0);
         return;
       }
 

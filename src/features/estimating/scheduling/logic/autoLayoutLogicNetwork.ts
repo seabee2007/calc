@@ -1,17 +1,16 @@
 import type { ScheduleActivity } from '../adapters/estimateLineItemsToScheduleActivities';
 import type { CpmLogicLink, LogicNetworkLayout } from '../cpmTypes';
 import { sanitizeLogicLinksForActivities } from '../scheduleAssumptions';
+import type { GraphLayoutNode } from '../logicNetworkLayout';
 
-/** Matches `w-52` (13rem) on CpmActivityNode. */
-export const LOGIC_NETWORK_NODE_WIDTH = 208;
+/** Matches fixed `LOGIC_NODE_WIDTH` on CpmActivityNode. */
+export const LOGIC_NETWORK_NODE_WIDTH = 220;
+export const LOGIC_NETWORK_NODE_HEIGHT = 118;
 
 export const LOGIC_NETWORK_AUTO_LAYOUT_START_X = 80;
 export const LOGIC_NETWORK_AUTO_LAYOUT_START_Y = 80;
-export const LOGIC_NETWORK_COLUMN_SPACING = Math.max(
-  360,
-  LOGIC_NETWORK_NODE_WIDTH + 140,
-);
-export const LOGIC_NETWORK_ROW_SPACING = 180;
+export const LOGIC_NETWORK_COLUMN_SPACING = 280;
+export const LOGIC_NETWORK_ROW_SPACING = 190;
 export const LOGIC_NETWORK_DIVISION_COLUMN_SPACING = 420;
 export const LOGIC_NETWORK_ACTIVITY_ROW_SPACING = 150;
 export const LOGIC_NETWORK_LINKED_UNLINKED_GAP = 300;
@@ -212,7 +211,7 @@ export function layoutByDependencies(
     x: LOGIC_NETWORK_AUTO_LAYOUT_START_X,
     y: LOGIC_NETWORK_AUTO_LAYOUT_START_Y,
   },
-): DependencyLayoutResult {
+): DependencyLayoutResult & { graphNodes: GraphLayoutNode[] } {
   const codes = activities.map((activity) => activity.activityCode);
   const columnByCode = getTopologicalColumns(codes, links);
   const activitiesByColumn = new Map<number, ScheduleActivity[]>();
@@ -226,22 +225,32 @@ export function layoutByDependencies(
 
   const sortedColumns = [...activitiesByColumn.keys()].sort((left, right) => left - right);
   const layout: LogicNetworkLayout[] = [];
+  const graphNodes: GraphLayoutNode[] = [];
   let maxY = origin.y;
 
   for (const column of sortedColumns) {
     const columnActivities = [...(activitiesByColumn.get(column) ?? [])].sort(compareActivities);
     columnActivities.forEach((activity, rowIndex) => {
       const y = origin.y + rowIndex * LOGIC_NETWORK_ROW_SPACING;
+      const x = origin.x + column * LOGIC_NETWORK_COLUMN_SPACING;
       layout.push({
         activityCode: activity.activityCode,
-        x: origin.x + column * LOGIC_NETWORK_COLUMN_SPACING,
+        x,
         y,
+      });
+      graphNodes.push({
+        activityId: activity.activityCode,
+        rank: column,
+        orderInRank: rowIndex,
+        x,
+        y,
+        durationDays: activity.durationDays,
       });
       maxY = Math.max(maxY, y);
     });
   }
 
-  return { layout, maxY };
+  return { layout, maxY, graphNodes };
 }
 
 function getLinkedActivityCodes(links: CpmLogicLink[]): Set<string> {
@@ -305,6 +314,20 @@ export function autoLayoutLogicNetwork({
           y: linkedResult.maxY + LOGIC_NETWORK_LINKED_UNLINKED_GAP,
         })
       : [];
+
+  if (import.meta.env.DEV) {
+    console.table(
+      linkedResult.graphNodes.map((node) => ({
+        activityId: node.activityId,
+        rank: node.rank,
+        x: node.x,
+        y: node.y,
+        durationDays: node.durationDays,
+        earlyStart: undefined,
+        leveledOffsetDays: undefined,
+      })),
+    );
+  }
 
   return {
     layout: [...linkedResult.layout, ...unlinkedLayout],

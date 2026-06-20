@@ -1,0 +1,82 @@
+{
+  "version": "1.0.0",
+  "updatedAt": "2026-06-13",
+  "sourceOfTruthNotes": "Keep in sync across marketing and app repos. Verify with npm run verify:pricing in the marketing repo.",
+  "trial": {
+    "hasTrial": false,
+    "trialDays": null
+  },
+  "nonMarketableFeatureKeys": [
+    "design_builder",
+    "model_3d_takeoff",
+    "model_3d_extraction"
+  ],
+  "plans": [
+    {
+      "planId": "starter",
+      "name": "Starter",
+      "audience": "For independent contractors who need a dependable estimating and proposal workflow.",
+      "monthlyPriceUsd": 49,
+      "annualMonthlyUsd": 41,
+      "annualTotalUsd": 490,
+      "recommended": false,
+      "activeProjectLimit": 3,
+      "includedFieldSeats": 1,
+      "marketableFeatureKeys": [
+        "quick_estimates",
+        "conceptual_estimates",
+        "employee_portal",
+        "calculators",
+        "resources",
+        "proposals"
+      ],
+      "usageSummary": "Includes 50 AI requests and metered weather, map, and email usage each month."
+    },
+    {
+      "planId": "professional",
+      "name": "Professional",
+      "audience": "For contractors managing active field capacity, estimating, schedules, and change control.",
+      "monthlyPriceUsd": 129,
+      "annualMonthlyUsd": 109,
+      "annualTotalUsd": 1308,
+      "recommended": true,
+      "activeProjectLimit": 10,
+      "includedFieldSeats": 5,
+      "marketableFeatureKeys": [
+        "activity_based_estimating",
+        "arden_calc_in_estimator",
+        "employee_portal",
+        "rfis",
+        "fars",
+        "qc",
+        "change_orders",
+        "logic_network",
+        "cpm",
+        "level_three_gantt"
+      ],
+      "usageSummary": "Includes 250 AI requests and expanded weather, map, and email usage each month."
+    },
+    {
+      "planId": "business",
+      "name": "Business",
+      "audience": "For multi-project contractors that need expanded field capacity, reporting, and portfolio visibility.",
+      "monthlyPriceUsd": 249,
+      "annualMonthlyUsd": 209,
+      "annualTotalUsd": 2508,
+      "recommended": false,
+      "activeProjectLimit": -1,
+      "includedFieldSeats": 15,
+      "marketableFeatureKeys": [
+        "level_three_gantt_export",
+        "accounting_exports",
+        "financial_dashboard",
+        "ai_concrete_chat",
+        "ai_scope_summary",
+        "ai_labor_crew_review",
+        "ai_batch_plant_tools",
+        "global_planner_hub"
+      ],
+      "usageSummary": "Includes 1,000 AI requests and the highest weather, map, and email usage allowances each month."
+    }
+  ]
+}

@@ -82,9 +82,9 @@ export function expectedForFeature(tier: TierFixture, feature: CoverageFeature):
     case 'Logic Network / CPM gate':
       return tier.hasLogicNetwork ? 'Logic Network tab usable' : 'Upgrade required (logic_network)';
     case 'RFIs':
-      return tier.hasRfisFarsQc ? 'Seeded QA RFI visible on /planner/rfis' : 'No Professional RFI access';
+      return tier.hasRfisFarsQc ? 'Seeded QA RFI visible on /planner/rfis' : 'No owner/planner RFI access';
     case 'FARs':
-      return tier.hasRfisFarsQc ? 'Seeded QA FAR visible on /planner/fars' : 'No Professional FAR access';
+      return tier.hasRfisFarsQc ? 'Seeded QA FAR visible on /planner/fars' : 'No owner/planner FAR access';
     case 'QC':
       return tier.hasRfisFarsQc ? 'QC Due widget unlocked in catalog' : 'QC Due widget locked (Professional+)';
     case 'change orders':

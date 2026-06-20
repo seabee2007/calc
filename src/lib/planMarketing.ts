@@ -1,3 +1,4 @@
+import manifest from '../../shared/pricing-manifest.json';
 import type { PlanId } from './entitlements';
 import {
   getPlanLimit,
@@ -12,78 +13,135 @@ export function formatPlanLimitLabel(value: number, noun: string): string {
 
 export interface PlanPricing {
   monthlyUsd: number;
-  annualMonthlyUsd: number; // effective per-month when billed annually
-  annualTotalUsd: number;   // charged once per year
+  annualMonthlyUsd: number;
+  annualTotalUsd: number;
 }
 
-/**
- * Pricing displayed on the billing page.
- * Kept here as a single source of truth so no component hardcodes dollar amounts.
- */
-export const PLAN_PRICING: Record<PlanId, PlanPricing> = {
-  free:         { monthlyUsd: 0,   annualMonthlyUsd: 0,   annualTotalUsd: 0    },
-  starter:      { monthlyUsd: 49,  annualMonthlyUsd: 41,  annualTotalUsd: 490  },
-  professional: { monthlyUsd: 129, annualMonthlyUsd: 109, annualTotalUsd: 1308 },
-  business:     { monthlyUsd: 249, annualMonthlyUsd: 209, annualTotalUsd: 2508 },
+const MARKETABLE_FEATURE_LABELS: Record<string, string> = {
+  quick_estimates: 'Quick ballpark estimates',
+  conceptual_estimates: 'Conceptual estimates with scenarios',
+  calculators: 'Standalone calculators and field tools',
+  resources: 'Resources hub for estimating references',
+  proposals: 'Proposal creation workflow',
+  activity_based_estimating: 'Activity-based estimating',
+  arden_calc_in_estimator: 'Arden Calc inside the estimator',
+  employee_portal: 'Employee field portal for assigned project work',
+  rfis: 'RFI workflow',
+  fars: 'Field Adjustment Request workflow',
+  qc: 'Quality control inspections',
+  change_orders: 'Change order scope and pricing',
+  logic_network: 'Logic Network for schedule dependencies',
+  cpm: 'Critical path method scheduling',
+  level_three_gantt: 'Level III Gantt workspace',
+  level_three_gantt_export: 'Level III Gantt PDF and Excel exports',
+  accounting_exports: 'Accounting and tax exports',
+  financial_dashboard: 'Financial dashboards',
+  ai_concrete_chat: 'Concrete Chat AI assistant',
+  ai_scope_summary: 'AI scope summary tools',
+  ai_labor_crew_review: 'AI labor and crew review',
+  ai_batch_plant_tools: 'AI batch plant pricing tools',
+  global_planner_hub: 'Global Planner portfolio hub',
 };
 
-export function formatUsd(cents: number): string {
-  return `$${cents.toLocaleString('en-US')}`;
+const NON_MARKETABLE = new Set(manifest.nonMarketableFeatureKeys);
+
+export function getPlanPricing(planId: PlanId): PlanPricing {
+  if (planId === 'free') {
+    return { monthlyUsd: 0, annualMonthlyUsd: 0, annualTotalUsd: 0 };
+  }
+  const entry = manifest.plans.find((plan) => plan.planId === planId);
+  if (!entry) throw new Error(`Unknown paid plan: ${planId}`);
+  return {
+    monthlyUsd: entry.monthlyPriceUsd,
+    annualMonthlyUsd: entry.annualMonthlyUsd,
+    annualTotalUsd: entry.annualTotalUsd,
+  };
+}
+
+/** @deprecated Use getPlanPricing(planId) — kept for existing imports. */
+export const PLAN_PRICING: Record<PlanId, PlanPricing> = {
+  free: getPlanPricing('free'),
+  starter: getPlanPricing('starter'),
+  professional: getPlanPricing('professional'),
+  business: getPlanPricing('business'),
+};
+
+export function formatUsd(amount: number): string {
+  return `$${amount.toLocaleString('en-US')}`;
+}
+
+export function getAnnualSavings(planId: PlanId): { annualSavingsUsd: number; annualSavingsPercent: number } {
+  const pricing = getPlanPricing(planId);
+  const fullYearMonthly = pricing.monthlyUsd * 12;
+  const annualSavingsUsd = fullYearMonthly - pricing.annualTotalUsd;
+  const annualSavingsPercent =
+    fullYearMonthly > 0 ? Math.round((annualSavingsUsd / fullYearMonthly) * 100) : 0;
+  return { annualSavingsUsd, annualSavingsPercent };
+}
+
+export function getMaxAnnualSavingsPercent(): number {
+  return Math.max(...PLAN_ORDER.map((planId) => getAnnualSavings(planId).annualSavingsPercent));
 }
 
 export interface PlanMarketingCard {
   planId: PlanId;
   shortName: string;
   longName: string;
+  audience: string;
   highlights: string[];
+  usageSummary: string;
   pricing: PlanPricing;
-  /** Card to visually highlight as recommended. */
   recommended?: boolean;
+}
+
+function buildHighlights(planId: PlanId): { highlights: string[]; usageSummary: string; audience: string; recommended: boolean } {
+  const manifestPlan = manifest.plans.find((plan) => plan.planId === planId);
+  if (!manifestPlan) {
+    return { highlights: [], usageSummary: '', audience: '', recommended: false };
+  }
+
+  const maxProjects = getPlanLimit(planId, 'max_active_projects');
+  const fieldSeats = manifestPlan.includedFieldSeats;
+  const limitBullets = [
+    formatPlanLimitLabel(maxProjects, maxProjects === 1 ? 'active project' : 'active projects'),
+    `${fieldSeats} field seat${fieldSeats === 1 ? '' : 's'} included`,
+  ];
+
+  const featureBullets = manifestPlan.marketableFeatureKeys
+    .filter((key) => !NON_MARKETABLE.has(key))
+    .map((key) => MARKETABLE_FEATURE_LABELS[key])
+    .filter(Boolean);
+
+  return {
+    highlights: [...limitBullets, ...featureBullets].slice(0, 7),
+    usageSummary: manifestPlan.usageSummary,
+    audience: manifestPlan.audience,
+    recommended: manifestPlan.recommended,
+  };
 }
 
 export function getPlanMarketingCards(): PlanMarketingCard[] {
   return PLAN_ORDER.map((planId) => {
     const names = PLAN_DISPLAY_NAMES[planId];
-    const maxProjects = getPlanLimit(planId, 'max_active_projects');
-    const fieldSeats = getPlanLimit(planId, 'included_field_seats');
-
-    const highlights: Partial<Record<PlanId, string[]>> = {
-      starter: [
-        formatPlanLimitLabel(maxProjects, 'active projects'),
-        formatPlanLimitLabel(fieldSeats, 'field seat'),
-        'Quick and conceptual estimates',
-        'Standalone calculators and resources hub',
-        'Basic proposal creation',
-      ],
-      professional: [
-        'Everything in Starter',
-        formatPlanLimitLabel(maxProjects, 'active projects'),
-        formatPlanLimitLabel(fieldSeats, 'field seats included'),
-        'Activity-based estimating and Arden Calc in estimator',
-        'Employee field portal, RFIs, FARs, QC, change orders',
-        'Logic Network, CPM, and Level III Gantt workspace',
-      ],
-      business: [
-        'Everything in Professional',
-        formatPlanLimitLabel(maxProjects, 'active projects'),
-        formatPlanLimitLabel(fieldSeats, 'field seats included'),
-        'Level III Gantt PDF/Excel exports',
-        'Accounting & tax exports and financial dashboards',
-        'AI bundle and global planner hub',
-      ],
-    };
+    const { highlights, usageSummary, audience, recommended } = buildHighlights(planId);
 
     return {
       planId,
       shortName: names.short,
       longName: names.long,
-      highlights: highlights[planId] ?? [],
-      pricing: PLAN_PRICING[planId],
-      recommended: planId === 'professional',
+      audience,
+      highlights,
+      usageSummary,
+      pricing: getPlanPricing(planId),
+      recommended,
     };
   });
 }
 
 export function getPlanRank(planId: PlanId): number {
   return PLAN_ORDER.indexOf(planId);
+}
+
+export function planHasConfiguredTrial(): boolean {
+  return manifest.trial.hasTrial === true && typeof manifest.trial.trialDays === 'number';
 }

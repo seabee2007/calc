@@ -40,7 +40,8 @@ export type FeatureKey =
   | 'global_planner_hub'
   | 'arden_calc_in_estimator'
   | 'model_3d_takeoff'
-  | 'model_3d_extraction';
+  | 'model_3d_extraction'
+  | 'design_builder';
 
 export type LimitKey =
   | 'max_active_projects'
@@ -132,6 +133,7 @@ const STARTER_FEATURES: FeatureKey[] = [
   'calculators',
   'resources',
   'proposals',
+  'employee_portal',
   'global_ask_ai',
 ];
 
@@ -150,6 +152,7 @@ const PROFESSIONAL_FEATURES: FeatureKey[] = [
   'cpm',
   'level_three_gantt',
   'model_3d_takeoff',
+  'design_builder',
   'arden_calc_in_estimator',
 ];
 
@@ -206,6 +209,7 @@ export const FEATURE_DESCRIPTIONS: Record<FeatureKey, string> = {
   arden_calc_in_estimator: 'Arden Calc inside the estimator activity modal.',
   model_3d_takeoff: 'Upload and view 3D models, select objects, and map manual takeoff into Detailed Estimates.',
   model_3d_extraction: 'Advanced BIM extraction, model version comparison, and client 3D viewer (Business).',
+  design_builder: 'Build Arden-native parametric construction models and generate estimate-ready quantities.',
 };
 
 export interface SubscriptionEntitlementInput {
@@ -293,7 +297,7 @@ export function canInviteFieldSeat(
   return true;
 }
 
-/** Whether the owner can send another team/field invite (feature + included seat limit). */
+/** Whether the owner can send another team/field invite (employee portal + included seat limit). */
 export function canInviteTeamMember(
   plan: PlanId | null | undefined,
   seatUsageCount: number,

@@ -27,7 +27,7 @@ describe('EmployeeGuard entitlements', () => {
     hasFeature.mockReset();
   });
 
-  it('blocks employee portal access on Starter-equivalent plans', () => {
+  it('blocks employee portal access only when the effective plan lacks the feature', () => {
     hasFeature.mockReturnValue(false);
 
     render(
@@ -56,5 +56,21 @@ describe('EmployeeGuard entitlements', () => {
 
     expect(screen.getByText('Employee content')).toBeInTheDocument();
     expect(screen.queryByTestId('upgrade-required-employee_portal')).not.toBeInTheDocument();
+  });
+
+  it('does not render an upgrade card for a Starter employee with employee_portal entitlement', () => {
+    hasFeature.mockReturnValue(true);
+
+    render(
+      <MemoryRouter>
+        <EmployeeGuard>
+          <div>Starter employee field portal</div>
+        </EmployeeGuard>
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText('Starter employee field portal')).toBeInTheDocument();
+    expect(screen.queryByTestId('upgrade-required-employee_portal')).not.toBeInTheDocument();
+    expect(hasFeature).toHaveBeenCalledWith('employee_portal');
   });
 });

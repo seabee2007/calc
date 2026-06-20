@@ -27,6 +27,7 @@ export interface EmployeeInvitePreview {
   email: string;
   role: string;
   expired: boolean;
+  revoked?: boolean;
 }
 
 export async function fetchEmployeeInvitePreview(
@@ -41,6 +42,9 @@ export async function fetchEmployeeInvitePreview(
   if (row.expired === true && typeof row.email === 'string') {
     return { email: row.email, role: 'employee', expired: true };
   }
+  if (row.revoked === true && typeof row.email === 'string') {
+    return { email: row.email, role: 'employee', expired: false, revoked: true };
+  }
   if (typeof row.email !== 'string') return null;
   return {
     email: row.email,
@@ -50,7 +54,16 @@ export async function fetchEmployeeInvitePreview(
 }
 
 export interface SendEmployeeInviteResult {
-  inviteLink: string;
+  inviteId: string;
+  email: string;
+  role?: string;
+  status?: 'pending' | 'accepted' | 'revoked' | 'expired';
+  expiresAt?: string;
+  emailSent: boolean;
+  emailStatus: 'pending' | 'sent' | 'failed';
+  reused?: boolean;
+  rotatedToken?: boolean;
+  error?: string;
   existingUser?: boolean;
 }
 
@@ -60,9 +73,17 @@ function mapInvite(row: Record<string, unknown>): EmployeeInvite {
     employerId: row.employer_id as string,
     email: row.email as string,
     role: row.role as string,
+    status: (row.status as EmployeeInvite['status']) ?? 'pending',
     token: row.token as string,
     expiresAt: row.expires_at as string,
     acceptedAt: (row.accepted_at as string) ?? null,
+    revokedAt: (row.revoked_at as string) ?? null,
+    revokedBy: (row.revoked_by as string) ?? null,
+    emailStatus: (row.email_status as EmployeeInvite['emailStatus']) ?? 'pending',
+    emailSentAt: (row.email_sent_at as string) ?? null,
+    emailLastError: (row.email_last_error as string) ?? null,
+    emailSendCount: Number(row.email_send_count ?? 0),
+    emailLastAttemptAt: (row.email_last_attempt_at as string) ?? null,
     createdAt: row.created_at as string,
   };
 }
@@ -83,7 +104,9 @@ export async function fetchPendingInvites(employerId: string): Promise<EmployeeI
     .from('employee_invites')
     .select('*')
     .eq('employer_id', employerId)
+    .eq('status', 'pending')
     .is('accepted_at', null)
+    .is('revoked_at', null)
     .order('created_at', { ascending: false });
 
   if (error) throw error;
@@ -91,47 +114,59 @@ export async function fetchPendingInvites(employerId: string): Promise<EmployeeI
 }
 
 export async function createEmployeeInvite(
-  employerId: string,
+  _employerId: string,
   email: string,
   role: UserRole = 'employee',
-) {
+): Promise<SendEmployeeInviteResult> {
   await assertCurrentUserHasFeature('employee_portal');
 
   const plan = await resolveCurrentUserPlan();
   const [pendingInvites, teamProfiles] = await Promise.all([
-    fetchPendingInvites(employerId),
-    fetchTeamProfiles(employerId),
+    fetchPendingInvites(_employerId),
+    fetchTeamProfiles(_employerId),
   ]);
-  const seatUsageCount = pendingInvites.length + teamProfiles.length;
-  if (!canInviteTeamMember(plan, seatUsageCount)) {
+  const activePendingInvites = pendingInvites.filter(
+    (invite) => new Date(invite.expiresAt).getTime() > Date.now(),
+  );
+  const seatUsageCount = activePendingInvites.length + teamProfiles.length;
+  const canInviteLocally = canInviteTeamMember(plan, seatUsageCount);
+  const existingPendingInvite = pendingInvites.some(
+    (invite) => invite.email.toLowerCase() === email.trim().toLowerCase(),
+  );
+  if (!canInviteLocally && !existingPendingInvite) {
     throw new Error(
-      'Field seat limit reached. Upgrade your plan or remove a pending invite.',
+      'Field seat limit reached. Starter includes 1 field seat. Remove a pending invite, deactivate a field user, or upgrade for additional field seats.',
     );
   }
 
-  const { data, error } = await supabase
-    .from('employee_invites')
-    .insert({
-      employer_id: employerId,
-      email: email.trim().toLowerCase(),
-      role: role === 'owner' || role === 'client' ? 'employee' : role,
-    })
-    .select('*')
-    .single();
-
-  if (error) throw error;
-  return mapInvite(data);
+  return callInviteEmployeeFunction({
+    email: email.trim().toLowerCase(),
+    role: role === 'owner' || role === 'client' ? 'employee' : role,
+  });
 }
 
 export async function sendEmployeeInviteEmail(
   inviteId: string,
   options?: { redirectTo?: string; siteUrl?: string },
 ): Promise<SendEmployeeInviteResult> {
+  return callInviteEmployeeFunction({ inviteId, redirectTo: options?.redirectTo, siteUrl: options?.siteUrl });
+}
+
+async function callInviteEmployeeFunction(
+  payload: {
+    inviteId?: string;
+    email?: string;
+    role?: UserRole;
+    action?: 'send' | 'revoke';
+    redirectTo?: string;
+    siteUrl?: string;
+  },
+): Promise<SendEmployeeInviteResult> {
   const { data: session } = await supabase.auth.getSession();
   const token = session.session?.access_token;
   if (!token) throw new Error('Not authenticated');
 
-  const siteUrl = options?.siteUrl ?? getAppUrl();
+  const siteUrl = payload.siteUrl ?? getAppUrl();
   const base = import.meta.env.VITE_SUPABASE_URL;
   const res = await fetch(`${base}/functions/v1/invite-employee`, {
     method: 'POST',
@@ -140,15 +175,22 @@ export async function sendEmployeeInviteEmail(
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({
-      inviteId,
+      ...payload,
       siteUrl,
-      redirectTo: options?.redirectTo,
     }),
   });
 
   const body = (await res.json().catch(() => ({}))) as {
     error?: string;
-    inviteLink?: string;
+    inviteId?: string;
+    email?: string;
+    role?: string;
+    status?: 'pending' | 'accepted' | 'revoked' | 'expired';
+    expiresAt?: string;
+    emailSent?: boolean;
+    emailStatus?: 'pending' | 'sent' | 'failed';
+    reused?: boolean;
+    rotatedToken?: boolean;
     existingUser?: boolean;
   };
 
@@ -157,9 +199,54 @@ export async function sendEmployeeInviteEmail(
   }
 
   return {
-    inviteLink: body.inviteLink ?? '',
+    inviteId: body.inviteId ?? payload.inviteId ?? '',
+    email: body.email ?? payload.email ?? '',
+    role: body.role,
+    status: body.status,
+    expiresAt: body.expiresAt,
+    emailSent: body.emailSent === true,
+    emailStatus: body.emailStatus ?? (body.emailSent ? 'sent' : 'failed'),
+    reused: body.reused,
+    rotatedToken: body.rotatedToken,
+    error: body.error,
     existingUser: body.existingUser,
   };
+}
+
+export async function revokeEmployeeInvite(inviteId: string): Promise<void> {
+  try {
+    const result = await callInviteEmployeeFunction({ inviteId, action: 'revoke' });
+    if (result.status === 'revoked') return;
+  } catch {
+    // Fall through to the direct RLS-protected update. This keeps revoke working
+    // in local/dev environments where the Edge Function has not been redeployed.
+  }
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+  if (userError || !user) throw new Error('Not authenticated');
+
+  const { data, error } = await supabase
+    .from('employee_invites')
+    .update({
+      status: 'revoked',
+      revoked_at: new Date().toISOString(),
+      revoked_by: user.id,
+    })
+    .eq('id', inviteId)
+    .eq('status', 'pending')
+    .is('accepted_at', null)
+    .select('id, status')
+    .single();
+
+  if (error) {
+    throw new Error(error.message || 'Could not revoke invite');
+  }
+  if ((data as { status?: string } | null)?.status !== 'revoked') {
+    throw new Error('Could not revoke invite');
+  }
 }
 
 export async function acceptInviteForCurrentUser(

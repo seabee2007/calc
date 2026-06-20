@@ -23,6 +23,7 @@ export const ESTIMATE_WORKSPACE_TAB_IDS = [
   'logic-network',
   'level-iii-gantt',
   '3d-takeoff',
+  'design-builder',
 ] as const satisfies readonly EstimateWorkspaceTabId[];
 
 const ESTIMATE_WORKSPACE_TAB_ID_SET = new Set<string>(ESTIMATE_WORKSPACE_TAB_IDS);

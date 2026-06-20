@@ -325,6 +325,30 @@ export async function replaceProjectLineItems(
   }
 }
 
+export async function updateProjectLineItemFromDesignPreview(
+  lineItemId: string,
+  updates: Pick<ProjectActivityLineItem, 'description' | 'quantity' | 'unit'>,
+): Promise<RepositoryResult<ProjectActivityLineItem>> {
+  try {
+    const { data, error } = await supabase
+      .from('project_activity_line_items')
+      .update({
+        name: updates.description,
+        description: updates.description,
+        quantity: updates.quantity,
+        unit: updates.unit,
+      })
+      .eq('id', lineItemId)
+      .select('*')
+      .single();
+
+    if (error) return failure(error.message);
+    return success(mapProjectLineItemFromRow(data as ProjectActivityLineItemRow));
+  } catch (err) {
+    return failure(err);
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Atomic save: activity + line items in one operation
 // ---------------------------------------------------------------------------

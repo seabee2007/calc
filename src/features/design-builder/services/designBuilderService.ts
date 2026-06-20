@@ -1,0 +1,299 @@
+import { supabase } from '../../../lib/supabase';
+import type { RepositoryResult } from '../../estimating/infrastructure/estimateDbTypes';
+import type {
+  CreateDesignModelInput,
+  CreateDesignQuantityItemInput,
+  DesignModel,
+  DesignModelObject,
+  DesignQuantityItem,
+  UpsertDesignModelObjectInput,
+} from '../types';
+
+function success<T>(data: T): RepositoryResult<T> {
+  return { data, error: null };
+}
+
+function failure<T>(error: unknown): RepositoryResult<T> {
+  const msg =
+    error instanceof Error
+      ? error.message
+      : typeof error === 'string'
+        ? error
+        : JSON.stringify(error);
+  return { data: null, error: msg };
+}
+
+interface DesignModelRow {
+  id: string;
+  project_id: string;
+  estimate_id: string | null;
+  name: string;
+  unit_system: string;
+  model_type: string;
+  status: string;
+  created_by: string;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+interface DesignModelObjectRow {
+  id: string;
+  design_model_id: string;
+  project_id: string;
+  object_type: string;
+  name: string;
+  parent_object_id: string | null;
+  parameters: Record<string, unknown>;
+  quantity_summary: Record<string, unknown>;
+  estimate_mapping: Record<string, unknown>;
+  geometry_cache: Record<string, unknown> | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface DesignQuantityItemRow {
+  id: string;
+  design_model_id: string;
+  design_object_id: string;
+  project_id: string;
+  estimate_id: string | null;
+  estimate_line_id: string | null;
+  quantity_type: string;
+  description: string;
+  quantity: number;
+  unit: string;
+  formula: string;
+  source: string;
+  confidence: string;
+  parameter_snapshot: Record<string, unknown>;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+function mapModelRow(row: DesignModelRow): DesignModel {
+  return {
+    id: row.id,
+    projectId: row.project_id,
+    estimateId: row.estimate_id,
+    name: row.name,
+    unitSystem: row.unit_system as DesignModel['unitSystem'],
+    modelType: row.model_type as DesignModel['modelType'],
+    status: row.status as DesignModel['status'],
+    createdBy: row.created_by,
+    metadata: row.metadata ?? {},
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function mapObjectRow(row: DesignModelObjectRow): DesignModelObject {
+  return {
+    id: row.id,
+    designModelId: row.design_model_id,
+    projectId: row.project_id,
+    objectType: row.object_type as DesignModelObject['objectType'],
+    name: row.name,
+    parentObjectId: row.parent_object_id,
+    parameters: row.parameters as DesignModelObject['parameters'],
+    quantitySummary: row.quantity_summary ?? {},
+    estimateMapping: row.estimate_mapping ?? {},
+    geometryCache: row.geometry_cache ?? null,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function mapQuantityRow(row: DesignQuantityItemRow): DesignQuantityItem {
+  return {
+    id: row.id,
+    designModelId: row.design_model_id,
+    designObjectId: row.design_object_id,
+    projectId: row.project_id,
+    estimateId: row.estimate_id,
+    estimateLineId: row.estimate_line_id,
+    quantityType: row.quantity_type,
+    description: row.description,
+    quantity: Number(row.quantity),
+    unit: row.unit,
+    formula: row.formula,
+    source: row.source as DesignQuantityItem['source'],
+    confidence: row.confidence as DesignQuantityItem['confidence'],
+    parameterSnapshot: row.parameter_snapshot ?? {},
+    metadata: row.metadata ?? {},
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+export async function createDesignModel(input: CreateDesignModelInput): Promise<RepositoryResult<DesignModel>> {
+  try {
+    const row: Record<string, unknown> = {
+      project_id: input.projectId,
+      estimate_id: input.estimateId ?? null,
+      name: input.name,
+      unit_system: input.unitSystem,
+      model_type: input.modelType ?? 'cmu_building',
+      status: input.status ?? 'draft',
+      created_by: input.createdBy,
+      metadata: input.metadata ?? {},
+    };
+    if (input.id) row.id = input.id;
+
+    const { data, error } = await supabase.from('design_models').upsert(row).select('*').single();
+    if (error) return failure(error.message);
+    return success(mapModelRow(data as DesignModelRow));
+  } catch (err) {
+    return failure(err);
+  }
+}
+
+export async function listDesignModels(projectId: string): Promise<RepositoryResult<DesignModel[]>> {
+  try {
+    const { data, error } = await supabase
+      .from('design_models')
+      .select('*')
+      .eq('project_id', projectId)
+      .order('updated_at', { ascending: false });
+    if (error) return failure(error.message);
+    return success((data as DesignModelRow[]).map(mapModelRow));
+  } catch (err) {
+    return failure(err);
+  }
+}
+
+export async function upsertDesignModelObjects(
+  objects: UpsertDesignModelObjectInput[],
+): Promise<RepositoryResult<DesignModelObject[]>> {
+  if (objects.length === 0) return success([]);
+
+  try {
+    const rows = objects.map((object) => ({
+      ...(object.id ? { id: object.id } : {}),
+      design_model_id: object.designModelId,
+      project_id: object.projectId,
+      object_type: object.objectType,
+      name: object.name,
+      parent_object_id: object.parentObjectId ?? null,
+      parameters: object.parameters,
+      quantity_summary: object.quantitySummary ?? {},
+      estimate_mapping: object.estimateMapping ?? {},
+      geometry_cache: object.geometryCache ?? null,
+      updated_at: new Date().toISOString(),
+    }));
+
+    const { data, error } = await supabase.from('design_model_objects').upsert(rows).select('*');
+    if (error) return failure(error.message);
+    return success((data as DesignModelObjectRow[]).map(mapObjectRow));
+  } catch (err) {
+    return failure(err);
+  }
+}
+
+export async function listDesignModelObjects(
+  designModelId: string,
+): Promise<RepositoryResult<DesignModelObject[]>> {
+  try {
+    const { data, error } = await supabase
+      .from('design_model_objects')
+      .select('*')
+      .eq('design_model_id', designModelId)
+      .order('created_at', { ascending: true });
+    if (error) return failure(error.message);
+    return success((data as DesignModelObjectRow[]).map(mapObjectRow));
+  } catch (err) {
+    return failure(err);
+  }
+}
+
+export async function replaceDesignQuantityItems(
+  designModelId: string,
+  items: CreateDesignQuantityItemInput[],
+): Promise<RepositoryResult<DesignQuantityItem[]>> {
+  try {
+    const { data: committedRows, error: committedError } = await supabase
+      .from('design_quantity_items')
+      .select('*')
+      .eq('design_model_id', designModelId)
+      .not('estimate_line_id', 'is', null);
+    if (committedError) return failure(committedError.message);
+
+    const committedByPreviewId = new Map(
+      (committedRows as DesignQuantityItemRow[]).map((row) => [
+        String(row.metadata?.previewLineId ?? row.quantity_type),
+        row,
+      ]),
+    );
+
+    const { error: deleteError } = await supabase
+      .from('design_quantity_items')
+      .delete()
+      .eq('design_model_id', designModelId)
+      .is('estimate_line_id', null);
+    if (deleteError) return failure(deleteError.message);
+
+    if (items.length === 0) return success([]);
+
+    const rows = items.map((item) => ({
+      design_model_id: item.designModelId,
+      design_object_id: item.designObjectId,
+      project_id: item.projectId,
+      estimate_id: item.estimateId ?? null,
+      estimate_line_id:
+        item.estimateLineId ??
+        committedByPreviewId.get(String(item.metadata?.previewLineId ?? item.quantityType))?.estimate_line_id ??
+        null,
+      quantity_type: item.quantityType,
+      description: item.description,
+      quantity: item.quantity,
+      unit: item.unit,
+      formula: item.formula,
+      source: 'parametric_design_builder',
+      confidence: 'calculated_from_parameters',
+      parameter_snapshot: item.parameterSnapshot,
+      metadata: item.metadata ?? {},
+    }));
+
+    const { data, error } = await supabase.from('design_quantity_items').insert(rows).select('*');
+    if (error) return failure(error.message);
+    return success((data as DesignQuantityItemRow[]).map(mapQuantityRow));
+  } catch (err) {
+    return failure(err);
+  }
+}
+
+export async function listDesignQuantityItems(
+  designModelId: string,
+): Promise<RepositoryResult<DesignQuantityItem[]>> {
+  try {
+    const { data, error } = await supabase
+      .from('design_quantity_items')
+      .select('*')
+      .eq('design_model_id', designModelId)
+      .order('created_at', { ascending: true });
+    if (error) return failure(error.message);
+    return success((data as DesignQuantityItemRow[]).map(mapQuantityRow));
+  } catch (err) {
+    return failure(err);
+  }
+}
+
+export async function markDesignQuantityItemsCommitted(params: {
+  quantityItemIds: string[];
+  estimateLineId: string;
+}): Promise<RepositoryResult<DesignQuantityItem[]>> {
+  if (params.quantityItemIds.length === 0) return success([]);
+
+  try {
+    const { data, error } = await supabase
+      .from('design_quantity_items')
+      .update({ estimate_line_id: params.estimateLineId, updated_at: new Date().toISOString() })
+      .in('id', params.quantityItemIds)
+      .select('*');
+    if (error) return failure(error.message);
+    return success((data as DesignQuantityItemRow[]).map(mapQuantityRow));
+  } catch (err) {
+    return failure(err);
+  }
+}

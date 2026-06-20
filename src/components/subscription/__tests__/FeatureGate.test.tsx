@@ -81,14 +81,46 @@ describe('FeatureGate', () => {
     render(
       <MemoryRouter>
         <SubscriptionProvider>
-          <FeatureGate feature="employee_portal">
+          <FeatureGate feature="ai_concrete_chat">
             <div>Hidden content</div>
           </FeatureGate>
         </SubscriptionProvider>
       </MemoryRouter>,
     );
 
-    expect(await screen.findByTestId('upgrade-required-employee_portal')).toBeInTheDocument();
+    expect(await screen.findByTestId('upgrade-required-ai_concrete_chat')).toBeInTheDocument();
     expect(screen.queryByText('Hidden content')).not.toBeInTheDocument();
+  });
+
+  it('allows employee_portal for Starter plans', async () => {
+    fetchSubscription.mockResolvedValue({
+      id: 'sub-1',
+      userId: 'owner-1',
+      planId: 'starter',
+      status: 'active',
+      stripeCustomerId: null,
+      stripeSubscriptionId: null,
+      currentPeriodStart: null,
+      currentPeriodEnd: null,
+      trialEnd: null,
+      cancelAtPeriodEnd: false,
+      activeProjectLimit: null,
+      includedFieldSeats: 1,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    });
+
+    render(
+      <MemoryRouter>
+        <SubscriptionProvider>
+          <FeatureGate feature="employee_portal">
+            <div>Starter field portal content</div>
+          </FeatureGate>
+        </SubscriptionProvider>
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('Starter field portal content')).toBeInTheDocument();
+    expect(screen.queryByTestId('upgrade-required-employee_portal')).not.toBeInTheDocument();
   });
 });
