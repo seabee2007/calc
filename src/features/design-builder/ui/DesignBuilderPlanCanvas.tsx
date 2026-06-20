@@ -82,6 +82,8 @@ interface DesignBuilderPlanCanvasProps {
   previewMetrics?: { lengthMeters: number; angleDegrees: number } | null;
   orthogonalClosureAssist?: OrthogonalClosureAssist | null;
   closureCornerSnap?: { point: { x: number; z: number }; captured: boolean } | null;
+  frameSystem?: import('../types').StructuralFrameSystemParameters;
+  isolatedFootings?: readonly import('../types').IsolatedFooting[];
   onInteraction: (event: DesignBuilderInteractionEvent) => void;
 }
 
@@ -109,6 +111,8 @@ export default function DesignBuilderPlanCanvas({
   previewMetrics = null,
   orthogonalClosureAssist = null,
   closureCornerSnap = null,
+  frameSystem,
+  isolatedFootings = [],
   onInteraction,
 }: DesignBuilderPlanCanvasProps) {
   const svgRef = useRef<SVGSVGElement | null>(null);
@@ -910,6 +914,61 @@ export default function DesignBuilderPlanCanvas({
             {shiftConstraintLabel ?? drawGuidance?.label}
           </text>
         ) : null}
+        {frameSystem?.beams
+          .filter((beam) => beam.kind === 'grade_beam')
+          .map((beam) => {
+            const start = planToSurfacePoint({ x: beam.startPoint.x, z: beam.startPoint.z });
+            const end = planToSurfacePoint({ x: beam.endPoint.x, z: beam.endPoint.z });
+            return (
+              <line
+                key={beam.id}
+                x1={start.sx}
+                y1={start.sy}
+                x2={end.sx}
+                y2={end.sy}
+                stroke="#57534e"
+                strokeWidth={Math.max(4, beam.widthMeters * viewport.scale)}
+                strokeLinecap="butt"
+                pointerEvents="none"
+              />
+            );
+          })}
+        {isolatedFootings.map((footing) => {
+          const center = planToSurfacePoint(footing.position);
+          const halfW = (footing.widthMeters * viewport.scale) / 2;
+          const halfL = (footing.lengthMeters * viewport.scale) / 2;
+          return (
+            <rect
+              key={footing.id}
+              x={center.sx - halfW}
+              y={center.sy - halfL}
+              width={halfW * 2}
+              height={halfL * 2}
+              fill="#78716c55"
+              stroke="#57534e"
+              strokeWidth={1.5}
+              pointerEvents="none"
+            />
+          );
+        })}
+        {frameSystem?.columns.map((column) => {
+          const center = planToSurfacePoint(column.position);
+          const halfW = (column.widthMeters * viewport.scale) / 2;
+          const halfD = (column.depthMeters * viewport.scale) / 2;
+          return (
+            <rect
+              key={column.id}
+              x={center.sx - halfW}
+              y={center.sy - halfD}
+              width={halfW * 2}
+              height={halfD * 2}
+              fill="#9ca3af"
+              stroke="#334155"
+              strokeWidth={1.5}
+              pointerEvents="none"
+            />
+          );
+        })}
         {layout.nodes.map((node) => {
           const point = planToSurfacePoint(node);
           const selected = selectedNodeId === node.id || activeNodeId === node.id;

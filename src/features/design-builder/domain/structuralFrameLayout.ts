@@ -2,9 +2,21 @@ import type {
   DesignWallLayoutParameters,
   StructuralBeam,
   StructuralColumn,
+  StructuralFoundationSettings,
   StructuralFrameSystemParameters,
 } from '../types';
 import type { SegmentFrame } from '../geometry/designGeometry';
+import { resolveInsideFaceStation } from './infillPanelBoundsResolver';
+import {
+  gradeBeamElevationsFromSettings,
+  resolveColumnGeometry,
+  resolveColumnTopElevationMeters,
+  resolveFoundationElevations,
+  ringBeamElevationsForWallHeight,
+  TOP_OF_GRADE_BEAM_Y,
+} from './foundationElevations';
+import { createIsolatedFootingsForColumns } from './isolatedFootingLayout';
+import type { IsolatedFooting } from '../types';
 import {
   DEFAULT_GRADE_BEAM_DEPTH_METERS,
   DEFAULT_GRADE_BEAM_WIDTH_METERS,
@@ -21,6 +33,11 @@ export type ColumnFootprint = {
   exteriorMinZ: number;
   exteriorMaxZ: number;
   insideFaceAlongSegment: (segmentId: string, station: number) => number;
+};
+
+export type FrameLayoutResult = {
+  frameSystem: StructuralFrameSystemParameters;
+  isolatedFootings: IsolatedFooting[];
 };
 
 function columnIdForNode(nodeId: string): string {
@@ -47,24 +64,13 @@ export function columnExteriorBounds(column: StructuralColumn): {
   };
 }
 
-/** Station on segment where column inside face meets infill (segment-local, meters from start). */
+/** Station on segment where column inside face meets infill (segment-local, meters from exterior start). */
 export function columnInsideFaceStationOnSegment(
   column: StructuralColumn,
   frame: SegmentFrame,
   side: 'start' | 'end',
 ): number {
-  const halfW = column.widthMeters / 2;
-  const halfD = column.depthMeters / 2;
-  const dx = column.position.x - frame.start.x;
-  const dz = column.position.z - frame.start.z;
-  const station = dx * frame.tangent.x + dz * frame.tangent.z;
-  const offsetAlong = side === 'start' ? halfW : -halfW;
-  const offsetNormal = frame.inwardNormal.x * (column.position.x - frame.start.x) +
-    frame.inwardNormal.z * (column.position.z - frame.start.z);
-  const normalHalf = Math.abs(offsetNormal) > 0.01 ? halfD : halfW;
-  return side === 'start'
-    ? Math.max(0, station + offsetAlong + normalHalf * 0.5)
-    : Math.min(frame.lengthMeters, station + offsetAlong - normalHalf * 0.5);
+  return resolveInsideFaceStation({ column, frame, side });
 }
 
 export function createCornerColumnsForLayout(params: {
@@ -72,10 +78,14 @@ export function createCornerColumnsForLayout(params: {
   segmentFrames: SegmentFrame[];
   frameSystem: StructuralFrameSystemParameters;
   wallHeightMeters: number;
-  baseElevationMeters?: number;
+  foundation: StructuralFoundationSettings;
+  columnTopY?: number;
 }): StructuralColumn[] {
-  const base = params.baseElevationMeters ?? 0;
-  const top = base + params.wallHeightMeters;
+  const elevations = resolveFoundationElevations({
+    foundation: params.foundation,
+    wallHeightMeters: params.wallHeightMeters,
+  });
+  const columnTopY = params.columnTopY ?? elevations.wallTopY;
   const width = params.frameSystem.defaultColumnWidthMeters || DEFAULT_RC_COLUMN_WIDTH_METERS;
   const depth = params.frameSystem.defaultColumnDepthMeters || DEFAULT_RC_COLUMN_DEPTH_METERS;
   const nodeIds = new Set<string>();
@@ -88,6 +98,11 @@ export function createCornerColumnsForLayout(params: {
   for (const nodeId of nodeIds) {
     const node = nodeById.get(nodeId);
     if (!node) continue;
+    const geometry = resolveColumnGeometry({
+      column: { widthMeters: width, depthMeters: depth },
+      elevations,
+      columnTopY,
+    });
     columns.push({
       id: columnIdForNode(nodeId),
       name: `Corner Column ${nodeId}`,
@@ -95,9 +110,7 @@ export function createCornerColumnsForLayout(params: {
       position: { x: node.x, z: node.z },
       widthMeters: width,
       depthMeters: depth,
-      heightMeters: params.wallHeightMeters,
-      baseElevationMeters: base,
-      topElevationMeters: top,
+      ...geometry,
       hostNodeId: nodeId,
       source: 'auto_frame_layout',
     });
@@ -155,34 +168,43 @@ export function createPerimeterBeamsForLayout(params: {
   layout: DesignWallLayoutParameters;
   columns: StructuralColumn[];
   frameSystem: StructuralFrameSystemParameters;
-  gradeBeamBaseMeters?: number;
-  ringBeamTopMeters?: number;
+  foundation: StructuralFoundationSettings;
+  wallHeightMeters: number;
 }): StructuralBeam[] {
   const colByNode = new Map<string, StructuralColumn>();
   for (const col of params.columns) {
     if (col.hostNodeId) colByNode.set(col.hostNodeId, col);
   }
-  const gradeBase = params.gradeBeamBaseMeters ?? 0;
-  const gradeTop = gradeBase + (params.frameSystem.defaultGradeBeamDepthMeters || DEFAULT_GRADE_BEAM_DEPTH_METERS);
-  const ringTop = params.ringBeamTopMeters ?? params.layout.defaultWallHeightMeters;
-  const ringBase = ringTop - (params.frameSystem.defaultRingBeamDepthMeters || DEFAULT_RING_BEAM_DEPTH_METERS);
+
+  const gradeBeam = params.foundation.gradeBeam;
+  const gradeElevations = gradeBeamElevationsFromSettings(gradeBeam);
+  const ringDepth = params.frameSystem.defaultRingBeamDepthMeters || DEFAULT_RING_BEAM_DEPTH_METERS;
+  const ringElevations = ringBeamElevationsForWallHeight({
+    wallHeightMeters: params.wallHeightMeters,
+    ringBeamDepthMeters: ringDepth,
+  });
+
   const beams: StructuralBeam[] = [];
   for (const seg of params.layout.segments) {
     const startCol = colByNode.get(seg.startNodeId);
     const endCol = colByNode.get(seg.endNodeId);
     if (!startCol || !endCol) continue;
-    beams.push(
-      beamBetweenColumns({
-        kind: 'grade_beam',
-        startCol,
-        endCol,
-        segmentId: seg.id,
-        widthMeters: params.frameSystem.defaultGradeBeamWidthMeters || DEFAULT_GRADE_BEAM_WIDTH_METERS,
-        depthMeters: params.frameSystem.defaultGradeBeamDepthMeters || DEFAULT_GRADE_BEAM_DEPTH_METERS,
-        baseElevationMeters: gradeBase,
-        topElevationMeters: gradeTop,
-      }),
-    );
+
+    if (gradeBeam.enabled) {
+      beams.push(
+        beamBetweenColumns({
+          kind: 'grade_beam',
+          startCol,
+          endCol,
+          segmentId: seg.id,
+          widthMeters: gradeBeam.widthMeters || params.frameSystem.defaultGradeBeamWidthMeters || DEFAULT_GRADE_BEAM_WIDTH_METERS,
+          depthMeters: gradeBeam.depthMeters || params.frameSystem.defaultGradeBeamDepthMeters || DEFAULT_GRADE_BEAM_DEPTH_METERS,
+          baseElevationMeters: gradeElevations.baseElevationMeters,
+          topElevationMeters: gradeElevations.topElevationMeters,
+        }),
+      );
+    }
+
     beams.push(
       beamBetweenColumns({
         kind: 'ring_beam',
@@ -190,9 +212,9 @@ export function createPerimeterBeamsForLayout(params: {
         endCol,
         segmentId: seg.id,
         widthMeters: params.frameSystem.defaultRingBeamWidthMeters || DEFAULT_RING_BEAM_WIDTH_METERS,
-        depthMeters: params.frameSystem.defaultRingBeamDepthMeters || DEFAULT_RING_BEAM_DEPTH_METERS,
-        baseElevationMeters: ringBase,
-        topElevationMeters: ringTop,
+        depthMeters: ringDepth,
+        baseElevationMeters: ringElevations.baseElevationMeters,
+        topElevationMeters: ringElevations.topElevationMeters,
       }),
     );
   }
@@ -203,25 +225,72 @@ export function autoFrameLayout(params: {
   layout: DesignWallLayoutParameters;
   segmentFrames: SegmentFrame[];
   frameSystem: StructuralFrameSystemParameters;
-}): StructuralFrameSystemParameters {
-  const wallHeight = params.layout.defaultWallHeightMeters;
-  const columns = createCornerColumnsForLayout({
+  foundation: StructuralFoundationSettings;
+}): FrameLayoutResult {
+  return reconcileStructuralFrameWithFoundation({
     layout: params.layout,
     segmentFrames: params.segmentFrames,
     frameSystem: params.frameSystem,
-    wallHeightMeters: wallHeight,
+    foundation: params.foundation,
+    wallHeightMeters: params.layout.defaultWallHeightMeters,
   });
-  const beams = createPerimeterBeamsForLayout({
+}
+
+export function reconcileStructuralFrameWithFoundation(params: {
+  layout: DesignWallLayoutParameters;
+  segmentFrames: SegmentFrame[];
+  frameSystem: StructuralFrameSystemParameters;
+  foundation: StructuralFoundationSettings;
+  wallHeightMeters: number;
+}): FrameLayoutResult {
+  const wallHeight = params.wallHeightMeters;
+  const columns =
+    params.frameSystem.columns.length > 0
+      ? params.frameSystem.columns
+      : createCornerColumnsForLayout({
+          layout: params.layout,
+          segmentFrames: params.segmentFrames,
+          frameSystem: params.frameSystem,
+          wallHeightMeters: wallHeight,
+          foundation: params.foundation,
+        });
+
+  const resolvedBeams = createPerimeterBeamsForLayout({
     layout: params.layout,
     columns,
     frameSystem: params.frameSystem,
-    ringBeamTopMeters: wallHeight,
+    foundation: params.foundation,
+    wallHeightMeters: wallHeight,
   });
+  const ringBeamTop =
+    resolvedBeams.find((beam) => beam.kind === 'ring_beam')?.topElevationMeters ??
+    wallHeight + TOP_OF_GRADE_BEAM_Y;
+  const elevations = resolveFoundationElevations({
+    foundation: params.foundation,
+    wallHeightMeters: wallHeight,
+  });
+  const reconciledColumns = columns.map((column) => ({
+    ...column,
+    ...resolveColumnGeometry({
+      column,
+      elevations,
+      columnTopY: ringBeamTop,
+    }),
+  }));
+  const isolatedFootings = createIsolatedFootingsForColumns({
+    columns: reconciledColumns,
+    settings: params.foundation.isolatedFootings,
+    topOfFootingY: elevations.topOfFootingY,
+  });
+
   return {
-    ...params.frameSystem,
-    buildingSystemMode: 'reinforced_concrete_frame_with_cmu_infill',
-    columns,
-    beams,
+    frameSystem: {
+      ...params.frameSystem,
+      buildingSystemMode: 'reinforced_concrete_frame_with_cmu_infill',
+      columns: reconciledColumns,
+      beams: resolvedBeams,
+    },
+    isolatedFootings,
   };
 }
 
@@ -280,3 +349,5 @@ export function deduplicatedStructuralConcreteVolumeCubicMeters(params: {
   }
   return Math.max(0, total);
 }
+
+export { TOP_OF_GRADE_BEAM_Y, resolveColumnTopElevationMeters };

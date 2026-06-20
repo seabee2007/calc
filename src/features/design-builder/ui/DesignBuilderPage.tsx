@@ -131,6 +131,7 @@ import {
   objectSaveKey,
   setBuildingSystemMode,
 } from '../domain/structureActions';
+import { createDefaultFoundationSettings } from '../domain/foundationElevations';
 import {
   createDesignModel,
   upsertDesignModelObjects,
@@ -145,6 +146,7 @@ import type {
   DesignBuilderToolMode,
   DesignBuilderSnapMode,
   DesignEstimatePreviewLine,
+  FoundationViewMode,
   DesignModel,
   DesignModelObject,
   DesignObjectType,
@@ -355,6 +357,8 @@ export default function DesignBuilderPage({
   const [showGroutCells, setShowGroutCells] = useState(false);
   const [showClosureWarnings, setShowClosureWarnings] = useState(false);
   const [showFootprintSetout, setShowFootprintSetout] = useState(false);
+  const [showInfillPanelBounds, setShowInfillPanelBounds] = useState(false);
+  const [foundationViewMode, setFoundationViewMode] = useState<FoundationViewMode>('full_model');
   const [viewMode, setViewMode] = useState<'plan' | '3d'>(() => storedSession?.viewMode ?? '3d');
   const builderViewMode = builderViewModeFromStored(viewMode);
   const [snapMode, setSnapMode] = useState<DesignBuilderSnapMode>(() => storedSession?.snapMode ?? 'grid');
@@ -596,7 +600,13 @@ export default function DesignBuilderPage({
     });
   }, [estimateId, projectId]);
 
-  const resolvedPreset = useMemo(() => preset ?? createBlankCmuBuildingPreset(), [preset]);
+  const resolvedPreset = useMemo(() => {
+    const base = preset ?? createBlankCmuBuildingPreset();
+    return {
+      ...base,
+      foundationSettings: base.foundationSettings ?? createDefaultFoundationSettings(),
+    };
+  }, [preset]);
   const wallLayout = resolvedPreset.wallLayout;
   const nextUndoCommand = peekUndoDesignCommand(designHistory);
   const nextRedoCommand = peekRedoDesignCommand(designHistory);
@@ -638,6 +648,7 @@ export default function DesignBuilderPage({
         trussSettings: footprintClosed ? resolvedPreset.truss : { ...resolvedPreset.truss, buildingLengthMeters: 0 },
         buildingSystemMode: resolvedPreset.buildingSystemMode,
         frameSystem: resolvedPreset.frameSystem,
+        foundationSettings: resolvedPreset.foundationSettings,
         infillSystem: resolvedPreset.infillSystem,
         gableEndSystem: resolvedPreset.gableEndSystem,
       }),
@@ -647,6 +658,7 @@ export default function DesignBuilderPage({
       masonryGeometryKey,
       resolvedPreset.buildingSystemMode,
       resolvedPreset.frameSystem,
+      resolvedPreset.foundationSettings,
       resolvedPreset.gableEndSystem,
       resolvedPreset.infillSystem,
       resolvedPreset.roof,
@@ -2575,6 +2587,26 @@ export default function DesignBuilderPage({
     );
   }
 
+  function updateFoundationField(
+    patch: Partial<import('../types').GradeBeamSettings> | Partial<import('../types').IsolatedFootingSettings>,
+    section: 'gradeBeam' | 'isolatedFootings',
+  ) {
+    applyPresetPatch(
+      (current) => ({
+        ...current,
+        foundationSettings: {
+          ...(current.foundationSettings ?? createDefaultFoundationSettings()),
+          [section]: {
+            ...(current.foundationSettings ?? createDefaultFoundationSettings())[section],
+            ...patch,
+          },
+        },
+      }),
+      'Edit foundation settings',
+      'structure_update',
+    );
+  }
+
   function updateGableField(gableId: string, patch: Partial<import('../types').GableEndSettings>) {
     applyPresetPatch(
       (current) => ({
@@ -3181,6 +3213,7 @@ export default function DesignBuilderPage({
               onRoofChange={updateRoofField}
               onTrussSpacingChange={updateTrussSpacing}
               onStructureFieldChange={updateStructureField}
+              onFoundationFieldChange={updateFoundationField}
               onGableFieldChange={updateGableField}
               onOpeningChange={updateSelectedOpening}
               selectedOpeningId={selectedOpeningId}
@@ -3514,6 +3547,37 @@ export default function DesignBuilderPage({
                   {import.meta.env.DEV ? (
                     <ToggleField label="Show footprint setout" checked={showFootprintSetout} onChange={setShowFootprintSetout} />
                   ) : null}
+                  {import.meta.env.DEV && resolvedPreset.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill' ? (
+                    <ToggleField
+                      label="Show Infill Panel Bounds"
+                      checked={showInfillPanelBounds}
+                      onChange={setShowInfillPanelBounds}
+                    />
+                  ) : null}
+                  {resolvedPreset.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill' ? (
+                    <div className="space-y-1 border-t border-slate-200 pt-2 dark:border-slate-700">
+                      <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                        Foundation View
+                      </div>
+                      {(
+                        [
+                          ['full_model', 'Full Model'],
+                          ['cutaway_below_grade', 'Cutaway / Below Grade'],
+                          ['structural_frame_only', 'Structural Frame Only'],
+                        ] as const
+                      ).map(([mode, label]) => (
+                        <label key={mode} className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 hover:bg-slate-50 dark:hover:bg-slate-800">
+                          <input
+                            type="radio"
+                            name="foundation-view-mode"
+                            checked={foundationViewMode === mode}
+                            onChange={() => setFoundationViewMode(mode)}
+                          />
+                          <span>{label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  ) : null}
               </DesignBuilderCommandMenu>
 
               <DesignBuilderCommandMenu
@@ -3801,6 +3865,8 @@ export default function DesignBuilderPage({
                 segmentFrames={planSegmentFrames}
                 openingItems={planOpeningItems}
                 openingPreview={planOpeningPreview}
+                frameSystem={designGeometryResult.frameSystem}
+                isolatedFootings={designGeometryResult.isolatedFootings}
                 onInteraction={handlePlanInteraction}
               />
             ) : (
@@ -3830,6 +3896,8 @@ export default function DesignBuilderPage({
                 showGroutCells={showGroutCells}
                 showClosureWarnings={showClosureWarnings}
                 showFootprintSetout={showFootprintSetout}
+                showInfillPanelBounds={showInfillPanelBounds}
+                foundationViewMode={foundationViewMode}
               />
             )}
             {viewMode === 'plan' && toolMode === 'draw_wall' ? (
@@ -4051,6 +4119,8 @@ const OBJECT_TREE_ITEMS: Array<{ id: string; objectType: DesignObjectType; label
   { id: 'grout-rebar', objectType: 'cmu_wall_system', label: 'Grout/Rebar Cells', description: '' },
   { id: 'manual-runs', objectType: 'cmu_wall_system', label: 'Manual Runs', description: '' },
   { id: 'slab', objectType: 'thickened_edge_slab', label: 'Slab', description: '' },
+  { id: 'grade-beams', objectType: 'structural_frame_system', label: 'Grade Beams', description: '' },
+  { id: 'isolated-footings', objectType: 'structural_frame_system', label: 'Isolated Footings', description: '' },
   { id: 'columns', objectType: 'structural_frame_system', label: 'RC Columns', description: '' },
   { id: 'beams', objectType: 'structural_frame_system', label: 'RC Beams', description: '' },
   { id: 'infill-panels', objectType: 'cmu_infill_system', label: 'CMU Infill Panels', description: '' },
@@ -4080,10 +4150,17 @@ const OBJECT_TREE_GROUPS: Array<{
     ),
   },
   {
+    id: 'foundation',
+    label: 'Foundation',
+    items: OBJECT_TREE_ITEMS.filter((item) =>
+      ['grade-beams', 'isolated-footings', 'columns'].includes(item.id),
+    ),
+  },
+  {
     id: 'structure',
     label: 'Structure',
     items: OBJECT_TREE_ITEMS.filter((item) =>
-      ['columns', 'beams', 'slab'].includes(item.id),
+      ['beams', 'slab'].includes(item.id),
     ),
   },
   {
@@ -4123,6 +4200,7 @@ function EditableControls({
   onRoofChange,
   onTrussSpacingChange,
   onStructureFieldChange,
+  onFoundationFieldChange,
   onGableFieldChange,
   onOpeningChange,
   selectedOpeningId,
@@ -4152,6 +4230,10 @@ function EditableControls({
     patch: Partial<import('../types').StructuralFrameSystemParameters> & {
       buildingSystemMode?: import('../types').BuildingSystemMode;
     },
+  ) => void;
+  onFoundationFieldChange: (
+    patch: Partial<import('../types').GradeBeamSettings> | Partial<import('../types').IsolatedFootingSettings>,
+    section: 'gradeBeam' | 'isolatedFootings',
   ) => void;
   onGableFieldChange: (gableId: string, patch: Partial<import('../types').GableEndSettings>) => void;
   onOpeningChange: (openingId: string, patch: Partial<WallOpeningParameters>) => void;
@@ -4343,6 +4425,65 @@ function EditableControls({
           suffix="m"
           onChange={(value) => onStructureFieldChange({ defaultColumnDepthMeters: positiveOrFallback(value, 0.35) })}
         />
+        {preset.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill' ? (
+          <div className="space-y-3 rounded-xl border border-slate-200 p-3 dark:border-slate-700">
+            <div className="text-sm font-semibold text-slate-800 dark:text-slate-100">Foundation (Y=0 at grade beam top)</div>
+            <label className="flex items-center justify-between rounded-lg bg-slate-100 px-3 py-2 text-sm dark:bg-slate-800">
+              <span>Grade beam enabled</span>
+              <input
+                type="checkbox"
+                checked={preset.foundationSettings.gradeBeam.enabled}
+                onChange={(event) => onFoundationFieldChange({ enabled: event.currentTarget.checked }, 'gradeBeam')}
+                className="h-4 w-4"
+              />
+            </label>
+            <NumberField
+              label="Grade Beam Width"
+              value={preset.foundationSettings.gradeBeam.widthMeters}
+              suffix="m"
+              onChange={(value) => onFoundationFieldChange({ widthMeters: positiveOrFallback(value, 0.3) }, 'gradeBeam')}
+            />
+            <NumberField
+              label="Grade Beam Depth"
+              value={preset.foundationSettings.gradeBeam.depthMeters}
+              suffix="m"
+              onChange={(value) => onFoundationFieldChange({ depthMeters: positiveOrFallback(value, 0.45) }, 'gradeBeam')}
+            />
+            <label className="flex items-center justify-between rounded-lg bg-slate-100 px-3 py-2 text-sm dark:bg-slate-800">
+              <span>Isolated footings enabled</span>
+              <input
+                type="checkbox"
+                checked={preset.foundationSettings.isolatedFootings.enabled}
+                onChange={(event) => onFoundationFieldChange({ enabled: event.currentTarget.checked }, 'isolatedFootings')}
+                className="h-4 w-4"
+              />
+            </label>
+            <NumberField
+              label="Footing Width"
+              value={preset.foundationSettings.isolatedFootings.footingWidthMeters}
+              suffix="m"
+              onChange={(value) => onFoundationFieldChange({ footingWidthMeters: positiveOrFallback(value, 1.2) }, 'isolatedFootings')}
+            />
+            <NumberField
+              label="Footing Length"
+              value={preset.foundationSettings.isolatedFootings.footingLengthMeters}
+              suffix="m"
+              onChange={(value) => onFoundationFieldChange({ footingLengthMeters: positiveOrFallback(value, 1.2) }, 'isolatedFootings')}
+            />
+            <NumberField
+              label="Footing Thickness"
+              value={preset.foundationSettings.isolatedFootings.footingThicknessMeters}
+              suffix="m"
+              onChange={(value) => onFoundationFieldChange({ footingThicknessMeters: positiveOrFallback(value, 0.45) }, 'isolatedFootings')}
+            />
+            <NumberField
+              label="Footing Drop Below Grade Beam"
+              value={preset.foundationSettings.isolatedFootings.dropBelowGradeBeamMeters}
+              suffix="m"
+              onChange={(value) => onFoundationFieldChange({ dropBelowGradeBeamMeters: positiveOrFallback(value, 0.6) }, 'isolatedFootings')}
+            />
+          </div>
+        ) : null}
         <p className="text-sm text-slate-600 dark:text-slate-300">
           Columns: {preset.frameSystem.columns.length} · Beams: {preset.frameSystem.beams.length}
         </p>

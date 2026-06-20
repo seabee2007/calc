@@ -14,6 +14,7 @@ import {
   panelClearWidthMeters,
   solveInfillPanelBlocks,
 } from './cmuInfillPanelSolver';
+import { boundsSnapshotFromPanel } from './infillPanelBoundsResolver';
 import type { SegmentFrame } from '../geometry/designGeometry';
 import type { DesignWallLayoutParameters } from '../types';
 import type { StructuralBeam, StructuralColumn } from '../types';
@@ -286,6 +287,7 @@ export function evaluateSegmentPanelModuleFit(params: {
 }): ModuleFitCandidate {
   const result = solveInfillPanelBlocks({
     panel: params.panel,
+    bounds: boundsSnapshotFromPanel(params.panel, params.frame),
     frame: params.frame,
     wall: params.wall,
   });

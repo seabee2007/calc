@@ -641,50 +641,181 @@ export interface FrameInfillQuantityInput extends CmuBuildingQuantityInput {
 
 export function buildFrameInfillEstimatePreview(input: FrameInfillQuantityInput): DesignEstimatePreviewLine[] {
   const base = buildCmuBuildingEstimatePreview(input);
+  const breakdown = input.geometryResult.structuralConcreteVolumeBreakdown;
   const structuralVolume = input.geometryResult.structuralConcreteVolumeCubicMeters ?? 0;
   const counts = input.geometryResult.wallCmuLayout.counts;
+  const topClosureCutBlockCount = input.geometryResult.wallCmuLayout.topClosureCutBlockCount ?? 0;
+  const infillBlockCount = counts.full + counts.half + counts.cut;
   const gableCutCount =
     input.geometryResult.gablePlacements?.filter((p) => p.kind === 'cut_block').length ?? 0;
   const metaBase = {
     buildingSystemMode: input.buildingSystemMode,
     quantityFormula: 'parametric_design_builder',
   };
+  const columnVolumeCubicMeters =
+    (breakdown?.columnBelowGradeVolumeCubicMeters ?? 0) +
+    (breakdown?.columnAboveGradeVolumeCubicMeters ?? 0);
+
+  const structuralLines: DesignEstimatePreviewLine[] = breakdown
+    ? [
+        {
+          id: 'rc-grade-beams-volume',
+          designModelId: input.designModelId,
+          designObjectId: input.frameObjectId,
+          quantityType: 'rc_grade_beams_volume',
+          description: 'RC Grade Beams — concrete volume',
+          quantity: roundQuantity(cubicMetersToCubicYards(breakdown.gradeBeamVolumeCubicMeters), 2),
+          unit: 'CY',
+          formula: 'sum(grade_beam span * width * depth)',
+          parameterSnapshot: {
+            beams: input.frameSystem.beams.filter((beam) => beam.kind === 'grade_beam'),
+            structuralObjectId: input.frameObjectId,
+            ...metaBase,
+          },
+          source: 'parametric_design_builder',
+          confidence: 'calculated_from_parameters',
+          divisionCode: '03',
+          divisionName: 'Concrete',
+        },
+        {
+          id: 'rc-ring-beams-volume',
+          designModelId: input.designModelId,
+          designObjectId: input.frameObjectId,
+          quantityType: 'rc_ring_beams_volume',
+          description: 'Ring Beams — concrete volume',
+          quantity: roundQuantity(cubicMetersToCubicYards(breakdown.ringBeamVolumeCubicMeters), 2),
+          unit: 'CY',
+          formula: 'sum(ring_beam span * width * depth) minus column intersections',
+          parameterSnapshot: {
+            beams: input.frameSystem.beams.filter((beam) => beam.kind === 'ring_beam'),
+            structuralObjectId: input.frameObjectId,
+            ...metaBase,
+          },
+          source: 'parametric_design_builder',
+          confidence: 'calculated_from_parameters',
+          divisionCode: '03',
+          divisionName: 'Concrete',
+        },
+        {
+          id: 'rc-columns-volume',
+          designModelId: input.designModelId,
+          designObjectId: input.frameObjectId,
+          quantityType: 'rc_columns_volume',
+          description: 'RC Columns — concrete volume',
+          quantity: roundQuantity(cubicMetersToCubicYards(columnVolumeCubicMeters), 2),
+          unit: 'CY',
+          formula: 'column below grade + column above grade (grade beam zone excluded)',
+          parameterSnapshot: {
+            columns: input.frameSystem.columns,
+            columnBelowGradeVolumeCubicMeters: breakdown.columnBelowGradeVolumeCubicMeters,
+            columnAboveGradeVolumeCubicMeters: breakdown.columnAboveGradeVolumeCubicMeters,
+            structuralObjectId: input.frameObjectId,
+            ...metaBase,
+          },
+          source: 'parametric_design_builder',
+          confidence: 'calculated_from_parameters',
+          divisionCode: '03',
+          divisionName: 'Concrete',
+        },
+        {
+          id: 'isolated-footings-volume',
+          designModelId: input.designModelId,
+          designObjectId: input.frameObjectId,
+          quantityType: 'isolated_footings_volume',
+          description: 'Isolated Footings — concrete volume',
+          quantity: roundQuantity(cubicMetersToCubicYards(breakdown.footingVolumeCubicMeters), 2),
+          unit: 'CY',
+          formula: 'footingWidth * footingLength * footingThickness per column',
+          parameterSnapshot: {
+            footings: input.geometryResult.isolatedFootings ?? [],
+            structuralObjectId: input.frameObjectId,
+            ...metaBase,
+          },
+          source: 'parametric_design_builder',
+          confidence: 'calculated_from_parameters',
+          divisionCode: '03',
+          divisionName: 'Concrete',
+        },
+        {
+          id: 'rc-structural-total-volume',
+          designModelId: input.designModelId,
+          designObjectId: input.frameObjectId,
+          quantityType: 'rc_structural_concrete_volume',
+          description: 'RC structural concrete total (deduplicated)',
+          quantity: roundQuantity(cubicMetersToCubicYards(structuralVolume), 2),
+          unit: 'CY',
+          formula: 'grade + ring + columns + footings minus ring/column intersections',
+          parameterSnapshot: {
+            breakdown,
+            structuralObjectId: input.frameObjectId,
+            ...metaBase,
+          },
+          source: 'parametric_design_builder',
+          confidence: 'calculated_from_parameters',
+          divisionCode: '03',
+          divisionName: 'Concrete',
+        },
+      ]
+    : [
+        {
+          id: 'rc-beams-volume',
+          designModelId: input.designModelId,
+          designObjectId: input.frameObjectId,
+          quantityType: 'rc_structural_concrete_volume',
+          description: 'RC structural concrete volume (deduplicated beam/column intersections)',
+          quantity: roundQuantity(cubicMetersToCubicYards(structuralVolume), 2),
+          unit: 'CY',
+          formula: 'unionVolume(columns, beams) with intersection subtraction',
+          parameterSnapshot: {
+            beams: input.frameSystem.beams,
+            columns: input.frameSystem.columns,
+            structuralConcreteVolumeCubicMeters: structuralVolume,
+            structuralObjectId: input.frameObjectId,
+            ...metaBase,
+          },
+          source: 'parametric_design_builder',
+          confidence: 'calculated_from_parameters',
+          divisionCode: '03',
+          divisionName: 'Concrete',
+        },
+      ];
 
   return [
     ...base,
-    {
-      id: 'rc-beams-volume',
-      designModelId: input.designModelId,
-      designObjectId: input.frameObjectId,
-      quantityType: 'rc_structural_concrete_volume',
-      description: 'RC structural concrete volume (deduplicated beam/column intersections)',
-      quantity: roundQuantity(cubicMetersToCubicYards(structuralVolume), 2),
-      unit: 'CY',
-      formula: 'unionVolume(columns, beams) with intersection subtraction',
-      parameterSnapshot: {
-        beams: input.frameSystem.beams,
-        columns: input.frameSystem.columns,
-        structuralConcreteVolumeCubicMeters: structuralVolume,
-        structuralObjectId: input.frameObjectId,
-        ...metaBase,
-      },
-      source: 'parametric_design_builder',
-      confidence: 'calculated_from_parameters',
-      divisionCode: '03',
-      divisionName: 'Concrete',
-    },
+    ...structuralLines,
     {
       id: 'cmu-infill-blocks',
       designModelId: input.designModelId,
       designObjectId: input.infillObjectId,
       quantityType: 'cmu_infill_blocks',
       description: 'CMU infill full / half / cut blocks',
-      quantity: counts.full + counts.half + counts.cut,
+      quantity: infillBlockCount,
       unit: 'EA',
       formula: 'solved_infill_panel_blocks',
       parameterSnapshot: {
         panels: input.infillSystem.panels,
         blockBreakdown: counts,
+        topClosureCutBlockCount,
+        infillPanelId: input.infillObjectId,
+        ...metaBase,
+      },
+      source: 'parametric_design_builder',
+      confidence: 'calculated_from_parameters',
+      divisionCode: '04',
+      divisionName: 'Masonry',
+    },
+    {
+      id: 'cmu-top-closure-cut-course',
+      designModelId: input.designModelId,
+      designObjectId: input.infillObjectId,
+      quantityType: 'cmu_top_closure_cut_course',
+      description: 'CMU top closure cut course',
+      quantity: topClosureCutBlockCount,
+      unit: 'EA',
+      formula: 'panel_top_closure cut_height_block count',
+      parameterSnapshot: {
+        panels: input.infillSystem.panels,
+        topClosureCutBlockCount,
         infillPanelId: input.infillObjectId,
         ...metaBase,
       },

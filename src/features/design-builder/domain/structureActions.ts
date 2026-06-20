@@ -5,10 +5,15 @@ import {
   createCornerColumnsForLayout,
   createPerimeterBeamsForLayout,
 } from './structuralFrameLayout';
+import { createDefaultFoundationSettings } from './foundationElevations';
 import { deriveInfillPanelsForLayout } from './cmuInfillPanelSolver';
 import { createDefaultGableEnd } from '../geometry/structuralFrameGeometry';
 import { getSegmentFramesForWallLayout } from '../geometry/designGeometry';
-import type { BuildingSystemMode } from '../types';
+import type { BuildingSystemMode, StructuralFoundationSettings } from '../types';
+
+export function resolveFoundationSettings(preset: CmuBuildingPreset): StructuralFoundationSettings {
+  return preset.foundationSettings ?? createDefaultFoundationSettings();
+}
 
 export function setBuildingSystemMode(
   preset: CmuBuildingPreset,
@@ -26,15 +31,19 @@ export function setBuildingSystemMode(
 
 export function applyCornerColumns(preset: CmuBuildingPreset): CmuBuildingPreset {
   const segmentFrames = getSegmentFramesForWallLayout(preset.wallLayout, preset.wall);
+  const foundation = resolveFoundationSettings(preset);
+  const wallHeightMeters = preset.wallLayout.defaultWallHeightMeters || preset.wall.heightMeters;
   const columns = createCornerColumnsForLayout({
     layout: preset.wallLayout,
     segmentFrames,
     frameSystem: preset.frameSystem,
-    wallHeightMeters: preset.wallLayout.defaultWallHeightMeters || preset.wall.heightMeters,
+    wallHeightMeters,
+    foundation,
   });
   return {
     ...preset,
     buildingSystemMode: 'reinforced_concrete_frame_with_cmu_infill',
+    foundationSettings: foundation,
     frameSystem: {
       ...preset.frameSystem,
       buildingSystemMode: 'reinforced_concrete_frame_with_cmu_infill',
@@ -45,10 +54,12 @@ export function applyCornerColumns(preset: CmuBuildingPreset): CmuBuildingPreset
 
 export function applyAutoFrameLayout(preset: CmuBuildingPreset): CmuBuildingPreset {
   const segmentFrames = getSegmentFramesForWallLayout(preset.wallLayout, preset.wall);
-  const frameSystem = autoFrameLayout({
+  const foundation = resolveFoundationSettings(preset);
+  const { frameSystem } = autoFrameLayout({
     layout: preset.wallLayout,
     segmentFrames,
     frameSystem: preset.frameSystem,
+    foundation,
   });
   const panels = deriveInfillPanelsForLayout({
     layout: preset.wallLayout,
@@ -60,6 +71,7 @@ export function applyAutoFrameLayout(preset: CmuBuildingPreset): CmuBuildingPres
   return {
     ...preset,
     buildingSystemMode: 'reinforced_concrete_frame_with_cmu_infill',
+    foundationSettings: foundation,
     frameSystem,
     infillSystem: { kind: 'cmu_infill_system', panels },
   };
@@ -67,6 +79,8 @@ export function applyAutoFrameLayout(preset: CmuBuildingPreset): CmuBuildingPres
 
 export function applyPerimeterBeams(preset: CmuBuildingPreset): CmuBuildingPreset {
   const segmentFrames = getSegmentFramesForWallLayout(preset.wallLayout, preset.wall);
+  const foundation = resolveFoundationSettings(preset);
+  const wallHeightMeters = preset.wallLayout.defaultWallHeightMeters || preset.wall.heightMeters;
   const columns =
     preset.frameSystem.columns.length > 0
       ? preset.frameSystem.columns
@@ -74,16 +88,19 @@ export function applyPerimeterBeams(preset: CmuBuildingPreset): CmuBuildingPrese
           layout: preset.wallLayout,
           segmentFrames,
           frameSystem: preset.frameSystem,
-          wallHeightMeters: preset.wallLayout.defaultWallHeightMeters || preset.wall.heightMeters,
+          wallHeightMeters,
+          foundation,
         });
   const beams = createPerimeterBeamsForLayout({
     layout: preset.wallLayout,
     columns,
     frameSystem: preset.frameSystem,
-    ringBeamTopMeters: preset.wallLayout.defaultWallHeightMeters || preset.wall.heightMeters,
+    foundation,
+    wallHeightMeters,
   });
   return {
     ...preset,
+    foundationSettings: foundation,
     frameSystem: {
       ...preset.frameSystem,
       columns,

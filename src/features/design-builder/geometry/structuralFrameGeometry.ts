@@ -5,6 +5,8 @@ import type {
   DesignWallLayoutParameters,
   GableEndSettings,
   GableEndSystemParameters,
+  IsolatedFooting,
+  StructuralFoundationSettings,
   StructuralFrameSystemParameters,
   ThickenedEdgeSlabParameters,
 } from '../types';
@@ -24,13 +26,18 @@ import {
   resolvedBuildingFootprintFromWallLayout,
 } from './designGeometry';
 import {
-  autoFrameLayout,
-  deduplicatedStructuralConcreteVolumeCubicMeters,
+  reconcileStructuralFrameWithFoundation,
 } from '../domain/structuralFrameLayout';
 import {
-  deriveInfillPanelsForLayout,
+  createDefaultFoundationSettings,
+  resolveFoundationElevations,
+  resolveStructuralConcreteVolumes,
+} from '../domain/foundationElevations';
+import {
+  resolveInfillPanelsWithBounds,
   solveInfillPanelBlocks,
 } from '../domain/cmuInfillPanelSolver';
+import type { ResolvedInfillPanelBounds } from '../domain/infillPanelBoundsResolver';
 import { solveGableEndPlacements } from '../domain/gableEndSolver';
 import { resolveCmuModuleDefinition } from '../domain/cmuModuleRules';
 import { createEmptyCmuInfillSystem, createEmptyGableEndSystem } from '../domain/structuralFrameDefaults';
@@ -41,16 +48,30 @@ export type StructuralFrameGeometryInput = {
   wall: CmuWallSystemParameters;
   slab: ThickenedEdgeSlabParameters;
   frameSystem: StructuralFrameSystemParameters;
+  foundationSettings: StructuralFoundationSettings;
   infillSystem: CmuInfillSystemParameters;
   gableEndSystem: GableEndSystemParameters;
 };
 
+export type StructuralConcreteVolumeBreakdown = {
+  gradeBeamVolumeCubicMeters: number;
+  ringBeamVolumeCubicMeters: number;
+  columnBelowGradeVolumeCubicMeters: number;
+  columnAboveGradeVolumeCubicMeters: number;
+  footingVolumeCubicMeters: number;
+  totalDeduplicatedVolumeCubicMeters: number;
+};
+
 export type StructuralFrameGeometryExtras = {
   frameSystem: StructuralFrameSystemParameters;
+  foundationSettings: StructuralFoundationSettings;
+  isolatedFootings: IsolatedFooting[];
   infillSystem: CmuInfillSystemParameters;
   gableEndSystem: GableEndSystemParameters;
   structuralConcreteVolumeCubicMeters: number;
+  structuralConcreteVolumeBreakdown: StructuralConcreteVolumeBreakdown;
   gablePlacements: import('../types').GableCmuPlacement[];
+  resolvedInfillPanelBounds: ResolvedInfillPanelBounds[];
 };
 
 export function generateFrameInfillGeometry(
@@ -61,41 +82,55 @@ export function generateFrameInfillGeometry(
   const resolvedFootprint = resolvedBuildingFootprintFromWallLayout(resolvedWallGeometry);
   const segmentFrames = getSegmentFramesForWallLayout(input.wallLayout, wall);
 
-  let frameSystem = input.frameSystem;
-  if (frameSystem.columns.length === 0 && input.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill') {
-    frameSystem = autoFrameLayout({
-      layout: input.wallLayout,
-      segmentFrames,
-      frameSystem,
-    });
-  }
+  const foundationSettings = input.foundationSettings ?? createDefaultFoundationSettings();
+  const wallHeightMeters = input.wallLayout.defaultWallHeightMeters;
 
-  const panels =
-    input.infillSystem.panels.length > 0
-      ? input.infillSystem.panels
-      : deriveInfillPanelsForLayout({
-          layout: input.wallLayout,
-          segmentFrames,
-          columns: frameSystem.columns,
-          beams: frameSystem.beams,
-          wall,
-        });
+  const reconciled = reconcileStructuralFrameWithFoundation({
+    layout: input.wallLayout,
+    segmentFrames,
+    frameSystem: input.frameSystem,
+    foundation: foundationSettings,
+    wallHeightMeters,
+  });
+  const frameSystem = reconciled.frameSystem;
+  const isolatedFootings = reconciled.isolatedFootings;
+
+  const panelEntries = resolveInfillPanelsWithBounds({
+    layout: input.wallLayout,
+    segmentFrames,
+    columns: frameSystem.columns,
+    beams: frameSystem.beams,
+    wall,
+    existingPanels: input.infillSystem.panels,
+  });
+  const panels = panelEntries.map((entry) => entry.panel);
+  const resolvedInfillPanelBounds = panelEntries.map((entry) => entry.bounds);
 
   const module = resolveCmuModuleDefinition(wall);
   const allBlocks: CmuBlockInstance[] = [];
   let totalFull = 0;
   let totalHalf = 0;
   let totalCut = 0;
+  let totalTopClosure = 0;
+  const layoutWarnings: string[] = [];
   const gablePlacements: import('../types').GableCmuPlacement[] = [];
 
-  for (const panel of panels) {
+  for (const { panel, bounds } of panelEntries) {
     const frame = segmentFrames.find((f) => f.segmentId === panel.hostSegmentId);
     if (!frame) continue;
-    const solved = solveInfillPanelBlocks({ panel, frame, wall });
+    const solved = solveInfillPanelBlocks({
+      panel,
+      bounds,
+      frame,
+      wall,
+      logBoundsForDev: import.meta.env.DEV,
+    });
     allBlocks.push(...solved.blocks);
     totalFull += solved.fullBlockCount;
     totalHalf += solved.halfBlockCount;
     totalCut += solved.cutBlockCount;
+    totalTopClosure += solved.topClosureCutBlockCount;
+    layoutWarnings.push(...solved.warnings);
 
     const gable = input.gableEndSystem.gableEnds.find(
       (g) => g.hostWallSegmentId === panel.hostSegmentId,
@@ -131,20 +166,28 @@ export function generateFrameInfillGeometry(
       jamb: 0,
       lintel_bond_beam: 0,
     },
+    topClosureCutBlockCount: totalTopClosure,
+    warnings: layoutWarnings,
     cornerAssemblies: [],
   };
 
   const exteriorFootprint = resolvedWallGeometry.exteriorFacePolygon;
-  const wallSegments = segmentFrames.map((frame) => ({
-    segmentId: frame.segmentId,
-    lengthMeters: frame.lengthMeters,
-    heightMeters: frame.wallHeightMeters,
-    thicknessMeters: frame.wallThicknessMeters,
-    x: (frame.start.x + frame.end.x) / 2 + frame.inwardNormal.x * (frame.wallThicknessMeters / 2),
-    y: frame.wallHeightMeters / 2,
-    z: (frame.start.z + frame.end.z) / 2 + frame.inwardNormal.z * (frame.wallThicknessMeters / 2),
-    rotationY: frame.rotationY,
-  }));
+  const boundsBySegment = new Map(resolvedInfillPanelBounds.map((bounds) => [bounds.hostSegmentId, bounds]));
+  const wallSegments = segmentFrames.map((frame) => {
+    const panelBounds = boundsBySegment.get(frame.segmentId);
+    const clearHeightMeters = panelBounds?.clearHeightMeters ?? frame.wallHeightMeters;
+    const baseElevationMeters = panelBounds?.bottomElevationMeters ?? 0;
+    return {
+      segmentId: frame.segmentId,
+      lengthMeters: frame.lengthMeters,
+      heightMeters: clearHeightMeters,
+      thicknessMeters: frame.wallThicknessMeters,
+      x: (frame.start.x + frame.end.x) / 2 + frame.inwardNormal.x * (frame.wallThicknessMeters / 2),
+      y: baseElevationMeters + clearHeightMeters / 2,
+      z: (frame.start.z + frame.end.z) / 2 + frame.inwardNormal.z * (frame.wallThicknessMeters / 2),
+      rotationY: frame.rotationY,
+    };
+  });
 
   const blockInstances = allBlocks.map((block) => ({
     id: block.id,
@@ -160,6 +203,7 @@ export function generateFrameInfillGeometry(
     nominalLengthMeters: block.nominalLengthMeters,
     actualLengthMeters: block.actualLengthMeters,
     heightMeters: block.heightMeters,
+    physicalHeightMeters: block.physicalHeightMeters,
     depthMeters: block.depthMeters,
     source: block.source,
     terminalClosure: block.terminalClosure,
@@ -176,10 +220,19 @@ export function generateFrameInfillGeometry(
     wall.wallThicknessMeters || input.wallLayout.defaultWallThicknessMeters,
   );
 
-  const structuralConcreteVolumeCubicMeters = deduplicatedStructuralConcreteVolumeCubicMeters({
+  const elevations = resolveFoundationElevations({
+    foundation: foundationSettings,
+    wallHeightMeters,
+  });
+  const structuralConcreteVolumeBreakdown = resolveStructuralConcreteVolumes({
     columns: frameSystem.columns,
     beams: frameSystem.beams,
+    footings: isolatedFootings,
+    bottomOfGradeBeamY: elevations.bottomOfGradeBeamY,
+    topOfGradeBeamY: elevations.topOfGradeBeamY,
   });
+  const structuralConcreteVolumeCubicMeters =
+    structuralConcreteVolumeBreakdown.totalDeduplicatedVolumeCubicMeters;
 
   return {
     sourcePath: 'layout_graph',
@@ -193,10 +246,14 @@ export function generateFrameInfillGeometry(
     bondPattern: wall.bondPattern ?? 'running_bond',
     wallCmuLayout,
     frameSystem,
+    foundationSettings,
+    isolatedFootings,
     infillSystem: { kind: 'cmu_infill_system', panels },
     gableEndSystem: input.gableEndSystem,
     structuralConcreteVolumeCubicMeters,
+    structuralConcreteVolumeBreakdown,
     gablePlacements,
+    resolvedInfillPanelBounds,
   };
 }
 

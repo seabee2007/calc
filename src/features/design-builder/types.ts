@@ -319,6 +319,45 @@ export interface StructuralBeam {
   source: 'user' | 'auto_frame_layout';
 }
 
+export interface GradeBeamSettings {
+  enabled: boolean;
+  widthMeters: number;
+  depthMeters: number;
+  followsExteriorSegments: boolean;
+  followsInteriorSegments: boolean;
+}
+
+export interface IsolatedFootingSettings {
+  enabled: boolean;
+  placementMode: 'at_columns' | 'manual';
+  footingWidthMeters: number;
+  footingLengthMeters: number;
+  footingThicknessMeters: number;
+  dropBelowGradeBeamMeters: number;
+  autoCreateAtStructuralColumns: boolean;
+}
+
+export interface StructuralFoundationSettings {
+  gradeBeam: GradeBeamSettings;
+  isolatedFootings: IsolatedFootingSettings;
+}
+
+export interface IsolatedFooting {
+  id: string;
+  name: string;
+  columnId: string;
+  position: { x: number; z: number };
+  widthMeters: number;
+  lengthMeters: number;
+  thicknessMeters: number;
+  topElevationMeters: number;
+  bottomElevationMeters: number;
+  centerElevationMeters: number;
+  source: 'auto_at_column' | 'user';
+}
+
+export type FoundationViewMode = 'full_model' | 'cutaway_below_grade' | 'structural_frame_only';
+
 export type CmuInfillSupportType = 'column' | 'wall_end' | 'opening_jamb';
 
 export type CmuInfillBottomSupportType = 'grade_beam' | 'slab' | 'foundation';

@@ -13,8 +13,14 @@ import {
   findColumnAtNode,
 } from '../domain/structuralFrameLayout';
 import {
+  FRAME_INFILL_BOUNDS_TOLERANCE_METERS,
+  resolveInfillPanelBoundsForLayout,
+  resolveInsideFaceStation,
+} from '../domain/infillPanelBoundsResolver';
+import {
   deriveInfillPanelsForLayout,
   panelClearWidthMeters,
+  resolveInfillPanelsWithBounds,
   solveInfillPanelBlocks,
 } from '../domain/cmuInfillPanelSolver';
 import {
@@ -69,13 +75,21 @@ describe('structural frame + CMU infill milestone', () => {
     expect(beamSpanLengthMeters(beam!)).toBeLessThan(centerDistance);
   });
 
-  it('CMU infill panels begin/end at structural support stations', () => {
+  it('CMU infill panels begin/end at structural support inside faces', () => {
     const preset = applyAutoFrameLayout(createFiveBySixCmuBuildingPreset());
     const frames = getSegmentFramesForWallLayout(preset.wallLayout, preset.wall);
     for (const panel of preset.infillSystem.panels) {
-      expect(panel.startStationMeters).toBeGreaterThan(0);
-      expect(panel.endStationMeters).toBeLessThan(
-        frames.find((f) => f.segmentId === panel.hostSegmentId)!.lengthMeters,
+      const frame = frames.find((candidate) => candidate.segmentId === panel.hostSegmentId)!;
+      const segment = preset.wallLayout.segments.find((candidate) => candidate.id === panel.hostSegmentId)!;
+      const startCol = findColumnAtNode(preset.frameSystem.columns, segment.startNodeId)!;
+      const endCol = findColumnAtNode(preset.frameSystem.columns, segment.endNodeId)!;
+      expect(panel.startStationMeters).toBeCloseTo(
+        resolveInsideFaceStation({ column: startCol, frame, side: 'start' }),
+        3,
+      );
+      expect(panel.endStationMeters).toBeCloseTo(
+        resolveInsideFaceStation({ column: endCol, frame, side: 'end' }),
+        3,
       );
       expect(panelClearWidthMeters(panel)).toBeGreaterThan(0);
     }
@@ -160,7 +174,8 @@ describe('structural frame + CMU infill milestone', () => {
       layout: preset.wallLayout,
       segmentFrames: frames,
       frameSystem: preset.frameSystem,
-    });
+      foundation: preset.foundationSettings,
+    }).frameSystem;
     const panels = deriveInfillPanelsForLayout({
       layout: preset.wallLayout,
       segmentFrames: frames,
@@ -170,12 +185,26 @@ describe('structural frame + CMU infill milestone', () => {
     });
     const modularPanel = panels.find((p) => {
       const frame = frames.find((f) => f.segmentId === p.hostSegmentId)!;
-      const solved = solveInfillPanelBlocks({ panel: p, frame, wall: preset.wall });
+      const bounds = resolveInfillPanelsWithBounds({
+        layout: preset.wallLayout,
+        segmentFrames: frames,
+        columns: frameSystem.columns,
+        beams: frameSystem.beams,
+        wall: preset.wall,
+      }).find((entry) => entry.panel.hostSegmentId === p.hostSegmentId)!.bounds;
+      const solved = solveInfillPanelBlocks({ panel: p, bounds, frame, wall: preset.wall });
       return solved.cutBlockCount === 0;
     });
     if (modularPanel) {
       const frame = frames.find((f) => f.segmentId === modularPanel.hostSegmentId)!;
-      const solved = solveInfillPanelBlocks({ panel: modularPanel, frame, wall: preset.wall });
+      const bounds = resolveInfillPanelsWithBounds({
+        layout: preset.wallLayout,
+        segmentFrames: frames,
+        columns: frameSystem.columns,
+        beams: frameSystem.beams,
+        wall: preset.wall,
+      }).find((entry) => entry.panel.hostSegmentId === modularPanel.hostSegmentId)!.bounds;
+      const solved = solveInfillPanelBlocks({ panel: modularPanel, bounds, frame, wall: preset.wall });
       expect(solved.cutBlockCount).toBe(0);
     }
   });
@@ -237,7 +266,11 @@ describe('structural frame + CMU infill milestone', () => {
       geometryResult: geometry,
     });
     expect(lines.some((l) => l.quantityType === 'rc_structural_concrete_volume')).toBe(true);
+    expect(lines.some((l) => l.quantityType === 'rc_grade_beams_volume')).toBe(true);
+    expect(lines.some((l) => l.quantityType === 'rc_columns_volume')).toBe(true);
+    expect(lines.some((l) => l.quantityType === 'isolated_footings_volume')).toBe(true);
     expect(lines.some((l) => l.quantityType === 'cmu_infill_blocks')).toBe(true);
+    expect(lines.some((l) => l.quantityType === 'cmu_top_closure_cut_course')).toBe(true);
   });
 
   it('module fit candidate table uses solver dimensions', () => {

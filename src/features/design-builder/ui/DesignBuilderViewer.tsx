@@ -9,6 +9,7 @@ import {
   type DesignGeometryResult,
 } from '../geometry/designGeometry';
 import { resolveCmuModuleConfig } from '../domain/cmuModuleRules';
+import { TOP_COURSE_RENDER_EPSILON_METERS } from '../domain/cmuInfillPanelSolver';
 import {
   fitPerspectiveCameraToBounds,
   logDesignFramingDiagnostics,
@@ -33,6 +34,7 @@ import type {
   GableRoofSystemParameters,
   SteelTrussSystemParameters,
   ThickenedEdgeSlabParameters,
+  FoundationViewMode,
   WallOpeningParameters,
 } from '../types';
 
@@ -79,6 +81,8 @@ interface DesignBuilderViewerProps {
   showGroutCells?: boolean;
   showClosureWarnings?: boolean;
   showFootprintSetout?: boolean;
+  showInfillPanelBounds?: boolean;
+  foundationViewMode?: FoundationViewMode;
   manualMasonryEnabled?: boolean;
   onManualMasonryPointer?: (event: {
     kind: 'preview' | 'start' | 'commit' | 'cancel_preview' | 'undo';
@@ -160,6 +164,8 @@ export default function DesignBuilderViewer({
   showGroutCells = false,
   showClosureWarnings = false,
   showFootprintSetout = false,
+  showInfillPanelBounds = false,
+  foundationViewMode = 'full_model',
   manualMasonryEnabled = false,
   onManualMasonryPointer,
 }: DesignBuilderViewerProps) {
@@ -193,6 +199,8 @@ export default function DesignBuilderViewer({
     showGroutCells,
     showClosureWarnings,
     showFootprintSetout,
+    showInfillPanelBounds,
+    foundationViewMode,
   });
   modelParamsRef.current = {
     modelLoaded,
@@ -207,6 +215,8 @@ export default function DesignBuilderViewer({
     showGroutCells,
     showClosureWarnings,
     showFootprintSetout,
+    showInfillPanelBounds,
+    foundationViewMode,
   };
   onSelectRef.current = onSelectObjectType;
   onInteractionRef.current = onInteraction;
@@ -550,6 +560,8 @@ export default function DesignBuilderViewer({
         showGroutCells: currentShowGroutCells,
         showClosureWarnings: currentShowClosureWarnings,
         showFootprintSetout: currentShowFootprintSetout,
+        showInfillPanelBounds: currentShowInfillPanelBounds,
+        foundationViewMode: currentFoundationViewMode,
       } = params;
       root.clear();
       selectable.length = 0;
@@ -658,6 +670,9 @@ export default function DesignBuilderViewer({
           const beamMaterial = makeMaterial(0x6b7280, currentSelectedObjectType === 'structural_frame_system', {
             roughness: 0.8,
           });
+          const gradeBeamMaterial = makeMaterial(0x57534e, currentSelectedObjectType === 'structural_frame_system', {
+            roughness: 0.85,
+          });
           frameSystem.beams.forEach((beam) => {
             const dx = beam.endPoint.x - beam.startPoint.x;
             const dz = beam.endPoint.z - beam.startPoint.z;
@@ -665,7 +680,7 @@ export default function DesignBuilderViewer({
             if (length <= 0) return;
             const mesh = new THREE.Mesh(
               trackGeometry(new THREE.BoxGeometry(length, beam.depthMeters, beam.widthMeters)),
-              beamMaterial,
+              beam.kind === 'grade_beam' ? gradeBeamMaterial : beamMaterial,
             );
             mesh.position.set(
               (beam.startPoint.x + beam.endPoint.x) / 2,
@@ -674,6 +689,64 @@ export default function DesignBuilderViewer({
             );
             mesh.rotation.y = -Math.atan2(dz, dx);
             addSelectable(mesh, 'structural_frame_system');
+          });
+        }
+        if (currentGeometry.isolatedFootings?.length) {
+          const footingMaterial = makeMaterial(0x78716c, currentSelectedObjectType === 'structural_frame_system', {
+            roughness: 0.9,
+          });
+          currentGeometry.isolatedFootings.forEach((footing) => {
+            const mesh = new THREE.Mesh(
+              trackGeometry(
+                new THREE.BoxGeometry(footing.widthMeters, footing.thicknessMeters, footing.lengthMeters),
+              ),
+              footingMaterial,
+            );
+            mesh.position.set(
+              footing.position.x,
+              currentSlab.slabThicknessMeters + footing.centerElevationMeters,
+              footing.position.z,
+            );
+            addSelectable(mesh, 'structural_frame_system');
+          });
+        }
+        if (import.meta.env.DEV && currentShowInfillPanelBounds && currentGeometry.resolvedInfillPanelBounds?.length) {
+          const boundsMaterial = new THREE.LineBasicMaterial({ color: 0x22d3ee, transparent: true, opacity: 0.95 });
+          currentGeometry.resolvedInfillPanelBounds.forEach((bounds) => {
+            const bottomY = currentSlab.slabThicknessMeters + bounds.bottomElevationMeters;
+            const topY = currentSlab.slabThicknessMeters + bounds.topElevationMeters;
+            const left = bounds.leftSupportInsideFaceWorld;
+            const right = bounds.rightSupportInsideFaceWorld;
+            [
+              [left, left],
+              [right, right],
+            ].forEach(([point]) => {
+              const line = new THREE.Line(
+                trackGeometry(
+                  new THREE.BufferGeometry().setFromPoints([
+                    new THREE.Vector3(point.x, bottomY, point.z),
+                    new THREE.Vector3(point.x, topY, point.z),
+                  ]),
+                ),
+                boundsMaterial,
+              );
+              line.userData.explicitHelperMarker = true;
+              root.add(line);
+            });
+            const spanLine = new THREE.Line(
+              trackGeometry(
+                new THREE.BufferGeometry().setFromPoints([
+                  new THREE.Vector3(left.x, bottomY, left.z),
+                  new THREE.Vector3(right.x, bottomY, right.z),
+                  new THREE.Vector3(right.x, topY, right.z),
+                  new THREE.Vector3(left.x, topY, left.z),
+                  new THREE.Vector3(left.x, bottomY, left.z),
+                ]),
+              ),
+              boundsMaterial,
+            );
+            spanLine.userData.explicitHelperMarker = true;
+            root.add(spanLine);
           });
         }
         if (currentGeometry.gablePlacements?.length) {
@@ -695,32 +768,45 @@ export default function DesignBuilderViewer({
           });
         }
 
-        const blockInstances = currentWall.showIndividualBlocks ? currentGeometry.blockInstances : [];
+        const showCmuInfill = currentFoundationViewMode !== 'structural_frame_only';
+        const cmuOpacity = currentFoundationViewMode === 'cutaway_below_grade' ? 0.35 : 0.9;
+
+        const blockInstances =
+          showCmuInfill && currentWall.showIndividualBlocks ? currentGeometry.blockInstances : [];
         if (blockInstances.length > 0) {
           const blockHeightMeters = resolveCmuModuleConfig(currentWall).actualHeightMeters;
           const blocksByType = groupBlocksByType(blockInstances);
           blocksByType.forEach((instances, blockType) => {
             const blockGeometry = trackGeometry(new THREE.BoxGeometry(1, 1, 1));
-            const blockMaterial = makeMaterial(blockColor(blockType), currentSelectedObjectType === 'cmu_wall_system');
+            const blockMaterial = makeMaterial(blockColor(blockType), currentSelectedObjectType === 'cmu_wall_system', {
+              transparent: cmuOpacity < 1,
+              opacity: cmuOpacity,
+            });
             const blocks = new THREE.InstancedMesh(blockGeometry, blockMaterial, instances.length);
             const matrix = new THREE.Matrix4();
             const quaternion = new THREE.Quaternion();
             instances.forEach((block, index) => {
               quaternion.setFromEuler(new THREE.Euler(0, block.rotationY, 0));
+              const baseHeightMeters = block.physicalHeightMeters ?? block.heightMeters ?? blockHeightMeters;
+              const isTopClosure = block.source === 'panel_top_closure';
+              const renderHeightMeters = isTopClosure
+                ? baseHeightMeters + TOP_COURSE_RENDER_EPSILON_METERS
+                : baseHeightMeters;
+              const renderYOffsetMeters = isTopClosure ? TOP_COURSE_RENDER_EPSILON_METERS / 2 : 0;
               matrix.compose(
-                new THREE.Vector3(block.x, currentSlab.slabThicknessMeters + block.y, block.z),
+                new THREE.Vector3(block.x, currentSlab.slabThicknessMeters + block.y + renderYOffsetMeters, block.z),
                 quaternion,
-                new THREE.Vector3(block.actualLengthMeters ?? block.lengthMeters, block.heightMeters ?? blockHeightMeters, block.depthMeters ?? currentWall.blockDepthMeters),
+                new THREE.Vector3(block.actualLengthMeters ?? block.lengthMeters, renderHeightMeters, block.depthMeters ?? currentWall.blockDepthMeters),
               );
               blocks.setMatrixAt(index, matrix);
             });
             blocks.instanceMatrix.needsUpdate = true;
             addSelectable(blocks, 'cmu_wall_system');
           });
-        } else {
+        } else if (showCmuInfill) {
           const wallMaterial = makeMaterial(0xd1d5db, currentSelectedObjectType === 'cmu_wall_system', {
             transparent: true,
-            opacity: 0.9,
+            opacity: cmuOpacity,
           });
           currentGeometry.wallSegments.forEach((segment) => {
             const wallMesh = new THREE.Mesh(
@@ -1168,7 +1254,7 @@ export default function DesignBuilderViewer({
 
   useEffect(() => {
     if (modelLoaded) rebuildModelRef.current?.();
-  }, [geometryResult, layoutBounds, modelLoaded, roof, selectedObjectType, selectedOpeningId, showClosureWarnings, showFootprintSetout, showGroutCells, showOpeningLayout, slab, truss, wall]);
+  }, [geometryResult, layoutBounds, modelLoaded, roof, selectedObjectType, selectedOpeningId, showClosureWarnings, showFootprintSetout, showInfillPanelBounds, foundationViewMode, showGroutCells, showOpeningLayout, slab, truss, wall]);
 
   useEffect(() => {
     if (!viewCommand) return;

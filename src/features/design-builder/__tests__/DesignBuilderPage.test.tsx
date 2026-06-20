@@ -644,6 +644,7 @@ describe('DesignBuilderPage', () => {
     expect(sessionAfter.preset?.wallLayout.nodes).toHaveLength(0);
     expect(sessionAfter.preset?.wallLayout.segments).toHaveLength(0);
     expect(sessionAfter.objectTreeExpanded).toEqual({
+      foundation: false,
       layout: false,
       masonry: false,
       structure: false,

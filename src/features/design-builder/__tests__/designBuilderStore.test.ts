@@ -23,7 +23,7 @@ describe('Design Builder session store', () => {
       changedAfterCommit: true,
       viewMode: 'plan',
       snapMode: 'cmu_module',
-      objectTreeExpanded: { layout: false, masonry: true, structure: false, estimate: false },
+      objectTreeExpanded: { foundation: false, layout: false, masonry: true, structure: false, openings: false, roofGable: false, estimate: false },
       previewLines: [
         {
           id: 'cmu-total-grout',
@@ -71,6 +71,7 @@ describe('Design Builder session store', () => {
     useDesignBuilderSessionStore.getState().saveSession(key, {});
 
     expect(useDesignBuilderSessionStore.getState().getSession(key)?.objectTreeExpanded).toEqual({
+      foundation: false,
       layout: false,
       masonry: false,
       structure: false,
