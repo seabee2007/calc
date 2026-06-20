@@ -1,4 +1,4 @@
-import type { CmuBlockModuleConfig, CmuWallSystemParameters, WallOpeningParameters } from '../types';
+import type { CmuBlockModuleConfig, CmuWallSystemParameters, DesignWallDimensionBasis, WallOpeningParameters } from '../types';
 
 const FIT_TOLERANCE_METERS = 0.005;
 
@@ -22,6 +22,30 @@ export interface WallModuleFitSummary {
   east: CmuModuleFitResult;
   west: CmuModuleFitResult;
 }
+
+export type CmuModuleDefinition = {
+  actualFullBlockLengthMeters: number;
+  actualBlockHeightMeters: number;
+  blockDepthMeters: number;
+  headJointMeters: number;
+  bedJointMeters: number;
+  nominalModuleLengthMeters: number;
+  nominalModuleHeightMeters: number;
+  allowedUnitLengthsMeters: number[];
+};
+
+export type ClosedFootprintModuleFitProposal = {
+  dimensionBasis: DesignWallDimensionBasis;
+  requested: { lengthMeters: number; widthMeters: number };
+  resolved: { lengthMeters: number; widthMeters: number };
+  adjustment: { lengthMeters: number; widthMeters: number };
+  lengthFit: CmuModuleFitResult;
+  widthFit: CmuModuleFitResult;
+  cornerCondition: 'full_half_compatible' | 'cut_blocks_required';
+  cutBlocksRequired: boolean;
+  unitCounts: { full: number; half: number; end: number; corner: number; cut: number };
+  summary: string;
+};
 
 export const METRIC_CMU_400X200_MODULE: CmuBlockModuleConfig = {
   familyName: 'Metric CMU 400 x 200',
@@ -51,17 +75,44 @@ export const IMPERIAL_CMU_16X8_MODULE: CmuBlockModuleConfig = {
 
 export function resolveCmuModuleConfig(params: CmuWallSystemParameters): CmuBlockModuleConfig {
   const base = params.blockModule ?? METRIC_CMU_400X200_MODULE;
+  const moduleLengthMeters = positiveOr(
+    params.blockLengthMeters,
+    positiveOr(base.moduleLengthMeters, base.nominalLengthMeters),
+  );
+  const moduleHeightMeters = positiveOr(
+    params.blockHeightMeters,
+    positiveOr(base.moduleHeightMeters, base.nominalHeightMeters),
+  );
+  const nominalDepthMeters = positiveOr(
+    params.blockDepthMeters,
+    positiveOr(params.wallThicknessMeters, base.nominalDepthMeters),
+  );
+  const mortarJointMeters = Math.max(0, base.mortarJointMeters ?? params.mortarJointMeters ?? 0);
   return {
     ...base,
-    nominalLengthMeters: positiveOr(base.nominalLengthMeters, METRIC_CMU_400X200_MODULE.nominalLengthMeters),
-    nominalHeightMeters: positiveOr(base.nominalHeightMeters, METRIC_CMU_400X200_MODULE.nominalHeightMeters),
-    nominalDepthMeters: positiveOr(base.nominalDepthMeters, params.wallThicknessMeters || METRIC_CMU_400X200_MODULE.nominalDepthMeters),
-    actualLengthMeters: positiveOr(base.actualLengthMeters, base.nominalLengthMeters),
-    actualHeightMeters: positiveOr(base.actualHeightMeters, base.nominalHeightMeters),
-    mortarJointMeters: Math.max(0, base.mortarJointMeters ?? params.mortarJointMeters ?? 0),
-    moduleLengthMeters: positiveOr(base.moduleLengthMeters, base.nominalLengthMeters),
-    moduleHeightMeters: positiveOr(base.moduleHeightMeters, base.nominalHeightMeters),
+    nominalLengthMeters: moduleLengthMeters,
+    nominalHeightMeters: moduleHeightMeters,
+    nominalDepthMeters,
+    actualLengthMeters: positiveOr(base.actualLengthMeters, Math.max(0.01, moduleLengthMeters - mortarJointMeters)),
+    actualHeightMeters: positiveOr(base.actualHeightMeters, Math.max(0.01, moduleHeightMeters - mortarJointMeters)),
+    mortarJointMeters,
+    moduleLengthMeters,
+    moduleHeightMeters,
     availableUnitTypes: base.availableUnitTypes?.length ? base.availableUnitTypes : METRIC_CMU_400X200_MODULE.availableUnitTypes,
+  };
+}
+
+export function resolveCmuModuleDefinition(params: CmuWallSystemParameters): CmuModuleDefinition {
+  const module = resolveCmuModuleConfig(params);
+  return {
+    actualFullBlockLengthMeters: module.actualLengthMeters ?? Math.max(0.01, module.moduleLengthMeters - module.mortarJointMeters),
+    actualBlockHeightMeters: module.actualHeightMeters ?? Math.max(0.01, module.moduleHeightMeters - module.mortarJointMeters),
+    blockDepthMeters: module.nominalDepthMeters,
+    headJointMeters: module.mortarJointMeters,
+    bedJointMeters: module.mortarJointMeters,
+    nominalModuleLengthMeters: module.moduleLengthMeters,
+    nominalModuleHeightMeters: module.moduleHeightMeters,
+    allowedUnitLengthsMeters: uniqueSorted([module.moduleLengthMeters, module.moduleLengthMeters / 2]),
   };
 }
 
@@ -138,20 +189,107 @@ export function snapLengthToCmuModule(lengthMeters: number, moduleLengthMeters: 
   );
 }
 
+export function snapLengthToCmuHalfModule(lengthMeters: number, moduleLengthMeters: number): number {
+  const increment = positiveOr(moduleLengthMeters, METRIC_CMU_400X200_MODULE.moduleLengthMeters) / 2;
+  return roundMeters(Math.round(Math.max(0, lengthMeters) / increment) * increment);
+}
+
+export function resolveClosedFootprintToCmuModules(params: {
+  requestedFootprint: { lengthMeters: number; widthMeters: number };
+  dimensionBasis: DesignWallDimensionBasis;
+  cmu: CmuWallSystemParameters;
+}): ClosedFootprintModuleFitProposal {
+  const definition = resolveCmuModuleDefinition(params.cmu);
+  const lengthFit = analyzeCmuModuleFit(params.requestedFootprint.lengthMeters, definition.nominalModuleLengthMeters);
+  const widthFit = analyzeCmuModuleFit(params.requestedFootprint.widthMeters, definition.nominalModuleLengthMeters);
+  const resolvedLength = lengthFit.fit === 'cut'
+    ? snapLengthToCmuHalfModule(params.requestedFootprint.lengthMeters, definition.nominalModuleLengthMeters)
+    : roundMeters(params.requestedFootprint.lengthMeters);
+  const resolvedWidth = widthFit.fit === 'cut'
+    ? snapLengthToCmuHalfModule(params.requestedFootprint.widthMeters, definition.nominalModuleLengthMeters)
+    : roundMeters(params.requestedFootprint.widthMeters);
+  const cutBlocksRequired = lengthFit.fit === 'cut' || widthFit.fit === 'cut';
+  const unitCounts = estimateClosedRectangleCourseUnitCounts({
+    lengthMeters: resolvedLength,
+    widthMeters: resolvedWidth,
+    moduleLengthMeters: definition.nominalModuleLengthMeters,
+    cutBlocksRequired,
+  });
+  const adjustment = {
+    lengthMeters: roundMeters(resolvedLength - params.requestedFootprint.lengthMeters),
+    widthMeters: roundMeters(resolvedWidth - params.requestedFootprint.widthMeters),
+  };
+  return {
+    dimensionBasis: params.dimensionBasis,
+    requested: {
+      lengthMeters: roundMeters(params.requestedFootprint.lengthMeters),
+      widthMeters: roundMeters(params.requestedFootprint.widthMeters),
+    },
+    resolved: {
+      lengthMeters: resolvedLength,
+      widthMeters: resolvedWidth,
+    },
+    adjustment,
+    lengthFit,
+    widthFit,
+    cornerCondition: cutBlocksRequired ? 'cut_blocks_required' : 'full_half_compatible',
+    cutBlocksRequired,
+    unitCounts,
+    summary: `Requested: ${roundMeters(params.requestedFootprint.lengthMeters).toFixed(2)} m x ${roundMeters(params.requestedFootprint.widthMeters).toFixed(2)} m; Resolved: ${resolvedLength.toFixed(2)} m x ${resolvedWidth.toFixed(2)} m; Module fit: ${cutBlocksRequired ? 'cut block review required' : 'compatible'}; Corner pattern: running bond; Full units: ${unitCounts.full}; Half/end units: ${unitCounts.half + unitCounts.end}; Cut units: ${unitCounts.cut}`,
+  };
+}
+
+function estimateClosedRectangleCourseUnitCounts(params: {
+  lengthMeters: number;
+  widthMeters: number;
+  moduleLengthMeters: number;
+  cutBlocksRequired: boolean;
+}): ClosedFootprintModuleFitProposal['unitCounts'] {
+  const counts = { full: 0, half: 0, end: 0, corner: 0, cut: params.cutBlocksRequired ? 1 : 0 };
+  const cornerSetback = params.moduleLengthMeters / 2;
+  [params.lengthMeters, params.lengthMeters, params.widthMeters, params.widthMeters].forEach((sideLength) => {
+    const effectiveLength = Math.max(0, sideLength - cornerSetback);
+    const fullModules = Math.floor((effectiveLength + FIT_TOLERANCE_METERS) / params.moduleLengthMeters);
+    const remainder = effectiveLength - fullModules * params.moduleLengthMeters;
+    counts.full += Math.max(0, fullModules - 1);
+    counts.end += fullModules > 0 ? 1 : 0;
+    if (Math.abs(remainder - cornerSetback) <= FIT_TOLERANCE_METERS) {
+      counts.corner += 1;
+    } else if (remainder > FIT_TOLERANCE_METERS) {
+      counts.cut += 1;
+    } else {
+      counts.corner += 1;
+    }
+  });
+  return counts;
+}
+
 export function snapOpeningToCmuModule(
   opening: WallOpeningParameters,
   params: CmuWallSystemParameters,
 ): WallOpeningParameters {
   if (!params.snapToModule) return opening;
   const module = resolveCmuModuleConfig(params);
-  const wallLength = opening.wallFace === 'north' || opening.wallFace === 'south'
-    ? params.lengthMeters
-    : params.widthMeters;
-  const offsetMeters = clamp(
-    roundMeters(Math.round(opening.offsetMeters / module.moduleLengthMeters) * module.moduleLengthMeters),
-    0,
-    Math.max(0, wallLength - opening.widthMeters),
-  );
+  const segmentLength =
+    opening.wallSegmentId && opening.placementUsesCenterStation
+      ? null
+      : opening.wallFace === 'north' || opening.wallFace === 'south'
+        ? params.lengthMeters
+        : params.widthMeters;
+
+  let offsetMeters = opening.offsetMeters ?? 0;
+  let positionAlongSegment = opening.positionAlongSegment;
+  if (opening.placementUsesCenterStation && opening.positionAlongSegment != null) {
+    positionAlongSegment = opening.positionAlongSegment;
+    offsetMeters = opening.offsetMeters ?? roundMeters(opening.positionAlongSegment - opening.widthMeters / 2);
+  } else if (segmentLength != null) {
+    offsetMeters = clamp(
+      roundMeters(Math.round(offsetMeters / module.moduleLengthMeters) * module.moduleLengthMeters),
+      0,
+      Math.max(0, segmentLength - opening.widthMeters),
+    );
+  }
+
   const widthMeters = Math.max(
     module.moduleLengthMeters / 2,
     roundMeters(Math.round(opening.widthMeters / (module.moduleLengthMeters / 2)) * (module.moduleLengthMeters / 2)),
@@ -163,9 +301,14 @@ export function snapOpeningToCmuModule(
     module.moduleHeightMeters,
     roundMeters(Math.round(opening.heightMeters / module.moduleHeightMeters) * module.moduleHeightMeters),
   );
+  const wallLength = segmentLength ?? params.lengthMeters;
+  const snappedOffsetMeters = opening.placementUsesCenterStation && positionAlongSegment != null
+    ? roundMeters(positionAlongSegment - widthMeters / 2)
+    : clamp(offsetMeters, 0, Math.max(0, wallLength - widthMeters));
   return {
     ...opening,
-    offsetMeters: clamp(offsetMeters, 0, Math.max(0, wallLength - widthMeters)),
+    positionAlongSegment,
+    offsetMeters: snappedOffsetMeters,
     widthMeters,
     heightMeters,
     sillHeightMeters,

@@ -12,7 +12,12 @@ import type {
   DesignQuantityItem,
   DesignUnitSystem,
   MasonryToolMode,
+  ModuleFitMode,
 } from '../types';
+import {
+  DEFAULT_PLAN_VIEWPORT,
+  type PlanViewportState,
+} from '../domain/pointerPlanMapping';
 
 const STORAGE_KEY = 'arden:designBuilder:sessions';
 
@@ -20,6 +25,20 @@ export interface DesignBuilderViewerSizeState {
   height: number;
   rightPanelWidth: number;
 }
+
+export type ObjectTreeExpansionState = {
+  layout: boolean;
+  masonry: boolean;
+  structure: boolean;
+  estimate: boolean;
+};
+
+export const DEFAULT_OBJECT_TREE_EXPANSION: ObjectTreeExpansionState = {
+  layout: false,
+  masonry: false,
+  structure: false,
+  estimate: false,
+};
 
 export interface DesignBuilderSessionState {
   layoutState: DesignBuilderLayoutMode;
@@ -38,11 +57,16 @@ export interface DesignBuilderSessionState {
   changedAfterCommit: boolean;
   viewMode: 'plan' | '3d';
   snapMode: DesignBuilderSnapMode;
-  objectTreeExpanded: Record<string, boolean>;
+  moduleFitMode: ModuleFitMode;
+  objectTreeExpanded: ObjectTreeExpansionState;
   leftPanelCollapsed: boolean;
   rightPanelCollapsed: boolean;
   viewerSize: DesignBuilderViewerSizeState | null;
   camera: DesignBuilderCameraSnapshot | null;
+  planViewport: PlanViewportState;
+  hasUserAdjustedPlanView: boolean;
+  hasUserAdjusted3dView: boolean;
+  orthogonalGuidesPreferenceTouched: boolean;
   dirty: boolean;
   hydratedAt: string;
 }
@@ -91,7 +115,7 @@ export const useDesignBuilderSessionStore = create<DesignBuilderSessionStore>((s
         designModel: null,
         objects: [],
         unitSystem: 'metric',
-        selectedObjectType: 'building_footprint',
+        selectedObjectType: null,
         selectedOpeningId: null,
         toolMode: 'select',
         manualMasonryEnabled: false,
@@ -101,11 +125,16 @@ export const useDesignBuilderSessionStore = create<DesignBuilderSessionStore>((s
         changedAfterCommit: false,
         viewMode: '3d',
         snapMode: 'grid',
-        objectTreeExpanded: {},
+        moduleFitMode: 'exact',
+        objectTreeExpanded: DEFAULT_OBJECT_TREE_EXPANSION,
         leftPanelCollapsed: false,
         rightPanelCollapsed: false,
         viewerSize: null,
         camera: null,
+        planViewport: DEFAULT_PLAN_VIEWPORT,
+        hasUserAdjustedPlanView: false,
+        hasUserAdjusted3dView: false,
+        orthogonalGuidesPreferenceTouched: false,
         dirty: false,
         hydratedAt: new Date().toISOString(),
         ...current,

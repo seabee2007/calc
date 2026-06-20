@@ -1,110 +1,231 @@
-import { useCallback, useMemo, useRef, type PointerEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from 'react';
 import type {
-  CmuWallSystemParameters,
   DesignBuilderInteractionEvent,
+  DesignBuilderSnapMode,
   DesignBuilderToolMode,
   DesignWallLayoutParameters,
-  ManualMasonryPlacementPreview,
-  MasonryCourseRun,
-  MasonryToolMode,
 } from '../types';
-import { createPlanViewportTransform } from '../domain/pointerPlanMapping';
-import { ENDPOINT_SNAP_TOLERANCE_METERS } from '../domain/wallLayoutRules';
+import type { DesignSnapTarget } from '../domain/designSnapRules';
+import {
+  DEFAULT_PLAN_VIEWPORT,
+  createPlanCameraController,
+  type PlanViewportState,
+} from '../domain/pointerPlanMapping';
+import {
+  MIN_CELL_PX,
+  computePlanGridState,
+  formatPlanGridSpacingMeters,
+  projectCellWidthPx,
+} from '../domain/planGridState';
+import { fitPlanToLayout, type DesignLayoutBounds } from '../domain/designLayoutBounds';
+import { listOrthogonalGuideDirections, resolveDrawWallGuidance } from '../domain/wallLayoutRules';
 import { resolveCmuModuleConfig } from '../domain/cmuModuleRules';
 import { DESIGN_BUILDER_COPY } from '../domain/designBuilderCopy';
-import { unitModuleSpan } from '../domain/manualMasonryRules';
+import { formatDrawWallStatusChip } from '../domain/designDrawWallFeedback';
 
-const PIXELS_PER_METER = 48;
 const MIN_SEGMENT_LENGTH_METERS = 0.08;
+const FALLBACK_SURFACE_SIZE = { width: 900, height: 520 };
+const PLAN_RULER_TICKS_METERS = [0, 5, 10, 50];
 
 interface DesignBuilderPlanCanvasProps {
   layout: DesignWallLayoutParameters;
   toolMode: DesignBuilderToolMode;
+  snapSpacingMeters?: number;
+  snapMode?: DesignBuilderSnapMode;
+  viewport?: PlanViewportState;
+  layoutBounds?: DesignLayoutBounds | null;
+  viewCommand?: { id: number; action: 'fit' | 'reset' | 'grid_scale'; spacingMeters?: number } | null;
+  onViewportChange?: (viewport: PlanViewportState) => void;
+  onUserViewportChange?: () => void;
   draftEnd?: { x: number; z: number } | null;
   activeNodeId?: string | null;
   drawStartNodeId?: string | null;
   selectedSegmentId?: string | null;
   selectedNodeId?: string | null;
-  manualMasonry?: {
-    enabled: boolean;
-    tool: MasonryToolMode;
-    wall: CmuWallSystemParameters;
-    runs: MasonryCourseRun[];
-    preview: ManualMasonryPlacementPreview | null;
-  };
+  snapTarget?: DesignSnapTarget | null;
+  shiftConstraintLabel?: string | null;
+  previewMetrics?: { lengthMeters: number; angleDegrees: number } | null;
   onInteraction: (event: DesignBuilderInteractionEvent) => void;
-  onManualMasonryPointer?: (event: {
-    kind: 'preview' | 'start' | 'commit' | 'cancel_preview' | 'undo';
-    planX?: number;
-    planZ?: number;
-  }) => void;
 }
 
 export default function DesignBuilderPlanCanvas({
   layout,
   toolMode,
+  snapSpacingMeters,
+  snapMode = 'grid',
+  viewport = DEFAULT_PLAN_VIEWPORT,
+  layoutBounds = null,
+  viewCommand = null,
+  onViewportChange,
+  onUserViewportChange,
   draftEnd = null,
   activeNodeId = null,
   drawStartNodeId = null,
   selectedSegmentId = null,
   selectedNodeId = null,
-  manualMasonry,
+  snapTarget = null,
+  shiftConstraintLabel = null,
+  previewMetrics = null,
   onInteraction,
-  onManualMasonryPointer,
 }: DesignBuilderPlanCanvasProps) {
   const svgRef = useRef<SVGSVGElement | null>(null);
-  const manualDragActiveRef = useRef(false);
+  const panDragRef = useRef<{ x: number; y: number } | null>(null);
+  const spaceHeldRef = useRef(false);
+  const lastViewCommandIdRef = useRef<number | null>(null);
+  const [surfaceSize, setSurfaceSize] = useState(FALLBACK_SURFACE_SIZE);
 
-  const bounds = useMemo(() => {
-    const defaultBounds = { minX: -4, maxX: 4, minZ: -3, maxZ: 3 };
-    if (layout.nodes.length === 0) {
-      return defaultBounds;
+  const contentBounds = useMemo(() => {
+    if (layoutBounds) {
+      return {
+        minX: layoutBounds.minX,
+        maxX: layoutBounds.maxX,
+        minZ: layoutBounds.minZ,
+        maxZ: layoutBounds.maxZ,
+      };
     }
+    if (layout.nodes.length === 0) return null;
     const xs = layout.nodes.map((node) => node.x);
     const zs = layout.nodes.map((node) => node.z);
     return {
-      minX: Math.min(defaultBounds.minX, ...xs.map((x) => x - 1)),
-      maxX: Math.max(defaultBounds.maxX, ...xs.map((x) => x + 1)),
-      minZ: Math.min(defaultBounds.minZ, ...zs.map((z) => z - 1)),
-      maxZ: Math.max(defaultBounds.maxZ, ...zs.map((z) => z + 1)),
+      minX: Math.min(...xs),
+      maxX: Math.max(...xs),
+      minZ: Math.min(...zs),
+      maxZ: Math.max(...zs),
     };
-  }, [layout.nodes]);
+  }, [layout.nodes, layoutBounds]);
 
-  const viewBox = useMemo(() => {
-    const width = Math.max(1, (bounds.maxX - bounds.minX) * PIXELS_PER_METER);
-    const height = Math.max(1, (bounds.maxZ - bounds.minZ) * PIXELS_PER_METER);
-    return { width, height };
-  }, [bounds]);
+  const controller = useMemo(
+    () => createPlanCameraController(viewport, surfaceSize),
+    [surfaceSize, viewport],
+  );
+
+  const displayMinorRef = useRef<number | undefined>(undefined);
+  const resolvedSnapSpacing = Math.max(0.001, snapSpacingMeters ?? layout.gridSpacingMeters);
+  const planGridState = useMemo(() => {
+    const next = computePlanGridState(viewport, surfaceSize, resolvedSnapSpacing, displayMinorRef.current);
+    displayMinorRef.current = next.displayMinorSpacingMeters;
+    return next;
+  }, [resolvedSnapSpacing, surfaceSize, viewport]);
+
+  const visibleBounds = controller.visibleWorldBounds();
+  const minorGridStep = planGridState.displayMinorSpacingMeters;
+  const majorGridStep = planGridState.displayMajorSpacingMeters;
+  const minorCellPx = projectCellWidthPx(minorGridStep, viewport);
+  const showMinorGrid = minorCellPx >= MIN_CELL_PX;
 
   const planToSurfacePoint = useCallback(
-    (point: { x: number; z: number }) => ({
-      sx: (point.x - bounds.minX) * PIXELS_PER_METER,
-      sy: (bounds.maxZ - point.z) * PIXELS_PER_METER,
-    }),
-    [bounds.maxZ, bounds.minX],
+    (point: { x: number; z: number }) => {
+      const screen = controller.planToScreenPoint(point);
+      return { sx: screen.x, sy: screen.y };
+    },
+    [controller],
   );
 
   const screenFromEvent = useCallback(
     (event: PointerEvent<SVGSVGElement>) => {
       const svg = svgRef.current;
       if (!svg) return null;
-      const transform = createPlanViewportTransform(svg, bounds, PIXELS_PER_METER);
-      return transform?.screenToPlanPoint(event.clientX, event.clientY) ?? null;
+      const rect = svg.getBoundingClientRect();
+      if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) return null;
+      const eventSurfaceSize = { width: rect.width, height: rect.height };
+      if (eventSurfaceSize.width > 0 && eventSurfaceSize.height > 0) {
+        setSurfaceSize((current) =>
+          Math.abs(current.width - eventSurfaceSize.width) < 0.5 && Math.abs(current.height - eventSurfaceSize.height) < 0.5
+            ? current
+            : eventSurfaceSize,
+        );
+      }
+      return createPlanCameraController(viewport, eventSurfaceSize).screenToPlanPoint(event.clientX, event.clientY, rect.left, rect.top);
     },
-    [bounds],
+    [viewport],
   );
 
-  const handlePointerMove = (event: PointerEvent<SVGSVGElement>) => {
-    const point = screenFromEvent(event);
-    if (!point) return;
-    if (manualMasonry?.enabled) {
-      onManualMasonryPointer?.({
-        kind: 'preview',
-        planX: point.x,
-        planZ: point.z,
-      });
+  const updateSurfaceSize = useCallback(() => {
+    const rect = svgRef.current?.getBoundingClientRect();
+    if (!rect || rect.width <= 0 || rect.height <= 0) return;
+    setSurfaceSize((current) =>
+      Math.abs(current.width - rect.width) < 0.5 && Math.abs(current.height - rect.height) < 0.5
+        ? current
+        : { width: rect.width, height: rect.height },
+    );
+  }, []);
+
+  useEffect(() => {
+    if (!viewCommand || lastViewCommandIdRef.current === viewCommand.id) return;
+    lastViewCommandIdRef.current = viewCommand.id;
+    if (viewCommand.action === 'reset') {
+      const center = layoutBounds?.center ?? { x: 0, z: 0 };
+      onViewportChange?.({ centerX: center.x, centerZ: center.z, zoom: DEFAULT_PLAN_VIEWPORT.zoom });
       return;
     }
+    if (viewCommand.action === 'grid_scale') {
+      return;
+    }
+    onViewportChange?.(fitPlanToLayout(layoutBounds, surfaceSize));
+  }, [layout.gridSpacingMeters, layoutBounds, onViewportChange, surfaceSize, viewCommand, viewport]);
+
+  useEffect(() => {
+    updateSurfaceSize();
+    const svg = svgRef.current;
+    if (!svg) return undefined;
+    if (typeof ResizeObserver === 'undefined') {
+      window.addEventListener('resize', updateSurfaceSize);
+      return () => window.removeEventListener('resize', updateSurfaceSize);
+    }
+    const observer = new ResizeObserver(updateSurfaceSize);
+    observer.observe(svg);
+    return () => observer.disconnect();
+  }, [updateSurfaceSize]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.code === 'Space') spaceHeldRef.current = true;
+    };
+    const onKeyUp = (event: KeyboardEvent) => {
+      if (event.code === 'Space') spaceHeldRef.current = false;
+    };
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('keyup', onKeyUp);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('keyup', onKeyUp);
+    };
+  }, []);
+
+  useEffect(() => {
+    const planSurface = svgRef.current;
+    if (!planSurface) return undefined;
+    const onPlanWheel = (event: WheelEvent) => {
+      if (!planSurface.contains(event.target as Node)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      const rect = planSurface.getBoundingClientRect();
+      const eventSurfaceSize = { width: rect.width, height: rect.height };
+      setSurfaceSize((current) =>
+        Math.abs(current.width - eventSurfaceSize.width) < 0.5 && Math.abs(current.height - eventSurfaceSize.height) < 0.5
+          ? current
+          : eventSurfaceSize,
+      );
+      onUserViewportChange?.();
+      onViewportChange?.(
+        createPlanCameraController(viewport, eventSurfaceSize).zoomAtPointer(event.clientX, event.clientY, event.deltaY, rect.left, rect.top),
+      );
+    };
+    planSurface.addEventListener('wheel', onPlanWheel, { passive: false });
+    return () => planSurface.removeEventListener('wheel', onPlanWheel);
+  }, [onUserViewportChange, onViewportChange, viewport]);
+
+
+  const handlePointerMove = (event: PointerEvent<SVGSVGElement>) => {
+    if (panDragRef.current) {
+      const next = controller.panByPointerDelta(event.clientX - panDragRef.current.x, event.clientY - panDragRef.current.y);
+      panDragRef.current = { x: event.clientX, y: event.clientY };
+      onUserViewportChange?.();
+      onViewportChange?.(next);
+      return;
+    }
+    const point = screenFromEvent(event);
+    if (!point) return;
     if (toolMode === 'draw_wall') {
       onInteraction({
         kind: 'draw_preview',
@@ -114,6 +235,7 @@ export default function DesignBuilderPlanCanvas({
         planZ: point.z,
         nodeId: activeNodeId ?? undefined,
         shiftHeld: event.shiftKey,
+        altHeld: event.altKey,
       });
     }
     if (toolMode === 'move_wall_node' && activeNodeId) {
@@ -129,26 +251,21 @@ export default function DesignBuilderPlanCanvas({
   };
 
   const handleContextMenu = (event: PointerEvent<SVGSVGElement>) => {
-    if (manualMasonry?.enabled) {
-      event.preventDefault();
-      onManualMasonryPointer?.({ kind: 'undo' });
-      return;
-    }
     if (toolMode !== 'draw_wall') return;
     event.preventDefault();
     onInteraction({ kind: 'undo_last_segment', toolMode });
   };
 
   const handlePointerDown = (event: PointerEvent<SVGSVGElement>) => {
+    if (event.button === 1 || (event.button === 0 && spaceHeldRef.current)) {
+      event.preventDefault();
+      panDragRef.current = { x: event.clientX, y: event.clientY };
+      event.currentTarget.setPointerCapture(event.pointerId);
+      return;
+    }
     if (event.button !== 0) return;
     const point = screenFromEvent(event);
     if (!point) return;
-    if (manualMasonry?.enabled) {
-      event.preventDefault();
-      manualDragActiveRef.current = true;
-      onManualMasonryPointer?.({ kind: 'start', planX: point.x, planZ: point.z });
-      return;
-    }
     if (toolMode === 'draw_wall') {
       onInteraction({
         kind: 'draw_point',
@@ -158,6 +275,7 @@ export default function DesignBuilderPlanCanvas({
         planZ: point.z,
         nodeId: activeNodeId ?? undefined,
         shiftHeld: event.shiftKey,
+        altHeld: event.altKey,
       });
       return;
     }
@@ -195,11 +313,21 @@ export default function DesignBuilderPlanCanvas({
   };
 
   const handlePointerUp = (event: PointerEvent<SVGSVGElement>) => {
-    if (manualMasonry?.enabled && manualDragActiveRef.current) {
-      manualDragActiveRef.current = false;
+    if (panDragRef.current) {
+      panDragRef.current = null;
+      event.currentTarget.releasePointerCapture?.(event.pointerId);
+      return;
+    }
+    if (toolMode === 'place_door' || toolMode === 'place_window') {
       const point = screenFromEvent(event);
       if (!point) return;
-      onManualMasonryPointer?.({ kind: 'commit', planX: point.x, planZ: point.z });
+      onInteraction({
+        kind: 'segment_pick',
+        toolMode,
+        phase: 'commit',
+        planX: point.x,
+        planZ: point.z,
+      });
       return;
     }
     if (toolMode !== 'move_wall_node' || !activeNodeId) return;
@@ -215,91 +343,165 @@ export default function DesignBuilderPlanCanvas({
     });
   };
 
+  const isMajorGridLine = (value: number, majorStep: number) =>
+    Math.abs(value / majorStep - Math.round(value / majorStep)) < Math.max(majorStep * 0.001, 0.0001);
+
   const gridLines = [];
-  const gridStep = layout.gridSpacingMeters || 0.5;
-  for (let x = Math.floor(bounds.minX); x <= Math.ceil(bounds.maxX); x += gridStep) {
-    const start = planToSurfacePoint({ x, z: bounds.minZ });
-    const end = planToSurfacePoint({ x, z: bounds.maxZ });
-    gridLines.push(<line key={`gx-${x}`} x1={start.sx} y1={start.sy} x2={end.sx} y2={end.sy} stroke="currentColor" strokeOpacity={0.08} pointerEvents="none" />);
+  for (let x = Math.floor(visibleBounds.minX / minorGridStep) * minorGridStep; x <= visibleBounds.maxX; x += minorGridStep) {
+    const major = isMajorGridLine(x, majorGridStep);
+    if (!showMinorGrid && !major) continue;
+    const start = planToSurfacePoint({ x, z: visibleBounds.minZ });
+    const end = planToSurfacePoint({ x, z: visibleBounds.maxZ });
+    gridLines.push(
+      <line
+        key={`gx-${x}`}
+        x1={start.sx}
+        y1={start.sy}
+        x2={end.sx}
+        y2={end.sy}
+        stroke="currentColor"
+        strokeOpacity={major ? 0.18 : 0.08}
+        strokeWidth={major ? 1.25 : 1}
+        pointerEvents="none"
+        data-grid-kind={major ? 'major' : 'minor'}
+        data-grid-spacing-meters={major ? majorGridStep : minorGridStep}
+      />,
+    );
   }
-  for (let z = Math.floor(bounds.minZ); z <= Math.ceil(bounds.maxZ); z += gridStep) {
-    const start = planToSurfacePoint({ x: bounds.minX, z });
-    const end = planToSurfacePoint({ x: bounds.maxX, z });
-    gridLines.push(<line key={`gz-${z}`} x1={start.sx} y1={start.sy} x2={end.sx} y2={end.sy} stroke="currentColor" strokeOpacity={0.08} pointerEvents="none" />);
+  for (let z = Math.floor(visibleBounds.minZ / minorGridStep) * minorGridStep; z <= visibleBounds.maxZ; z += minorGridStep) {
+    const major = isMajorGridLine(z, majorGridStep);
+    if (!showMinorGrid && !major) continue;
+    const start = planToSurfacePoint({ x: visibleBounds.minX, z });
+    const end = planToSurfacePoint({ x: visibleBounds.maxX, z });
+    gridLines.push(
+      <line
+        key={`gz-${z}`}
+        x1={start.sx}
+        y1={start.sy}
+        x2={end.sx}
+        y2={end.sy}
+        stroke="currentColor"
+        strokeOpacity={major ? 0.18 : 0.08}
+        strokeWidth={major ? 1.25 : 1}
+        pointerEvents="none"
+        data-grid-kind={major ? 'major' : 'minor'}
+        data-grid-spacing-meters={major ? majorGridStep : minorGridStep}
+      />,
+    );
   }
 
   const activeNode = layout.nodes.find((node) => node.id === activeNodeId) ?? null;
-  const firstNode = drawStartNodeId ? layout.nodes.find((node) => node.id === drawStartNodeId) ?? null : null;
+  const drawGuidance = activeNode && draftEnd && toolMode === 'draw_wall' && layout.orthogonalLock
+    ? resolveDrawWallGuidance({
+        layout,
+        activeNodeId: activeNode.id,
+        rawPoint: draftEnd,
+        orthogonalLock: true,
+      })
+    : null;
+  const orthogonalGuideRays = useMemo(() => {
+    if (!activeNode || toolMode !== 'draw_wall' || !layout.orthogonalLock) return [];
+    const rayLength = Math.max(4, Math.max(surfaceSize.width, surfaceSize.height) / Math.max(1, viewport.zoom) * 0.35);
+    const directions = listOrthogonalGuideDirections({
+      layout,
+      activeNodeId: activeNode.id,
+    });
+    return directions.map((candidate) => ({
+      start: activeNode,
+      end: {
+        x: activeNode.x + candidate.direction.x * rayLength,
+        z: activeNode.z + candidate.direction.z * rayLength,
+      },
+      label: candidate.label,
+    }));
+  }, [activeNode, layout, surfaceSize.height, surfaceSize.width, toolMode, viewport.zoom]);
   const previewLength = activeNode && draftEnd ? Math.hypot(draftEnd.x - activeNode.x, draftEnd.z - activeNode.z) : 0;
-  const closesFootprint =
-    Boolean(firstNode && draftEnd && layout.segments.length >= 2 && Math.hypot(draftEnd.x - firstNode.x, draftEnd.z - firstNode.z) <= Math.max(ENDPOINT_SNAP_TOLERANCE_METERS, layout.gridSpacingMeters));
-  const invalidPreview = Boolean(activeNode && draftEnd && previewLength < MIN_SEGMENT_LENGTH_METERS && !closesFootprint);
+  const invalidPreview = Boolean(activeNode && draftEnd && previewLength < MIN_SEGMENT_LENGTH_METERS);
+  const shiftConstrained = Boolean(shiftConstraintLabel);
   const previewMidpoint = activeNode && draftEnd ? planToSurfacePoint({ x: (activeNode.x + draftEnd.x) / 2, z: (activeNode.z + draftEnd.z) / 2 }) : null;
   const snapMarker = draftEnd ? planToSurfacePoint(draftEnd) : null;
-  const manualModule = manualMasonry ? resolveCmuModuleConfig(manualMasonry.wall) : null;
-  const manualModuleLength = manualModule?.moduleLengthMeters ?? manualMasonry?.wall.blockLengthMeters ?? 0.4;
-  const manualModuleDepth = manualModule?.nominalDepthMeters ?? manualMasonry?.wall.wallThicknessMeters ?? 0.19;
-  const manualRuns = manualMasonry?.runs ?? [];
-  const manualPreview = manualMasonry?.preview ?? null;
-
-  function manualRunRects(run: MasonryCourseRun | ManualMasonryPlacementPreview, keyPrefix: string, preview = false) {
-    const span = unitModuleSpan(run.unitType);
-    const unitLength = manualModuleLength * span;
-    return Array.from({ length: run.count }, (_, index) => {
-      const orientation = run.orientation ?? 'east';
-      const alongX = orientation === 'east' || orientation === 'west';
-      const direction = orientation === 'west' || orientation === 'north' ? -1 : 1;
-      const x = run.originX + (alongX ? index * unitLength * direction : 0);
-      const z = run.originZ + (!alongX ? index * unitLength * direction : 0);
-      const minX = alongX ? Math.min(x, x + unitLength * direction) : x;
-      const maxX = alongX ? Math.max(x, x + unitLength * direction) : x + manualModuleDepth;
-      const minZ = alongX ? z : Math.min(z, z + unitLength * direction);
-      const maxZ = alongX ? z + manualModuleDepth : Math.max(z, z + unitLength * direction);
-      const topLeft = planToSurfacePoint({ x: minX, z: maxZ });
-      const bottomRight = planToSurfacePoint({ x: maxX, z: minZ });
-      return (
-        <rect
-          key={`${keyPrefix}-${index}`}
-          x={topLeft.sx}
-          y={topLeft.sy}
-          width={bottomRight.sx - topLeft.sx}
-          height={bottomRight.sy - topLeft.sy}
-          rx={3}
-          fill={preview ? 'rgba(34,211,238,0.22)' : 'rgba(34,211,238,0.38)'}
-          stroke={preview ? '#fbbf24' : '#22d3ee'}
-          strokeWidth={preview ? 2 : 1.5}
-          strokeDasharray={preview ? '6 4' : undefined}
-          pointerEvents="none"
-        />
-      );
-    });
-  }
+  const snapCaptured = Boolean(snapTarget?.captured && snapTarget.type !== 'raw');
+  const originPoint = planToSurfacePoint({ x: 0, z: 0 });
+  const xAxisStart = planToSurfacePoint({ x: visibleBounds.minX, z: 0 });
+  const xAxisEnd = planToSurfacePoint({ x: visibleBounds.maxX, z: 0 });
+  const yAxisStart = planToSurfacePoint({ x: 0, z: visibleBounds.minZ });
+  const yAxisEnd = planToSurfacePoint({ x: 0, z: visibleBounds.maxZ });
 
   return (
     <div className="relative h-full min-h-[420px] overflow-hidden rounded-2xl border border-slate-200 bg-slate-950 text-slate-100 dark:border-slate-700">
-      <div className="absolute left-3 top-3 rounded-full border border-cyan-700 bg-slate-900/90 px-3 py-1 text-xs font-medium text-cyan-200">
-        Plan layout · {layout.dimensionBasis === 'outside_face' ? 'Outside face' : layout.dimensionBasis}
+      <div
+        className="absolute left-3 top-3 rounded-full border border-cyan-700 bg-slate-900/90 px-3 py-1 text-xs font-medium text-cyan-200"
+        data-view-grid-meters={planGridState.displayMinorSpacingMeters}
+        data-snap-spacing-meters={planGridState.snapSpacingMeters}
+      >
+        {toolMode === 'draw_wall'
+          ? formatDrawWallStatusChip({
+              snapMode,
+              gridSpacingMeters: layout.gridSpacingMeters,
+              orthogonalLock: layout.orthogonalLock,
+              shiftConstraintLabel,
+              snapTarget,
+            })
+          : (
+            <>
+              Plan layout · {layout.dimensionBasis === 'outside_face' ? 'Outside face' : layout.dimensionBasis} · View grid{' '}
+              {formatPlanGridSpacingMeters(planGridState.displayMinorSpacingMeters)} · Snap{' '}
+              {snapMode === 'off' ? 'off' : formatPlanGridSpacingMeters(planGridState.snapSpacingMeters)}
+            </>
+          )}
       </div>
-      {layout.segments.length === 0 && manualRuns.length === 0 ? (
+      {layout.segments.length === 0 ? (
         <div className="pointer-events-none absolute bottom-3 left-3 z-10 rounded-lg bg-slate-900/70 px-3 py-1.5 text-xs text-slate-300">
           {DESIGN_BUILDER_COPY.hints.blankPlan}
         </div>
       ) : null}
       <svg
         ref={svgRef}
-        viewBox={`0 0 ${viewBox.width} ${viewBox.height}`}
+        viewBox={`0 0 ${surfaceSize.width} ${surfaceSize.height}`}
         preserveAspectRatio="none"
-        className="h-full w-full touch-none"
+        className="plan-surface h-full w-full overscroll-contain touch-none"
         onPointerMove={handlePointerMove}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
         onContextMenu={handleContextMenu}
         aria-label="Design Builder wall layout plan view"
       >
-        <rect width={viewBox.width} height={viewBox.height} fill="#0f172a" />
+        <rect width={surfaceSize.width} height={surfaceSize.height} fill="#0f172a" />
         {gridLines}
-        {manualRuns.flatMap((run) => manualRunRects(run, run.id))}
-        {manualPreview ? manualRunRects(manualPreview, 'manual-preview', true) : null}
+        <line x1={xAxisStart.sx} y1={xAxisStart.sy} x2={xAxisEnd.sx} y2={xAxisEnd.sy} stroke="#334155" strokeWidth={1.5} strokeOpacity={0.85} pointerEvents="none" data-axis="x" />
+        <line x1={yAxisStart.sx} y1={yAxisStart.sy} x2={yAxisEnd.sx} y2={yAxisEnd.sy} stroke="#334155" strokeWidth={1.5} strokeOpacity={0.85} pointerEvents="none" data-axis="y" />
+        <line x1={originPoint.sx - 10} y1={originPoint.sy} x2={originPoint.sx + 10} y2={originPoint.sy} stroke="#22d3ee" strokeWidth={2} pointerEvents="none" data-origin-crosshair="x" />
+        <line x1={originPoint.sx} y1={originPoint.sy - 10} x2={originPoint.sx} y2={originPoint.sy + 10} stroke="#22d3ee" strokeWidth={2} pointerEvents="none" data-origin-crosshair="y" />
+        <circle cx={originPoint.sx} cy={originPoint.sy} r={4} fill="#22d3ee" pointerEvents="none" data-origin-marker="true" />
+        <text x={originPoint.sx + 8} y={originPoint.sy - 8} fill="#67e8f9" fontSize={10} fontWeight={700} pointerEvents="none">0,0</text>
+        <text x={xAxisEnd.sx - 6} y={originPoint.sy - 6} textAnchor="end" fill="#64748b" fontSize={10} fontWeight={600} pointerEvents="none">+X East</text>
+        <text x={originPoint.sx + 6} y={yAxisStart.sy + 14} fill="#64748b" fontSize={10} fontWeight={600} pointerEvents="none">+Y North</text>
+        {PLAN_RULER_TICKS_METERS.flatMap((tick) => {
+          const marks = [];
+          if (tick >= visibleBounds.minX && tick <= visibleBounds.maxX) {
+            const alongX = planToSurfacePoint({ x: tick, z: 0 });
+            marks.push(
+              <g key={`tick-x-${tick}`} pointerEvents="none">
+                <line x1={alongX.sx} y1={originPoint.sy - 4} x2={alongX.sx} y2={originPoint.sy + 4} stroke="#475569" strokeWidth={1} />
+                <text x={alongX.sx} y={originPoint.sy + 14} textAnchor="middle" fill="#64748b" fontSize={9}>{tick} m</text>
+              </g>,
+            );
+          }
+          if (tick !== 0 && tick >= visibleBounds.minZ && tick <= visibleBounds.maxZ) {
+            const alongZ = planToSurfacePoint({ x: 0, z: tick });
+            marks.push(
+              <g key={`tick-z-${tick}`} pointerEvents="none">
+                <line x1={originPoint.sx - 4} y1={alongZ.sy} x2={originPoint.sx + 4} y2={alongZ.sy} stroke="#475569" strokeWidth={1} />
+                <text x={originPoint.sx - 8} y={alongZ.sy + 3} textAnchor="end" fill="#64748b" fontSize={9}>{tick} m</text>
+              </g>,
+            );
+          }
+          return marks;
+        })}
+        <text x={surfaceSize.width / 2} y={18} textAnchor="middle" fill="#94a3b8" fontSize={11} fontWeight={700} pointerEvents="none">North (+Y)</text>
+        <text x={surfaceSize.width / 2} y={surfaceSize.height - 10} textAnchor="middle" fill="#64748b" fontSize={11} fontWeight={700} pointerEvents="none">South</text>
+        <text x={surfaceSize.width - 12} y={surfaceSize.height / 2} textAnchor="end" fill="#64748b" fontSize={11} fontWeight={700} pointerEvents="none">East (+X)</text>
+        <text x={12} y={surfaceSize.height / 2} textAnchor="start" fill="#64748b" fontSize={11} fontWeight={700} pointerEvents="none">West</text>
         {layout.segments.map((segment) => {
           const start = layout.nodes.find((node) => node.id === segment.startNodeId);
           const end = layout.nodes.find((node) => node.id === segment.endNodeId);
@@ -335,6 +537,43 @@ export default function DesignBuilderPlanCanvas({
             </g>
           );
         })}
+        {orthogonalGuideRays.map((guide, index) => {
+          const start = planToSurfacePoint(guide.start);
+          const end = planToSurfacePoint(guide.end);
+          return (
+            <line
+              key={`perpendicular-guide-${index}`}
+              x1={start.sx}
+              y1={start.sy}
+              x2={end.sx}
+              y2={end.sy}
+              stroke="#22d3ee"
+              strokeOpacity={0.55}
+              strokeWidth={2}
+              strokeDasharray="6 6"
+              pointerEvents="none"
+            />
+          );
+        })}
+        {drawGuidance?.guideLine && !shiftConstrained ? (
+          (() => {
+            const start = planToSurfacePoint(drawGuidance.guideLine.start);
+            const end = planToSurfacePoint(drawGuidance.guideLine.end);
+            return (
+              <line
+                x1={start.sx}
+                y1={start.sy}
+                x2={end.sx}
+                y2={end.sy}
+                stroke="#22d3ee"
+                strokeOpacity={0.55}
+                strokeWidth={2}
+                strokeDasharray="8 5"
+                pointerEvents="none"
+              />
+            );
+          })()
+        ) : null}
         {activeNode && draftEnd ? (
           (() => {
             const a = planToSurfacePoint(activeNode);
@@ -345,9 +584,9 @@ export default function DesignBuilderPlanCanvas({
                 y1={a.sy}
                 x2={b.sx}
                 y2={b.sy}
-                stroke={invalidPreview ? '#fb7185' : closesFootprint ? '#34d399' : '#fbbf24'}
-                strokeWidth={3}
-                strokeDasharray="8 6"
+                stroke={invalidPreview ? '#fb7185' : shiftConstrained ? '#22d3ee' : '#fbbf24'}
+                strokeWidth={shiftConstrained ? 3 : 3}
+                strokeDasharray={shiftConstrained ? undefined : '8 6'}
                 strokeLinecap="round"
                 pointerEvents="none"
               />
@@ -358,19 +597,20 @@ export default function DesignBuilderPlanCanvas({
           <circle
             cx={snapMarker.sx}
             cy={snapMarker.sy}
-            r={closesFootprint ? 8 : 6}
-            fill="none"
-            stroke={invalidPreview ? '#fb7185' : closesFootprint ? '#22d3ee' : '#fbbf24'}
+            r={snapCaptured ? 7 : 6}
+            fill={snapCaptured ? '#22d3ee' : 'none'}
+            stroke={invalidPreview ? '#fb7185' : snapCaptured ? '#22d3ee' : '#fbbf24'}
             strokeOpacity={0.95}
-            strokeWidth={closesFootprint ? 3 : 2.5}
+            strokeWidth={snapCaptured ? 2.5 : 2}
             pointerEvents="none"
+            data-snap-captured={snapCaptured ? 'true' : 'false'}
           />
         ) : null}
         {previewMidpoint && previewLength > 0 ? (
           <text
             x={previewMidpoint.sx + 8}
             y={previewMidpoint.sy - 8}
-            fill={invalidPreview ? '#fecdd3' : '#fde68a'}
+            fill={invalidPreview ? '#fecdd3' : shiftConstrained ? '#a5f3fc' : '#fde68a'}
             fontSize={12}
             fontWeight={700}
             paintOrder="stroke"
@@ -378,7 +618,22 @@ export default function DesignBuilderPlanCanvas({
             strokeWidth={4}
             pointerEvents="none"
           >
-            {previewLength.toFixed(2)} m
+            {`${(previewMetrics?.lengthMeters ?? previewLength).toFixed(2)} m · ${(previewMetrics?.angleDegrees ?? 0).toFixed(0)}°`}
+          </text>
+        ) : null}
+        {(shiftConstraintLabel ?? drawGuidance?.label) && snapMarker ? (
+          <text
+            x={snapMarker.sx + 12}
+            y={snapMarker.sy - 14}
+            fill="#67e8f9"
+            fontSize={12}
+            fontWeight={800}
+            paintOrder="stroke"
+            stroke="#0f172a"
+            strokeWidth={4}
+            pointerEvents="none"
+          >
+            {shiftConstraintLabel ?? drawGuidance?.label}
           </text>
         ) : null}
         {layout.nodes.map((node) => {
@@ -389,8 +644,8 @@ export default function DesignBuilderPlanCanvas({
               key={node.id}
               cx={point.sx}
               cy={point.sy}
-              r={selected ? 8 : node.id === firstNode?.id && toolMode === 'draw_wall' ? 7 : 5}
-              fill={selected ? '#22d3ee' : node.id === firstNode?.id && toolMode === 'draw_wall' ? '#34d399' : '#e2e8f0'}
+              r={selected ? 8 : 5}
+              fill={selected ? '#22d3ee' : '#e2e8f0'}
               stroke="#0f172a"
               strokeWidth={2}
               pointerEvents="none"
@@ -398,6 +653,18 @@ export default function DesignBuilderPlanCanvas({
           );
         })}
       </svg>
+      <div className="pointer-events-none absolute bottom-3 right-3 rounded-xl border border-slate-700 bg-slate-900/90 px-2.5 py-2 text-[11px] font-bold text-slate-100 shadow-sm" aria-label="Plan orientation north up">
+        <div className="flex items-center gap-2">
+          <svg width="28" height="34" viewBox="0 0 28 34" aria-hidden>
+            <path d="M14 3 L22 17 H16 V31 H12 V17 H6 Z" fill="#22d3ee" />
+            <path d="M14 31 H24" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+          <div>
+            <div>N</div>
+            <div className="text-[10px] font-semibold text-slate-400">North up</div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

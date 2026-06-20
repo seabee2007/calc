@@ -2766,12 +2766,14 @@ export default function EstimateWorkspacePage() {
     if (!isModelWorkspaceFocusMode) return;
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
+        if (event.defaultPrevented) return;
+        if (isDesignBuilderFocusMode) return;
         headerCollapse?.setFocusMode(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isModelWorkspaceFocusMode, headerCollapse]);
+  }, [isModelWorkspaceFocusMode, isDesignBuilderFocusMode, headerCollapse]);
 
   const activeTabLabel =
     visibleWorkspaceTabs.find((tab) => tab.id === activeTab)?.label ??

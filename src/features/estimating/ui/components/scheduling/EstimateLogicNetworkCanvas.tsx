@@ -46,8 +46,6 @@ import type { EffectiveScheduleAnalysis } from '../../../scheduling/effectiveSch
 import { LOGIC_NETWORK_FULLSCREEN_CANVAS_WRAPPER_CLASS } from '../../../scheduling/logicNetworkFullscreen';
 import { autoLayoutLogicNetwork } from '../../../scheduling/logic/autoLayoutLogicNetwork';
 import {
-  LOGIC_NETWORK_AUTO_LAYOUT_X_SPACING,
-  LOGIC_NETWORK_AUTO_LAYOUT_Y_GAP,
   LOGIC_NETWORK_CANVAS_HEIGHT_CLASS,
   buildAutoLayoutFromActivities,
   resolveLogicNetworkNodePosition,
@@ -260,18 +258,12 @@ export function buildLogicNetworkNodes(
     // Effective leveled analysis is keyed by activity code (committed CPM).
     const leveled = effectiveAnalysis?.byActivityCode.get(activity.activityCode) ?? null;
     const useLeveledView = leveledViewActive && leveled != null && showCpmFields;
-    const position =
-      useLeveledView && leveled != null
-        ? {
-            x: leveled.leveledStartDayIndex * LOGIC_NETWORK_AUTO_LAYOUT_X_SPACING + 80,
-            y: savedLayout?.y ?? index * LOGIC_NETWORK_AUTO_LAYOUT_Y_GAP,
-          }
-        : resolveLogicNetworkNodePosition(
-            activity,
-            index,
-            savedLayout,
-            showCpmFields ? cpmActivity : undefined,
-          );
+    const position = resolveLogicNetworkNodePosition(activity, index, savedLayout, {
+      earlyStart: cpmActivity?.earlyStart,
+      durationDays: activity.durationDays,
+      leveledOffsetDays: leveled?.leveledOffsetDays,
+      leveledStartDayIndex: leveled?.leveledStartDayIndex,
+    });
     const baselineCritical =
       showCpmFields && cpmResult != null ? isDisplayCritical(cpmResult, cpmKey) : false;
     return {
@@ -606,7 +598,6 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
   const handleNodesChange = useCallback(
     (changes: NodeChange[]) => {
       onNodesChange(changes);
-      if (leveledGraphActive) return;
       const positionChanges = changes.filter(
         (c): c is NodeChange & { type: 'position'; position?: { x: number; y: number } } =>
           c.type === 'position' && (c as { dragging?: boolean }).dragging === false,
@@ -626,7 +617,7 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
         });
       }, 500);
     },
-    [onNodesChange, setNodes, onLayoutChange, leveledGraphActive],
+    [onNodesChange, setNodes, onLayoutChange],
   );
 
   const handleEdgesChange = useCallback(

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { chooseAdaptiveGridSpacing as computeAdaptiveGridSpacingFromVisibleWidth } from './planGridState';
 
 export interface ClientPointerLike {
   clientX: number;
@@ -24,6 +25,147 @@ export interface PlanViewportBounds {
   maxX: number;
   minZ: number;
   maxZ: number;
+}
+
+export type PlanViewportState = {
+  centerX: number;
+  centerZ: number;
+  zoom: number;
+};
+
+export type PlanSurfaceSize = {
+  width: number;
+  height: number;
+};
+
+export const DEFAULT_PLAN_VIEWPORT: PlanViewportState = {
+  centerX: 0,
+  centerZ: 0,
+  zoom: 48,
+};
+
+export const PLAN_ZOOM_LIMITS = {
+  min: 0.05,
+  max: 320,
+};
+
+export type PlanGridScalePreset = {
+  spacingMeters: number;
+  targetCellsAcrossViewport: number;
+};
+
+export const PLAN_GRID_SCALE_PRESETS: PlanGridScalePreset[] = [
+  { spacingMeters: 0.1, targetCellsAcrossViewport: 3 },
+  { spacingMeters: 0.2, targetCellsAcrossViewport: 4 },
+  { spacingMeters: 0.4, targetCellsAcrossViewport: 6 },
+  { spacingMeters: 1, targetCellsAcrossViewport: 10 },
+  { spacingMeters: 2, targetCellsAcrossViewport: 12 },
+  { spacingMeters: 5, targetCellsAcrossViewport: 16 },
+  { spacingMeters: 10, targetCellsAcrossViewport: 20 },
+  { spacingMeters: 20, targetCellsAcrossViewport: 24 },
+  { spacingMeters: 50, targetCellsAcrossViewport: 32 },
+  { spacingMeters: 100, targetCellsAcrossViewport: 40 },
+];
+
+export function clampPlanZoom(zoom: number): number {
+  return Math.min(PLAN_ZOOM_LIMITS.max, Math.max(PLAN_ZOOM_LIMITS.min, zoom));
+}
+
+export function createPlanCameraController(
+  viewport: PlanViewportState,
+  surface: PlanSurfaceSize,
+) {
+  const safeWidth = Math.max(1, surface.width);
+  const safeHeight = Math.max(1, surface.height);
+  const zoom = clampPlanZoom(viewport.zoom);
+
+  const screenToPlanPoint = (clientX: number, clientY: number, rectLeft = 0, rectTop = 0) => ({
+    x: viewport.centerX + (clientX - rectLeft - safeWidth / 2) / zoom,
+    z: viewport.centerZ - (clientY - rectTop - safeHeight / 2) / zoom,
+  });
+
+  const planToScreenPoint = (point: { x: number; z: number }) => ({
+    x: safeWidth / 2 + (point.x - viewport.centerX) * zoom,
+    y: safeHeight / 2 - (point.z - viewport.centerZ) * zoom,
+  });
+
+  const zoomAtPointer = (
+    clientX: number,
+    clientY: number,
+    deltaY: number,
+    rectLeft = 0,
+    rectTop = 0,
+  ): PlanViewportState => {
+    const before = screenToPlanPoint(clientX, clientY, rectLeft, rectTop);
+    const factor = deltaY > 0 ? 0.88 : 1.14;
+    const nextZoom = clampPlanZoom(zoom * factor);
+    return {
+      centerX: before.x - (clientX - rectLeft - safeWidth / 2) / nextZoom,
+      centerZ: before.z + (clientY - rectTop - safeHeight / 2) / nextZoom,
+      zoom: nextZoom,
+    };
+  };
+
+  const panByPointerDelta = (deltaX: number, deltaY: number): PlanViewportState => ({
+    centerX: viewport.centerX - deltaX / zoom,
+    centerZ: viewport.centerZ + deltaY / zoom,
+    zoom,
+  });
+
+  return {
+    zoomAtPointer,
+    panByPointerDelta,
+    screenToPlanPoint,
+    planToScreenPoint,
+    visibleWorldBounds: (): PlanViewportBounds => ({
+      minX: viewport.centerX - safeWidth / (2 * zoom),
+      maxX: viewport.centerX + safeWidth / (2 * zoom),
+      minZ: viewport.centerZ - safeHeight / (2 * zoom),
+      maxZ: viewport.centerZ + safeHeight / (2 * zoom),
+    }),
+  };
+}
+
+export function fitPlanViewportToBounds(
+  bounds: PlanViewportBounds | null,
+  surface: PlanSurfaceSize,
+  paddingRatio = 0.18,
+): PlanViewportState {
+  if (!bounds) return DEFAULT_PLAN_VIEWPORT;
+  const width = Math.max(0.1, bounds.maxX - bounds.minX);
+  const height = Math.max(0.1, bounds.maxZ - bounds.minZ);
+  const paddedWidth = width * (1 + paddingRatio * 2);
+  const paddedHeight = height * (1 + paddingRatio * 2);
+  return {
+    centerX: (bounds.minX + bounds.maxX) / 2,
+    centerZ: (bounds.minZ + bounds.maxZ) / 2,
+    zoom: clampPlanZoom(Math.min(surface.width / paddedWidth, surface.height / paddedHeight)),
+  };
+}
+
+export function getPlanGridScalePreset(spacingMeters: number): PlanGridScalePreset {
+  return PLAN_GRID_SCALE_PRESETS.reduce((best, preset) =>
+    Math.abs(preset.spacingMeters - spacingMeters) < Math.abs(best.spacingMeters - spacingMeters) ? preset : best,
+  );
+}
+
+export function planViewportForGridScale(
+  current: PlanViewportState,
+  surface: PlanSurfaceSize,
+  spacingMeters: number,
+): PlanViewportState {
+  const preset = getPlanGridScalePreset(spacingMeters);
+  const safeWidth = Math.max(1, surface.width);
+  const visibleWorldWidth = Math.max(0.1, preset.spacingMeters * preset.targetCellsAcrossViewport);
+  return {
+    centerX: current.centerX,
+    centerZ: current.centerZ,
+    zoom: clampPlanZoom(safeWidth / visibleWorldWidth),
+  };
+}
+
+export function chooseAdaptiveGridSpacing(worldUnitsVisible: number): number {
+  return computeAdaptiveGridSpacingFromVisibleWidth(worldUnitsVisible);
 }
 
 export function getNormalizedPointerFromClient(

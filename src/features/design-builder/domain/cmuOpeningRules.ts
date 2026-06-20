@@ -1,8 +1,12 @@
-import type { CmuWallSystemParameters, WallOpeningParameters } from '../types';
+import type { CmuCoreGeometry, CmuWallSystemParameters, WallOpeningParameters } from '../types';
 import { resolveCmuModuleConfig } from './cmuModuleRules';
+import type { GroutFillPlacement } from './openingAssemblySolver';
 
 export const OPENING_GROUT_CONCEPTUAL_WARNING =
-  'Opening grout/reinforcement quantities are conceptual. Verify lintels, jamb reinforcement, grout, rebar, and code requirements before pricing or construction.';
+  'Grout quantity is conceptual; verify block core geometry and reinforcement requirements before pricing.';
+
+export const OPENING_GROUT_CORE_WARNING =
+  'Opening grout/reinforcement quantities are derived from generated cell fill volumes.';
 
 export interface ResolvedCmuOpening {
   id: string;
@@ -41,14 +45,24 @@ export interface CmuOpeningGroutSummary {
   actualOpeningAreaSquareMeters: number;
   roughOpeningAreaSquareMeters: number;
   jambGroutCellCount: number;
+  lintelGroutedCellCount?: number;
   lintelCount: number;
   lintelLengthMeters: number;
   jambGroutVolumeCubicMeters: number;
   closureGroutVolumeCubicMeters: number;
   lintelGroutVolumeCubicMeters: number;
+  openingGroutVolumeCubicMeters?: number;
+  sillGroutVolumeCubicMeters?: number;
   bondBeamGroutVolumeCubicMeters: number;
+  overlapDeduplicationCubicMeters?: number;
+  groutFillPlacements?: readonly GroutFillPlacement[];
+  groutFillPlacementIds?: readonly string[];
+  coreGeometry?: CmuCoreGeometry;
   totalGroutVolumeCubicMeters: number;
   courseClosureCutBlockCount: number;
+  lintelBearingSupportBlockCount?: number;
+  lintelBearingHalfBlockCount?: number;
+  lintelBearingCutBlockCount?: number;
   coreFillFactor: number;
   groutWastePercent: number;
   warnings: string[];
@@ -62,28 +76,49 @@ export function resolveCmuOpening(
   const allowance = Math.max(0, opening.roughOpeningAllowanceMeters ?? 0.05);
   const actualWidthMeters = Math.max(0, opening.widthMeters);
   const actualHeightMeters = Math.max(0, opening.heightMeters);
-  const roughOpeningWidthMeters = Math.max(
+  let roughOpeningWidthMeters = Math.max(
     actualWidthMeters,
     opening.roughOpeningWidthMeters ?? actualWidthMeters + allowance * 2,
   );
-  const roughOpeningHeightMeters = Math.max(
+  let roughOpeningHeightMeters = Math.max(
     actualHeightMeters,
     opening.roughOpeningHeightMeters ?? actualHeightMeters + allowance * 2,
   );
   const wallLength = opening.wallFace === 'north' || opening.wallFace === 'south'
     ? params.lengthMeters
     : params.widthMeters;
-  const rawRoughStart = opening.offsetMeters - (roughOpeningWidthMeters - actualWidthMeters) / 2;
-  const roughStartAlongMeters = clamp(roundMeters(rawRoughStart), 0, Math.max(0, wallLength - roughOpeningWidthMeters));
+  let rawRoughStart = opening.offsetMeters - (roughOpeningWidthMeters - actualWidthMeters) / 2;
+  let roughStartAlongMeters = clamp(roundMeters(rawRoughStart), 0, Math.max(0, wallLength - roughOpeningWidthMeters));
+  let roughEndAlongMeters = roughStartAlongMeters + roughOpeningWidthMeters;
+  let actualStartAlongMeters = opening.offsetMeters;
+  let actualEndAlongMeters = roundMeters(opening.offsetMeters + actualWidthMeters);
+  if (params.snapToModule && moduleConfig.moduleLengthMeters > 0) {
+    const actualCenterStation = opening.offsetMeters + actualWidthMeters / 2;
+    rawRoughStart = Math.floor((actualCenterStation - roughOpeningWidthMeters / 2) / moduleConfig.moduleLengthMeters) * moduleConfig.moduleLengthMeters;
+    roughStartAlongMeters = clamp(roundMeters(rawRoughStart), 0, wallLength);
+    roughEndAlongMeters = clamp(
+      roundMeters(Math.ceil((actualCenterStation + roughOpeningWidthMeters / 2) / moduleConfig.moduleLengthMeters) * moduleConfig.moduleLengthMeters),
+      roughStartAlongMeters,
+      wallLength,
+    );
+    if (roughEndAlongMeters - roughStartAlongMeters < actualWidthMeters) {
+      roughStartAlongMeters = clamp(roundMeters(actualCenterStation - actualWidthMeters / 2), 0, Math.max(0, wallLength - actualWidthMeters));
+      roughEndAlongMeters = roundMeters(Math.min(wallLength, roughStartAlongMeters + actualWidthMeters));
+    }
+    roughOpeningWidthMeters = Math.max(actualWidthMeters, roughEndAlongMeters - roughStartAlongMeters);
+  }
+  if (params.snapToModule && moduleConfig.moduleHeightMeters > 0) {
+    roughOpeningHeightMeters = Math.max(actualHeightMeters, Math.ceil(roughOpeningHeightMeters / moduleConfig.moduleHeightMeters) * moduleConfig.moduleHeightMeters);
+  }
   const roughBottomMeters = opening.type === 'door'
     ? 0
     : Math.max(0, (opening.sillHeightMeters ?? 0) - (roughOpeningHeightMeters - actualHeightMeters) / 2);
   const lintelType = opening.lintelType ?? params.lintelType ?? 'bond_beam';
-  const lintelBearingMeters = Math.max(0, opening.lintelBearingMeters ?? params.lintelBearingMeters ?? 0.2);
+  const lintelBearingMeters = Math.max(moduleConfig.moduleLengthMeters / 2, opening.lintelBearingMeters ?? params.lintelBearingMeters ?? 0.2);
   const lintelCourseCount = Math.max(1, opening.lintelCourseCount ?? params.lintelCourseCount ?? 1);
   const lintelLengthMeters = lintelType === 'none'
     ? 0
-    : Math.min(wallLength, roughOpeningWidthMeters + lintelBearingMeters * 2);
+    : Math.min(wallLength, actualWidthMeters + lintelBearingMeters * 2);
 
   return {
     id: opening.id,
@@ -96,11 +131,11 @@ export function resolveCmuOpening(
     roughOpeningHeightMeters,
     roughOpeningAreaSquareMeters: roughOpeningWidthMeters * roughOpeningHeightMeters,
     roughStartAlongMeters,
-    roughEndAlongMeters: roundMeters(roughStartAlongMeters + roughOpeningWidthMeters),
+    roughEndAlongMeters: roundMeters(roughEndAlongMeters),
     roughBottomMeters: roundMeters(roughBottomMeters),
     roughTopMeters: roundMeters(roughBottomMeters + roughOpeningHeightMeters),
-    actualStartAlongMeters: opening.offsetMeters,
-    actualEndAlongMeters: roundMeters(opening.offsetMeters + actualWidthMeters),
+    actualStartAlongMeters,
+    actualEndAlongMeters,
     actualBottomMeters: opening.type === 'door' ? 0 : opening.sillHeightMeters ?? 0,
     actualTopMeters: (opening.type === 'door' ? 0 : opening.sillHeightMeters ?? 0) + actualHeightMeters,
     lintelType,

@@ -108,7 +108,7 @@ export const CpmActivityNode = memo(function CpmActivityNode({ data, selected }:
 
   return (
     <div
-      className={`relative w-52 rounded border-2 bg-white text-xs transition-shadow hover:border-cyan-400 hover:shadow-2xl dark:bg-slate-900 dark:hover:border-cyan-400 ${borderColor} ${cardShadowClass}`}
+      className={`relative w-[220px] min-h-[118px] rounded border-2 bg-white text-xs transition-shadow hover:border-cyan-400 hover:shadow-2xl dark:bg-slate-900 dark:hover:border-cyan-400 ${borderColor} ${cardShadowClass}`}
     >
       <Handle
         type="source"

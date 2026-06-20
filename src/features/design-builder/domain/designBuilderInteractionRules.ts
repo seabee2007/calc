@@ -1,6 +1,7 @@
 import { generateCmuLayout } from '../geometry/designGeometry';
 import type {
   CmuWallSystemParameters,
+  DesignBuilderSnapMode,
   OpeningPlacementStatus,
   OpeningPlacementValidation,
   WallOpeningParameters,
@@ -8,9 +9,20 @@ import type {
 import { resolveCmuModuleConfig, snapOpeningToCmuModule } from './cmuModuleRules';
 import { resolveCmuOpening } from './cmuOpeningRules';
 
+import {
+  clampOpeningCenterToSegment,
+  openingCenterStationFromStored,
+  openingDraftFromResolvedPlacement,
+  resolveOpeningPlacementFromLegacyFaceOffset,
+  resolveOpeningPlacementFromWallHit,
+  type OpeningPlacementDefinition,
+  type ResolvedOpeningPlacement,
+  segmentFrameById,
+} from './openingPlacementResolver';
+import { getSegmentFramesForWallLayout } from '../geometry/designGeometry';
+import { openingToLegacyFaceOffset, wallFaceForSegment } from './layoutWallAdapter';
 import { segmentLength } from './wallLayoutRules';
 import type { DesignWallLayoutParameters } from '../types';
-import { openingToLegacyFaceOffset } from './layoutWallAdapter';
 
 export type WallFace = NonNullable<WallOpeningParameters['wallFace']>;
 
@@ -80,13 +92,14 @@ export function segmentLengthForOpening(
 }
 
 export function clampOpeningToSegment(
-  opening: Pick<WallOpeningParameters, 'wallSegmentId' | 'positionAlongSegment' | 'widthMeters'>,
+  opening: Pick<WallOpeningParameters, 'wallSegmentId' | 'positionAlongSegment' | 'widthMeters' | 'placementUsesCenterStation'>,
   layout: DesignWallLayoutParameters,
 ): number {
   const wallLength = segmentLengthForOpening(opening, layout);
-  const offset = opening.positionAlongSegment ?? 0;
-  const maxOffset = Math.max(0, wallLength - opening.widthMeters);
-  return Math.min(maxOffset, Math.max(0, offset));
+  const center = opening.placementUsesCenterStation
+    ? (opening.positionAlongSegment ?? 0)
+    : (opening.positionAlongSegment ?? 0) + opening.widthMeters / 2;
+  return clampOpeningCenterToSegment(center, opening.widthMeters, wallLength);
 }
 
 export function createOpeningDraftForSegment(
@@ -96,35 +109,126 @@ export function createOpeningDraftForSegment(
   wall: CmuWallSystemParameters,
   layout: DesignWallLayoutParameters,
   id?: string,
+  options?: { placementUsesCenterStation?: boolean },
 ): WallOpeningParameters {
   const defaults = type === 'door' ? DEFAULT_DOOR_DIMENSIONS : DEFAULT_WINDOW_DIMENSIONS;
-  const draft: WallOpeningParameters = {
-    id: id ?? `${type}-${wallSegmentId}-${Date.now()}`,
+  const usesCenter = options?.placementUsesCenterStation ?? true;
+  const centerStation = usesCenter
+    ? positionAlongSegment
+    : positionAlongSegment + defaults.widthMeters / 2;
+  const frames = getSegmentFramesForWallLayout(layout, wall);
+  const frame = segmentFrameById(frames, wallSegmentId);
+  if (!frame) {
+    const draft: WallOpeningParameters = {
+      id: id ?? `${type}-${wallSegmentId}-${Date.now()}`,
+      type,
+      wallSegmentId,
+      positionAlongSegment: centerStation,
+      placementUsesCenterStation: true,
+      widthMeters: defaults.widthMeters,
+      heightMeters: defaults.heightMeters,
+      sillHeightMeters: defaults.sillHeightMeters,
+      roughOpeningAllowanceMeters: 0.05,
+      lintelType: wall.lintelType ?? 'bond_beam',
+      lintelBearingMeters: wall.lintelBearingMeters ?? 0.2,
+      lintelCourseCount: wall.lintelCourseCount ?? 1,
+      jambGroutEnabled: true,
+      jambRebarEnabled: false,
+      groutCellsEachSide: wall.jambCellsEachSide ?? 1,
+      openingFrameMaterial: type === 'door' ? 'hollow_metal' : 'vinyl',
+    };
+    return draft;
+  }
+  const resolved = resolveOpeningPlacementFromWallHit({
+    hitPoint: {
+      x: frame.exteriorStart.x + frame.tangent.x * centerStation,
+      z: frame.exteriorStart.z + frame.tangent.z * centerStation,
+    },
+    hostSegmentId: wallSegmentId,
+    segmentFrame: frame,
+    openingDefinition: {
+      type,
+      widthMeters: defaults.widthMeters,
+      heightMeters: defaults.heightMeters,
+      sillHeightMeters: defaults.sillHeightMeters,
+      roughOpeningAllowanceMeters: 0.05,
+    },
+    snapMode: wall.snapToModule ? 'cmu_module' : 'grid',
+    gridSpacingMeters: layout.gridSpacingMeters,
+    wall,
+  });
+  const draft = openingDraftFromResolvedPlacement(resolved, {
     type,
-    wallSegmentId,
-    positionAlongSegment,
     widthMeters: defaults.widthMeters,
     heightMeters: defaults.heightMeters,
     sillHeightMeters: defaults.sillHeightMeters,
     roughOpeningAllowanceMeters: 0.05,
-    lintelType: wall.lintelType ?? 'bond_beam',
-    lintelBearingMeters: wall.lintelBearingMeters ?? 0.2,
-    lintelCourseCount: wall.lintelCourseCount ?? 1,
-    jambGroutEnabled: true,
-    jambRebarEnabled: false,
-    groutCellsEachSide: wall.jambCellsEachSide ?? 1,
-    openingFrameMaterial: type === 'door' ? 'hollow_metal' : 'vinyl',
-  };
-  const legacy = openingToLegacyFaceOffset(draft, layout);
-  const snapped = wall.snapToModule ? snapOpeningToCmuModule(legacy, wall) : legacy;
+  }, wall, layout, id);
+  const wallFace = wallFaceForSegment(layout, wallSegmentId);
   return {
     ...draft,
-    wallFace: snapped.wallFace,
-    offsetMeters: snapped.offsetMeters,
-    positionAlongSegment: clampOpeningToSegment(
-      { ...draft, positionAlongSegment: snapped.offsetMeters ?? positionAlongSegment },
-      layout,
-    ),
+    wallFace: wallFace ?? draft.wallFace,
+    offsetMeters: resolved.actualOpeningStartMeters,
+  };
+}
+
+export function resolveOpeningPlacementForHit(params: {
+  hitPoint: { x: number; z: number; y?: number };
+  wallSegmentId: string;
+  openingDefinition: OpeningPlacementDefinition;
+  wall: CmuWallSystemParameters;
+  layout: DesignWallLayoutParameters;
+  snapMode: DesignBuilderSnapMode;
+  slabTopMeters?: number;
+}): ResolvedOpeningPlacement | null {
+  const frames = getSegmentFramesForWallLayout(params.layout, params.wall);
+  const frame = segmentFrameById(frames, params.wallSegmentId);
+  if (!frame) return null;
+  return resolveOpeningPlacementFromWallHit({
+    hitPoint: params.hitPoint,
+    hostSegmentId: params.wallSegmentId,
+    segmentFrame: frame,
+    openingDefinition: params.openingDefinition,
+    snapMode: params.snapMode,
+    gridSpacingMeters: params.layout.gridSpacingMeters,
+    wall: params.wall,
+    slabTopMeters: params.slabTopMeters,
+  });
+}
+
+export function resolveOpeningPlacementForLegacyFaceOffset(params: {
+  wallFace: WallFace;
+  offsetMeters: number;
+  openingDefinition: OpeningPlacementDefinition;
+  wall: CmuWallSystemParameters;
+  layout: DesignWallLayoutParameters;
+  snapMode?: DesignBuilderSnapMode;
+  slabTopMeters?: number;
+}): ResolvedOpeningPlacement | null {
+  return resolveOpeningPlacementFromLegacyFaceOffset({
+    wallFace: params.wallFace,
+    offsetMeters: params.offsetMeters,
+    openingDefinition: params.openingDefinition,
+    wall: params.wall,
+    layout: params.layout,
+    snapMode: params.snapMode ?? 'off',
+    slabTopMeters: params.slabTopMeters,
+  });
+}
+
+export function openingDraftFromPlacementResolution(
+  resolved: ResolvedOpeningPlacement,
+  openingDefinition: OpeningPlacementDefinition,
+  wall: CmuWallSystemParameters,
+  layout: DesignWallLayoutParameters,
+  id?: string,
+): WallOpeningParameters {
+  const draft = openingDraftFromResolvedPlacement(resolved, openingDefinition, wall, layout, id);
+  const wallFace = wallFaceForSegment(layout, resolved.hostSegmentId);
+  return {
+    ...draft,
+    wallFace: wallFace ?? draft.wallFace,
+    offsetMeters: resolved.actualOpeningStartMeters,
   };
 }
 
@@ -132,19 +236,57 @@ export function applyOpeningSegmentPatch(
   opening: WallOpeningParameters,
   wall: CmuWallSystemParameters,
   layout: DesignWallLayoutParameters,
-  patch: Partial<Pick<WallOpeningParameters, 'wallSegmentId' | 'positionAlongSegment' | 'wallFace' | 'offsetMeters'>>,
+  patch: Partial<Pick<WallOpeningParameters, 'wallSegmentId' | 'positionAlongSegment' | 'wallFace' | 'offsetMeters' | 'placementUsesCenterStation'>>,
+  options?: { hitPoint?: { x: number; z: number }; snapMode?: DesignBuilderSnapMode },
 ): WallOpeningParameters {
-  const merged = { ...opening, ...patch };
-  const legacy = openingToLegacyFaceOffset(merged, layout);
-  const snapped = wall.snapToModule ? snapOpeningToCmuModule(legacy, wall) : legacy;
+  const merged = { ...opening, ...patch, placementUsesCenterStation: true };
+  const segmentId = merged.wallSegmentId;
+  if (!segmentId) return merged;
+  const frames = getSegmentFramesForWallLayout(layout, wall);
+  const frame = segmentFrameById(frames, segmentId);
+  if (!frame) return merged;
+
+  const centerStation =
+    merged.positionAlongSegment ??
+    openingCenterStationFromStored({ ...opening, ...patch });
+  const hitPoint = options?.hitPoint ?? {
+    x: frame.exteriorStart.x + frame.tangent.x * centerStation,
+    z: frame.exteriorStart.z + frame.tangent.z * centerStation,
+  };
+  const resolved = resolveOpeningPlacementFromWallHit({
+    hitPoint,
+    hostSegmentId: segmentId,
+    segmentFrame: frame,
+    openingDefinition: {
+      type: merged.type,
+      widthMeters: merged.widthMeters,
+      heightMeters: merged.heightMeters,
+      sillHeightMeters: merged.sillHeightMeters,
+      roughOpeningAllowanceMeters: merged.roughOpeningAllowanceMeters,
+    },
+    snapMode: options?.snapMode ?? (wall.snapToModule ? 'cmu_module' : 'grid'),
+    gridSpacingMeters: layout.gridSpacingMeters,
+    wall,
+  });
+  const draft = openingDraftFromResolvedPlacement(
+    resolved,
+    {
+      type: merged.type,
+      widthMeters: merged.widthMeters,
+      heightMeters: merged.heightMeters,
+      sillHeightMeters: merged.sillHeightMeters,
+      roughOpeningAllowanceMeters: merged.roughOpeningAllowanceMeters,
+    },
+    wall,
+    layout,
+    merged.id,
+  );
+  const wallFace = wallFaceForSegment(layout, segmentId);
   return {
     ...merged,
-    wallFace: snapped.wallFace,
-    offsetMeters: snapped.offsetMeters,
-    positionAlongSegment: clampOpeningToSegment(
-      { ...merged, positionAlongSegment: snapped.offsetMeters ?? merged.positionAlongSegment ?? 0 },
-      layout,
-    ),
+    ...draft,
+    wallFace: wallFace ?? draft.wallFace,
+    offsetMeters: resolved.actualOpeningStartMeters,
   };
 }
 
@@ -184,19 +326,24 @@ export function validateOpeningPlacement(
   opening: WallOpeningParameters,
   wall: CmuWallSystemParameters,
   otherOpenings: readonly WallOpeningParameters[] = wall.openings,
-  options?: { minimumEdgeDistanceMeters?: number },
+  options?: { minimumEdgeDistanceMeters?: number; layout?: DesignWallLayoutParameters },
 ): OpeningPlacementValidation {
   const warnings: string[] = [];
-  const wallLength = wallLengthForFace(wall, opening.wallFace ?? 'south');
+  const wallLength =
+    opening.wallSegmentId && options?.layout
+      ? segmentLengthForOpening(opening, options.layout)
+      : wallLengthForFace(wall, opening.wallFace ?? 'south');
   const minEdge = options?.minimumEdgeDistanceMeters ?? 0;
   const resolved = resolveCmuOpening(wall, opening);
-  const offset = opening.offsetMeters ?? opening.positionAlongSegment ?? 0;
+  const center = openingCenterStationFromStored(opening);
   const faceLabel = opening.wallFace ?? opening.wallSegmentId ?? 'segment';
+  const startStation = center - opening.widthMeters / 2;
+  const endStation = center + opening.widthMeters / 2;
 
-  if (offset < minEdge) {
+  if (startStation < minEdge) {
     warnings.push(`Opening is too close to the ${faceLabel} wall start.`);
   }
-  if (offset + opening.widthMeters > wallLength - minEdge) {
+  if (endStation > wallLength - minEdge) {
     warnings.push(`Opening is too close to the ${faceLabel} wall end.`);
   }
   if (resolved.roughEndAlongMeters > wallLength || resolved.roughStartAlongMeters < 0) {

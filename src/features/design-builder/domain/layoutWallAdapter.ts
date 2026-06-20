@@ -73,6 +73,18 @@ export function syncPresetFromLayout(
   };
 }
 
+export function segmentIdForWallFace(
+  layout: DesignWallLayoutParameters,
+  wallFace: NonNullable<WallOpeningParameters['wallFace']>,
+): string | null {
+  for (const segment of layout.segments) {
+    if (wallFaceForSegment(layout, segment.id) === wallFace) {
+      return segment.id;
+    }
+  }
+  return null;
+}
+
 export function wallFaceForSegment(
   layout: DesignWallLayoutParameters,
   segmentId: string,
@@ -93,14 +105,16 @@ export function openingToLegacyFaceOffset(
   opening: WallOpeningParameters,
   layout: DesignWallLayoutParameters,
 ): WallOpeningParameters {
-  if (opening.wallFace && opening.offsetMeters != null) return opening;
   if (!opening.wallSegmentId || opening.positionAlongSegment == null) return opening;
   const wallFace = wallFaceForSegment(layout, opening.wallSegmentId);
   if (!wallFace) return opening;
+  const centerStation = opening.placementUsesCenterStation
+    ? opening.positionAlongSegment
+    : opening.positionAlongSegment + opening.widthMeters / 2;
   return {
     ...opening,
     wallFace,
-    offsetMeters: opening.positionAlongSegment,
+    offsetMeters: centerStation - opening.widthMeters / 2,
   };
 }
 

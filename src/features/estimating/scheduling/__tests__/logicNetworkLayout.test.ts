@@ -2,20 +2,23 @@ import { describe, expect, it } from 'vitest';
 import { buildLogicNetworkNodes } from '../../ui/components/scheduling/EstimateLogicNetworkCanvas';
 import { buildLogicNetworkTopology } from '../logic/logicNetworkTopology';
 import {
+  LOGIC_NETWORK_AUTO_LAYOUT_START_X,
+  LOGIC_NETWORK_AUTO_LAYOUT_START_Y,
   LOGIC_NETWORK_CANVAS_HEIGHT_CLASS,
+  LOGIC_NETWORK_ROW_SPACING,
   autoLayoutNodePosition,
   buildAutoLayoutFromActivities,
   resolveLogicNetworkNodePosition,
 } from '../logicNetworkLayout';
 import type { ScheduleActivity } from '../adapters/estimateLineItemsToScheduleActivities';
 
-function makeActivity(code: string): ScheduleActivity {
+function makeActivity(code: string, durationDays = 3): ScheduleActivity {
   return {
     activityCode: code,
     activityDescription: code,
     divisionCode: '01',
     divisionName: 'General',
-    durationDays: 3,
+    durationDays,
     laborHours: 0,
     manDays: 0,
     crewDays: 0,
@@ -33,19 +36,12 @@ describe('logicNetworkLayout', () => {
     expect(LOGIC_NETWORK_CANVAS_HEIGHT_CLASS).toContain('w-full');
   });
 
-  it('auto-layout uses CPM earlyStart when no saved layout', () => {
-    const pos = autoLayoutNodePosition(makeActivity('A'), 0, {
-      activityCode: 'A',
-      earlyStart: 5,
-      earlyFinish: 8,
-      lateStart: 5,
-      lateFinish: 8,
-      totalFloat: 0,
-      freeFloat: 0,
-      isCritical: true,
-    });
-    expect(pos.x).toBe(5 * 160);
-    expect(pos.y).toBe(0);
+  it('auto-layout fallback stacks by index without using CPM earlyStart', () => {
+    const short = autoLayoutNodePosition(makeActivity('A', 1), 0);
+    const long = autoLayoutNodePosition(makeActivity('B', 171), 1);
+    expect(short.x).toBe(LOGIC_NETWORK_AUTO_LAYOUT_START_X);
+    expect(long.x).toBe(LOGIC_NETWORK_AUTO_LAYOUT_START_X);
+    expect(long.y).toBe(LOGIC_NETWORK_AUTO_LAYOUT_START_Y + LOGIC_NETWORK_ROW_SPACING);
   });
 
   it('resolveLogicNetworkNodePosition prefers saved layout', () => {
@@ -53,7 +49,7 @@ describe('logicNetworkLayout', () => {
       makeActivity('A'),
       0,
       { activityCode: 'A', x: 99, y: 88 },
-      undefined,
+      { earlyStart: 171, durationDays: 171 },
     );
     expect(pos).toEqual({ x: 99, y: 88 });
   });
@@ -69,6 +65,7 @@ describe('logicNetworkLayout', () => {
     expect(nodes).toHaveLength(2);
     expect(nodes[0].id).toBe('node-A');
     expect(nodes[1].position.y).toBeGreaterThan(nodes[0].position.y);
+    expect(nodes[0].position.x).toBe(nodes[1].position.x);
   });
 
   it('buildAutoLayoutFromActivities returns dependency layout for every activity', () => {

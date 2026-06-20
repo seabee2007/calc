@@ -23,7 +23,7 @@ describe('Design Builder session store', () => {
       changedAfterCommit: true,
       viewMode: 'plan',
       snapMode: 'cmu_module',
-      objectTreeExpanded: { layout: false, cmu: true },
+      objectTreeExpanded: { layout: false, masonry: true, structure: false, estimate: false },
       previewLines: [
         {
           id: 'cmu-total-grout',
@@ -57,10 +57,24 @@ describe('Design Builder session store', () => {
     expect(session?.viewMode).toBe('plan');
     expect(session?.snapMode).toBe('cmu_module');
     expect(session?.objectTreeExpanded?.layout).toBe(false);
+    expect(session?.objectTreeExpanded?.masonry).toBe(true);
     expect(session?.changedAfterCommit).toBe(true);
     expect(session?.previewLines).toHaveLength(1);
     expect(session?.leftPanelCollapsed).toBe(true);
     expect(session?.viewerSize?.height).toBe(640);
     expect(session?.camera?.position).toEqual([1, 2, 3]);
+  });
+
+  it('defaults object tree groups to collapsed', () => {
+    const key = designBuilderSessionKey('project-1', 'estimate-1');
+
+    useDesignBuilderSessionStore.getState().saveSession(key, {});
+
+    expect(useDesignBuilderSessionStore.getState().getSession(key)?.objectTreeExpanded).toEqual({
+      layout: false,
+      masonry: false,
+      structure: false,
+      estimate: false,
+    });
   });
 });

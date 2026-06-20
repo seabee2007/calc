@@ -77,6 +77,7 @@ describe('Design Builder quantity formulas', () => {
       expect.arrayContaining([
         'cmu-standard-blocks',
         'cmu-special-blocks',
+        'cmu-terminal-cut-blocks',
         'mortar-allowance',
         'cmu-lintels',
         'opening-rough-area',
@@ -110,6 +111,30 @@ describe('Design Builder quantity formulas', () => {
             east: expect.objectContaining({ fit: 'half' }),
           }),
         }),
+      }),
+    );
+  });
+
+  it('records terminal cut block metadata in estimate preview', () => {
+    const preset = createFiveBySixCmuBuildingPreset();
+    const preview = buildCmuBuildingEstimatePreview({
+      designModelId: 'model-1',
+      wallObjectId: 'wall-1',
+      slabObjectId: 'slab-1',
+      roofObjectId: 'roof-1',
+      trussObjectId: 'truss-1',
+      wall: { ...preset.wall, lengthMeters: 10.3, widthMeters: 4.3, openings: [] },
+      slab: preset.slab,
+      roof: preset.roof,
+      truss: preset.truss,
+    });
+    const terminalCuts = preview.find((line) => line.id === 'cmu-terminal-cut-blocks');
+
+    expect(terminalCuts?.description).toBe('Terminal cut block');
+    expect(terminalCuts?.parameterSnapshot).toEqual(
+      expect.objectContaining({
+        source: 'closed_perimeter_solver',
+        terminalClosures: expect.any(Array),
       }),
     );
   });

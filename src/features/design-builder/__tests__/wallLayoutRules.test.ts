@@ -20,6 +20,7 @@ import {
   detectClosedFootprint,
   removeLastSegment,
   deleteWallSegment,
+  resolveDrawWallGuidance,
   segmentLength,
   summarizeSegmentModuleFit,
 } from '../domain/wallLayoutRules';
@@ -75,6 +76,71 @@ describe('wallLayoutRules', () => {
     const next = deleteWallSegment(layout, segmentId);
     expect(next.segments).toHaveLength(3);
     expect(next.segments.some((segment) => segment.id === segmentId)).toBe(false);
+  });
+
+  it('shows orthogonal guide metadata without moving the preview point', () => {
+    const layout = createEmptyWallLayout({ nodes: [{ id: 'a', x: 0, z: 0 }] });
+    const rawPoint = { x: 3, z: 1.25 };
+    const guidance = resolveDrawWallGuidance({
+      layout,
+      activeNodeId: 'a',
+      rawPoint,
+      orthogonalLock: true,
+    });
+
+    expect(guidance.kind).toBe('perpendicular');
+    expect(guidance.label).toBe('90°');
+    expect(guidance.point).toEqual(rawPoint);
+  });
+
+  it('shows nearest perpendicular guide metadata for the second segment without forcing the point', () => {
+    let layout = createEmptyWallLayout({ nodes: [{ id: 'a', x: 0, z: 0 }] });
+    layout = addWallSegment(layout, 'a', 5, 0);
+    const activeNodeId = layout.segments[0].endNodeId;
+    const rawPoint = { x: 5.8, z: 3 };
+    const guidance = resolveDrawWallGuidance({
+      layout,
+      activeNodeId,
+      rawPoint,
+      orthogonalLock: true,
+    });
+
+    expect(guidance.kind).toBe('perpendicular');
+    expect(guidance.label).toBe('90°');
+    expect(guidance.point).toEqual(rawPoint);
+  });
+
+  it('does not predict rectangle closure during free drawing', () => {
+    let layout = createEmptyWallLayout({ nodes: [{ id: 'a', x: 0, z: 0 }] });
+    layout = addWallSegment(layout, 'a', 5, 0);
+    layout = addWallSegment(layout, layout.segments[0].endNodeId, 5, 4);
+    const activeNodeId = layout.segments[1].endNodeId;
+    const guidance = resolveDrawWallGuidance({
+      layout,
+      activeNodeId,
+      rawPoint: { x: 0.1, z: 4.05 },
+      orthogonalLock: true,
+    });
+
+    expect(guidance.kind).not.toBe('rectangle_closure');
+    expect(guidance.label).not.toBe('Close footprint');
+    expect(guidance.point).toEqual({ x: 0.1, z: 4.05 });
+  });
+
+  it('orthogonal off allows non-right-angle wall guidance', () => {
+    let layout = createEmptyWallLayout({ nodes: [{ id: 'a', x: 0, z: 0 }] });
+    layout = addWallSegment(layout, 'a', 5, 0);
+    const activeNodeId = layout.segments[0].endNodeId;
+    const rawPoint = { x: 5.8, z: 3 };
+    const guidance = resolveDrawWallGuidance({
+      layout,
+      activeNodeId,
+      rawPoint,
+      orthogonalLock: false,
+    });
+
+    expect(guidance.kind).toBe('free');
+    expect(guidance.point).toEqual(rawPoint);
   });
 });
 

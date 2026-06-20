@@ -80,6 +80,14 @@ export interface ThickenedEdgeSlabParameters {
 }
 
 export type DesignWallDimensionBasis = 'outside_face' | 'wall_centerline' | 'inside_clear';
+export type ModuleFitMode = 'exact' | 'snap_during_draw' | 'resolve_after_draw';
+
+export type FoundationSetout = {
+  slabEdgeOffsetMeters: number;
+  thickenedEdgeWidthMeters: number;
+  thickenedEdgeDepthMeters: number;
+  wallBearingOffsetMeters: number;
+};
 
 export type DesignWallCornerType = 'outside' | 'inside' | 'end' | 'tee' | 'cross';
 
@@ -138,6 +146,8 @@ export interface WallOpeningParameters {
   offsetMeters?: number;
   wallSegmentId?: string;
   positionAlongSegment?: number;
+  /** When true, positionAlongSegment stores opening center station on the host segment. */
+  placementUsesCenterStation?: boolean;
   /** Actual door/window unit width. Rough opening is derived unless explicitly overridden. */
   widthMeters: number;
   /** Actual door/window unit height. Rough opening is derived unless explicitly overridden. */
@@ -154,6 +164,7 @@ export interface WallOpeningParameters {
   groutCellsEachSide?: number;
   groutCellsAboveOpening?: number;
   groutCellsBelowWindow?: number;
+  sillCondition?: 'none' | 'reinforced_sill' | 'grouted_sill_course';
   openingFrameMaterial?: 'hollow_metal' | 'vinyl' | 'wood' | 'aluminum' | 'none';
   notes?: string;
 }
@@ -168,6 +179,15 @@ export type CmuUnitType =
   | 'cap'
   | 'cut';
 
+export interface CmuCoreGeometry {
+  coreCount: number;
+  coreLengthMeters: number;
+  coreWidthMeters: number;
+  coreHeightMeters: number;
+  shellThicknessMeters: number;
+  webThicknessMeters: number;
+}
+
 export interface CmuBlockModuleConfig {
   familyName: string;
   nominalLengthMeters: number;
@@ -179,6 +199,7 @@ export interface CmuBlockModuleConfig {
   moduleLengthMeters: number;
   moduleHeightMeters: number;
   availableUnitTypes: CmuUnitType[];
+  cmuCoreGeometry?: CmuCoreGeometry;
 }
 
 export interface CmuWallSystemParameters {
@@ -410,7 +431,11 @@ export interface DesignBuilderInteractionEvent {
   sillHeightMeters?: number;
   planX?: number;
   planZ?: number;
+  hitPointX?: number;
+  hitPointY?: number;
+  hitPointZ?: number;
   shiftHeld?: boolean;
+  altHeld?: boolean;
 }
 
 export type OpeningPlacementStatusKind =

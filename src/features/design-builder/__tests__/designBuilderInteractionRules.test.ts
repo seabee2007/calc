@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { createFiveBySixCmuBuildingPreset } from '../domain/designBuilderPreset';
 import {
+  applyOpeningSegmentPatch,
   clampOpeningToWall,
   createOpeningDraft,
+  createOpeningDraftForSegment,
   projectHitToWallOffset,
   resolveWallFaceFromHit,
   snapOffsetToModule,
@@ -38,6 +40,16 @@ describe('designBuilderInteractionRules', () => {
     expect(door.id).toBe('door-test');
     expect(window.type).toBe('window');
     expect(window.sillHeightMeters).toBe(1);
+  });
+
+  it('creates segment-hosted opening drafts for every wall in a closed rectangle', () => {
+    const drafts = preset.wallLayout.segments.map((segment) =>
+      createOpeningDraftForSegment('door', segment.id, 1.2, preset.wall, preset.wallLayout, `door-${segment.id}`),
+    );
+
+    expect(drafts).toHaveLength(4);
+    expect(drafts.every((draft, index) => draft.wallSegmentId === preset.wallLayout.segments[index].id)).toBe(true);
+    expect(drafts.every((draft) => typeof draft.positionAlongSegment === 'number')).toBe(true);
   });
 
   it('snaps offset to CMU module grid', () => {
@@ -84,5 +96,34 @@ describe('designBuilderInteractionRules', () => {
     expect(movedLayout.openingCourseClosures.length).toBe(baseLayout.openingCourseClosures.length);
     expect(beforeCells.length).toBeGreaterThan(0);
     expect(afterCells.some((cell, index) => cell.x !== beforeCells[index]?.x || cell.z !== beforeCells[index]?.z)).toBe(true);
+  });
+
+  it('moves an opening on the same segment and preserves opening settings', () => {
+    const opening = preset.wall.openings.find((item) => item.wallSegmentId)!;
+    const moved = applyOpeningSegmentPatch(opening, preset.wall, preset.wallLayout, {
+      wallSegmentId: opening.wallSegmentId,
+      positionAlongSegment: 1.6,
+    });
+
+    expect(moved.wallSegmentId).toBe(opening.wallSegmentId);
+    expect(moved.positionAlongSegment).toBeCloseTo(1.6, 6);
+    expect(moved.widthMeters).toBe(opening.widthMeters);
+    expect(moved.heightMeters).toBe(opening.heightMeters);
+    expect(moved.lintelType).toBe(opening.lintelType);
+    expect(moved.jambGroutEnabled).toBe(opening.jambGroutEnabled);
+  });
+
+  it('rehosts an opening onto another valid wall segment', () => {
+    const opening = preset.wall.openings.find((item) => item.wallSegmentId)!;
+    const targetSegment = preset.wallLayout.segments.find((segment) => segment.id !== opening.wallSegmentId)!;
+    const moved = applyOpeningSegmentPatch(opening, preset.wall, preset.wallLayout, {
+      wallSegmentId: targetSegment.id,
+      positionAlongSegment: 1.2,
+    });
+
+    expect(moved.wallSegmentId).toBe(targetSegment.id);
+    expect(moved.positionAlongSegment).toBeCloseTo(1.2, 6);
+    expect(moved.widthMeters).toBe(opening.widthMeters);
+    expect(moved.sillHeightMeters).toBe(opening.sillHeightMeters);
   });
 });

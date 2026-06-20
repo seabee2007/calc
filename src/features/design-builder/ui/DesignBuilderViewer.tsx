@@ -7,8 +7,11 @@ import {
   type DesignGeometryBlockInstance,
   type DesignGeometryResult,
 } from '../geometry/designGeometry';
+import { resolveCmuModuleConfig } from '../domain/cmuModuleRules';
+import { fit3dToLayout, reset3dView, type DesignLayoutBounds } from '../domain/designLayoutBounds';
 import type { ResolvedCmuOpening } from '../domain/cmuOpeningRules';
 import { getNormalizedPointerFromClient } from '../domain/pointerPlanMapping';
+import { buildSegmentFrameMap, projectPointToSegmentStation } from '../domain/openingPlacementResolver';
 import type {
   DesignBuilderCameraSnapshot,
   DesignBuilderInteractionEvent,
@@ -26,13 +29,19 @@ const CLICK_DRAG_THRESHOLD_PX = 5;
 export interface DesignBuilderPlacementPreview {
   wallFace: NonNullable<WallOpeningParameters['wallFace']>;
   offsetMeters: number;
+  positionAlongSegment?: number;
   openingType: WallOpeningParameters['type'];
   widthMeters: number;
   heightMeters: number;
   sillHeightMeters?: number;
   isValid: boolean;
+  statusKind?: 'clean' | 'half_block' | 'cut_block' | 'invalid';
   openingId?: string;
   wallSegmentId?: string;
+  wallRotationY?: number;
+  frameOrigin?: { x: number; y: number; z: number };
+  hitPoint?: { x: number; y: number; z: number };
+  openingDraft?: WallOpeningParameters;
 }
 
 interface DesignBuilderViewerProps {
@@ -42,6 +51,7 @@ interface DesignBuilderViewerProps {
   roof: GableRoofSystemParameters;
   truss: SteelTrussSystemParameters;
   geometryResult?: DesignGeometryResult;
+  layoutBounds?: DesignLayoutBounds | null;
   selectedObjectType: DesignObjectType | null;
   selectedOpeningId?: string | null;
   toolMode?: DesignBuilderToolMode;
@@ -49,12 +59,14 @@ interface DesignBuilderViewerProps {
   onSelectObjectType: (objectType: DesignObjectType) => void;
   onInteraction?: (event: DesignBuilderInteractionEvent) => void;
   fitContainer?: boolean;
-  viewCommand?: { id: number; action: 'fit' | 'reset' } | null;
+  viewCommand?: { id: number; action: 'fit' | 'reset' | 'grid_scale'; spacingMeters?: number } | null;
   initialCameraSnapshot?: DesignBuilderCameraSnapshot | null;
   onCameraSnapshotChange?: (snapshot: DesignBuilderCameraSnapshot) => void;
+  onUserCameraChange?: () => void;
   showOpeningLayout?: boolean;
   showGroutCells?: boolean;
   showClosureWarnings?: boolean;
+  showFootprintSetout?: boolean;
   manualMasonryEnabled?: boolean;
   onManualMasonryPointer?: (event: {
     kind: 'preview' | 'start' | 'commit' | 'cancel_preview' | 'undo';
@@ -81,6 +93,38 @@ function selectionPriorityForObjectType(objectType: DesignObjectType): number {
   return 1;
 }
 
+function createFootprintSlabGeometry(
+  exteriorFacePolygon: readonly { x: number; z: number }[],
+  slabThicknessMeters: number,
+): THREE.BufferGeometry {
+  const shape = new THREE.Shape();
+  exteriorFacePolygon.forEach((point, index) => {
+    if (index === 0) {
+      shape.moveTo(point.x, point.z);
+    } else {
+      shape.lineTo(point.x, point.z);
+    }
+  });
+  shape.closePath();
+  const geometry = new THREE.ExtrudeGeometry(shape, {
+    depth: Math.max(0.01, slabThicknessMeters),
+    bevelEnabled: false,
+  });
+  geometry.rotateX(Math.PI / 2);
+  return geometry;
+}
+
+function createFootprintSetoutLine(
+  polygon: readonly { x: number; z: number }[],
+  y: number,
+  color: number,
+): THREE.Line {
+  const points = polygon.length >= 2 ? [...polygon, polygon[0]] : polygon;
+  const geometry = new THREE.BufferGeometry().setFromPoints(points.map((point) => new THREE.Vector3(point.x, y, point.z)));
+  const material = new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.95 });
+  return new THREE.Line(geometry, material);
+}
+
 export default function DesignBuilderViewer({
   modelLoaded,
   slab,
@@ -88,6 +132,7 @@ export default function DesignBuilderViewer({
   roof,
   truss,
   geometryResult,
+  layoutBounds = null,
   selectedObjectType,
   selectedOpeningId = null,
   toolMode = 'select',
@@ -98,9 +143,11 @@ export default function DesignBuilderViewer({
   viewCommand = null,
   initialCameraSnapshot = null,
   onCameraSnapshotChange,
+  onUserCameraChange,
   showOpeningLayout = true,
   showGroutCells = false,
   showClosureWarnings = false,
+  showFootprintSetout = false,
   manualMasonryEnabled = false,
   onManualMasonryPointer,
 }: DesignBuilderViewerProps) {
@@ -108,6 +155,7 @@ export default function DesignBuilderViewer({
   const onSelectRef = useRef(onSelectObjectType);
   const onInteractionRef = useRef(onInteraction);
   const onCameraSnapshotRef = useRef(onCameraSnapshotChange);
+  const onUserCameraChangeRef = useRef(onUserCameraChange);
   const onManualMasonryPointerRef = useRef(onManualMasonryPointer);
   const initialCameraSnapshotRef = useRef(initialCameraSnapshot);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -126,10 +174,12 @@ export default function DesignBuilderViewer({
     roof,
     truss,
     geometryResult,
+    layoutBounds,
     selectedObjectType,
     showOpeningLayout,
     showGroutCells,
     showClosureWarnings,
+    showFootprintSetout,
   });
   modelParamsRef.current = {
     modelLoaded,
@@ -138,14 +188,17 @@ export default function DesignBuilderViewer({
     roof,
     truss,
     geometryResult,
+    layoutBounds,
     selectedObjectType,
     showOpeningLayout,
     showGroutCells,
     showClosureWarnings,
+    showFootprintSetout,
   };
   onSelectRef.current = onSelectObjectType;
   onInteractionRef.current = onInteraction;
   onCameraSnapshotRef.current = onCameraSnapshotChange;
+  onUserCameraChangeRef.current = onUserCameraChange;
   onManualMasonryPointerRef.current = onManualMasonryPointer;
   toolModeRef.current = toolMode;
   selectedOpeningIdRef.current = selectedOpeningId;
@@ -208,7 +261,6 @@ export default function DesignBuilderViewer({
     let pointerDown: { x: number; y: number; button: number } | null = null;
     let manualBrushActive = false;
     let dragOpeningId: string | null = null;
-    let dragWallFace: WallOpeningParameters['wallFace'] | null = null;
 
     function trackGeometry<T extends THREE.BufferGeometry>(geometry: T): T {
       geometriesToDispose.push(geometry);
@@ -244,8 +296,13 @@ export default function DesignBuilderViewer({
       root.add(object);
     }
 
-    function addWallPickable(mesh: THREE.Mesh, wallFace: WallOpeningParameters['wallFace']) {
-      mesh.userData.wallFace = wallFace;
+    function addWallPickable(
+      mesh: THREE.Mesh,
+      data: { wallFace?: WallOpeningParameters['wallFace']; wallSegmentId?: string; lengthMeters?: number },
+    ) {
+      if (data.wallFace) mesh.userData.wallFace = data.wallFace;
+      if (data.wallSegmentId) mesh.userData.wallSegmentId = data.wallSegmentId;
+      if (typeof data.lengthMeters === 'number') mesh.userData.lengthMeters = data.lengthMeters;
       mesh.userData.isWallPickable = true;
       wallPickables.push(mesh);
       root.add(mesh);
@@ -266,10 +323,46 @@ export default function DesignBuilderViewer({
 
     function pickWall(event: PointerEvent) {
       setPointerFromEvent(event);
-      const hit = raycaster.intersectObjects(wallPickables, false)[0];
-      if (!hit?.object.userData.wallFace) return null;
-      const wallFace = hit.object.userData.wallFace as WallOpeningParameters['wallFace'];
-      const point = hit.point;
+      const segmentFrames = modelParamsRef.current.geometryResult?.wallCmuLayout?.segmentFrames ?? [];
+      const frameById = buildSegmentFrameMap(segmentFrames);
+      const viewDirection = raycaster.ray.direction.clone().normalize();
+      const candidates = raycaster
+        .intersectObjects(wallPickables, false)
+        .filter((hit) => hit.object.userData.isWallPickable)
+        .map((hit) => {
+          const wallSegmentId = hit.object.userData.wallSegmentId as string | undefined;
+          const frame = wallSegmentId ? frameById.get(wallSegmentId) : null;
+          const facing = frame
+            ? frame.outwardNormal.x * -viewDirection.x + frame.outwardNormal.z * -viewDirection.z > 0.05
+            : true;
+          return { hit, wallSegmentId, frame, facing };
+        })
+        .filter((candidate) => candidate.facing)
+        .sort((left, right) => left.hit.distance - right.hit.distance);
+
+      const best = candidates[0];
+      if (!best) return null;
+      const point = best.hit.point;
+
+      if (best.wallSegmentId && best.frame) {
+        const positionAlongSegment = projectPointToSegmentStation(
+          { x: point.x, z: point.z },
+          best.frame,
+        );
+        if (import.meta.env.DEV) {
+          console.debug(
+            `Host wall: ${best.wallSegmentId}\nStation: ${positionAlongSegment.toFixed(2)} m / ${best.frame.lengthMeters.toFixed(2)} m`,
+          );
+        }
+        return {
+          wallSegmentId: best.wallSegmentId,
+          positionAlongSegment,
+          hitPoint: { x: point.x, y: point.y, z: point.z },
+        };
+      }
+
+      if (!best.hit.object.userData.wallFace) return null;
+      const wallFace = best.hit.object.userData.wallFace as WallOpeningParameters['wallFace'];
       const offsetWall = modelParamsRef.current.wall;
       const offsetMeters =
         wallFace === 'north' || wallFace === 'south'
@@ -322,43 +415,60 @@ export default function DesignBuilderViewer({
       clearGhost();
       const preview = placementPreviewRef.current;
       if (!preview) return;
-
-      const resolvedLike: ResolvedCmuOpening = {
-        id: preview.openingId ?? 'preview',
-        type: preview.openingType,
-        wallFace: preview.wallFace,
-        actualWidthMeters: preview.widthMeters,
-        actualHeightMeters: preview.heightMeters,
-        actualAreaSquareMeters: preview.widthMeters * preview.heightMeters,
-        roughOpeningWidthMeters: preview.widthMeters + 0.1,
-        roughOpeningHeightMeters: preview.heightMeters + 0.1,
-        roughOpeningAreaSquareMeters: (preview.widthMeters + 0.1) * (preview.heightMeters + 0.1),
-        roughStartAlongMeters: preview.offsetMeters - 0.05,
-        roughEndAlongMeters: preview.offsetMeters + preview.widthMeters + 0.05,
-        roughBottomMeters: preview.openingType === 'door' ? 0 : preview.sillHeightMeters ?? 0,
-        roughTopMeters:
-          (preview.openingType === 'door' ? 0 : preview.sillHeightMeters ?? 0) + preview.heightMeters + 0.1,
-        actualStartAlongMeters: preview.offsetMeters,
-        actualEndAlongMeters: preview.offsetMeters + preview.widthMeters,
-        actualBottomMeters: preview.openingType === 'door' ? 0 : preview.sillHeightMeters ?? 0,
-        actualTopMeters:
-          (preview.openingType === 'door' ? 0 : preview.sillHeightMeters ?? 0) + preview.heightMeters,
-        lintelType: 'bond_beam',
-        lintelBearingMeters: 0.2,
-        lintelCourseCount: 1,
-        lintelLengthMeters: preview.widthMeters + 0.5,
-        lintelHeightMeters: 0.2,
-        jambGroutEnabled: true,
-        jambRebarEnabled: false,
-        groutCellsEachSide: 1,
-        jambGroutCellCount: 2,
-        groutCellsAboveOpening: 0,
-        groutCellsBelowWindow: 0,
-        openingFrameMaterial: 'none',
-      };
-
       const ghostWall = modelParamsRef.current.wall;
       const ghostSlab = modelParamsRef.current.slab;
+      const roughAllowance = preview.openingDraft?.roughOpeningAllowanceMeters ?? 0.05;
+      const roughWidth = preview.openingDraft?.roughOpeningWidthMeters ?? preview.widthMeters + roughAllowance * 2;
+      const roughHeight = preview.openingDraft?.roughOpeningHeightMeters ?? preview.heightMeters + roughAllowance * 2;
+      const centerStation = preview.positionAlongSegment ?? preview.offsetMeters + preview.widthMeters / 2;
+      const sillHeight = preview.openingType === 'door' ? 0 : preview.sillHeightMeters ?? 0;
+      const resolvedLike: ResolvedCmuOpening & {
+        worldX?: number;
+        worldZ?: number;
+        rotationY?: number;
+        placementStatusKind?: string;
+      } = {
+            id: preview.openingId ?? 'preview',
+            type: preview.openingType,
+            wallFace: preview.wallFace,
+            wallSegmentId: preview.wallSegmentId,
+            actualWidthMeters: preview.widthMeters,
+            actualHeightMeters: preview.heightMeters,
+            actualAreaSquareMeters: preview.widthMeters * preview.heightMeters,
+            roughOpeningWidthMeters: roughWidth,
+            roughOpeningHeightMeters: roughHeight,
+            roughOpeningAreaSquareMeters: roughWidth * roughHeight,
+            roughStartAlongMeters: centerStation - roughWidth / 2,
+            roughEndAlongMeters: centerStation + roughWidth / 2,
+            roughBottomMeters: preview.openingType === 'door' ? 0 : Math.max(0, sillHeight - (roughHeight - preview.heightMeters) / 2),
+            roughTopMeters:
+              (preview.openingType === 'door' ? 0 : Math.max(0, sillHeight - (roughHeight - preview.heightMeters) / 2)) + roughHeight,
+            actualStartAlongMeters: centerStation - preview.widthMeters / 2,
+            actualEndAlongMeters: centerStation + preview.widthMeters / 2,
+            actualBottomMeters: sillHeight,
+            actualTopMeters: sillHeight + preview.heightMeters,
+            lintelType: preview.openingDraft?.lintelType ?? ghostWall.lintelType ?? 'bond_beam',
+            lintelBearingMeters: preview.openingDraft?.lintelBearingMeters ?? ghostWall.lintelBearingMeters ?? 0.2,
+            lintelCourseCount: preview.openingDraft?.lintelCourseCount ?? ghostWall.lintelCourseCount ?? 1,
+            lintelLengthMeters: roughWidth + (preview.openingDraft?.lintelBearingMeters ?? ghostWall.lintelBearingMeters ?? 0.2) * 2,
+            lintelHeightMeters: ghostWall.blockHeightMeters * (preview.openingDraft?.lintelCourseCount ?? ghostWall.lintelCourseCount ?? 1),
+            jambGroutEnabled: true,
+            jambRebarEnabled: false,
+            groutCellsEachSide: 1,
+            jambGroutCellCount: 2,
+            groutCellsAboveOpening: 0,
+            groutCellsBelowWindow: 0,
+            openingFrameMaterial: preview.openingDraft?.openingFrameMaterial ?? 'none',
+            ...(preview.frameOrigin && typeof preview.wallRotationY === 'number'
+              ? {
+                  worldX: preview.frameOrigin.x,
+                  worldZ: preview.frameOrigin.z,
+                  rotationY: preview.wallRotationY,
+                  placementStatusKind: preview.statusKind,
+                }
+              : { placementStatusKind: preview.statusKind }),
+          };
+
       const frame = createOpeningFrame(resolvedLike, ghostWall, ghostSlab.slabThicknessMeters, {
         preview: true,
         valid: preview.isValid,
@@ -386,6 +496,7 @@ export default function DesignBuilderViewer({
         showOpeningLayout: currentShowOpeningLayout,
         showGroutCells: currentShowGroutCells,
         showClosureWarnings: currentShowClosureWarnings,
+        showFootprintSetout: currentShowFootprintSetout,
       } = params;
       root.clear();
       selectable.length = 0;
@@ -394,11 +505,18 @@ export default function DesignBuilderViewer({
       materialsToDispose.splice(0).forEach((material) => material.dispose());
 
       addGroundPlane(root, isDarkMode());
+      const blankGeometryActive = currentGeometry?.sourcePath === 'blank';
       sceneSizeRef.current = {
-        length: currentWall.lengthMeters,
-        width: currentWall.widthMeters,
-        height: currentSlab.slabThicknessMeters + currentWall.heightMeters + (currentRoof.widthMeters / 2 + currentRoof.overhangMeters) * currentRoof.pitchRisePerRun,
+        length: blankGeometryActive ? 6 : currentWall.lengthMeters,
+        width: blankGeometryActive ? 6 : currentWall.widthMeters,
+        height: blankGeometryActive
+          ? 2
+          : currentSlab.slabThicknessMeters + currentWall.heightMeters + (currentRoof.widthMeters / 2 + currentRoof.overhangMeters) * currentRoof.pitchRisePerRun,
       };
+      if (blankGeometryActive) {
+        clearGhost();
+        return;
+      }
 
       const pickMaterial = new THREE.MeshBasicMaterial({
         visible: false,
@@ -416,25 +534,29 @@ export default function DesignBuilderViewer({
         metalness: 0.05,
       });
       materialsToDispose.push(slabMaterial);
+      const layoutGraphActive = currentGeometry?.sourcePath === 'layout_graph';
+      const legacyPresetActive = !currentGeometry || currentGeometry.sourcePath === 'legacy_preset';
       const slabMesh = new THREE.Mesh(
-        trackGeometry(new THREE.BoxGeometry(currentSlab.lengthMeters, currentSlab.slabThicknessMeters, currentSlab.widthMeters)),
+        layoutGraphActive && currentGeometry.resolvedFootprint?.exteriorFacePolygon.length
+          ? trackGeometry(createFootprintSlabGeometry(currentGeometry.resolvedFootprint.exteriorFacePolygon, currentSlab.slabThicknessMeters))
+          : trackGeometry(new THREE.BoxGeometry(currentSlab.lengthMeters, currentSlab.slabThicknessMeters, currentSlab.widthMeters)),
         slabMaterial,
       );
-      slabMesh.position.y = currentSlab.slabThicknessMeters / 2;
+      slabMesh.position.y = layoutGraphActive ? currentSlab.slabThicknessMeters : currentSlab.slabThicknessMeters / 2;
       addSelectable(slabMesh, 'building_footprint');
 
-      const layoutGraphActive = currentGeometry?.sourcePath === 'layout_graph';
       const cmuLayout = layoutGraphActive && currentGeometry ? currentGeometry.wallCmuLayout : generateCmuLayout(currentWall);
       if (layoutGraphActive) {
-        if (import.meta.env.DEV && currentGeometry.exteriorFootprint.length >= 3) {
-          const outlinePoints = [
-            ...currentGeometry.exteriorFootprint,
-            currentGeometry.exteriorFootprint[0],
-          ].map((point) => new THREE.Vector3(point.x, currentSlab.slabThicknessMeters + 0.025, point.z));
-          const outlineGeometry = trackGeometry(new THREE.BufferGeometry().setFromPoints(outlinePoints));
-          const outlineMaterial = new THREE.LineBasicMaterial({ color: 0x22d3ee, transparent: true, opacity: 0.95 });
-          materialsToDispose.push(outlineMaterial);
-          root.add(new THREE.Line(outlineGeometry, outlineMaterial));
+        if (import.meta.env.DEV && currentShowFootprintSetout && currentGeometry.resolvedFootprint) {
+          [
+            createFootprintSetoutLine(currentGeometry.resolvedFootprint.exteriorFacePolygon, currentSlab.slabThicknessMeters + 0.035, 0x22d3ee),
+            createFootprintSetoutLine(currentGeometry.resolvedFootprint.interiorFacePolygon, currentSlab.slabThicknessMeters + 0.045, 0xf97316),
+            createFootprintSetoutLine(currentGeometry.resolvedFootprint.centerlinePolygon, currentSlab.slabThicknessMeters + 0.055, 0xa78bfa),
+          ].forEach((line) => {
+            trackGeometry(line.geometry);
+            materialsToDispose.push(line.material as THREE.Material);
+            root.add(line);
+          });
         }
 
         currentGeometry.wallSegments.forEach((segment) => {
@@ -444,14 +566,15 @@ export default function DesignBuilderViewer({
           );
           pickMesh.position.set(segment.x, currentSlab.slabThicknessMeters + segment.y, segment.z);
           pickMesh.rotation.y = segment.rotationY;
-          addWallPickable(pickMesh, 'south');
+          addWallPickable(pickMesh, { wallSegmentId: segment.segmentId, lengthMeters: segment.lengthMeters });
         });
 
         const blockInstances = currentWall.showIndividualBlocks ? currentGeometry.blockInstances : [];
         if (blockInstances.length > 0) {
+          const blockHeightMeters = resolveCmuModuleConfig(currentWall).actualHeightMeters;
           const blocksByType = groupBlocksByType(blockInstances);
           blocksByType.forEach((instances, blockType) => {
-            const blockGeometry = trackGeometry(new THREE.BoxGeometry(1, 1, currentWall.blockDepthMeters));
+            const blockGeometry = trackGeometry(new THREE.BoxGeometry(1, 1, 1));
             const blockMaterial = makeMaterial(blockColor(blockType), currentSelectedObjectType === 'cmu_wall_system');
             const blocks = new THREE.InstancedMesh(blockGeometry, blockMaterial, instances.length);
             const matrix = new THREE.Matrix4();
@@ -461,7 +584,7 @@ export default function DesignBuilderViewer({
               matrix.compose(
                 new THREE.Vector3(block.x, currentSlab.slabThicknessMeters + block.y, block.z),
                 quaternion,
-                new THREE.Vector3(block.lengthMeters, currentWall.blockHeightMeters, 1),
+                new THREE.Vector3(block.actualLengthMeters ?? block.lengthMeters, block.heightMeters ?? blockHeightMeters, block.depthMeters ?? currentWall.blockDepthMeters),
               );
               blocks.setMatrixAt(index, matrix);
             });
@@ -483,33 +606,34 @@ export default function DesignBuilderViewer({
             addSelectable(wallMesh, 'cmu_wall_system');
           });
         }
-      } else {
+      } else if (legacyPresetActive) {
         addLabel(root, 'NORTH WALL', new THREE.Vector3(0, 0.06, -currentWall.widthMeters / 2 - 0.8), 0x0284c7);
         addLabel(root, 'SOUTH WALL', new THREE.Vector3(0, 0.06, currentWall.widthMeters / 2 + 0.8), 0x0284c7);
         addLabel(root, 'WEST WALL', new THREE.Vector3(-currentWall.lengthMeters / 2 - 0.8, 0.06, 0), 0x0284c7);
         addLabel(root, 'EAST WALL', new THREE.Vector3(currentWall.lengthMeters / 2 + 0.8, 0.06, 0), 0x0284c7);
         addWallPickable(
           new THREE.Mesh(trackGeometry(new THREE.BoxGeometry(currentWall.lengthMeters, currentWall.heightMeters, currentWall.wallThicknessMeters)), pickMaterial.clone()),
-          'north',
+          { wallFace: 'north' },
         ).position.set(0, wallY, -currentWall.widthMeters / 2 + wallInset);
         addWallPickable(
           new THREE.Mesh(trackGeometry(new THREE.BoxGeometry(currentWall.lengthMeters, currentWall.heightMeters, currentWall.wallThicknessMeters)), pickMaterial.clone()),
-          'south',
+          { wallFace: 'south' },
         ).position.set(0, wallY, currentWall.widthMeters / 2 - wallInset);
         addWallPickable(
           new THREE.Mesh(trackGeometry(new THREE.BoxGeometry(currentWall.wallThicknessMeters, currentWall.heightMeters, currentWall.widthMeters)), pickMaterial.clone()),
-          'east',
+          { wallFace: 'east' },
         ).position.set(currentWall.lengthMeters / 2 - wallInset, wallY, 0);
         addWallPickable(
           new THREE.Mesh(trackGeometry(new THREE.BoxGeometry(currentWall.wallThicknessMeters, currentWall.heightMeters, currentWall.widthMeters)), pickMaterial.clone()),
-          'west',
+          { wallFace: 'west' },
         ).position.set(-currentWall.lengthMeters / 2 + wallInset, wallY, 0);
 
         const blockInstances = currentWall.showIndividualBlocks ? cmuLayout.blocks : [];
         if (blockInstances.length > 0) {
+        const blockHeightMeters = resolveCmuModuleConfig(currentWall).actualHeightMeters;
         const blocksByType = groupBlocksByType(blockInstances);
         blocksByType.forEach((instances, blockType) => {
-          const blockGeometry = trackGeometry(new THREE.BoxGeometry(1, 1, currentWall.blockDepthMeters));
+          const blockGeometry = trackGeometry(new THREE.BoxGeometry(1, 1, 1));
           const blockMaterial = makeMaterial(blockColor(blockType), currentSelectedObjectType === 'cmu_wall_system');
           const blocks = new THREE.InstancedMesh(blockGeometry, blockMaterial, instances.length);
           const matrix = new THREE.Matrix4();
@@ -519,7 +643,7 @@ export default function DesignBuilderViewer({
             matrix.compose(
               new THREE.Vector3(block.x, currentSlab.slabThicknessMeters + block.y, block.z),
               quaternion,
-              new THREE.Vector3(block.lengthMeters, currentWall.blockHeightMeters, 1),
+              new THREE.Vector3(block.actualLengthMeters ?? block.lengthMeters, block.heightMeters ?? blockHeightMeters, block.depthMeters ?? currentWall.blockDepthMeters),
             );
             blocks.setMatrixAt(index, matrix);
           });
@@ -616,16 +740,43 @@ export default function DesignBuilderViewer({
       }
 
       if (currentShowGroutCells) {
-        const jambGroutMaterial = makeMaterial(0x475569, false, { transparent: true, opacity: 0.92 });
-        cmuLayout.jambGroutCells.forEach((cell) => {
+        const groutFills = cmuLayout.groutFillPlacements.length > 0
+          ? cmuLayout.groutFillPlacements
+          : cmuLayout.jambGroutCells.map((cell) => ({
+              id: cell.id,
+              openingId: cell.openingId,
+              hostSegmentId: cell.segmentId ?? cell.face,
+              kind: 'jamb_cell' as const,
+              courseIndex: cell.courseIndex,
+              center: { x: cell.x, y: cell.y, z: cell.z },
+              rotationY: cell.rotationY,
+              lengthMeters: cell.widthMeters,
+              heightMeters: cell.heightMeters,
+              depthMeters: currentWall.wallThicknessMeters,
+              grossVolumeCubicMeters: 0,
+              wastePercent: 0,
+              netVolumeCubicMeters: 0,
+              source: 'opening_assembly_solver' as const,
+            }));
+        const groutGroup = new THREE.Group();
+        groutGroup.userData.groutSolidGroup = true;
+        groutFills.forEach((fill) => {
+          const groutColor = fill.kind === 'lintel_cell' || fill.kind === 'bond_beam_cell' ? 0x64748b : 0x5eead4;
+          const groutMaterial = makeMaterial(groutColor, false);
           const cellMesh = new THREE.Mesh(
-            trackGeometry(new THREE.BoxGeometry(cell.widthMeters, cell.heightMeters * 0.86, currentWall.wallThicknessMeters + 0.08)),
-            jambGroutMaterial,
+            trackGeometry(new THREE.BoxGeometry(fill.lengthMeters, fill.heightMeters, fill.depthMeters)),
+            groutMaterial,
           );
-          cellMesh.position.set(cell.x, currentSlab.slabThicknessMeters + cell.y, cell.z);
-          cellMesh.rotation.y = cell.rotationY;
+          cellMesh.position.set(fill.center.x, currentSlab.slabThicknessMeters + fill.center.y, fill.center.z);
+          cellMesh.rotation.y = fill.rotationY;
+          cellMesh.userData.groutFillPlacement = true;
+          cellMesh.userData.groutSolid = true;
+          groutGroup.add(cellMesh);
           addSelectable(cellMesh, 'cmu_wall_system', undefined, 10);
         });
+        if (groutGroup.children.length > 0) {
+          root.add(groutGroup);
+        }
       }
 
       if (currentShowClosureWarnings) {
@@ -650,15 +801,22 @@ export default function DesignBuilderViewer({
 
       if (currentShowOpeningLayout) {
         const lintelMaterial = makeMaterial(0x9ca3af, currentSelectedObjectType === 'cmu_wall_system');
+        const lintelGroup = new THREE.Group();
+        lintelGroup.userData.lintelSolidGroup = true;
         cmuLayout.lintels.forEach((lintel) => {
           const lintelMesh = new THREE.Mesh(
-            trackGeometry(new THREE.BoxGeometry(lintel.lengthMeters, lintel.heightMeters * 0.72, currentWall.wallThicknessMeters + 0.05)),
+            trackGeometry(new THREE.BoxGeometry(lintel.lengthMeters, lintel.heightMeters, lintel.depthMeters ?? currentWall.wallThicknessMeters)),
             lintelMaterial,
           );
           lintelMesh.position.set(lintel.x, currentSlab.slabThicknessMeters + lintel.y, lintel.z);
           lintelMesh.rotation.y = lintel.rotationY;
-            addSelectable(lintelMesh, 'cmu_wall_system', undefined, 40);
+          lintelMesh.userData.lintelSolid = true;
+          lintelGroup.add(lintelMesh);
+          addSelectable(lintelMesh, 'cmu_wall_system', undefined, 40);
         });
+        if (lintelGroup.children.length > 0) {
+          root.add(lintelGroup);
+        }
       }
 
       updateGhost();
@@ -691,6 +849,7 @@ export default function DesignBuilderViewer({
     animate();
 
     const emitCameraSnapshot = () => {
+      onUserCameraChangeRef.current?.();
       onCameraSnapshotRef.current?.({
         position: camera.position.toArray() as [number, number, number],
         target: controls.target.toArray() as [number, number, number],
@@ -716,7 +875,6 @@ export default function DesignBuilderViewer({
         const openingId = hit?.data.openingId;
         if (openingId) {
           dragOpeningId = openingId;
-          dragWallFace = modelParamsRef.current.wall.openings.find((item) => item.id === openingId)?.wallFace ?? null;
           controls.enabled = false;
         }
       }
@@ -730,17 +888,26 @@ export default function DesignBuilderViewer({
         onManualMasonryPointerRef.current?.({ kind: 'preview', planX: point.x, planZ: point.z });
         return;
       }
-      if (dragOpeningId && dragWallFace) {
+      if (dragOpeningId) {
         const pick = pickWall(event);
-        if (!pick || pick.wallFace !== dragWallFace) return;
-        onInteractionRef.current?.({
-          kind: 'opening_move',
-          toolMode: mode,
-          phase: 'preview',
-          openingId: dragOpeningId,
-          wallFace: pick.wallFace,
-          offsetMeters: pick.offsetMeters,
-        });
+        if (!pick) {
+          placementPreviewRef.current = null;
+          updateGhostRef.current?.();
+          return;
+        }
+          onInteractionRef.current?.({
+            kind: 'opening_move',
+            toolMode: mode,
+            phase: 'preview',
+            openingId: dragOpeningId,
+            wallFace: pick.wallFace,
+            offsetMeters: pick.offsetMeters,
+            wallSegmentId: pick.wallSegmentId,
+            positionAlongSegment: pick.positionAlongSegment,
+            hitPointX: pick.hitPoint?.x,
+            hitPointY: pick.hitPoint?.y,
+            hitPointZ: pick.hitPoint?.z,
+          });
         return;
       }
       if (mode === 'place_door' || mode === 'place_window') {
@@ -751,6 +918,11 @@ export default function DesignBuilderViewer({
           toolMode: mode,
           wallFace: pick.wallFace,
           offsetMeters: pick.offsetMeters,
+          wallSegmentId: pick.wallSegmentId,
+          positionAlongSegment: pick.positionAlongSegment,
+          hitPointX: pick.hitPoint?.x,
+          hitPointY: pick.hitPoint?.y,
+          hitPointZ: pick.hitPoint?.z,
           openingType: mode === 'place_door' ? 'door' : 'window',
         });
       }
@@ -775,7 +947,7 @@ export default function DesignBuilderViewer({
 
       if (dragOpeningId) {
         const pick = pickWall(event);
-        if (pick && dragWallFace && pick.wallFace === dragWallFace) {
+        if (pick) {
           onInteractionRef.current?.({
             kind: 'opening_move',
             toolMode: mode,
@@ -783,11 +955,15 @@ export default function DesignBuilderViewer({
             openingId: dragOpeningId,
             wallFace: pick.wallFace,
             offsetMeters: pick.offsetMeters,
+            wallSegmentId: pick.wallSegmentId,
+            positionAlongSegment: pick.positionAlongSegment,
+            hitPointX: pick.hitPoint?.x,
+            hitPointY: pick.hitPoint?.y,
+            hitPointZ: pick.hitPoint?.z,
             openingType: modelParamsRef.current.wall.openings.find((item) => item.id === dragOpeningId)?.type,
           });
         }
         dragOpeningId = null;
-        dragWallFace = null;
         controls.enabled = true;
         return;
       }
@@ -802,6 +978,11 @@ export default function DesignBuilderViewer({
           toolMode: mode,
           wallFace: pick.wallFace,
           offsetMeters: pick.offsetMeters,
+          wallSegmentId: pick.wallSegmentId,
+          positionAlongSegment: pick.positionAlongSegment,
+          hitPointX: pick.hitPoint?.x,
+          hitPointY: pick.hitPoint?.y,
+          hitPointZ: pick.hitPoint?.z,
           openingType: mode === 'place_door' ? 'door' : 'window',
         });
         return;
@@ -880,27 +1061,27 @@ export default function DesignBuilderViewer({
 
   useEffect(() => {
     if (modelLoaded) rebuildModelRef.current?.();
-  }, [geometryResult, modelLoaded, roof, selectedObjectType, selectedOpeningId, showClosureWarnings, showGroutCells, showOpeningLayout, slab, truss, wall]);
+  }, [geometryResult, modelLoaded, roof, selectedObjectType, selectedOpeningId, showClosureWarnings, showFootprintSetout, showGroutCells, showOpeningLayout, slab, truss, wall]);
 
   useEffect(() => {
     if (!viewCommand) return;
     const camera = cameraRef.current;
     const controls = controlsRef.current;
     if (!camera || !controls) return;
-    const size = sceneSizeRef.current;
-    if (viewCommand.action === 'fit') {
-      const radius = Math.max(size.length, size.width, size.height, 1);
-      controls.target.set(0, Math.max(1.2, size.height / 2), 0);
-      camera.position.set(radius * 1.15, radius * 0.82, radius * 1.28);
-    } else {
-      controls.target.set(0, 1.6, 0);
-      camera.position.set(7.4, 5.2, 8.2);
-    }
+    if (viewCommand.action === 'grid_scale') return;
+    const fit = viewCommand.action === 'fit' ? fit3dToLayout(layoutBounds) : reset3dView();
+    controls.target.set(fit.target.x, fit.target.y, fit.target.z);
+    camera.position.set(fit.position.x, fit.position.y, fit.position.z);
+    camera.near = fit.near;
+    camera.far = fit.far;
     camera.lookAt(controls.target);
     camera.updateProjectionMatrix();
     controls.update();
-    controls.dispatchEvent({ type: 'end' });
-  }, [viewCommand]);
+    onCameraSnapshotRef.current?.({
+      position: camera.position.toArray() as [number, number, number],
+      target: controls.target.toArray() as [number, number, number],
+    });
+  }, [layoutBounds, viewCommand]);
 
   const toolHint =
     toolMode === 'place_door'
@@ -925,6 +1106,14 @@ export default function DesignBuilderViewer({
       ) : toolHint ? (
         <div className="absolute left-4 top-4 rounded-full border border-cyan-200 bg-white/90 px-3 py-1 text-xs font-medium text-cyan-800 shadow-sm dark:border-cyan-800 dark:bg-slate-900/90 dark:text-cyan-200">
           {toolHint}
+        </div>
+      ) : null}
+      {modelLoaded && showGroutCells ? (
+        <div className="pointer-events-none absolute bottom-4 left-4 rounded-lg border border-slate-200 bg-white/90 px-3 py-2 text-[11px] text-slate-700 shadow-sm dark:border-slate-700 dark:bg-slate-900/90 dark:text-slate-200">
+          <div className="font-semibold">Grout / lintel legend</div>
+          <div className="mt-1 flex items-center gap-2"><span className="inline-block h-2.5 w-2.5 rounded-sm bg-teal-300/80" /> Grout fill</div>
+          <div className="mt-1 flex items-center gap-2"><span className="inline-block h-2.5 w-2.5 rounded-sm bg-slate-500/80" /> Lintel / bond beam</div>
+          <div className="mt-1 flex items-center gap-2"><span className="inline-block h-2.5 w-2.5 rounded-sm bg-teal-400/80" /> Jamb cells</div>
         </div>
       ) : null}
     </div>
@@ -993,7 +1182,9 @@ function createOpeningFrame(
   const preview = options?.preview ?? false;
   const valid = options?.valid ?? true;
   const selected = options?.selected ?? false;
-  const outlineColor = preview ? (valid ? 0x22d3ee : 0xf59e0b) : selected ? 0x22d3ee : 0x0f172a;
+  const previewStatus = options?.preview ? (opening as ResolvedCmuOpening & { placementStatusKind?: string }).placementStatusKind : undefined;
+  const previewColor = !valid ? 0xef4444 : previewStatus === 'cut_block' || previewStatus === 'half_block' ? 0xf59e0b : 0x22d3ee;
+  const outlineColor = preview ? previewColor : selected ? 0x22d3ee : 0x0f172a;
   const frameMaterial = new THREE.MeshStandardMaterial({
     color: opening.type === 'door' ? 0x92400e : 0x2563eb,
     roughness: 0.55,
@@ -1008,18 +1199,25 @@ function createOpeningFrame(
     transparent: true,
     opacity: preview ? 0.28 : 0.42,
   });
-  const centerY = slabTop + opening.roughBottomMeters + opening.roughOpeningHeightMeters / 2;
-  const along = (opening.roughStartAlongMeters + opening.roughEndAlongMeters) / 2;
+  const centerY = slabTop + opening.actualBottomMeters + opening.actualHeightMeters / 2;
+  const along = (opening.actualStartAlongMeters + opening.actualEndAlongMeters) / 2;
   const width = opening.roughOpeningWidthMeters;
   const height = opening.roughOpeningHeightMeters;
   const actualWidth = opening.actualWidthMeters;
   const actualHeight = opening.actualHeightMeters;
-  const depth = wall.wallThicknessMeters + 0.035;
+  const roughCenterAlong = (opening.roughStartAlongMeters + opening.roughEndAlongMeters) / 2;
+  const actualCenterAlong = along;
+  const roughOutlineOffsetX = roughCenterAlong - actualCenterAlong;
+  const roughCenterY = opening.roughBottomMeters + opening.roughOpeningHeightMeters / 2;
+  const actualCenterY = opening.actualBottomMeters + opening.actualHeightMeters / 2;
+  const roughOutlineOffsetY = roughCenterY - actualCenterY;
+  const renderEpsilonMeters = 0.001;
+  const depth = wall.wallThicknessMeters;
   const frame = 0.055;
-  const horizontalGeom = new THREE.BoxGeometry(width + frame * 2, frame, depth + 0.03);
-  const verticalGeom = new THREE.BoxGeometry(frame, height + frame * 2, depth + 0.03);
-  const outlineGeom = new THREE.EdgesGeometry(new THREE.BoxGeometry(width, height, depth + 0.04));
-  const unitGeom = new THREE.BoxGeometry(actualWidth, actualHeight, depth + 0.05);
+  const horizontalGeom = new THREE.BoxGeometry(actualWidth + frame * 2, frame, depth + renderEpsilonMeters);
+  const verticalGeom = new THREE.BoxGeometry(frame, actualHeight + frame * 2, depth + renderEpsilonMeters);
+  const outlineGeom = new THREE.EdgesGeometry(new THREE.BoxGeometry(width, height, depth + renderEpsilonMeters));
+  const unitGeom = new THREE.BoxGeometry(actualWidth, actualHeight, depth + renderEpsilonMeters);
   const pieces = [
     new THREE.LineSegments(outlineGeom, outlineMaterial),
     new THREE.Mesh(unitGeom, unitMaterial),
@@ -1028,11 +1226,12 @@ function createOpeningFrame(
     new THREE.Mesh(verticalGeom, frameMaterial),
     new THREE.Mesh(verticalGeom, frameMaterial),
   ];
-  pieces[1].position.set(0, opening.actualBottomMeters - opening.roughBottomMeters + actualHeight / 2 - height / 2, 0.002);
-  pieces[2].position.set(0, height / 2 + frame / 2, 0);
-  pieces[3].position.set(0, -height / 2 - frame / 2, 0);
-  pieces[4].position.set(-width / 2 - frame / 2, 0, 0);
-  pieces[5].position.set(width / 2 + frame / 2, 0, 0);
+  pieces[0].position.set(roughOutlineOffsetX, roughOutlineOffsetY, 0);
+  pieces[1].position.set(0, 0, renderEpsilonMeters);
+  pieces[2].position.set(0, actualHeight / 2 + frame / 2, 0);
+  pieces[3].position.set(0, -actualHeight / 2 - frame / 2, 0);
+  pieces[4].position.set(-actualWidth / 2 - frame / 2, 0, 0);
+  pieces[5].position.set(actualWidth / 2 + frame / 2, 0, 0);
   pieces.forEach((piece) => group.add(piece));
 
   const layoutOpening = opening as ResolvedCmuOpening & {
@@ -1045,11 +1244,11 @@ function createOpeningFrame(
     group.rotation.y = layoutOpening.rotationY ?? 0;
   } else if (opening.wallFace === 'north' || opening.wallFace === 'south') {
     const x = along - wall.lengthMeters / 2;
-    const z = opening.wallFace === 'north' ? -wall.widthMeters / 2 - 0.004 : wall.widthMeters / 2 + 0.004;
+    const z = opening.wallFace === 'north' ? -wall.widthMeters / 2 - renderEpsilonMeters : wall.widthMeters / 2 + renderEpsilonMeters;
     group.position.set(x, centerY, z);
   } else {
     const z = along - wall.widthMeters / 2;
-    const x = opening.wallFace === 'east' ? wall.lengthMeters / 2 + 0.004 : -wall.lengthMeters / 2 - 0.004;
+    const x = opening.wallFace === 'east' ? wall.lengthMeters / 2 + renderEpsilonMeters : -wall.lengthMeters / 2 - renderEpsilonMeters;
     group.position.set(x, centerY, z);
     group.rotation.y = Math.PI / 2;
   }

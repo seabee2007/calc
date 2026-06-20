@@ -13,6 +13,8 @@ import { analyzeCmuModuleFit, resolveCmuModuleConfig, snapLengthToCmuModule } fr
 export const DEFAULT_GRID_SPACING_METERS = 0.1;
 export const MIN_WALL_SEGMENT_LENGTH_METERS = 0.08;
 export const ENDPOINT_SNAP_TOLERANCE_METERS = 0.3;
+export const GUIDE_CAPTURE_RADIUS_PX = 12;
+export const NODE_CAPTURE_RADIUS_PX = 18;
 
 export function createWallLayoutId(prefix: string): string {
   return `${prefix}-${crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`}`;
@@ -112,21 +114,172 @@ export function constrainAngle(
   start: Pick<DesignWallNode, 'x' | 'z'>,
   targetX: number,
   targetZ: number,
-  orthogonalLock: boolean,
+  _orthogonalLock: boolean,
   shiftHeld = false,
 ): { x: number; z: number } {
   const dx = targetX - start.x;
   const dz = targetZ - start.z;
   const length = Math.hypot(dx, dz);
-  if (length <= 0) return { x: start.x, z: start.z };
-  let angle = Math.atan2(dz, dx);
-  if (orthogonalLock || shiftHeld) {
-    const step = Math.PI / 4;
-    angle = Math.round(angle / step) * step;
-  }
+  if (length <= 0 || !shiftHeld) return { x: targetX, z: targetZ };
+  const step = Math.PI / 4;
+  const angle = Math.round(Math.atan2(dz, dx) / step) * step;
   return {
     x: start.x + Math.cos(angle) * length,
     z: start.z + Math.sin(angle) * length,
+  };
+}
+
+export type DrawWallGuideKind = 'free' | 'perpendicular' | 'parallel';
+
+export type DrawWallGuidance = {
+  point: { x: number; z: number };
+  kind: DrawWallGuideKind;
+  label?: string;
+  guideLine?: { start: { x: number; z: number }; end: { x: number; z: number } };
+  secondaryGuideLine?: { start: { x: number; z: number }; end: { x: number; z: number } };
+  lengthMeters?: number;
+  angleDegrees?: number;
+};
+
+export type GuideDirectionCandidate = {
+  direction: { x: number; z: number };
+  label: string;
+  kind: DrawWallGuideKind;
+};
+
+function normalizeVector(dx: number, dz: number): { x: number; z: number } | null {
+  const length = Math.hypot(dx, dz);
+  if (length <= 1e-9) return null;
+  return { x: dx / length, z: dz / length };
+}
+
+function projectPointOnRay(
+  start: Pick<DesignWallNode, 'x' | 'z'>,
+  point: { x: number; z: number },
+  direction: { x: number; z: number },
+) {
+  const distance = (point.x - start.x) * direction.x + (point.z - start.z) * direction.z;
+  return {
+    distance,
+    point: {
+      x: start.x + direction.x * distance,
+      z: start.z + direction.z * distance,
+    },
+  };
+}
+
+function measureAngleDegrees(start: Pick<DesignWallNode, 'x' | 'z'>, point: { x: number; z: number }): number {
+  const dx = point.x - start.x;
+  const dz = point.z - start.z;
+  return ((Math.atan2(dz, dx) * 180) / Math.PI + 360) % 360;
+}
+
+export function listOrthogonalGuideDirections(params: {
+  layout: DesignWallLayoutParameters;
+  activeNodeId: string;
+}): GuideDirectionCandidate[] {
+  const activeNode = params.layout.nodes.find((node) => node.id === params.activeNodeId);
+  if (!activeNode) return [];
+  const directions: GuideDirectionCandidate[] = [
+    { direction: { x: 1, z: 0 }, label: '90°', kind: 'perpendicular' },
+    { direction: { x: -1, z: 0 }, label: '90°', kind: 'perpendicular' },
+    { direction: { x: 0, z: 1 }, label: '90°', kind: 'perpendicular' },
+    { direction: { x: 0, z: -1 }, label: '90°', kind: 'perpendicular' },
+  ];
+  const firstSegment = params.layout.segments[0];
+  if (!firstSegment) return directions;
+  const firstStart = params.layout.nodes.find((node) => node.id === firstSegment.startNodeId);
+  const firstEnd = params.layout.nodes.find((node) => node.id === firstSegment.endNodeId);
+  if (!firstStart || !firstEnd) return directions;
+  const firstDirection = normalizeVector(firstEnd.x - firstStart.x, firstEnd.z - firstStart.z);
+  if (!firstDirection) return directions;
+  directions.push(
+    { direction: firstDirection, label: 'Parallel', kind: 'parallel' },
+    { direction: { x: -firstDirection.x, z: -firstDirection.z }, label: 'Parallel', kind: 'parallel' },
+    { direction: { x: -firstDirection.z, z: firstDirection.x }, label: '90°', kind: 'perpendicular' },
+    { direction: { x: firstDirection.z, z: -firstDirection.x }, label: '90°', kind: 'perpendicular' },
+  );
+  return directions;
+}
+
+export function resolveShiftConstrainedPoint(params: {
+  layout: DesignWallLayoutParameters;
+  activeNodeId: string;
+  rawPoint: { x: number; z: number };
+}): { point: { x: number; z: number }; label: string; kind: DrawWallGuideKind } {
+  const activeNode = params.layout.nodes.find((node) => node.id === params.activeNodeId);
+  if (!activeNode) {
+    return { point: params.rawPoint, label: 'Free angle', kind: 'free' };
+  }
+  const candidates = listOrthogonalGuideDirections(params);
+  const ranked = candidates
+    .map((candidate) => {
+      const projection = projectPointOnRay(activeNode, params.rawPoint, candidate.direction);
+      return {
+        candidate,
+        point: projection.point,
+        error: Math.hypot(params.rawPoint.x - projection.point.x, params.rawPoint.z - projection.point.z),
+      };
+    })
+    .sort((a, b) => a.error - b.error);
+  const best = ranked[0];
+  if (!best) return { point: params.rawPoint, label: 'Free angle', kind: 'free' };
+  return {
+    point: best.point,
+    label: best.candidate.kind === 'parallel' ? 'Locked parallel' : 'Locked 90°',
+    kind: best.candidate.kind,
+  };
+}
+
+export function resolveDrawWallGuidance(params: {
+  layout: DesignWallLayoutParameters;
+  activeNodeId: string;
+  rawPoint: { x: number; z: number };
+  orthogonalLock: boolean;
+}): DrawWallGuidance {
+  const activeNode = params.layout.nodes.find((node) => node.id === params.activeNodeId);
+  if (!activeNode) {
+    return { point: params.rawPoint, kind: 'free' };
+  }
+  const lengthMeters = Math.hypot(params.rawPoint.x - activeNode.x, params.rawPoint.z - activeNode.z);
+  const angleDegrees = measureAngleDegrees(activeNode, params.rawPoint);
+  if (!params.orthogonalLock) {
+    return { point: params.rawPoint, kind: 'free', lengthMeters, angleDegrees };
+  }
+
+  const candidates = listOrthogonalGuideDirections(params);
+  const ranked = candidates
+    .map((candidate) => {
+      const projection = projectPointOnRay(activeNode, params.rawPoint, candidate.direction);
+      return {
+        candidate,
+        projection,
+      };
+    })
+    .sort(
+      (a, b) =>
+        Math.hypot(params.rawPoint.x - a.projection.point.x, params.rawPoint.z - a.projection.point.z) -
+        Math.hypot(params.rawPoint.x - b.projection.point.x, params.rawPoint.z - b.projection.point.z),
+    );
+  const nearest = ranked[0];
+  if (!nearest) {
+    return { point: params.rawPoint, kind: 'free', lengthMeters, angleDegrees };
+  }
+
+  const rayLength = Math.max(1, lengthMeters);
+  return {
+    point: params.rawPoint,
+    kind: nearest.candidate.kind,
+    label: nearest.candidate.label,
+    guideLine: {
+      start: activeNode,
+      end: {
+        x: activeNode.x + nearest.candidate.direction.x * rayLength,
+        z: activeNode.z + nearest.candidate.direction.z * rayLength,
+      },
+    },
+    lengthMeters,
+    angleDegrees,
   };
 }
 
@@ -274,6 +427,51 @@ export function detectClosedFootprint(layout: DesignWallLayoutParameters): boole
   const values = [...degree.values()];
   if (values.length === 0) return false;
   return values.every((count) => count === 2);
+}
+
+function segmentIntersection(
+  aStart: { x: number; z: number },
+  aEnd: { x: number; z: number },
+  bStart: { x: number; z: number },
+  bEnd: { x: number; z: number },
+): boolean {
+  const orientation = (p: { x: number; z: number }, q: { x: number; z: number }, r: { x: number; z: number }) => {
+    const value = (q.z - p.z) * (r.x - q.x) - (q.x - p.x) * (r.z - q.z);
+    if (Math.abs(value) < 1e-9) return 0;
+    return value > 0 ? 1 : 2;
+  };
+  const onSegment = (p: { x: number; z: number }, q: { x: number; z: number }, r: { x: number; z: number }) =>
+    Math.min(p.x, r.x) - 1e-6 <= q.x &&
+    q.x <= Math.max(p.x, r.x) + 1e-6 &&
+    Math.min(p.z, r.z) - 1e-6 <= q.z &&
+    q.z <= Math.max(p.z, r.z) + 1e-6;
+
+  const o1 = orientation(aStart, aEnd, bStart);
+  const o2 = orientation(aStart, aEnd, bEnd);
+  const o3 = orientation(bStart, bEnd, aStart);
+  const o4 = orientation(bStart, bEnd, aEnd);
+  if (o1 !== o2 && o3 !== o4) return true;
+  if (o1 === 0 && onSegment(aStart, bStart, aEnd)) return true;
+  if (o2 === 0 && onSegment(aStart, bEnd, aEnd)) return true;
+  if (o3 === 0 && onSegment(bStart, aStart, bEnd)) return true;
+  if (o4 === 0 && onSegment(bStart, aEnd, bEnd)) return true;
+  return false;
+}
+
+export function closingSegmentWouldIntersect(layout: DesignWallLayoutParameters): boolean {
+  if (layout.segments.length < 3) return false;
+  const firstSegment = layout.segments[0];
+  const lastSegment = layout.segments[layout.segments.length - 1];
+  const closingStart = layout.nodes.find((node) => node.id === lastSegment.endNodeId);
+  const closingEnd = layout.nodes.find((node) => node.id === firstSegment.startNodeId);
+  if (!closingStart || !closingEnd) return false;
+  return layout.segments.some((segment, index) => {
+    if (index === 0 || index === layout.segments.length - 1) return false;
+    const start = layout.nodes.find((node) => node.id === segment.startNodeId);
+    const end = layout.nodes.find((node) => node.id === segment.endNodeId);
+    if (!start || !end) return false;
+    return segmentIntersection(closingStart, closingEnd, start, end);
+  });
 }
 
 export function closeFootprint(layout: DesignWallLayoutParameters): DesignWallLayoutParameters {
@@ -471,7 +669,9 @@ export function migrateOpeningToSegment(
   return {
     ...opening,
     wallSegmentId: hit.segment.id,
-    positionAlongSegment: hit.positionAlongSegment,
+    positionAlongSegment: hit.positionAlongSegment + opening.widthMeters / 2,
+    placementUsesCenterStation: true,
+    offsetMeters: hit.positionAlongSegment,
   };
 }
 
