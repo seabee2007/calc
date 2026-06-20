@@ -74,6 +74,8 @@ describe('Design Builder session store', () => {
       layout: false,
       masonry: false,
       structure: false,
+      openings: false,
+      roofGable: false,
       estimate: false,
     });
   });

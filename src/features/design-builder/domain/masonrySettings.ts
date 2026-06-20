@@ -89,7 +89,7 @@ export function buildMasonryGeometryKey(params: {
   moduleFitMode: string;
   manualMasonryRuns?: readonly MasonryCourseRun[];
 }): string {
-  const module = resolveCmuModuleConfig(params.wall);
+  const module = resolveCmuModuleConfig(syncWallBlockModuleFromScalars(params.wall));
   const openingSignature = params.openings
     .map((opening) =>
       [

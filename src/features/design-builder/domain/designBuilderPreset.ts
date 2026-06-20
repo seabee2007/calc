@@ -10,6 +10,11 @@ import type {
 } from '../types';
 import { METRIC_CMU_400X200_MODULE } from './cmuModuleRules';
 import { createBlankWallLayout, createOutsideFaceRectangleLayout } from './wallLayoutRules';
+import {
+  createDefaultStructuralFrameSystem,
+  createEmptyCmuInfillSystem,
+  createEmptyGableEndSystem,
+} from './structuralFrameDefaults';
 
 export const DESIGN_BUILDER_EXAMPLE_MODEL_ID = '11111111-1111-4111-8111-111111111111';
 export const DESIGN_BUILDER_EXAMPLE_FOOTPRINT_OBJECT_ID = '22222222-2222-4222-8222-222222222222';
@@ -17,17 +22,23 @@ export const DESIGN_BUILDER_EXAMPLE_SLAB_OBJECT_ID = '33333333-3333-4333-8333-33
 export const DESIGN_BUILDER_EXAMPLE_WALL_OBJECT_ID = '44444444-4444-4444-8444-444444444444';
 export const DESIGN_BUILDER_EXAMPLE_ROOF_OBJECT_ID = '55555555-5555-4555-8555-555555555555';
 export const DESIGN_BUILDER_EXAMPLE_TRUSS_OBJECT_ID = '66666666-6666-4666-8666-666666666666';
-
 export const DESIGN_BUILDER_EXAMPLE_LAYOUT_OBJECT_ID = '77777777-7777-4777-8777-777777777777';
+export const DESIGN_BUILDER_EXAMPLE_FRAME_OBJECT_ID = '88888888-8888-4888-8888-888888888888';
+export const DESIGN_BUILDER_EXAMPLE_INFILL_OBJECT_ID = '99999999-9999-4999-8999-999999999999';
+export const DESIGN_BUILDER_EXAMPLE_GABLE_END_OBJECT_ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 
 export interface CmuBuildingPreset {
   name: string;
+  buildingSystemMode: import('../types').BuildingSystemMode;
   wallLayout: DesignWallLayoutParameters;
   footprint: RectangleFootprintParameters;
   slab: ThickenedEdgeSlabParameters;
   wall: CmuWallSystemParameters;
   roof: GableRoofSystemParameters;
   truss: SteelTrussSystemParameters;
+  frameSystem: import('../types').StructuralFrameSystemParameters;
+  infillSystem: import('../types').CmuInfillSystemParameters;
+  gableEndSystem: import('../types').GableEndSystemParameters;
 }
 
 export function createFiveBySixCmuBuildingPreset(): CmuBuildingPreset {
@@ -83,6 +94,7 @@ export function createFiveBySixCmuBuildingPreset(): CmuBuildingPreset {
   ];
   return {
     name: '5m x 6m CMU Template',
+    buildingSystemMode: 'cmu_bearing_wall',
     wallLayout,
     footprint: {
       kind: 'rectangle',
@@ -104,8 +116,8 @@ export function createFiveBySixCmuBuildingPreset(): CmuBuildingPreset {
       widthMeters,
       heightMeters: 2.8,
       wallThicknessMeters: 0.19,
-      blockLengthMeters: 0.4,
-      blockHeightMeters: 0.2,
+      blockLengthMeters: 0.39,
+      blockHeightMeters: 0.19,
       blockDepthMeters: 0.19,
       mortarJointMeters: 0.01,
       blockModule: METRIC_CMU_400X200_MODULE,
@@ -141,6 +153,9 @@ export function createFiveBySixCmuBuildingPreset(): CmuBuildingPreset {
       buildingLengthMeters: lengthMeters,
       spacingMeters: 0.6,
     },
+    frameSystem: createDefaultStructuralFrameSystem(),
+    infillSystem: createEmptyCmuInfillSystem(),
+    gableEndSystem: createEmptyGableEndSystem(),
   };
 }
 
@@ -157,6 +172,7 @@ export function createBlankCmuBuildingPreset(
   });
   return {
     name: 'Blank CMU Layout',
+    buildingSystemMode: 'cmu_bearing_wall',
     wallLayout,
     footprint: {
       kind: 'rectangle',
@@ -189,6 +205,9 @@ export function createBlankCmuBuildingPreset(
       ...defaults.truss,
       buildingLengthMeters: 0,
     },
+    frameSystem: createDefaultStructuralFrameSystem(),
+    infillSystem: createEmptyCmuInfillSystem(),
+    gableEndSystem: createEmptyGableEndSystem(),
   };
 }
 
@@ -213,7 +232,7 @@ export function buildPresetObjects(params: {
       ...withId(DESIGN_BUILDER_EXAMPLE_LAYOUT_OBJECT_ID),
       designModelId: params.designModelId,
       projectId: params.projectId,
-      objectType: 'building_footprint',
+      objectType: 'wall_layout',
       name: 'Wall Layout',
       parameters: preset.wallLayout,
     },
@@ -248,6 +267,30 @@ export function buildPresetObjects(params: {
       objectType: 'steel_truss_system',
       name: 'Steel Truss System',
       parameters: preset.truss,
+    },
+    {
+      ...withId(DESIGN_BUILDER_EXAMPLE_FRAME_OBJECT_ID),
+      designModelId: params.designModelId,
+      projectId: params.projectId,
+      objectType: 'structural_frame_system',
+      name: 'Structural Frame',
+      parameters: preset.frameSystem,
+    },
+    {
+      ...withId(DESIGN_BUILDER_EXAMPLE_INFILL_OBJECT_ID),
+      designModelId: params.designModelId,
+      projectId: params.projectId,
+      objectType: 'cmu_infill_system',
+      name: 'CMU Infill Panels',
+      parameters: preset.infillSystem,
+    },
+    {
+      ...withId(DESIGN_BUILDER_EXAMPLE_GABLE_END_OBJECT_ID),
+      designModelId: params.designModelId,
+      projectId: params.projectId,
+      objectType: 'gable_end_system',
+      name: 'Gable Ends',
+      parameters: preset.gableEndSystem,
     },
   ];
 }

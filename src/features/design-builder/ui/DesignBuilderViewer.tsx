@@ -569,6 +569,65 @@ export default function DesignBuilderViewer({
           addWallPickable(pickMesh, { wallSegmentId: segment.segmentId, lengthMeters: segment.lengthMeters });
         });
 
+        const frameSystem = currentGeometry.frameSystem;
+        if (frameSystem?.columns.length) {
+          const columnMaterial = makeMaterial(0x9ca3af, currentSelectedObjectType === 'structural_frame_system', {
+            roughness: 0.85,
+          });
+          frameSystem.columns.forEach((column) => {
+            const mesh = new THREE.Mesh(
+              trackGeometry(new THREE.BoxGeometry(column.widthMeters, column.heightMeters, column.depthMeters)),
+              columnMaterial,
+            );
+            mesh.position.set(
+              column.position.x,
+              currentSlab.slabThicknessMeters + column.baseElevationMeters + column.heightMeters / 2,
+              column.position.z,
+            );
+            addSelectable(mesh, 'structural_frame_system');
+          });
+        }
+        if (frameSystem?.beams.length) {
+          const beamMaterial = makeMaterial(0x6b7280, currentSelectedObjectType === 'structural_frame_system', {
+            roughness: 0.8,
+          });
+          frameSystem.beams.forEach((beam) => {
+            const dx = beam.endPoint.x - beam.startPoint.x;
+            const dz = beam.endPoint.z - beam.startPoint.z;
+            const length = Math.hypot(dx, dz);
+            if (length <= 0) return;
+            const mesh = new THREE.Mesh(
+              trackGeometry(new THREE.BoxGeometry(length, beam.depthMeters, beam.widthMeters)),
+              beamMaterial,
+            );
+            mesh.position.set(
+              (beam.startPoint.x + beam.endPoint.x) / 2,
+              currentSlab.slabThicknessMeters + beam.baseElevationMeters + beam.depthMeters / 2,
+              (beam.startPoint.z + beam.endPoint.z) / 2,
+            );
+            mesh.rotation.y = -Math.atan2(dz, dx);
+            addSelectable(mesh, 'structural_frame_system');
+          });
+        }
+        if (currentGeometry.gablePlacements?.length) {
+          const gableMaterial = makeMaterial(0xd97706, currentSelectedObjectType === 'gable_end_system');
+          currentGeometry.gablePlacements.forEach((placement) => {
+            const mesh = new THREE.Mesh(
+              trackGeometry(
+                new THREE.BoxGeometry(placement.lengthMeters, placement.heightMeters, placement.depthMeters),
+              ),
+              gableMaterial,
+            );
+            mesh.position.set(
+              placement.x,
+              currentSlab.slabThicknessMeters + placement.y,
+              placement.z,
+            );
+            mesh.rotation.y = placement.rotationY;
+            addSelectable(mesh, 'gable_end_system');
+          });
+        }
+
         const blockInstances = currentWall.showIndividualBlocks ? currentGeometry.blockInstances : [];
         if (blockInstances.length > 0) {
           const blockHeightMeters = resolveCmuModuleConfig(currentWall).actualHeightMeters;

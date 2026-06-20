@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createFiveBySixCmuBuildingPreset } from '../domain/designBuilderPreset';
+import { resolveCmuModuleConfig } from '../domain/cmuModuleRules';
 import {
   layoutResolvedOpeningFromAssembly,
   openingAnchorFromResolvedPlacement,
@@ -119,7 +120,7 @@ describe('openingAssemblyResolver regression', () => {
       }
       const start = block.startAlongMeters ?? block.stationMeters ?? 0;
       const end = block.endAlongMeters ?? start + block.lengthMeters;
-      const moduleHeight = preset.wall.blockHeightMeters;
+      const moduleHeight = resolveCmuModuleConfig(preset.wall).moduleHeightMeters;
       return blockOverlapsOpeningAssembly({
         opening: rough!,
         startAlongMeters: start,

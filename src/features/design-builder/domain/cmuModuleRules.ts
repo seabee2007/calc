@@ -1,4 +1,5 @@
 import type { CmuBlockModuleConfig, CmuWallSystemParameters, DesignWallDimensionBasis, WallOpeningParameters } from '../types';
+import type { ModuleFitReport } from './moduleFitReport';
 
 const FIT_TOLERANCE_METERS = 0.005;
 
@@ -44,6 +45,7 @@ export type ClosedFootprintModuleFitProposal = {
   cornerCondition: 'full_half_compatible' | 'cut_blocks_required';
   cutBlocksRequired: boolean;
   unitCounts: { full: number; half: number; end: number; corner: number; cut: number };
+  moduleFitReport: ModuleFitReport;
   summary: string;
 };
 
@@ -75,26 +77,34 @@ export const IMPERIAL_CMU_16X8_MODULE: CmuBlockModuleConfig = {
 
 export function resolveCmuModuleConfig(params: CmuWallSystemParameters): CmuBlockModuleConfig {
   const base = params.blockModule ?? METRIC_CMU_400X200_MODULE;
+  const mortarJointMeters = Math.max(0, params.mortarJointMeters ?? base.mortarJointMeters ?? 0);
   const moduleLengthMeters = positiveOr(
-    params.blockLengthMeters,
-    positiveOr(base.moduleLengthMeters, base.nominalLengthMeters),
+    base.moduleLengthMeters,
+    positiveOr(base.nominalLengthMeters, METRIC_CMU_400X200_MODULE.moduleLengthMeters),
   );
   const moduleHeightMeters = positiveOr(
-    params.blockHeightMeters,
-    positiveOr(base.moduleHeightMeters, base.nominalHeightMeters),
+    base.moduleHeightMeters,
+    positiveOr(base.nominalHeightMeters, METRIC_CMU_400X200_MODULE.moduleHeightMeters),
   );
   const nominalDepthMeters = positiveOr(
     params.blockDepthMeters,
     positiveOr(params.wallThicknessMeters, base.nominalDepthMeters),
   );
-  const mortarJointMeters = Math.max(0, base.mortarJointMeters ?? params.mortarJointMeters ?? 0);
+  const actualLengthMeters = positiveOr(
+    base.actualLengthMeters,
+    Math.max(0.01, moduleLengthMeters - mortarJointMeters),
+  );
+  const actualHeightMeters = positiveOr(
+    base.actualHeightMeters,
+    Math.max(0.01, moduleHeightMeters - mortarJointMeters),
+  );
   return {
     ...base,
     nominalLengthMeters: moduleLengthMeters,
     nominalHeightMeters: moduleHeightMeters,
     nominalDepthMeters,
-    actualLengthMeters: positiveOr(base.actualLengthMeters, Math.max(0.01, moduleLengthMeters - mortarJointMeters)),
-    actualHeightMeters: positiveOr(base.actualHeightMeters, Math.max(0.01, moduleHeightMeters - mortarJointMeters)),
+    actualLengthMeters,
+    actualHeightMeters,
     mortarJointMeters,
     moduleLengthMeters,
     moduleHeightMeters,
@@ -194,75 +204,7 @@ export function snapLengthToCmuHalfModule(lengthMeters: number, moduleLengthMete
   return roundMeters(Math.round(Math.max(0, lengthMeters) / increment) * increment);
 }
 
-export function resolveClosedFootprintToCmuModules(params: {
-  requestedFootprint: { lengthMeters: number; widthMeters: number };
-  dimensionBasis: DesignWallDimensionBasis;
-  cmu: CmuWallSystemParameters;
-}): ClosedFootprintModuleFitProposal {
-  const definition = resolveCmuModuleDefinition(params.cmu);
-  const lengthFit = analyzeCmuModuleFit(params.requestedFootprint.lengthMeters, definition.nominalModuleLengthMeters);
-  const widthFit = analyzeCmuModuleFit(params.requestedFootprint.widthMeters, definition.nominalModuleLengthMeters);
-  const resolvedLength = lengthFit.fit === 'cut'
-    ? snapLengthToCmuHalfModule(params.requestedFootprint.lengthMeters, definition.nominalModuleLengthMeters)
-    : roundMeters(params.requestedFootprint.lengthMeters);
-  const resolvedWidth = widthFit.fit === 'cut'
-    ? snapLengthToCmuHalfModule(params.requestedFootprint.widthMeters, definition.nominalModuleLengthMeters)
-    : roundMeters(params.requestedFootprint.widthMeters);
-  const cutBlocksRequired = lengthFit.fit === 'cut' || widthFit.fit === 'cut';
-  const unitCounts = estimateClosedRectangleCourseUnitCounts({
-    lengthMeters: resolvedLength,
-    widthMeters: resolvedWidth,
-    moduleLengthMeters: definition.nominalModuleLengthMeters,
-    cutBlocksRequired,
-  });
-  const adjustment = {
-    lengthMeters: roundMeters(resolvedLength - params.requestedFootprint.lengthMeters),
-    widthMeters: roundMeters(resolvedWidth - params.requestedFootprint.widthMeters),
-  };
-  return {
-    dimensionBasis: params.dimensionBasis,
-    requested: {
-      lengthMeters: roundMeters(params.requestedFootprint.lengthMeters),
-      widthMeters: roundMeters(params.requestedFootprint.widthMeters),
-    },
-    resolved: {
-      lengthMeters: resolvedLength,
-      widthMeters: resolvedWidth,
-    },
-    adjustment,
-    lengthFit,
-    widthFit,
-    cornerCondition: cutBlocksRequired ? 'cut_blocks_required' : 'full_half_compatible',
-    cutBlocksRequired,
-    unitCounts,
-    summary: `Requested: ${roundMeters(params.requestedFootprint.lengthMeters).toFixed(2)} m x ${roundMeters(params.requestedFootprint.widthMeters).toFixed(2)} m; Resolved: ${resolvedLength.toFixed(2)} m x ${resolvedWidth.toFixed(2)} m; Module fit: ${cutBlocksRequired ? 'cut block review required' : 'compatible'}; Corner pattern: running bond; Full units: ${unitCounts.full}; Half/end units: ${unitCounts.half + unitCounts.end}; Cut units: ${unitCounts.cut}`,
-  };
-}
-
-function estimateClosedRectangleCourseUnitCounts(params: {
-  lengthMeters: number;
-  widthMeters: number;
-  moduleLengthMeters: number;
-  cutBlocksRequired: boolean;
-}): ClosedFootprintModuleFitProposal['unitCounts'] {
-  const counts = { full: 0, half: 0, end: 0, corner: 0, cut: params.cutBlocksRequired ? 1 : 0 };
-  const cornerSetback = params.moduleLengthMeters / 2;
-  [params.lengthMeters, params.lengthMeters, params.widthMeters, params.widthMeters].forEach((sideLength) => {
-    const effectiveLength = Math.max(0, sideLength - cornerSetback);
-    const fullModules = Math.floor((effectiveLength + FIT_TOLERANCE_METERS) / params.moduleLengthMeters);
-    const remainder = effectiveLength - fullModules * params.moduleLengthMeters;
-    counts.full += Math.max(0, fullModules - 1);
-    counts.end += fullModules > 0 ? 1 : 0;
-    if (Math.abs(remainder - cornerSetback) <= FIT_TOLERANCE_METERS) {
-      counts.corner += 1;
-    } else if (remainder > FIT_TOLERANCE_METERS) {
-      counts.cut += 1;
-    } else {
-      counts.corner += 1;
-    }
-  });
-  return counts;
-}
+export { resolveClosedFootprintToCmuModules } from './closedFootprintModuleFit';
 
 export function snapOpeningToCmuModule(
   opening: WallOpeningParameters,

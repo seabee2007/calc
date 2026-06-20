@@ -59,7 +59,7 @@ describe('CMU module rules', () => {
     expect(snapLengthToCmuHalfModule(5.13, 0.4)).toBe(5.2);
   });
 
-  it('proposes closed-footprint module fit without applying automatically', () => {
+  it('proposes closed-footprint module fit from solver placements without auto-snapping dimensions', () => {
     const preset = createFiveBySixCmuBuildingPreset();
     const proposal = resolveClosedFootprintToCmuModules({
       requestedFootprint: { lengthMeters: 6.08, widthMeters: 5.13 },
@@ -68,37 +68,42 @@ describe('CMU module rules', () => {
     });
 
     expect(proposal.requested).toEqual({ lengthMeters: 6.08, widthMeters: 5.13 });
-    expect(proposal.resolved).toEqual({ lengthMeters: 6, widthMeters: 5.2 });
-    expect(proposal.adjustment).toEqual({ lengthMeters: -0.08, widthMeters: 0.07 });
+    expect(proposal.resolved).toEqual({ lengthMeters: 6.08, widthMeters: 5.13 });
+    expect(proposal.adjustment).toEqual({ lengthMeters: 0, widthMeters: 0 });
+    expect(proposal.moduleFitReport.status).toBe('cut_required');
     expect(proposal.cutBlocksRequired).toBe(true);
+    expect(proposal.summary).not.toContain('compatible');
   });
 
-  it('keeps a 6.00m metric wall modular at whole-building level', () => {
+  it('reports solver-based closed-footprint fit for a 6.00m × 5.00m rectangle', () => {
     const preset = createFiveBySixCmuBuildingPreset();
     const proposal = resolveClosedFootprintToCmuModules({
       requestedFootprint: { lengthMeters: 6, widthMeters: 5 },
       dimensionBasis: 'outside_face',
-      cmu: preset.wall,
+      cmu: { ...preset.wall, openings: [] },
     });
 
     expect(proposal.lengthFit.fit).toBe('full');
     expect(proposal.lengthFit.moduleCount).toBe(15);
     expect(proposal.resolved.lengthMeters).toBe(6);
-    expect(proposal.cornerCondition).toBe('full_half_compatible');
+    expect(proposal.moduleFitReport.cutUnitCount).toBe(proposal.unitCounts.cut);
+    expect(proposal.summary).not.toContain('compatible');
+    expect(['fully_modular', 'bond_modular', 'cut_required']).toContain(proposal.moduleFitReport.status);
   });
 
-  it('reports a 10.00m by 6.00m metric rectangle as compatible with no cut units', () => {
+  it('reports staggered cut conditions for a 10.00m × 6.00m metric rectangle from placements', () => {
     const preset = createFiveBySixCmuBuildingPreset();
     const proposal = resolveClosedFootprintToCmuModules({
       requestedFootprint: { lengthMeters: 10, widthMeters: 6 },
       dimensionBasis: 'outside_face',
-      cmu: preset.wall,
+      cmu: { ...preset.wall, openings: [] },
     });
 
     expect(proposal.resolved).toEqual({ lengthMeters: 10, widthMeters: 6 });
-    expect(proposal.cutBlocksRequired).toBe(false);
-    expect(proposal.unitCounts.cut).toBe(0);
-    expect(proposal.summary).toContain('Module fit: compatible');
-    expect(proposal.summary).toContain('Cut units: 0');
+    expect(proposal.moduleFitReport.cutUnitCount).toBeGreaterThan(0);
+    expect(proposal.cutBlocksRequired).toBe(true);
+    expect(proposal.moduleFitReport.status).toBe('cut_required');
+    expect(proposal.summary).toContain('Cut required');
+    expect(proposal.summary).not.toContain('compatible');
   });
 });

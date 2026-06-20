@@ -30,6 +30,8 @@ export type ObjectTreeExpansionState = {
   layout: boolean;
   masonry: boolean;
   structure: boolean;
+  openings: boolean;
+  roofGable: boolean;
   estimate: boolean;
 };
 
@@ -37,6 +39,8 @@ export const DEFAULT_OBJECT_TREE_EXPANSION: ObjectTreeExpansionState = {
   layout: false,
   masonry: false,
   structure: false,
+  openings: false,
+  roofGable: false,
   estimate: false,
 };
 

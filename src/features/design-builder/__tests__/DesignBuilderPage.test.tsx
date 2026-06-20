@@ -441,8 +441,8 @@ describe('DesignBuilderPage', () => {
 
     expect(screen.getByText(/cmu module rules/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/block family/i)).toHaveValue('Metric CMU 400 x 200');
-    expect(screen.getAllByText(/full-module fit/i).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/half-module fit/i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/modular fit/i)).toBeInTheDocument();
+    expect(screen.getByText(/fit:/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/snap building dimensions to cmu module/i)).toBeChecked();
   });
 
@@ -644,6 +644,8 @@ describe('DesignBuilderPage', () => {
       masonry: false,
       structure: false,
       estimate: false,
+      openings: false,
+      roofGable: false,
     });
     expect(sessionAfter.toolMode).toBe('select');
     expect(sessionAfter.layoutState).toBe('blank');

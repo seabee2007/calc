@@ -29,7 +29,7 @@ describe('Design Builder quantity formulas', () => {
 
   it('calculates CMU block count from net wall area and waste', () => {
     const preset = createFiveBySixCmuBuildingPreset();
-    expect(calculateCmuBlockCount(preset.wall)).toBe(763);
+    expect(calculateCmuBlockCount(preset.wall)).toBe(824);
   });
 
   it('separates slab field volume, thickened edge volume, and total volume when edge adds below slab', () => {

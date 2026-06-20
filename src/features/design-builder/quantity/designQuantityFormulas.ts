@@ -604,3 +604,97 @@ export function buildCmuBuildingEstimatePreview(input: CmuBuildingQuantityInput)
     },
   ];
 }
+
+export interface FrameInfillQuantityInput extends CmuBuildingQuantityInput {
+  frameObjectId: string;
+  infillObjectId: string;
+  gableEndObjectId: string;
+  buildingSystemMode: import('../types').BuildingSystemMode;
+  frameSystem: import('../types').StructuralFrameSystemParameters;
+  infillSystem: import('../types').CmuInfillSystemParameters;
+  gableEndSystem: import('../types').GableEndSystemParameters;
+  geometryResult: import('../geometry/designGeometry').DesignGeometryResult;
+}
+
+export function buildFrameInfillEstimatePreview(input: FrameInfillQuantityInput): DesignEstimatePreviewLine[] {
+  const base = buildCmuBuildingEstimatePreview(input);
+  const structuralVolume = input.geometryResult.structuralConcreteVolumeCubicMeters ?? 0;
+  const counts = input.geometryResult.wallCmuLayout.counts;
+  const gableCutCount =
+    input.geometryResult.gablePlacements?.filter((p) => p.kind === 'cut_block').length ?? 0;
+  const metaBase = {
+    buildingSystemMode: input.buildingSystemMode,
+    quantityFormula: 'parametric_design_builder',
+  };
+
+  return [
+    ...base,
+    {
+      id: 'rc-beams-volume',
+      designModelId: input.designModelId,
+      designObjectId: input.frameObjectId,
+      quantityType: 'rc_structural_concrete_volume',
+      description: 'RC structural concrete volume (deduplicated beam/column intersections)',
+      quantity: roundQuantity(cubicMetersToCubicYards(structuralVolume), 2),
+      unit: 'CY',
+      formula: 'unionVolume(columns, beams) with intersection subtraction',
+      parameterSnapshot: {
+        beams: input.frameSystem.beams,
+        columns: input.frameSystem.columns,
+        structuralConcreteVolumeCubicMeters: structuralVolume,
+        structuralObjectId: input.frameObjectId,
+        ...metaBase,
+      },
+      source: 'parametric_design_builder',
+      confidence: 'calculated_from_parameters',
+      divisionCode: '03',
+      divisionName: 'Concrete',
+    },
+    {
+      id: 'cmu-infill-blocks',
+      designModelId: input.designModelId,
+      designObjectId: input.infillObjectId,
+      quantityType: 'cmu_infill_blocks',
+      description: 'CMU infill full / half / cut blocks',
+      quantity: counts.full + counts.half + counts.cut,
+      unit: 'EA',
+      formula: 'solved_infill_panel_blocks',
+      parameterSnapshot: {
+        panels: input.infillSystem.panels,
+        blockBreakdown: counts,
+        infillPanelId: input.infillObjectId,
+        ...metaBase,
+      },
+      source: 'parametric_design_builder',
+      confidence: 'calculated_from_parameters',
+      divisionCode: '04',
+      divisionName: 'Masonry',
+    },
+    {
+      id: 'gable-cut-blocks',
+      designModelId: input.designModelId,
+      designObjectId: input.gableEndObjectId,
+      quantityType: 'gable_cut_blocks',
+      description: 'Gable cut blocks',
+      quantity: gableCutCount,
+      unit: 'EA',
+      formula: 'gable_panel_solver cut_block count',
+      parameterSnapshot: {
+        gableEnds: input.gableEndSystem.gableEnds,
+        gableEndId: input.gableEndObjectId,
+        ...metaBase,
+      },
+      source: 'parametric_design_builder',
+      confidence: 'calculated_from_parameters',
+      divisionCode: '04',
+      divisionName: 'Masonry',
+    },
+  ];
+}
+
+export function buildDesignEstimatePreview(input: FrameInfillQuantityInput): DesignEstimatePreviewLine[] {
+  if (input.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill') {
+    return buildFrameInfillEstimatePreview(input);
+  }
+  return buildCmuBuildingEstimatePreview(input);
+}

@@ -1,11 +1,19 @@
 export type DesignUnitSystem = 'metric' | 'imperial';
-export type DesignModelType = 'cmu_building';
+export type DesignModelType = 'cmu_building' | 'frame_cmu_building';
 export type DesignModelStatus = 'draft' | 'ready_for_estimate' | 'committed';
+
+export type BuildingSystemMode =
+  | 'cmu_bearing_wall'
+  | 'reinforced_concrete_frame_with_cmu_infill';
 
 export type DesignObjectType =
   | 'building_footprint'
+  | 'wall_layout'
   | 'thickened_edge_slab'
   | 'cmu_wall_system'
+  | 'structural_frame_system'
+  | 'cmu_infill_system'
+  | 'gable_end_system'
   | 'door_opening'
   | 'window_opening'
   | 'gable_roof_system'
@@ -250,6 +258,151 @@ export interface SteelTrussSystemParameters {
   spacingMeters: number;
 }
 
+export type StructuralColumnKind = 'rc_column' | 'tie_column';
+
+export interface StructuralColumn {
+  id: string;
+  name: string;
+  kind: StructuralColumnKind;
+  position: { x: number; z: number };
+  widthMeters: number;
+  depthMeters: number;
+  heightMeters: number;
+  baseElevationMeters: number;
+  topElevationMeters: number;
+  hostNodeId?: string;
+  hostSegmentId?: string;
+  reinforcement?: {
+    enabled: boolean;
+    notes?: string;
+  };
+  source: 'user' | 'auto_frame_layout';
+}
+
+export type StructuralBeamKind = 'grade_beam' | 'ring_beam' | 'lintel_beam' | 'tie_beam';
+
+export interface StructuralBeam {
+  id: string;
+  name: string;
+  kind: StructuralBeamKind;
+  startColumnId?: string;
+  endColumnId?: string;
+  startPoint: { x: number; y: number; z: number };
+  endPoint: { x: number; y: number; z: number };
+  widthMeters: number;
+  depthMeters: number;
+  baseElevationMeters: number;
+  topElevationMeters: number;
+  hostSegmentId?: string;
+  source: 'user' | 'auto_frame_layout';
+}
+
+export type CmuInfillSupportType = 'column' | 'wall_end' | 'opening_jamb';
+
+export type CmuInfillBottomSupportType = 'grade_beam' | 'slab' | 'foundation';
+
+export type CmuInfillTopSupportType = 'ring_beam' | 'roof_line' | 'gable_profile';
+
+export interface DesignMasonrySettings {
+  blockModule?: CmuBlockModuleConfig;
+  bondPattern: 'running_bond' | 'stack_bond';
+  snapToModule: boolean;
+  wasteFactor: number;
+}
+
+export interface CmuInfillPanel {
+  id: string;
+  hostSegmentId: string;
+  leftSupportType: CmuInfillSupportType;
+  leftSupportId?: string;
+  rightSupportType: CmuInfillSupportType;
+  rightSupportId?: string;
+  bottomSupportType: CmuInfillBottomSupportType;
+  bottomSupportId?: string;
+  topSupportType: CmuInfillTopSupportType;
+  topSupportId?: string;
+  startStationMeters: number;
+  endStationMeters: number;
+  bottomElevationMeters: number;
+  topElevationMeters: number;
+  masonrySettings: DesignMasonrySettings;
+}
+
+export interface GableEndSettings {
+  kind: 'gable_end';
+  id: string;
+  hostWallSegmentId: string;
+  eaveElevationMeters: number;
+  peakMode: 'rise_above_eave' | 'absolute_elevation';
+  peakRiseMeters?: number;
+  peakElevationMeters?: number;
+  ridgePosition: 'centered' | 'custom';
+  ridgeOffsetMeters?: number;
+  roofToMasonryClearanceMeters: number;
+  roofClearanceMeasurement: 'perpendicular_to_roof_slope';
+  bondPattern: 'running_bond' | 'stack_bond';
+}
+
+export type GableCmuPlacementKind = 'stretcher' | 'half_block' | 'cut_block';
+
+export interface GableCmuPlacement {
+  id: string;
+  panelId: string;
+  courseIndex: number;
+  kind: GableCmuPlacementKind;
+  polygonProfile?: Array<{ x: number; y: number }>;
+  volumeCubicMeters?: number;
+  x: number;
+  y: number;
+  z: number;
+  rotationY: number;
+  lengthMeters: number;
+  heightMeters: number;
+  depthMeters: number;
+  source: 'gable_panel_solver';
+}
+
+export type ModuleFitStatus =
+  | 'fully_modular'
+  | 'bond_modular'
+  | 'cut_required'
+  | 'opening_conflict'
+  | 'unresolved';
+
+export interface ModuleFitCandidate {
+  requestedDimensionMeters: number;
+  candidateDimensionMeters: number;
+  adjustmentMeters: number;
+  status: ModuleFitStatus;
+  fullBlockCount: number;
+  halfBlockCount: number;
+  cutBlockCount: number;
+  explanation: string;
+}
+
+export interface StructuralFrameSystemParameters {
+  kind: 'structural_frame_system';
+  buildingSystemMode: BuildingSystemMode;
+  defaultColumnWidthMeters: number;
+  defaultColumnDepthMeters: number;
+  defaultGradeBeamWidthMeters: number;
+  defaultGradeBeamDepthMeters: number;
+  defaultRingBeamWidthMeters: number;
+  defaultRingBeamDepthMeters: number;
+  columns: StructuralColumn[];
+  beams: StructuralBeam[];
+}
+
+export interface CmuInfillSystemParameters {
+  kind: 'cmu_infill_system';
+  panels: CmuInfillPanel[];
+}
+
+export interface GableEndSystemParameters {
+  kind: 'gable_end_system';
+  gableEnds: GableEndSettings[];
+}
+
 export type DesignObjectParameters =
   | RectangleFootprintParameters
   | ThickenedEdgeSlabParameters
@@ -257,7 +410,10 @@ export type DesignObjectParameters =
   | DesignWallLayoutParameters
   | WallOpeningParameters
   | GableRoofSystemParameters
-  | SteelTrussSystemParameters;
+  | SteelTrussSystemParameters
+  | StructuralFrameSystemParameters
+  | CmuInfillSystemParameters
+  | GableEndSystemParameters;
 
 export interface CreateDesignModelInput {
   id?: string;
@@ -396,6 +552,10 @@ export type DesignBuilderSelection =
   | { kind: 'wall_segment'; id: string }
   | { kind: 'wall_node'; id: string }
   | { kind: 'opening'; id: string }
+  | { kind: 'structural_column'; id: string }
+  | { kind: 'structural_beam'; id: string }
+  | { kind: 'cmu_infill_panel'; id: string }
+  | { kind: 'gable_end'; id: string }
   | { kind: 'none' };
 
 export type DesignBuilderInteractionKind =

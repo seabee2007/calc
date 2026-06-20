@@ -100,6 +100,11 @@ import {
   summarizeWallModuleFits,
   validateCmuOpenings,
 } from '../domain/cmuModuleRules';
+import {
+  buildModuleFitCandidateTable,
+  evaluateRequestedDimensionModuleFit,
+  nearestModularCandidate,
+} from '../domain/moduleFitEngine';
 import { resolveCmuOpening } from '../domain/cmuOpeningRules';
 import {
   buildDesignGeometryInputFromLayout,
@@ -107,7 +112,15 @@ import {
   generateDesignGeometry,
 } from '../geometry/designGeometry';
 import { useEstimateWorkspaceHeaderCollapse } from '../../estimating/ui/EstimateWorkspaceHeaderCollapseContext';
-import { buildCmuBuildingEstimatePreview } from '../quantity/designQuantityFormulas';
+import { buildDesignEstimatePreview } from '../quantity/designQuantityFormulas';
+import {
+  applyAutoFrameLayout,
+  applyCornerColumns,
+  applyPerimeterBeams,
+  addGableEndToPreset,
+  objectSaveKey,
+  setBuildingSystemMode,
+} from '../domain/structureActions';
 import {
   createDesignModel,
   upsertDesignModelObjects,
@@ -587,8 +600,24 @@ export default function DesignBuilderPage({
         slabSettings: footprintClosed ? resolvedPreset.slab : { ...resolvedPreset.slab, lengthMeters: 0, widthMeters: 0 },
         roofSettings: footprintClosed ? resolvedPreset.roof : { ...resolvedPreset.roof, lengthMeters: 0, widthMeters: 0 },
         trussSettings: footprintClosed ? resolvedPreset.truss : { ...resolvedPreset.truss, buildingLengthMeters: 0 },
+        buildingSystemMode: resolvedPreset.buildingSystemMode,
+        frameSystem: resolvedPreset.frameSystem,
+        infillSystem: resolvedPreset.infillSystem,
+        gableEndSystem: resolvedPreset.gableEndSystem,
       }),
-    [effectiveWall, footprintClosed, masonryGeometryKey, resolvedPreset.roof, resolvedPreset.slab, resolvedPreset.truss, wallLayout],
+    [
+      effectiveWall,
+      footprintClosed,
+      masonryGeometryKey,
+      resolvedPreset.buildingSystemMode,
+      resolvedPreset.frameSystem,
+      resolvedPreset.gableEndSystem,
+      resolvedPreset.infillSystem,
+      resolvedPreset.roof,
+      resolvedPreset.slab,
+      resolvedPreset.truss,
+      wallLayout,
+    ],
   );
   const designGeometryResult = useMemo(
     () => generateDesignGeometry(designGeometryInput),
@@ -620,26 +649,36 @@ export default function DesignBuilderPage({
     issueViewCommand('fit');
   }, [modelLoaded, viewMode, designLayoutBounds]);
   const objectIds = useMemo(() => {
-    const byType = new Map(objects.map((object) => [object.objectType, object.id]));
+    const byKey = new Map(
+      objects.map((object) => [objectSaveKey(object.objectType, object.parameters as { kind?: string }), object.id]),
+    );
     return {
-      slabObjectId: byType.get('thickened_edge_slab') ?? 'local-slab',
-      wallObjectId: byType.get('cmu_wall_system') ?? 'local-wall',
-      roofObjectId: byType.get('gable_roof_system') ?? 'local-roof',
-      trussObjectId: byType.get('steel_truss_system') ?? 'local-truss',
+      slabObjectId: byKey.get(objectSaveKey('thickened_edge_slab', { kind: 'thickened_edge_slab' })) ?? 'local-slab',
+      wallObjectId: byKey.get(objectSaveKey('cmu_wall_system', { kind: 'cmu_wall_system' })) ?? 'local-wall',
+      roofObjectId: byKey.get(objectSaveKey('gable_roof_system', { kind: 'gable_roof_system' })) ?? 'local-roof',
+      trussObjectId: byKey.get(objectSaveKey('steel_truss_system', { kind: 'steel_truss_system' })) ?? 'local-truss',
+      frameObjectId: byKey.get(objectSaveKey('structural_frame_system', { kind: 'structural_frame_system' })) ?? 'local-frame',
+      infillObjectId: byKey.get(objectSaveKey('cmu_infill_system', { kind: 'cmu_infill_system' })) ?? 'local-infill',
+      gableEndObjectId: byKey.get(objectSaveKey('gable_end_system', { kind: 'gable_end_system' })) ?? 'local-gable',
     };
   }, [objects]);
 
   const generatedPreview = useMemo(() => {
     const modelId = designModel?.id ?? 'local-design-model';
-    return buildCmuBuildingEstimatePreview({
+    return buildDesignEstimatePreview({
       designModelId: modelId,
       ...objectIds,
       wall: effectiveWall,
       slab: footprintClosed ? resolvedPreset.slab : { ...resolvedPreset.slab, lengthMeters: 0, widthMeters: 0 },
       roof: footprintClosed ? resolvedPreset.roof : { ...resolvedPreset.roof, lengthMeters: 0, widthMeters: 0 },
       truss: footprintClosed ? resolvedPreset.truss : { ...resolvedPreset.truss, buildingLengthMeters: 0 },
+      buildingSystemMode: resolvedPreset.buildingSystemMode,
+      frameSystem: designGeometryResult.frameSystem ?? resolvedPreset.frameSystem,
+      infillSystem: designGeometryResult.infillSystem ?? resolvedPreset.infillSystem,
+      gableEndSystem: designGeometryResult.gableEndSystem ?? resolvedPreset.gableEndSystem,
+      geometryResult: designGeometryResult,
     });
-  }, [designModel?.id, effectiveWall, footprintClosed, objectIds, resolvedPreset]);
+  }, [designGeometryResult, designModel?.id, effectiveWall, footprintClosed, objectIds, resolvedPreset]);
   const visiblePreviewLines = modelLoaded ? (previewLines.length > 0 ? previewLines : generatedPreview) : [];
   const cmuModule = useMemo(() => resolveCmuModuleConfig(effectiveWall), [effectiveWall]);
   const wallModuleFits = useMemo(() => summarizeWallModuleFits(effectiveWall), [effectiveWall]);
@@ -807,7 +846,9 @@ export default function DesignBuilderPage({
 
   const buildObjectsForSave = useCallback(() => {
     if (!designModel || !preset) return [];
-    const byType = new Map(objects.map((object) => [object.objectType, object.id]));
+    const byKey = new Map(
+      objects.map((object) => [objectSaveKey(object.objectType, object.parameters as { kind?: string }), object.id]),
+    );
     return buildPresetObjects({
       designModelId: designModel.id,
       projectId,
@@ -815,7 +856,9 @@ export default function DesignBuilderPage({
       includeStableIds: false,
     }).map((input) => ({
       ...input,
-      ...(byType.get(input.objectType) ? { id: byType.get(input.objectType) } : {}),
+      ...(byKey.get(objectSaveKey(input.objectType, input.parameters as { kind?: string }))
+        ? { id: byKey.get(objectSaveKey(input.objectType, input.parameters as { kind?: string })) }
+        : {}),
     }));
   }, [designModel, objects, preset, projectId]);
 
@@ -1017,6 +1060,32 @@ export default function DesignBuilderPage({
       kind,
       mutate: (before) => patchDesignSnapshot(before, resolvePresetName(), updater),
     });
+  }
+
+  function handleSetBuildingSystemMode(mode: import('../types').BuildingSystemMode) {
+    applyPresetPatch((current) => setBuildingSystemMode(current, mode), 'Change building system mode', 'structure_update');
+  }
+
+  function handleAddCornerColumns() {
+    applyPresetPatch((current) => applyCornerColumns(current), 'Add corner columns', 'structure_update');
+  }
+
+  function handleAutoFrameLayout() {
+    applyPresetPatch((current) => applyAutoFrameLayout(current), 'Auto frame layout', 'structure_update');
+  }
+
+  function handleAddPerimeterBeams() {
+    applyPresetPatch((current) => applyPerimeterBeams(current), 'Add perimeter beams', 'structure_update');
+  }
+
+  function handleAddGableEnd() {
+    const segmentId = selectedSegmentId ?? wallLayout.segments[0]?.id;
+    if (!segmentId) return;
+    applyPresetPatch(
+      (current) => addGableEndToPreset(current, segmentId),
+      'Add gable end',
+      'structure_update',
+    );
   }
 
   function addOpening(opening: WallOpeningParameters) {
@@ -1337,29 +1406,66 @@ export default function DesignBuilderPage({
       setStatus({ tone: 'info', message: 'Draw a closed rectangular footprint before resolving CMU modules.' });
       return;
     }
-    const proposal = resolveClosedFootprintToCmuModules({
-      requestedFootprint: {
-        lengthMeters: bounds.exteriorLengthMeters,
-        widthMeters: bounds.exteriorWidthMeters,
-      },
-      dimensionBasis: wallLayout.dimensionBasis ?? 'outside_face',
-      cmu: resolvedPreset.wall,
-    });
+    const report = designGeometryResult.wallCmuLayout.moduleFitReport;
     if (!apply) {
-      setStatus({ tone: proposal.cutBlocksRequired ? 'warning' : 'success', message: proposal.summary });
+      setStatus({
+        tone: moduleFitStatusTone(report.status),
+        message: report.summary,
+      });
       return;
     }
+    const lengthCandidates = buildModuleFitCandidateTable({
+      buildingSystemMode: resolvedPreset.buildingSystemMode,
+      dimensionBasis: wallLayout.dimensionBasis ?? 'outside_face',
+      requestedDimensionMeters: bounds.exteriorLengthMeters,
+      wall: resolvedPreset.wall,
+      columnWidthMeters: resolvedPreset.frameSystem.defaultColumnWidthMeters,
+      layout: wallLayout,
+      segmentFrames: designGeometryResult.wallCmuLayout.segmentFrames,
+      columns: designGeometryResult.frameSystem?.columns ?? resolvedPreset.frameSystem.columns,
+      beams: designGeometryResult.frameSystem?.beams ?? resolvedPreset.frameSystem.beams,
+      dimension: 'length',
+    });
+    const widthCandidates = buildModuleFitCandidateTable({
+      buildingSystemMode: resolvedPreset.buildingSystemMode,
+      dimensionBasis: wallLayout.dimensionBasis ?? 'outside_face',
+      requestedDimensionMeters: bounds.exteriorWidthMeters,
+      wall: resolvedPreset.wall,
+      columnWidthMeters: resolvedPreset.frameSystem.defaultColumnWidthMeters,
+      layout: wallLayout,
+      segmentFrames: designGeometryResult.wallCmuLayout.segmentFrames,
+      columns: designGeometryResult.frameSystem?.columns ?? resolvedPreset.frameSystem.columns,
+      beams: designGeometryResult.frameSystem?.beams ?? resolvedPreset.frameSystem.beams,
+      dimension: 'width',
+    });
+    const nearestLength = nearestModularCandidate(lengthCandidates, 'bond_modular');
+    const nearestWidth = nearestModularCandidate(widthCandidates, 'bond_modular');
+    const resolvedLength = nearestLength?.candidateDimensionMeters ?? bounds.exteriorLengthMeters;
+    const resolvedWidth = nearestWidth?.candidateDimensionMeters ?? bounds.exteriorWidthMeters;
     const centerX = (bounds.minX + bounds.maxX) / 2;
     const centerZ = (bounds.minZ + bounds.maxZ) / 2;
-    const halfLength = proposal.resolved.lengthMeters / 2;
-    const halfWidth = proposal.resolved.widthMeters / 2;
+    const halfLength = resolvedLength / 2;
+    const halfWidth = resolvedWidth / 2;
     const nextNodes = wallLayout.nodes.map((node) => ({
       ...node,
       x: node.x < centerX ? centerX - halfLength : centerX + halfLength,
       z: node.z < centerZ ? centerZ - halfWidth : centerZ + halfWidth,
     }));
     commitWallLayout({ ...wallLayout, nodes: nextNodes }, 'Apply module fit', 'module_fit_apply');
-    setStatus({ tone: 'success', message: proposal.summary });
+    const adjustmentMessage = [
+      nearestLength
+        ? `Length: requested ${bounds.exteriorLengthMeters.toFixed(2)} m → ${resolvedLength.toFixed(2)} m (${nearestLength.status}).`
+        : null,
+      nearestWidth
+        ? `Width: requested ${bounds.exteriorWidthMeters.toFixed(2)} m → ${resolvedWidth.toFixed(2)} m (${nearestWidth.status}).`
+        : null,
+    ]
+      .filter(Boolean)
+      .join(' ');
+    setStatus({
+      tone: 'success',
+      message: adjustmentMessage || report.summary,
+    });
   }
 
   function resolveActivePlanSnap(
@@ -2183,6 +2289,42 @@ export default function DesignBuilderPage({
     );
   }
 
+  function updateStructureField(
+    patch: Partial<import('../types').StructuralFrameSystemParameters> & {
+      buildingSystemMode?: import('../types').BuildingSystemMode;
+    },
+  ) {
+    applyPresetPatch(
+      (current) => ({
+        ...current,
+        buildingSystemMode: patch.buildingSystemMode ?? current.buildingSystemMode,
+        frameSystem: {
+          ...current.frameSystem,
+          ...patch,
+          buildingSystemMode: patch.buildingSystemMode ?? current.frameSystem.buildingSystemMode,
+        },
+      }),
+      'Edit structural frame settings',
+      'structure_update',
+    );
+  }
+
+  function updateGableField(gableId: string, patch: Partial<import('../types').GableEndSettings>) {
+    applyPresetPatch(
+      (current) => ({
+        ...current,
+        gableEndSystem: {
+          ...current.gableEndSystem,
+          gableEnds: current.gableEndSystem.gableEnds.map((g) =>
+            g.id === gableId ? { ...g, ...patch } : g,
+          ),
+        },
+      }),
+      'Edit gable end settings',
+      'structure_update',
+    );
+  }
+
   function updateSelectedOpening(openingId: string, patch: Partial<WallOpeningParameters>) {
     applyPresetPatch(
       (current) => ({
@@ -2748,6 +2890,7 @@ export default function DesignBuilderPage({
             <EditableControls
               selectedObjectType={selectedObjectType}
               preset={resolvedPreset}
+              designGeometryResult={designGeometryResult}
               unitSystem={unitSystem}
               onUnitSystemChange={setUnitSystem}
               onFootprintChange={updateFootprint}
@@ -2763,6 +2906,8 @@ export default function DesignBuilderPage({
               onSlabChange={updateSlabField}
               onRoofChange={updateRoofField}
               onTrussSpacingChange={updateTrussSpacing}
+              onStructureFieldChange={updateStructureField}
+              onGableFieldChange={updateGableField}
               onOpeningChange={updateSelectedOpening}
               selectedOpeningId={selectedOpeningId}
             />
@@ -2871,6 +3016,56 @@ export default function DesignBuilderPage({
                     {label}
                   </CommandMenuAction>
                 ))}
+              </DesignBuilderCommandMenu>
+
+              <DesignBuilderCommandMenu
+                menuKind="structure"
+                label={<>Structure <span aria-hidden>▾</span></>}
+                panelClassName="w-56"
+                summaryClassName="flex h-9 items-center gap-1 rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-cyan-400/40 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+              >
+                <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400">System Mode</div>
+                <CommandMenuAction
+                  onClick={() => handleSetBuildingSystemMode('cmu_bearing_wall')}
+                  className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                >
+                  CMU Bearing Wall
+                </CommandMenuAction>
+                <CommandMenuAction
+                  onClick={() => handleSetBuildingSystemMode('reinforced_concrete_frame_with_cmu_infill')}
+                  className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                >
+                  RC Frame + CMU Infill
+                </CommandMenuAction>
+                <div className="my-1 border-t border-slate-200 dark:border-slate-700" />
+                <CommandMenuAction
+                  onClick={() => handleAddCornerColumns()}
+                  disabled={!modelLoaded || !footprintClosed}
+                  className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold disabled:opacity-50 text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                >
+                  Add Corner Columns
+                </CommandMenuAction>
+                <CommandMenuAction
+                  onClick={() => handleAutoFrameLayout()}
+                  disabled={!modelLoaded || !footprintClosed}
+                  className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold disabled:opacity-50 text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                >
+                  Auto Frame Layout
+                </CommandMenuAction>
+                <CommandMenuAction
+                  onClick={() => handleAddPerimeterBeams()}
+                  disabled={!modelLoaded || !footprintClosed}
+                  className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold disabled:opacity-50 text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                >
+                  Add Grade / Ring Beams
+                </CommandMenuAction>
+                <CommandMenuAction
+                  onClick={() => handleAddGableEnd()}
+                  disabled={!modelLoaded || !footprintClosed}
+                  className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold disabled:opacity-50 text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                >
+                  Add / Edit Gable End
+                </CommandMenuAction>
               </DesignBuilderCommandMenu>
 
               <DesignBuilderCommandMenu
@@ -3504,7 +3699,11 @@ const OBJECT_TREE_ITEMS: Array<{ id: string; objectType: DesignObjectType; label
   { id: 'grout-rebar', objectType: 'cmu_wall_system', label: 'Grout/Rebar Cells', description: '' },
   { id: 'manual-runs', objectType: 'cmu_wall_system', label: 'Manual Runs', description: '' },
   { id: 'slab', objectType: 'thickened_edge_slab', label: 'Slab', description: '' },
+  { id: 'columns', objectType: 'structural_frame_system', label: 'RC Columns', description: '' },
+  { id: 'beams', objectType: 'structural_frame_system', label: 'RC Beams', description: '' },
+  { id: 'infill-panels', objectType: 'cmu_infill_system', label: 'CMU Infill Panels', description: '' },
   { id: 'roof', objectType: 'gable_roof_system', label: 'Roof', description: '' },
+  { id: 'gable-ends', objectType: 'gable_end_system', label: 'Gable Ends', description: '' },
   { id: 'trusses', objectType: 'steel_truss_system', label: 'Trusses', description: '' },
   { id: 'quantity-summary', objectType: 'cmu_wall_system', label: 'Quantity Summary', description: '' },
   { id: 'estimate-preview', objectType: 'cmu_wall_system', label: 'Estimate Preview', description: '' },
@@ -3524,12 +3723,26 @@ const OBJECT_TREE_GROUPS: Array<{
   {
     id: 'masonry',
     label: 'Masonry',
-    items: OBJECT_TREE_ITEMS.filter((item) => ['cmu', 'openings', 'lintels', 'bond-beams', 'grout-rebar'].includes(item.id)),
+    items: OBJECT_TREE_ITEMS.filter((item) =>
+      ['cmu', 'infill-panels', 'lintels', 'bond-beams', 'grout-rebar', 'manual-runs'].includes(item.id),
+    ),
   },
   {
     id: 'structure',
     label: 'Structure',
-    items: OBJECT_TREE_ITEMS.filter((item) => ['slab', 'roof', 'trusses'].includes(item.id)),
+    items: OBJECT_TREE_ITEMS.filter((item) =>
+      ['columns', 'beams', 'slab'].includes(item.id),
+    ),
+  },
+  {
+    id: 'openings',
+    label: 'Openings',
+    items: OBJECT_TREE_ITEMS.filter((item) => ['openings'].includes(item.id)),
+  },
+  {
+    id: 'roofGable',
+    label: 'Roof / Gable',
+    items: OBJECT_TREE_ITEMS.filter((item) => ['roof', 'gable-ends', 'trusses'].includes(item.id)),
   },
   {
     id: 'estimate',
@@ -3541,6 +3754,7 @@ const OBJECT_TREE_GROUPS: Array<{
 function EditableControls({
   selectedObjectType,
   preset,
+  designGeometryResult,
   unitSystem,
   onUnitSystemChange,
   onFootprintChange,
@@ -3556,11 +3770,14 @@ function EditableControls({
   onSlabChange,
   onRoofChange,
   onTrussSpacingChange,
+  onStructureFieldChange,
+  onGableFieldChange,
   onOpeningChange,
   selectedOpeningId,
 }: {
   selectedObjectType: DesignObjectType | null;
   preset: CmuBuildingPreset;
+  designGeometryResult: ReturnType<typeof generateDesignGeometry>;
   unitSystem: DesignUnitSystem;
   onUnitSystemChange: (unitSystem: DesignUnitSystem) => void;
   onFootprintChange: (field: 'lengthMeters' | 'widthMeters', value: number) => void;
@@ -3579,6 +3796,12 @@ function EditableControls({
   onSlabChange: (field: 'slabThicknessMeters' | 'edgeWidthMeters' | 'edgeDepthMeters', value: number) => void;
   onRoofChange: (field: 'pitchRisePerRun' | 'overhangMeters', value: number) => void;
   onTrussSpacingChange: (value: number) => void;
+  onStructureFieldChange: (
+    patch: Partial<import('../types').StructuralFrameSystemParameters> & {
+      buildingSystemMode?: import('../types').BuildingSystemMode;
+    },
+  ) => void;
+  onGableFieldChange: (gableId: string, patch: Partial<import('../types').GableEndSettings>) => void;
   onOpeningChange: (openingId: string, patch: Partial<WallOpeningParameters>) => void;
   selectedOpeningId: string | null;
 }) {
@@ -3614,7 +3837,11 @@ function EditableControls({
             <NumberField label="Module length" value={cmuModule.moduleLengthMeters} suffix="m" min={0.05} max={2} step={0.01} onChange={(value) => onBlockModuleChange('moduleLengthMeters', value)} />
             <NumberField label="Module height" value={cmuModule.moduleHeightMeters} suffix="m" min={0.05} max={1} step={0.01} onChange={(value) => onBlockModuleChange('moduleHeightMeters', value)} />
             <NumberField label="Nominal depth" value={cmuModule.nominalDepthMeters} suffix="m" min={0.05} max={1} step={0.01} onChange={(value) => onBlockModuleChange('nominalDepthMeters', value)} />
-            <NumberField label="Mortar joint" value={cmuModule.mortarJointMeters} suffix="m" min={0} max={0.05} step={0.001} onChange={(value) => onBlockModuleChange('mortarJointMeters', value)} />
+            <NumberField label="Actual block length" value={cmuModule.actualLengthMeters ?? 0} suffix="m" min={0.05} max={2} step={0.01} onChange={(value) => onBlockModuleChange('actualLengthMeters', value)} />
+            <NumberField label="Actual block height" value={cmuModule.actualHeightMeters ?? 0} suffix="m" min={0.05} max={1} step={0.01} onChange={(value) => onBlockModuleChange('actualHeightMeters', value)} />
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+              Nominal module = actual block + mortar joint ({cmuModule.moduleLengthMeters.toFixed(2)} m × {cmuModule.moduleHeightMeters.toFixed(2)} m).
+            </p>
             <label className="flex items-center justify-between rounded-lg bg-white px-3 py-2 text-sm dark:bg-slate-900">
               <span>Snap building dimensions to CMU module</span>
               <input
@@ -3624,24 +3851,8 @@ function EditableControls({
                 className="h-4 w-4"
               />
             </label>
-            <div className="grid gap-2">
-              {Object.entries(wallModuleFits).map(([face, fit]) => (
-                <div key={face} className="rounded-lg bg-white p-2 text-xs dark:bg-slate-900">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-semibold capitalize">{face} wall</span>
-                    <ModuleFitBadge fit={fit.fit} />
-                  </div>
-                  <div className="mt-1 text-slate-600 dark:text-slate-300">
-                    {fit.lengthMeters.toFixed(2)}m = {formatModuleCount(fit.moduleCount)} modules
-                  </div>
-                  {fit.fit === 'cut' ? (
-                    <div className="mt-1 text-amber-700 dark:text-amber-300">
-                      Suggested clean lengths: {fit.suggestedLengthsMeters.map((value) => `${value.toFixed(2)}m`).join(' or ')}
-                    </div>
-                  ) : null}
-                </div>
-              ))}
-            </div>
+            <NumberField label="Mortar joint" value={cmuModule.mortarJointMeters} suffix="m" min={0} max={0.05} step={0.001} onChange={(value) => onBlockModuleChange('mortarJointMeters', value)} />
+            <ModuleFitReportPanel report={cmuLayout.moduleFitReport} />
             {moduleWarnings.length > 0 ? (
               <div className="space-y-1 rounded-lg border border-amber-200 bg-amber-50 p-2 text-xs text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
                 {moduleWarnings.map((warning) => (
@@ -3749,6 +3960,73 @@ function EditableControls({
         <NumberField label="Pitch rise/run" value={preset.roof.pitchRisePerRun} suffix=":1" step={0.05} onChange={(value) => onRoofChange('pitchRisePerRun', value)} />
         <NumberField label="Overhang" value={preset.roof.overhangMeters} suffix="m" onChange={(value) => onRoofChange('overhangMeters', value)} />
         <SelectField label="Ridge direction" value={preset.roof.ridgeDirection} onChange={() => undefined} options={[{ value: 'length', label: 'Along building length' }]} />
+      </div>
+    );
+  }
+
+  if (selectedObjectType === 'structural_frame_system') {
+    return (
+      <div className="space-y-3">
+        <p className="text-xs text-slate-500 dark:text-slate-400">
+          Conceptual structural frame for estimating only — not structural engineering or code compliance.
+        </p>
+        <SelectField
+          label="Building system mode"
+          value={preset.buildingSystemMode}
+          onChange={(value) => onStructureFieldChange({ buildingSystemMode: value as import('../types').BuildingSystemMode })}
+          options={[
+            { value: 'cmu_bearing_wall', label: 'CMU Bearing Wall' },
+            { value: 'reinforced_concrete_frame_with_cmu_infill', label: 'RC Frame + CMU Infill' },
+          ]}
+        />
+        <NumberField
+          label="Default column width"
+          value={preset.frameSystem.defaultColumnWidthMeters}
+          suffix="m"
+          onChange={(value) => onStructureFieldChange({ defaultColumnWidthMeters: positiveOrFallback(value, 0.35) })}
+        />
+        <NumberField
+          label="Default column depth"
+          value={preset.frameSystem.defaultColumnDepthMeters}
+          suffix="m"
+          onChange={(value) => onStructureFieldChange({ defaultColumnDepthMeters: positiveOrFallback(value, 0.35) })}
+        />
+        <p className="text-sm text-slate-600 dark:text-slate-300">
+          Columns: {preset.frameSystem.columns.length} · Beams: {preset.frameSystem.beams.length}
+        </p>
+      </div>
+    );
+  }
+
+  if (selectedObjectType === 'cmu_infill_system') {
+    return (
+      <div className="space-y-3">
+        <p className="text-sm text-slate-600 dark:text-slate-300">
+          Infill panels: {preset.infillSystem.panels.length}
+        </p>
+        {designGeometryResult.wallCmuLayout.counts ? (
+          <p className="text-xs text-slate-500">
+            Full {designGeometryResult.wallCmuLayout.counts.full} · Half {designGeometryResult.wallCmuLayout.counts.half} · Cut{' '}
+            {designGeometryResult.wallCmuLayout.counts.cut}
+          </p>
+        ) : null}
+      </div>
+    );
+  }
+
+  if (selectedObjectType === 'gable_end_system') {
+    const gable = preset.gableEndSystem.gableEnds[0];
+    return (
+      <div className="space-y-3">
+        {gable ? (
+          <>
+            <NumberField label="Eave elevation" value={gable.eaveElevationMeters} suffix="m" onChange={(value) => onGableFieldChange(gable.id, { eaveElevationMeters: value })} />
+            <NumberField label="Peak rise above eave" value={gable.peakRiseMeters ?? 0} suffix="m" onChange={(value) => onGableFieldChange(gable.id, { peakRiseMeters: value, peakMode: 'rise_above_eave' })} />
+            <NumberField label="Roof-to-masonry clearance" value={gable.roofToMasonryClearanceMeters} suffix="m" onChange={(value) => onGableFieldChange(gable.id, { roofToMasonryClearanceMeters: positiveOrFallback(value, 0.1016) })} />
+          </>
+        ) : (
+          <p className="text-sm text-slate-500">No gable end configured. Use Structure → Add / Edit Gable End.</p>
+        )}
       </div>
     );
   }
@@ -4005,6 +4283,53 @@ function ToggleField({
       <span>{label}</span>
     </label>
   );
+}
+
+function ModuleFitReportPanel({ report }: { report: import('../domain/moduleFitReport').ModuleFitReport }) {
+  const toneClass =
+    report.status === 'fully_modular' || report.status === 'bond_modular'
+      ? 'border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-100'
+      : report.status === 'cut_required' || report.status === 'opening_conflict'
+        ? 'border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100'
+        : 'border-rose-200 bg-rose-50 text-rose-900 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-100';
+  return (
+    <div className={`rounded-lg border p-2 text-xs ${toneClass}`}>
+      <div className="mb-1 flex items-center justify-between gap-2">
+        <span className="font-semibold">Modular fit</span>
+        <ModuleFitStatusBadge status={report.status} />
+      </div>
+      {report.summaryLines.map((line) => (
+        <div key={line}>{line}</div>
+      ))}
+    </div>
+  );
+}
+
+function moduleFitStatusTone(status: import('../types').ModuleFitStatus): 'success' | 'warning' | 'error' | 'info' {
+  if (status === 'fully_modular' || status === 'bond_modular') return 'success';
+  if (status === 'cut_required' || status === 'opening_conflict') return 'warning';
+  if (status === 'unresolved') return 'error';
+  return 'info';
+}
+
+function ModuleFitStatusBadge({ status }: { status: import('../types').ModuleFitStatus }) {
+  const className =
+    status === 'fully_modular' || status === 'bond_modular'
+      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200'
+      : status === 'cut_required' || status === 'opening_conflict'
+        ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200'
+        : 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-200';
+  const label =
+    status === 'fully_modular'
+      ? 'Fully modular'
+      : status === 'bond_modular'
+        ? 'Bond modular'
+        : status === 'cut_required'
+          ? 'Cut required'
+          : status === 'opening_conflict'
+            ? 'Opening conflict'
+            : 'Unresolved';
+  return <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${className}`}>{label}</span>;
 }
 
 function ModuleFitBadge({ fit }: { fit: 'full' | 'half' | 'cut' }) {

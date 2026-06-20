@@ -1203,15 +1203,16 @@ describe('Design Builder generated geometry', () => {
     expect(layout.warnings).toEqual(expect.arrayContaining([expect.stringMatching(/stack bond/i)]));
   });
 
-  it('reports half-module and cut-block wall conditions in generated layout', () => {
+  it('reports placement-based module fit status from generated layouts', () => {
     const preset = createFiveBySixCmuBuildingPreset();
-    const halfFit = generateCmuLayout(preset.wall);
-    const cutFit = generateCmuLayout({ ...preset.wall, widthMeters: 5.13 });
+    const bondFit = generateCmuLayout({ ...preset.wall, openings: [] });
+    const cutFit = generateCmuLayout({ ...preset.wall, widthMeters: 5.13, openings: [] });
 
-    expect(halfFit.moduleFits.east.fit).toBe('half');
-    expect(cutFit.moduleFits.east.fit).toBe('cut');
+    expect(bondFit.moduleFitReport.summary).not.toContain('compatible');
+    expect(bondFit.moduleFitReport.cutUnitCount).toBe(bondFit.counts.cut);
+    expect(cutFit.moduleFitReport.status).toBe('cut_required');
     expect(cutFit.counts.cut).toBeGreaterThan(0);
-    expect(cutFit.warnings.some((warning) => warning.includes('Suggested clean lengths'))).toBe(true);
+    expect(cutFit.moduleFitReport.cutUnitCount).toBeGreaterThan(0);
   });
 
   it('computes conceptual pilasters at corners and openings', () => {

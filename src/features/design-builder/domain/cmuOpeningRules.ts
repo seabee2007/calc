@@ -84,6 +84,8 @@ export function resolveCmuOpening(
     actualHeightMeters,
     opening.roughOpeningHeightMeters ?? actualHeightMeters + allowance * 2,
   );
+  const calculatedRoughOpeningWidthMeters = roughOpeningWidthMeters;
+  const calculatedRoughOpeningHeightMeters = roughOpeningHeightMeters;
   const wallLength = opening.wallFace === 'north' || opening.wallFace === 'south'
     ? params.lengthMeters
     : params.widthMeters;
@@ -127,9 +129,9 @@ export function resolveCmuOpening(
     actualWidthMeters,
     actualHeightMeters,
     actualAreaSquareMeters: actualWidthMeters * actualHeightMeters,
-    roughOpeningWidthMeters,
-    roughOpeningHeightMeters,
-    roughOpeningAreaSquareMeters: roughOpeningWidthMeters * roughOpeningHeightMeters,
+    roughOpeningWidthMeters: calculatedRoughOpeningWidthMeters,
+    roughOpeningHeightMeters: calculatedRoughOpeningHeightMeters,
+    roughOpeningAreaSquareMeters: calculatedRoughOpeningWidthMeters * calculatedRoughOpeningHeightMeters,
     roughStartAlongMeters,
     roughEndAlongMeters: roundMeters(roughEndAlongMeters),
     roughBottomMeters: roundMeters(roughBottomMeters),

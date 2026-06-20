@@ -15,6 +15,12 @@ import {
   type CmuModuleFitResult,
 } from '../domain/cmuModuleRules';
 import {
+  buildModuleFitReportFromPlacements,
+  unresolvedModuleFitReport,
+  type ModuleFitReport,
+} from '../domain/moduleFitReport';
+import { deriveExteriorBounds } from '../domain/wallLayoutRules';
+import {
   blockOverlapsOpeningAssembly,
   buildDerivedOpeningSupports,
   buildLayoutJambGroutFillPlacements,
@@ -56,6 +62,10 @@ import {
   type CmuOpeningGroutSummary,
   type ResolvedCmuOpening,
 } from '../domain/cmuOpeningRules';
+import {
+  defaultFrameSystemsForPreset,
+  generateFrameInfillGeometry,
+} from './structuralFrameGeometry';
 
 export type DesignGeometrySourcePath = 'blank' | 'layout_graph' | 'legacy_preset' | 'manual_masonry';
 
@@ -69,6 +79,10 @@ export interface DesignGeometryInput {
   slab: ThickenedEdgeSlabParameters;
   roof: GableRoofSystemParameters;
   truss: SteelTrussSystemParameters;
+  buildingSystemMode?: import('../types').BuildingSystemMode;
+  frameSystem?: import('../types').StructuralFrameSystemParameters;
+  infillSystem?: import('../types').CmuInfillSystemParameters;
+  gableEndSystem?: import('../types').GableEndSystemParameters;
 }
 
 export interface DesignGeometryWallSegment {
@@ -284,6 +298,12 @@ export interface DesignGeometryResult {
   blockCount: number;
   bondPattern: NonNullable<CmuWallSystemParameters['bondPattern']>;
   wallCmuLayout: CmuLayoutResult;
+  buildingSystemMode?: import('../types').BuildingSystemMode;
+  frameSystem?: import('../types').StructuralFrameSystemParameters;
+  infillSystem?: import('../types').CmuInfillSystemParameters;
+  gableEndSystem?: import('../types').GableEndSystemParameters;
+  structuralConcreteVolumeCubicMeters?: number;
+  gablePlacements?: import('../types').GableCmuPlacement[];
 }
 
 export interface CmuBlockInstance {
@@ -327,6 +347,7 @@ export type CmuUnitPlacement = {
     | 'stretcher'
     | 'corner_block'
     | 'half_block'
+    | 'end_block'
     | 'cut_block'
     | 'jamb_block'
     | 'bond_beam_block';
@@ -471,6 +492,8 @@ export interface CmuLayoutResult {
   totalBlocks: number;
   courseCount: number;
   moduleFits: ReturnType<typeof summarizeWallModuleFits>;
+  moduleFitReport: ModuleFitReport;
+  coursePlans?: CmuCoursePlan[];
   warnings: string[];
   bondBeamLengthMeters: number;
   groutedCellCount: number;
@@ -510,6 +533,10 @@ export function buildDesignGeometryInputFromLayout(params: {
   slabSettings: ThickenedEdgeSlabParameters;
   roofSettings: GableRoofSystemParameters;
   trussSettings: SteelTrussSystemParameters;
+  buildingSystemMode?: import('../types').BuildingSystemMode;
+  frameSystem?: import('../types').StructuralFrameSystemParameters;
+  infillSystem?: import('../types').CmuInfillSystemParameters;
+  gableEndSystem?: import('../types').GableEndSystemParameters;
 }): DesignGeometryInput {
   const hasLayoutGraph = Boolean(params.wallLayout && params.wallLayout.segments.length > 0);
   const hasManualMasonry = Boolean(params.cmuSettings.manualMasonryCourseRuns?.length);
@@ -524,6 +551,10 @@ export function buildDesignGeometryInputFromLayout(params: {
     slab: params.slabSettings,
     roof: params.roofSettings,
     truss: params.trussSettings,
+    buildingSystemMode: params.buildingSystemMode,
+    frameSystem: params.frameSystem,
+    infillSystem: params.infillSystem,
+    gableEndSystem: params.gableEndSystem,
   };
 }
 
@@ -573,7 +604,21 @@ export function generateDesignGeometry(input: DesignGeometryInput): DesignGeomet
       blockCount: wallCmuLayout.totalBlocks,
       bondPattern: wall.bondPattern ?? 'running_bond',
       wallCmuLayout,
+      buildingSystemMode: input.buildingSystemMode ?? 'cmu_bearing_wall',
     };
+  }
+
+  if (input.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill') {
+    const defaults = defaultFrameSystemsForPreset();
+    return generateFrameInfillGeometry({
+      buildingSystemMode: input.buildingSystemMode,
+      wallLayout: input.wallLayout,
+      wall,
+      slab: input.slab,
+      frameSystem: input.frameSystem ?? defaults.frameSystem,
+      infillSystem: input.infillSystem ?? defaults.infillSystem,
+      gableEndSystem: input.gableEndSystem ?? defaults.gableEndSystem,
+    });
   }
 
   const resolvedWallGeometry = resolveWallLayoutGeometry(input.wallLayout, wall);
@@ -848,13 +893,15 @@ export function generateCmuLayoutFromWallLayout(
                 ? 'corner_assembly'
                 : 'wall_run',
           kind:
-            blockType === 'corner' || blockType === 'end'
+            blockType === 'corner'
               ? 'corner_block'
-              : blockType === 'half'
-                ? 'half_block'
-                : blockType === 'cut'
-                  ? 'cut_block'
-                  : 'stretcher',
+              : blockType === 'end'
+                ? 'end_block'
+                : blockType === 'half'
+                  ? 'half_block'
+                  : blockType === 'cut'
+                    ? 'cut_block'
+                    : 'stretcher',
           startStationMeters: placementStartAlongMeters,
           endStationMeters: placementEndAlongMeters,
           terminalClosure,
@@ -1097,6 +1144,29 @@ export function generateCmuLayoutFromWallLayout(
     groutWastePercent: params.groutWastePercent ?? 0.1,
     warnings: buildOpeningAssemblyWarnings(params, roughOpenings, groutFillPlacements),
   };
+  const footprintBounds = deriveExteriorBounds(layout);
+  const moduleFitReport = footprintBounds
+    ? buildModuleFitReportFromPlacements({
+        placements: unitPlacements,
+        requestedFootprint: {
+          lengthMeters: footprintBounds.exteriorLengthMeters,
+          widthMeters: footprintBounds.exteriorWidthMeters,
+        },
+        resolvedFootprint: {
+          lengthMeters: footprintBounds.exteriorLengthMeters,
+          widthMeters: footprintBounds.exteriorWidthMeters,
+        },
+        coursePlans,
+        layout,
+        dimensionBasis: layout.dimensionBasis,
+        hasLayoutError: !clockwisePerimeter,
+      })
+    : unresolvedModuleFitReport({
+        requestedFootprint: {
+          lengthMeters: params.lengthMeters,
+          widthMeters: params.widthMeters,
+        },
+      });
   return {
     blocks,
     unitPlacements,
@@ -1119,11 +1189,13 @@ export function generateCmuLayoutFromWallLayout(
     totalBlocks: Object.values(counts).reduce((sum, value) => sum + value, 0),
     courseCount,
     moduleFits: summarizeWallModuleFits(params),
+    moduleFitReport,
     warnings: [...new Set([...warnings, ...openingGrout.warnings])],
     bondBeamLengthMeters: params.bondBeamEnabled ? wallLengthTotal : 0,
     groutedCellCount: Math.ceil(wallLengthTotal / Math.max(0.1, params.groutedCellSpacingMeters ?? 1.2)),
     segmentFrames,
     cornerAssemblies,
+    coursePlans,
   };
 }
 
@@ -2155,6 +2227,16 @@ export function generateCmuLayout(params: CmuWallSystemParameters): CmuLayoutRes
           courseIndex: course,
           moduleIndex: column,
           unitType: placementUnitFromBlockType(blockType),
+          kind:
+            blockType === 'corner'
+              ? 'corner_block'
+              : blockType === 'end'
+                ? 'end_block'
+                : blockType === 'half'
+                  ? 'half_block'
+                  : blockType === 'cut'
+                    ? 'cut_block'
+                    : 'stretcher',
           nominalLengthMeters: openingTrimApplied ? placementLengthMeters : unit.nominalLengthMeters,
           actualLengthMeters: placementLengthMeters,
           heightMeters: actualHeight,
@@ -2271,6 +2353,18 @@ export function generateCmuLayout(params: CmuWallSystemParameters): CmuLayoutRes
     ...moduleFitWarnings(moduleFits),
     ...(params.bondPattern === 'stack_bond' ? ['Stack bond may require reinforcement/design review.'] : []),
   ];
+  const moduleFitReport = buildModuleFitReportFromPlacements({
+    placements: unitPlacements,
+    requestedFootprint: {
+      lengthMeters: params.lengthMeters,
+      widthMeters: params.widthMeters,
+    },
+    resolvedFootprint: {
+      lengthMeters: params.lengthMeters,
+      widthMeters: params.widthMeters,
+    },
+    hasLayoutError: params.lengthMeters <= 0 || params.widthMeters <= 0,
+  });
 
   return {
     blocks,
@@ -2288,6 +2382,7 @@ export function generateCmuLayout(params: CmuWallSystemParameters): CmuLayoutRes
     totalBlocks: Object.values(counts).reduce((sum, value) => sum + value, 0),
     courseCount,
     moduleFits,
+    moduleFitReport,
     warnings,
     bondBeamLengthMeters: params.bondBeamEnabled ? 2 * (params.lengthMeters + params.widthMeters) : 0,
     groutedCellCount: Math.ceil((2 * (params.lengthMeters + params.widthMeters)) / Math.max(0.1, params.groutedCellSpacingMeters ?? 1.2)),
@@ -2336,9 +2431,19 @@ export interface DesignGeometrySummary {
   truss: SteelTrussSystemParameters;
 }
 
-function emptyCmuLayout(params?: CmuWallSystemParameters): CmuLayoutResult {
+export function emptyCmuLayout(params?: CmuWallSystemParameters): CmuLayoutResult {
   const roughOpenings = params ? resolveCmuOpenings(params) : [];
   const openingGrout = params ? calculateCmuOpeningGroutSummary(params) : emptyOpeningGroutSummary();
+  const moduleFitReport = params
+    ? unresolvedModuleFitReport({
+        requestedFootprint: {
+          lengthMeters: params.lengthMeters,
+          widthMeters: params.widthMeters,
+        },
+      })
+    : unresolvedModuleFitReport({
+        requestedFootprint: { lengthMeters: 0, widthMeters: 0 },
+      });
   return {
     blocks: [],
     unitPlacements: [],
@@ -2360,6 +2465,7 @@ function emptyCmuLayout(params?: CmuWallSystemParameters): CmuLayoutResult {
       east: analyzeCmuModuleFit(0, 0.4),
       west: analyzeCmuModuleFit(0, 0.4),
     },
+    moduleFitReport,
     warnings: [],
     bondBeamLengthMeters: 0,
     groutedCellCount: 0,
@@ -2886,9 +2992,8 @@ function placementKindForCourseUnit(unit: CmuCourseUnit, plan: CmuSegmentCourseP
   if (unit.unitType === 'half') return 'half_block';
   const isFirst = plan.units[0] === unit;
   const isLast = plan.units[plan.units.length - 1] === unit;
-  if ((isFirst && (plan.ownerAtStart || plan.buttingAtStart)) || (isLast && (plan.ownerAtEnd || plan.buttingAtEnd))) {
-    return 'corner_block';
-  }
+  if ((isFirst && plan.ownerAtStart) || (isLast && plan.ownerAtEnd)) return 'corner_block';
+  if ((isFirst && plan.buttingAtStart) || (isLast && plan.buttingAtEnd)) return 'end_block';
   return 'stretcher';
 }
 
