@@ -80,6 +80,8 @@ import {
   defaultFrameSystemsForPreset,
   generateFrameInfillGeometry,
 } from './structuralFrameGeometry';
+import { createDefaultFoundationSettings } from '../domain/foundationElevations';
+import { createDefaultRoofSystemSettings, normalizeRoofSystemSettings } from '../domain/roofSystemDefaults';
 
 export type DesignGeometrySourcePath = 'blank' | 'layout_graph' | 'legacy_preset' | 'manual_masonry';
 
@@ -95,8 +97,10 @@ export interface DesignGeometryInput {
   truss: SteelTrussSystemParameters;
   buildingSystemMode?: import('../types').BuildingSystemMode;
   frameSystem?: import('../types').StructuralFrameSystemParameters;
+  foundationSettings?: import('../types').StructuralFoundationSettings;
   infillSystem?: import('../types').CmuInfillSystemParameters;
   gableEndSystem?: import('../types').GableEndSystemParameters;
+  roofSystem?: import('../types').RoofSystemSettings;
 }
 
 export interface DesignGeometryWallSegment {
@@ -265,6 +269,7 @@ export interface DesignGeometryBlockInstance {
   nominalLengthMeters?: number;
   actualLengthMeters?: number;
   heightMeters?: number;
+  physicalHeightMeters?: number;
   depthMeters?: number;
   source?: CmuUnitPlacement['source'];
   terminalClosure?: TerminalClosureUnit;
@@ -314,10 +319,16 @@ export interface DesignGeometryResult {
   wallCmuLayout: CmuLayoutResult;
   buildingSystemMode?: import('../types').BuildingSystemMode;
   frameSystem?: import('../types').StructuralFrameSystemParameters;
+  foundationSettings?: import('../types').StructuralFoundationSettings;
+  isolatedFootings?: import('../types').IsolatedFooting[];
   infillSystem?: import('../types').CmuInfillSystemParameters;
   gableEndSystem?: import('../types').GableEndSystemParameters;
   structuralConcreteVolumeCubicMeters?: number;
+  structuralConcreteVolumeBreakdown?: import('./structuralFrameGeometry').StructuralConcreteVolumeBreakdown;
   gablePlacements?: import('../types').GableCmuPlacement[];
+  rakedCapPlacements?: import('../types').RakedCapPlacement[];
+  resolvedRoofSystem?: import('../types').ResolvedRoofSystem | null;
+  resolvedInfillPanelBounds?: import('../domain/infillPanelBoundsResolver').ResolvedInfillPanelBounds[];
 }
 
 export interface CmuBlockInstance {
@@ -335,6 +346,7 @@ export interface CmuBlockInstance {
   nominalLengthMeters?: number;
   actualLengthMeters?: number;
   heightMeters?: number;
+  physicalHeightMeters?: number;
   depthMeters?: number;
   source?: CmuUnitPlacement['source'];
   terminalClosure?: TerminalClosureUnit;
@@ -364,6 +376,7 @@ export type CmuUnitPlacement = {
     | 'half_block'
     | 'end_block'
     | 'cut_block'
+    | 'cut_height_block'
     | 'jamb_block'
     | 'bond_beam_block';
   startStationMeters?: number;
@@ -371,6 +384,7 @@ export type CmuUnitPlacement = {
   nominalLengthMeters: number;
   actualLengthMeters: number;
   heightMeters: number;
+  physicalHeightMeters?: number;
   depthMeters: number;
   center: { x: number; y: number; z: number };
   rotationY: number;
@@ -384,7 +398,9 @@ export type CmuUnitPlacement = {
     | 'manual_override'
     | 'opening_assembly_solver'
     | 'opening_jamb_closure'
-    | 'lintel_closure';
+    | 'lintel_closure'
+    | 'infill_panel_solver'
+    | 'panel_top_closure';
   openingId?: string;
   adjacentTo?: 'rough_opening_start' | 'rough_opening_end';
   terminalClosure?: TerminalClosureUnit;
@@ -515,6 +531,7 @@ export interface CmuLayoutResult {
   moduleFitReport: ModuleFitReport;
   coursePlans?: CmuCoursePlan[];
   warnings: string[];
+  topClosureCutBlockCount?: number;
   bondBeamLengthMeters: number;
   groutedCellCount: number;
   segmentFrames?: SegmentFrame[];
@@ -555,8 +572,10 @@ export function buildDesignGeometryInputFromLayout(params: {
   trussSettings: SteelTrussSystemParameters;
   buildingSystemMode?: import('../types').BuildingSystemMode;
   frameSystem?: import('../types').StructuralFrameSystemParameters;
+  foundationSettings?: import('../types').StructuralFoundationSettings;
   infillSystem?: import('../types').CmuInfillSystemParameters;
   gableEndSystem?: import('../types').GableEndSystemParameters;
+  roofSystem?: import('../types').RoofSystemSettings;
 }): DesignGeometryInput {
   const hasLayoutGraph = Boolean(params.wallLayout && params.wallLayout.segments.length > 0);
   const hasManualMasonry = Boolean(params.cmuSettings.manualMasonryCourseRuns?.length);
@@ -573,8 +592,10 @@ export function buildDesignGeometryInputFromLayout(params: {
     truss: params.trussSettings,
     buildingSystemMode: params.buildingSystemMode,
     frameSystem: params.frameSystem,
+    foundationSettings: params.foundationSettings,
     infillSystem: params.infillSystem,
     gableEndSystem: params.gableEndSystem,
+    roofSystem: params.roofSystem,
   };
 }
 
@@ -636,6 +657,8 @@ export function generateDesignGeometry(input: DesignGeometryInput): DesignGeomet
       wall,
       slab: input.slab,
       frameSystem: input.frameSystem ?? defaults.frameSystem,
+      foundationSettings: input.foundationSettings ?? createDefaultFoundationSettings(),
+      roofSystem: normalizeRoofSystemSettings(input.roofSystem ?? createDefaultRoofSystemSettings()),
       infillSystem: input.infillSystem ?? defaults.infillSystem,
       gableEndSystem: input.gableEndSystem ?? defaults.gableEndSystem,
     });
@@ -3156,6 +3179,7 @@ export function createCmuBlockPlacement(params: {
   nominalLengthMeters: number;
   actualLengthMeters: number;
   heightMeters: number;
+  physicalHeightMeters?: number;
   depthMeters: number;
   wallStart: { x: number; z: number };
   tangent: { x: number; z: number };

@@ -27,6 +27,7 @@ export interface DesignBuilderViewerSizeState {
 }
 
 export type ObjectTreeExpansionState = {
+  foundation: boolean;
   layout: boolean;
   masonry: boolean;
   structure: boolean;
@@ -36,6 +37,7 @@ export type ObjectTreeExpansionState = {
 };
 
 export const DEFAULT_OBJECT_TREE_EXPANSION: ObjectTreeExpansionState = {
+  foundation: false,
   layout: false,
   masonry: false,
   structure: false,

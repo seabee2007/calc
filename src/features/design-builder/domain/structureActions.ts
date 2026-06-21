@@ -1,14 +1,24 @@
-import type { CmuBuildingPreset } from './designBuilderPreset';
+import type {
+  CmuBuildingPreset,
+} from './designBuilderPreset';
 import type { DesignWallLayoutParameters } from '../types';
 import {
   autoFrameLayout,
   createCornerColumnsForLayout,
   createPerimeterBeamsForLayout,
+  reconcileStructuralFrameWithFoundation,
 } from './structuralFrameLayout';
+import { createDefaultFoundationSettings } from './foundationElevations';
 import { deriveInfillPanelsForLayout } from './cmuInfillPanelSolver';
 import { createDefaultGableEnd } from '../geometry/structuralFrameGeometry';
 import { getSegmentFramesForWallLayout } from '../geometry/designGeometry';
-import type { BuildingSystemMode } from '../types';
+import type { BuildingSystemMode, RcFrameFoundationSettings, RoofSystemSettings } from '../types';
+import { normalizeRcFrameFoundationSettings } from './rcFrameFoundationMigration';
+import { normalizeRoofSystemSettings } from './roofSystemDefaults';
+
+export function resolveFoundationSettings(preset: CmuBuildingPreset): RcFrameFoundationSettings {
+  return normalizeRcFrameFoundationSettings(preset.foundationSettings);
+}
 
 export function setBuildingSystemMode(
   preset: CmuBuildingPreset,
@@ -26,15 +36,19 @@ export function setBuildingSystemMode(
 
 export function applyCornerColumns(preset: CmuBuildingPreset): CmuBuildingPreset {
   const segmentFrames = getSegmentFramesForWallLayout(preset.wallLayout, preset.wall);
+  const foundation = resolveFoundationSettings(preset);
+  const wallHeightMeters = preset.wallLayout.defaultWallHeightMeters || preset.wall.heightMeters;
   const columns = createCornerColumnsForLayout({
     layout: preset.wallLayout,
     segmentFrames,
     frameSystem: preset.frameSystem,
-    wallHeightMeters: preset.wallLayout.defaultWallHeightMeters || preset.wall.heightMeters,
+    wallHeightMeters,
+    foundation,
   });
   return {
     ...preset,
     buildingSystemMode: 'reinforced_concrete_frame_with_cmu_infill',
+    foundationSettings: foundation,
     frameSystem: {
       ...preset.frameSystem,
       buildingSystemMode: 'reinforced_concrete_frame_with_cmu_infill',
@@ -45,10 +59,12 @@ export function applyCornerColumns(preset: CmuBuildingPreset): CmuBuildingPreset
 
 export function applyAutoFrameLayout(preset: CmuBuildingPreset): CmuBuildingPreset {
   const segmentFrames = getSegmentFramesForWallLayout(preset.wallLayout, preset.wall);
-  const frameSystem = autoFrameLayout({
+  const foundation = resolveFoundationSettings(preset);
+  const { frameSystem } = autoFrameLayout({
     layout: preset.wallLayout,
     segmentFrames,
     frameSystem: preset.frameSystem,
+    foundation,
   });
   const panels = deriveInfillPanelsForLayout({
     layout: preset.wallLayout,
@@ -60,6 +76,7 @@ export function applyAutoFrameLayout(preset: CmuBuildingPreset): CmuBuildingPres
   return {
     ...preset,
     buildingSystemMode: 'reinforced_concrete_frame_with_cmu_infill',
+    foundationSettings: foundation,
     frameSystem,
     infillSystem: { kind: 'cmu_infill_system', panels },
   };
@@ -67,6 +84,8 @@ export function applyAutoFrameLayout(preset: CmuBuildingPreset): CmuBuildingPres
 
 export function applyPerimeterBeams(preset: CmuBuildingPreset): CmuBuildingPreset {
   const segmentFrames = getSegmentFramesForWallLayout(preset.wallLayout, preset.wall);
+  const foundation = resolveFoundationSettings(preset);
+  const wallHeightMeters = preset.wallLayout.defaultWallHeightMeters || preset.wall.heightMeters;
   const columns =
     preset.frameSystem.columns.length > 0
       ? preset.frameSystem.columns
@@ -74,16 +93,19 @@ export function applyPerimeterBeams(preset: CmuBuildingPreset): CmuBuildingPrese
           layout: preset.wallLayout,
           segmentFrames,
           frameSystem: preset.frameSystem,
-          wallHeightMeters: preset.wallLayout.defaultWallHeightMeters || preset.wall.heightMeters,
+          wallHeightMeters,
+          foundation,
         });
   const beams = createPerimeterBeamsForLayout({
     layout: preset.wallLayout,
     columns,
     frameSystem: preset.frameSystem,
-    ringBeamTopMeters: preset.wallLayout.defaultWallHeightMeters || preset.wall.heightMeters,
+    foundation,
+    wallHeightMeters,
   });
   return {
     ...preset,
+    foundationSettings: foundation,
     frameSystem: {
       ...preset.frameSystem,
       columns,
@@ -110,4 +132,93 @@ export function addGableEndToPreset(
 
 export function objectSaveKey(objectType: string, parameters?: { kind?: string } | null): string {
   return `${objectType}:${parameters?.kind ?? ''}`;
+}
+
+export type FrameFoundationDimensionsApplyPayload = {
+  foundation: RcFrameFoundationSettings;
+  roofSystem: RoofSystemSettings;
+  autoGenerateFrameLayout: boolean;
+};
+
+export function previewFrameLayoutCounts(params: {
+  preset: CmuBuildingPreset;
+  foundation: RcFrameFoundationSettings;
+  autoGenerateFrameLayout: boolean;
+}): { columnCount: number; frameSegmentCount: number } {
+  const foundation = normalizeRcFrameFoundationSettings(params.foundation);
+  const wallHeightMeters = params.preset.wallLayout.defaultWallHeightMeters || params.preset.wall.heightMeters;
+  const segmentFrames = getSegmentFramesForWallLayout(params.preset.wallLayout, params.preset.wall);
+  const frameSystem =
+    params.autoGenerateFrameLayout && params.foundation.columns.placementMode !== 'manual'
+      ? {
+          ...params.preset.frameSystem,
+          columns: [],
+          beams: [],
+        }
+      : params.preset.frameSystem;
+  const { frameSystem: resolved } = reconcileStructuralFrameWithFoundation({
+    layout: params.preset.wallLayout,
+    segmentFrames,
+    frameSystem,
+    foundation,
+    wallHeightMeters,
+  });
+  return {
+    columnCount: resolved.columns.length,
+    frameSegmentCount: resolved.beams.length,
+  };
+}
+
+export function applyFrameFoundationDimensions(
+  preset: CmuBuildingPreset,
+  payload: FrameFoundationDimensionsApplyPayload,
+): CmuBuildingPreset {
+  const foundation = normalizeRcFrameFoundationSettings(payload.foundation);
+  let next: CmuBuildingPreset = {
+    ...preset,
+    buildingSystemMode: 'reinforced_concrete_frame_with_cmu_infill',
+    foundationSettings: foundation,
+    roofSystem: normalizeRoofSystemSettings(payload.roofSystem),
+    frameSystem: {
+      ...preset.frameSystem,
+      buildingSystemMode: 'reinforced_concrete_frame_with_cmu_infill',
+    },
+  };
+
+  if (payload.autoGenerateFrameLayout) {
+    if (payload.foundation.columns.placementMode !== 'manual') {
+      next = {
+        ...next,
+        frameSystem: {
+          ...next.frameSystem,
+          columns: [],
+          beams: [],
+        },
+      };
+    }
+    next = applyAutoFrameLayout(next);
+    return next;
+  }
+
+  const segmentFrames = getSegmentFramesForWallLayout(next.wallLayout, next.wall);
+  const wallHeightMeters = next.wallLayout.defaultWallHeightMeters || next.wall.heightMeters;
+  const { frameSystem } = reconcileStructuralFrameWithFoundation({
+    layout: next.wallLayout,
+    segmentFrames,
+    frameSystem: next.frameSystem,
+    foundation,
+    wallHeightMeters,
+  });
+  const panels = deriveInfillPanelsForLayout({
+    layout: next.wallLayout,
+    segmentFrames,
+    columns: frameSystem.columns,
+    beams: frameSystem.beams,
+    wall: next.wall,
+  });
+  return {
+    ...next,
+    frameSystem,
+    infillSystem: { kind: 'cmu_infill_system', panels },
+  };
 }

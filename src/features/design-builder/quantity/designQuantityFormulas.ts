@@ -11,6 +11,7 @@ import {
   collectLintelClosureCutBlockMetadata,
   countLintelClosureCutBlocks,
 } from '../domain/lintelCourseClosureSolver';
+import { createDefaultRoofSystemSettings, normalizeRoofSystemSettings } from '../domain/roofSystemDefaults';
 import {
   OPENING_GROUT_CONCEPTUAL_WARNING,
   calculateCmuOpeningGroutSummary,
@@ -637,54 +638,230 @@ export interface FrameInfillQuantityInput extends CmuBuildingQuantityInput {
   infillSystem: import('../types').CmuInfillSystemParameters;
   gableEndSystem: import('../types').GableEndSystemParameters;
   geometryResult: import('../geometry/designGeometry').DesignGeometryResult;
+  roofSystem?: import('../types').RoofSystemSettings;
 }
 
 export function buildFrameInfillEstimatePreview(input: FrameInfillQuantityInput): DesignEstimatePreviewLine[] {
-  const base = buildCmuBuildingEstimatePreview(input);
+  const resolvedRoof = input.geometryResult.resolvedRoofSystem;
+  const base = buildCmuBuildingEstimatePreview(input).filter(
+    (line) => !(resolvedRoof?.supported && line.id === 'steel-trusses'),
+  );
+  const breakdown = input.geometryResult.structuralConcreteVolumeBreakdown;
   const structuralVolume = input.geometryResult.structuralConcreteVolumeCubicMeters ?? 0;
   const counts = input.geometryResult.wallCmuLayout.counts;
+  const topClosureCutBlockCount = input.geometryResult.wallCmuLayout.topClosureCutBlockCount ?? 0;
+  const infillBlockCount = counts.full + counts.half + counts.cut;
   const gableCutCount =
     input.geometryResult.gablePlacements?.filter((p) => p.kind === 'cut_block').length ?? 0;
+  const roofSettings = normalizeRoofSystemSettings(input.roofSystem);
+  const roofGablePlacements =
+    resolvedRoof?.gableEnds.flatMap((gableEnd) => gableEnd.cmuUnitPlacements) ?? [];
+  const roofGableCutCount = roofGablePlacements.filter((placement) => placement.kind === 'cut_block').length;
+  const roofGableBlockCount = roofGablePlacements.length;
+  const rakedCapVolumeCubicMeters = resolvedRoof?.rakedCapVolumeCubicMeters ?? 0;
   const metaBase = {
     buildingSystemMode: input.buildingSystemMode,
     quantityFormula: 'parametric_design_builder',
   };
+  const columnVolumeCubicMeters =
+    (breakdown?.columnBelowPlinthVolumeCubicMeters ??
+      breakdown?.columnBelowGradeVolumeCubicMeters ??
+      0) +
+    (breakdown?.columnAbovePlinthVolumeCubicMeters ??
+      breakdown?.columnAboveGradeVolumeCubicMeters ??
+      0);
+
+  const plinthBeamVolume =
+    breakdown?.plinthBeamVolumeCubicMeters ?? breakdown?.gradeBeamVolumeCubicMeters ?? 0;
+  const roofBeamVolume =
+    breakdown?.roofBeamVolumeCubicMeters ?? breakdown?.ringBeamVolumeCubicMeters ?? 0;
+  const tieBeamVolume = breakdown?.tieBeamVolumeCubicMeters ?? 0;
+
+  const structuralLines: DesignEstimatePreviewLine[] = breakdown
+    ? [
+        {
+          id: 'rc-roof-beams-volume',
+          designModelId: input.designModelId,
+          designObjectId: input.frameObjectId,
+          quantityType: 'rc_roof_beams_volume',
+          description: 'RC Roof Beams',
+          quantity: roundQuantity(cubicMetersToCubicYards(roofBeamVolume), 2),
+          unit: 'CY',
+          formula: 'sum(roof_beam span * width * depth)',
+          parameterSnapshot: {
+            beams: input.frameSystem.beams.filter(
+              (beam) => beam.kind === 'roof_beam' || beam.kind === 'ring_beam',
+            ),
+            structuralObjectId: input.frameObjectId,
+            ...metaBase,
+          },
+          source: 'parametric_design_builder',
+          confidence: 'calculated_from_parameters',
+          divisionCode: '03',
+          divisionName: 'Concrete',
+        },
+        {
+          id: 'rc-plinth-beams-volume',
+          designModelId: input.designModelId,
+          designObjectId: input.frameObjectId,
+          quantityType: 'rc_plinth_beams_volume',
+          description: 'RC Plinth Beams',
+          quantity: roundQuantity(cubicMetersToCubicYards(plinthBeamVolume), 2),
+          unit: 'CY',
+          formula: 'sum(plinth_beam span * width * depth)',
+          parameterSnapshot: {
+            beams: input.frameSystem.beams.filter(
+              (beam) => beam.kind === 'plinth_beam' || beam.kind === 'grade_beam',
+            ),
+            structuralObjectId: input.frameObjectId,
+            ...metaBase,
+          },
+          source: 'parametric_design_builder',
+          confidence: 'calculated_from_parameters',
+          divisionCode: '03',
+          divisionName: 'Concrete',
+        },
+        {
+          id: 'rc-tie-beams-volume',
+          designModelId: input.designModelId,
+          designObjectId: input.frameObjectId,
+          quantityType: 'rc_tie_beams_volume',
+          description: 'RC Tie Beams',
+          quantity: roundQuantity(cubicMetersToCubicYards(tieBeamVolume), 2),
+          unit: 'CY',
+          formula: 'sum(tie_beam span * width * depth)',
+          parameterSnapshot: {
+            beams: input.frameSystem.beams.filter((beam) => beam.kind === 'tie_beam'),
+            structuralObjectId: input.frameObjectId,
+            ...metaBase,
+          },
+          source: 'parametric_design_builder',
+          confidence: 'calculated_from_parameters',
+          divisionCode: '03',
+          divisionName: 'Concrete',
+        },
+        {
+          id: 'rc-columns-volume',
+          designModelId: input.designModelId,
+          designObjectId: input.frameObjectId,
+          quantityType: 'rc_columns_volume',
+          description: 'RC Columns',
+          quantity: roundQuantity(cubicMetersToCubicYards(columnVolumeCubicMeters), 2),
+          unit: 'CY',
+          formula: 'column below plinth + column in CMU zone (beam intersections excluded)',
+          parameterSnapshot: {
+            columns: input.frameSystem.columns,
+            columnBelowPlinthVolumeCubicMeters:
+              breakdown.columnBelowPlinthVolumeCubicMeters ?? breakdown.columnBelowGradeVolumeCubicMeters,
+            columnAbovePlinthVolumeCubicMeters:
+              breakdown.columnAbovePlinthVolumeCubicMeters ?? breakdown.columnAboveGradeVolumeCubicMeters,
+            structuralObjectId: input.frameObjectId,
+            ...metaBase,
+          },
+          source: 'parametric_design_builder',
+          confidence: 'calculated_from_parameters',
+          divisionCode: '03',
+          divisionName: 'Concrete',
+        },
+        {
+          id: 'isolated-footings-volume',
+          designModelId: input.designModelId,
+          designObjectId: input.frameObjectId,
+          quantityType: 'isolated_footings_volume',
+          description: 'Isolated Footings',
+          quantity: roundQuantity(cubicMetersToCubicYards(breakdown.footingVolumeCubicMeters), 2),
+          unit: 'CY',
+          formula: 'footing width * length * thickness per column',
+          parameterSnapshot: {
+            footings: input.geometryResult.isolatedFootings ?? [],
+            structuralObjectId: input.frameObjectId,
+            ...metaBase,
+          },
+          source: 'parametric_design_builder',
+          confidence: 'calculated_from_parameters',
+          divisionCode: '03',
+          divisionName: 'Concrete',
+        },
+        {
+          id: 'rc-structural-total-volume',
+          designModelId: input.designModelId,
+          designObjectId: input.frameObjectId,
+          quantityType: 'rc_structural_concrete_volume',
+          description: 'RC structural concrete total (deduplicated)',
+          quantity: roundQuantity(cubicMetersToCubicYards(structuralVolume), 2),
+          unit: 'CY',
+          formula: 'roof + plinth + tie + columns + footings minus beam/column intersections',
+          parameterSnapshot: {
+            breakdown,
+            structuralObjectId: input.frameObjectId,
+            ...metaBase,
+          },
+          source: 'parametric_design_builder',
+          confidence: 'calculated_from_parameters',
+          divisionCode: '03',
+          divisionName: 'Concrete',
+        },
+      ]
+    : [
+        {
+          id: 'rc-beams-volume',
+          designModelId: input.designModelId,
+          designObjectId: input.frameObjectId,
+          quantityType: 'rc_structural_concrete_volume',
+          description: 'RC structural concrete volume (deduplicated beam/column intersections)',
+          quantity: roundQuantity(cubicMetersToCubicYards(structuralVolume), 2),
+          unit: 'CY',
+          formula: 'unionVolume(columns, beams) with intersection subtraction',
+          parameterSnapshot: {
+            beams: input.frameSystem.beams,
+            columns: input.frameSystem.columns,
+            structuralConcreteVolumeCubicMeters: structuralVolume,
+            structuralObjectId: input.frameObjectId,
+            ...metaBase,
+          },
+          source: 'parametric_design_builder',
+          confidence: 'calculated_from_parameters',
+          divisionCode: '03',
+          divisionName: 'Concrete',
+        },
+      ];
 
   return [
     ...base,
-    {
-      id: 'rc-beams-volume',
-      designModelId: input.designModelId,
-      designObjectId: input.frameObjectId,
-      quantityType: 'rc_structural_concrete_volume',
-      description: 'RC structural concrete volume (deduplicated beam/column intersections)',
-      quantity: roundQuantity(cubicMetersToCubicYards(structuralVolume), 2),
-      unit: 'CY',
-      formula: 'unionVolume(columns, beams) with intersection subtraction',
-      parameterSnapshot: {
-        beams: input.frameSystem.beams,
-        columns: input.frameSystem.columns,
-        structuralConcreteVolumeCubicMeters: structuralVolume,
-        structuralObjectId: input.frameObjectId,
-        ...metaBase,
-      },
-      source: 'parametric_design_builder',
-      confidence: 'calculated_from_parameters',
-      divisionCode: '03',
-      divisionName: 'Concrete',
-    },
+    ...structuralLines,
     {
       id: 'cmu-infill-blocks',
       designModelId: input.designModelId,
       designObjectId: input.infillObjectId,
       quantityType: 'cmu_infill_blocks',
-      description: 'CMU infill full / half / cut blocks',
-      quantity: counts.full + counts.half + counts.cut,
+      description: 'CMU Infill Panels',
+      quantity: infillBlockCount,
       unit: 'EA',
       formula: 'solved_infill_panel_blocks',
       parameterSnapshot: {
         panels: input.infillSystem.panels,
         blockBreakdown: counts,
+        topClosureCutBlockCount,
+        infillPanelId: input.infillObjectId,
+        ...metaBase,
+      },
+      source: 'parametric_design_builder',
+      confidence: 'calculated_from_parameters',
+      divisionCode: '04',
+      divisionName: 'Masonry',
+    },
+    {
+      id: 'cmu-top-closure-cut-course',
+      designModelId: input.designModelId,
+      designObjectId: input.infillObjectId,
+      quantityType: 'cmu_top_closure_cut_course',
+      description: 'CMU Top Closure Courses',
+      quantity: topClosureCutBlockCount,
+      unit: 'EA',
+      formula: 'panel_top_closure cut_height_block count',
+      parameterSnapshot: {
+        panels: input.infillSystem.panels,
+        topClosureCutBlockCount,
         infillPanelId: input.infillObjectId,
         ...metaBase,
       },
@@ -712,6 +889,296 @@ export function buildFrameInfillEstimatePreview(input: FrameInfillQuantityInput)
       divisionCode: '04',
       divisionName: 'Masonry',
     },
+    ...(resolvedRoof?.supported
+      ? [
+          {
+            id: 'roof-surface-area',
+            designModelId: input.designModelId,
+            designObjectId: input.roofObjectId,
+            quantityType: 'roof_surface_area',
+            description: 'Roof Surface Area',
+            quantity: roundQuantity(squareMetersToSquareFeet(resolvedRoof.roofSurfaceAreaSquareMeters), 2),
+            unit: 'SF',
+            formula: 'sum(resolved_roof_plane_areas)',
+            parameterSnapshot: {
+              roofType: resolvedRoof.roofType,
+              roofSurfaceAreaSquareMeters: resolvedRoof.roofSurfaceAreaSquareMeters,
+              roofObjectId: input.roofObjectId,
+              ...metaBase,
+            },
+            source: 'parametric_design_builder',
+            confidence: 'calculated_from_parameters',
+            divisionCode: '07',
+            divisionName: 'Thermal & Moisture Protection',
+          },
+          {
+            id: 'roof-framing-reference-length',
+            designModelId: input.designModelId,
+            designObjectId: input.roofObjectId,
+            quantityType: 'roof_framing_reference_length',
+            description: 'Rafter / Truss Reference Length',
+            quantity: roundQuantity(metersToFeet(resolvedRoof.roofMemberReferenceLengthMeters), 2),
+            unit: 'LF',
+            formula: 'hypot(roof_run, roof_rise)',
+            parameterSnapshot: {
+              roofRunMeters: resolvedRoof.roofRunMeters,
+              roofRiseMeters: resolvedRoof.roofRiseMeters,
+              roofMemberReferenceLengthMeters: resolvedRoof.roofMemberReferenceLengthMeters,
+              roofObjectId: input.roofObjectId,
+              ...metaBase,
+            },
+            source: 'parametric_design_builder',
+            confidence: 'calculated_from_parameters',
+            divisionCode: '06',
+            divisionName: 'Wood, Plastics & Composites',
+          },
+          ...(resolvedRoof.roofType === 'gable' && roofSettings.steelTrusses.enabled
+            ? [
+                {
+                  id: 'steel-roof-trusses',
+                  designModelId: input.designModelId,
+                  designObjectId: input.trussObjectId,
+                  quantityType: 'steel_roof_truss_count',
+                  description: 'Steel Roof Trusses',
+                  quantity: resolvedRoof.trussCount,
+                  unit: 'EA',
+                  formula: 'max(2, ceil(building_length / max_spacing) + 1)',
+                  parameterSnapshot: {
+                    trussCount: resolvedRoof.trussCount,
+                    actualTrussSpacingMeters: resolvedRoof.actualTrussSpacingMeters,
+                    trussObjectId: input.trussObjectId,
+                    ...metaBase,
+                  },
+                  source: 'parametric_design_builder',
+                  confidence: 'calculated_from_parameters',
+                  divisionCode: '05',
+                  divisionName: 'Metals',
+                },
+                {
+                  id: 'steel-truss-chords-web',
+                  designModelId: input.designModelId,
+                  designObjectId: input.trussObjectId,
+                  quantityType: 'steel_truss_chords_web_allowance',
+                  description: 'Steel Truss Chords and Web Allowance',
+                  quantity: roundQuantity(
+                    metersToFeet(
+                      (resolvedRoof.roofMemberReferenceLengthMeters * 2 +
+                        (resolvedRoof.exteriorRoofBeamBounds.depthMeters >=
+                        resolvedRoof.exteriorRoofBeamBounds.widthMeters
+                          ? resolvedRoof.exteriorRoofBeamBounds.widthMeters
+                          : resolvedRoof.exteriorRoofBeamBounds.depthMeters) +
+                        resolvedRoof.roofMemberReferenceLengthMeters *
+                          2 *
+                          roofSettings.steelTrusses.webSteelAllowanceFactor) *
+                        resolvedRoof.trussCount,
+                    ),
+                    2,
+                  ),
+                  unit: 'LF',
+                  formula: '(top_chords + bottom_chord + web_allowance) * truss_count',
+                  parameterSnapshot: {
+                    webSteelAllowanceFactor: roofSettings.steelTrusses.webSteelAllowanceFactor,
+                    trussCount: resolvedRoof.trussCount,
+                    ...metaBase,
+                  },
+                  source: 'parametric_design_builder',
+                  confidence: 'calculated_from_parameters',
+                  divisionCode: '05',
+                  divisionName: 'Metals',
+                },
+                {
+                  id: 'truss-base-plates',
+                  designModelId: input.designModelId,
+                  designObjectId: input.trussObjectId,
+                  quantityType: 'truss_base_plate_count',
+                  description: 'Truss Base Plates',
+                  quantity: resolvedRoof.trussCount * 2,
+                  unit: 'EA',
+                  formula: 'truss_count * 2',
+                  parameterSnapshot: { trussCount: resolvedRoof.trussCount, ...metaBase },
+                  source: 'parametric_design_builder',
+                  confidence: 'calculated_from_parameters',
+                  divisionCode: '05',
+                  divisionName: 'Metals',
+                },
+                {
+                  id: 'truss-anchor-bolts',
+                  designModelId: input.designModelId,
+                  designObjectId: input.trussObjectId,
+                  quantityType: 'truss_anchor_bolt_count',
+                  description: 'Anchor Bolts',
+                  quantity:
+                    resolvedRoof.trussCount *
+                    2 *
+                    roofSettings.steelTrusses.anchorBoltsPerBearing,
+                  unit: 'EA',
+                  formula: 'base_plate_count * anchor_bolts_per_bearing',
+                  parameterSnapshot: {
+                    anchorBoltsPerBearing: roofSettings.steelTrusses.anchorBoltsPerBearing,
+                    ...metaBase,
+                  },
+                  source: 'parametric_design_builder',
+                  confidence: 'calculated_from_parameters',
+                  divisionCode: '05',
+                  divisionName: 'Metals',
+                },
+              ]
+            : []),
+          ...(roofSettings.purlins.enabled
+            ? [
+                {
+                  id: 'steel-purlins',
+                  designModelId: input.designModelId,
+                  designObjectId: input.roofObjectId,
+                  quantityType: 'steel_purlin_length',
+                  description: 'Steel Purlins',
+                  quantity: roundQuantity(
+                    metersToFeet(
+                      resolvedRoof.purlinRowsPerSlope * 2 * Math.max(resolvedRoof.ridgeLengthMeters, 0.001),
+                    ),
+                    2,
+                  ),
+                  unit: 'LF',
+                  formula: 'purlin_rows_per_slope * 2 * ridge_length',
+                  parameterSnapshot: {
+                    purlinRowsPerSlope: resolvedRoof.purlinRowsPerSlope,
+                    ridgeLengthMeters: resolvedRoof.ridgeLengthMeters,
+                    ...metaBase,
+                  },
+                  source: 'parametric_design_builder',
+                  confidence: 'calculated_from_parameters',
+                  divisionCode: '05',
+                  divisionName: 'Metals',
+                },
+              ]
+            : []),
+          ...(roofSettings.corrugatedMetal.enabled
+            ? [
+                {
+                  id: 'corrugated-metal-roofing',
+                  designModelId: input.designModelId,
+                  designObjectId: input.roofObjectId,
+                  quantityType: 'corrugated_metal_roofing_area',
+                  description: 'Corrugated Metal Roofing',
+                  quantity: roundQuantity(
+                    squareMetersToSquareFeet(
+                      resolvedRoof.roofSurfaceAreaSquareMeters *
+                        (1 + roofSettings.corrugatedMetal.wastePercent / 100),
+                    ),
+                    2,
+                  ),
+                  unit: 'SF',
+                  formula: 'resolved_roof_surface_area * (1 + waste_percent / 100)',
+                  parameterSnapshot: {
+                    wastePercent: roofSettings.corrugatedMetal.wastePercent,
+                    roofSurfaceAreaSquareMeters: resolvedRoof.roofSurfaceAreaSquareMeters,
+                    ...metaBase,
+                  },
+                  source: 'parametric_design_builder',
+                  confidence: 'calculated_from_parameters',
+                  divisionCode: '07',
+                  divisionName: 'Thermal & Moisture Protection',
+                },
+                ...(roofSettings.corrugatedMetal.ridgeCapEnabled && resolvedRoof.ridgeLengthMeters > 0
+                  ? [
+                      {
+                        id: 'ridge-cap',
+                        designModelId: input.designModelId,
+                        designObjectId: input.roofObjectId,
+                        quantityType: 'ridge_cap_length',
+                        description: 'Ridge Cap',
+                        quantity: roundQuantity(
+                          metersToFeet(
+                            resolvedRoof.ridgeLengthMeters *
+                              (1 + roofSettings.corrugatedMetal.ridgeCapLapAllowancePercent / 100),
+                          ),
+                          2,
+                        ),
+                        unit: 'LF',
+                        formula: 'ridge_length * (1 + lap_allowance_percent / 100)',
+                        parameterSnapshot: {
+                          ridgeLengthMeters: resolvedRoof.ridgeLengthMeters,
+                          ridgeCapLapAllowancePercent: roofSettings.corrugatedMetal.ridgeCapLapAllowancePercent,
+                          ...metaBase,
+                        },
+                        source: 'parametric_design_builder',
+                        confidence: 'calculated_from_parameters',
+                        divisionCode: '07',
+                        divisionName: 'Thermal & Moisture Protection',
+                      },
+                    ]
+                  : []),
+              ]
+            : []),
+          ...(resolvedRoof.roofType === 'gable' && roofGableBlockCount > 0
+            ? [
+                {
+                  id: 'gable-end-cmu',
+                  designModelId: input.designModelId,
+                  designObjectId: input.gableEndObjectId,
+                  quantityType: 'gable_end_cmu',
+                  description: 'Gable-End CMU',
+                  quantity: roofGableBlockCount,
+                  unit: 'EA',
+                  formula: 'roof_gable_solver block count',
+                  parameterSnapshot: {
+                    gableEndSegmentIds: resolvedRoof.gableEndSegmentIds,
+                    gableCmuAreaSquareMeters: resolvedRoof.gableCmuAreaSquareMeters,
+                    gableEndId: input.gableEndObjectId,
+                    ...metaBase,
+                  },
+                  source: 'parametric_design_builder',
+                  confidence: 'calculated_from_parameters',
+                  divisionCode: '04',
+                  divisionName: 'Masonry',
+                },
+                {
+                  id: 'gable-end-cut-blocks',
+                  designModelId: input.designModelId,
+                  designObjectId: input.gableEndObjectId,
+                  quantityType: 'gable_end_cut_blocks',
+                  description: 'Gable-End Cut Blocks',
+                  quantity: roofGableCutCount,
+                  unit: 'EA',
+                  formula: 'roof_gable_solver cut_block count',
+                  parameterSnapshot: {
+                    gableEndSegmentIds: resolvedRoof.gableEndSegmentIds,
+                    gableEndId: input.gableEndObjectId,
+                    ...metaBase,
+                  },
+                  source: 'parametric_design_builder',
+                  confidence: 'calculated_from_parameters',
+                  divisionCode: '04',
+                  divisionName: 'Masonry',
+                },
+              ]
+            : []),
+          ...(resolvedRoof.roofType === 'gable' && rakedCapVolumeCubicMeters > 0
+            ? [
+                {
+                  id: 'raked-concrete-cap',
+                  designModelId: input.designModelId,
+                  designObjectId: input.gableEndObjectId,
+                  quantityType: 'raked_concrete_cap_volume',
+                  description: 'Raked Concrete Cap',
+                  quantity: roundQuantity(cubicMetersToCubicYards(rakedCapVolumeCubicMeters), 2),
+                  unit: 'CY',
+                  formula: 'sum(resolved_raked_cap_segment_volumes)',
+                  parameterSnapshot: {
+                    rakedCapVolumeCubicMeters,
+                    gableEndSegmentIds: resolvedRoof.gableEndSegmentIds,
+                    gableEndId: input.gableEndObjectId,
+                    ...metaBase,
+                  },
+                  source: 'parametric_design_builder',
+                  confidence: 'calculated_from_parameters',
+                  divisionCode: '03',
+                  divisionName: 'Concrete',
+                },
+              ]
+            : []),
+        ]
+      : []),
   ];
 }
 

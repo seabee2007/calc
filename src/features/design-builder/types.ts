@@ -301,7 +301,13 @@ export interface StructuralColumn {
   source: 'user' | 'auto_frame_layout';
 }
 
-export type StructuralBeamKind = 'grade_beam' | 'ring_beam' | 'lintel_beam' | 'tie_beam';
+export type StructuralBeamKind =
+  | 'grade_beam'
+  | 'ring_beam'
+  | 'plinth_beam'
+  | 'roof_beam'
+  | 'tie_beam'
+  | 'lintel_beam';
 
 export interface StructuralBeam {
   id: string;
@@ -319,11 +325,93 @@ export interface StructuralBeam {
   source: 'user' | 'auto_frame_layout';
 }
 
+export interface StructuralBeamSettings {
+  enabled: boolean;
+  widthMeters: number;
+  depthMeters: number;
+}
+
+export interface PlinthBeamSettings extends StructuralBeamSettings {
+  followsExteriorSegments: boolean;
+  followsInteriorSegments: boolean;
+}
+
+export type ColumnPlacementMode = 'corners_only' | 'corners_and_junctions' | 'manual';
+
+/** @deprecated Legacy persisted shape — migrate via rcFrameFoundationMigration */
+export interface GradeBeamSettings {
+  enabled: boolean;
+  widthMeters: number;
+  depthMeters: number;
+  followsExteriorSegments: boolean;
+  followsInteriorSegments: boolean;
+}
+
+/** @deprecated Legacy persisted shape — migrate via rcFrameFoundationMigration */
+export interface LegacyIsolatedFootingSettings {
+  enabled: boolean;
+  placementMode: 'at_columns' | 'manual';
+  footingWidthMeters: number;
+  footingLengthMeters: number;
+  footingThicknessMeters: number;
+  dropBelowGradeBeamMeters: number;
+  autoCreateAtStructuralColumns: boolean;
+}
+
+/** @deprecated Legacy persisted shape — migrate via rcFrameFoundationMigration */
+export interface LegacyStructuralFoundationSettings {
+  gradeBeam: GradeBeamSettings;
+  /** @deprecated Migrates to roofBeam */
+  ringBeam?: StructuralBeamSettings;
+  isolatedFootings: LegacyIsolatedFootingSettings;
+}
+
+export type IsolatedFootingSettings = LegacyIsolatedFootingSettings;
+
+export interface RcFrameFoundationSettings {
+  plinthBeam: PlinthBeamSettings;
+  roofBeam: StructuralBeamSettings;
+  tieBeam: StructuralBeamSettings;
+  columns: {
+    widthMeters: number;
+    depthMeters: number;
+    placementMode: ColumnPlacementMode;
+  };
+  isolatedFootings: {
+    enabled: boolean;
+    widthMeters: number;
+    lengthMeters: number;
+    thicknessMeters: number;
+    /** Vertical distance from bottom of plinth beam down to top of isolated footing. */
+    dropBelowPlinthBeamMeters: number;
+    autoCreateAtStructuralColumns: boolean;
+  };
+}
+
+/** @deprecated Use RcFrameFoundationSettings */
+export type StructuralFoundationSettings = LegacyStructuralFoundationSettings | RcFrameFoundationSettings;
+
+export interface IsolatedFooting {
+  id: string;
+  name: string;
+  columnId: string;
+  position: { x: number; z: number };
+  widthMeters: number;
+  lengthMeters: number;
+  thicknessMeters: number;
+  topElevationMeters: number;
+  bottomElevationMeters: number;
+  centerElevationMeters: number;
+  source: 'auto_at_column' | 'user';
+}
+
+export type FoundationViewMode = 'full_model' | 'cutaway_below_grade' | 'structural_frame_only';
+
 export type CmuInfillSupportType = 'column' | 'wall_end' | 'opening_jamb';
 
-export type CmuInfillBottomSupportType = 'grade_beam' | 'slab' | 'foundation';
+export type CmuInfillBottomSupportType = 'plinth_beam' | 'grade_beam' | 'slab' | 'foundation';
 
-export type CmuInfillTopSupportType = 'ring_beam' | 'roof_line' | 'gable_profile';
+export type CmuInfillTopSupportType = 'roof_beam' | 'ring_beam' | 'roof_line' | 'gable_profile';
 
 export interface DesignMasonrySettings {
   blockModule?: CmuBlockModuleConfig;
@@ -424,6 +512,223 @@ export interface GableEndSystemParameters {
   kind: 'gable_end_system';
   gableEnds: GableEndSettings[];
 }
+
+export type RoofType = 'hip' | 'gable';
+
+export type RoofRidgeDirection =
+  | 'along_longest_axis'
+  | 'along_shortest_axis'
+  | 'along_selected_wall_pair';
+
+export type RoofSupportSystem = 'steel_trusses' | 'steel_hip_framing';
+
+/** @deprecated Use RoofSupportSystem */
+export type RoofSupportStyle = 'rafter_reference' | 'truss_reference';
+
+export interface RoofSystemSettings {
+  enabled: boolean;
+  roofType: RoofType;
+  supportSystem: RoofSupportSystem;
+  peakHeightAboveRoofBeamMeters: number;
+  eaveOverhangMeters: number;
+  roofAssemblyThicknessMeters: number;
+  ridgeDirection: RoofRidgeDirection;
+  selectedRidgeWallSegmentId?: string;
+  /** @deprecated Migrated to supportSystem */
+  supportStyle?: RoofSupportStyle;
+  steelTrusses: {
+    enabled: boolean;
+    maxSpacingMeters: number;
+    profileLabel: string;
+    webSteelAllowanceFactor: number;
+    basePlateEnabled: boolean;
+    basePlateWidthMeters: number;
+    basePlateLengthMeters: number;
+    basePlateThicknessMeters: number;
+    anchorBoltsPerBearing: number;
+  };
+  purlins: {
+    enabled: boolean;
+    profileLabel: string;
+    maxSpacingMeters: number;
+  };
+  corrugatedMetal: {
+    enabled: boolean;
+    sheetTypeLabel: string;
+    wastePercent: number;
+    ridgeCapEnabled: boolean;
+    ridgeCapLapAllowancePercent: number;
+  };
+  gable: {
+    enabled: boolean;
+    rakeClearanceMeters: number;
+    rakedConcreteCapEnabled: boolean;
+    /** @deprecated Use rakedConcreteCapEnabled */
+    capEnabled?: boolean;
+    capMaterial: 'cast_in_place_concrete';
+    rakedConcreteCapDepthMeters: number;
+    /** @deprecated Use rakedConcreteCapDepthMeters */
+    capDepthMeters?: number;
+  };
+}
+
+/** Canonical alias for roof configuration */
+export type RoofSettings = RoofSystemSettings;
+
+export type RoofDisplayMode =
+  | 'full_roof'
+  | 'roof_cladding_only'
+  | 'steel_framing_only'
+  | 'gable_masonry_only'
+  | 'foundation_frame_roof';
+
+export type PurlinPlacement = {
+  id: string;
+  slopePlaneId: string;
+  rowIndex: number;
+  start: RoofVec3;
+  end: RoofVec3;
+};
+
+export type SteelMemberKind =
+  | 'top_chord_left'
+  | 'top_chord_right'
+  | 'bottom_chord'
+  | 'vertical_web'
+  | 'diagonal_web';
+
+export type SteelMemberSegment = {
+  id: string;
+  memberKind: SteelMemberKind;
+  start: RoofVec3;
+  end: RoofVec3;
+};
+
+export type TrussPlacement = {
+  id: string;
+  stationMeters: number;
+  bearingLeft: RoofVec3;
+  bearingRight: RoofVec3;
+  apex: RoofVec3;
+  /** World-axis classification of the ridge direction for this truss plane. */
+  ridgeAxis: 'x' | 'z';
+  planeNormal: RoofVec3;
+  members: SteelMemberSegment[];
+};
+
+export type HipFramingMember = {
+  id: string;
+  start: RoofVec3;
+  end: RoofVec3;
+  memberKind: 'hip' | 'common' | 'ridge';
+};
+
+export type RidgeCapPlacement = {
+  id: string;
+  start: RoofVec3;
+  end: RoofVec3;
+  widthMeters: number;
+  thicknessMeters: number;
+  roofAngleRadians: number;
+};
+
+export type DesignWarning = {
+  code: string;
+  message: string;
+  severity: 'review' | 'error';
+};
+
+export type RoofVec3 = { x: number; y: number; z: number };
+
+export type RoofPlane = {
+  id: string;
+  corners: RoofVec3[];
+  normal: RoofVec3;
+};
+
+export type GableCourseAssembly = {
+  courseIndex: number;
+  topElevationMeters: number;
+  startStationMeters: number;
+  endStationMeters: number;
+};
+
+export type RakedCapPlacement = {
+  id: string;
+  gableEndSegmentId: string;
+  courseIndex?: number;
+  startStationMeters: number;
+  endStationMeters: number;
+  baseElevationMeters: number;
+  topLeftElevationMeters: number;
+  topRightElevationMeters: number;
+  wallDepthMeters: number;
+  concreteVolumeCubicMeters: number;
+  source: 'gable_raked_cap';
+};
+
+export type ResolvedGableEnd = {
+  hostSegmentId: string;
+  leftRoofUnderside?: RoofPlane;
+  rightRoofUnderside?: RoofPlane;
+  masonryCourses: GableCourseAssembly[];
+  rakedCapPlacements: RakedCapPlacement[];
+  cmuUnitPlacements: GableCmuPlacement[];
+  warnings: DesignWarning[];
+};
+
+export type ExteriorRoofBeamBounds = {
+  footprint: RoofVec3[];
+  center: RoofVec3;
+  widthMeters: number;
+  depthMeters: number;
+};
+
+export type ResolvedRoofSystem = {
+  supported: boolean;
+  unsupportedMessage?: string;
+  roofType: RoofType;
+  roofBearingSource?: 'roof_beam_outer_faces' | 'wall_exterior_fallback';
+  exteriorRoofBeamBounds: ExteriorRoofBeamBounds;
+  /** Outer roof-beam bearing line (building exterior envelope). */
+  structuralBearingPerimeter: RoofVec3[];
+  /** Cladding outline: bearing perimeter + eave overhang. */
+  claddingPerimeter: RoofVec3[];
+  /** @deprecated Alias for claddingPerimeter — plan/3D eave outline. */
+  eaveFootprint: RoofVec3[];
+  ridgeStart?: RoofVec3;
+  ridgeEnd?: RoofVec3;
+  ridgeCapPlacement: RidgeCapPlacement | null;
+  peakPoint?: RoofVec3;
+  roofBeamTopElevationMeters: number;
+  roofBeamTopY: number;
+  peakElevationMeters: number;
+  roofPeakY: number;
+  roofAssemblyThicknessMeters: number;
+  roofTopPlanes: RoofPlane[];
+  roofUndersidePlanes: RoofPlane[];
+  gableEndSegmentIds: string[];
+  rafterRunMeters: number;
+  rafterRiseMeters: number;
+  rafterLengthMeters: number;
+  roofRunMeters: number;
+  roofRiseMeters: number;
+  roofMemberReferenceLengthMeters: number;
+  ridgeLengthMeters: number;
+  roofSurfaceAreaSquareMeters: number;
+  trussCount: number;
+  actualTrussSpacingMeters: number;
+  trussStations: number[];
+  trussPlacements: TrussPlacement[];
+  purlinRowsPerSlope: number;
+  actualPurlinSpacingMeters: number;
+  purlinPlacements: PurlinPlacement[];
+  hipFramingMembers: HipFramingMember[];
+  gableCmuAreaSquareMeters: number;
+  rakedCapVolumeCubicMeters: number;
+  gableEnds: ResolvedGableEnd[];
+  warnings: DesignWarning[];
+};
 
 export type DesignObjectParameters =
   | RectangleFootprintParameters

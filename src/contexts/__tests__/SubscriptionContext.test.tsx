@@ -4,12 +4,15 @@ import React from 'react';
 import { SubscriptionProvider, useSubscription } from '../../contexts/SubscriptionContext';
 
 const fetchSubscription = vi.fn();
+let authState = {
+  user: { id: 'owner-1' },
+  profile: { id: 'owner-1', role: 'owner', employerId: null as string | null },
+  loading: false,
+  profileLoading: false,
+};
 
 vi.mock('../../hooks/useAuth', () => ({
-  useAuth: () => ({
-    user: { id: 'owner-1' },
-    profile: { id: 'owner-1', role: 'owner', employerId: null },
-  }),
+  useAuth: () => authState,
 }));
 
 vi.mock('../../services/subscriptionService', () => ({
@@ -40,6 +43,12 @@ function Probe() {
 describe('SubscriptionContext', () => {
   beforeEach(() => {
     fetchSubscription.mockReset();
+    authState = {
+      user: { id: 'owner-1' },
+      profile: { id: 'owner-1', role: 'owner', employerId: null },
+      loading: false,
+      profileLoading: false,
+    };
     vi.stubEnv('DEV', false);
     vi.stubEnv('VITE_ENFORCE_PLAN', 'true');
   });
@@ -91,5 +100,43 @@ describe('SubscriptionContext', () => {
     await waitFor(() => {
       expect(screen.getByTestId('plan')).toHaveTextContent('free');
     });
+  });
+
+  it('loads the employer subscription for employee portal entitlements', async () => {
+    authState = {
+      user: { id: 'employee-1' },
+      profile: { id: 'employee-1', role: 'employee', employerId: 'owner-1' },
+      loading: false,
+      profileLoading: false,
+    };
+    fetchSubscription.mockResolvedValue({
+      id: 'sub-1',
+      userId: 'owner-1',
+      planId: 'starter',
+      status: 'active',
+      stripeCustomerId: null,
+      stripeSubscriptionId: null,
+      currentPeriodStart: null,
+      currentPeriodEnd: null,
+      trialEnd: null,
+      cancelAtPeriodEnd: false,
+      activeProjectLimit: null,
+      includedFieldSeats: 1,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    });
+
+    render(
+      <SubscriptionProvider>
+        <Probe />
+      </SubscriptionProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('plan')).toHaveTextContent('starter');
+    });
+
+    expect(fetchSubscription).toHaveBeenCalledWith('owner-1');
+    expect(fetchSubscription).not.toHaveBeenCalledWith('employee-1');
   });
 });
