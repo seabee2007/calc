@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   employeePortalBlockedMessage,
+  employeePortalBlockedTitle,
   resolveEmployeePortalAccess,
 } from '../employeePortalAccess';
 import type { ResolvedAppAccess } from '../../services/appAccessService';
@@ -13,6 +14,7 @@ function baseAccess(
     isOwner: false,
     isWorkspaceAdmin: false,
     isFieldEmployeeAccount: true,
+    employeeMembershipRemoved: false,
     acceptedEmployeeMemberships: [],
     employeePortalAccess: null,
     defaultRoute: '/employee/dashboard',
@@ -69,6 +71,14 @@ describe('resolveEmployeePortalAccess', () => {
     expect(employeePortalBlockedMessage('invite_acceptance_incomplete')).toContain(
       'not connected to the company workspace',
     );
+  });
+
+  it('returns access removed message for membership_removed', () => {
+    expect(employeePortalBlockedTitle('membership_removed')).toBe('Access removed');
+    expect(employeePortalBlockedMessage('membership_removed')).toContain(
+      'Your access to this company workspace has been removed',
+    );
+    expect(employeePortalBlockedMessage('membership_removed')).not.toMatch(/subscription|billing|upgrade/i);
   });
 });
 

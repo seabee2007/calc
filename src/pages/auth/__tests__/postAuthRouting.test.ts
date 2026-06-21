@@ -17,6 +17,16 @@ describe('syncEmployeeProfileFromInvites', () => {
     vi.mocked(supabase.rpc).mockReset();
   });
 
+  it('returns membership_removed when sync RPC reports a prior workspace removal', async () => {
+    vi.mocked(supabase.rpc).mockResolvedValue({
+      data: { ok: false, reason: 'membership_removed' },
+      error: null,
+    } as never);
+
+    const result = await syncEmployeeProfileFromInvites();
+    expect(result).toEqual({ ok: false, reason: 'membership_removed' });
+  });
+
   it('returns rpc_unavailable when function is missing from schema cache', async () => {
     vi.mocked(supabase.rpc).mockResolvedValue({
       data: null,

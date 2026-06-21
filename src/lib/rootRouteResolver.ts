@@ -36,7 +36,11 @@ export function resolveRootAccessKind(params: {
 
   if (params.access.isOwner) return 'owner';
   if (params.access.isWorkspaceAdmin) return 'admin';
-  if (params.access.acceptedEmployeeMemberships.length > 0 || params.access.isFieldEmployeeAccount) {
+  if (
+    params.access.acceptedEmployeeMemberships.length > 0 ||
+    params.access.isFieldEmployeeAccount ||
+    params.access.employeeMembershipRemoved
+  ) {
     return 'employee';
   }
   return 'new_owner';
@@ -95,7 +99,11 @@ export function resolveRootRouteTarget(params: {
     };
   }
 
-  if (params.access.acceptedEmployeeMemberships.length > 0 || params.access.isFieldEmployeeAccount) {
+  if (
+    params.access.acceptedEmployeeMemberships.length > 0 ||
+    params.access.isFieldEmployeeAccount ||
+    params.access.employeeMembershipRemoved
+  ) {
     const needsEmployeeOnboarding =
       params.profileRole &&
       isEmployeeRole(params.profileRole) &&

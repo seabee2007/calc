@@ -2,8 +2,16 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   employeeInviteLoginHref,
   employeeInviteSignupHref,
+  removeEmployeeFromWorkspace,
   resolveEmployeeInviteAppOrigin,
 } from '../employeeService';
+import { supabase } from '../../lib/supabase';
+
+vi.mock('../../lib/supabase', () => ({
+  supabase: {
+    rpc: vi.fn(),
+  },
+}));
 
 describe('employee invite URLs', () => {
   afterEach(() => {
@@ -39,6 +47,59 @@ describe('employee invite URLs', () => {
   it('honors an explicit origin override', () => {
     expect(resolveEmployeeInviteAppOrigin('https://custom.example.com/')).toBe(
       'https://custom.example.com',
+    );
+  });
+});
+
+describe('removeEmployeeFromWorkspace', () => {
+  it('calls the secure RPC and maps the response', async () => {
+    vi.mocked(supabase.rpc).mockResolvedValue({
+      data: {
+        ok: true,
+        employeeId: 'employee-1',
+        workspaceId: 'owner-1',
+        assignmentsRemoved: 2,
+        invitesRevoked: 1,
+        teamMemberCount: 0,
+        pendingInviteCount: 0,
+        seatReleased: true,
+      },
+      error: null,
+    });
+
+    const result = await removeEmployeeFromWorkspace('employee-1');
+
+    expect(supabase.rpc).toHaveBeenCalledWith('remove_employee_from_workspace', {
+      p_employee_id: 'employee-1',
+    });
+    expect(result.assignmentsRemoved).toBe(2);
+    expect(result.invitesRevoked).toBe(1);
+    expect(result.seatReleased).toBe(true);
+  });
+
+  it('does not delete auth users', async () => {
+    vi.mocked(supabase.rpc).mockResolvedValue({
+      data: {
+        ok: true,
+        employeeId: 'employee-1',
+        workspaceId: 'owner-1',
+        assignmentsRemoved: 0,
+        teamMemberCount: 0,
+        pendingInviteCount: 0,
+        seatReleased: true,
+      },
+      error: null,
+    });
+
+    await removeEmployeeFromWorkspace('employee-1');
+
+    expect(supabase.rpc).toHaveBeenCalledWith(
+      'remove_employee_from_workspace',
+      expect.objectContaining({ p_employee_id: 'employee-1' }),
+    );
+    expect(supabase.rpc).not.toHaveBeenCalledWith(
+      expect.stringMatching(/delete.*auth/i),
+      expect.anything(),
     );
   });
 });

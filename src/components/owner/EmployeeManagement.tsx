@@ -10,6 +10,7 @@ import {
   fetchAssignmentsForProject,
   fetchPendingInvites,
   removeEmployeeFromProject,
+  removeEmployeeFromWorkspace,
   revokeEmployeeInvite,
   sendEmployeeInviteEmail,
 } from '../../services/employeeService';
@@ -94,6 +95,8 @@ export default function EmployeeManagement() {
   const [resendingInviteId, setResendingInviteId] = useState<string | null>(null);
   const [revokingInviteId, setRevokingInviteId] = useState<string | null>(null);
   const [invitePendingRevoke, setInvitePendingRevoke] = useState<EmployeeInvite | null>(null);
+  const [memberPendingRemoval, setMemberPendingRemoval] = useState<Profile | null>(null);
+  const [removingMemberId, setRemovingMemberId] = useState<string | null>(null);
 
   useEffect(() => {
     void loadProjects();
@@ -272,16 +275,37 @@ export default function EmployeeManagement() {
     setRevokingInviteId(invite.id);
     setOpenInviteActionsId(null);
     setInvitePendingRevoke(null);
-    showMessage(`Revoking invite for ${invite.email}...`, 'info');
+    showMessage(`Cancelling invitation for ${invite.email}...`, 'info');
     try {
       await revokeEmployeeInvite(invite.id);
       setInvites((current) => current.filter((item) => item.id !== invite.id));
-      showMessage(`Invite revoked for ${invite.email}.`, 'success');
+      showMessage(`Invitation cancelled for ${invite.email}.`, 'success');
       await reload();
     } catch (err) {
-      showMessage(err instanceof Error ? err.message : 'Could not revoke invite', 'warning');
+      showMessage(err instanceof Error ? err.message : 'Could not cancel invitation', 'warning');
     } finally {
       setRevokingInviteId(null);
+    }
+  };
+
+  const requestRemoveMember = (member: Profile) => {
+    setMemberPendingRemoval(member);
+  };
+
+  const handleConfirmRemoveMember = async () => {
+    const member = memberPendingRemoval;
+    if (!member) return;
+    setRemovingMemberId(member.id);
+    setMemberPendingRemoval(null);
+    showMessage(`Removing ${member.displayName ?? DEFAULT_PROFILE_DISPLAY_NAME}...`, 'info');
+    try {
+      await removeEmployeeFromWorkspace(member.id);
+      showMessage('Employee removed and field seat released.', 'success');
+      await reload();
+    } catch (err) {
+      showMessage(err instanceof Error ? err.message : 'Could not remove employee', 'warning');
+    } finally {
+      setRemovingMemberId(null);
     }
   };
 
@@ -291,14 +315,28 @@ export default function EmployeeManagement() {
     <div className="space-y-6">
       <ConfirmModal
         isOpen={Boolean(invitePendingRevoke)}
-        title="Revoke invitation?"
+        title="Cancel invitation?"
         message="This immediately disables the invitation link and releases the reserved field seat. The recipient will no longer be able to join using this invitation."
         cancelLabel="Cancel"
-        confirmLabel="Revoke invitation"
+        confirmLabel="Cancel invitation"
         confirmVariant="danger"
         showWarningIcon
         onCancel={() => setInvitePendingRevoke(null)}
         onConfirm={() => void handleConfirmRevokeInvite()}
+      />
+
+      <ConfirmModal
+        isOpen={Boolean(memberPendingRemoval)}
+        title={`Remove ${memberPendingRemoval?.displayName ?? DEFAULT_PROFILE_DISPLAY_NAME} from your company?`}
+        message={
+          'This immediately removes their project access, disables Field Portal access, and releases their field seat.\n\nTheir personal Arden account will not be deleted.'
+        }
+        cancelLabel="Cancel"
+        confirmLabel="Remove employee"
+        confirmVariant="danger"
+        showWarningIcon
+        onCancel={() => setMemberPendingRemoval(null)}
+        onConfirm={() => void handleConfirmRemoveMember()}
       />
 
       {inviteSending ? (
@@ -490,7 +528,7 @@ export default function EmployeeManagement() {
                             data-testid={`revoke-invite-${inv.id}`}
                           >
                             <Trash2 className="h-4 w-4" />
-                            Revoke invite
+                            Cancel invitation
                           </button>
                         </div>
                       ) : null}
@@ -596,10 +634,14 @@ export default function EmployeeManagement() {
             </p>
           ) : (
             <ul className={`divide-y ${BORDER_DEFAULT}`}>
-              {team.map((member) => (
+              {team.map((member) => {
+                const projectCount = assignments.filter((row) => row.employeeId === member.id).length;
+                const isRemoving = removingMemberId === member.id;
+                return (
                 <li
                   key={member.id}
-                  className="flex flex-col gap-1 py-4 sm:flex-row sm:items-center sm:justify-between"
+                  className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between"
+                  data-testid={`team-member-${member.id}`}
                 >
                   <div>
                     <p className={`font-medium ${TEXT_FOREGROUND}`}>
@@ -607,20 +649,29 @@ export default function EmployeeManagement() {
                     </p>
                     <p className={`text-sm ${TEXT_MUTED}`}>{formatRoleLabel(member.role)}</p>
                   </div>
-                  <span
-                    className={`inline-flex w-fit items-center gap-1 rounded-full border ${BORDER_DEFAULT} bg-slate-50 px-2.5 py-0.5 text-xs font-medium ${TEXT_MUTED} dark:bg-slate-800/80`}
-                  >
-                    <FolderKanban className="h-3.5 w-3.5" aria-hidden />
-                    {
-                      assignments.filter((row) => row.employeeId === member.id).length
-                    }{' '}
-                    project
-                    {assignments.filter((row) => row.employeeId === member.id).length === 1
-                      ? ''
-                      : 's'}
-                  </span>
+                  <div className="flex flex-col items-start gap-2 sm:items-end">
+                    <span
+                      className={`inline-flex w-fit items-center gap-1 rounded-full border ${BORDER_DEFAULT} bg-slate-50 px-2.5 py-0.5 text-xs font-medium ${TEXT_MUTED} dark:bg-slate-800/80`}
+                    >
+                      <FolderKanban className="h-3.5 w-3.5" aria-hidden />
+                      {projectCount} project{projectCount === 1 ? '' : 's'}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={isRemoving || busy}
+                      icon={<Trash2 className="h-4 w-4" />}
+                      className="border-rose-500/40 text-rose-700 hover:border-rose-500/60 hover:bg-rose-50 dark:text-rose-300 dark:hover:bg-rose-950/30"
+                      onClick={() => requestRemoveMember(member)}
+                      data-testid={`remove-team-member-${member.id}`}
+                    >
+                      Remove from company
+                    </Button>
+                  </div>
                 </li>
-              ))}
+              );
+              })}
             </ul>
           )}
         </div>
@@ -696,7 +747,7 @@ export default function EmployeeManagement() {
                         {isCopied ? 'Copied!' : 'Copy Field Portal Link'}
                       </Button>
                       <p className={`text-right text-xs ${TEXT_SUBTLE}`}>
-                        To re-invite, use "Invite team member" above.
+                        Manage access from Team members above.
                       </p>
                     </div>
                   </li>

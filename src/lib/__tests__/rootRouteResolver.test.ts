@@ -12,6 +12,7 @@ function baseAccess(overrides: Partial<ResolvedAppAccess> = {}): ResolvedAppAcce
     isOwner: false,
     isWorkspaceAdmin: false,
     isFieldEmployeeAccount: false,
+    employeeMembershipRemoved: false,
     acceptedEmployeeMemberships: [],
     employeePortalAccess: null,
     defaultRoute: '/onboarding',

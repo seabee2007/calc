@@ -388,6 +388,49 @@ describe('resolveAppAccess', () => {
     expect(access.employeePortalAccess).toBeNull();
   });
 
+  it('routes removed employees to /employee/dashboard for access removed messaging', async () => {
+    vi.mocked(fetchProfile).mockResolvedValue({
+      id: 'employee-1',
+      role: 'employee',
+      employerId: null,
+      displayName: 'Removed Worker',
+      firstName: null,
+      lastName: null,
+      phone: null,
+      businessAddressStreet: null,
+      businessAddressStreet2: null,
+      businessAddressCity: null,
+      businessAddressState: null,
+      businessAddressPostalCode: null,
+      agreementAcceptedAt: null,
+      agreementVersion: null,
+      onboardingCompletedAt: '2026-01-01T00:00:00.000Z',
+      onboardingVersion: null,
+      createdAt: '',
+      updatedAt: '',
+    });
+    vi.mocked(fetchEmployeePortalAccess).mockResolvedValue({
+      allowed: false,
+      reason: 'membership_removed',
+      workspaceId: null,
+      employerPlanId: null,
+      employeeMembershipId: 'employee-1',
+      seatAssigned: false,
+      repaired: false,
+    });
+    vi.mocked(supabase.from).mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockResolvedValue({ count: 0, error: null }),
+      }),
+    } as never);
+
+    const access = await resolveAppAccess('employee-1');
+
+    expect(access.defaultRoute).toBe('/employee/dashboard');
+    expect(access.employeeMembershipRemoved).toBe(true);
+    expect(access.acceptedEmployeeMemberships).toEqual([]);
+  });
+
   it('treats accounts with own active subscription as owner even when profile tags employee', async () => {
     vi.mocked(fetchProfile).mockResolvedValue({
       id: 'owner-mislabeled',
@@ -452,6 +495,7 @@ describe('resolveDefaultRouteFromAccess', () => {
         isOwner: true,
         isWorkspaceAdmin: false,
         isFieldEmployeeAccount: false,
+        employeeMembershipRemoved: false,
         acceptedEmployeeMemberships: [
           {
             workspaceId: 'owner-1',
@@ -473,6 +517,7 @@ describe('resolveDefaultRouteFromAccess', () => {
         isOwner: false,
         isWorkspaceAdmin: false,
         isFieldEmployeeAccount: true,
+        employeeMembershipRemoved: false,
         acceptedEmployeeMemberships: [],
       }),
     ).toBe('/employee/dashboard');

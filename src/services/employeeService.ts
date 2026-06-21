@@ -249,6 +249,41 @@ export async function revokeEmployeeInvite(inviteId: string): Promise<void> {
   }
 }
 
+export interface RemoveEmployeeFromWorkspaceResult {
+  employeeId: string;
+  workspaceId: string;
+  assignmentsRemoved: number;
+  invitesRevoked: number;
+  teamMemberCount: number;
+  pendingInviteCount: number;
+  seatReleased: boolean;
+}
+
+export async function removeEmployeeFromWorkspace(
+  employeeId: string,
+): Promise<RemoveEmployeeFromWorkspaceResult> {
+  const { data, error } = await supabase.rpc('remove_employee_from_workspace', {
+    p_employee_id: employeeId,
+  });
+  if (error) throw error;
+  if (!data || typeof data !== 'object') {
+    throw new Error('Could not remove employee from workspace');
+  }
+  const row = data as Record<string, unknown>;
+  if (row.ok !== true) {
+    throw new Error('Could not remove employee from workspace');
+  }
+  return {
+    employeeId: String(row.employeeId ?? employeeId),
+    workspaceId: String(row.workspaceId ?? ''),
+    assignmentsRemoved: Number(row.assignmentsRemoved ?? 0),
+    invitesRevoked: Number(row.invitesRevoked ?? 0),
+    teamMemberCount: Number(row.teamMemberCount ?? 0),
+    pendingInviteCount: Number(row.pendingInviteCount ?? 0),
+    seatReleased: row.seatReleased === true,
+  };
+}
+
 export async function acceptInviteForCurrentUser(
   inviteToken: string,
   userId?: string,
