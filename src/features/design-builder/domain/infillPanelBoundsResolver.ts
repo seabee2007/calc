@@ -2,13 +2,15 @@ import type {
   CmuInfillPanel,
   CmuWallSystemParameters,
   DesignWallLayoutParameters,
+  RcFrameFoundationSettings,
   StructuralBeam,
   StructuralColumn,
 } from '../types';
 import type { SegmentFrame } from '../geometry/designGeometry';
 import { projectPointToSegmentStation } from './openingPlacementResolver';
 import { findColumnAtNode } from './structuralFrameLayout';
-import { TOP_OF_PLINTH_BEAM_Y } from './foundationElevations';
+import { resolveFoundationElevations, TOP_OF_PLINTH_BEAM_Y } from './foundationElevations';
+import { normalizeRcFrameFoundationSettings } from './rcFrameFoundationMigration';
 import { resolveDesignMasonrySettings } from './masonrySettings';
 
 export const FRAME_INFILL_RENDER_EPSILON_METERS = 0.001;
@@ -195,6 +197,156 @@ export function resolveInfillPanelBoundsForLayout(params: {
   return bounds;
 }
 
+function segmentBelowGradeElevations(params: {
+  beams: readonly StructuralBeam[];
+  segmentId: string;
+  wallHeightMeters: number;
+  foundation?: RcFrameFoundationSettings;
+}): { tieBeamTopMeters: number; plinthBeamBottomMeters: number } | null {
+  const foundation = params.foundation ? normalizeRcFrameFoundationSettings(params.foundation) : null;
+  if (foundation && !foundation.tieBeam.enabled) return null;
+
+  const tieBeam = params.beams.find(
+    (beam) => beam.kind === 'tie_beam' && beam.hostSegmentId === params.segmentId,
+  );
+  const plinthBeam = params.beams.find(
+    (beam) =>
+      (beam.kind === 'plinth_beam' || beam.kind === 'grade_beam') &&
+      beam.hostSegmentId === params.segmentId,
+  );
+  const elevations = foundation
+    ? resolveFoundationElevations({ foundation, wallHeightMeters: params.wallHeightMeters })
+    : null;
+
+  const tieBeamTopMeters = tieBeam?.topElevationMeters ?? elevations?.topOfTieBeamY;
+  const plinthBeamBottomMeters = plinthBeam?.baseElevationMeters ?? elevations?.bottomOfPlinthBeamY;
+  if (tieBeamTopMeters == null || plinthBeamBottomMeters == null) return null;
+
+  const clearHeightMeters = plinthBeamBottomMeters - tieBeamTopMeters;
+  if (clearHeightMeters <= 0.05) return null;
+
+  return { tieBeamTopMeters, plinthBeamBottomMeters };
+}
+
+export function resolveBelowGradeInfillPanelBoundsForSegment(params: {
+  panelId: string;
+  segmentId: string;
+  segment: { startNodeId: string; endNodeId: string; wallHeightMeters: number };
+  frame: SegmentFrame;
+  columns: StructuralColumn[];
+  beams: StructuralBeam[];
+  foundation?: RcFrameFoundationSettings;
+}): ResolvedInfillPanelBounds | null {
+  const aboveGrade = resolveInfillPanelBoundsForSegment({
+    panelId: params.panelId,
+    segmentId: params.segmentId,
+    segment: params.segment,
+    frame: params.frame,
+    columns: params.columns,
+    beams: params.beams,
+  });
+  if (!aboveGrade) return null;
+
+  const belowGradeElevations = segmentBelowGradeElevations({
+    beams: params.beams,
+    segmentId: params.segmentId,
+    wallHeightMeters: params.segment.wallHeightMeters,
+    foundation: params.foundation,
+  });
+  if (!belowGradeElevations) return null;
+
+  const { tieBeamTopMeters, plinthBeamBottomMeters } = belowGradeElevations;
+
+  return {
+    ...aboveGrade,
+    panelId: params.panelId,
+    bottomElevationMeters: tieBeamTopMeters,
+    topElevationMeters: plinthBeamBottomMeters,
+    clearHeightMeters: plinthBeamBottomMeters - tieBeamTopMeters,
+    hostWallCenterlineStart: {
+      ...aboveGrade.hostWallCenterlineStart,
+      y: tieBeamTopMeters,
+    },
+    hostWallCenterlineEnd: {
+      ...aboveGrade.hostWallCenterlineEnd,
+      y: tieBeamTopMeters,
+    },
+    leftSupportInsideFaceWorld: {
+      ...aboveGrade.leftSupportInsideFaceWorld,
+      y: tieBeamTopMeters,
+    },
+    rightSupportInsideFaceWorld: {
+      ...aboveGrade.rightSupportInsideFaceWorld,
+      y: tieBeamTopMeters,
+    },
+  };
+}
+
+export function resolveBelowGradeInfillPanelBoundsForLayout(params: {
+  layout: DesignWallLayoutParameters;
+  segmentFrames: SegmentFrame[];
+  columns: StructuralColumn[];
+  beams: StructuralBeam[];
+  foundation?: RcFrameFoundationSettings;
+}): ResolvedInfillPanelBounds[] {
+  const bounds: ResolvedInfillPanelBounds[] = [];
+  params.layout.segments.forEach((segment, index) => {
+    const frame = params.segmentFrames.find((candidate) => candidate.segmentId === segment.id);
+    if (!frame) return;
+    const resolved = resolveBelowGradeInfillPanelBoundsForSegment({
+      panelId: `infill-below-${segment.id}-${index}`,
+      segmentId: segment.id,
+      segment,
+      frame,
+      columns: params.columns,
+      beams: params.beams,
+      foundation: params.foundation,
+    });
+    if (resolved) bounds.push(resolved);
+  });
+  return bounds;
+}
+
+export function belowGradeInfillPanelFromResolvedBounds(params: {
+  bounds: ResolvedInfillPanelBounds;
+  wall: CmuWallSystemParameters;
+  beams: StructuralBeam[];
+  existingPanel?: CmuInfillPanel;
+}): CmuInfillPanel {
+  const masonrySettings = resolveDesignMasonrySettings(params.wall);
+  const tieBeam = params.beams.find(
+    (beam) => beam.kind === 'tie_beam' && beam.hostSegmentId === params.bounds.hostSegmentId,
+  );
+  const plinthBeam = params.beams.find(
+    (beam) =>
+      (beam.kind === 'plinth_beam' || beam.kind === 'grade_beam') &&
+      beam.hostSegmentId === params.bounds.hostSegmentId,
+  );
+  return {
+    id: params.existingPanel?.id ?? params.bounds.panelId,
+    hostSegmentId: params.bounds.hostSegmentId,
+    infillZone: 'below_grade',
+    leftSupportType: params.bounds.leftColumnId ? 'column' : 'wall_end',
+    leftSupportId: params.bounds.leftColumnId,
+    rightSupportType: params.bounds.rightColumnId ? 'column' : 'wall_end',
+    rightSupportId: params.bounds.rightColumnId,
+    bottomSupportType: 'tie_beam',
+    bottomSupportId: tieBeam?.id ?? params.existingPanel?.bottomSupportId,
+    topSupportType: 'plinth_beam',
+    topSupportId: plinthBeam?.id ?? params.existingPanel?.topSupportId,
+    startStationMeters: params.bounds.startStationMeters,
+    endStationMeters: params.bounds.endStationMeters,
+    bottomElevationMeters: params.bounds.bottomElevationMeters,
+    topElevationMeters: params.bounds.topElevationMeters,
+    masonrySettings: params.existingPanel?.masonrySettings ?? {
+      blockModule: masonrySettings.blockModule,
+      bondPattern: masonrySettings.bondPattern,
+      snapToModule: masonrySettings.snapToModule,
+      wasteFactor: masonrySettings.wasteFactor,
+    },
+  };
+}
+
 export function infillPanelFromResolvedBounds(params: {
   bounds: ResolvedInfillPanelBounds;
   wall: CmuWallSystemParameters;
@@ -215,6 +367,7 @@ export function infillPanelFromResolvedBounds(params: {
   return {
     id: params.existingPanel?.id ?? params.bounds.panelId,
     hostSegmentId: params.bounds.hostSegmentId,
+    infillZone: 'above_grade',
     leftSupportType: params.bounds.leftColumnId ? 'column' : 'wall_end',
     leftSupportId: params.bounds.leftColumnId,
     rightSupportType: params.bounds.rightColumnId ? 'column' : 'wall_end',

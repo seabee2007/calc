@@ -1697,6 +1697,23 @@ function resolveLayoutOpeningGeometry(params: {
   };
 }
 
+/** Layout-graph world positions for wall openings (required for 3D frame rendering). */
+export function resolveLayoutRoughOpeningsFromWall(params: {
+  wall: CmuWallSystemParameters;
+  segmentFrames: readonly SegmentFrame[];
+}): ResolvedCmuOpening[] {
+  const frameById = new Map(params.segmentFrames.map((frame) => [frame.segmentId, frame]));
+  return params.wall.openings
+    .map((opening) =>
+      resolveLayoutOpeningGeometry({
+        opening,
+        segmentFrame: opening.wallSegmentId ? frameById.get(opening.wallSegmentId) : undefined,
+        wallSettings: params.wall,
+      }),
+    )
+    .filter((opening): opening is ResolvedCmuOpening => opening != null);
+}
+
 function getLayoutOpeningSegmentId(opening: ResolvedCmuOpening): string | undefined {
   return (opening as LayoutResolvedOpening).wallSegmentId;
 }

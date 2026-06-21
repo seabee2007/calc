@@ -72,6 +72,7 @@ export function applyAutoFrameLayout(preset: CmuBuildingPreset): CmuBuildingPres
     columns: frameSystem.columns,
     beams: frameSystem.beams,
     wall: preset.wall,
+    foundation,
   });
   return {
     ...preset,
@@ -215,6 +216,7 @@ export function applyFrameFoundationDimensions(
     columns: frameSystem.columns,
     beams: frameSystem.beams,
     wall: next.wall,
+    foundation,
   });
   return {
     ...next,

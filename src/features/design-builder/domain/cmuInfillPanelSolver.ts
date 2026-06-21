@@ -2,13 +2,16 @@ import type {
   CmuInfillPanel,
   CmuWallSystemParameters,
   DesignWallLayoutParameters,
+  RcFrameFoundationSettings,
   StructuralBeam,
   StructuralColumn,
 } from '../types';
 import { resolveCmuModuleDefinition } from './cmuModuleRules';
 import {
+  belowGradeInfillPanelFromResolvedBounds,
   infillPanelFromResolvedBounds,
   logInfillPanelBoundsTableForDev,
+  resolveBelowGradeInfillPanelBoundsForLayout,
   resolveInfillPanelBoundsForLayout,
   resolveInfillPanelBoundsForSegment,
   type ResolvedInfillPanelBounds,
@@ -38,6 +41,52 @@ export type InfillPanelSolveResult = {
 
 function panelId(segmentId: string, index: number): string {
   return `infill-${segmentId}-${index}`;
+}
+
+export function countPanelVerticalCourses(params: {
+  panelBottomElevationMeters: number;
+  panelTopElevationMeters: number;
+  nominalCourseHeightMeters: number;
+}): number {
+  const vertical = resolvePanelVerticalCourses(params);
+  return vertical.fullCourseCount + (vertical.hasTopClosureCourse ? 1 : 0);
+}
+
+export function isAboveGradeInfillPanel(panel: CmuInfillPanel): boolean {
+  return panel.infillZone !== 'below_grade';
+}
+
+function findExistingPanelForBounds(
+  existingPanels: readonly CmuInfillPanel[] | undefined,
+  bounds: ResolvedInfillPanelBounds,
+  zone: 'above_grade' | 'below_grade',
+): CmuInfillPanel | undefined {
+  return existingPanels?.find(
+    (panel) =>
+      panel.hostSegmentId === bounds.hostSegmentId &&
+      (zone === 'below_grade'
+        ? panel.infillZone === 'below_grade'
+        : panel.infillZone !== 'below_grade'),
+  );
+}
+
+function resolveAllInfillPanelBounds(params: {
+  layout: DesignWallLayoutParameters;
+  segmentFrames: SegmentFrame[];
+  columns: StructuralColumn[];
+  beams: StructuralBeam[];
+  foundation?: RcFrameFoundationSettings;
+}): ResolvedInfillPanelBounds[] {
+  const belowGrade = resolveBelowGradeInfillPanelBoundsForLayout(params);
+  const aboveGrade = resolveInfillPanelBoundsForLayout(params);
+  const ordered: ResolvedInfillPanelBounds[] = [];
+  for (const segment of params.layout.segments) {
+    const below = belowGrade.find((bounds) => bounds.hostSegmentId === segment.id);
+    const above = aboveGrade.find((bounds) => bounds.hostSegmentId === segment.id);
+    if (below) ordered.push(below);
+    if (above) ordered.push(above);
+  }
+  return ordered;
 }
 
 export function resolvePanelVerticalCourses(params: {
@@ -104,22 +153,26 @@ export function deriveInfillPanelsForLayout(params: {
   columns: StructuralColumn[];
   beams: StructuralBeam[];
   wall: CmuWallSystemParameters;
+  foundation?: RcFrameFoundationSettings;
   existingPanels?: readonly CmuInfillPanel[];
 }): CmuInfillPanel[] {
-  const resolvedBounds = resolveInfillPanelBoundsForLayout({
-    layout: params.layout,
-    segmentFrames: params.segmentFrames,
-    columns: params.columns,
-    beams: params.beams,
-  });
+  const resolvedBounds = resolveAllInfillPanelBounds(params);
   return resolvedBounds.map((bounds) => {
-    const existingPanel = params.existingPanels?.find((panel) => panel.hostSegmentId === bounds.hostSegmentId);
-    return infillPanelFromResolvedBounds({
-      bounds,
-      wall: params.wall,
-      beams: params.beams,
-      existingPanel,
-    });
+    const zone = bounds.panelId.includes('-below-') ? 'below_grade' : 'above_grade';
+    const existingPanel = findExistingPanelForBounds(params.existingPanels, bounds, zone);
+    return zone === 'below_grade'
+      ? belowGradeInfillPanelFromResolvedBounds({
+          bounds,
+          wall: params.wall,
+          beams: params.beams,
+          existingPanel,
+        })
+      : infillPanelFromResolvedBounds({
+          bounds,
+          wall: params.wall,
+          beams: params.beams,
+          existingPanel,
+        });
   });
 }
 
@@ -129,23 +182,31 @@ export function resolveInfillPanelsWithBounds(params: {
   columns: StructuralColumn[];
   beams: StructuralBeam[];
   wall: CmuWallSystemParameters;
+  foundation?: RcFrameFoundationSettings;
   existingPanels?: readonly CmuInfillPanel[];
 }): Array<{ panel: CmuInfillPanel; bounds: ResolvedInfillPanelBounds }> {
-  const resolvedBounds = resolveInfillPanelBoundsForLayout({
-    layout: params.layout,
-    segmentFrames: params.segmentFrames,
-    columns: params.columns,
-    beams: params.beams,
-  });
-  return resolvedBounds.map((bounds) => ({
-    bounds,
-    panel: infillPanelFromResolvedBounds({
+  const resolvedBounds = resolveAllInfillPanelBounds(params);
+  return resolvedBounds.map((bounds) => {
+    const zone = bounds.panelId.includes('-below-') ? 'below_grade' : 'above_grade';
+    const existingPanel = findExistingPanelForBounds(params.existingPanels, bounds, zone);
+    return {
       bounds,
-      wall: params.wall,
-      beams: params.beams,
-      existingPanel: params.existingPanels?.find((panel) => panel.hostSegmentId === bounds.hostSegmentId),
-    }),
-  }));
+      panel:
+        zone === 'below_grade'
+          ? belowGradeInfillPanelFromResolvedBounds({
+              bounds,
+              wall: params.wall,
+              beams: params.beams,
+              existingPanel,
+            })
+          : infillPanelFromResolvedBounds({
+              bounds,
+              wall: params.wall,
+              beams: params.beams,
+              existingPanel,
+            }),
+    };
+  });
 }
 
 export function solveInfillPanelBlocks(params: {
@@ -154,6 +215,7 @@ export function solveInfillPanelBlocks(params: {
   frame: SegmentFrame;
   wall: CmuWallSystemParameters;
   logBoundsForDev?: boolean;
+  courseIndexOffset?: number;
 }): InfillPanelSolveResult {
   const module = resolveCmuModuleDefinition(params.wall);
   const nominalModule = module.nominalModuleLengthMeters;
@@ -164,6 +226,7 @@ export function solveInfillPanelBlocks(params: {
   const blocks: CmuBlockInstance[] = [];
   const counters: CourseLayoutCounters = { full: 0, half: 0, cut: 0, topClosure: 0 };
   const warnings: string[] = [];
+  const courseIndexOffset = params.courseIndexOffset ?? 0;
 
   const vertical = resolvePanelVerticalCourses({
     panelBottomElevationMeters: params.panel.bottomElevationMeters,
@@ -184,6 +247,7 @@ export function solveInfillPanelBlocks(params: {
     vertical.fullCourseCount + (vertical.hasTopClosureCourse ? 1 : 0);
 
   for (let courseIndex = 0; courseIndex < courseCount; courseIndex += 1) {
+    const absoluteCourseIndex = courseIndex + courseIndexOffset;
     const isTopClosure = vertical.hasTopClosureCourse && courseIndex === vertical.fullCourseCount;
     const courseBottomElevationMeters =
       params.panel.bottomElevationMeters +
@@ -205,7 +269,7 @@ export function solveInfillPanelBlocks(params: {
       ...layoutHorizontalCourseUnits({
         panel: params.panel,
         frame: params.frame,
-        courseIndex,
+        courseIndex: absoluteCourseIndex,
         courseBottomElevationMeters,
         physicalHeightMeters,
         isTopClosure,

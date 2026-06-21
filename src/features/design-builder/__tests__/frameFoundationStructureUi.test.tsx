@@ -2,6 +2,10 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useDesignBuilderSessionStore } from '../state/designBuilderStore';
 import DesignBuilderPage from '../ui/DesignBuilderPage';
+import {
+  seedLoadedDesignBuilderTemplate,
+  waitForLoadedDesignBuilderTemplate,
+} from './designBuilderPageTestHelpers';
 
 const mocks = vi.hoisted(() => ({
   createDesignModel: vi.fn(),
@@ -60,8 +64,13 @@ function structureMenuItems() {
 }
 
 async function loadTemplate() {
-  fireEvent.click(screen.getByRole('button', { name: /load cmu template/i }));
-  await waitFor(() => expect(mocks.createDesignModel).toHaveBeenCalled());
+  seedLoadedDesignBuilderTemplate();
+  await waitForLoadedDesignBuilderTemplate();
+}
+
+function renderLoadedDesignBuilder() {
+  seedLoadedDesignBuilderTemplate();
+  return render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
 }
 
 async function selectRcFrameMode() {
@@ -109,8 +118,8 @@ describe('Structure dropdown — unified frame modal', () => {
   });
 
   it('shows only system modes in CMU bearing wall mode', async () => {
-    render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
-    await loadTemplate();
+    renderLoadedDesignBuilder();
+    await waitForLoadedDesignBuilderTemplate();
     openStructureMenu();
     const items = structureMenuItems();
     expect(items).toContain('CMU Bearing Wall');
@@ -123,8 +132,8 @@ describe('Structure dropdown — unified frame modal', () => {
   });
 
   it('opens unified modal when RC Frame + CMU Infill is selected', async () => {
-    render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
-    await loadTemplate();
+    renderLoadedDesignBuilder();
+    await waitForLoadedDesignBuilderTemplate();
     await selectRcFrameMode();
     await waitFor(() => {
       expect(
@@ -134,8 +143,8 @@ describe('Structure dropdown — unified frame modal', () => {
   });
 
   it('opens unified modal when Frame, Foundation & Roof Dimensions is clicked', async () => {
-    render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
-    await loadTemplate();
+    renderLoadedDesignBuilder();
+    await waitForLoadedDesignBuilderTemplate();
     await selectRcFrameMode();
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
     await waitFor(() => {
@@ -149,8 +158,8 @@ describe('Structure dropdown — unified frame modal', () => {
   });
 
   it('shows Frame, Foundation & Roof Dimensions when RC mode is active', async () => {
-    render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
-    await loadTemplate();
+    renderLoadedDesignBuilder();
+    await waitForLoadedDesignBuilderTemplate();
     await selectRcFrameMode();
     openStructureMenu();
     const items = structureMenuItems();
@@ -159,8 +168,8 @@ describe('Structure dropdown — unified frame modal', () => {
   });
 
   it('does not open modal when switching to CMU Bearing Wall', async () => {
-    render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
-    await loadTemplate();
+    renderLoadedDesignBuilder();
+    await waitForLoadedDesignBuilderTemplate();
     await selectRcFrameMode();
     openStructureMenu();
     fireEvent.click(screen.getByRole('menuitem', { name: 'CMU Bearing Wall' }));

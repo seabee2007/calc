@@ -16,7 +16,6 @@ import {
 import {
   buildPresetObjects,
   createBlankCmuBuildingPreset,
-  createFiveBySixCmuBuildingPreset,
   type CmuBuildingPreset,
 } from '../domain/designBuilderPreset';
 import { DESIGN_BUILDER_COPY } from '../domain/designBuilderCopy';
@@ -139,7 +138,6 @@ import {
   presetFromStoredDesign,
   readPersistedDesignBuilderState,
   resolveDesignBuilderPersistenceContext,
-  saveStateLabel,
   validateDesignBuilderPersistenceContext,
   type DesignBuilderSaveState,
 } from '../domain/designBuilderPersistence';
@@ -160,6 +158,7 @@ import type {
   DesignBuilderToolMode,
   DesignBuilderSnapMode,
   DesignEstimatePreviewLine,
+  DesignVisualStyle,
   FoundationViewMode,
   RoofDisplayMode,
   RoofLayerVisibility,
@@ -175,7 +174,6 @@ import type {
   MasonryCourseRun,
   MasonryToolMode,
   ModuleFitMode,
-  OpeningPlacementStatus,
   WallOpeningParameters,
 } from '../types';
 import {
@@ -197,6 +195,21 @@ import {
 import { buildLayoutFramingKey, deriveDesignLayoutBounds, logDesignFramingDiagnostics } from '../domain/designLayoutBounds';
 import { formatDrawWallSnapTargetFeedback } from '../domain/designDrawWallFeedback';
 import DesignBuilderViewer, { type DesignBuilderPlacementPreview } from './DesignBuilderViewer';
+import {
+  getMaterialDiagnostics,
+  getTextureProjectionDiagnostics,
+  initializeMaterialSelectionsFromPersistence,
+  normalizeDesignMaterialSelection,
+  refreshTriplanarPreviewMaterials,
+  setActiveMaterialSelections,
+  setTriplanarCheckerDebugEnabled,
+  subscribeMaterialDiagnostics,
+  type DesignMaterialSelection,
+  type MaterialDiagnostics,
+  type TextureProjectionDiagnostics,
+} from '../rendering/materials/designMaterialLibrary';
+import type { MortarJointDiagnostics } from '../rendering/materials/cmuMortarJointInstances';
+import MaterialsColorsModal from './MaterialsColorsModal';
 import DesignBuilderPlanCanvas from './DesignBuilderPlanCanvas';
 import {
   closeDesignBuilderCommandMenus,
@@ -390,6 +403,23 @@ export default function DesignBuilderPage({
   const [showRoofFramingGuides, setShowRoofFramingGuides] = useState(false);
   const [showDesignPersistenceDebug, setShowDesignPersistenceDebug] = useState(false);
   const [showGableRakeGeometry, setShowGableRakeGeometry] = useState(false);
+  const [showMaterialDiagnostics, setShowMaterialDiagnostics] = useState(false);
+  const [showTextureProjectionDebug, setShowTextureProjectionDebug] = useState(false);
+  const [showMortarJointsDebug, setShowMortarJointsDebug] = useState(false);
+  const [showTriplanarChecker, setShowTriplanarChecker] = useState(false);
+  const [textureProjectionRevision, setTextureProjectionRevision] = useState(0);
+  const [visualStyle, setVisualStyle] = useState<DesignVisualStyle>('technical');
+  const [materialSelections, setMaterialSelections] = useState<DesignMaterialSelection>(() =>
+    normalizeDesignMaterialSelection(),
+  );
+  const [materialsColorsModalOpen, setMaterialsColorsModalOpen] = useState(false);
+  const [materialDiagnostics, setMaterialDiagnostics] = useState<MaterialDiagnostics>(() =>
+    getMaterialDiagnostics('technical'),
+  );
+  const [textureProjectionDiagnostics, setTextureProjectionDiagnostics] = useState<TextureProjectionDiagnostics>(() =>
+    getTextureProjectionDiagnostics(),
+  );
+  const [mortarJointDiagnostics, setMortarJointDiagnostics] = useState<MortarJointDiagnostics | null>(null);
   const [foundationViewMode, setFoundationViewMode] = useState<FoundationViewMode>('full_model');
   const [roofDisplayMode, setRoofDisplayMode] = useState<RoofDisplayMode>('full_roof');
   const [roofLayerVisibility, setRoofLayerVisibility] = useState<RoofLayerVisibility>(
@@ -402,6 +432,25 @@ export default function DesignBuilderPage({
   const [lastStructureApplyRevision, setLastStructureApplyRevision] = useState(0);
   const [viewMode, setViewMode] = useState<'plan' | '3d'>(() => storedSession?.viewMode ?? '3d');
   const builderViewMode = builderViewModeFromStored(viewMode);
+
+  useEffect(() => {
+    setMaterialDiagnostics(getMaterialDiagnostics(visualStyle));
+    setTextureProjectionDiagnostics(getTextureProjectionDiagnostics());
+    return subscribeMaterialDiagnostics(() => {
+      setMaterialDiagnostics(getMaterialDiagnostics(visualStyle));
+      setTextureProjectionDiagnostics(getTextureProjectionDiagnostics());
+    });
+  }, [visualStyle]);
+
+  function handleTriplanarCheckerChange(enabled: boolean) {
+    setShowTriplanarChecker(enabled);
+    setTriplanarCheckerDebugEnabled(enabled);
+    if (visualStyle === 'material_preview') {
+      refreshTriplanarPreviewMaterials();
+      setTextureProjectionRevision((revision) => revision + 1);
+    }
+  }
+
   const [snapMode, setSnapMode] = useState<DesignBuilderSnapMode>(() => storedSession?.snapMode ?? 'grid');
   const [moduleFitMode, setModuleFitMode] = useState<ModuleFitMode>(() => storedSession?.moduleFitMode ?? 'exact');
   const [designHistory, setDesignHistory] = useState<DesignHistoryState>(() => createDesignHistoryState());
@@ -536,6 +585,14 @@ export default function DesignBuilderPage({
         if (persistedState?.displayPreferences?.foundationViewMode) {
           setFoundationViewMode(persistedState.displayPreferences.foundationViewMode as FoundationViewMode);
         }
+        if (persistedState?.displayPreferences?.visualStyle) {
+          setVisualStyle(persistedState.displayPreferences.visualStyle as DesignVisualStyle);
+        }
+        const loadedMaterialSelections = normalizeDesignMaterialSelection(
+          persistedState?.displayPreferences?.materialSelections,
+        );
+        setMaterialSelections(loadedMaterialSelections);
+        initializeMaterialSelectionsFromPersistence(loadedMaterialSelections);
         setStatus({ tone: 'info', message: persistenceStatusMessage('project_bound') });
       } catch {
         setLastSaveError('Could not load saved design.');
@@ -719,7 +776,6 @@ export default function DesignBuilderPage({
   const nextUndoCommand = peekUndoDesignCommand(designHistory);
   const nextRedoCommand = peekRedoDesignCommand(designHistory);
   const footprintClosed = canGenerateSlabAndRoof(wallLayout);
-  const exteriorBounds = useMemo(() => deriveExteriorBounds(wallLayout), [wallLayout]);
   const effectiveWall = useMemo(
     () =>
       syncWallBlockModuleFromScalars({
@@ -1067,38 +1123,9 @@ export default function DesignBuilderPage({
   const linkedPreviewLines = selectedObjectType
     ? generatedPreview.filter((line) => line.designObjectId === objectIdForType(selectedObjectType, objectIds))
     : [];
-  const selectedOpening = resolvedPreset.wall.openings.find((item) => item.id === selectedOpeningId) ?? null;
   const selectedWallSegment = selectedSegmentId
     ? wallLayout.segments.find((segment) => segment.id === selectedSegmentId) ?? null
     : null;
-  const selectedOpeningStatus = useMemo<OpeningPlacementStatus | null>(() => {
-    if (!selectedOpening) return null;
-    return summarizeOpeningPlacementStatus(selectedOpening, resolvedPreset.wall);
-  }, [resolvedPreset.wall, selectedOpening]);
-  const previewPlacementStatus = useMemo<OpeningPlacementStatus | null>(() => {
-    if (!placementPreview) return null;
-    const draft = placementPreview.wallSegmentId
-      ? createOpeningDraftForSegment(
-          placementPreview.openingType,
-          placementPreview.wallSegmentId,
-          placementPreview.positionAlongSegment ?? placementPreview.offsetMeters,
-          resolvedPreset.wall,
-          wallLayout,
-          placementPreview.openingId ?? 'preview',
-        )
-      : createOpeningDraft(
-          placementPreview.openingType,
-          placementPreview.wallFace,
-          placementPreview.offsetMeters,
-          resolvedPreset.wall,
-          placementPreview.openingId ?? 'preview',
-        );
-    const peers = placementPreview.openingId
-      ? resolvedPreset.wall.openings.filter((item) => item.id !== placementPreview.openingId)
-      : resolvedPreset.wall.openings;
-    return summarizeOpeningPlacementStatus({ ...draft, widthMeters: placementPreview.widthMeters, heightMeters: placementPreview.heightMeters, sillHeightMeters: placementPreview.sillHeightMeters }, resolvedPreset.wall, peers);
-  }, [placementPreview, resolvedPreset.wall, wallLayout]);
-  const livePlacementStatus = previewPlacementStatus ?? selectedOpeningStatus;
   const activeSelection: DesignBuilderSelection = selectedSegmentId
     ? { kind: 'wall_segment', id: selectedSegmentId }
     : selectedNodeId
@@ -2456,6 +2483,8 @@ export default function DesignBuilderPage({
         activeView: viewMode,
         roofDisplayMode,
         foundationViewMode,
+        visualStyle,
+        materialSelections,
       });
       const metadataResult = await updateDesignModelMetadata(activeModel.id, metadata);
       if (metadataResult.error || !metadataResult.data) {
@@ -2497,6 +2526,19 @@ export default function DesignBuilderPage({
     } finally {
       setBusy(false);
     }
+  }
+
+  function handleApplyMaterialSelections(nextSelections: DesignMaterialSelection) {
+    const normalized = normalizeDesignMaterialSelection(nextSelections);
+    setMaterialSelections(normalized);
+    void setActiveMaterialSelections(normalized).then(() => {
+      setTextureProjectionRevision((revision) => revision + 1);
+    });
+    setMaterialsColorsModalOpen(false);
+    if (persistenceContext.canPersist) {
+      setSaveState('unsaved');
+    }
+    setStatus({ tone: 'success', message: 'Material selections applied.' });
   }
 
   function updateFootprint(field: 'lengthMeters' | 'widthMeters', value: number) {
@@ -2843,114 +2885,6 @@ export default function DesignBuilderPage({
     if (mode === 'select') setPlacementPreview(null);
   }
 
-  async function handleLoadTemplate() {
-    const before = captureDesignSnapshot();
-    setBusy(true);
-    setStatus({ tone: 'info', message: DESIGN_BUILDER_COPY.status.loadingTemplate });
-    try {
-      const nextPreset = createFiveBySixCmuBuildingPreset();
-      let nextObjects: DesignModelObject[] = [];
-
-      if (!user?.id) {
-        const after = createDesignSnapshot({
-          preset: nextPreset,
-          objects: [],
-          layoutState: 'demo_loaded',
-          selectedObjectType: 'building_footprint',
-          selectedOpeningId: null,
-          selectedSegmentId: null,
-          selectedNodeId: null,
-        });
-        applyDesignSnapshot(after);
-        setDesignModel(null);
-        setMasonryToolMode('full_block');
-        setChangedAfterCommit(false);
-        setActiveDrawNodeId(null);
-        setDrawStartNodeId(null);
-        setDraftPlanEnd(null);
-        setPlacementPreview(null);
-        setDesignHistory(createDesignHistoryState());
-        recordDesignHistoryCommand('Load template', 'layout_reset', before, after);
-        finalizeMutationAfterCommand();
-        resetDesignViewFraming();
-        setStatus({
-          tone: 'success',
-          message: DESIGN_BUILDER_COPY.status.templateLoadedLocal,
-        });
-        return;
-      }
-
-      let nextModel: DesignModel | null = designModel;
-      if (persistenceContext.canPersist && !nextModel) {
-        const existingResult = await findDesignModelByEstimateId(projectId, persistenceContext.estimateId!);
-        if (existingResult.data) {
-          nextModel = existingResult.data;
-        }
-      }
-
-      if (!nextModel) {
-        const modelResult = await createDesignModel({
-          projectId,
-          estimateId,
-          name: nextPreset.name,
-          unitSystem: 'metric',
-          createdBy: user.id,
-          metadata: {
-            preset: '5m_x_6m_cmu_building',
-            source: 'parametric_design_builder',
-          },
-        });
-        if (modelResult.error || !modelResult.data) {
-          setStatus({ tone: 'error', message: modelResult.error ?? 'Could not save design model.' });
-          return;
-        }
-        nextModel = modelResult.data;
-      }
-
-      const objectResult = await upsertDesignModelObjects(
-        buildPresetObjects({
-          designModelId: nextModel.id,
-          projectId,
-          preset: nextPreset,
-          includeStableIds: false,
-        }),
-      );
-      if (objectResult.error || !objectResult.data) {
-        setStatus({ tone: 'error', message: objectResult.error ?? 'Could not save design objects.' });
-        return;
-      }
-
-      nextObjects = objectResult.data;
-      const after = createDesignSnapshot({
-        preset: nextPreset,
-        objects: nextObjects,
-        layoutState: 'demo_loaded',
-        selectedObjectType: 'building_footprint',
-        selectedOpeningId: null,
-        selectedSegmentId: null,
-        selectedNodeId: null,
-      });
-      applyDesignSnapshot(after);
-      setDesignModel(nextModel);
-      setMasonryToolMode('full_block');
-      setChangedAfterCommit(false);
-      setActiveDrawNodeId(null);
-      setDrawStartNodeId(null);
-      setDraftPlanEnd(null);
-      setPlacementPreview(null);
-      setDesignHistory(createDesignHistoryState());
-      recordDesignHistoryCommand('Load template', 'layout_reset', before, after);
-      finalizeMutationAfterCommand();
-      resetDesignViewFraming();
-      setStatus({
-        tone: 'success',
-        message: DESIGN_BUILDER_COPY.status.templateLoaded,
-      });
-    } finally {
-      setBusy(false);
-    }
-  }
-
   async function handleStartBlankLayout() {
     const hasDesignData =
       wallLayout.nodes.length > 0 ||
@@ -3164,15 +3098,6 @@ export default function DesignBuilderPage({
   const activeOpeningTool = toolMode === 'place_door' ? 'door' : toolMode === 'place_window' ? 'window' : null;
   const activeOpeningSettings = activeOpeningTool ? openingToolSettings[activeOpeningTool] : null;
   const closeFootprintEnabled = modelLoaded && !footprintClosed && wallLayout.segments.length >= 3;
-  const hasCutBlockWarnings =
-    moduleWarnings.length > 0 ||
-    livePlacementStatus?.kind === 'cut_block' ||
-    cmuLayout.openingCourseClosures.some((closure) => closure.closureType === 'cut_block') ||
-    cmuLayout.lintelCourseAssemblies.some(lintelCourseAssemblyRequiresCutWarning);
-  const cutBlockWarningText =
-    livePlacementStatus?.warnings.join(' ') ||
-    moduleWarnings.join(' ') ||
-    'Cut-block condition detected. Review CMU module fit and opening placement.';
 
   return (
     <>
@@ -3189,44 +3114,6 @@ export default function DesignBuilderPage({
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-700 dark:text-cyan-300">
             Arden Design Builder
           </p>
-          <h2 className="mt-1 text-2xl font-semibold">CMU Building Design Builder</h2>
-          <p className="mt-1 max-w-3xl text-sm text-slate-600 dark:text-slate-300">
-            Build construction-aware objects, edit dimensions, review generated quantities, then commit only after confirmation.
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={toggleLeftPanel}
-            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
-            aria-pressed={leftPanelCollapsed}
-          >
-            {DESIGN_BUILDER_COPY.actions.tools}
-          </button>
-          <button
-            type="button"
-            onClick={toggleRightPanel}
-            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
-            aria-pressed={rightPanelCollapsed}
-          >
-            {DESIGN_BUILDER_COPY.actions.estimate}
-          </button>
-          <button
-            type="button"
-            onClick={() => void handleLoadTemplate()}
-            disabled={busy}
-            className="rounded-xl bg-cyan-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {DESIGN_BUILDER_COPY.actions.loadTemplate}
-          </button>
-          <button
-            type="button"
-            onClick={() => void handleStartBlankLayout()}
-            disabled={busy}
-            className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
-          >
-            {DESIGN_BUILDER_COPY.actions.newLayout}
-          </button>
         </div>
       </div>
 
@@ -3682,6 +3569,20 @@ export default function DesignBuilderPage({
                       {preset === 'fit' ? 'Fit height' : preset === 'full' ? 'Full height' : `${preset}%`}
                     </CommandMenuAction>
                   ))}
+                  <div className="my-1 border-t border-slate-200 dark:border-slate-700" />
+                  <CommandMenuAction
+                    onClick={() => void handleCloseFootprint()}
+                    disabled={!closeFootprintEnabled}
+                    className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 dark:text-slate-200 dark:hover:bg-slate-800"
+                  >
+                    Close Footprint
+                  </CommandMenuAction>
+                  <CommandMenuAction
+                    onClick={() => setStatus({ tone: 'info', message: DESIGN_BUILDER_COPY.hints.help })}
+                    className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                  >
+                    Help
+                  </CommandMenuAction>
               </DesignBuilderCommandMenu>
 
               <DesignBuilderCommandMenu
@@ -3699,6 +3600,60 @@ export default function DesignBuilderPage({
                     onChange={setShowGroutCells}
                   />
                   <ToggleField label="Show Cut-Block Conditions" checked={showClosureWarnings} onChange={setShowClosureWarnings} />
+                  <div className="space-y-1 border-t border-slate-200 pt-2 dark:border-slate-700">
+                    <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                      Visual Style
+                    </div>
+                    {(
+                      [
+                        ['technical', 'Technical'],
+                        ['material_preview', 'Material Preview'],
+                      ] as const
+                    ).map(([mode, label]) => (
+                      <label key={mode} className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 hover:bg-slate-50 dark:hover:bg-slate-800">
+                        <input
+                          type="radio"
+                          name="design-visual-style"
+                          checked={visualStyle === mode}
+                          onChange={() => setVisualStyle(mode)}
+                        />
+                        <span>{label}</span>
+                      </label>
+                    ))}
+                  </div>
+                  <CommandMenuAction
+                    onClick={() => setMaterialsColorsModalOpen(true)}
+                    className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                  >
+                    Materials &amp; Colors
+                  </CommandMenuAction>
+                  {import.meta.env.DEV ? (
+                    <div className="space-y-1 border-t border-slate-200 pt-2 dark:border-slate-700">
+                      <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                        Debug
+                      </div>
+                      <ToggleField
+                        label="Material Diagnostics"
+                        checked={showMaterialDiagnostics}
+                        onChange={setShowMaterialDiagnostics}
+                      />
+                      <ToggleField
+                        label="Texture Projection"
+                        checked={showTextureProjectionDebug}
+                        onChange={setShowTextureProjectionDebug}
+                      />
+                      <ToggleField
+                        label="Mortar Joints"
+                        checked={showMortarJointsDebug}
+                        onChange={setShowMortarJointsDebug}
+                      />
+                      <ToggleField
+                        label="Triplanar checker (dev)"
+                        checked={showTriplanarChecker}
+                        onChange={handleTriplanarCheckerChange}
+                      />
+                    </div>
+                  ) : null}
                   {import.meta.env.DEV ? (
                     <ToggleField label="Show footprint setout" checked={showFootprintSetout} onChange={setShowFootprintSetout} />
                   ) : null}
@@ -3811,26 +3766,6 @@ export default function DesignBuilderPage({
                   ) : null}
               </DesignBuilderCommandMenu>
 
-              <DesignBuilderCommandMenu
-                menuKind="actions"
-                label={<>Actions <span aria-hidden>▾</span></>}
-                summaryClassName="flex h-9 items-center gap-1 rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-cyan-400/40 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
-              >
-                  <CommandMenuAction
-                    onClick={() => void handleCloseFootprint()}
-                    disabled={!closeFootprintEnabled}
-                    className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 dark:text-slate-200 dark:hover:bg-slate-800"
-                  >
-                    Close Footprint
-                  </CommandMenuAction>
-                  <CommandMenuAction
-                    onClick={() => setStatus({ tone: 'info', message: DESIGN_BUILDER_COPY.hints.help })}
-                    className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
-                  >
-                    Help
-                  </CommandMenuAction>
-              </DesignBuilderCommandMenu>
-
               <button
                 type="button"
                 onClick={handleUndoDesign}
@@ -3852,64 +3787,50 @@ export default function DesignBuilderPage({
                 Redo
               </button>
 
-
-              <button
-                type="button"
-                onClick={() => setViewCommand({ id: Date.now(), action: 'fit' })}
-                className="ml-auto hidden h-9 rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800 lg:inline-flex lg:items-center"
-              >
-                Fit
-              </button>
-              <button
-                type="button"
-                onClick={() => void handleSaveDesign()}
-                disabled={busy || !persistenceContext.canPersist}
-                className="h-9 rounded-lg bg-slate-900 px-3 text-xs font-semibold text-white shadow-sm hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-cyan-500 dark:text-slate-950 dark:hover:bg-cyan-400"
-              >
-                {DESIGN_BUILDER_COPY.actions.saveDesign}
-              </button>
-              {persistenceContext.canPersist ? (
-                <span
-                  className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${
-                    saveState === 'failed'
-                      ? 'border-red-300 text-red-700 dark:border-red-800 dark:text-red-200'
-                      : saveState === 'unsaved'
-                        ? 'border-amber-300 text-amber-900 dark:border-amber-800 dark:text-amber-100'
-                        : 'border-slate-200 text-slate-600 dark:border-slate-700 dark:text-slate-300'
-                  }`}
+              <div className="ml-auto flex items-center gap-2">
+                <DesignBuilderCommandMenu
+                  menuKind="workspace-actions"
+                  label={<>Actions <span aria-hidden>▾</span></>}
+                  panelClassName="w-48"
+                  summaryClassName="flex h-9 items-center gap-1 rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-cyan-400/40 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
                 >
-                  {saveStateLabel(saveState)}
-                </span>
-              ) : null}
-
-              <div className="ml-auto flex flex-wrap items-center gap-2 text-[11px]">
-                <span className="rounded-full border border-slate-200 px-2.5 py-1 font-semibold text-slate-600 dark:border-slate-700 dark:text-slate-300">
-                  Outside Face
-                </span>
-                {exteriorBounds ? (
-                  <span className="rounded-full border border-slate-200 px-2.5 py-1 font-semibold text-slate-600 dark:border-slate-700 dark:text-slate-300">
-                    {exteriorBounds.exteriorLengthMeters.toFixed(2)} m × {exteriorBounds.exteriorWidthMeters.toFixed(2)} m
-                  </span>
-                ) : null}
-                {modelLoaded && !footprintClosed ? (
-                  <span
-                    className="rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 font-semibold text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100"
-                    title={DESIGN_BUILDER_COPY.status.footprintOpen}
+                  <CommandMenuAction
+                    onClick={toggleLeftPanel}
+                    className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
                   >
-                    Footprint Open
-                  </span>
-                ) : null}
-                {hasCutBlockWarnings ? (
-                  <details className="relative">
-                    <summary className="cursor-pointer list-none rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 font-semibold text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-400/40 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100">
-                      Cut-Block Condition
-                    </summary>
-                    <div className="absolute right-0 z-30 mt-2 w-72 rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900 shadow-xl dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100">
-                      {cutBlockWarningText}
-                    </div>
-                  </details>
-                ) : null}
-                {livePlacementStatus && livePlacementStatus.kind !== 'cut_block' ? <PlacementStatusBadge status={livePlacementStatus} /> : null}
+                    {DESIGN_BUILDER_COPY.actions.tools}
+                  </CommandMenuAction>
+                  <CommandMenuAction
+                    onClick={toggleRightPanel}
+                    className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                  >
+                    {DESIGN_BUILDER_COPY.actions.estimate}
+                  </CommandMenuAction>
+                  <div className="my-1 border-t border-slate-200 dark:border-slate-700" />
+                  <CommandMenuAction
+                    onClick={() => void handleStartBlankLayout()}
+                    disabled={busy}
+                    className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-300 dark:hover:bg-red-950/40"
+                  >
+                    {DESIGN_BUILDER_COPY.actions.newLayout}
+                  </CommandMenuAction>
+                </DesignBuilderCommandMenu>
+
+                <button
+                  type="button"
+                  onClick={() => setViewCommand({ id: Date.now(), action: 'fit' })}
+                  className="hidden h-9 rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800 lg:inline-flex lg:items-center"
+                >
+                  Fit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void handleSaveDesign()}
+                  disabled={busy || !persistenceContext.canPersist}
+                  className="h-9 rounded-lg bg-slate-900 px-3 text-xs font-semibold text-white shadow-sm hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-cyan-500 dark:text-slate-950 dark:hover:bg-cyan-400"
+                >
+                  {DESIGN_BUILDER_COPY.actions.saveDesign}
+                </button>
               </div>
             </div>
           </div>
@@ -4147,6 +4068,10 @@ export default function DesignBuilderPage({
                 showRoofFramingGuides={showRoofFramingGuides}
                 showGableRakeGeometry={showGableRakeGeometry}
                 foundationViewMode={foundationViewMode}
+                visualStyle={visualStyle}
+                textureProjectionRevision={textureProjectionRevision}
+                showMortarJointsDebug={showMortarJointsDebug}
+                onMortarJointDiagnosticsChange={setMortarJointDiagnostics}
                 roofSystem={resolvedPreset.roofSystem}
                 roofDisplayMode={roofDisplayMode}
                 roofLayerVisibility={roofLayerVisibility}
@@ -4232,6 +4157,64 @@ export default function DesignBuilderPage({
                 <div className="flex items-center gap-2">
                   <span className="inline-block h-2 w-4 rounded-sm bg-yellow-400" aria-hidden />
                   <span>Truss web members</span>
+                </div>
+              </div>
+            ) : null}
+            {import.meta.env.DEV && viewMode === '3d' && showMaterialDiagnostics ? (
+              <div className="pointer-events-none absolute left-3 bottom-3 z-10 max-w-xs space-y-1 rounded-xl border border-violet-400/60 bg-slate-900/95 px-3 py-2 text-xs text-slate-100 shadow-lg">
+                <div className="font-semibold uppercase tracking-wide text-violet-300">Material Diagnostics</div>
+                <div className="mt-2 space-y-0.5 font-mono text-[11px]">
+                  <div>Visual Style: {materialDiagnostics.visualStyle === 'material_preview' ? 'Material Preview' : 'Technical'}</div>
+                  <div>
+                    Loaded texture packs:{' '}
+                    {materialDiagnostics.loadedTexturePacks.length > 0
+                      ? materialDiagnostics.loadedTexturePacks.join(', ')
+                      : 'none'}
+                  </div>
+                  <div>CMU material status: {materialDiagnostics.cmuMaterialStatus}</div>
+                  <div>Mortar material status: {materialDiagnostics.mortarMaterialStatus}</div>
+                  <div>Concrete042A status: {materialDiagnostics.concreteStructuralMaterialStatus}</div>
+                  <div>Concrete044D status: {materialDiagnostics.concreteBeamMaterialStatus}</div>
+                  <div>Roof material status: {materialDiagnostics.roofMaterialStatus}</div>
+                  <div>Steel material status: {materialDiagnostics.steelMaterialStatus}</div>
+                  <div>Texture resolution: {materialDiagnostics.textureResolution}</div>
+                  <div>Active texture count: {materialDiagnostics.activeTextureCount}</div>
+                  <div>Material instance count: {materialDiagnostics.materialInstanceCount}</div>
+                </div>
+              </div>
+            ) : null}
+            {import.meta.env.DEV && viewMode === '3d' && showTextureProjectionDebug ? (
+              <div className="pointer-events-none absolute left-3 bottom-48 z-10 max-w-xs space-y-1 rounded-xl border border-cyan-400/60 bg-slate-900/95 px-3 py-2 text-xs text-slate-100 shadow-lg">
+                <div className="font-semibold uppercase tracking-wide text-cyan-300">Texture Projection</div>
+                <div className="mt-2 space-y-0.5 font-mono text-[11px]">
+                  <div>Active visual style: {visualStyle === 'material_preview' ? 'Material Preview' : 'Technical'}</div>
+                  <div>CMU projection: {textureProjectionDiagnostics.cmuProjection}</div>
+                  <div>Concrete projection: {textureProjectionDiagnostics.concreteProjection}</div>
+                  <div>CMU world tile size: {textureProjectionDiagnostics.cmuWorldTileSize.toFixed(2)} m</div>
+                  <div>
+                    Concrete world tile size: {textureProjectionDiagnostics.concreteWorldTileSize.toFixed(2)} m
+                  </div>
+                  <div>Texture material cache count: {textureProjectionDiagnostics.textureMaterialCacheCount}</div>
+                  <div>Triplanar checker: {textureProjectionDiagnostics.useCheckerMap ? 'on' : 'off'}</div>
+                </div>
+              </div>
+            ) : null}
+            {import.meta.env.DEV && viewMode === '3d' && showMortarJointsDebug ? (
+              <div className="pointer-events-none absolute left-3 bottom-64 z-10 max-w-xs space-y-1 rounded-xl border border-slate-400/60 bg-slate-900/95 px-3 py-2 text-xs text-slate-100 shadow-lg">
+                <div className="font-semibold uppercase tracking-wide text-slate-300">Mortar Joints</div>
+                <div className="mt-2 space-y-0.5 font-mono text-[11px]">
+                  <div className="text-blue-300">Blue: head joints</div>
+                  <div className="text-yellow-300">Yellow: bed joints</div>
+                  <div className="text-red-300">Red: invalid joint or overlap</div>
+                </div>
+                <div className="mt-2 space-y-0.5 border-t border-slate-700 pt-2 font-mono text-[11px]">
+                  <div>Mortar head-joint instances: {mortarJointDiagnostics?.headJointCount ?? 0}</div>
+                  <div>Mortar bed-joint instances: {mortarJointDiagnostics?.bedJointCount ?? 0}</div>
+                  <div>Skipped opening gaps: {mortarJointDiagnostics?.skippedOpeningGaps ?? 0}</div>
+                  <div>Skipped non-contiguous gaps: {mortarJointDiagnostics?.skippedNonContiguousGaps ?? 0}</div>
+                  <div>
+                    Mortar face recess: {(mortarJointDiagnostics?.faceRecessMeters ?? 0.002).toFixed(3)} m
+                  </div>
                 </div>
               </div>
             ) : null}
@@ -4565,6 +4548,12 @@ export default function DesignBuilderPage({
       onClose={() => setFrameFoundationModalOpen(false)}
       onApply={handleApplyFrameFoundationDimensions}
     />
+    <MaterialsColorsModal
+      isOpen={materialsColorsModalOpen}
+      appliedSelections={materialSelections}
+      onClose={() => setMaterialsColorsModalOpen(false)}
+      onApply={handleApplyMaterialSelections}
+    />
     </>
   );
 }
@@ -4600,22 +4589,6 @@ const TOOL_MODE_OPTIONS: Array<{ mode: DesignBuilderToolMode; label: string }> =
   { mode: 'move_opening', label: 'Move Opening' },
   { mode: 'delete', label: 'Delete' },
 ];
-
-function PlacementStatusBadge({ status }: { status: OpeningPlacementStatus }) {
-  const toneClass =
-    status.kind === 'invalid'
-      ? 'border-red-300 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950/40 dark:text-red-200'
-      : status.kind === 'cut_block'
-        ? 'border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100'
-        : status.kind === 'half_block'
-          ? 'border-yellow-300 bg-yellow-50 text-yellow-900 dark:border-yellow-800 dark:bg-yellow-950/40 dark:text-yellow-100'
-          : 'border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200';
-  return (
-    <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${toneClass}`} title={status.warnings.join(' ')}>
-      {status.label}
-    </span>
-  );
-}
 
 const OBJECT_TREE_ITEMS: Array<{ id: string; objectType: DesignObjectType; label: string; description: string }> = [
   { id: 'footprint', objectType: 'building_footprint', label: 'Nodes', description: '' },

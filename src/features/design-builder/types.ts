@@ -414,11 +414,15 @@ export interface IsolatedFooting {
 
 export type FoundationViewMode = 'full_model' | 'cutaway_below_grade' | 'structural_frame_only';
 
+export type DesignVisualStyle = 'technical' | 'material_preview';
+
 export type CmuInfillSupportType = 'column' | 'wall_end' | 'opening_jamb';
 
-export type CmuInfillBottomSupportType = 'plinth_beam' | 'grade_beam' | 'slab' | 'foundation';
+export type CmuInfillBottomSupportType = 'plinth_beam' | 'grade_beam' | 'slab' | 'foundation' | 'tie_beam';
 
-export type CmuInfillTopSupportType = 'roof_beam' | 'ring_beam' | 'roof_line' | 'gable_profile';
+export type CmuInfillTopSupportType = 'roof_beam' | 'ring_beam' | 'roof_line' | 'gable_profile' | 'plinth_beam';
+
+export type CmuInfillZone = 'above_grade' | 'below_grade';
 
 export interface DesignMasonrySettings {
   blockModule?: CmuBlockModuleConfig;
@@ -430,6 +434,8 @@ export interface DesignMasonrySettings {
 export interface CmuInfillPanel {
   id: string;
   hostSegmentId: string;
+  /** Defaults to above_grade when omitted (legacy persisted designs). */
+  infillZone?: CmuInfillZone;
   leftSupportType: CmuInfillSupportType;
   leftSupportId?: string;
   rightSupportType: CmuInfillSupportType;

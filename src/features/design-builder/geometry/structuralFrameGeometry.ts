@@ -25,6 +25,7 @@ import {
   findExteriorFootprintBoundaryViolations,
   generateCmuLayoutFromWallLayout,
   getSegmentFramesForWallLayout,
+  resolveLayoutRoughOpeningsFromWall,
   resolveWallLayoutGeometry,
   resolvedBuildingFootprintFromWallLayout,
 } from './designGeometry';
@@ -38,6 +39,8 @@ import {
 } from '../domain/foundationElevations';
 import { resolveInteriorFloorSlab } from '../domain/interiorFloorSlab';
 import {
+  countPanelVerticalCourses,
+  isAboveGradeInfillPanel,
   resolveInfillPanelsWithBounds,
   solveInfillPanelBlocks,
 } from '../domain/cmuInfillPanelSolver';
@@ -129,10 +132,14 @@ export function generateFrameInfillGeometry(
     columns: frameSystem.columns,
     beams: frameSystem.beams,
     wall,
+    foundation: foundationSettings,
     existingPanels: input.infillSystem.panels,
   });
   const panels = panelEntries.map((entry) => entry.panel);
   const resolvedInfillPanelBounds = panelEntries.map((entry) => entry.bounds);
+  const aboveGradePanelBounds = resolvedInfillPanelBounds.filter(
+    (_, index) => isAboveGradeInfillPanel(panels[index]!),
+  );
 
   const module = resolveCmuModuleDefinition(wall);
   const allBlocks: CmuBlockInstance[] = [];
@@ -168,95 +175,112 @@ export function generateFrameInfillGeometry(
   });
   layoutWarnings.push(...resolvedRoofSystem.warnings.map((warning) => warning.message));
 
-  for (const { panel, bounds } of panelEntries) {
-    const frame = segmentFrames.find((f) => f.segmentId === panel.hostSegmentId);
+  for (const segment of input.wallLayout.segments) {
+    const segmentEntries = panelEntries.filter((entry) => entry.panel.hostSegmentId === segment.id);
+    let courseIndexOffset = 0;
+    const frame = segmentFrames.find((candidate) => candidate.segmentId === segment.id);
     if (!frame) continue;
-    const solved = solveInfillPanelBlocks({
-      panel,
-      bounds,
-      frame,
-      wall,
-      logBoundsForDev: import.meta.env.DEV,
-    });
-    allBlocks.push(...solved.blocks);
-    totalFull += solved.fullBlockCount;
-    totalHalf += solved.halfBlockCount;
-    totalCut += solved.cutBlockCount;
-    totalTopClosure += solved.topClosureCutBlockCount;
-    layoutWarnings.push(...solved.warnings);
 
-    const isRoofGableEnd =
-      resolvedRoofSystem.supported &&
-      resolvedRoofSystem.gableEndSegmentIds.includes(panel.hostSegmentId);
-
-    if (isRoofGableEnd) {
-      const gableResult = solveGableEndMasonryBlocks({
+    for (const { panel, bounds } of segmentEntries) {
+      const solved = solveInfillPanelBlocks({
         panel,
+        bounds,
         frame,
         wall,
-        roofSystem,
-        resolvedRoof: resolvedRoofSystem,
-        roofBeamTopElevationMeters,
+        courseIndexOffset,
+        logBoundsForDev: import.meta.env.DEV,
       });
-      allBlocks.push(...gableResult.blocks);
-      totalFull += gableResult.fullBlockCount;
-      totalHalf += gableResult.halfBlockCount;
-      totalCut += gableResult.cutBlockCount;
-      layoutWarnings.push(...gableResult.warnings);
+      if (panel.infillZone === 'below_grade') {
+        courseIndexOffset += countPanelVerticalCourses({
+          panelBottomElevationMeters: panel.bottomElevationMeters,
+          panelTopElevationMeters: panel.topElevationMeters,
+          nominalCourseHeightMeters: module.nominalModuleHeightMeters,
+        });
+      }
+      allBlocks.push(...solved.blocks);
+      totalFull += solved.fullBlockCount;
+      totalHalf += solved.halfBlockCount;
+      totalCut += solved.cutBlockCount;
+      totalTopClosure += solved.topClosureCutBlockCount;
+      layoutWarnings.push(...solved.warnings);
 
-      const capResult = solveRakedCapPlacementsWithWarnings({
-        gableEndSegmentId: panel.hostSegmentId,
-        panelId: panel.id,
-        frame,
-        panelStartStation: panel.startStationMeters,
-        panelEndStation: panel.endStationMeters,
-        panelBottomElevationMeters: panel.bottomElevationMeters,
-        blocks: gableResult.blocks,
-        roofSystem,
-        resolvedRoof: resolvedRoofSystem,
-        wallDepthMeters: frame.wallThicknessMeters ?? module.blockDepthMeters,
-        moduleHeightMeters: module.nominalModuleHeightMeters,
-      });
-      rakedCapPlacements.push(...capResult.placements);
-      layoutWarnings.push(...capResult.warnings);
-      resolvedRoofSystem = {
-        ...resolvedRoofSystem,
-        gableEnds: [
-          ...resolvedRoofSystem.gableEnds,
-          buildResolvedGableEnd({
-            hostSegmentId: panel.hostSegmentId,
-            panelStartStation: panel.startStationMeters,
-            panelEndStation: panel.endStationMeters,
-            blocks: gableResult.blocks,
-            rakedCapPlacements: capResult.placements,
-            warnings: capResult.warnings.map((message) => ({
-              code: 'insufficient_raked_cap_depth',
-              message,
-              severity: 'review' as const,
-            })),
-          }),
-        ],
-      };
-      continue;
-    }
+      if (!isAboveGradeInfillPanel(panel)) {
+        continue;
+      }
 
-    const gable = input.gableEndSystem.gableEnds.find(
-      (g) => g.hostWallSegmentId === panel.hostSegmentId,
-    );
-    if (gable) {
-      gablePlacements.push(
-        ...solveGableEndPlacements({
-          settings: gable,
+      const isRoofGableEnd =
+        resolvedRoofSystem.supported &&
+        resolvedRoofSystem.gableEndSegmentIds.includes(panel.hostSegmentId);
+
+      if (isRoofGableEnd) {
+        const gableResult = solveGableEndMasonryBlocks({
+          panel,
+          frame,
+          wall,
+          roofSystem,
+          resolvedRoof: resolvedRoofSystem,
+          roofBeamTopElevationMeters,
+        });
+        allBlocks.push(...gableResult.blocks);
+        totalFull += gableResult.fullBlockCount;
+        totalHalf += gableResult.halfBlockCount;
+        totalCut += gableResult.cutBlockCount;
+        layoutWarnings.push(...gableResult.warnings);
+
+        const capResult = solveRakedCapPlacementsWithWarnings({
+          gableEndSegmentId: panel.hostSegmentId,
           panelId: panel.id,
           frame,
           panelStartStation: panel.startStationMeters,
           panelEndStation: panel.endStationMeters,
-          bottomElevationMeters: panel.bottomElevationMeters,
-          moduleLengthMeters: module.nominalModuleLengthMeters,
+          panelBottomElevationMeters: panel.bottomElevationMeters,
+          blocks: gableResult.blocks,
+          roofSystem,
+          resolvedRoof: resolvedRoofSystem,
+          wallDepthMeters: frame.wallThicknessMeters ?? module.blockDepthMeters,
           moduleHeightMeters: module.nominalModuleHeightMeters,
-          blockDepthMeters: module.blockDepthMeters,
-        }),
+        });
+        rakedCapPlacements.push(...capResult.placements);
+        layoutWarnings.push(...capResult.warnings);
+        resolvedRoofSystem = {
+          ...resolvedRoofSystem,
+          gableEnds: [
+            ...resolvedRoofSystem.gableEnds,
+            buildResolvedGableEnd({
+              hostSegmentId: panel.hostSegmentId,
+              panelStartStation: panel.startStationMeters,
+              panelEndStation: panel.endStationMeters,
+              blocks: gableResult.blocks,
+              rakedCapPlacements: capResult.placements,
+              warnings: capResult.warnings.map((message) => ({
+                code: 'insufficient_raked_cap_depth',
+                message,
+                severity: 'review' as const,
+              })),
+            }),
+          ],
+        };
+        continue;
+      }
+
+      const gable = input.gableEndSystem.gableEnds.find(
+        (g) => g.hostWallSegmentId === panel.hostSegmentId,
       );
+      if (gable) {
+        gablePlacements.push(
+          ...solveGableEndPlacements({
+            settings: gable,
+            panelId: panel.id,
+            frame,
+            panelStartStation: panel.startStationMeters,
+            panelEndStation: panel.endStationMeters,
+            bottomElevationMeters: panel.bottomElevationMeters,
+            moduleLengthMeters: module.nominalModuleLengthMeters,
+            moduleHeightMeters: module.nominalModuleHeightMeters,
+            blockDepthMeters: module.blockDepthMeters,
+          }),
+        );
+      }
     }
   }
 
@@ -269,11 +293,13 @@ export function generateFrameInfillGeometry(
     };
   }
 
+  const roughOpenings = resolveLayoutRoughOpeningsFromWall({ wall, segmentFrames });
   const wallCmuLayout: CmuLayoutResult = {
     ...emptyCmuLayout(wall),
     blocks: allBlocks,
     totalBlocks: allBlocks.length,
     segmentFrames,
+    roughOpenings,
     counts: {
       full: totalFull,
       half: totalHalf,
@@ -289,7 +315,7 @@ export function generateFrameInfillGeometry(
   };
 
   const exteriorFootprint = resolvedWallGeometry.exteriorFacePolygon;
-  const boundsBySegment = new Map(resolvedInfillPanelBounds.map((bounds) => [bounds.hostSegmentId, bounds]));
+  const boundsBySegment = new Map(aboveGradePanelBounds.map((bounds) => [bounds.hostSegmentId, bounds]));
   const wallSegments = segmentFrames.map((frame) => {
     const panelBounds = boundsBySegment.get(frame.segmentId);
     const clearHeightMeters = panelBounds?.clearHeightMeters ?? frame.wallHeightMeters;

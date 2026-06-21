@@ -1,0 +1,126 @@
+import { describe, expect, it, beforeEach } from 'vitest';
+import * as THREE from 'three';
+import {
+  createMeterScaledBoxGeometry,
+  createRoofCladdingGeometry,
+  resolveRoofRidgeDirection,
+} from '../rendering/materials/designRenderingUv';
+import {
+  CAST_CONCRETE_TEXTURE_TILE_METERS,
+  CMU_TEXTURE_TILE_METERS,
+  createTriplanarStandardMaterial,
+  getTextureProjectionDiagnostics,
+  resetTriplanarMaterialCacheForTests,
+} from '../rendering/materials/createTriplanarStandardMaterial';
+import {
+  getDesignMaterialLibrary,
+  getMaterialDiagnostics,
+  resetDesignMaterialLibraryForTests,
+  resolveCastConcreteMaterial,
+} from '../rendering/materials/designMaterialLibrary';
+
+describe('designMaterialLibrary', () => {
+  beforeEach(() => {
+    resetDesignMaterialLibraryForTests();
+  });
+
+  it('creates shared technical and preview material instances', () => {
+    const library = getDesignMaterialLibrary();
+    expect(library.cmuTechnical).toBeInstanceOf(THREE.MeshStandardMaterial);
+    expect(library.cmuPreview).toBeInstanceOf(THREE.MeshStandardMaterial);
+    expect(library.cmuTechnical).not.toBe(library.cmuPreview);
+    expect(library.castConcreteStructuralPreview).not.toBe(library.castConcreteBeamPreview);
+    expect(getDesignMaterialLibrary().cmuTechnical).toBe(library.cmuTechnical);
+  });
+
+  it('resolves distinct cast concrete roles before preview textures load', () => {
+    const library = getDesignMaterialLibrary();
+    const structural = resolveCastConcreteMaterial(
+      { visualStyle: 'technical', selected: false, role: 'structural' },
+      () => undefined,
+    );
+    const beam = resolveCastConcreteMaterial(
+      { visualStyle: 'technical', selected: false, role: 'beam' },
+      () => undefined,
+    );
+    expect(structural).toBe(library.castConcreteStructuralTechnical);
+    expect(beam).toBe(library.castConcreteBeamTechnical);
+    expect(structural).not.toBe(beam);
+  });
+
+  it('reports technical diagnostics before preview textures load', () => {
+    const diagnostics = getMaterialDiagnostics('technical');
+    expect(diagnostics.visualStyle).toBe('technical');
+    expect(diagnostics.activeTextureCount).toBe(0);
+    expect(diagnostics.materialInstanceCount).toBe(14);
+    expect(diagnostics.concreteStructuralMaterialStatus).toBe('technical_only');
+    expect(diagnostics.concreteBeamMaterialStatus).toBe('technical_only');
+  });
+});
+
+describe('createTriplanarStandardMaterial', () => {
+  beforeEach(() => {
+    resetTriplanarMaterialCacheForTests();
+  });
+
+  it('creates a mesh standard material with triplanar shader hooks', () => {
+    const material = createTriplanarStandardMaterial({
+      textureScaleMeters: CMU_TEXTURE_TILE_METERS,
+      baseColor: 0xffffff,
+      roughness: 0.88,
+      metalness: 0.02,
+    });
+    expect(material).toBeInstanceOf(THREE.MeshStandardMaterial);
+    expect(material.onBeforeCompile).toBeTypeOf('function');
+    expect(material.customProgramCacheKey).toBeTypeOf('function');
+    expect(getTextureProjectionDiagnostics().textureMaterialCacheCount).toBe(1);
+  });
+
+  it('uses stable world tile sizes for CMU and cast concrete', () => {
+    expect(CMU_TEXTURE_TILE_METERS).toBe(0.45);
+    expect(CAST_CONCRETE_TEXTURE_TILE_METERS).toBe(1.25);
+    const diagnostics = getTextureProjectionDiagnostics();
+    expect(diagnostics.cmuProjection).toBe('triplanar');
+    expect(diagnostics.concreteProjection).toBe('triplanar');
+  });
+});
+
+describe('designRenderingUv', () => {
+  it('assigns meter-scaled UV spans on box geometry', () => {
+    const geometry = createMeterScaledBoxGeometry(2, 0.4, 0.19);
+    const uv = geometry.getAttribute('uv');
+    expect(uv).toBeTruthy();
+    let maxU = 0;
+    for (let index = 0; index < uv.count; index += 1) {
+      maxU = Math.max(maxU, uv.getX(index));
+    }
+    expect(maxU).toBeCloseTo(2, 1);
+  });
+
+  it('builds roof cladding UVs with slope-axis coverage', () => {
+    const geometry = createRoofCladdingGeometry({
+      corners: [
+        { x: 0, y: 2, z: -2 },
+        { x: 0, y: 2, z: 2 },
+        { x: 4, y: 0, z: 2 },
+        { x: 4, y: 0, z: -2 },
+      ],
+      slabTopMeters: 0.15,
+      planeNormal: new THREE.Vector3(0, 0.894, 0.447).normalize(),
+      ridgeDirection: resolveRoofRidgeDirection(
+        [
+          { x: 0, z: -2 },
+          { x: 0, z: 2 },
+        ],
+        { x: 0, z: 4 },
+      ),
+    });
+    const uv = geometry.getAttribute('uv');
+    expect(uv.count).toBe(4);
+    let maxU = 0;
+    for (let index = 0; index < uv.count; index += 1) {
+      maxU = Math.max(maxU, uv.getX(index));
+    }
+    expect(maxU).toBeGreaterThan(0);
+  });
+});

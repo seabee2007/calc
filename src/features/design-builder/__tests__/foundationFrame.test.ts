@@ -210,9 +210,12 @@ describe('RC frame foundation — plinth / roof / tie beams', () => {
 
   it('sets CMU infill base at plinth top with interior floor slab flush at same elevation', () => {
     const geometry = geometryForPreset();
-    (geometry.resolvedInfillPanelBounds ?? []).forEach((bounds) => {
-      expect(bounds.bottomElevationMeters).toBeCloseTo(0, 6);
-      expect(bounds.topElevationMeters).toBeCloseTo(wallHeightMeters, 6);
+    const aboveGradePanels = geometry.infillSystem?.panels.filter(
+      (panel) => panel.infillZone !== 'below_grade',
+    );
+    aboveGradePanels?.forEach((panel) => {
+      expect(panel.bottomElevationMeters).toBeCloseTo(0, 6);
+      expect(panel.topElevationMeters).toBeCloseTo(wallHeightMeters, 6);
     });
     expect(geometry.interiorFloorSlab?.topElevationMeters).toBeCloseTo(0, 6);
     expect(geometry.interiorFloorSlab?.bottomElevationMeters).toBeLessThan(0);

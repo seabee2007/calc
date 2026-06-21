@@ -26,6 +26,34 @@ import {
 } from '../domain/structureActions';
 import type { CmuBuildingPreset } from '../domain/designBuilderPreset';
 import { formatInputNumber, parseDecimalInput } from '../ui/designBuilderNumberInput';
+import {
+  BORDER_DEFAULT,
+  FORM_ERROR,
+  FORM_INPUT_PLANNER,
+  FORM_LABEL,
+  TEXT_ACCENT,
+  TEXT_DANGER,
+  TEXT_FOREGROUND,
+  TEXT_MUTED,
+  TEXT_SUCCESS,
+  TEXT_WARNING,
+} from '../../../theme/appTheme';
+
+const MODAL_SECTION_CARD = `overflow-hidden rounded-xl border ${BORDER_DEFAULT} bg-slate-50 dark:bg-slate-900/80`;
+const MODAL_SECTION_HEADER = `flex w-full items-start justify-between gap-3 px-4 py-3 text-left hover:bg-slate-100 dark:hover:bg-slate-800/60`;
+const MODAL_SECTION_PANEL = `space-y-3 border-t ${BORDER_DEFAULT} px-4 py-4`;
+const MODAL_INFO_PANEL = `rounded-lg border ${BORDER_DEFAULT} bg-slate-100 px-3 py-2 text-xs text-slate-700 dark:bg-slate-900 dark:text-slate-300`;
+const MODAL_TOGGLE_ROW =
+  'flex items-center justify-between rounded-lg bg-slate-100 px-3 py-2 text-sm text-slate-900 dark:bg-slate-800/80 dark:text-slate-100';
+const MODAL_INPUT_GROUP =
+  'flex h-10 overflow-hidden rounded-lg border border-slate-300 bg-white focus-within:border-cyan-500 focus-within:ring-2 focus-within:ring-cyan-500/20 dark:border-slate-700 dark:bg-slate-950 dark:focus-within:border-cyan-500';
+const MODAL_INPUT_FIELD =
+  'min-w-0 flex-1 bg-transparent px-3 py-2 text-sm text-slate-900 outline-none dark:text-slate-100';
+const MODAL_INPUT_SUFFIX =
+  'flex min-w-12 items-center justify-center border-l border-slate-300 px-3 text-xs font-semibold text-slate-500 dark:border-slate-700 dark:text-slate-400';
+const MODAL_ELEVATION_PANEL =
+  'h-fit rounded-xl border border-cyan-600/40 bg-cyan-50/80 p-4 dark:border-cyan-700/60 dark:bg-slate-900';
+const MODAL_FIELD_CONTROL = `${FORM_INPUT_PLANNER} h-10`;
 
 export type FrameFoundationDimensionsModalProps = {
   isOpen: boolean;
@@ -84,8 +112,8 @@ function ModalNumberField({
 
   return (
     <label className="block text-sm">
-      <span className="mb-1 block text-slate-300">{label}</span>
-      <div className="flex h-10 overflow-hidden rounded-lg border border-slate-600 bg-slate-950">
+      <span className={FORM_LABEL}>{label}</span>
+      <div className={MODAL_INPUT_GROUP}>
         <input
           type="text"
           inputMode="decimal"
@@ -96,13 +124,11 @@ function ModalNumberField({
           onKeyDown={(event: ReactKeyboardEvent<HTMLInputElement>) => {
             if (event.key === 'Enter') event.currentTarget.blur();
           }}
-          className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm text-slate-100 outline-none"
+          className={MODAL_INPUT_FIELD}
         />
-        <span className="flex min-w-12 items-center justify-center border-l border-slate-600 px-3 text-xs font-semibold text-slate-400">
-          {suffix}
-        </span>
+        <span className={MODAL_INPUT_SUFFIX}>{suffix}</span>
       </div>
-      {error ? <span className="mt-1 block text-xs text-red-400">{error}</span> : null}
+      {error ? <span className={FORM_ERROR}>{error}</span> : null}
     </label>
   );
 }
@@ -122,26 +148,26 @@ function CollapsibleSection({
 }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <section className="overflow-hidden rounded-xl border border-slate-700 bg-slate-900/80">
+    <section className={MODAL_SECTION_CARD}>
       <button
         type="button"
         id={`${id}-header`}
         aria-expanded={open}
         aria-controls={`${id}-panel`}
         onClick={() => setOpen((current) => !current)}
-        className="flex w-full items-start justify-between gap-3 px-4 py-3 text-left hover:bg-slate-800/60"
+        className={MODAL_SECTION_HEADER}
       >
         <div>
-          <div className="text-sm font-semibold text-slate-100">{title}</div>
-          {helper && !open ? <p className="mt-1 text-xs text-slate-400">{helper}</p> : null}
+          <div className={`text-sm font-semibold ${TEXT_FOREGROUND}`}>{title}</div>
+          {helper && !open ? <p className={`mt-1 text-xs ${TEXT_MUTED}`}>{helper}</p> : null}
         </div>
-        <span className="text-slate-400" aria-hidden>
+        <span className={TEXT_MUTED} aria-hidden>
           {open ? '▾' : '▸'}
         </span>
       </button>
       {open ? (
-        <div id={`${id}-panel`} className="space-y-3 border-t border-slate-700 px-4 py-4">
-          {helper ? <p className="text-xs text-slate-400">{helper}</p> : null}
+        <div id={`${id}-panel`} className={MODAL_SECTION_PANEL}>
+          {helper ? <p className={`text-xs ${TEXT_MUTED}`}>{helper}</p> : null}
           {children}
         </div>
       ) : null}
@@ -159,13 +185,13 @@ function ToggleRow({
   onChange: (checked: boolean) => void;
 }) {
   return (
-    <label className="flex items-center justify-between rounded-lg bg-slate-800/80 px-3 py-2 text-sm text-slate-100">
+    <label className={MODAL_TOGGLE_ROW}>
       <span>{label}</span>
       <input
         type="checkbox"
         checked={checked}
         onChange={(event) => onChange(event.currentTarget.checked)}
-        className="h-4 w-4 accent-cyan-500"
+        className="h-4 w-4 accent-cyan-600 dark:accent-cyan-500"
       />
     </label>
   );
@@ -408,12 +434,12 @@ export default function FrameFoundationDimensionsModal({
         <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0 flex-1 space-y-1 text-xs">
             {isDraftDirty ? (
-              <p className="text-amber-300">Changes are staged. Select Apply Dimensions to update the model.</p>
+              <p className={TEXT_WARNING}>Changes are staged. Select Apply Dimensions to update the model.</p>
             ) : appliedToModel ? (
-              <p className="text-emerald-300">Applied to 3D model</p>
+              <p className={TEXT_SUCCESS}>Applied to 3D model</p>
             ) : null}
             {validationErrors.length > 0 ? (
-              <p className="text-red-400">{validationErrors[0]}</p>
+              <p className={TEXT_DANGER}>{validationErrors[0]}</p>
             ) : null}
           </div>
           <div className="flex shrink-0 flex-wrap justify-end gap-2">
@@ -423,25 +449,24 @@ export default function FrameFoundationDimensionsModal({
             <Button variant="secondary" onClick={() => void handleResetDefaults()}>
               Reset Defaults
             </Button>
-            <Button variant="primary" onClick={handleApply} disabled={!isValid}>
+            <Button variant="accent" onClick={handleApply} disabled={!isValid}>
               Apply Dimensions
             </Button>
           </div>
         </div>
       }
     >
-      <div className="rounded-2xl bg-slate-950 p-1">
-        <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
+      <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
           <div className="space-y-3">
             <CollapsibleSection id="frame-layout" title="Frame Layout" defaultOpen>
               <label className="block text-sm">
-                <span className="mb-1 block text-slate-300">Column Placement</span>
+                <span className={FORM_LABEL}>Column Placement</span>
                 <select
                   value={foundationDraft.columns.placementMode}
                   onChange={(event) =>
                     patchSection('columns', { placementMode: event.currentTarget.value as ColumnPlacementMode })
                   }
-                  className="h-10 w-full rounded-lg border border-slate-600 bg-slate-950 px-3 text-sm text-slate-100"
+                  className={MODAL_FIELD_CONTROL}
                 >
                   <option value="corners_only">Corner Columns Only</option>
                   <option value="corners_and_junctions">Corners + Junctions</option>
@@ -453,7 +478,7 @@ export default function FrameFoundationDimensionsModal({
                 checked={autoGenerateFrameLayout}
                 onChange={setAutoGenerateFrameLayout}
               />
-              <div className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-slate-300">
+              <div className={MODAL_INFO_PANEL}>
                 <div>Resolved Structural Columns: {layoutPreview.columnCount}</div>
                 <div>Resolved Frame Segments: {layoutPreview.frameSegmentCount}</div>
               </div>
@@ -591,7 +616,7 @@ export default function FrameFoundationDimensionsModal({
                   })
                 }
               />
-              {fieldErrors.footings ? <p className="text-xs text-red-400">{fieldErrors.footings}</p> : null}
+              {fieldErrors.footings ? <p className={`text-xs ${TEXT_DANGER}`}>{fieldErrors.footings}</p> : null}
               <ModalNumberField
                 label="Footing Width"
                 value={foundationDraft.isolatedFootings.widthMeters}
@@ -642,9 +667,9 @@ export default function FrameFoundationDimensionsModal({
                 checked={roofDraft.enabled}
                 onChange={(checked) => patchRoof({ enabled: checked })}
               />
-              {fieldErrors.roofFootprint ? <p className="text-xs text-red-400">{fieldErrors.roofFootprint}</p> : null}
+              {fieldErrors.roofFootprint ? <p className={`text-xs ${TEXT_DANGER}`}>{fieldErrors.roofFootprint}</p> : null}
               <label className="block text-sm">
-                <span className="mb-1 block text-slate-300">Roof Type</span>
+                <span className={FORM_LABEL}>Roof Type</span>
                 <select
                   value={roofDraft.roofType}
                   onChange={(event) => {
@@ -654,7 +679,7 @@ export default function FrameFoundationDimensionsModal({
                       supportSystem: roofType === 'hip' ? 'steel_hip_framing' : 'steel_trusses',
                     });
                   }}
-                  className="h-10 w-full rounded-lg border border-slate-600 bg-slate-950 px-3 text-sm text-slate-100"
+                  className={MODAL_FIELD_CONTROL}
                 >
                   <option value="gable">Gable Roof</option>
                   <option value="hip">Hip Roof</option>
@@ -681,7 +706,7 @@ export default function FrameFoundationDimensionsModal({
                 error={fieldErrors.gableEndOverhang}
                 onChange={(value) => patchRoof({ gableEndOverhangMeters: positiveOrFallback(value, 0.3) })}
               />
-              <p className="-mt-2 text-xs text-slate-400">
+              <p className={`-mt-2 text-xs ${TEXT_MUTED}`}>
                 Horizontal roof projection beyond each gable-end wall, parallel to the ridge.
               </p>
               <ModalNumberField
@@ -692,11 +717,11 @@ export default function FrameFoundationDimensionsModal({
                 onChange={(value) => patchRoof({ roofAssemblyThicknessMeters: positiveOrFallback(value, 0.15) })}
               />
               <label className="block text-sm">
-                <span className="mb-1 block text-slate-300">Ridge Direction</span>
+                <span className={FORM_LABEL}>Ridge Direction</span>
                 <select
                   value={roofDraft.ridgeDirection}
                   onChange={(event) => patchRoof({ ridgeDirection: event.currentTarget.value as RoofRidgeDirection })}
-                  className="h-10 w-full rounded-lg border border-slate-600 bg-slate-950 px-3 text-sm text-slate-100"
+                  className={MODAL_FIELD_CONTROL}
                 >
                   <option value="along_longest_axis">Along Longest Building Axis</option>
                   <option value="along_shortest_axis">Along Shortest Building Axis</option>
@@ -705,7 +730,7 @@ export default function FrameFoundationDimensionsModal({
               </label>
               {roofDraft.ridgeDirection === 'along_selected_wall_pair' ? (
                 <label className="block text-sm">
-                  <span className="mb-1 block text-slate-300">Ridge Wall Pair</span>
+                  <span className={FORM_LABEL}>Ridge Wall Pair</span>
                   <select
                     value={roofDraft.selectedRidgeWallSegmentId ?? ''}
                     onChange={(event) =>
@@ -713,7 +738,7 @@ export default function FrameFoundationDimensionsModal({
                         selectedRidgeWallSegmentId: event.currentTarget.value || undefined,
                       })
                     }
-                    className="h-10 w-full rounded-lg border border-slate-600 bg-slate-950 px-3 text-sm text-slate-100"
+                    className={MODAL_FIELD_CONTROL}
                   >
                     <option value="">Select wall segment</option>
                     {wallLayout.segments.map((segment) => (
@@ -725,7 +750,7 @@ export default function FrameFoundationDimensionsModal({
                 </label>
               ) : null}
               {resolvedRoof.supported ? (
-                <div className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-slate-300">
+                <div className={MODAL_INFO_PANEL}>
                   <div>Roof Run: {resolvedRoof.roofRunMeters.toFixed(2)} m</div>
                   <div>Roof Rise: {resolvedRoof.roofRiseMeters.toFixed(2)} m</div>
                   <div>
@@ -745,10 +770,10 @@ export default function FrameFoundationDimensionsModal({
                   <div>Roof Surface Area: {resolvedRoof.roofSurfaceAreaSquareMeters.toFixed(2)} m²</div>
                 </div>
               ) : null}
-              <div className="border-t border-slate-700 pt-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
+              <div className={`border-t ${BORDER_DEFAULT} pt-3 text-xs font-semibold uppercase tracking-wide ${TEXT_MUTED}`}>
                 Steel Framing
               </div>
-              <p className="text-xs text-slate-400">
+              <p className={`text-xs ${TEXT_MUTED}`}>
                 {roofDraft.roofType === 'gable'
                   ? 'Roof Support System: Steel Trusses'
                   : 'Roof Support System: Steel Hip Framing'}
@@ -763,12 +788,12 @@ export default function FrameFoundationDimensionsModal({
                     onChange={(value) => patchSteelTrusses({ maxSpacingMeters: positiveOrFallback(value, 2.4) })}
                   />
                   <label className="block text-sm">
-                    <span className="mb-1 block text-slate-300">Steel Truss Profile / Description</span>
+                    <span className={FORM_LABEL}>Steel Truss Profile / Description</span>
                     <input
                       type="text"
                       value={roofDraft.steelTrusses.profileLabel}
                       onChange={(event) => patchSteelTrusses({ profileLabel: event.currentTarget.value })}
-                      className="h-10 w-full rounded-lg border border-slate-600 bg-slate-950 px-3 text-sm text-slate-100"
+                      className={MODAL_FIELD_CONTROL}
                     />
                   </label>
                   <ModalNumberField
@@ -817,12 +842,12 @@ export default function FrameFoundationDimensionsModal({
                 onChange={(checked) => patchPurlins({ enabled: checked })}
               />
               <label className="block text-sm">
-                <span className="mb-1 block text-slate-300">Purlin Profile / Description</span>
+                <span className={FORM_LABEL}>Purlin Profile / Description</span>
                 <input
                   type="text"
                   value={roofDraft.purlins.profileLabel}
                   onChange={(event) => patchPurlins({ profileLabel: event.currentTarget.value })}
-                  className="h-10 w-full rounded-lg border border-slate-600 bg-slate-950 px-3 text-sm text-slate-100"
+                  className={MODAL_FIELD_CONTROL}
                 />
               </label>
               <ModalNumberField
@@ -832,7 +857,7 @@ export default function FrameFoundationDimensionsModal({
                 error={fieldErrors.purlinSpacing}
                 onChange={(value) => patchPurlins({ maxSpacingMeters: positiveOrFallback(value, 1.2) })}
               />
-              <div className="border-t border-slate-700 pt-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
+              <div className={`border-t ${BORDER_DEFAULT} pt-3 text-xs font-semibold uppercase tracking-wide ${TEXT_MUTED}`}>
                 Corrugated Metal Roofing
               </div>
               <ToggleRow
@@ -841,12 +866,12 @@ export default function FrameFoundationDimensionsModal({
                 onChange={(checked) => patchCorrugatedMetal({ enabled: checked })}
               />
               <label className="block text-sm">
-                <span className="mb-1 block text-slate-300">Sheet Type / Profile</span>
+                <span className={FORM_LABEL}>Sheet Type / Profile</span>
                 <input
                   type="text"
                   value={roofDraft.corrugatedMetal.sheetTypeLabel}
                   onChange={(event) => patchCorrugatedMetal({ sheetTypeLabel: event.currentTarget.value })}
-                  className="h-10 w-full rounded-lg border border-slate-600 bg-slate-950 px-3 text-sm text-slate-100"
+                  className={MODAL_FIELD_CONTROL}
                 />
               </label>
               <ModalNumberField
@@ -909,30 +934,30 @@ export default function FrameFoundationDimensionsModal({
             ) : null}
           </div>
 
-          <aside className="h-fit rounded-xl border border-cyan-700/60 bg-slate-900 p-4">
-            <div className="text-sm font-semibold text-cyan-200">Structural Elevation Preview</div>
-            <dl className="mt-3 space-y-1.5 text-xs text-slate-200">
+          <aside className={MODAL_ELEVATION_PANEL}>
+            <div className={`text-sm font-semibold ${TEXT_ACCENT}`}>Structural Elevation Preview</div>
+            <dl className="mt-3 space-y-1.5 text-xs text-slate-700 dark:text-slate-200">
               <div className="flex justify-between gap-2">
                 <dt>Top of Roof Beam</dt>
-                <dd className="font-mono">{formatElevation(elevations.roofBeamTopY)}</dd>
+                <dd className="font-mono text-slate-900 dark:text-slate-100">{formatElevation(elevations.roofBeamTopY)}</dd>
               </div>
               <div className="flex justify-between gap-2">
                 <dt>Underside of Roof Beam</dt>
-                <dd className="font-mono">{formatElevation(roofBeamUndersideY)}</dd>
+                <dd className="font-mono text-slate-900 dark:text-slate-100">{formatElevation(roofBeamUndersideY)}</dd>
               </div>
-              <div className="flex justify-between gap-2 border-t border-slate-700 pt-2">
+              <div className={`flex justify-between gap-2 border-t ${BORDER_DEFAULT} pt-2`}>
                 <dt>Top of Plinth Beam</dt>
-                <dd className="font-mono">0.00 m</dd>
+                <dd className="font-mono text-slate-900 dark:text-slate-100">0.00 m</dd>
               </div>
               {foundationDraft.interiorFloorSlab.enabled ? (
                 <>
                   <div className="flex justify-between gap-2">
                     <dt>Floor Slab Top (same as plinth)</dt>
-                    <dd className="font-mono">{formatElevation(elevations.interiorFloorSlabTopY)}</dd>
+                    <dd className="font-mono text-slate-900 dark:text-slate-100">{formatElevation(elevations.interiorFloorSlabTopY)}</dd>
                   </div>
                   <div className="flex justify-between gap-2">
                     <dt>Floor Slab Bottom</dt>
-                    <dd className="font-mono">
+                    <dd className="font-mono text-slate-900 dark:text-slate-100">
                       {formatElevation(elevations.interiorFloorSlabTopY - elevations.interiorFloorSlabThicknessMeters)}
                     </dd>
                   </div>
@@ -940,44 +965,43 @@ export default function FrameFoundationDimensionsModal({
               ) : null}
               <div className="flex justify-between gap-2">
                 <dt>Bottom of Plinth Beam</dt>
-                <dd className="font-mono">{formatElevation(elevations.bottomOfPlinthBeamY)}</dd>
+                <dd className="font-mono text-slate-900 dark:text-slate-100">{formatElevation(elevations.bottomOfPlinthBeamY)}</dd>
               </div>
               <div className="flex justify-between gap-2">
                 <dt>Top of Tie Beam</dt>
-                <dd className="font-mono">{formatElevation(elevations.topOfTieBeamY)}</dd>
+                <dd className="font-mono text-slate-900 dark:text-slate-100">{formatElevation(elevations.topOfTieBeamY)}</dd>
               </div>
-              <div className="flex justify-between gap-2 font-semibold text-cyan-100">
+              <div className="flex justify-between gap-2 font-semibold text-cyan-700 dark:text-cyan-100">
                 <dt>Bottom of Tie Beam / Top of Footing</dt>
                 <dd className="font-mono">{formatElevation(elevations.bottomOfTieBeamY)}</dd>
               </div>
               <div className="flex justify-between gap-2">
                 <dt>Bottom of Footing</dt>
-                <dd className="font-mono">{formatElevation(elevations.bottomOfFootingY)}</dd>
+                <dd className="font-mono text-slate-900 dark:text-slate-100">{formatElevation(elevations.bottomOfFootingY)}</dd>
               </div>
-              <div className="flex justify-between gap-2 border-t border-slate-700 pt-2">
+              <div className={`flex justify-between gap-2 border-t ${BORDER_DEFAULT} pt-2`}>
                 <dt>CMU Clear Height</dt>
-                <dd className="font-mono">{formatElevation(elevations.cmuClearHeightMeters)}</dd>
+                <dd className="font-mono text-slate-900 dark:text-slate-100">{formatElevation(elevations.cmuClearHeightMeters)}</dd>
               </div>
               <div className="flex justify-between gap-2">
                 <dt>Column Height</dt>
-                <dd className="font-mono">{formatElevation(elevations.columnHeightMeters)}</dd>
+                <dd className="font-mono text-slate-900 dark:text-slate-100">{formatElevation(elevations.columnHeightMeters)}</dd>
               </div>
               {roofDraft.enabled ? (
                 <>
-                  <div className="flex justify-between gap-2 border-t border-slate-700 pt-2">
+                  <div className={`flex justify-between gap-2 border-t ${BORDER_DEFAULT} pt-2`}>
                     <dt>Roof Peak Elevation</dt>
-                    <dd className="font-mono">{formatElevation(resolvedRoof.peakElevationMeters)}</dd>
+                    <dd className="font-mono text-slate-900 dark:text-slate-100">{formatElevation(resolvedRoof.peakElevationMeters)}</dd>
                   </div>
                   <div className="flex justify-between gap-2">
                     <dt>Roof Surface Area</dt>
-                    <dd className="font-mono">{resolvedRoof.roofSurfaceAreaSquareMeters.toFixed(2)} m²</dd>
+                    <dd className="font-mono text-slate-900 dark:text-slate-100">{resolvedRoof.roofSurfaceAreaSquareMeters.toFixed(2)} m²</dd>
                   </div>
                 </>
               ) : null}
             </dl>
           </aside>
         </div>
-      </div>
     </ModalShell>
   );
 }

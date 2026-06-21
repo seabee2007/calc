@@ -8,6 +8,7 @@ import {
   BORDER_DEFAULT,
   CARD_PADDING,
   FOCUS_RING,
+  MODAL_BODY,
   MODAL_CLOSE_BTN,
   MODAL_PANEL,
   MODAL_TITLE,
@@ -160,13 +161,13 @@ const ModalShell: React.FC<ModalShellProps> = ({
               </button>
             </div>
 
-            <div className={`min-h-0 flex-1 overflow-y-auto overscroll-contain ${CARD_PADDING} ${SECTION_SPACING} ${TEXT_BODY}`}>
+            <div className={`${MODAL_BODY} ${SECTION_SPACING}`}>
               {children}
             </div>
 
             {footer ? (
               <div
-                className={`sticky bottom-0 flex shrink-0 flex-wrap items-center justify-between gap-2 border-t ${CARD_PADDING} ${BORDER_DEFAULT} bg-white dark:bg-slate-800`}
+                className={`sticky bottom-0 flex shrink-0 flex-wrap items-center justify-between gap-2 border-t ${CARD_PADDING} ${BORDER_DEFAULT} bg-white dark:bg-slate-950`}
               >
                 {footer}
               </div>

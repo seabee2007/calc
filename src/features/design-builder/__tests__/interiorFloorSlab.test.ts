@@ -55,7 +55,7 @@ describe('Interior floor slab', () => {
     const { geometry } = frameGeometry({
       interiorFloorSlab: { enabled: true, thicknessMeters: 0.15 },
     });
-    const panel = geometry.infillSystem?.panels[0];
+    const panel = geometry.infillSystem?.panels.find((entry) => entry.infillZone !== 'below_grade');
     expect(panel?.bottomElevationMeters).toBeCloseTo(0, 3);
     expect(panel?.bottomSupportType).toBe('plinth_beam');
     expect(geometry.interiorFloorSlab?.topElevationMeters).toBeCloseTo(0, 3);
@@ -102,6 +102,9 @@ describe('Interior floor slab', () => {
       interiorFloorSlab: { enabled: false, thicknessMeters: 0.125 },
     });
     expect(geometry.interiorFloorSlab?.volumeCubicMeters ?? 0).toBe(0);
-    expect(geometry.infillSystem?.panels[0]?.bottomElevationMeters).toBeCloseTo(0, 3);
+    const aboveGradePanel = geometry.infillSystem?.panels.find(
+      (panel) => panel.infillZone !== 'below_grade',
+    );
+    expect(aboveGradePanel?.bottomElevationMeters).toBeCloseTo(0, 3);
   });
 });

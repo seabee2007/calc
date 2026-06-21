@@ -59,7 +59,18 @@ describe('designBuilderPersistence', () => {
       userId: 'user-1',
     });
     const blankPreset = createBlankCmuBuildingPreset();
-    const serialized = serializePersistedDesignBuilderState(blankPreset);
+    const serialized = serializePersistedDesignBuilderState(blankPreset, {
+      visualStyle: 'material_preview',
+      materialSelections: {
+        cmuMaterialId: 'concrete-025',
+        mortarMaterialId: 'concrete-032',
+        castConcreteMaterialId: 'concrete-044d',
+        roofSheetMaterialId: 'corrugated-steel-009',
+        structuralSteelMaterialId: 'painted-metal-004',
+        roofSheetTintId: 'charcoal',
+      },
+    });
+    expect(serialized.displayPreferences?.materialSelections?.cmuMaterialId).toBe('concrete-025');
     expect(context.canPersist).toBe(true);
     expect(serialized.openings).toEqual([]);
     expect(serialized.wallLayout.segments).toEqual([]);

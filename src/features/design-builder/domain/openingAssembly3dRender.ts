@@ -34,6 +34,7 @@ export type BuildOpeningAssemblyRenderGroupsParams = {
     selected: boolean,
     options?: THREE.MeshStandardMaterialParameters,
   ) => THREE.MeshStandardMaterial;
+  resolveLintelMaterial?: () => THREE.MeshStandardMaterial;
 };
 
 export function createOpeningRenderGroups(): OpeningRenderGroups {
@@ -98,7 +99,9 @@ export function populateOpeningAssemblyRenderGroups(
   groups.groutCellGroup.clear();
   groups.roughOpeningGuideGroup.clear();
 
-  const lintelMaterial = params.makeMaterial(LINTEL_RENDER_COLOR, false, { roughness: 0.82, metalness: 0.04 });
+  const lintelMaterial =
+    params.resolveLintelMaterial?.() ??
+    params.makeMaterial(LINTEL_RENDER_COLOR, false, { roughness: 0.82, metalness: 0.04 });
   params.cmuLayout.lintels.forEach((lintel) => {
     groups.lintelGroup.add(buildLintelSolidMesh(lintel, params.slabTopMeters, lintelMaterial, params.trackGeometry));
   });

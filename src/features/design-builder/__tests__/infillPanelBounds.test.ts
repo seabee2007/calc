@@ -13,6 +13,7 @@ import {
 } from '../domain/infillPanelBoundsResolver';
 import {
   deriveInfillPanelsForLayout,
+  isAboveGradeInfillPanel,
   panelClearAreaSquareMeters,
   resolveInfillPanelsWithBounds,
   solveInfillPanelBlocks,
@@ -72,7 +73,9 @@ describe('infill panel bounds resolver', () => {
       wall: preset.wall,
     });
 
-    entries.forEach(({ panel, bounds }) => {
+    entries
+      .filter(({ panel }) => panel.infillZone !== 'below_grade')
+      .forEach(({ panel, bounds }) => {
       const frame = frames.find((candidate) => candidate.segmentId === panel.hostSegmentId)!;
       const solved = solveInfillPanelBlocks({ panel, bounds, frame, wall: preset.wall });
       expect(Math.abs(solved.firstCmuStartStation - bounds.startStationMeters)).toBeLessThanOrEqual(
@@ -126,7 +129,9 @@ describe('infill panel bounds resolver', () => {
       }),
     );
 
-    (geometry.resolvedInfillPanelBounds ?? []).forEach((bounds) => {
+    (geometry.resolvedInfillPanelBounds ?? [])
+      .filter((bounds) => !bounds.panelId.includes('-below-'))
+      .forEach((bounds) => {
       const stale = storedPanels.find((panel) => panel.hostSegmentId === bounds.hostSegmentId)!;
       expect(bounds.startStationMeters).not.toBeCloseTo(stale.startStationMeters, 2);
       expect(bounds.endStationMeters).not.toBeCloseTo(stale.endStationMeters, 2);
@@ -141,7 +146,9 @@ describe('infill panel bounds resolver', () => {
       beams: preset.frameSystem.beams,
       wall: preset.wall,
     });
-    const clearArea = panels.reduce((sum, panel) => sum + panelClearAreaSquareMeters(panel), 0);
+    const clearArea = panels
+      .filter(isAboveGradeInfillPanel)
+      .reduce((sum, panel) => sum + panelClearAreaSquareMeters(panel), 0);
     const grossArea = frames.reduce(
       (sum, frame) => sum + frame.lengthMeters * frame.wallHeightMeters,
       0,

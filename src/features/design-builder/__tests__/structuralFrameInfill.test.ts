@@ -113,6 +113,45 @@ describe('structural frame + CMU infill milestone', () => {
     expect(geometry.wallCmuLayout.cornerAssemblies ?? []).toHaveLength(0);
   });
 
+  it('frame mode resolves door openings on layout-graph world coordinates', () => {
+    const preset = applyAutoFrameLayout(createFiveBySixCmuBuildingPreset());
+    const door = preset.wall.openings.find((opening) => opening.type === 'door');
+    expect(door?.wallSegmentId).toBeTruthy();
+    const input = buildDesignGeometryInputFromLayout({
+      wallLayout: preset.wallLayout,
+      cmuSettings: preset.wall,
+      slabSettings: preset.slab,
+      roofSettings: preset.roof,
+      trussSettings: preset.truss,
+      buildingSystemMode: 'reinforced_concrete_frame_with_cmu_infill',
+      frameSystem: preset.frameSystem,
+      infillSystem: preset.infillSystem,
+      gableEndSystem: preset.gableEndSystem,
+    });
+    const geometry = generateDesignGeometry(input);
+    const roughDoor = geometry.wallCmuLayout.roughOpenings.find((opening) => opening.id === door!.id) as
+      | (typeof geometry.wallCmuLayout.roughOpenings[number] & { worldX?: number; worldZ?: number })
+      | undefined;
+    expect(roughDoor).toBeDefined();
+    expect(roughDoor?.worldX).toBeTypeOf('number');
+    expect(roughDoor?.worldZ).toBeTypeOf('number');
+    const frame = (geometry.wallCmuLayout.segmentFrames ?? []).find(
+      (entry) => entry.segmentId === door!.wallSegmentId,
+    )!;
+    const centerStation =
+      ((roughDoor!.actualStartAlongMeters ?? 0) + (roughDoor!.actualEndAlongMeters ?? 0)) / 2;
+    const expectedX =
+      frame.exteriorStart.x +
+      frame.tangent.x * centerStation +
+      frame.inwardNormal.x * (frame.wallThicknessMeters / 2);
+    const expectedZ =
+      frame.exteriorStart.z +
+      frame.tangent.z * centerStation +
+      frame.inwardNormal.z * (frame.wallThicknessMeters / 2);
+    expect(roughDoor!.worldX).toBeCloseTo(expectedX, 3);
+    expect(roughDoor!.worldZ).toBeCloseTo(expectedZ, 3);
+  });
+
   it('deduplicates structural concrete intersection volumes', () => {
     const preset = applyAutoFrameLayout(createFiveBySixCmuBuildingPreset());
     const naive =

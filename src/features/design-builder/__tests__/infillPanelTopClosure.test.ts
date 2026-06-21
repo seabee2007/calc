@@ -5,6 +5,7 @@ import {
   FRAME_INFILL_HEIGHT_TOLERANCE_METERS,
   FRAME_INFILL_BOUNDS_TOLERANCE_METERS,
   TOP_CLOSURE_PRACTICAL_MIN_HEIGHT_METERS,
+  isAboveGradeInfillPanel,
   resolvePanelVerticalCourses,
   solveInfillPanelBlocks,
   resolveInfillPanelsWithBounds,
@@ -30,7 +31,7 @@ describe('infill panel top closure course', () => {
       beams: preset.frameSystem.beams,
       wall: preset.wall,
     });
-    const { panel, bounds } = entries[0]!;
+    const { panel, bounds } = entries.find((entry) => isAboveGradeInfillPanel(entry.panel))!;
     const adjustedPanel =
       panelTopElevationMeters == null
         ? panel

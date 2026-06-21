@@ -36,6 +36,18 @@ export type PersistedDesignBuilderState = {
     activeView?: '2d' | '3d';
     roofDisplayMode?: string;
     foundationViewMode?: string;
+    visualStyle?: string;
+    materialSelections?: {
+      cmuMaterialId?: string;
+      mortarMaterialId?: string;
+      castConcreteMaterialId?: string;
+      roofSheetMaterialId?: string;
+      structuralSteelMaterialId?: string;
+      siteGroundMaterialId?: string;
+      mortarTintId?: string;
+      roofSheetTintId?: string;
+      structuralSteelTintId?: string;
+    };
   };
   updatedAt: string;
 };

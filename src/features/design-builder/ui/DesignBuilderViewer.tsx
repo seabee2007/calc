@@ -48,6 +48,7 @@ import type {
   SteelTrussSystemParameters,
   ThickenedEdgeSlabParameters,
   FoundationViewMode,
+  DesignVisualStyle,
   RoofDisplayMode,
   RoofLayerVisibility,
   RoofSystemSettings,
@@ -72,6 +73,22 @@ import {
   purlinBottomYAtStation,
   rakedCapTopYAtStation,
 } from '../domain/roofGableSolver';
+import {
+  ensurePreviewMaterialsLoaded,
+  resolveCastConcreteMaterial,
+  resolveCmuMaterial,
+  resolveRoofMetalMaterial,
+  resolveSiteGroundMaterial,
+  resolveStructuralSteelMaterial,
+  subscribeMaterialDiagnostics,
+} from '../rendering/materials/designMaterialLibrary';
+import { buildMortarJointMeshes } from '../rendering/materials/cmuMortarJointRender';
+import type { MortarJointDiagnostics } from '../rendering/materials/cmuMortarJointInstances';
+import type { CmuBlockInstance } from '../geometry/designGeometry';
+import {
+  createRoofCladdingGeometry,
+  resolveRoofRidgeDirection,
+} from '../rendering/materials/designRenderingUv';
 
 const CLICK_DRAG_THRESHOLD_PX = 5;
 
@@ -121,6 +138,10 @@ interface DesignBuilderViewerProps {
   showRoofFramingGuides?: boolean;
   showGableRakeGeometry?: boolean;
   foundationViewMode?: FoundationViewMode;
+  visualStyle?: DesignVisualStyle;
+  textureProjectionRevision?: number;
+  showMortarJointsDebug?: boolean;
+  onMortarJointDiagnosticsChange?: (diagnostics: MortarJointDiagnostics | null) => void;
   roofSystem?: RoofSystemSettings | null;
   roofDisplayMode?: RoofDisplayMode;
   roofLayerVisibility?: RoofLayerVisibility;
@@ -171,6 +192,44 @@ function createFootprintSlabGeometry(
   return geometry;
 }
 
+function addCmuMortarJointMeshes(params: {
+  blocks: readonly CmuBlockInstance[];
+  wall: CmuWallSystemParameters;
+  slabTopMeters: number;
+  visualStyle: DesignVisualStyle;
+  cmuCutawayActive: boolean;
+  cmuOpacity: number;
+  debugMode: boolean;
+  root: THREE.Group;
+  trackGeometry: (geometry: THREE.BufferGeometry) => THREE.BufferGeometry;
+  trackMat: (material: THREE.Material) => void;
+}): MortarJointDiagnostics | null {
+  if (params.blocks.length === 0) {
+    return null;
+  }
+  const moduleConfig = resolveCmuModuleConfig(params.wall);
+  const mortarMaterialOptions = {
+    visualStyle: params.visualStyle,
+    selected: false,
+    ...(params.cmuCutawayActive ? { transparent: true as const, opacity: params.cmuOpacity } : {}),
+  };
+  const { group, diagnostics } = buildMortarJointMeshes({
+    blocks: params.blocks,
+    mortarJointMeters: moduleConfig.mortarJointMeters,
+    defaultBlockDepthMeters: params.wall.blockDepthMeters ?? params.wall.wallThicknessMeters,
+    defaultBlockHeightMeters: moduleConfig.actualHeightMeters,
+    slabTopMeters: params.slabTopMeters,
+    materialOptions: mortarMaterialOptions,
+    debugMode: params.debugMode,
+    trackGeometry: params.trackGeometry,
+    trackMaterial: params.trackMat,
+  });
+  if (group.children.length > 0) {
+    params.root.add(group);
+  }
+  return diagnostics;
+}
+
 function createFootprintSetoutLine(
   polygon: readonly { x: number; z: number }[],
   y: number,
@@ -210,6 +269,10 @@ export default function DesignBuilderViewer({
   showRoofFramingGuides = false,
   showGableRakeGeometry = false,
   foundationViewMode = 'full_model',
+  visualStyle = 'technical',
+  textureProjectionRevision = 0,
+  showMortarJointsDebug = false,
+  onMortarJointDiagnosticsChange,
   roofSystem = null,
   roofDisplayMode = 'full_roof',
   roofLayerVisibility = DEFAULT_ROOF_LAYER_VISIBILITY,
@@ -233,6 +296,10 @@ export default function DesignBuilderViewer({
   const hoveredOpeningIdRef = useRef<string | null>(null);
   const rebuildModelRef = useRef<(() => void) | null>(null);
   const updateGhostRef = useRef<(() => void) | null>(null);
+  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+  const previewMaterialsReadyRef = useRef(false);
+  const onMortarJointDiagnosticsChangeRef = useRef(onMortarJointDiagnosticsChange);
+  onMortarJointDiagnosticsChangeRef.current = onMortarJointDiagnosticsChange;
   const modelParamsRef = useRef({
     modelLoaded,
     slab,
@@ -251,6 +318,9 @@ export default function DesignBuilderViewer({
     showRoofFramingGuides,
     showGableRakeGeometry,
     foundationViewMode,
+    visualStyle,
+    textureProjectionRevision,
+    showMortarJointsDebug,
     roofSystem,
     roofDisplayMode,
     roofLayerVisibility,
@@ -273,6 +343,9 @@ export default function DesignBuilderViewer({
     showRoofFramingGuides,
     showGableRakeGeometry,
     foundationViewMode,
+    visualStyle,
+    textureProjectionRevision,
+    showMortarJointsDebug,
     roofSystem,
     roofDisplayMode,
     roofLayerVisibility,
@@ -304,6 +377,12 @@ export default function DesignBuilderViewer({
     renderer.setPixelRatio(window.devicePixelRatio || 1);
     renderer.shadowMap.enabled = true;
     host.appendChild(renderer.domElement);
+    rendererRef.current = renderer;
+
+    const unsubscribeMaterialDiagnostics = subscribeMaterialDiagnostics(() => {
+      previewMaterialsReadyRef.current = true;
+      rebuildModelRef.current?.();
+    });
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
@@ -334,16 +413,7 @@ export default function DesignBuilderViewer({
     let grid = new THREE.GridHelper(initialGridLayout.gridSize, initialGridLayout.gridDivisions);
     grid.position.set(initialGridLayout.centerX, 0, initialGridLayout.centerZ);
     scene.add(grid);
-    const floorMaterial = new THREE.MeshBasicMaterial({
-      color: isDarkMode() ? 0x1e293b : 0xe2e8f0,
-      transparent: true,
-      opacity: 0.28,
-      side: THREE.DoubleSide,
-    });
-    const floorMesh = new THREE.Mesh(
-      new THREE.PlaneGeometry(initialGridLayout.gridSize, initialGridLayout.gridSize),
-      floorMaterial,
-    );
+    const floorMesh = new THREE.Mesh(new THREE.PlaneGeometry(initialGridLayout.gridSize, initialGridLayout.gridSize));
     floorMesh.rotation.x = -Math.PI / 2;
     floorMesh.position.set(initialGridLayout.centerX, -0.004, initialGridLayout.centerZ);
     scene.add(floorMesh);
@@ -426,6 +496,7 @@ export default function DesignBuilderViewer({
         floorMesh.geometry.dispose();
       }
       floorMesh.geometry = new THREE.PlaneGeometry(layout.gridSize, layout.gridSize);
+      refreshSiteGroundMaterial();
     }
 
     function applyTheme() {
@@ -433,7 +504,23 @@ export default function DesignBuilderViewer({
       scene.background = new THREE.Color(dark ? 0x0f172a : 0xf8fafc);
       (grid.material as THREE.Material).opacity = dark ? 0.35 : 0.22;
       (grid.material as THREE.Material).transparent = true;
-      floorMaterial.color.set(dark ? 0x1e293b : 0xe2e8f0);
+      refreshSiteGroundMaterial();
+    }
+
+    function refreshSiteGroundMaterial() {
+      const params = modelParamsRef.current;
+      const layout = resolveSceneGridLayout(params.layoutBounds);
+      const material = resolveSiteGroundMaterial(
+        {
+          visualStyle: params.visualStyle,
+          selected: false,
+          gridSizeMeters: layout.gridSize,
+        },
+        (nextMaterial) => {
+          materialsToDispose.push(nextMaterial);
+        },
+      );
+      floorMesh.material = material;
     }
 
     function setPointerFromEvent(event: PointerEvent) {
@@ -624,15 +711,37 @@ export default function DesignBuilderViewer({
         showRoofFramingGuides: currentShowRoofFramingGuides,
         showGableRakeGeometry: currentShowGableRakeGeometry,
         foundationViewMode: currentFoundationViewMode,
+        visualStyle: currentVisualStyle,
+        textureProjectionRevision: currentTextureProjectionRevision,
+        showMortarJointsDebug: currentShowMortarJointsDebug,
         roofSystem: currentRoofSystem,
         roofDisplayMode: currentRoofDisplayMode,
         roofLayerVisibility: currentRoofLayerVisibility,
       } = params;
+      const usePreviewMaterials =
+        currentVisualStyle === 'material_preview' && previewMaterialsReadyRef.current;
+      const frameSelected = currentSelectedObjectType === 'structural_frame_system';
+      const cmuSelected = currentSelectedObjectType === 'cmu_wall_system';
+      const roofSelected = currentSelectedObjectType === 'gable_roof_system';
+      const gableSelected = currentSelectedObjectType === 'gable_end_system';
+
+      function trackMat(material: THREE.Material) {
+        materialsToDispose.push(material);
+      }
+
+      const cmuCutawayActive = currentFoundationViewMode === 'cutaway_below_grade';
+      const cmuOpacity = cmuCutawayActive ? 0.35 : usePreviewMaterials ? 1 : 0.9;
+      const cmuMaterialOptions = {
+        visualStyle: currentVisualStyle,
+        selected: cmuSelected,
+        ...(cmuCutawayActive ? { transparent: true as const, opacity: cmuOpacity } : {}),
+      };
       root.clear();
       selectable.length = 0;
       wallPickables.length = 0;
       geometriesToDispose.splice(0).forEach((geometry) => geometry.dispose());
       materialsToDispose.splice(0).forEach((material) => material.dispose());
+      let latestMortarDiagnostics: MortarJointDiagnostics | null = null;
 
       applySceneFraming(currentLayoutBounds);
       const blankGeometryActive = currentGeometry?.sourcePath === 'blank';
@@ -715,12 +824,19 @@ export default function DesignBuilderViewer({
 
         const frameSystem = currentGeometry.frameSystem;
         if (frameSystem?.columns.length) {
-          const columnMaterial = makeMaterial(0x9ca3af, currentSelectedObjectType === 'structural_frame_system', {
-            roughness: 0.85,
-          });
+          const columnMaterial = usePreviewMaterials
+            ? resolveCastConcreteMaterial(
+                { visualStyle: currentVisualStyle, selected: frameSelected, role: 'structural' },
+                trackMat,
+              )
+            : makeMaterial(0x9ca3af, frameSelected, {
+                roughness: 0.85,
+              });
           frameSystem.columns.forEach((column) => {
             const mesh = new THREE.Mesh(
-              trackGeometry(new THREE.BoxGeometry(column.widthMeters, column.heightMeters, column.depthMeters)),
+              trackGeometry(
+                new THREE.BoxGeometry(column.widthMeters, column.heightMeters, column.depthMeters),
+              ),
               columnMaterial,
             );
             mesh.position.set(
@@ -732,18 +848,38 @@ export default function DesignBuilderViewer({
           });
         }
         if (frameSystem?.beams.length) {
-          const beamMaterial = makeMaterial(0x6b7280, currentSelectedObjectType === 'structural_frame_system', {
-            roughness: 0.8,
-          });
-          const plinthBeamMaterial = makeMaterial(0x57534e, currentSelectedObjectType === 'structural_frame_system', {
-            roughness: 0.85,
-          });
-          const tieBeamMaterial = makeMaterial(0x44403c, currentSelectedObjectType === 'structural_frame_system', {
-            roughness: 0.85,
-          });
-          const roofBeamMaterial = makeMaterial(0x6b7280, currentSelectedObjectType === 'structural_frame_system', {
-            roughness: 0.8,
-          });
+          const beamMaterial = usePreviewMaterials
+            ? resolveCastConcreteMaterial(
+                { visualStyle: currentVisualStyle, selected: frameSelected, role: 'beam' },
+                trackMat,
+              )
+            : makeMaterial(0x6b7280, frameSelected, {
+                roughness: 0.8,
+              });
+          const plinthBeamMaterial = usePreviewMaterials
+            ? resolveCastConcreteMaterial(
+                { visualStyle: currentVisualStyle, selected: frameSelected, role: 'beam' },
+                trackMat,
+              )
+            : makeMaterial(0x57534e, frameSelected, {
+                roughness: 0.85,
+              });
+          const tieBeamMaterial = usePreviewMaterials
+            ? resolveCastConcreteMaterial(
+                { visualStyle: currentVisualStyle, selected: frameSelected, role: 'beam' },
+                trackMat,
+              )
+            : makeMaterial(0x44403c, frameSelected, {
+                roughness: 0.85,
+              });
+          const roofBeamMaterial = usePreviewMaterials
+            ? resolveCastConcreteMaterial(
+                { visualStyle: currentVisualStyle, selected: frameSelected, role: 'beam' },
+                trackMat,
+              )
+            : makeMaterial(0x6b7280, frameSelected, {
+                roughness: 0.8,
+              });
           frameSystem.beams.forEach((beam) => {
             const dx = beam.endPoint.x - beam.startPoint.x;
             const dz = beam.endPoint.z - beam.startPoint.z;
@@ -794,9 +930,14 @@ export default function DesignBuilderViewer({
           root.add(interiorSlabMesh);
         }
         if (currentGeometry.isolatedFootings?.length) {
-          const footingMaterial = makeMaterial(0x78716c, currentSelectedObjectType === 'structural_frame_system', {
-            roughness: 0.9,
-          });
+          const footingMaterial = usePreviewMaterials
+            ? resolveCastConcreteMaterial(
+                { visualStyle: currentVisualStyle, selected: frameSelected, role: 'structural' },
+                trackMat,
+              )
+            : makeMaterial(0x78716c, frameSelected, {
+                roughness: 0.9,
+              });
           currentGeometry.isolatedFootings.forEach((footing) => {
             const mesh = new THREE.Mesh(
               trackGeometry(
@@ -940,40 +1081,72 @@ export default function DesignBuilderViewer({
               : resolvedRoof.roofTopPlanes;
           const claddingStackOffsetMeters = 0;
 
+          const ridgeDirectionHint =
+            resolvedRoof.claddingRidgeStart && resolvedRoof.claddingRidgeEnd
+              ? {
+                  x: resolvedRoof.claddingRidgeEnd.x - resolvedRoof.claddingRidgeStart.x,
+                  z: resolvedRoof.claddingRidgeEnd.z - resolvedRoof.claddingRidgeStart.z,
+                }
+              : undefined;
+
           if (showRoofCladding && corrugatedEnabled) {
             const debugGuides = import.meta.env.DEV && currentShowRoofFramingGuides;
             const roofMaterial = debugGuides
               ? new THREE.MeshStandardMaterial({ color: 0x9ca3af, metalness: 0.72, roughness: 0.38 })
-              : createCorrugatedMetalMaterial();
-            materialsToDispose.push(roofMaterial);
+              : usePreviewMaterials
+                ? resolveRoofMetalMaterial(
+                    { visualStyle: currentVisualStyle, selected: roofSelected },
+                    trackMat,
+                  )
+                : createCorrugatedMetalMaterial();
+            if (debugGuides || !usePreviewMaterials) {
+              materialsToDispose.push(roofMaterial);
+            }
             for (const plane of claddingPlanes) {
               if (plane.corners.length < 3) continue;
               const planeNormal = normalizeOutwardRoofNormal(plane.normal);
-              const positions: number[] = [];
-              for (const corner of plane.corners) {
-                const elevated = claddingStackOffsetMeters > 0
-                  ? offsetPointAlongRoofNormal(corner, planeNormal, claddingStackOffsetMeters)
-                  : corner;
-                positions.push(elevated.x, currentSlab.slabThicknessMeters + elevated.y, elevated.z);
-              }
-              const indices = plane.corners.length === 3 ? [0, 1, 2] : [0, 1, 2, 0, 2, 3];
-              const topGeometry = trackGeometry(new THREE.BufferGeometry());
-              topGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-              topGeometry.setIndex(indices);
-              topGeometry.computeVertexNormals();
+              const topGeometry =
+                usePreviewMaterials && !debugGuides
+                  ? trackGeometry(
+                      createRoofCladdingGeometry({
+                        corners: plane.corners,
+                        slabTopMeters: currentSlab.slabThicknessMeters,
+                        planeNormal: new THREE.Vector3(planeNormal.x, planeNormal.y, planeNormal.z),
+                        ridgeDirection: resolveRoofRidgeDirection(plane.corners, ridgeDirectionHint),
+                      }),
+                    )
+                  : trackGeometry(
+                      (() => {
+                        const positions: number[] = [];
+                        for (const corner of plane.corners) {
+                          const elevated =
+                            claddingStackOffsetMeters > 0
+                              ? offsetPointAlongRoofNormal(corner, planeNormal, claddingStackOffsetMeters)
+                              : corner;
+                          positions.push(elevated.x, currentSlab.slabThicknessMeters + elevated.y, elevated.z);
+                        }
+                        const indices = plane.corners.length === 3 ? [0, 1, 2] : [0, 1, 2, 0, 2, 3];
+                        const geometry = new THREE.BufferGeometry();
+                        geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+                        geometry.setIndex(indices);
+                        geometry.computeVertexNormals();
+                        return geometry;
+                      })(),
+                    );
               const mesh = new THREE.Mesh(topGeometry, roofMaterial);
               roofCladdingGroup.add(mesh);
             }
           } else if (showRoofCladding) {
             const debugGuides = import.meta.env.DEV && currentShowRoofFramingGuides;
-            const roofMaterial = makeMaterial(
-              debugGuides ? 0x9ca3af : 0x64748b,
-              currentSelectedObjectType === 'gable_roof_system',
-              {
-                roughness: 0.75,
-                opacity: 0.92,
-              },
-            );
+            const roofMaterial = usePreviewMaterials
+              ? resolveRoofMetalMaterial(
+                  { visualStyle: currentVisualStyle, selected: roofSelected },
+                  trackMat,
+                )
+              : makeMaterial(debugGuides ? 0x9ca3af : 0x64748b, roofSelected, {
+                  roughness: 0.75,
+                  opacity: 0.92,
+                });
             for (const plane of claddingPlanes) {
               if (plane.corners.length < 3) continue;
               const planeNormal = normalizeOutwardRoofNormal(plane.normal);
@@ -994,14 +1167,39 @@ export default function DesignBuilderViewer({
           }
 
           if (showSteelTrusses && resolvedRoof.roofType === 'gable' && currentRoofSystem.steelTrusses.enabled) {
-            const steelMaterials = createSteelTrussMaterials();
-            materialsToDispose.push(
-              steelMaterials.chord,
-              steelMaterials.web,
-              steelMaterials.plate,
-              steelMaterials.bolt,
-            );
             const debugGuides = import.meta.env.DEV && currentShowRoofFramingGuides;
+            const steelMaterials = usePreviewMaterials && !debugGuides
+              ? {
+                  chord: resolveStructuralSteelMaterial(
+                    { visualStyle: currentVisualStyle, selected: roofSelected },
+                    trackMat,
+                  ),
+                  web: resolveStructuralSteelMaterial(
+                    { visualStyle: currentVisualStyle, selected: roofSelected },
+                    trackMat,
+                  ),
+                  plate: resolveStructuralSteelMaterial(
+                    { visualStyle: currentVisualStyle, selected: roofSelected },
+                    trackMat,
+                  ),
+                  bolt: resolveStructuralSteelMaterial(
+                    { visualStyle: currentVisualStyle, selected: roofSelected },
+                    trackMat,
+                  ),
+                  purlin: resolveStructuralSteelMaterial(
+                    { visualStyle: currentVisualStyle, selected: roofSelected },
+                    trackMat,
+                  ),
+                }
+              : createSteelTrussMaterials();
+            if (!usePreviewMaterials || debugGuides) {
+              materialsToDispose.push(
+                steelMaterials.chord,
+                steelMaterials.web,
+                steelMaterials.plate,
+                steelMaterials.bolt,
+              );
+            }
             for (const placement of resolvedRoof.trussPlacements) {
               const { chordMeshes, webMeshes } = buildSteelTrussMemberMeshes({
                 placement,
@@ -1060,8 +1258,17 @@ export default function DesignBuilderViewer({
           }
 
           if (showRoofFraming && resolvedRoof.roofType === 'hip') {
-            const hipMaterial = new THREE.MeshStandardMaterial({ color: 0x546e7a, metalness: 0.78, roughness: 0.32 });
-            materialsToDispose.push(hipMaterial);
+            const debugGuides = import.meta.env.DEV && currentShowRoofFramingGuides;
+            const hipMaterial =
+              usePreviewMaterials && !debugGuides
+                ? resolveStructuralSteelMaterial(
+                    { visualStyle: currentVisualStyle, selected: roofSelected },
+                    trackMat,
+                  )
+                : new THREE.MeshStandardMaterial({ color: 0x546e7a, metalness: 0.78, roughness: 0.32 });
+            if (!usePreviewMaterials || debugGuides) {
+              materialsToDispose.push(hipMaterial);
+            }
             for (const member of resolvedRoof.hipFramingMembers) {
               const mesh = buildHipMemberMesh(
                 new THREE.Vector3(
@@ -1082,12 +1289,20 @@ export default function DesignBuilderViewer({
           }
 
           if (showPurlins && currentRoofSystem.purlins.enabled) {
-            const steelMaterials = createSteelTrussMaterials();
+            const debugGuides = import.meta.env.DEV && currentShowRoofFramingGuides;
+            const steelMaterials = usePreviewMaterials && !debugGuides ? null : createSteelTrussMaterials();
             const purlinMaterial =
-              import.meta.env.DEV && currentShowRoofFramingGuides
+              debugGuides
                 ? new THREE.MeshStandardMaterial({ color: 0x3b82f6, metalness: 0.5, roughness: 0.45 })
-                : steelMaterials.purlin;
-            materialsToDispose.push(purlinMaterial);
+                : usePreviewMaterials
+                  ? resolveStructuralSteelMaterial(
+                      { visualStyle: currentVisualStyle, selected: roofSelected },
+                      trackMat,
+                    )
+                  : steelMaterials!.purlin;
+            if (debugGuides || !usePreviewMaterials) {
+              materialsToDispose.push(purlinMaterial);
+            }
             for (const purlin of resolvedRoof.purlinPlacements) {
               const mesh = buildPurlinMesh({
                 start: new THREE.Vector3(
@@ -1180,8 +1395,15 @@ export default function DesignBuilderViewer({
             const debugGuides = import.meta.env.DEV && currentShowRoofFramingGuides;
             const ridgeCapMaterial = debugGuides
               ? new THREE.MeshStandardMaterial({ color: 0x14b8a6, metalness: 0.5, roughness: 0.45 })
-              : createRidgeCapMaterial();
-            materialsToDispose.push(ridgeCapMaterial);
+              : usePreviewMaterials
+                ? resolveRoofMetalMaterial(
+                    { visualStyle: currentVisualStyle, selected: roofSelected },
+                    trackMat,
+                  )
+                : createRidgeCapMaterial();
+            if (debugGuides || !usePreviewMaterials) {
+              materialsToDispose.push(ridgeCapMaterial);
+            }
             const ridgeCap = createFoldedRidgeCapGroup(
               new THREE.Vector3(
                 ridgeCapPlacement.start.x,
@@ -1267,10 +1489,15 @@ export default function DesignBuilderViewer({
             showRakedCap &&
             currentGeometry.rakedCapPlacements?.length
           ) {
-            const capMaterial = createRakedConcreteCapMaterial(
-              currentSelectedObjectType === 'gable_end_system',
-            );
-            materialsToDispose.push(capMaterial);
+            const capMaterial = usePreviewMaterials
+              ? resolveCastConcreteMaterial(
+                  { visualStyle: currentVisualStyle, selected: gableSelected, role: 'structural' },
+                  trackMat,
+                )
+              : createRakedConcreteCapMaterial(gableSelected);
+            if (!usePreviewMaterials) {
+              materialsToDispose.push(capMaterial);
+            }
             const capsByStrip = new Map<
               string,
               Array<(typeof currentGeometry.rakedCapPlacements)[number]>
@@ -1323,7 +1550,7 @@ export default function DesignBuilderViewer({
 
               if (currentShowGableRakeGeometry) {
                 const hostPanel = currentGeometry.infillSystem?.panels.find(
-                  (panel) => panel.hostSegmentId === frame.segmentId,
+                  (panel) => panel.hostSegmentId === frame.segmentId && panel.infillZone !== 'below_grade',
                 );
                 const panelStart = hostPanel?.startStationMeters ?? 0;
                 const panelEnd = hostPanel?.endStationMeters ?? frame.lengthMeters;
@@ -1457,7 +1684,25 @@ export default function DesignBuilderViewer({
         }
 
         const showCmuInfill = currentFoundationViewMode !== 'structural_frame_only';
-        const cmuOpacity = currentFoundationViewMode === 'cutaway_below_grade' ? 0.35 : 0.9;
+
+        const cmuBlocksForMortar =
+          showCmuInfill && currentWall.showIndividualBlocks ? cmuLayout.blocks : [];
+        let mortarDiagnostics: MortarJointDiagnostics | null = null;
+        if (cmuBlocksForMortar.length > 0) {
+          mortarDiagnostics = addCmuMortarJointMeshes({
+            blocks: cmuBlocksForMortar,
+            wall: currentWall,
+            slabTopMeters: currentSlab.slabThicknessMeters,
+            visualStyle: currentVisualStyle,
+            cmuCutawayActive,
+            cmuOpacity,
+            debugMode: currentShowMortarJointsDebug,
+            root,
+            trackGeometry,
+            trackMat,
+          });
+        }
+        latestMortarDiagnostics = mortarDiagnostics;
 
         const blockInstances =
           showCmuInfill && currentWall.showIndividualBlocks ? currentGeometry.blockInstances : [];
@@ -1466,10 +1711,12 @@ export default function DesignBuilderViewer({
           const blocksByType = groupBlocksByType(blockInstances);
           blocksByType.forEach((instances, blockType) => {
             const blockGeometry = trackGeometry(new THREE.BoxGeometry(1, 1, 1));
-            const blockMaterial = makeMaterial(blockColor(blockType), currentSelectedObjectType === 'cmu_wall_system', {
-              transparent: cmuOpacity < 1,
-              opacity: cmuOpacity,
-            });
+            const blockMaterial = usePreviewMaterials
+              ? resolveCmuMaterial(cmuMaterialOptions, trackMat)
+              : makeMaterial(blockColor(blockType), cmuSelected, {
+                  transparent: cmuOpacity < 1,
+                  opacity: cmuOpacity,
+                });
             const blocks = new THREE.InstancedMesh(blockGeometry, blockMaterial, instances.length);
             const matrix = new THREE.Matrix4();
             const quaternion = new THREE.Quaternion();
@@ -1530,11 +1777,25 @@ export default function DesignBuilderViewer({
 
         const blockInstances = currentWall.showIndividualBlocks ? cmuLayout.blocks : [];
         if (blockInstances.length > 0) {
+        latestMortarDiagnostics = addCmuMortarJointMeshes({
+          blocks: blockInstances,
+          wall: currentWall,
+          slabTopMeters: currentSlab.slabThicknessMeters,
+          visualStyle: currentVisualStyle,
+          cmuCutawayActive,
+          cmuOpacity,
+          debugMode: currentShowMortarJointsDebug,
+          root,
+          trackGeometry,
+          trackMat,
+        });
         const blockHeightMeters = resolveCmuModuleConfig(currentWall).actualHeightMeters;
         const blocksByType = groupBlocksByType(blockInstances);
         blocksByType.forEach((instances, blockType) => {
           const blockGeometry = trackGeometry(new THREE.BoxGeometry(1, 1, 1));
-          const blockMaterial = makeMaterial(blockColor(blockType), currentSelectedObjectType === 'cmu_wall_system');
+          const blockMaterial = usePreviewMaterials
+            ? resolveCmuMaterial(cmuMaterialOptions, trackMat)
+            : makeMaterial(blockColor(blockType), cmuSelected);
           const blocks = new THREE.InstancedMesh(blockGeometry, blockMaterial, instances.length);
           const matrix = new THREE.Matrix4();
           const quaternion = new THREE.Quaternion();
@@ -1603,7 +1864,9 @@ export default function DesignBuilderViewer({
         });
         manualBlocksByType.forEach((instances, unitType) => {
           const blockGeometry = trackGeometry(new THREE.BoxGeometry(1, 1, 1));
-          const blockMaterial = makeMaterial(manualBlockColor(unitType), currentSelectedObjectType === 'cmu_wall_system');
+          const blockMaterial = usePreviewMaterials
+            ? resolveCmuMaterial(cmuMaterialOptions, trackMat)
+            : makeMaterial(manualBlockColor(unitType), cmuSelected);
           const blocks = new THREE.InstancedMesh(blockGeometry, blockMaterial, instances.length);
           blocks.userData.manualMasonry = true;
           const matrix = new THREE.Matrix4();
@@ -1633,6 +1896,13 @@ export default function DesignBuilderViewer({
         hoveredOpeningId: hoveredOpeningIdRef.current,
         trackGeometry,
         makeMaterial,
+        resolveLintelMaterial: usePreviewMaterials
+          ? () =>
+              resolveCastConcreteMaterial(
+                { visualStyle: currentVisualStyle, selected: false, role: 'structural' },
+                trackMat,
+              )
+          : undefined,
       });
 
       openingRenderGroups.frameGroup.traverse((child) => {
@@ -1691,6 +1961,8 @@ export default function DesignBuilderViewer({
           });
       }
 
+      onMortarJointDiagnosticsChangeRef.current?.(latestMortarDiagnostics);
+      refreshSiteGroundMaterial();
       updateGhost();
     }
     rebuildModelRef.current = rebuildModel;
@@ -1929,6 +2201,8 @@ export default function DesignBuilderViewer({
       controls.removeEventListener('end', emitCameraSnapshot);
       observer.disconnect();
       themeObserver.disconnect();
+      unsubscribeMaterialDiagnostics();
+      rendererRef.current = null;
       controls.dispose();
       clearGhost();
       geometriesToDispose.forEach((geometry) => geometry.dispose());
@@ -1942,7 +2216,18 @@ export default function DesignBuilderViewer({
 
   useEffect(() => {
     if (modelLoaded) rebuildModelRef.current?.();
-  }, [geometryResult, layoutBounds, modelLoaded, roof, roofDisplayMode, roofLayerVisibility, roofSystem, selectedObjectType, selectedOpeningId, showClosureWarnings, showFootprintSetout, showInfillPanelBounds, showRoofReferencePerimeters, showRoofFramingGuides, showGableRakeGeometry, foundationViewMode, showGroutCells, showOpeningLayout, slab, truss, wall]);
+  }, [geometryResult, layoutBounds, modelLoaded, roof, roofDisplayMode, roofLayerVisibility, roofSystem, selectedObjectType, selectedOpeningId, showClosureWarnings, showFootprintSetout, showInfillPanelBounds, showRoofReferencePerimeters, showRoofFramingGuides, showGableRakeGeometry, foundationViewMode, showGroutCells, showOpeningLayout, showMortarJointsDebug, slab, truss, wall, visualStyle, textureProjectionRevision]);
+
+  useEffect(() => {
+    if (visualStyle === 'material_preview') {
+      ensurePreviewMaterialsLoaded(rendererRef.current ?? undefined).then(() => {
+        previewMaterialsReadyRef.current = true;
+        rebuildModelRef.current?.();
+      });
+      return;
+    }
+    rebuildModelRef.current?.();
+  }, [visualStyle]);
 
   useEffect(() => {
     if (!viewCommand) return;
