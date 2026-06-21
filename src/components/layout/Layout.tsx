@@ -166,12 +166,16 @@ const Layout: React.FC = () => {
 
         {showBottomNav && <BottomNav />}
 
-        {user && !isEmployee && !isEmployeeRoute && (
+        {user && isOwner ? <ToolsModal /> : null}
+
+  {user && !isEmployee && !isEmployeeRoute ? (
+  <MoreMenuModal />
+) : null}
           <>
             <ToolsModal />
             <MoreMenuModal />
           </>
-        )}
+        
       </div>
     </div>
   );
