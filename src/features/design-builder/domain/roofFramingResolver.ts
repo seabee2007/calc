@@ -829,20 +829,53 @@ function resolvePurlinPlacements(params: {
     for (let rowIndex = 0; rowIndex < rowTs.length; rowIndex += 1) {
       const t = rowTs[rowIndex]!;
       const chordCenterY = lerpVec3(topChord.start, referenceTruss.apex, t).y;
-      const chordCenterStart = {
+      let chordCenterStart: RoofVec3 = {
         x: lerpVec3(eaveAtStart, params.claddingRidgeStart, t).x,
         y: chordCenterY,
         z: lerpVec3(eaveAtStart, params.claddingRidgeStart, t).z,
       };
-      const chordCenterEnd = {
+      
+      let chordCenterEnd: RoofVec3 = {
         x: lerpVec3(eaveAtEnd, params.claddingRidgeEnd, t).x,
         y: chordCenterY,
         z: lerpVec3(eaveAtEnd, params.claddingRidgeEnd, t).z,
       };
+      
+      /*
+       * Move only the existing outer eave purlin inward by half of its
+       * cross-slope width. This makes its outside face flush with the
+       * actual top-chord eave endpoint.
+       *
+       * Do not alter rowTs. Do not add a new purlin.
+       */
+      const isOuterEavePurlin = rowIndex === 0;
+      
+      if (isOuterEavePurlin) {
+        const inboardDirection = normalize3(
+          sub3(topChord.end, topChord.start),
+        );
+      
+        const inboardOffsetMeters =
+          PURLIN_PROFILE_WIDTH_METERS / 2;
+      
+        chordCenterStart = {
+          x: chordCenterStart.x + inboardDirection.x * inboardOffsetMeters,
+          y: chordCenterStart.y + inboardDirection.y * inboardOffsetMeters,
+          z: chordCenterStart.z + inboardDirection.z * inboardOffsetMeters,
+        };
+      
+        chordCenterEnd = {
+          x: chordCenterEnd.x + inboardDirection.x * inboardOffsetMeters,
+          y: chordCenterEnd.y + inboardDirection.y * inboardOffsetMeters,
+          z: chordCenterEnd.z + inboardDirection.z * inboardOffsetMeters,
+        };
+      }
+      
       const start = resolvePurlinCenterOnTrussTop({
         chordCenter: chordCenterStart,
         outwardNormal: planeNormal,
       });
+      
       const end = resolvePurlinCenterOnTrussTop({
         chordCenter: chordCenterEnd,
         outwardNormal: planeNormal,
