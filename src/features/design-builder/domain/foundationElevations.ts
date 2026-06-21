@@ -1,66 +1,84 @@
 import type {
-  GradeBeamSettings,
-  IsolatedFootingSettings,
+  RcFrameFoundationSettings,
   StructuralBeam,
   StructuralColumn,
-  StructuralFoundationSettings,
 } from '../types';
+import { normalizeRcFrameFoundationSettings } from './rcFrameFoundationMigration';
 
-/** Canonical structural origin: top face of grade beam. */
-export const TOP_OF_GRADE_BEAM_Y = 0;
+/** Canonical structural origin: top face of plinth beam (floor level). */
+export const TOP_OF_PLINTH_BEAM_Y = 0;
+
+/** @deprecated Use TOP_OF_PLINTH_BEAM_Y */
+export const TOP_OF_GRADE_BEAM_Y = TOP_OF_PLINTH_BEAM_Y;
 
 export type FoundationElevations = {
-  topOfGradeBeamY: number;
-  bottomOfGradeBeamY: number;
+  topOfPlinthBeamY: number;
+  bottomOfPlinthBeamY: number;
+  topOfTieBeamY: number;
+  bottomOfTieBeamY: number;
   topOfFootingY: number;
   bottomOfFootingY: number;
   wallBaseY: number;
-  wallTopY: number;
+  roofBeamBottomY: number;
+  roofBeamTopY: number;
+  cmuClearHeightMeters: number;
+  columnBottomY: number;
+  columnTopY: number;
+  columnHeightMeters: number;
 };
 
+/** Small render epsilon to prevent z-fighting — not large enough to show daylight. */
+export const FOUNDATION_CONTACT_EPSILON_METERS = 0.001;
+
 export function resolveFoundationElevations(params: {
-  foundation: StructuralFoundationSettings;
+  foundation: RcFrameFoundationSettings | import('../types').StructuralFoundationSettings | undefined;
   wallHeightMeters: number;
 }): FoundationElevations {
-  const topOfGradeBeamY = TOP_OF_GRADE_BEAM_Y;
-  const gradeDepth = Math.max(0, params.foundation.gradeBeam.depthMeters);
-  const bottomOfGradeBeamY = topOfGradeBeamY - gradeDepth;
-  const dropBelowGradeBeam = Math.max(0, params.foundation.isolatedFootings.dropBelowGradeBeamMeters);
-  const footingThickness = Math.max(0, params.foundation.isolatedFootings.footingThicknessMeters);
-  const topOfFootingY = bottomOfGradeBeamY - dropBelowGradeBeam;
+  const foundation = normalizeRcFrameFoundationSettings(params.foundation);
+  const topOfPlinthBeamY = TOP_OF_PLINTH_BEAM_Y;
+  const plinthDepth = Math.max(0, foundation.plinthBeam.depthMeters);
+  const bottomOfPlinthBeamY = topOfPlinthBeamY - plinthDepth;
+  const footingDrop = Math.max(0, foundation.isolatedFootings.dropBelowPlinthBeamMeters);
+  const footingThickness = Math.max(0, foundation.isolatedFootings.thicknessMeters);
+  const topOfFootingY = bottomOfPlinthBeamY - footingDrop;
+  const bottomOfTieBeamY = topOfFootingY;
+  const tieDepth = Math.max(0, foundation.tieBeam.depthMeters);
+  const topOfTieBeamY = bottomOfTieBeamY + tieDepth;
   const bottomOfFootingY = topOfFootingY - footingThickness;
+  const wallBaseY = topOfPlinthBeamY;
+  const roofBeamBottomY = wallBaseY + Math.max(0, params.wallHeightMeters);
+  const roofDepth = Math.max(0, foundation.roofBeam.depthMeters);
+  const roofBeamTopY = roofBeamBottomY + roofDepth;
+  const columnBottomY = topOfFootingY;
+  const columnTopY = roofBeamTopY;
+  const columnHeightMeters = Math.max(0, columnTopY - columnBottomY);
+  const cmuClearHeightMeters = Math.max(0, roofBeamBottomY - wallBaseY);
+
   return {
-    topOfGradeBeamY,
-    bottomOfGradeBeamY,
+    topOfPlinthBeamY,
+    bottomOfPlinthBeamY,
+    topOfTieBeamY,
+    bottomOfTieBeamY,
     topOfFootingY,
     bottomOfFootingY,
-    wallBaseY: topOfGradeBeamY,
-    wallTopY: topOfGradeBeamY + Math.max(0, params.wallHeightMeters),
+    wallBaseY,
+    roofBeamBottomY,
+    roofBeamTopY,
+    cmuClearHeightMeters,
+    columnBottomY,
+    columnTopY,
+    columnHeightMeters,
   };
-}
-
-export function resolveColumnTopElevationMeters(params: {
-  wallHeightMeters: number;
-  ringBeam?: StructuralBeam;
-}): number {
-  if (params.ringBeam) {
-    return params.ringBeam.topElevationMeters;
-  }
-  return TOP_OF_GRADE_BEAM_Y + Math.max(0, params.wallHeightMeters);
 }
 
 export function resolveColumnGeometry(params: {
   column: Pick<StructuralColumn, 'widthMeters' | 'depthMeters'>;
   elevations: FoundationElevations;
-  columnTopY: number;
 }): Pick<StructuralColumn, 'baseElevationMeters' | 'topElevationMeters' | 'heightMeters'> {
-  const columnBottomY = params.elevations.topOfFootingY;
-  const columnTopY = params.columnTopY;
-  const columnHeightMeters = Math.max(0, columnTopY - columnBottomY);
   return {
-    baseElevationMeters: columnBottomY,
-    topElevationMeters: columnTopY,
-    heightMeters: columnHeightMeters,
+    baseElevationMeters: params.elevations.columnBottomY,
+    topElevationMeters: params.elevations.columnTopY,
+    heightMeters: params.elevations.columnHeightMeters,
   };
 }
 
@@ -72,72 +90,64 @@ export function structuralYToWorldY(structuralY: number, slabTopOffsetMeters: nu
   return slabTopOffsetMeters + structuralY;
 }
 
-export function gradeBeamElevationsFromSettings(gradeBeam: GradeBeamSettings): {
+export function beamElevationsFromDepth(params: {
+  topElevationMeters: number;
+  depthMeters: number;
+}): { baseElevationMeters: number; topElevationMeters: number } {
+  const depth = Math.max(0, params.depthMeters);
+  return {
+    topElevationMeters: params.topElevationMeters,
+    baseElevationMeters: params.topElevationMeters - depth,
+  };
+}
+
+export function plinthBeamElevations(foundation: RcFrameFoundationSettings): {
   baseElevationMeters: number;
   topElevationMeters: number;
 } {
-  const depth = Math.max(0, gradeBeam.depthMeters);
+  return beamElevationsFromDepth({
+    topElevationMeters: TOP_OF_PLINTH_BEAM_Y,
+    depthMeters: foundation.plinthBeam.depthMeters,
+  });
+}
+
+export function roofBeamElevations(wallHeightMeters: number, foundation: RcFrameFoundationSettings): {
+  baseElevationMeters: number;
+  topElevationMeters: number;
+} {
+  const elevations = resolveFoundationElevations({ foundation, wallHeightMeters });
+  return beamElevationsFromDepth({
+    topElevationMeters: elevations.roofBeamTopY,
+    depthMeters: foundation.roofBeam.depthMeters,
+  });
+}
+
+export function tieBeamElevations(foundation: RcFrameFoundationSettings, wallHeightMeters: number): {
+  baseElevationMeters: number;
+  topElevationMeters: number;
+} {
+  const elevations = resolveFoundationElevations({ foundation, wallHeightMeters });
   return {
-    baseElevationMeters: TOP_OF_GRADE_BEAM_Y - depth,
-    topElevationMeters: TOP_OF_GRADE_BEAM_Y,
+    baseElevationMeters: elevations.bottomOfTieBeamY,
+    topElevationMeters: elevations.topOfTieBeamY,
   };
 }
 
-export function ringBeamElevationsForWallHeight(params: {
-  wallHeightMeters: number;
-  ringBeamDepthMeters: number;
-}): { baseElevationMeters: number; topElevationMeters: number } {
-  const top = TOP_OF_GRADE_BEAM_Y + Math.max(0, params.wallHeightMeters);
-  const depth = Math.max(0, params.ringBeamDepthMeters);
-  return {
-    topElevationMeters: top,
-    baseElevationMeters: top - depth,
-  };
-}
-
-export function columnVolumeBelowGradeBeamCubicMeters(
-  column: StructuralColumn,
-  bottomOfGradeBeamY: number,
-): number {
-  const overlapTop = Math.min(column.topElevationMeters, bottomOfGradeBeamY);
-  const height = Math.max(0, overlapTop - column.baseElevationMeters);
-  return column.widthMeters * column.depthMeters * height;
-}
-
-export function columnVolumeAboveGradeBeamCubicMeters(
-  column: StructuralColumn,
-  topOfGradeBeamY: number,
-): number {
-  const overlapBottom = Math.max(column.baseElevationMeters, topOfGradeBeamY);
-  const height = Math.max(0, column.topElevationMeters - overlapBottom);
-  return column.widthMeters * column.depthMeters * height;
-}
-
-export function footingVolumeCubicMeters(params: {
-  widthMeters: number;
-  lengthMeters: number;
-  thicknessMeters: number;
-}): number {
-  return Math.max(0, params.widthMeters) * Math.max(0, params.lengthMeters) * Math.max(0, params.thicknessMeters);
-}
-
-export function gradeBeamVolumeForBeams(beams: readonly StructuralBeam[]): number {
+export function beamVolumeForKind(beams: readonly StructuralBeam[], kind: StructuralBeam['kind']): number {
   return beams
-    .filter((beam) => beam.kind === 'grade_beam')
+    .filter((beam) => beam.kind === kind)
     .reduce((sum, beam) => sum + beamSpanLengthMeters(beam) * beam.widthMeters * beam.depthMeters, 0);
 }
 
-export function ringBeamVolumeForBeams(beams: readonly StructuralBeam[]): number {
-  return beams
-    .filter((beam) => beam.kind === 'ring_beam')
-    .reduce((sum, beam) => sum + beamSpanLengthMeters(beam) * beam.widthMeters * beam.depthMeters, 0);
+export function beamVolumeForKinds(beams: readonly StructuralBeam[], kinds: readonly StructuralBeam['kind'][]): number {
+  return kinds.reduce((sum, kind) => sum + beamVolumeForKind(beams, kind), 0);
 }
 
 export function beamSpanLengthMeters(beam: StructuralBeam): number {
   return Math.hypot(beam.endPoint.x - beam.startPoint.x, beam.endPoint.z - beam.startPoint.z);
 }
 
-export function ringBeamColumnIntersectionVolumeCubicMeters(
+export function beamColumnIntersectionVolumeCubicMeters(
   column: StructuralColumn,
   beam: StructuralBeam,
 ): number {
@@ -149,40 +159,78 @@ export function ringBeamColumnIntersectionVolumeCubicMeters(
   return overlapW * overlapD * overlapH;
 }
 
+export function columnVolumeBelowPlinthCubicMeters(
+  column: StructuralColumn,
+  bottomOfPlinthBeamY: number,
+): number {
+  const overlapTop = Math.min(column.topElevationMeters, bottomOfPlinthBeamY);
+  const height = Math.max(0, overlapTop - column.baseElevationMeters);
+  return column.widthMeters * column.depthMeters * height;
+}
+
+export function columnVolumeAbovePlinthCubicMeters(
+  column: StructuralColumn,
+  topOfPlinthBeamY: number,
+  roofBeamBottomY: number,
+): number {
+  const overlapBottom = Math.max(column.baseElevationMeters, topOfPlinthBeamY);
+  const overlapTop = Math.min(column.topElevationMeters, roofBeamBottomY);
+  const height = Math.max(0, overlapTop - overlapBottom);
+  return column.widthMeters * column.depthMeters * height;
+}
+
+export function footingVolumeCubicMeters(params: {
+  widthMeters: number;
+  lengthMeters: number;
+  thicknessMeters: number;
+}): number {
+  return Math.max(0, params.widthMeters) * Math.max(0, params.lengthMeters) * Math.max(0, params.thicknessMeters);
+}
+
 export function resolveStructuralConcreteVolumes(params: {
   columns: StructuralColumn[];
   beams: StructuralBeam[];
   footings: Array<{ widthMeters: number; lengthMeters: number; thicknessMeters: number }>;
-  bottomOfGradeBeamY: number;
-  topOfGradeBeamY: number;
+  elevations: FoundationElevations;
 }): {
-  gradeBeamVolumeCubicMeters: number;
-  ringBeamVolumeCubicMeters: number;
-  columnBelowGradeVolumeCubicMeters: number;
-  columnAboveGradeVolumeCubicMeters: number;
+  plinthBeamVolumeCubicMeters: number;
+  roofBeamVolumeCubicMeters: number;
+  tieBeamVolumeCubicMeters: number;
+  columnBelowPlinthVolumeCubicMeters: number;
+  columnAbovePlinthVolumeCubicMeters: number;
   footingVolumeCubicMeters: number;
   totalDeduplicatedVolumeCubicMeters: number;
 } {
-  const gradeBeamVolumeCubicMeters = gradeBeamVolumeForBeams(params.beams);
-  const ringBeamVolumeCubicMeters = ringBeamVolumeForBeams(params.beams);
-  let columnBelowGradeVolumeCubicMeters = 0;
-  let columnAboveGradeVolumeCubicMeters = 0;
+  const plinthBeamVolumeCubicMeters = beamVolumeForKinds(params.beams, ['plinth_beam', 'grade_beam']);
+  const roofBeamVolumeCubicMeters = beamVolumeForKinds(params.beams, ['roof_beam', 'ring_beam']);
+  const tieBeamVolumeCubicMeters = beamVolumeForKind(params.beams, 'tie_beam');
+
+  let columnBelowPlinthVolumeCubicMeters = 0;
+  let columnAbovePlinthVolumeCubicMeters = 0;
   for (const column of params.columns) {
-    columnBelowGradeVolumeCubicMeters += columnVolumeBelowGradeBeamCubicMeters(
+    columnBelowPlinthVolumeCubicMeters += columnVolumeBelowPlinthCubicMeters(
       column,
-      params.bottomOfGradeBeamY,
+      params.elevations.bottomOfPlinthBeamY,
     );
-    columnAboveGradeVolumeCubicMeters += columnVolumeAboveGradeBeamCubicMeters(
+    columnAbovePlinthVolumeCubicMeters += columnVolumeAbovePlinthCubicMeters(
       column,
-      params.topOfGradeBeamY,
+      params.elevations.topOfPlinthBeamY,
+      params.elevations.roofBeamBottomY,
     );
   }
 
-  let ringBeamDeduction = 0;
-  for (const beam of params.beams.filter((candidate) => candidate.kind === 'ring_beam')) {
+  let beamDeduction = 0;
+  for (const beam of params.beams.filter(
+    (candidate) =>
+      candidate.kind === 'roof_beam' ||
+      candidate.kind === 'ring_beam' ||
+      candidate.kind === 'tie_beam' ||
+      candidate.kind === 'plinth_beam' ||
+      candidate.kind === 'grade_beam',
+  )) {
     for (const column of params.columns) {
       if (column.id === beam.startColumnId || column.id === beam.endColumnId) {
-        ringBeamDeduction += ringBeamColumnIntersectionVolumeCubicMeters(column, beam);
+        beamDeduction += beamColumnIntersectionVolumeCubicMeters(column, beam);
       }
     }
   }
@@ -194,41 +242,83 @@ export function resolveStructuralConcreteVolumes(params: {
 
   const totalDeduplicatedVolumeCubicMeters = Math.max(
     0,
-    gradeBeamVolumeCubicMeters +
-      ringBeamVolumeCubicMeters +
-      columnBelowGradeVolumeCubicMeters +
-      columnAboveGradeVolumeCubicMeters +
+    plinthBeamVolumeCubicMeters +
+      roofBeamVolumeCubicMeters +
+      tieBeamVolumeCubicMeters +
+      columnBelowPlinthVolumeCubicMeters +
+      columnAbovePlinthVolumeCubicMeters +
       footingVolume -
-      ringBeamDeduction,
+      beamDeduction,
   );
 
   return {
-    gradeBeamVolumeCubicMeters,
-    ringBeamVolumeCubicMeters,
-    columnBelowGradeVolumeCubicMeters,
-    columnAboveGradeVolumeCubicMeters,
+    plinthBeamVolumeCubicMeters,
+    roofBeamVolumeCubicMeters,
+    tieBeamVolumeCubicMeters,
+    columnBelowPlinthVolumeCubicMeters,
+    columnAbovePlinthVolumeCubicMeters,
     footingVolumeCubicMeters: footingVolume,
     totalDeduplicatedVolumeCubicMeters,
   };
 }
 
-export function createDefaultFoundationSettings(): StructuralFoundationSettings {
-  return {
-    gradeBeam: {
-      enabled: true,
-      widthMeters: 0.3,
-      depthMeters: 0.45,
-      followsExteriorSegments: true,
-      followsInteriorSegments: false,
-    },
-    isolatedFootings: {
-      enabled: true,
-      placementMode: 'at_columns',
-      footingWidthMeters: 1.2,
-      footingLengthMeters: 1.2,
-      footingThicknessMeters: 0.45,
-      dropBelowGradeBeamMeters: 0.6,
-      autoCreateAtStructuralColumns: true,
-    },
-  };
+export type RcFrameFoundationValidation = {
+  valid: boolean;
+  errors: string[];
+};
+
+export function validateRcFrameFoundationSettings(params: {
+  foundation: RcFrameFoundationSettings;
+  wallHeightMeters: number;
+}): RcFrameFoundationValidation {
+  const errors: string[] = [];
+  const elevations = resolveFoundationElevations({
+    foundation: params.foundation,
+    wallHeightMeters: params.wallHeightMeters,
+  });
+
+  if (params.foundation.plinthBeam.enabled && params.foundation.plinthBeam.depthMeters <= 0) {
+    errors.push('Plinth Beam depth must be greater than zero.');
+  }
+  if (params.foundation.roofBeam.enabled && params.foundation.roofBeam.depthMeters <= 0) {
+    errors.push('Roof Beam depth must be greater than zero.');
+  }
+  if (
+    params.foundation.roofBeam.enabled &&
+    params.foundation.roofBeam.depthMeters >= params.wallHeightMeters
+  ) {
+    errors.push('Roof Beam depth must not consume the full wall height.');
+  }
+  if (params.foundation.isolatedFootings.dropBelowPlinthBeamMeters < 0) {
+    errors.push('Footing drop below Plinth Beam cannot be negative.');
+  }
+  if (params.foundation.isolatedFootings.thicknessMeters <= 0) {
+    errors.push('Footing thickness must be greater than zero.');
+  }
+  if (params.foundation.tieBeam.enabled && params.foundation.tieBeam.depthMeters <= 0) {
+    errors.push('Tie Beam depth must be greater than zero when enabled.');
+  }
+  if (
+    params.foundation.tieBeam.enabled &&
+    elevations.topOfTieBeamY > elevations.bottomOfPlinthBeamY + FOUNDATION_CONTACT_EPSILON_METERS
+  ) {
+    errors.push('Tie Beam top must not overlap the Plinth Beam zone.');
+  }
+  if (Math.abs(elevations.bottomOfTieBeamY - elevations.topOfFootingY) > FOUNDATION_CONTACT_EPSILON_METERS) {
+    errors.push('Tie Beam bottom must match the top of isolated footings.');
+  }
+  if (elevations.columnHeightMeters <= 0) {
+    errors.push('Column height must be positive.');
+  }
+  if (elevations.cmuClearHeightMeters <= 0) {
+    errors.push('CMU clear height between Plinth Beam and Roof Beam must be positive.');
+  }
+
+  return { valid: errors.length === 0, errors };
 }
+
+export {
+  createDefaultRcFrameFoundationSettings,
+  createDefaultFoundationSettings,
+  normalizeRcFrameFoundationSettings,
+} from './rcFrameFoundationMigration';

@@ -64,7 +64,7 @@ describe('structural frame + CMU infill milestone', () => {
 
   it('beams span face-to-face shorter than center-to-center', () => {
     const preset = applyAutoFrameLayout(createFiveBySixCmuBuildingPreset());
-    const beam = preset.frameSystem.beams.find((b) => b.kind === 'grade_beam');
+    const beam = preset.frameSystem.beams.find((b) => b.kind === 'plinth_beam');
     expect(beam).toBeTruthy();
     const startCol = preset.frameSystem.columns.find((c) => c.id === beam!.startColumnId);
     const endCol = preset.frameSystem.columns.find((c) => c.id === beam!.endColumnId);
@@ -266,7 +266,9 @@ describe('structural frame + CMU infill milestone', () => {
       geometryResult: geometry,
     });
     expect(lines.some((l) => l.quantityType === 'rc_structural_concrete_volume')).toBe(true);
-    expect(lines.some((l) => l.quantityType === 'rc_grade_beams_volume')).toBe(true);
+    expect(lines.some((l) => l.quantityType === 'rc_plinth_beams_volume')).toBe(true);
+    expect(lines.some((l) => l.quantityType === 'rc_roof_beams_volume')).toBe(true);
+    expect(lines.some((l) => l.quantityType === 'rc_tie_beams_volume')).toBe(true);
     expect(lines.some((l) => l.quantityType === 'rc_columns_volume')).toBe(true);
     expect(lines.some((l) => l.quantityType === 'isolated_footings_volume')).toBe(true);
     expect(lines.some((l) => l.quantityType === 'cmu_infill_blocks')).toBe(true);

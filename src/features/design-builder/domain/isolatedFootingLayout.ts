@@ -1,4 +1,5 @@
-import type { IsolatedFooting, IsolatedFootingSettings, StructuralColumn } from '../types';
+import type { IsolatedFooting, RcFrameFoundationSettings } from '../types';
+import type { StructuralColumn } from '../types';
 import { footingCenterElevationMeters } from './foundationElevations';
 
 function footingIdForColumn(columnId: string): string {
@@ -7,10 +8,11 @@ function footingIdForColumn(columnId: string): string {
 
 export function createIsolatedFootingsForColumns(params: {
   columns: StructuralColumn[];
-  settings: IsolatedFootingSettings;
+  foundation: RcFrameFoundationSettings;
   topOfFootingY: number;
 }): IsolatedFooting[] {
-  if (!params.settings.enabled || !params.settings.autoCreateAtStructuralColumns) {
+  const settings = params.foundation.isolatedFootings;
+  if (!settings.enabled || !settings.autoCreateAtStructuralColumns) {
     return [];
   }
 
@@ -21,7 +23,7 @@ export function createIsolatedFootingsForColumns(params: {
     if (seenColumnIds.has(column.id)) continue;
     seenColumnIds.add(column.id);
 
-    const thicknessMeters = Math.max(0, params.settings.footingThicknessMeters);
+    const thicknessMeters = Math.max(0, settings.thicknessMeters);
     const topElevationMeters = params.topOfFootingY;
     const bottomElevationMeters = topElevationMeters - thicknessMeters;
 
@@ -30,8 +32,8 @@ export function createIsolatedFootingsForColumns(params: {
       name: `Footing ${column.hostNodeId ?? column.id}`,
       columnId: column.id,
       position: { x: column.position.x, z: column.position.z },
-      widthMeters: Math.max(0.1, params.settings.footingWidthMeters),
-      lengthMeters: Math.max(0.1, params.settings.footingLengthMeters),
+      widthMeters: Math.max(0.1, settings.widthMeters),
+      lengthMeters: Math.max(0.1, settings.lengthMeters),
       thicknessMeters,
       topElevationMeters,
       bottomElevationMeters,

@@ -16,6 +16,7 @@ import {
   createEmptyGableEndSystem,
 } from './structuralFrameDefaults';
 import { createDefaultFoundationSettings } from './foundationElevations';
+import { createDefaultRoofSystemSettings } from './roofSystemDefaults';
 
 export const DESIGN_BUILDER_EXAMPLE_MODEL_ID = '11111111-1111-4111-8111-111111111111';
 export const DESIGN_BUILDER_EXAMPLE_FOOTPRINT_OBJECT_ID = '22222222-2222-4222-8222-222222222222';
@@ -41,6 +42,7 @@ export interface CmuBuildingPreset {
   foundationSettings: import('../types').StructuralFoundationSettings;
   infillSystem: import('../types').CmuInfillSystemParameters;
   gableEndSystem: import('../types').GableEndSystemParameters;
+  roofSystem: import('../types').RoofSystemSettings;
 }
 
 export function createFiveBySixCmuBuildingPreset(): CmuBuildingPreset {
@@ -161,6 +163,7 @@ export function createFiveBySixCmuBuildingPreset(): CmuBuildingPreset {
     foundationSettings: createDefaultFoundationSettings(),
     infillSystem: createEmptyCmuInfillSystem(),
     gableEndSystem: createEmptyGableEndSystem(),
+    roofSystem: createDefaultRoofSystemSettings(),
   };
 }
 
@@ -214,6 +217,7 @@ export function createBlankCmuBuildingPreset(
     foundationSettings: createDefaultFoundationSettings(),
     infillSystem: createEmptyCmuInfillSystem(),
     gableEndSystem: createEmptyGableEndSystem(),
+    roofSystem: createDefaultRoofSystemSettings(),
   };
 }
 

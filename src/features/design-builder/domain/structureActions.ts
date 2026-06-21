@@ -1,18 +1,23 @@
-import type { CmuBuildingPreset } from './designBuilderPreset';
+import type {
+  CmuBuildingPreset,
+} from './designBuilderPreset';
 import type { DesignWallLayoutParameters } from '../types';
 import {
   autoFrameLayout,
   createCornerColumnsForLayout,
   createPerimeterBeamsForLayout,
+  reconcileStructuralFrameWithFoundation,
 } from './structuralFrameLayout';
 import { createDefaultFoundationSettings } from './foundationElevations';
 import { deriveInfillPanelsForLayout } from './cmuInfillPanelSolver';
 import { createDefaultGableEnd } from '../geometry/structuralFrameGeometry';
 import { getSegmentFramesForWallLayout } from '../geometry/designGeometry';
-import type { BuildingSystemMode, StructuralFoundationSettings } from '../types';
+import type { BuildingSystemMode, RcFrameFoundationSettings, RoofSystemSettings } from '../types';
+import { normalizeRcFrameFoundationSettings } from './rcFrameFoundationMigration';
+import { normalizeRoofSystemSettings } from './roofSystemDefaults';
 
-export function resolveFoundationSettings(preset: CmuBuildingPreset): StructuralFoundationSettings {
-  return preset.foundationSettings ?? createDefaultFoundationSettings();
+export function resolveFoundationSettings(preset: CmuBuildingPreset): RcFrameFoundationSettings {
+  return normalizeRcFrameFoundationSettings(preset.foundationSettings);
 }
 
 export function setBuildingSystemMode(
@@ -127,4 +132,93 @@ export function addGableEndToPreset(
 
 export function objectSaveKey(objectType: string, parameters?: { kind?: string } | null): string {
   return `${objectType}:${parameters?.kind ?? ''}`;
+}
+
+export type FrameFoundationDimensionsApplyPayload = {
+  foundation: RcFrameFoundationSettings;
+  roofSystem: RoofSystemSettings;
+  autoGenerateFrameLayout: boolean;
+};
+
+export function previewFrameLayoutCounts(params: {
+  preset: CmuBuildingPreset;
+  foundation: RcFrameFoundationSettings;
+  autoGenerateFrameLayout: boolean;
+}): { columnCount: number; frameSegmentCount: number } {
+  const foundation = normalizeRcFrameFoundationSettings(params.foundation);
+  const wallHeightMeters = params.preset.wallLayout.defaultWallHeightMeters || params.preset.wall.heightMeters;
+  const segmentFrames = getSegmentFramesForWallLayout(params.preset.wallLayout, params.preset.wall);
+  const frameSystem =
+    params.autoGenerateFrameLayout && params.foundation.columns.placementMode !== 'manual'
+      ? {
+          ...params.preset.frameSystem,
+          columns: [],
+          beams: [],
+        }
+      : params.preset.frameSystem;
+  const { frameSystem: resolved } = reconcileStructuralFrameWithFoundation({
+    layout: params.preset.wallLayout,
+    segmentFrames,
+    frameSystem,
+    foundation,
+    wallHeightMeters,
+  });
+  return {
+    columnCount: resolved.columns.length,
+    frameSegmentCount: resolved.beams.length,
+  };
+}
+
+export function applyFrameFoundationDimensions(
+  preset: CmuBuildingPreset,
+  payload: FrameFoundationDimensionsApplyPayload,
+): CmuBuildingPreset {
+  const foundation = normalizeRcFrameFoundationSettings(payload.foundation);
+  let next: CmuBuildingPreset = {
+    ...preset,
+    buildingSystemMode: 'reinforced_concrete_frame_with_cmu_infill',
+    foundationSettings: foundation,
+    roofSystem: normalizeRoofSystemSettings(payload.roofSystem),
+    frameSystem: {
+      ...preset.frameSystem,
+      buildingSystemMode: 'reinforced_concrete_frame_with_cmu_infill',
+    },
+  };
+
+  if (payload.autoGenerateFrameLayout) {
+    if (payload.foundation.columns.placementMode !== 'manual') {
+      next = {
+        ...next,
+        frameSystem: {
+          ...next.frameSystem,
+          columns: [],
+          beams: [],
+        },
+      };
+    }
+    next = applyAutoFrameLayout(next);
+    return next;
+  }
+
+  const segmentFrames = getSegmentFramesForWallLayout(next.wallLayout, next.wall);
+  const wallHeightMeters = next.wallLayout.defaultWallHeightMeters || next.wall.heightMeters;
+  const { frameSystem } = reconcileStructuralFrameWithFoundation({
+    layout: next.wallLayout,
+    segmentFrames,
+    frameSystem: next.frameSystem,
+    foundation,
+    wallHeightMeters,
+  });
+  const panels = deriveInfillPanelsForLayout({
+    layout: next.wallLayout,
+    segmentFrames,
+    columns: frameSystem.columns,
+    beams: frameSystem.beams,
+    wall: next.wall,
+  });
+  return {
+    ...next,
+    frameSystem,
+    infillSystem: { kind: 'cmu_infill_system', panels },
+  };
 }

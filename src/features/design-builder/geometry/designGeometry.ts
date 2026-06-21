@@ -81,6 +81,7 @@ import {
   generateFrameInfillGeometry,
 } from './structuralFrameGeometry';
 import { createDefaultFoundationSettings } from '../domain/foundationElevations';
+import { createDefaultRoofSystemSettings, normalizeRoofSystemSettings } from '../domain/roofSystemDefaults';
 
 export type DesignGeometrySourcePath = 'blank' | 'layout_graph' | 'legacy_preset' | 'manual_masonry';
 
@@ -99,6 +100,7 @@ export interface DesignGeometryInput {
   foundationSettings?: import('../types').StructuralFoundationSettings;
   infillSystem?: import('../types').CmuInfillSystemParameters;
   gableEndSystem?: import('../types').GableEndSystemParameters;
+  roofSystem?: import('../types').RoofSystemSettings;
 }
 
 export interface DesignGeometryWallSegment {
@@ -324,6 +326,8 @@ export interface DesignGeometryResult {
   structuralConcreteVolumeCubicMeters?: number;
   structuralConcreteVolumeBreakdown?: import('./structuralFrameGeometry').StructuralConcreteVolumeBreakdown;
   gablePlacements?: import('../types').GableCmuPlacement[];
+  rakedCapPlacements?: import('../types').RakedCapPlacement[];
+  resolvedRoofSystem?: import('../types').ResolvedRoofSystem | null;
   resolvedInfillPanelBounds?: import('../domain/infillPanelBoundsResolver').ResolvedInfillPanelBounds[];
 }
 
@@ -571,6 +575,7 @@ export function buildDesignGeometryInputFromLayout(params: {
   foundationSettings?: import('../types').StructuralFoundationSettings;
   infillSystem?: import('../types').CmuInfillSystemParameters;
   gableEndSystem?: import('../types').GableEndSystemParameters;
+  roofSystem?: import('../types').RoofSystemSettings;
 }): DesignGeometryInput {
   const hasLayoutGraph = Boolean(params.wallLayout && params.wallLayout.segments.length > 0);
   const hasManualMasonry = Boolean(params.cmuSettings.manualMasonryCourseRuns?.length);
@@ -590,6 +595,7 @@ export function buildDesignGeometryInputFromLayout(params: {
     foundationSettings: params.foundationSettings,
     infillSystem: params.infillSystem,
     gableEndSystem: params.gableEndSystem,
+    roofSystem: params.roofSystem,
   };
 }
 
@@ -652,6 +658,7 @@ export function generateDesignGeometry(input: DesignGeometryInput): DesignGeomet
       slab: input.slab,
       frameSystem: input.frameSystem ?? defaults.frameSystem,
       foundationSettings: input.foundationSettings ?? createDefaultFoundationSettings(),
+      roofSystem: normalizeRoofSystemSettings(input.roofSystem ?? createDefaultRoofSystemSettings()),
       infillSystem: input.infillSystem ?? defaults.infillSystem,
       gableEndSystem: input.gableEndSystem ?? defaults.gableEndSystem,
     });

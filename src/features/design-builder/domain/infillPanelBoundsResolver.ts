@@ -8,7 +8,7 @@ import type {
 import type { SegmentFrame } from '../geometry/designGeometry';
 import { projectPointToSegmentStation } from './openingPlacementResolver';
 import { findColumnAtNode } from './structuralFrameLayout';
-import { TOP_OF_GRADE_BEAM_Y } from './foundationElevations';
+import { TOP_OF_PLINTH_BEAM_Y } from './foundationElevations';
 import { resolveDesignMasonrySettings } from './masonrySettings';
 
 export const FRAME_INFILL_RENDER_EPSILON_METERS = 0.001;
@@ -77,14 +77,20 @@ function segmentBeamElevations(
   beams: readonly StructuralBeam[],
   segmentId: string,
   wallHeightMeters: number,
-): { gradeBeamTopMeters: number; ringBeamBaseMeters: number } {
-  const gradeBeam = beams.find((beam) => beam.kind === 'grade_beam' && beam.hostSegmentId === segmentId);
-  const ringBeam = beams.find((beam) => beam.kind === 'ring_beam' && beam.hostSegmentId === segmentId);
+): { plinthBeamTopMeters: number; roofBeamBottomMeters: number } {
+  const plinthBeam = beams.find(
+    (beam) =>
+      (beam.kind === 'plinth_beam' || beam.kind === 'grade_beam') && beam.hostSegmentId === segmentId,
+  );
+  const roofBeam = beams.find(
+    (beam) =>
+      (beam.kind === 'roof_beam' || beam.kind === 'ring_beam') && beam.hostSegmentId === segmentId,
+  );
   return {
-    gradeBeamTopMeters: gradeBeam?.topElevationMeters ?? TOP_OF_GRADE_BEAM_Y,
-    ringBeamBaseMeters:
-      ringBeam?.baseElevationMeters ??
-      wallHeightMeters + TOP_OF_GRADE_BEAM_Y - 0.3,
+    plinthBeamTopMeters: plinthBeam?.topElevationMeters ?? TOP_OF_PLINTH_BEAM_Y,
+    roofBeamBottomMeters:
+      roofBeam?.baseElevationMeters ??
+      wallHeightMeters + TOP_OF_PLINTH_BEAM_Y,
   };
 }
 
@@ -97,6 +103,8 @@ export function resolveInfillPanelBoundsForSegment(params: {
   beams: StructuralBeam[];
   gradeBeamTopMeters?: number;
   ringBeamBaseMeters?: number;
+  plinthBeamTopMeters?: number;
+  roofBeamBottomMeters?: number;
 }): ResolvedInfillPanelBounds | null {
   const startCol = findColumnAtNode(params.columns, params.segment.startNodeId);
   const endCol = findColumnAtNode(params.columns, params.segment.endNodeId);
@@ -112,22 +120,24 @@ export function resolveInfillPanelBoundsForSegment(params: {
   if (clearWidthMeters <= 0.05) return null;
 
   const elevations =
-    params.gradeBeamTopMeters != null && params.ringBeamBaseMeters != null
-      ? { gradeBeamTopMeters: params.gradeBeamTopMeters, ringBeamBaseMeters: params.ringBeamBaseMeters }
-      : segmentBeamElevations(params.beams, params.segmentId, params.segment.wallHeightMeters);
+    params.plinthBeamTopMeters != null && params.roofBeamBottomMeters != null
+      ? { plinthBeamTopMeters: params.plinthBeamTopMeters, roofBeamBottomMeters: params.roofBeamBottomMeters }
+      : params.gradeBeamTopMeters != null && params.ringBeamBaseMeters != null
+        ? { plinthBeamTopMeters: params.gradeBeamTopMeters, roofBeamBottomMeters: params.ringBeamBaseMeters }
+        : segmentBeamElevations(params.beams, params.segmentId, params.segment.wallHeightMeters);
 
   const leftSupportInsideFaceWorld = startCol
-    ? { ...columnInsideFaceWorldPoint(startCol, params.frame, 'start'), y: elevations.gradeBeamTopMeters }
+    ? { ...columnInsideFaceWorldPoint(startCol, params.frame, 'start'), y: elevations.plinthBeamTopMeters }
     : {
         x: params.frame.centerlineStart.x,
-        y: elevations.gradeBeamTopMeters,
+        y: elevations.plinthBeamTopMeters,
         z: params.frame.centerlineStart.z,
       };
   const rightSupportInsideFaceWorld = endCol
-    ? { ...columnInsideFaceWorldPoint(endCol, params.frame, 'end'), y: elevations.gradeBeamTopMeters }
+    ? { ...columnInsideFaceWorldPoint(endCol, params.frame, 'end'), y: elevations.plinthBeamTopMeters }
     : {
         x: params.frame.centerlineEnd.x,
-        y: elevations.gradeBeamTopMeters,
+        y: elevations.plinthBeamTopMeters,
         z: params.frame.centerlineEnd.z,
       };
 
@@ -139,17 +149,17 @@ export function resolveInfillPanelBoundsForSegment(params: {
     startStationMeters: panelStartStationMeters,
     endStationMeters: panelEndStationMeters,
     clearWidthMeters,
-    bottomElevationMeters: elevations.gradeBeamTopMeters,
-    topElevationMeters: elevations.ringBeamBaseMeters,
-    clearHeightMeters: elevations.ringBeamBaseMeters - elevations.gradeBeamTopMeters,
+    bottomElevationMeters: elevations.plinthBeamTopMeters,
+    topElevationMeters: elevations.roofBeamBottomMeters,
+    clearHeightMeters: elevations.roofBeamBottomMeters - elevations.plinthBeamTopMeters,
     hostWallCenterlineStart: {
       x: params.frame.centerlineStart.x,
-      y: elevations.gradeBeamTopMeters,
+      y: elevations.plinthBeamTopMeters,
       z: params.frame.centerlineStart.z,
     },
     hostWallCenterlineEnd: {
       x: params.frame.centerlineEnd.x,
-      y: elevations.gradeBeamTopMeters,
+      y: elevations.plinthBeamTopMeters,
       z: params.frame.centerlineEnd.z,
     },
     tangent: { x: params.frame.tangent.x, y: 0, z: params.frame.tangent.z },
@@ -192,11 +202,15 @@ export function infillPanelFromResolvedBounds(params: {
   existingPanel?: CmuInfillPanel;
 }): CmuInfillPanel {
   const masonrySettings = resolveDesignMasonrySettings(params.wall);
-  const gradeBeam = params.beams.find(
-    (beam) => beam.kind === 'grade_beam' && beam.hostSegmentId === params.bounds.hostSegmentId,
+  const plinthBeam = params.beams.find(
+    (beam) =>
+      (beam.kind === 'plinth_beam' || beam.kind === 'grade_beam') &&
+      beam.hostSegmentId === params.bounds.hostSegmentId,
   );
-  const ringBeam = params.beams.find(
-    (beam) => beam.kind === 'ring_beam' && beam.hostSegmentId === params.bounds.hostSegmentId,
+  const roofBeam = params.beams.find(
+    (beam) =>
+      (beam.kind === 'roof_beam' || beam.kind === 'ring_beam') &&
+      beam.hostSegmentId === params.bounds.hostSegmentId,
   );
   return {
     id: params.existingPanel?.id ?? params.bounds.panelId,
@@ -205,10 +219,10 @@ export function infillPanelFromResolvedBounds(params: {
     leftSupportId: params.bounds.leftColumnId,
     rightSupportType: params.bounds.rightColumnId ? 'column' : 'wall_end',
     rightSupportId: params.bounds.rightColumnId,
-    bottomSupportType: 'grade_beam',
-    bottomSupportId: gradeBeam?.id ?? params.existingPanel?.bottomSupportId,
-    topSupportType: 'ring_beam',
-    topSupportId: ringBeam?.id ?? params.existingPanel?.topSupportId,
+    bottomSupportType: plinthBeam ? 'plinth_beam' : 'grade_beam',
+    bottomSupportId: plinthBeam?.id ?? params.existingPanel?.bottomSupportId,
+    topSupportType: roofBeam ? 'roof_beam' : 'ring_beam',
+    topSupportId: roofBeam?.id ?? params.existingPanel?.topSupportId,
     startStationMeters: params.bounds.startStationMeters,
     endStationMeters: params.bounds.endStationMeters,
     bottomElevationMeters: params.bounds.bottomElevationMeters,

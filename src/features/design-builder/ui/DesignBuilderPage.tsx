@@ -125,13 +125,14 @@ import { useEstimateWorkspaceHeaderCollapse } from '../../estimating/ui/Estimate
 import { buildDesignEstimatePreview } from '../quantity/designQuantityFormulas';
 import {
   applyAutoFrameLayout,
-  applyCornerColumns,
-  applyPerimeterBeams,
-  addGableEndToPreset,
+  applyFrameFoundationDimensions,
   objectSaveKey,
   setBuildingSystemMode,
+  type FrameFoundationDimensionsApplyPayload,
 } from '../domain/structureActions';
-import { createDefaultFoundationSettings } from '../domain/foundationElevations';
+import { createDefaultFoundationSettings, normalizeRcFrameFoundationSettings } from '../domain/foundationElevations';
+import { createDefaultRoofSystemSettings, normalizeRoofSystemSettings } from '../domain/roofSystemDefaults';
+import FrameFoundationDimensionsModal from './FrameFoundationDimensionsModal';
 import {
   createDesignModel,
   upsertDesignModelObjects,
@@ -147,6 +148,9 @@ import type {
   DesignBuilderSnapMode,
   DesignEstimatePreviewLine,
   FoundationViewMode,
+  RoofDisplayMode,
+  RcFrameFoundationSettings,
+  RoofSystemSettings,
   DesignModel,
   DesignModelObject,
   DesignObjectType,
@@ -358,7 +362,11 @@ export default function DesignBuilderPage({
   const [showClosureWarnings, setShowClosureWarnings] = useState(false);
   const [showFootprintSetout, setShowFootprintSetout] = useState(false);
   const [showInfillPanelBounds, setShowInfillPanelBounds] = useState(false);
+  const [showRoofReferencePerimeters, setShowRoofReferencePerimeters] = useState(false);
+  const [showRoofFramingGuides, setShowRoofFramingGuides] = useState(false);
   const [foundationViewMode, setFoundationViewMode] = useState<FoundationViewMode>('full_model');
+  const [roofDisplayMode, setRoofDisplayMode] = useState<RoofDisplayMode>('full_roof');
+  const [frameFoundationModalOpen, setFrameFoundationModalOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'plan' | '3d'>(() => storedSession?.viewMode ?? '3d');
   const builderViewMode = builderViewModeFromStored(viewMode);
   const [snapMode, setSnapMode] = useState<DesignBuilderSnapMode>(() => storedSession?.snapMode ?? 'grid');
@@ -604,7 +612,8 @@ export default function DesignBuilderPage({
     const base = preset ?? createBlankCmuBuildingPreset();
     return {
       ...base,
-      foundationSettings: base.foundationSettings ?? createDefaultFoundationSettings(),
+      foundationSettings: normalizeRcFrameFoundationSettings(base.foundationSettings),
+      roofSystem: normalizeRoofSystemSettings(base.roofSystem ?? createDefaultRoofSystemSettings()),
     };
   }, [preset]);
   const wallLayout = resolvedPreset.wallLayout;
@@ -651,6 +660,7 @@ export default function DesignBuilderPage({
         foundationSettings: resolvedPreset.foundationSettings,
         infillSystem: resolvedPreset.infillSystem,
         gableEndSystem: resolvedPreset.gableEndSystem,
+        roofSystem: resolvedPreset.roofSystem,
       }),
     [
       effectiveWall,
@@ -661,6 +671,7 @@ export default function DesignBuilderPage({
       resolvedPreset.foundationSettings,
       resolvedPreset.gableEndSystem,
       resolvedPreset.infillSystem,
+      resolvedPreset.roofSystem,
       resolvedPreset.roof,
       resolvedPreset.slab,
       resolvedPreset.truss,
@@ -1215,28 +1226,20 @@ export default function DesignBuilderPage({
 
   function handleSetBuildingSystemMode(mode: BuildingSystemMode) {
     applyPresetPatch((current) => setBuildingSystemMode(current, mode), 'Change building system mode', 'structure_update');
+    if (mode === 'reinforced_concrete_frame_with_cmu_infill') {
+      setFrameFoundationModalOpen(true);
+    } else {
+      setFrameFoundationModalOpen(false);
+    }
   }
 
-  function handleAddCornerColumns() {
-    applyPresetPatch((current) => applyCornerColumns(current), 'Add corner columns', 'structure_update');
-  }
-
-  function handleAutoFrameLayout() {
-    applyPresetPatch((current) => applyAutoFrameLayout(current), 'Auto frame layout', 'structure_update');
-  }
-
-  function handleAddPerimeterBeams() {
-    applyPresetPatch((current) => applyPerimeterBeams(current), 'Add perimeter beams', 'structure_update');
-  }
-
-  function handleAddGableEnd() {
-    const segmentId = selectedSegmentId ?? wallLayout.segments[0]?.id;
-    if (!segmentId) return;
+  function handleApplyFrameFoundationDimensions(payload: FrameFoundationDimensionsApplyPayload) {
     applyPresetPatch(
-      (current) => addGableEndToPreset(current, segmentId),
-      'Add gable end',
+      (current) => applyFrameFoundationDimensions(current, payload),
+      'Update frame & foundation dimensions',
       'structure_update',
     );
+    setStatus({ tone: 'success', message: 'Frame and foundation dimensions applied.' });
   }
 
   function addOpening(opening: WallOpeningParameters) {
@@ -2587,21 +2590,26 @@ export default function DesignBuilderPage({
     );
   }
 
+  type FoundationSettingsSection = 'plinthBeam' | 'roofBeam' | 'tieBeam' | 'columns' | 'isolatedFootings';
+
   function updateFoundationField(
-    patch: Partial<import('../types').GradeBeamSettings> | Partial<import('../types').IsolatedFootingSettings>,
-    section: 'gradeBeam' | 'isolatedFootings',
+    patch: Partial<RcFrameFoundationSettings[FoundationSettingsSection]>,
+    section: FoundationSettingsSection,
   ) {
     applyPresetPatch(
-      (current) => ({
-        ...current,
-        foundationSettings: {
-          ...(current.foundationSettings ?? createDefaultFoundationSettings()),
-          [section]: {
-            ...(current.foundationSettings ?? createDefaultFoundationSettings())[section],
-            ...patch,
+      (current) => {
+        const currentFoundation = normalizeRcFrameFoundationSettings(current.foundationSettings);
+        return applyAutoFrameLayout({
+          ...current,
+          foundationSettings: {
+            ...currentFoundation,
+            [section]: {
+              ...currentFoundation[section],
+              ...patch,
+            },
           },
-        },
-      }),
+        });
+      },
       'Edit foundation settings',
       'structure_update',
     );
@@ -3004,6 +3012,7 @@ export default function DesignBuilderPage({
     'Cut-block condition detected. Review CMU module fit and opening placement.';
 
   return (
+    <>
     <DesignBuilderCommandMenuProvider>
     <div
       className={`bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 ${
@@ -3372,35 +3381,18 @@ export default function DesignBuilderPage({
                 >
                   RC Frame + CMU Infill
                 </CommandMenuAction>
-                <div className="my-1 border-t border-slate-200 dark:border-slate-700" />
-                <CommandMenuAction
-                  onClick={() => handleAddCornerColumns()}
-                  disabled={!modelLoaded || !footprintClosed || !isFrameStructureMode}
-                  className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-50 text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
-                >
-                  Add Corner Columns
-                </CommandMenuAction>
-                <CommandMenuAction
-                  onClick={() => handleAutoFrameLayout()}
-                  disabled={!modelLoaded || !footprintClosed || !isFrameStructureMode}
-                  className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-50 text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
-                >
-                  Auto Frame Layout
-                </CommandMenuAction>
-                <CommandMenuAction
-                  onClick={() => handleAddPerimeterBeams()}
-                  disabled={!modelLoaded || !footprintClosed || !isFrameStructureMode}
-                  className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-50 text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
-                >
-                  Add Grade / Ring Beams
-                </CommandMenuAction>
-                <CommandMenuAction
-                  onClick={() => handleAddGableEnd()}
-                  disabled={!modelLoaded || !footprintClosed}
-                  className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold disabled:opacity-50 text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
-                >
-                  Add / Edit Gable End
-                </CommandMenuAction>
+                {isFrameStructureMode ? (
+                  <>
+                    <div className="my-1 border-t border-slate-200 dark:border-slate-700" />
+                    <CommandMenuAction
+                      onClick={() => setFrameFoundationModalOpen(true)}
+                      disabled={!modelLoaded || !footprintClosed}
+                      className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-50 text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                    >
+                      Frame, Foundation & Roof Dimensions
+                    </CommandMenuAction>
+                  </>
+                ) : null}
               </DesignBuilderCommandMenu>
 
               <DesignBuilderCommandMenu
@@ -3548,6 +3540,23 @@ export default function DesignBuilderPage({
                     <ToggleField label="Show footprint setout" checked={showFootprintSetout} onChange={setShowFootprintSetout} />
                   ) : null}
                   {import.meta.env.DEV && resolvedPreset.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill' ? (
+                    <div className="space-y-1 border-t border-slate-200 pt-2 dark:border-slate-700">
+                      <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                        Debug
+                      </div>
+                      <ToggleField
+                        label="Show Roof Reference Perimeters"
+                        checked={showRoofReferencePerimeters}
+                        onChange={setShowRoofReferencePerimeters}
+                      />
+                      <ToggleField
+                        label="Show Roof Framing Guides"
+                        checked={showRoofFramingGuides}
+                        onChange={setShowRoofFramingGuides}
+                      />
+                    </div>
+                  ) : null}
+                  {import.meta.env.DEV && resolvedPreset.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill' ? (
                     <ToggleField
                       label="Show Infill Panel Bounds"
                       checked={showInfillPanelBounds}
@@ -3572,6 +3581,28 @@ export default function DesignBuilderPage({
                             name="foundation-view-mode"
                             checked={foundationViewMode === mode}
                             onChange={() => setFoundationViewMode(mode)}
+                          />
+                          <span>{label}</span>
+                        </label>
+                      ))}
+                      <div className="pt-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                        Roof Display
+                      </div>
+                      {(
+                        [
+                          ['full_roof', 'Full Roof'],
+                          ['roof_cladding_only', 'Roof Cladding Only'],
+                          ['steel_framing_only', 'Steel Framing Only'],
+                          ['gable_masonry_only', 'Gable Masonry Only'],
+                          ['foundation_frame_roof', 'Foundation + Frame + Roof'],
+                        ] as const
+                      ).map(([mode, label]) => (
+                        <label key={mode} className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 hover:bg-slate-50 dark:hover:bg-slate-800">
+                          <input
+                            type="radio"
+                            name="roof-display-mode"
+                            checked={roofDisplayMode === mode}
+                            onChange={() => setRoofDisplayMode(mode)}
                           />
                           <span>{label}</span>
                         </label>
@@ -3867,6 +3898,8 @@ export default function DesignBuilderPage({
                 openingPreview={planOpeningPreview}
                 frameSystem={designGeometryResult.frameSystem}
                 isolatedFootings={designGeometryResult.isolatedFootings}
+                resolvedRoofSystem={designGeometryResult.resolvedRoofSystem ?? null}
+                selectedObjectType={selectedObjectType}
                 onInteraction={handlePlanInteraction}
               />
             ) : (
@@ -3897,13 +3930,145 @@ export default function DesignBuilderPage({
                 showClosureWarnings={showClosureWarnings}
                 showFootprintSetout={showFootprintSetout}
                 showInfillPanelBounds={showInfillPanelBounds}
+                showRoofReferencePerimeters={showRoofReferencePerimeters}
+                showRoofFramingGuides={showRoofFramingGuides}
                 foundationViewMode={foundationViewMode}
+                roofSystem={resolvedPreset.roofSystem}
+                roofDisplayMode={roofDisplayMode}
               />
             )}
             {viewMode === 'plan' && toolMode === 'draw_wall' ? (
               <div className="pointer-events-none absolute left-3 top-12 z-10 space-y-1 rounded-xl border border-amber-400/60 bg-slate-900/95 px-3 py-2 text-xs font-medium text-amber-100 shadow-lg">
                 <div>{drawWallInstruction}</div>
                 {drawWallSnapFeedback ? <div className="font-semibold text-cyan-200">{drawWallSnapFeedback}</div> : null}
+              </div>
+            ) : null}
+            {import.meta.env.DEV &&
+            viewMode === '3d' &&
+            showRoofReferencePerimeters &&
+            resolvedPreset.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill' ? (
+              <div className="pointer-events-none absolute right-3 top-12 z-10 space-y-1 rounded-xl border border-teal-400/60 bg-slate-900/95 px-3 py-2 text-xs text-slate-100 shadow-lg">
+                <div className="font-semibold uppercase tracking-wide text-teal-300">Roof Reference Perimeters</div>
+                <div className="flex items-center gap-2">
+                  <span className="inline-block h-0.5 w-4 bg-white" aria-hidden />
+                  <span>Wall exterior footprint</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="inline-block h-0.5 w-4 bg-teal-400" aria-hidden />
+                  <span>Roof Beam structural bearing</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="inline-block h-0.5 w-4 bg-yellow-400" aria-hidden />
+                  <span>Cladding / eave edge</span>
+                </div>
+                <div className="mt-2 space-y-0.5 border-t border-slate-700 pt-2 font-mono text-[11px]">
+                  <div>
+                    Roof Beam Outer Width:{' '}
+                    {resolvedPreset.foundationSettings.roofBeam.widthMeters.toFixed(3)} m
+                  </div>
+                  <div>
+                    Roof Beam Outer Depth:{' '}
+                    {resolvedPreset.foundationSettings.roofBeam.depthMeters.toFixed(3)} m
+                  </div>
+                  <div>
+                    Eave Overhang: {(resolvedPreset.roofSystem?.eaveOverhangMeters ?? 0).toFixed(3)} m
+                  </div>
+                  <div>
+                    Roof Bearing Source:{' '}
+                    {designGeometryResult.resolvedRoofSystem?.roofBearingSource ?? 'unknown'}
+                  </div>
+                </div>
+              </div>
+            ) : null}
+            {import.meta.env.DEV &&
+            viewMode === '3d' &&
+            showRoofFramingGuides &&
+            resolvedPreset.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill' ? (
+              <div className="pointer-events-none absolute right-3 top-36 z-10 space-y-1 rounded-xl border border-slate-500/60 bg-slate-900/95 px-3 py-2 text-xs text-slate-100 shadow-lg">
+                <div className="font-semibold uppercase tracking-wide text-slate-300">Roof Framing Guides</div>
+                <div className="flex items-center gap-2">
+                  <span className="inline-block h-2 w-4 rounded-sm bg-orange-500" aria-hidden />
+                  <span>Truss top chords</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="inline-block h-2 w-4 rounded-sm bg-purple-500" aria-hidden />
+                  <span>Truss bottom chords</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="inline-block h-2 w-4 rounded-sm bg-yellow-400" aria-hidden />
+                  <span>Truss web members</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="inline-block h-2 w-4 rounded-sm bg-blue-500" aria-hidden />
+                  <span>Purlins</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="inline-block h-2 w-4 rounded-sm bg-green-500" aria-hidden />
+                  <span>Base plates</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="inline-block h-2 w-4 rounded-sm bg-teal-400" aria-hidden />
+                  <span>Ridge cap</span>
+                </div>
+              </div>
+            ) : null}
+            {import.meta.env.DEV &&
+            viewMode === '3d' &&
+            showRoofFramingGuides &&
+            resolvedPreset.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill' &&
+            designGeometryResult.resolvedRoofSystem?.trussPlacements.length ? (
+              <div className="pointer-events-none absolute right-3 top-52 z-10 max-w-xs space-y-1 rounded-xl border border-orange-400/60 bg-slate-900/95 px-3 py-2 text-xs text-slate-100 shadow-lg">
+                {(() => {
+                  const truss = designGeometryResult.resolvedRoofSystem!.trussPlacements[0]!;
+                  const topLeft = truss.members.find((member) => member.memberKind === 'top_chord_left');
+                  const bottom = truss.members.find((member) => member.memberKind === 'bottom_chord');
+                  const webCount = truss.members.filter(
+                    (member) => member.memberKind === 'diagonal_web' || member.memberKind === 'vertical_web',
+                  ).length;
+                  return (
+                    <>
+                      <div className="font-semibold uppercase tracking-wide text-orange-300">Truss Inspector</div>
+                      <div className="mt-2 space-y-0.5 border-t border-slate-700 pt-2 font-mono text-[11px]">
+                        <div>Truss ID: {truss.id}</div>
+                        <div>Station: {truss.stationMeters.toFixed(3)} m</div>
+                        <div>
+                          Left Bearing: ({truss.bearingLeft.x.toFixed(2)}, {truss.bearingLeft.y.toFixed(2)},{' '}
+                          {truss.bearingLeft.z.toFixed(2)})
+                        </div>
+                        <div>
+                          Right Bearing: ({truss.bearingRight.x.toFixed(2)}, {truss.bearingRight.y.toFixed(2)},{' '}
+                          {truss.bearingRight.z.toFixed(2)})
+                        </div>
+                        <div>
+                          Apex: ({truss.apex.x.toFixed(2)}, {truss.apex.y.toFixed(2)}, {truss.apex.z.toFixed(2)})
+                        </div>
+                        <div>
+                          Top-Chord Length:{' '}
+                          {topLeft
+                            ? Math.hypot(
+                                topLeft.end.x - topLeft.start.x,
+                                topLeft.end.y - topLeft.start.y,
+                                topLeft.end.z - topLeft.start.z,
+                              ).toFixed(3)
+                            : '—'}{' '}
+                          m
+                        </div>
+                        <div>
+                          Bottom-Chord Length:{' '}
+                          {bottom
+                            ? Math.hypot(
+                                bottom.end.x - bottom.start.x,
+                                bottom.end.y - bottom.start.y,
+                                bottom.end.z - bottom.start.z,
+                              ).toFixed(3)
+                            : '—'}{' '}
+                          m
+                        </div>
+                        <div>Web Member Count: {webCount}</div>
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             ) : null}
           </div>
@@ -4057,6 +4222,15 @@ export default function DesignBuilderPage({
       </div>
     </div>
     </DesignBuilderCommandMenuProvider>
+    <FrameFoundationDimensionsModal
+      isOpen={frameFoundationModalOpen}
+      preset={resolvedPreset}
+      wallLayout={wallLayout}
+      exteriorFootprint={designGeometryResult.exteriorFootprint ?? []}
+      onClose={() => setFrameFoundationModalOpen(false)}
+      onApply={handleApplyFrameFoundationDimensions}
+    />
+    </>
   );
 }
 
@@ -4119,11 +4293,15 @@ const OBJECT_TREE_ITEMS: Array<{ id: string; objectType: DesignObjectType; label
   { id: 'grout-rebar', objectType: 'cmu_wall_system', label: 'Grout/Rebar Cells', description: '' },
   { id: 'manual-runs', objectType: 'cmu_wall_system', label: 'Manual Runs', description: '' },
   { id: 'slab', objectType: 'thickened_edge_slab', label: 'Slab', description: '' },
-  { id: 'grade-beams', objectType: 'structural_frame_system', label: 'Grade Beams', description: '' },
+  { id: 'roof-beams', objectType: 'structural_frame_system', label: 'Roof Beams', description: '' },
+  { id: 'plinth-beams', objectType: 'structural_frame_system', label: 'Plinth Beams', description: '' },
+  { id: 'tie-beams', objectType: 'structural_frame_system', label: 'Tie Beams', description: '' },
+  { id: 'columns', objectType: 'structural_frame_system', label: 'Columns', description: '' },
   { id: 'isolated-footings', objectType: 'structural_frame_system', label: 'Isolated Footings', description: '' },
-  { id: 'columns', objectType: 'structural_frame_system', label: 'RC Columns', description: '' },
-  { id: 'beams', objectType: 'structural_frame_system', label: 'RC Beams', description: '' },
   { id: 'infill-panels', objectType: 'cmu_infill_system', label: 'CMU Infill Panels', description: '' },
+  { id: 'roof-system', objectType: 'gable_roof_system', label: 'Roof System', description: '' },
+  { id: 'ridge', objectType: 'gable_roof_system', label: 'Ridge', description: '' },
+  { id: 'raked-caps', objectType: 'gable_end_system', label: 'Raked Concrete Caps', description: '' },
   { id: 'roof', objectType: 'gable_roof_system', label: 'Roof', description: '' },
   { id: 'gable-ends', objectType: 'gable_end_system', label: 'Gable Ends', description: '' },
   { id: 'trusses', objectType: 'steel_truss_system', label: 'Trusses', description: '' },
@@ -4140,7 +4318,7 @@ const OBJECT_TREE_GROUPS: Array<{
   {
     id: 'layout',
     label: 'Layout',
-    items: OBJECT_TREE_ITEMS.filter((item) => ['footprint', 'segments', 'corners'].includes(item.id)),
+    items: OBJECT_TREE_ITEMS.filter((item) => ['footprint', 'segments', 'corners', 'slab'].includes(item.id)),
   },
   {
     id: 'masonry',
@@ -4150,18 +4328,16 @@ const OBJECT_TREE_GROUPS: Array<{
     ),
   },
   {
-    id: 'foundation',
-    label: 'Foundation',
-    items: OBJECT_TREE_ITEMS.filter((item) =>
-      ['grade-beams', 'isolated-footings', 'columns'].includes(item.id),
-    ),
-  },
-  {
     id: 'structure',
     label: 'Structure',
     items: OBJECT_TREE_ITEMS.filter((item) =>
-      ['beams', 'slab'].includes(item.id),
+      ['roof-beams', 'plinth-beams', 'tie-beams', 'columns'].includes(item.id),
     ),
+  },
+  {
+    id: 'foundation',
+    label: 'Foundation',
+    items: OBJECT_TREE_ITEMS.filter((item) => ['isolated-footings'].includes(item.id)),
   },
   {
     id: 'openings',
@@ -4170,8 +4346,10 @@ const OBJECT_TREE_GROUPS: Array<{
   },
   {
     id: 'roofGable',
-    label: 'Roof / Gable',
-    items: OBJECT_TREE_ITEMS.filter((item) => ['roof', 'gable-ends', 'trusses'].includes(item.id)),
+    label: 'Roof',
+    items: OBJECT_TREE_ITEMS.filter((item) =>
+      ['roof-system', 'roof-beams', 'ridge', 'gable-ends', 'raked-caps', 'trusses'].includes(item.id),
+    ),
   },
   {
     id: 'estimate',
@@ -4231,9 +4409,13 @@ function EditableControls({
       buildingSystemMode?: import('../types').BuildingSystemMode;
     },
   ) => void;
-  onFoundationFieldChange: (
-    patch: Partial<import('../types').GradeBeamSettings> | Partial<import('../types').IsolatedFootingSettings>,
-    section: 'gradeBeam' | 'isolatedFootings',
+  onFoundationFieldChange?: (
+    patch: Partial<
+      RcFrameFoundationSettings[
+        'plinthBeam' | 'roofBeam' | 'tieBeam' | 'columns' | 'isolatedFootings'
+      ]
+    >,
+    section: 'plinthBeam' | 'roofBeam' | 'tieBeam' | 'columns' | 'isolatedFootings',
   ) => void;
   onGableFieldChange: (gableId: string, patch: Partial<import('../types').GableEndSettings>) => void;
   onOpeningChange: (openingId: string, patch: Partial<WallOpeningParameters>) => void;
@@ -4426,63 +4608,9 @@ function EditableControls({
           onChange={(value) => onStructureFieldChange({ defaultColumnDepthMeters: positiveOrFallback(value, 0.35) })}
         />
         {preset.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill' ? (
-          <div className="space-y-3 rounded-xl border border-slate-200 p-3 dark:border-slate-700">
-            <div className="text-sm font-semibold text-slate-800 dark:text-slate-100">Foundation (Y=0 at grade beam top)</div>
-            <label className="flex items-center justify-between rounded-lg bg-slate-100 px-3 py-2 text-sm dark:bg-slate-800">
-              <span>Grade beam enabled</span>
-              <input
-                type="checkbox"
-                checked={preset.foundationSettings.gradeBeam.enabled}
-                onChange={(event) => onFoundationFieldChange({ enabled: event.currentTarget.checked }, 'gradeBeam')}
-                className="h-4 w-4"
-              />
-            </label>
-            <NumberField
-              label="Grade Beam Width"
-              value={preset.foundationSettings.gradeBeam.widthMeters}
-              suffix="m"
-              onChange={(value) => onFoundationFieldChange({ widthMeters: positiveOrFallback(value, 0.3) }, 'gradeBeam')}
-            />
-            <NumberField
-              label="Grade Beam Depth"
-              value={preset.foundationSettings.gradeBeam.depthMeters}
-              suffix="m"
-              onChange={(value) => onFoundationFieldChange({ depthMeters: positiveOrFallback(value, 0.45) }, 'gradeBeam')}
-            />
-            <label className="flex items-center justify-between rounded-lg bg-slate-100 px-3 py-2 text-sm dark:bg-slate-800">
-              <span>Isolated footings enabled</span>
-              <input
-                type="checkbox"
-                checked={preset.foundationSettings.isolatedFootings.enabled}
-                onChange={(event) => onFoundationFieldChange({ enabled: event.currentTarget.checked }, 'isolatedFootings')}
-                className="h-4 w-4"
-              />
-            </label>
-            <NumberField
-              label="Footing Width"
-              value={preset.foundationSettings.isolatedFootings.footingWidthMeters}
-              suffix="m"
-              onChange={(value) => onFoundationFieldChange({ footingWidthMeters: positiveOrFallback(value, 1.2) }, 'isolatedFootings')}
-            />
-            <NumberField
-              label="Footing Length"
-              value={preset.foundationSettings.isolatedFootings.footingLengthMeters}
-              suffix="m"
-              onChange={(value) => onFoundationFieldChange({ footingLengthMeters: positiveOrFallback(value, 1.2) }, 'isolatedFootings')}
-            />
-            <NumberField
-              label="Footing Thickness"
-              value={preset.foundationSettings.isolatedFootings.footingThicknessMeters}
-              suffix="m"
-              onChange={(value) => onFoundationFieldChange({ footingThicknessMeters: positiveOrFallback(value, 0.45) }, 'isolatedFootings')}
-            />
-            <NumberField
-              label="Footing Drop Below Grade Beam"
-              value={preset.foundationSettings.isolatedFootings.dropBelowGradeBeamMeters}
-              suffix="m"
-              onChange={(value) => onFoundationFieldChange({ dropBelowGradeBeamMeters: positiveOrFallback(value, 0.6) }, 'isolatedFootings')}
-            />
-          </div>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Use Structure → Frame, Foundation & Roof Dimensions to edit columns, beams, footings, and roof settings.
+          </p>
         ) : null}
         <p className="text-sm text-slate-600 dark:text-slate-300">
           Columns: {preset.frameSystem.columns.length} · Beams: {preset.frameSystem.beams.length}
@@ -4518,7 +4646,9 @@ function EditableControls({
             <NumberField label="Roof-to-masonry clearance" value={gable.roofToMasonryClearanceMeters} suffix="m" onChange={(value) => onGableFieldChange(gable.id, { roofToMasonryClearanceMeters: positiveOrFallback(value, 0.1016) })} />
           </>
         ) : (
-          <p className="text-sm text-slate-500">No gable end configured. Use Structure → Add / Edit Gable End.</p>
+          <p className="text-sm text-slate-500">
+            Configure gable-end CMU and raked cap through Structure → Frame, Foundation & Roof Dimensions when using a Gable Roof.
+          </p>
         )}
       </div>
     );

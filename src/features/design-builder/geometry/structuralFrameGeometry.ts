@@ -6,6 +6,9 @@ import type {
   GableEndSettings,
   GableEndSystemParameters,
   IsolatedFooting,
+  RakedCapPlacement,
+  ResolvedRoofSystem,
+  RoofSystemSettings,
   StructuralFoundationSettings,
   StructuralFrameSystemParameters,
   ThickenedEdgeSlabParameters,
@@ -41,6 +44,18 @@ import type { ResolvedInfillPanelBounds } from '../domain/infillPanelBoundsResol
 import { solveGableEndPlacements } from '../domain/gableEndSolver';
 import { resolveCmuModuleDefinition } from '../domain/cmuModuleRules';
 import { createEmptyCmuInfillSystem, createEmptyGableEndSystem } from '../domain/structuralFrameDefaults';
+import { createDefaultRoofSystemSettings } from '../domain/roofSystemDefaults';
+import { resolveRoofSystem } from '../domain/roofSystemResolver';
+import { resolveOuterRoofBeamBearingLoop } from '../domain/roofFootprintSupport';
+import {
+  buildResolvedGableEnd,
+  solveRoofGableEndPlacements,
+} from '../domain/roofGableSolver';
+import {
+  solveRakedCapPlacements,
+  totalGableCmuAreaSquareMeters,
+  totalRakedCapVolumeCubicMeters,
+} from '../domain/rakedCapSolver';
 
 export type StructuralFrameGeometryInput = {
   buildingSystemMode: BuildingSystemMode;
@@ -49,17 +64,27 @@ export type StructuralFrameGeometryInput = {
   slab: ThickenedEdgeSlabParameters;
   frameSystem: StructuralFrameSystemParameters;
   foundationSettings: StructuralFoundationSettings;
+  roofSystem: RoofSystemSettings;
   infillSystem: CmuInfillSystemParameters;
   gableEndSystem: GableEndSystemParameters;
 };
 
 export type StructuralConcreteVolumeBreakdown = {
-  gradeBeamVolumeCubicMeters: number;
-  ringBeamVolumeCubicMeters: number;
-  columnBelowGradeVolumeCubicMeters: number;
-  columnAboveGradeVolumeCubicMeters: number;
+  plinthBeamVolumeCubicMeters: number;
+  roofBeamVolumeCubicMeters: number;
+  tieBeamVolumeCubicMeters: number;
+  columnBelowPlinthVolumeCubicMeters: number;
+  columnAbovePlinthVolumeCubicMeters: number;
   footingVolumeCubicMeters: number;
   totalDeduplicatedVolumeCubicMeters: number;
+  /** @deprecated Use plinthBeamVolumeCubicMeters */
+  gradeBeamVolumeCubicMeters: number;
+  /** @deprecated Use roofBeamVolumeCubicMeters */
+  ringBeamVolumeCubicMeters: number;
+  /** @deprecated Use columnBelowPlinthVolumeCubicMeters */
+  columnBelowGradeVolumeCubicMeters: number;
+  /** @deprecated Use columnAbovePlinthVolumeCubicMeters */
+  columnAboveGradeVolumeCubicMeters: number;
 };
 
 export type StructuralFrameGeometryExtras = {
@@ -71,6 +96,8 @@ export type StructuralFrameGeometryExtras = {
   structuralConcreteVolumeCubicMeters: number;
   structuralConcreteVolumeBreakdown: StructuralConcreteVolumeBreakdown;
   gablePlacements: import('../types').GableCmuPlacement[];
+  rakedCapPlacements: RakedCapPlacement[];
+  resolvedRoofSystem: ResolvedRoofSystem | null;
   resolvedInfillPanelBounds: ResolvedInfillPanelBounds[];
 };
 
@@ -114,6 +141,31 @@ export function generateFrameInfillGeometry(
   let totalTopClosure = 0;
   const layoutWarnings: string[] = [];
   const gablePlacements: import('../types').GableCmuPlacement[] = [];
+  const rakedCapPlacements: RakedCapPlacement[] = [];
+
+  const roofBeam =
+    frameSystem.beams.find((beam) => beam.kind === 'roof_beam') ??
+    frameSystem.beams.find((beam) => beam.kind === 'ring_beam');
+  const foundationElevations = resolveFoundationElevations({ foundation: foundationSettings, wallHeightMeters });
+  const roofBeamTopElevationMeters =
+    roofBeam?.topElevationMeters ?? foundationElevations.roofBeamTopY;
+  const roofSystem = input.roofSystem ?? createDefaultRoofSystemSettings();
+  const roofBearingLoop = resolveOuterRoofBeamBearingLoop({
+    layout: input.wallLayout,
+    segmentFrames,
+    roofBeams: frameSystem.beams,
+    fallbackExteriorFootprint: resolvedWallGeometry.exteriorFacePolygon,
+  });
+  let resolvedRoofSystem = resolveRoofSystem({
+    layout: input.wallLayout,
+    wallExteriorFootprint: resolvedWallGeometry.exteriorFacePolygon,
+    structuralBearingPerimeter: roofBearingLoop.points,
+    bearingSource: roofBearingLoop.source,
+    bearingWarnings: roofBearingLoop.warnings,
+    roofSystem,
+    roofBeamTopElevationMeters,
+  });
+  layoutWarnings.push(...resolvedRoofSystem.warnings.map((warning) => warning.message));
 
   for (const { panel, bounds } of panelEntries) {
     const frame = segmentFrames.find((f) => f.segmentId === panel.hostSegmentId);
@@ -131,6 +183,56 @@ export function generateFrameInfillGeometry(
     totalCut += solved.cutBlockCount;
     totalTopClosure += solved.topClosureCutBlockCount;
     layoutWarnings.push(...solved.warnings);
+
+    const isRoofGableEnd =
+      resolvedRoofSystem.supported &&
+      resolvedRoofSystem.gableEndSegmentIds.includes(panel.hostSegmentId);
+
+    if (isRoofGableEnd) {
+      const gablePlacementsForPanel = solveRoofGableEndPlacements({
+        panelId: panel.id,
+        hostSegmentId: panel.hostSegmentId,
+        frame,
+        panelStartStation: panel.startStationMeters,
+        panelEndStation: panel.endStationMeters,
+        roofBeamTopElevationMeters,
+        roofSystem,
+        resolvedRoof: resolvedRoofSystem,
+        moduleLengthMeters: module.nominalModuleLengthMeters,
+        moduleHeightMeters: module.nominalModuleHeightMeters,
+        blockDepthMeters: module.blockDepthMeters,
+      });
+      gablePlacements.push(...gablePlacementsForPanel);
+      const caps = solveRakedCapPlacements({
+        gableEndSegmentId: panel.hostSegmentId,
+        panelId: panel.id,
+        frame,
+        panelStartStation: panel.startStationMeters,
+        panelEndStation: panel.endStationMeters,
+        placements: gablePlacementsForPanel,
+        roofSystem,
+        resolvedRoof: resolvedRoofSystem,
+        wallDepthMeters: module.blockDepthMeters,
+      });
+      rakedCapPlacements.push(...caps);
+      resolvedRoofSystem = {
+        ...resolvedRoofSystem,
+        gableEnds: [
+          ...resolvedRoofSystem.gableEnds,
+          buildResolvedGableEnd({
+            hostSegmentId: panel.hostSegmentId,
+            frame,
+            panelStartStation: panel.startStationMeters,
+            panelEndStation: panel.endStationMeters,
+            roofSystem,
+            resolvedRoof: resolvedRoofSystem,
+            placements: gablePlacementsForPanel,
+            rakedCapPlacements: caps,
+          }),
+        ],
+      };
+      continue;
+    }
 
     const gable = input.gableEndSystem.gableEnds.find(
       (g) => g.hostWallSegmentId === panel.hostSegmentId,
@@ -150,6 +252,14 @@ export function generateFrameInfillGeometry(
         }),
       );
     }
+  }
+
+  if (resolvedRoofSystem.supported) {
+    resolvedRoofSystem = {
+      ...resolvedRoofSystem,
+      gableCmuAreaSquareMeters: totalGableCmuAreaSquareMeters(gablePlacements),
+      rakedCapVolumeCubicMeters: totalRakedCapVolumeCubicMeters(rakedCapPlacements),
+    };
   }
 
   const wallCmuLayout: CmuLayoutResult = {
@@ -224,13 +334,19 @@ export function generateFrameInfillGeometry(
     foundation: foundationSettings,
     wallHeightMeters,
   });
-  const structuralConcreteVolumeBreakdown = resolveStructuralConcreteVolumes({
+  const volumeResult = resolveStructuralConcreteVolumes({
     columns: frameSystem.columns,
     beams: frameSystem.beams,
     footings: isolatedFootings,
-    bottomOfGradeBeamY: elevations.bottomOfGradeBeamY,
-    topOfGradeBeamY: elevations.topOfGradeBeamY,
+    elevations,
   });
+  const structuralConcreteVolumeBreakdown: StructuralConcreteVolumeBreakdown = {
+    ...volumeResult,
+    gradeBeamVolumeCubicMeters: volumeResult.plinthBeamVolumeCubicMeters,
+    ringBeamVolumeCubicMeters: volumeResult.roofBeamVolumeCubicMeters,
+    columnBelowGradeVolumeCubicMeters: volumeResult.columnBelowPlinthVolumeCubicMeters,
+    columnAboveGradeVolumeCubicMeters: volumeResult.columnAbovePlinthVolumeCubicMeters,
+  };
   const structuralConcreteVolumeCubicMeters =
     structuralConcreteVolumeBreakdown.totalDeduplicatedVolumeCubicMeters;
 
@@ -253,6 +369,8 @@ export function generateFrameInfillGeometry(
     structuralConcreteVolumeCubicMeters,
     structuralConcreteVolumeBreakdown,
     gablePlacements,
+    rakedCapPlacements,
+    resolvedRoofSystem,
     resolvedInfillPanelBounds,
   };
 }

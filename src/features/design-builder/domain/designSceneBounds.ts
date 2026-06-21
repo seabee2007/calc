@@ -178,8 +178,25 @@ export function deriveDesignSceneBounds(params: {
     );
   });
 
-  const layoutGraphActive = geometry?.sourcePath === 'layout_graph';
   const slabThickness = params.slab?.slabThicknessMeters ?? 0.1;
+  const resolvedRoof = geometry?.resolvedRoofSystem;
+  if (resolvedRoof?.supported) {
+    for (const point of resolvedRoof.eaveFootprint) {
+      acc.xs.push(point.x);
+      acc.zs.push(point.z);
+      acc.ys.push(slabThickness + point.y);
+    }
+    acc.ys.push(slabThickness + resolvedRoof.roofPeakY);
+    for (const plane of resolvedRoof.roofTopPlanes) {
+      for (const corner of plane.corners) {
+        acc.xs.push(corner.x);
+        acc.zs.push(corner.z);
+        acc.ys.push(slabThickness + corner.y);
+      }
+    }
+  }
+
+  const layoutGraphActive = geometry?.sourcePath === 'layout_graph';
 
   if (layoutGraphActive && geometry?.resolvedFootprint?.exteriorFacePolygon.length) {
     addSlabAndRoofFromFootprint(acc, geometry.resolvedFootprint.exteriorFacePolygon, slabThickness, params.roof, geometry.wallSegments);

@@ -84,10 +84,10 @@ describe('infill panel bounds resolver', () => {
     });
   });
 
-  it('matches grade beam face-to-face clear span on each segment', () => {
+  it('matches plinth beam face-to-face clear span on each segment', () => {
     preset.wallLayout.segments.forEach((segment) => {
       const beam = preset.frameSystem.beams.find(
-        (candidate) => candidate.kind === 'grade_beam' && candidate.hostSegmentId === segment.id,
+        (candidate) => candidate.kind === 'plinth_beam' && candidate.hostSegmentId === segment.id,
       )!;
       const panelBounds = resolveInfillPanelBoundsForLayout({
         layout: preset.wallLayout,

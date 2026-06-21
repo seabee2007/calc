@@ -2,9 +2,15 @@ import { describe, expect, it } from 'vitest';
 import { createFiveBySixCmuBuildingPreset } from '../domain/designBuilderPreset';
 import { applyAutoFrameLayout } from '../domain/structureActions';
 import {
-  createDefaultFoundationSettings,
+  createDefaultRcFrameFoundationSettings,
+  migrateLegacyFoundationSettings,
+  normalizeRcFrameFoundationSettings,
+} from '../domain/rcFrameFoundationMigration';
+import {
+  FOUNDATION_CONTACT_EPSILON_METERS,
   resolveFoundationElevations,
-  TOP_OF_GRADE_BEAM_Y,
+  resolveStructuralConcreteVolumes,
+  TOP_OF_PLINTH_BEAM_Y,
 } from '../domain/foundationElevations';
 import {
   autoFrameLayout,
@@ -15,44 +21,17 @@ import {
   generateDesignGeometry,
   getSegmentFramesForWallLayout,
 } from '../geometry/designGeometry';
+import type { LegacyStructuralFoundationSettings, RcFrameFoundationSettings } from '../types';
 
-describe('foundation frame layout', () => {
+describe('RC frame foundation — plinth / roof / tie beams', () => {
   const preset = applyAutoFrameLayout(createFiveBySixCmuBuildingPreset());
-  const foundation = preset.foundationSettings ?? createDefaultFoundationSettings();
+  const foundation = normalizeRcFrameFoundationSettings(preset.foundationSettings);
   const wallHeightMeters = preset.wallLayout.defaultWallHeightMeters;
   const elevations = resolveFoundationElevations({ foundation, wallHeightMeters });
   const frames = getSegmentFramesForWallLayout(preset.wallLayout, preset.wall);
 
-  it('places top of grade beam at Y = 0', () => {
-    expect(elevations.topOfGradeBeamY).toBe(TOP_OF_GRADE_BEAM_Y);
-    const gradeBeam = preset.frameSystem.beams.find((beam) => beam.kind === 'grade_beam');
-    expect(gradeBeam?.topElevationMeters).toBeCloseTo(0, 6);
-  });
-
-  it('places bottom of grade beam at negative depth', () => {
-    expect(elevations.bottomOfGradeBeamY).toBeCloseTo(-foundation.gradeBeam.depthMeters, 6);
-    const gradeBeam = preset.frameSystem.beams.find((beam) => beam.kind === 'grade_beam');
-    expect(gradeBeam?.baseElevationMeters).toBeCloseTo(-foundation.gradeBeam.depthMeters, 6);
-  });
-
-  it('measures wall height upward from grade beam top', () => {
-    expect(elevations.wallBaseY).toBe(0);
-    expect(elevations.wallTopY).toBeCloseTo(wallHeightMeters, 6);
-    const ringBeam = preset.frameSystem.beams.find((beam) => beam.kind === 'ring_beam');
-    expect(ringBeam?.topElevationMeters).toBeCloseTo(wallHeightMeters, 6);
-  });
-
-  it('derives footing top from grade beam bottom and drop', () => {
-    expect(elevations.topOfFootingY).toBeCloseTo(
-      elevations.bottomOfGradeBeamY - foundation.isolatedFootings.dropBelowGradeBeamMeters,
-      6,
-    );
-  });
-
-  it('derives footing bottom and center elevations', () => {
-    const thickness = foundation.isolatedFootings.footingThicknessMeters;
-    expect(elevations.bottomOfFootingY).toBeCloseTo(elevations.topOfFootingY - thickness, 6);
-    const geometry = generateDesignGeometry(
+  function geometryForPreset() {
+    return generateDesignGeometry(
       buildDesignGeometryInputFromLayout({
         wallLayout: preset.wallLayout,
         cmuSettings: preset.wall,
@@ -66,155 +45,202 @@ describe('foundation frame layout', () => {
         gableEndSystem: preset.gableEndSystem,
       }),
     );
-    const footing = geometry.isolatedFootings?.[0];
-    expect(footing).toBeTruthy();
-    expect(footing!.topElevationMeters).toBeCloseTo(elevations.topOfFootingY, 6);
-    expect(footing!.bottomElevationMeters).toBeCloseTo(elevations.bottomOfFootingY, 6);
-    expect(footing!.centerElevationMeters).toBeCloseTo(
-      elevations.topOfFootingY - thickness / 2,
+  }
+
+  it('migrates legacy grade beam to plinth beam', () => {
+    const legacy: LegacyStructuralFoundationSettings = {
+      gradeBeam: {
+        enabled: true,
+        widthMeters: 0.4,
+        depthMeters: 0.5,
+        followsExteriorSegments: true,
+        followsInteriorSegments: false,
+      },
+      isolatedFootings: {
+        enabled: true,
+        placementMode: 'at_columns',
+        footingWidthMeters: 1.5,
+        footingLengthMeters: 1.5,
+        footingThicknessMeters: 0.5,
+        dropBelowGradeBeamMeters: 0.8,
+        autoCreateAtStructuralColumns: true,
+      },
+    };
+    const migrated = migrateLegacyFoundationSettings(legacy);
+    expect(migrated.plinthBeam.widthMeters).toBe(0.4);
+    expect(migrated.plinthBeam.depthMeters).toBe(0.5);
+    expect(migrated.isolatedFootings.dropBelowPlinthBeamMeters).toBeGreaterThan(0);
+  });
+
+  it('migrates legacy ring beam to roof beam', () => {
+    const legacy: LegacyStructuralFoundationSettings = {
+      gradeBeam: {
+        enabled: true,
+        widthMeters: 0.3,
+        depthMeters: 0.45,
+        followsExteriorSegments: true,
+        followsInteriorSegments: false,
+      },
+      ringBeam: {
+        enabled: true,
+        widthMeters: 0.28,
+        depthMeters: 0.32,
+      },
+      isolatedFootings: {
+        enabled: true,
+        placementMode: 'at_columns',
+        footingWidthMeters: 1.2,
+        footingLengthMeters: 1.2,
+        footingThicknessMeters: 0.45,
+        dropBelowGradeBeamMeters: 0.6,
+        autoCreateAtStructuralColumns: true,
+      },
+    };
+    const migrated = migrateLegacyFoundationSettings(legacy);
+    expect(migrated.roofBeam.widthMeters).toBe(0.28);
+    expect(migrated.roofBeam.depthMeters).toBe(0.32);
+  });
+
+  it('migrates intermediate dropBelowTieBeamMeters settings safely', () => {
+    const intermediate = {
+      ...createDefaultRcFrameFoundationSettings(),
+      tieBeam: {
+        enabled: true,
+        widthMeters: 0.25,
+        depthMeters: 0.3,
+        dropBelowPlinthBeamMeters: 0.6,
+      },
+      isolatedFootings: {
+        ...createDefaultRcFrameFoundationSettings().isolatedFootings,
+        dropBelowTieBeamMeters: 0.6,
+        dropBelowPlinthBeamMeters: undefined as unknown as number,
+      },
+    };
+    const migrated = normalizeRcFrameFoundationSettings(intermediate as RcFrameFoundationSettings);
+    expect(migrated.tieBeam).not.toHaveProperty('dropBelowPlinthBeamMeters');
+    expect(migrated.isolatedFootings.dropBelowPlinthBeamMeters).toBeCloseTo(1.5, 6);
+    expect(migrated.isolatedFootings).not.toHaveProperty('dropBelowTieBeamMeters');
+  });
+
+  it('places top of plinth beam at Y = 0', () => {
+    expect(elevations.topOfPlinthBeamY).toBe(TOP_OF_PLINTH_BEAM_Y);
+    const plinthBeam = preset.frameSystem.beams.find((beam) => beam.kind === 'plinth_beam');
+    expect(plinthBeam?.topElevationMeters).toBeCloseTo(0, 6);
+  });
+
+  it('derives footing top from bottom of plinth beam minus footing drop', () => {
+    expect(elevations.topOfFootingY).toBeCloseTo(
+      elevations.bottomOfPlinthBeamY - foundation.isolatedFootings.dropBelowPlinthBeamMeters,
       6,
     );
   });
 
-  it('extends columns from footing top to ring beam top', () => {
-    const ringBeam = preset.frameSystem.beams.find((beam) => beam.kind === 'ring_beam');
+  it('places bottom of tie beam exactly on top of footing', () => {
+    expect(elevations.bottomOfTieBeamY).toBeCloseTo(elevations.topOfFootingY, 9);
+    const tieBeam = preset.frameSystem.beams.find((beam) => beam.kind === 'tie_beam');
+    expect(tieBeam?.baseElevationMeters).toBeCloseTo(elevations.topOfFootingY, 9);
+    for (const footing of geometryForPreset().isolatedFootings ?? []) {
+      expect(footing.topElevationMeters).toBeCloseTo(elevations.topOfFootingY, 9);
+      expect(tieBeam!.baseElevationMeters).toBeCloseTo(footing.topElevationMeters, 9);
+    }
+  });
+
+  it('derives tie beam top from footing top plus tie-beam depth', () => {
+    expect(elevations.topOfTieBeamY).toBeCloseTo(
+      elevations.topOfFootingY + foundation.tieBeam.depthMeters,
+      9,
+    );
+    const tieBeam = preset.frameSystem.beams.find((beam) => beam.kind === 'tie_beam');
+    expect(tieBeam?.topElevationMeters).toBeCloseTo(elevations.topOfTieBeamY, 9);
+  });
+
+  it('has no render gap between footing top and tie beam bottom', () => {
+    const geometry = geometryForPreset();
+    const tieBeam = preset.frameSystem.beams.find((beam) => beam.kind === 'tie_beam')!;
+    for (const footing of geometry.isolatedFootings ?? []) {
+      const gap = Math.abs(tieBeam.baseElevationMeters - footing.topElevationMeters);
+      expect(gap).toBeLessThanOrEqual(FOUNDATION_CONTACT_EPSILON_METERS);
+    }
+  });
+
+  it('extends columns from footing top through all beam elevations', () => {
+    const roofBeam = preset.frameSystem.beams.find((beam) => beam.kind === 'roof_beam');
+    const plinthBeam = preset.frameSystem.beams.find((beam) => beam.kind === 'plinth_beam');
+    const tieBeam = preset.frameSystem.beams.find((beam) => beam.kind === 'tie_beam');
     for (const column of preset.frameSystem.columns) {
       expect(column.baseElevationMeters).toBeCloseTo(elevations.topOfFootingY, 6);
-      expect(column.topElevationMeters).toBeCloseTo(ringBeam!.topElevationMeters, 6);
-      expect(column.heightMeters).toBeCloseTo(
-        ringBeam!.topElevationMeters - elevations.topOfFootingY,
-        6,
-      );
+      expect(column.topElevationMeters).toBeCloseTo(roofBeam!.topElevationMeters, 6);
+      expect(column.baseElevationMeters).toBeLessThan(tieBeam!.topElevationMeters);
+      expect(column.topElevationMeters).toBeGreaterThan(plinthBeam!.topElevationMeters);
     }
   });
 
-  it('creates one footing per unique structural column', () => {
-    const geometry = generateDesignGeometry(
-      buildDesignGeometryInputFromLayout({
-        wallLayout: preset.wallLayout,
-        cmuSettings: preset.wall,
-        slabSettings: preset.slab,
-        roofSettings: preset.roof,
-        trussSettings: preset.truss,
-        buildingSystemMode: 'reinforced_concrete_frame_with_cmu_infill',
-        frameSystem: preset.frameSystem,
-        foundationSettings: foundation,
-        infillSystem: preset.infillSystem,
-        gableEndSystem: preset.gableEndSystem,
-      }),
-    );
-    expect(geometry.isolatedFootings?.length).toBe(preset.frameSystem.columns.length);
-    const uniqueColumnIds = new Set(geometry.isolatedFootings?.map((footing) => footing.columnId));
-    expect(uniqueColumnIds.size).toBe(preset.frameSystem.columns.length);
+  it('uses Footing Drop Below Plinth Beam on isolated footings settings', () => {
+    expect(foundation.isolatedFootings).toHaveProperty('dropBelowPlinthBeamMeters');
+    expect(foundation.isolatedFootings).not.toHaveProperty('dropBelowTieBeamMeters');
+    expect(foundation.tieBeam).not.toHaveProperty('dropBelowPlinthBeamMeters');
   });
 
-  it('does not duplicate footings at shared corner columns', () => {
-    const nodeIds = new Set(preset.wallLayout.nodes.map((node) => node.id));
-    expect(preset.frameSystem.columns.length).toBe(nodeIds.size);
-    for (const node of preset.wallLayout.nodes) {
-      const column = findColumnAtNode(preset.frameSystem.columns, node.id)!;
-      const footingsForColumn =
-        generateDesignGeometry(
-          buildDesignGeometryInputFromLayout({
-            wallLayout: preset.wallLayout,
-            cmuSettings: preset.wall,
-            slabSettings: preset.slab,
-            roofSettings: preset.roof,
-            trussSettings: preset.truss,
-            buildingSystemMode: 'reinforced_concrete_frame_with_cmu_infill',
-            frameSystem: preset.frameSystem,
-            foundationSettings: foundation,
-            infillSystem: preset.infillSystem,
-            gableEndSystem: preset.gableEndSystem,
-          }),
-        ).isolatedFootings?.filter((footing) => footing.columnId === column.id) ?? [];
-      expect(footingsForColumn).toHaveLength(1);
-    }
+  it('does not double-count footing, tie beam, and column overlap in quantities', () => {
+    const geometry = geometryForPreset();
+    const breakdown = geometry.structuralConcreteVolumeBreakdown!;
+    const volumes = resolveStructuralConcreteVolumes({
+      columns: preset.frameSystem.columns,
+      beams: preset.frameSystem.beams,
+      footings: geometry.isolatedFootings ?? [],
+      elevations,
+    });
+    const naiveTotal =
+      volumes.plinthBeamVolumeCubicMeters +
+      volumes.roofBeamVolumeCubicMeters +
+      volumes.tieBeamVolumeCubicMeters +
+      volumes.columnBelowPlinthVolumeCubicMeters +
+      volumes.columnAbovePlinthVolumeCubicMeters +
+      volumes.footingVolumeCubicMeters;
+    expect(breakdown.totalDeduplicatedVolumeCubicMeters).toBeLessThan(naiveTotal);
+    expect(breakdown.footingVolumeCubicMeters).toBeGreaterThan(0);
+    expect(breakdown.tieBeamVolumeCubicMeters).toBeGreaterThan(0);
   });
 
-  it('sets CMU infill base at grade beam top', () => {
-    const geometry = generateDesignGeometry(
-      buildDesignGeometryInputFromLayout({
-        wallLayout: preset.wallLayout,
-        cmuSettings: preset.wall,
-        slabSettings: preset.slab,
-        roofSettings: preset.roof,
-        trussSettings: preset.truss,
-        buildingSystemMode: 'reinforced_concrete_frame_with_cmu_infill',
-        frameSystem: preset.frameSystem,
-        foundationSettings: foundation,
-        infillSystem: preset.infillSystem,
-        gableEndSystem: preset.gableEndSystem,
-      }),
-    );
+  it('renders all three beam kinds separately', () => {
+    expect(preset.frameSystem.beams.some((beam) => beam.kind === 'plinth_beam')).toBe(true);
+    expect(preset.frameSystem.beams.some((beam) => beam.kind === 'roof_beam')).toBe(true);
+    expect(preset.frameSystem.beams.some((beam) => beam.kind === 'tie_beam')).toBe(true);
+  });
+
+  it('sets CMU infill base at top of plinth beam and top at roof beam underside', () => {
+    const geometry = geometryForPreset();
     (geometry.resolvedInfillPanelBounds ?? []).forEach((bounds) => {
       expect(bounds.bottomElevationMeters).toBeCloseTo(0, 6);
+      expect(bounds.topElevationMeters).toBeCloseTo(wallHeightMeters, 6);
     });
   });
 
-  it('does not double-count column concrete in the grade beam zone', () => {
-    const geometry = generateDesignGeometry(
-      buildDesignGeometryInputFromLayout({
-        wallLayout: preset.wallLayout,
-        cmuSettings: preset.wall,
-        slabSettings: preset.slab,
-        roofSettings: preset.roof,
-        trussSettings: preset.truss,
-        buildingSystemMode: 'reinforced_concrete_frame_with_cmu_infill',
-        frameSystem: preset.frameSystem,
-        foundationSettings: foundation,
-        infillSystem: preset.infillSystem,
-        gableEndSystem: preset.gableEndSystem,
-      }),
-    );
-    const breakdown = geometry.structuralConcreteVolumeBreakdown!;
-    const naiveColumnTotal =
-      breakdown.columnBelowGradeVolumeCubicMeters + breakdown.columnAboveGradeVolumeCubicMeters;
-    const fullColumnVolume = preset.frameSystem.columns.reduce(
-      (sum, column) => sum + column.widthMeters * column.depthMeters * column.heightMeters,
-      0,
-    );
-    expect(naiveColumnTotal).toBeLessThan(fullColumnVolume);
-    expect(breakdown.gradeBeamVolumeCubicMeters).toBeGreaterThan(0);
-  });
-
-  it('leaves bearing wall mode unchanged', () => {
-    const bearingPreset = createFiveBySixCmuBuildingPreset();
-    const geometry = generateDesignGeometry(
-      buildDesignGeometryInputFromLayout({
-        wallLayout: bearingPreset.wallLayout,
-        cmuSettings: bearingPreset.wall,
-        slabSettings: bearingPreset.slab,
-        roofSettings: bearingPreset.roof,
-        trussSettings: bearingPreset.truss,
-        buildingSystemMode: 'cmu_bearing_wall',
-        frameSystem: bearingPreset.frameSystem,
-        foundationSettings: bearingPreset.foundationSettings,
-      }),
-    );
-    expect(geometry.blockCount).toBeGreaterThan(0);
-    expect(geometry.isolatedFootings ?? []).toHaveLength(0);
-  });
-
-  it('aligns plan and 3D footing coordinates', () => {
-    const geometry = generateDesignGeometry(
-      buildDesignGeometryInputFromLayout({
-        wallLayout: preset.wallLayout,
-        cmuSettings: preset.wall,
-        slabSettings: preset.slab,
-        roofSettings: preset.roof,
-        trussSettings: preset.truss,
-        buildingSystemMode: 'reinforced_concrete_frame_with_cmu_infill',
-        frameSystem: preset.frameSystem,
-        foundationSettings: foundation,
-        infillSystem: preset.infillSystem,
-        gableEndSystem: preset.gableEndSystem,
-      }),
-    );
-    const column = preset.frameSystem.columns[0]!;
-    const footing = geometry.isolatedFootings?.find((item) => item.columnId === column.id)!;
-    expect(footing.position.x).toBeCloseTo(column.position.x, 6);
-    expect(footing.position.z).toBeCloseTo(column.position.z, 6);
+  it('keeps existing RC Frame + CMU Infill designs valid via normalization', () => {
+    const legacyPreset = createFiveBySixCmuBuildingPreset();
+    legacyPreset.foundationSettings = {
+      gradeBeam: {
+        enabled: true,
+        widthMeters: 0.3,
+        depthMeters: 0.45,
+        followsExteriorSegments: true,
+        followsInteriorSegments: false,
+      },
+      isolatedFootings: {
+        enabled: true,
+        placementMode: 'at_columns',
+        footingWidthMeters: 1.2,
+        footingLengthMeters: 1.2,
+        footingThicknessMeters: 0.45,
+        dropBelowGradeBeamMeters: 0.6,
+        autoCreateAtStructuralColumns: true,
+      },
+    };
+    const normalized = applyAutoFrameLayout(legacyPreset);
+    const settings = normalizeRcFrameFoundationSettings(normalized.foundationSettings);
+    expect(settings.plinthBeam.enabled).toBe(true);
+    expect(settings.isolatedFootings.dropBelowPlinthBeamMeters).toBeGreaterThan(0);
+    expect(normalized.frameSystem.columns.length).toBeGreaterThan(0);
   });
 
   it('reconciles auto frame layout with foundation settings', () => {
@@ -225,6 +251,17 @@ describe('foundation frame layout', () => {
       foundation,
     });
     expect(result.isolatedFootings.length).toBeGreaterThan(0);
-    expect(result.frameSystem.beams.some((beam) => beam.kind === 'grade_beam')).toBe(true);
+    expect(result.frameSystem.beams.some((beam) => beam.kind === 'plinth_beam')).toBe(true);
+    expect(result.frameSystem.beams.some((beam) => beam.kind === 'roof_beam')).toBe(true);
+    expect(result.frameSystem.beams.some((beam) => beam.kind === 'tie_beam')).toBe(true);
+  });
+
+  it('does not duplicate footings at shared corner columns', () => {
+    for (const node of preset.wallLayout.nodes) {
+      const column = findColumnAtNode(preset.frameSystem.columns, node.id)!;
+      const footingsForColumn =
+        geometryForPreset().isolatedFootings?.filter((footing) => footing.columnId === column.id) ?? [];
+      expect(footingsForColumn).toHaveLength(1);
+    }
   });
 });

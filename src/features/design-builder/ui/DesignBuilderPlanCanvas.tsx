@@ -84,6 +84,8 @@ interface DesignBuilderPlanCanvasProps {
   closureCornerSnap?: { point: { x: number; z: number }; captured: boolean } | null;
   frameSystem?: import('../types').StructuralFrameSystemParameters;
   isolatedFootings?: readonly import('../types').IsolatedFooting[];
+  resolvedRoofSystem?: import('../types').ResolvedRoofSystem | null;
+  selectedObjectType?: import('../types').DesignBuilderObjectType | null;
   onInteraction: (event: DesignBuilderInteractionEvent) => void;
 }
 
@@ -113,6 +115,8 @@ export default function DesignBuilderPlanCanvas({
   closureCornerSnap = null,
   frameSystem,
   isolatedFootings = [],
+  resolvedRoofSystem = null,
+  selectedObjectType = null,
   onInteraction,
 }: DesignBuilderPlanCanvasProps) {
   const svgRef = useRef<SVGSVGElement | null>(null);
@@ -914,11 +918,110 @@ export default function DesignBuilderPlanCanvas({
             {shiftConstraintLabel ?? drawGuidance?.label}
           </text>
         ) : null}
-        {frameSystem?.beams
-          .filter((beam) => beam.kind === 'grade_beam')
-          .map((beam) => {
+        {resolvedRoofSystem?.supported && resolvedRoofSystem.eaveFootprint.length >= 3 ? (
+          <>
+            <polygon
+              points={resolvedRoofSystem.eaveFootprint
+                .map((point) => {
+                  const surface = planToSurfacePoint({ x: point.x, z: point.z });
+                  return `${surface.sx},${surface.sy}`;
+                })
+                .join(' ')}
+              fill="none"
+              stroke={
+                selectedObjectType === 'gable_roof_system' || selectedObjectType === 'gable_end_system'
+                  ? '#14b8a6'
+                  : '#64748b'
+              }
+              strokeOpacity={selectedObjectType === 'gable_roof_system' ? 0.95 : 0.45}
+              strokeWidth={selectedObjectType === 'gable_roof_system' ? 2 : 1.5}
+              strokeDasharray="6 4"
+              pointerEvents="none"
+            />
+            {resolvedRoofSystem.ridgeStart && resolvedRoofSystem.ridgeEnd ? (
+              <line
+                x1={planToSurfacePoint({
+                  x: resolvedRoofSystem.ridgeStart.x,
+                  z: resolvedRoofSystem.ridgeStart.z,
+                }).sx}
+                y1={planToSurfacePoint({
+                  x: resolvedRoofSystem.ridgeStart.x,
+                  z: resolvedRoofSystem.ridgeStart.z,
+                }).sy}
+                x2={planToSurfacePoint({
+                  x: resolvedRoofSystem.ridgeEnd.x,
+                  z: resolvedRoofSystem.ridgeEnd.z,
+                }).sx}
+                y2={planToSurfacePoint({
+                  x: resolvedRoofSystem.ridgeEnd.x,
+                  z: resolvedRoofSystem.ridgeEnd.z,
+                }).sy}
+                stroke={selectedObjectType === 'gable_roof_system' ? '#14b8a6' : '#94a3b8'}
+                strokeOpacity={selectedObjectType === 'gable_roof_system' ? 0.95 : 0.55}
+                strokeWidth={selectedObjectType === 'gable_roof_system' ? 2.5 : 1.5}
+                pointerEvents="none"
+              />
+            ) : null}
+            {resolvedRoofSystem.trussStations.length > 0 && resolvedRoofSystem.ridgeStart && resolvedRoofSystem.ridgeEnd
+              ? resolvedRoofSystem.trussStations.map((station, index) => {
+                  const ridgeAlongX =
+                    Math.abs(resolvedRoofSystem.ridgeEnd!.x - resolvedRoofSystem.ridgeStart!.x) >
+                    Math.abs(resolvedRoofSystem.ridgeEnd!.z - resolvedRoofSystem.ridgeStart!.z);
+                  const bounds = resolvedRoofSystem.exteriorRoofBeamBounds;
+                  const minX = Math.min(...bounds.footprint.map((point) => point.x));
+                  const minZ = Math.min(...bounds.footprint.map((point) => point.z));
+                  const maxZ = Math.max(...bounds.footprint.map((point) => point.z));
+                  const maxX = Math.max(...bounds.footprint.map((point) => point.x));
+                  const planPoint = ridgeAlongX
+                    ? { x: minX + station, z: (minZ + maxZ) / 2 }
+                    : { x: (minX + maxX) / 2, z: minZ + station };
+                  const surface = planToSurfacePoint(planPoint);
+                  return (
+                    <line
+                      key={`truss-station-${index}`}
+                      x1={surface.sx - 4}
+                      y1={surface.sy}
+                      x2={surface.sx + 4}
+                      y2={surface.sy}
+                      stroke={selectedObjectType === 'gable_roof_system' ? '#14b8a6' : '#64748b'}
+                      strokeWidth={1.5}
+                      pointerEvents="none"
+                    />
+                  );
+                })
+              : null}
+            {resolvedRoofSystem.gableEndSegmentIds.map((segmentId) => {
+              const frame = framesBySegmentId.get(segmentId);
+              if (!frame) return null;
+              const midpoint = planToSurfacePoint({
+                x: (frame.start.x + frame.end.x) / 2,
+                z: (frame.start.z + frame.end.z) / 2,
+              });
+              return (
+                <circle
+                  key={`gable-end-${segmentId}`}
+                  cx={midpoint.sx}
+                  cy={midpoint.sy}
+                  r={selectedObjectType === 'gable_end_system' ? 5 : 3}
+                  fill={selectedObjectType === 'gable_end_system' ? '#14b8a6' : '#94a3b8'}
+                  fillOpacity={0.85}
+                  pointerEvents="none"
+                />
+              );
+            })}
+          </>
+        ) : null}
+        {frameSystem?.beams.map((beam) => {
             const start = planToSurfacePoint({ x: beam.startPoint.x, z: beam.startPoint.z });
             const end = planToSurfacePoint({ x: beam.endPoint.x, z: beam.endPoint.z });
+            const stroke =
+              beam.kind === 'plinth_beam' || beam.kind === 'grade_beam'
+                ? '#57534e'
+                : beam.kind === 'tie_beam'
+                  ? '#44403c'
+                  : beam.kind === 'roof_beam' || beam.kind === 'ring_beam'
+                    ? '#6b7280'
+                    : '#78716c';
             return (
               <line
                 key={beam.id}
@@ -926,7 +1029,7 @@ export default function DesignBuilderPlanCanvas({
                 y1={start.sy}
                 x2={end.sx}
                 y2={end.sy}
-                stroke="#57534e"
+                stroke={stroke}
                 strokeWidth={Math.max(4, beam.widthMeters * viewport.scale)}
                 strokeLinecap="butt"
                 pointerEvents="none"
