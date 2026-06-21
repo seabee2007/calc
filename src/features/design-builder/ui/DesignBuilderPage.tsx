@@ -3111,9 +3111,7 @@ export default function DesignBuilderPage({
     >
       <div className={`flex shrink-0 flex-wrap items-start justify-between gap-3 ${focusMode ? 'mb-3' : 'mb-4'}`}>
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-700 dark:text-cyan-300">
-            Arden Design Builder
-          </p>
+        
         </div>
       </div>
 
