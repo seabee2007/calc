@@ -5,6 +5,7 @@ import { useAppAccess } from '../contexts/AppAccessContext';
 import AccessLoadingSurface from '../components/routing/AccessLoadingSurface';
 import { isOwnerAppAccess } from '../lib/appAccessRouting';
 import { ownerNeedsOnboarding } from '../lib/rootRouteResolver';
+import { isEmployeeRole } from '../types/fieldPlanner';
 
 /**
  * Owner/new-workspace onboarding entry. Never evaluates employee portal entitlements.
@@ -32,6 +33,10 @@ export default function OnboardingRoute() {
   }
 
   if (access.acceptedEmployeeMemberships.length > 0 && !isOwnerAppAccess(access)) {
+    return <Navigate to="/employee/dashboard" replace />;
+  }
+
+  if (profile?.role && isEmployeeRole(profile.role)) {
     return <Navigate to="/employee/dashboard" replace />;
   }
 

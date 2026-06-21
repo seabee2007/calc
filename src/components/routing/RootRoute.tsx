@@ -49,6 +49,7 @@ export default function RootRoute() {
     accessLoading,
     access,
     profileRole: profile?.role,
+    profileEmployerId: profile?.employerId ?? null,
     profileOnboardingCompletedAt: profile?.onboardingCompletedAt ?? null,
   });
 

@@ -1,7 +1,8 @@
 import type { UserRole } from '../types/fieldPlanner';
-import { isOwnerRole } from '../types/fieldPlanner';
+import { isEmployeeRole, isOwnerRole } from '../types/fieldPlanner';
 import type { ResolvedAppAccess } from '../services/appAccessService';
 import { isOwnerAppAccess } from './appAccessRouting';
+import { employeeNeedsOnboarding } from './employeeOnboarding';
 
 export type RootAccessKind =
   | 'loading'
@@ -35,7 +36,9 @@ export function resolveRootAccessKind(params: {
 
   if (params.access.isOwner) return 'owner';
   if (params.access.isWorkspaceAdmin) return 'admin';
-  if (params.access.acceptedEmployeeMemberships.length > 0) return 'employee';
+  if (params.access.acceptedEmployeeMemberships.length > 0 || params.access.isFieldEmployeeAccount) {
+    return 'employee';
+  }
   return 'new_owner';
 }
 
@@ -56,6 +59,7 @@ export function resolveRootRouteTarget(params: {
   accessLoading: boolean;
   access: ResolvedAppAccess | null;
   profileRole?: UserRole;
+  profileEmployerId?: string | null;
   profileOnboardingCompletedAt?: string | null;
 }): RootRouteDecision {
   const accessKind = resolveRootAccessKind(params);
@@ -91,11 +95,20 @@ export function resolveRootRouteTarget(params: {
     };
   }
 
-  if (params.access.acceptedEmployeeMemberships.length > 0) {
+  if (params.access.acceptedEmployeeMemberships.length > 0 || params.access.isFieldEmployeeAccount) {
+    const needsEmployeeOnboarding =
+      params.profileRole &&
+      isEmployeeRole(params.profileRole) &&
+      employeeNeedsOnboarding({
+        role: params.profileRole,
+        employerId: params.profileEmployerId ?? null,
+        onboardingCompletedAt: params.profileOnboardingCompletedAt ?? null,
+      });
+
     return {
       type: 'redirect',
-      to: '/employee/dashboard',
-      reason: 'root-employee-dashboard',
+      to: needsEmployeeOnboarding ? '/employee/onboarding' : '/employee/dashboard',
+      reason: needsEmployeeOnboarding ? 'root-employee-onboarding' : 'root-employee-dashboard',
       accessKind: 'employee',
     };
   }

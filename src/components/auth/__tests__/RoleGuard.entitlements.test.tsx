@@ -8,10 +8,16 @@ import { clearPersistedAppAccessState, writePersistedReturnTo } from '../../../l
 const mocks = vi.hoisted(() => ({
   authState: {
     user: { id: 'user-1' } as { id: string } | null,
-    profile: { id: 'user-1', role: 'employee', employerId: 'owner-1' } as {
+    profile: {
+      id: 'user-1',
+      role: 'employee',
+      employerId: 'owner-1',
+      onboardingCompletedAt: '2026-01-01T00:00:00.000Z',
+    } as {
       id: string;
       role: 'owner' | 'admin' | 'employee';
       employerId: string | null;
+      onboardingCompletedAt?: string | null;
     } | null,
     loading: false,
     profileLoading: false,
@@ -23,6 +29,16 @@ const mocks = vi.hoisted(() => ({
       userId: 'user-1',
       isOwner: false,
       isWorkspaceAdmin: false,
+      isFieldEmployeeAccount: true,
+      employeePortalAccess: {
+        allowed: true,
+        reason: 'allowed' as const,
+        workspaceId: 'owner-1',
+        employerPlanId: 'starter' as const,
+        employeeMembershipId: 'user-1',
+        seatAssigned: true,
+        repaired: false,
+      },
       acceptedEmployeeMemberships: [
         {
           workspaceId: 'owner-1',
@@ -55,7 +71,12 @@ function LocationProbe() {
 describe('EmployeeGuard entitlements', () => {
   beforeEach(() => {
     mocks.authState.user = { id: 'user-1' };
-    mocks.authState.profile = { id: 'user-1', role: 'employee', employerId: 'owner-1' };
+    mocks.authState.profile = {
+      id: 'user-1',
+      role: 'employee',
+      employerId: 'owner-1',
+      onboardingCompletedAt: '2026-01-01T00:00:00.000Z',
+    };
     mocks.authState.loading = false;
     mocks.authState.profileLoading = false;
     mocks.accessState.authSessionResolved = true;
@@ -64,6 +85,16 @@ describe('EmployeeGuard entitlements', () => {
       userId: 'user-1',
       isOwner: false,
       isWorkspaceAdmin: false,
+      isFieldEmployeeAccount: true,
+      employeePortalAccess: {
+        allowed: true,
+        reason: 'allowed',
+        workspaceId: 'owner-1',
+        employerPlanId: 'starter',
+        employeeMembershipId: 'user-1',
+        seatAssigned: true,
+        repaired: false,
+      },
       acceptedEmployeeMemberships: [
         {
           workspaceId: 'owner-1',
@@ -82,6 +113,15 @@ describe('EmployeeGuard entitlements', () => {
   it('blocks employee portal access when employer plan lacks the feature', async () => {
     mocks.accessState.access = {
       ...mocks.accessState.access,
+      employeePortalAccess: {
+        allowed: false,
+        reason: 'field_portal_not_in_employer_plan',
+        workspaceId: 'owner-1',
+        employerPlanId: 'free',
+        employeeMembershipId: 'user-1',
+        seatAssigned: false,
+        repaired: false,
+      },
       acceptedEmployeeMemberships: [
         {
           workspaceId: 'owner-1',
@@ -93,7 +133,7 @@ describe('EmployeeGuard entitlements', () => {
           employerFieldPortalEnabled: false,
         },
       ],
-      defaultRoute: '/onboarding',
+      defaultRoute: '/employee/dashboard',
     };
 
     render(
@@ -128,6 +168,15 @@ describe('EmployeeGuard entitlements', () => {
   it('shows a contact-owner seat-limit message without billing actions when company seats are exhausted', async () => {
     mocks.accessState.access = {
       ...mocks.accessState.access,
+      employeePortalAccess: {
+        allowed: false,
+        reason: 'seat_limit_reached',
+        workspaceId: 'owner-1',
+        employerPlanId: 'starter',
+        employeeMembershipId: 'user-1',
+        seatAssigned: false,
+        repaired: false,
+      },
       acceptedEmployeeMemberships: [
         {
           workspaceId: 'owner-1',
@@ -139,7 +188,7 @@ describe('EmployeeGuard entitlements', () => {
           employerFieldPortalEnabled: true,
         },
       ],
-      defaultRoute: '/onboarding',
+      defaultRoute: '/employee/dashboard',
     };
 
     render(
@@ -162,6 +211,8 @@ describe('EmployeeGuard entitlements', () => {
       userId: 'owner-1',
       isOwner: true,
       isWorkspaceAdmin: false,
+      isFieldEmployeeAccount: false,
+      employeePortalAccess: null,
       acceptedEmployeeMemberships: [],
       defaultRoute: '/dashboard',
     };

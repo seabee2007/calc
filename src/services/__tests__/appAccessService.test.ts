@@ -5,6 +5,7 @@ import {
 } from '../appAccessService';
 import { fetchProfile, fetchTeamProfiles } from '../profileService';
 import { fetchSubscription } from '../subscriptionService';
+import { fetchEmployeePortalAccess } from '../employeePortalAccessService';
 import { supabase } from '../../lib/supabase';
 
 vi.mock('../../lib/supabase', () => ({
@@ -24,12 +25,19 @@ vi.mock('../subscriptionService', () => ({
     row?.status === 'active' ? row.planId : 'free',
 }));
 
+vi.mock('../employeePortalAccessService', () => ({
+  fetchEmployeePortalAccess: vi.fn(),
+  logEmployeePortalAccessDiagnostics: vi.fn(),
+}));
+
 describe('resolveAppAccess', () => {
   beforeEach(() => {
     vi.mocked(fetchProfile).mockReset();
     vi.mocked(fetchTeamProfiles).mockReset();
     vi.mocked(fetchSubscription).mockReset();
+    vi.mocked(fetchEmployeePortalAccess).mockReset();
     vi.mocked(supabase.from).mockReset();
+    vi.mocked(fetchSubscription).mockResolvedValue(null);
   });
 
   it('prioritizes owner workspace ownership over employee membership', async () => {
@@ -85,6 +93,7 @@ describe('resolveAppAccess', () => {
     expect(access.defaultRoute).toBe('/dashboard');
     expect(access.acceptedEmployeeMemberships).toEqual([]);
     expect(fetchTeamProfiles).not.toHaveBeenCalled();
+    expect(fetchEmployeePortalAccess).not.toHaveBeenCalled();
   });
 
   it('does not classify pending invite profiles as accepted employee memberships', async () => {
@@ -109,6 +118,15 @@ describe('resolveAppAccess', () => {
       updatedAt: '',
     });
     vi.mocked(fetchSubscription).mockResolvedValue(null);
+    vi.mocked(fetchEmployeePortalAccess).mockResolvedValue({
+      allowed: false,
+      reason: 'no_accepted_membership',
+      workspaceId: null,
+      employerPlanId: null,
+      employeeMembershipId: null,
+      seatAssigned: false,
+      repaired: false,
+    });
     vi.mocked(supabase.from).mockReturnValue({
       select: vi.fn().mockReturnValue({
         eq: vi.fn().mockResolvedValue({ count: 0, error: null }),
@@ -121,7 +139,7 @@ describe('resolveAppAccess', () => {
     expect(access.defaultRoute).toBe('/onboarding');
   });
 
-  it('resolves employee portal access from employer subscription', async () => {
+  it('resolves employee portal access from employer subscription via RPC', async () => {
     vi.mocked(fetchProfile).mockResolvedValue({
       id: 'employee-1',
       role: 'employee',
@@ -142,6 +160,181 @@ describe('resolveAppAccess', () => {
       createdAt: '',
       updatedAt: '',
     });
+    vi.mocked(fetchEmployeePortalAccess).mockResolvedValue({
+      allowed: true,
+      reason: 'allowed',
+      workspaceId: 'owner-1',
+      employerPlanId: 'starter',
+      employeeMembershipId: 'employee-1',
+      seatAssigned: true,
+      repaired: false,
+    });
+    vi.mocked(supabase.from).mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockResolvedValue({ count: 0, error: null }),
+      }),
+    } as never);
+
+    const access = await resolveAppAccess('employee-1');
+
+    expect(access.defaultRoute).toBe('/employee/dashboard');
+    expect(access.employeePortalAccess?.allowed).toBe(true);
+    expect(access.acceptedEmployeeMemberships[0]?.employerPlanId).toBe('starter');
+    expect(access.acceptedEmployeeMemberships[0]?.employerFieldPortalEnabled).toBe(true);
+    expect(fetchSubscription).not.toHaveBeenCalledWith('owner-1');
+  });
+
+  it('uses employer plan from RPC, never employee personal subscription lookup for portal access', async () => {
+    vi.mocked(fetchProfile).mockResolvedValue({
+      id: 'employee-1',
+      role: 'employee',
+      employerId: 'owner-1',
+      displayName: 'Field User',
+      firstName: null,
+      lastName: null,
+      phone: null,
+      businessAddressStreet: null,
+      businessAddressStreet2: null,
+      businessAddressCity: null,
+      businessAddressState: null,
+      businessAddressPostalCode: null,
+      agreementAcceptedAt: null,
+      agreementVersion: null,
+      onboardingCompletedAt: null,
+      onboardingVersion: null,
+      createdAt: '',
+      updatedAt: '',
+    });
+    vi.mocked(fetchEmployeePortalAccess).mockResolvedValue({
+      allowed: true,
+      reason: 'allowed',
+      workspaceId: 'owner-1',
+      employerPlanId: 'starter',
+      employeeMembershipId: 'employee-1',
+      seatAssigned: true,
+      repaired: false,
+    });
+    vi.mocked(supabase.from).mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockResolvedValue({ count: 0, error: null }),
+      }),
+    } as never);
+
+    const access = await resolveAppAccess('employee-1');
+
+    expect(access.isOwner).toBe(false);
+    expect(access.acceptedEmployeeMemberships[0]?.employerPlanId).toBe('starter');
+    expect(fetchSubscription).not.toHaveBeenCalledWith('owner-1');
+    expect(fetchEmployeePortalAccess).toHaveBeenCalledWith(true);
+  });
+
+  it('routes ineligible accepted employees to /employee/dashboard for guard-side blocking', async () => {
+    vi.mocked(fetchProfile).mockResolvedValue({
+      id: 'employee-1',
+      role: 'employee',
+      employerId: 'owner-1',
+      displayName: 'Field User',
+      firstName: null,
+      lastName: null,
+      phone: null,
+      businessAddressStreet: null,
+      businessAddressStreet2: null,
+      businessAddressCity: null,
+      businessAddressState: null,
+      businessAddressPostalCode: null,
+      agreementAcceptedAt: null,
+      agreementVersion: null,
+      onboardingCompletedAt: null,
+      onboardingVersion: null,
+      createdAt: '',
+      updatedAt: '',
+    });
+    vi.mocked(fetchEmployeePortalAccess).mockResolvedValue({
+      allowed: false,
+      reason: 'employer_subscription_not_found',
+      workspaceId: 'owner-1',
+      employerPlanId: null,
+      employeeMembershipId: 'employee-1',
+      seatAssigned: false,
+      repaired: false,
+    });
+    vi.mocked(supabase.from).mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockResolvedValue({ count: 0, error: null }),
+      }),
+    } as never);
+
+    const access = await resolveAppAccess('employee-1');
+
+    expect(access.defaultRoute).toBe('/employee/dashboard');
+    expect(access.employeePortalAccess?.reason).toBe('employer_subscription_not_found');
+  });
+
+  it('repairs incomplete accepted invitations through RPC', async () => {
+    vi.mocked(fetchProfile).mockResolvedValue({
+      id: 'employee-1',
+      role: 'employee',
+      employerId: 'owner-1',
+      displayName: 'Field User',
+      firstName: null,
+      lastName: null,
+      phone: null,
+      businessAddressStreet: null,
+      businessAddressStreet2: null,
+      businessAddressCity: null,
+      businessAddressState: null,
+      businessAddressPostalCode: null,
+      agreementAcceptedAt: null,
+      agreementVersion: null,
+      onboardingCompletedAt: null,
+      onboardingVersion: null,
+      createdAt: '',
+      updatedAt: '',
+    });
+    vi.mocked(fetchEmployeePortalAccess).mockResolvedValue({
+      allowed: true,
+      reason: 'allowed',
+      workspaceId: 'owner-1',
+      employerPlanId: 'starter',
+      employeeMembershipId: 'employee-1',
+      seatAssigned: true,
+      repaired: true,
+    });
+    vi.mocked(supabase.from).mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockResolvedValue({ count: 0, error: null }),
+      }),
+    } as never);
+
+    const access = await resolveAppAccess('employee-1');
+
+    expect(fetchEmployeePortalAccess).toHaveBeenCalledWith(true);
+    expect(access.employeePortalAccess?.repaired).toBe(true);
+    expect(access.employeePortalAccess?.allowed).toBe(true);
+  });
+
+  it('falls back to legacy client resolver when RPC is unavailable', async () => {
+    vi.mocked(fetchProfile).mockResolvedValue({
+      id: 'employee-1',
+      role: 'employee',
+      employerId: 'owner-1',
+      displayName: 'Field User',
+      firstName: null,
+      lastName: null,
+      phone: null,
+      businessAddressStreet: null,
+      businessAddressStreet2: null,
+      businessAddressCity: null,
+      businessAddressState: null,
+      businessAddressPostalCode: null,
+      agreementAcceptedAt: null,
+      agreementVersion: null,
+      onboardingCompletedAt: null,
+      onboardingVersion: null,
+      createdAt: '',
+      updatedAt: '',
+    });
+    vi.mocked(fetchEmployeePortalAccess).mockResolvedValue(null);
     vi.mocked(fetchSubscription).mockImplementation(async (userId: string) =>
       userId === 'owner-1'
         ? {
@@ -192,65 +385,8 @@ describe('resolveAppAccess', () => {
 
     const access = await resolveAppAccess('employee-1');
 
-    expect(access.defaultRoute).toBe('/employee/dashboard');
     expect(access.acceptedEmployeeMemberships[0]?.employerPlanId).toBe('starter');
-    expect(access.acceptedEmployeeMemberships[0]?.employerFieldPortalEnabled).toBe(true);
-  });
-
-  it('routes ineligible accepted employees to /employee/dashboard for guard-side blocking', async () => {
-    vi.mocked(fetchProfile).mockResolvedValue({
-      id: 'employee-1',
-      role: 'employee',
-      employerId: 'owner-1',
-      displayName: 'Field User',
-      firstName: null,
-      lastName: null,
-      phone: null,
-      businessAddressStreet: null,
-      businessAddressStreet2: null,
-      businessAddressCity: null,
-      businessAddressState: null,
-      businessAddressPostalCode: null,
-      agreementAcceptedAt: null,
-      agreementVersion: null,
-      onboardingCompletedAt: null,
-      onboardingVersion: null,
-      createdAt: '',
-      updatedAt: '',
-    });
-    vi.mocked(fetchSubscription).mockResolvedValue(null);
-    vi.mocked(fetchTeamProfiles).mockResolvedValue([
-      {
-        id: 'employee-1',
-        role: 'employee',
-        employerId: 'owner-1',
-        displayName: 'Field User',
-        firstName: null,
-        lastName: null,
-        phone: null,
-        businessAddressStreet: null,
-        businessAddressStreet2: null,
-        businessAddressCity: null,
-        businessAddressState: null,
-        businessAddressPostalCode: null,
-        agreementAcceptedAt: null,
-        agreementVersion: null,
-        onboardingCompletedAt: null,
-        onboardingVersion: null,
-        createdAt: '',
-        updatedAt: '',
-      },
-    ]);
-    vi.mocked(supabase.from).mockReturnValue({
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockResolvedValue({ count: 0, error: null }),
-      }),
-    } as never);
-
-    const access = await resolveAppAccess('employee-1');
-
-    expect(access.defaultRoute).toBe('/employee/dashboard');
-    expect(access.acceptedEmployeeMemberships[0]?.employerFieldPortalEnabled).toBe(false);
+    expect(access.employeePortalAccess).toBeNull();
   });
 
   it('treats accounts with own active subscription as owner even when profile tags employee', async () => {
@@ -306,6 +442,7 @@ describe('resolveAppAccess', () => {
     expect(access.defaultRoute).toBe('/dashboard');
     expect(access.acceptedEmployeeMemberships).toEqual([]);
     expect(fetchTeamProfiles).not.toHaveBeenCalled();
+    expect(fetchEmployeePortalAccess).not.toHaveBeenCalled();
   });
 });
 
@@ -315,6 +452,7 @@ describe('resolveDefaultRouteFromAccess', () => {
       resolveDefaultRouteFromAccess({
         isOwner: true,
         isWorkspaceAdmin: false,
+        isFieldEmployeeAccount: false,
         acceptedEmployeeMemberships: [
           {
             workspaceId: 'owner-1',
@@ -328,5 +466,16 @@ describe('resolveDefaultRouteFromAccess', () => {
         ],
       }),
     ).toBe('/dashboard');
+  });
+
+  it('routes linked field employees without RPC membership to employee dashboard', () => {
+    expect(
+      resolveDefaultRouteFromAccess({
+        isOwner: false,
+        isWorkspaceAdmin: false,
+        isFieldEmployeeAccount: true,
+        acceptedEmployeeMemberships: [],
+      }),
+    ).toBe('/employee/dashboard');
   });
 });

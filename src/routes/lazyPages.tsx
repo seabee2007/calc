@@ -156,6 +156,9 @@ export const LazyEmployeeTaskPlannerRedirect = lazyPage(
 
 // Employee portal
 export const LazyEmployeeLayout = lazyPage(() => import('../components/layout/EmployeeLayout'));
+export const LazyEmployeeOnboardingPage = lazyPage(
+  () => import('../pages/employee/EmployeeOnboardingPage'),
+);
 export const LazyEmployeeDashboardPage = lazyPage(
   () => import('../pages/employee/EmployeeDashboardPage'),
 );

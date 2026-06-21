@@ -100,6 +100,7 @@ import {
   LazyPlannerTeamPage,
   LazyEmployeeTaskPlannerRedirect,
   LazyEmployeeLayout,
+  LazyEmployeeOnboardingPage,
   LazyEmployeeDashboardPage,
   LazyEmployeeTasksPage,
   LazyEmployeePlannerPage,
@@ -777,6 +778,14 @@ function App() {
               <Route path="team" element={<LazyRoute Page={LazyPlannerTeamPage} />} />
             </Route>
           </Route>
+          <Route
+            path="/employee/onboarding"
+            element={
+              <AuthGuard>
+                <LazyRoute Page={LazyEmployeeOnboardingPage} />
+              </AuthGuard>
+            }
+          />
           <Route
             path="employee"
             element={
