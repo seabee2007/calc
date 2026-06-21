@@ -68,7 +68,7 @@ const Navbar: React.FC<NavbarProps> = ({ showThemeToggle = true, softHeader = fa
   const openTools = useToolsModalStore((s) => s.open);
   const toolsModalOpen = useToolsModalStore((s) => s.isOpen);
 
-  const dashboardHref = isEmployee && !isOwner ? '/employee/dashboard' : '/';
+  const dashboardHref = isEmployee && !isOwner ? '/employee/dashboard' : '/dashboard';
   const toolsActive = toolsModalOpen || isToolsPath(location.pathname);
   const sectionLabel = useMemo(
     () => sectionLabelForPath(location.pathname, location.search),

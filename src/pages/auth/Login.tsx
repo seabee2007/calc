@@ -1,19 +1,28 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
-import { Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { HardHat, Lock, Mail } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { useAppAccess } from '../../contexts/AppAccessContext';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import { supabase } from '../../lib/supabase';
 import { setLoginIntent, type LoginIntent } from '../../lib/loginIntent';
 import SocialLoginButtons from '../../components/auth/SocialLoginButtons';
-import { isEmployeeRole } from '../../types/fieldPlanner';
 import {
   applyFieldEmployeeProfileLinking,
   loadAuthenticatedUserProfile,
   resolveFieldPortalLoginError,
 } from './postAuthRouting';
+import {
+  accessInputFromRole,
+  resolveAuthorizedPostLoginRoute,
+  resolvePostLoginRoute,
+  resolveSignedOutRoute,
+} from '../../lib/appAccessRouting';
+import { resolveAppAccess } from '../../services/appAccessService';
+import AccessLoadingSurface from '../../components/routing/AccessLoadingSurface';
+import AuthenticatedSessionPrompt from '../../components/auth/AuthenticatedSessionPrompt';
 import AuthLayout, {
   AuthAlert,
   AuthDivider,
@@ -30,13 +39,12 @@ interface LoginForm {
 type LoginPath = 'admin' | 'field' | null;
 
 export function resolvePostLoginDest(role: string | undefined, returnTo?: string): string {
-  if (isEmployeeRole(role)) return '/employee/dashboard';
-  if (returnTo && returnTo.startsWith('/') && !returnTo.startsWith('//')) return returnTo;
-  return '/';
+  return resolveAuthorizedPostLoginRoute(accessInputFromRole(role), returnTo);
 }
 
 const Login: React.FC = () => {
-  const { signIn, refreshProfile, user, profile, loading: authLoading } = useAuth();
+  const { signIn, refreshProfile, user, profile, loading: authLoading, profileLoading } = useAuth();
+  const { access, accessResolutionState, authSessionResolved, refreshAccess } = useAppAccess();
   const navigate = useNavigate();
   const location = useLocation();
   const inviteToken =
@@ -58,9 +66,26 @@ const Login: React.FC = () => {
 
   const emailValue = watch('email');
 
-  // If already authenticated, return to the app shell so bootstrap/legal/onboarding gates run.
-  if (!authLoading && user) {
-    return <Navigate to={resolvePostLoginDest(profile?.role, returnTo)} replace />;
+  const sessionStillLoading =
+    !authLoading &&
+    Boolean(user) &&
+    (profileLoading ||
+      !authSessionResolved ||
+      accessResolutionState === 'loading' ||
+      accessResolutionState === 'idle');
+
+  const isAuthenticatedSession =
+    !authLoading &&
+    Boolean(user) &&
+    authSessionResolved &&
+    !profileLoading &&
+    accessResolutionState === 'resolved' &&
+    Boolean(access);
+
+  const continueHref = access ? resolvePostLoginRoute(access, returnTo) : '/dashboard';
+
+  if (sessionStillLoading) {
+    return <AccessLoadingSurface />;
   }
 
   const onSubmit = async (data: LoginForm) => {
@@ -85,6 +110,7 @@ const Login: React.FC = () => {
       }
 
       await refreshProfile();
+      await refreshAccess();
 
       const profile = session.user
         ? await loadAuthenticatedUserProfile(loginIntent)
@@ -96,7 +122,12 @@ const Login: React.FC = () => {
         return;
       }
 
-      const dest = resolvePostLoginDest(profile?.role, returnTo);
+      const resolvedAccess = session.user
+        ? await resolveAppAccess(session.user.id, profile)
+        : null;
+      const dest = resolvedAccess
+        ? resolvePostLoginRoute(resolvedAccess, returnTo)
+        : resolveSignedOutRoute(returnTo);
       navigate(dest, { replace: true });
     } catch {
       setError('root', {
@@ -166,13 +197,17 @@ const Login: React.FC = () => {
 
       {loginMessage && <AuthAlert variant="success">{loginMessage}</AuthAlert>}
 
+      {isAuthenticatedSession && (
+        <AuthenticatedSessionPrompt continueHref={continueHref} />
+      )}
+
       {(oauthError || socialLoginError) && (
         <AuthAlert variant="error">
           {socialLoginError ?? 'Social login failed. Please try again.'}
         </AuthAlert>
       )}
 
-      {!resetEmailSent && (
+      {!isAuthenticatedSession && !resetEmailSent && (
         <>
           <SocialLoginButtons
             appearance="auth-dark"
@@ -195,7 +230,7 @@ const Login: React.FC = () => {
           If an account exists with {emailValue}, password reset instructions have been sent.
           Please check your email inbox.
         </AuthAlert>
-      ) : (
+      ) : !isAuthenticatedSession ? (
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="auth-page-inputs space-y-6 [&_label]:text-slate-300"
@@ -276,7 +311,7 @@ const Login: React.FC = () => {
             </button>
           </p>
         </form>
-      )}
+      ) : null}
     </AuthLayout>
   );
 };

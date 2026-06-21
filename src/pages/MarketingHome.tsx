@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { goToAppAuth } from '../config/brand';
 import Button from '../components/ui/Button';
 import { useAuth } from '../hooks/useAuth';
+import { useAppAccess } from '../contexts/AppAccessContext';
 import { AUTH_ACCENT } from '../components/auth/authBrandTheme';
 import {
   MARKETING_FEATURE_CARDS,
@@ -17,14 +18,19 @@ import {
 
 export default function MarketingHome() {
   const navigate = useNavigate();
-  const { user, isEmployee } = useAuth();
+  const { user } = useAuth();
+  const { access, accessResolutionState, authSessionResolved } = useAppAccess();
 
   const openWorkspace = () => {
-    if (isEmployee) {
-      navigate('/employee/dashboard');
+    if (!user) {
+      goToAppAuth('/login', navigate);
       return;
     }
-    navigate('/projects');
+    if (!authSessionResolved || accessResolutionState !== 'resolved' || !access) {
+      navigate('/login');
+      return;
+    }
+    navigate(access.defaultRoute);
   };
 
   return (

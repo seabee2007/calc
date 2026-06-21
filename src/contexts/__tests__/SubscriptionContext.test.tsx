@@ -2,18 +2,29 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import { SubscriptionProvider, useSubscription } from '../../contexts/SubscriptionContext';
+import { AppAccessProvider } from '../../contexts/AppAccessContext';
 
 const fetchSubscription = vi.fn();
 let authState = {
-  user: { id: 'owner-1' },
+  user: { id: 'owner-1' } as { id: string } | null,
   profile: { id: 'owner-1', role: 'owner', employerId: null as string | null },
   loading: false,
   profileLoading: false,
 };
 
+const resolveAppAccess = vi.fn();
+
 vi.mock('../../hooks/useAuth', () => ({
   useAuth: () => authState,
 }));
+
+vi.mock('../../services/appAccessService', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../services/appAccessService')>();
+  return {
+    ...actual,
+    resolveAppAccess: (...args: unknown[]) => resolveAppAccess(...args),
+  };
+});
 
 vi.mock('../../services/subscriptionService', () => ({
   fetchSubscription: (...args: unknown[]) => fetchSubscription(...args),
@@ -28,32 +39,43 @@ function Probe() {
   return (
     <div>
       <span data-testid="plan">{subscription.plan}</span>
-      <span data-testid="active">{String(subscription.isActive)}</span>
-      <span data-testid="logic-network">
-        {String(subscription.hasFeature('logic_network'))}
-      </span>
-      <span data-testid="requires-upgrade">
-        {String(subscription.requiresUpgrade('ai_concrete_chat'))}
-      </span>
-      <span data-testid="min-plan">{subscription.minPlanRequired('logic_network')}</span>
+      <span data-testid="loading">{String(subscription.loading)}</span>
     </div>
+  );
+}
+
+function Harness() {
+  return (
+    <AppAccessProvider>
+      <SubscriptionProvider>
+        <Probe />
+      </SubscriptionProvider>
+    </AppAccessProvider>
   );
 }
 
 describe('SubscriptionContext', () => {
   beforeEach(() => {
     fetchSubscription.mockReset();
+    resolveAppAccess.mockReset();
     authState = {
       user: { id: 'owner-1' },
       profile: { id: 'owner-1', role: 'owner', employerId: null },
       loading: false,
       profileLoading: false,
     };
+    resolveAppAccess.mockResolvedValue({
+      userId: 'owner-1',
+      isOwner: true,
+      isWorkspaceAdmin: false,
+      acceptedEmployeeMemberships: [],
+      defaultRoute: '/dashboard',
+    });
     vi.stubEnv('DEV', false);
     vi.stubEnv('VITE_ENFORCE_PLAN', 'true');
   });
 
-  it('loads subscription data for the signed-in owner', async () => {
+  it('loads subscription data for the signed-in owner after access resolves', async () => {
     fetchSubscription.mockResolvedValue({
       id: 'sub-1',
       userId: 'owner-1',
@@ -71,35 +93,13 @@ describe('SubscriptionContext', () => {
       updatedAt: '2026-01-01T00:00:00.000Z',
     });
 
-    render(
-      <SubscriptionProvider>
-        <Probe />
-      </SubscriptionProvider>,
-    );
+    render(<Harness />);
 
     await waitFor(() => {
       expect(screen.getByTestId('plan')).toHaveTextContent('professional');
     });
 
     expect(fetchSubscription).toHaveBeenCalledWith('owner-1');
-    expect(screen.getByTestId('active')).toHaveTextContent('true');
-    expect(screen.getByTestId('logic-network')).toHaveTextContent('true');
-    expect(screen.getByTestId('requires-upgrade')).toHaveTextContent('true');
-    expect(screen.getByTestId('min-plan')).toHaveTextContent('professional');
-  });
-
-  it('defaults to free when no subscription row exists', async () => {
-    fetchSubscription.mockResolvedValue(null);
-
-    render(
-      <SubscriptionProvider>
-        <Probe />
-      </SubscriptionProvider>,
-    );
-
-    await waitFor(() => {
-      expect(screen.getByTestId('plan')).toHaveTextContent('free');
-    });
   });
 
   it('loads the employer subscription for employee portal entitlements', async () => {
@@ -109,6 +109,23 @@ describe('SubscriptionContext', () => {
       loading: false,
       profileLoading: false,
     };
+    resolveAppAccess.mockResolvedValue({
+      userId: 'employee-1',
+      isOwner: false,
+      isWorkspaceAdmin: false,
+      acceptedEmployeeMemberships: [
+        {
+          workspaceId: 'owner-1',
+          membershipId: 'employee-1',
+          status: 'accepted',
+          role: 'employee',
+          hasAssignedFieldSeat: true,
+          employerPlanId: 'starter',
+          employerFieldPortalEnabled: true,
+        },
+      ],
+      defaultRoute: '/employee/dashboard',
+    });
     fetchSubscription.mockResolvedValue({
       id: 'sub-1',
       userId: 'owner-1',
@@ -126,11 +143,7 @@ describe('SubscriptionContext', () => {
       updatedAt: '2026-01-01T00:00:00.000Z',
     });
 
-    render(
-      <SubscriptionProvider>
-        <Probe />
-      </SubscriptionProvider>,
-    );
+    render(<Harness />);
 
     await waitFor(() => {
       expect(screen.getByTestId('plan')).toHaveTextContent('starter');

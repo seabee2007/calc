@@ -60,6 +60,7 @@ const OperationsDashboard: React.FC = () => {
   useEffect(() => {
     if (
       location.pathname === '/' ||
+      location.pathname === '/dashboard' ||
       location.pathname === '/dispatch' ||
       location.pathname === '/qc'
     ) {

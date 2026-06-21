@@ -5,6 +5,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { AuthProvider } from './hooks/useAuth';
+import { AppAccessProvider } from './contexts/AppAccessContext';
 import { ConfirmProvider } from './contexts/ConfirmContext';
 import { SubscriptionProvider } from './contexts/SubscriptionContext';
 import RootErrorBoundary from './components/layout/RootErrorBoundary';
@@ -40,11 +41,13 @@ root.render(
     <StrictMode>
       <BrowserRouter>
         <AuthProvider>
-          <SubscriptionProvider>
-            <ConfirmProvider>
-              <App />
-            </ConfirmProvider>
-          </SubscriptionProvider>
+          <AppAccessProvider>
+            <SubscriptionProvider>
+              <ConfirmProvider>
+                <App />
+              </ConfirmProvider>
+            </SubscriptionProvider>
+          </AppAccessProvider>
         </AuthProvider>
       </BrowserRouter>
     </StrictMode>

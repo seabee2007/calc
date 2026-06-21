@@ -1,5 +1,7 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { logoutAndRedirect } from '../../services/appLogout';
 import LegalAcceptanceModal from './LegalAcceptanceModal';
 import Button from '../ui/Button';
 
@@ -27,7 +29,12 @@ const LegalAcceptanceGate: React.FC<LegalAcceptanceGateProps> = ({
   onRetry,
   isAccepting = false,
 }) => {
+  const navigate = useNavigate();
   const { signOut } = useAuth();
+
+  const handleSignOut = () => {
+    void logoutAndRedirect(signOut, navigate);
+  };
 
   if (isLoading) {
     return (
@@ -61,7 +68,7 @@ const LegalAcceptanceGate: React.FC<LegalAcceptanceGateProps> = ({
             <Button
               type="button"
               variant="secondary"
-              onClick={() => void signOut()}
+              onClick={handleSignOut}
               data-testid="legal-acceptance-session-signout"
             >
               Sign Out

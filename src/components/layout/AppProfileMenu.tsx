@@ -12,6 +12,7 @@ import {
   User,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { logoutAndRedirect } from '../../services/appLogout';
 import { useDefinitionsHelpStore } from '../../features/help/definitionsHelpStore';
 import { useThemeStore } from '../../store/themeStore';
 import { isFieldOnlyRole } from '../../types/fieldPlanner';
@@ -65,7 +66,7 @@ function FieldUserProfileMenu({
 
   const handleSignOut = () => {
     onClose();
-    void signOut().then(() => navigate('/login'));
+    void logoutAndRedirect(signOut, navigate);
   };
 
   return (
@@ -131,7 +132,7 @@ function AdminUserProfileMenu({
 
   const handleSignOut = () => {
     onClose();
-    void signOut().then(() => navigate('/login'));
+    void logoutAndRedirect(signOut, navigate);
   };
 
   return (

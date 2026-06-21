@@ -17,6 +17,7 @@ const LEGAL_GATE_BYPASS_PREFIXES = [
   '/complete-profile',
   '/auth/callback',
   '/reset-password',
+  '/onboarding',
 ] as const;
 
 export function isLegalGateBypassRoute(pathname: string): boolean {

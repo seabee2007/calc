@@ -15,6 +15,8 @@ import type { User } from '@supabase/supabase-js';
 import type { Profile } from '../types/fieldPlanner';
 import { createOwnerProfile, fetchProfile } from '../services/profileService';
 import { clearLegalAcceptanceSessionCache } from '../services/legalAcceptanceService';
+import { clearPersistedAppAccessState } from '../lib/appAccessPersistence';
+import { clearResolvedAppAccess } from '../lib/appAccessReset';
 import { ONBOARDING_COMPLETED_KEY } from '../utils/onboardingStatus';
 import { isEmployeeRole, isOwnerRole } from '../types/fieldPlanner';
 
@@ -105,6 +107,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         applySession(session?.user ?? null);
+        if (!session?.user) {
+          clearPersistedAppAccessState();
+          clearResolvedAppAccess();
+        }
       })
       .catch(async (error) => {
         if (!active) return;
@@ -124,6 +130,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!active) return;
 
       if (event === 'SIGNED_OUT' || !session) {
+        clearPersistedAppAccessState();
+        clearResolvedAppAccess();
         setUser(null);
         setProfile(null);
         setLoading(false);
@@ -197,6 +205,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error('[auth] Sign out error:', error);
       }
     } finally {
+      clearResolvedAppAccess();
+      clearPersistedAppAccessState();
       if (userId) {
         clearLegalAcceptanceSessionCache(userId);
       }
@@ -208,6 +218,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await clearStaleAuthSession();
       setUser(null);
       setProfile(null);
+      setLoading(false);
+      setProfileLoading(false);
     }
   }, [user?.id]);
 

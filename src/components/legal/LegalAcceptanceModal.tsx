@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 import { ExternalLink, FileText, Shield } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { logoutAndRedirect } from '../../services/appLogout';
 import {
   CURRENT_PRIVACY_VERSION,
   CURRENT_TERMS_VERSION,
@@ -21,6 +23,7 @@ const LegalAcceptanceModal: React.FC<LegalAcceptanceModalProps> = ({
   loadError = null,
 }) => {
   const { signOut } = useAuth();
+  const navigate = useNavigate();
   const [checked, setChecked] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -48,7 +51,7 @@ const LegalAcceptanceModal: React.FC<LegalAcceptanceModalProps> = ({
   };
 
   const handleLogout = async () => {
-    await signOut();
+    await logoutAndRedirect(signOut, navigate);
   };
 
   const openLegalDocument = (path: '/terms' | '/privacy-policy') => {

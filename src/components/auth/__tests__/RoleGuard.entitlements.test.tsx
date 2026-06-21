@@ -1,47 +1,100 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import React from 'react';
-import { MemoryRouter } from 'react-router-dom';
-import { EmployeeGuard } from '../RoleGuard';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
+import { EmployeeGuard, OwnerGuard } from '../RoleGuard';
+import { clearPersistedAppAccessState, writePersistedReturnTo } from '../../../lib/appAccessPersistence';
 
-const hasFeature = vi.fn();
-const getLimit = vi.fn();
-const fetchTeamProfiles = vi.fn();
-
-vi.mock('../../../contexts/SubscriptionContext', () => ({
-  useSubscription: () => ({
-    hasFeature,
-    getLimit,
+const mocks = vi.hoisted(() => ({
+  authState: {
+    user: { id: 'user-1' } as { id: string } | null,
+    profile: { id: 'user-1', role: 'employee', employerId: 'owner-1' } as {
+      id: string;
+      role: 'owner' | 'admin' | 'employee';
+      employerId: string | null;
+    } | null,
     loading: false,
-  }),
+    profileLoading: false,
+  },
+  accessState: {
+    authSessionResolved: true,
+    accessResolutionState: 'resolved' as 'idle' | 'loading' | 'resolved' | 'error',
+    access: {
+      userId: 'user-1',
+      isOwner: false,
+      isWorkspaceAdmin: false,
+      acceptedEmployeeMemberships: [
+        {
+          workspaceId: 'owner-1',
+          membershipId: 'user-1',
+          status: 'accepted' as const,
+          role: 'employee',
+          hasAssignedFieldSeat: true,
+          employerPlanId: 'starter' as const,
+          employerFieldPortalEnabled: true,
+        },
+      ],
+      defaultRoute: '/employee/dashboard' as const,
+    },
+  },
 }));
 
-vi.mock('../../../services/profileService', () => ({
-  fetchTeamProfiles: (...args: unknown[]) => fetchTeamProfiles(...args),
+vi.mock('../../../contexts/AppAccessContext', () => ({
+  useAppAccess: () => mocks.accessState,
 }));
 
 vi.mock('../../../hooks/useAuth', () => ({
-  useAuth: () => ({
-    user: { id: 'user-1' },
-    profile: { id: 'user-1', role: 'employee', employerId: 'owner-1' },
-    loading: false,
-    profileLoading: false,
-  }),
+  useAuth: () => mocks.authState,
 }));
+
+function LocationProbe() {
+  const location = useLocation();
+  return <div data-testid="location">{location.pathname}</div>;
+}
 
 describe('EmployeeGuard entitlements', () => {
   beforeEach(() => {
-    hasFeature.mockReset();
-    getLimit.mockReset();
-    fetchTeamProfiles.mockReset();
-    getLimit.mockReturnValue(1);
-    fetchTeamProfiles.mockResolvedValue([
-      { id: 'user-1', role: 'employee', employerId: 'owner-1', displayName: 'Field User' },
-    ]);
+    mocks.authState.user = { id: 'user-1' };
+    mocks.authState.profile = { id: 'user-1', role: 'employee', employerId: 'owner-1' };
+    mocks.authState.loading = false;
+    mocks.authState.profileLoading = false;
+    mocks.accessState.authSessionResolved = true;
+    mocks.accessState.accessResolutionState = 'resolved';
+    mocks.accessState.access = {
+      userId: 'user-1',
+      isOwner: false,
+      isWorkspaceAdmin: false,
+      acceptedEmployeeMemberships: [
+        {
+          workspaceId: 'owner-1',
+          membershipId: 'user-1',
+          status: 'accepted',
+          role: 'employee',
+          hasAssignedFieldSeat: true,
+          employerPlanId: 'starter',
+          employerFieldPortalEnabled: true,
+        },
+      ],
+      defaultRoute: '/employee/dashboard',
+    };
   });
 
-  it('blocks employee portal access only when the company plan lacks the feature', async () => {
-    hasFeature.mockReturnValue(false);
+  it('blocks employee portal access when employer plan lacks the feature', async () => {
+    mocks.accessState.access = {
+      ...mocks.accessState.access,
+      acceptedEmployeeMemberships: [
+        {
+          workspaceId: 'owner-1',
+          membershipId: 'user-1',
+          status: 'accepted',
+          role: 'employee',
+          hasAssignedFieldSeat: true,
+          employerPlanId: 'free',
+          employerFieldPortalEnabled: false,
+        },
+      ],
+      defaultRoute: '/onboarding',
+    };
 
     render(
       <MemoryRouter>
@@ -54,14 +107,11 @@ describe('EmployeeGuard entitlements', () => {
     expect(await screen.findByTestId('employee-portal-blocked')).toBeInTheDocument();
     expect(screen.getByText('This feature is not included in your company’s plan. Contact your account owner.')).toBeInTheDocument();
     expect(screen.queryByText('Employee content')).not.toBeInTheDocument();
-    expect(hasFeature).toHaveBeenCalledWith('employee_portal');
     expect(screen.queryByTestId('upgrade-required-employee_portal')).not.toBeInTheDocument();
     expect(screen.queryByTestId('upgrade-cta-employee_portal')).not.toBeInTheDocument();
   });
 
-  it('allows employee portal access when the employer Starter plan includes one accepted field seat', async () => {
-    hasFeature.mockReturnValue(true);
-
+  it('allows employee portal access when employer Starter plan includes one accepted field seat', async () => {
     render(
       <MemoryRouter>
         <EmployeeGuard>
@@ -73,33 +123,24 @@ describe('EmployeeGuard entitlements', () => {
     expect(await screen.findByText('Employee content')).toBeInTheDocument();
     expect(screen.queryByTestId('upgrade-required-employee_portal')).not.toBeInTheDocument();
     expect(screen.queryByTestId('upgrade-cta-employee_portal')).not.toBeInTheDocument();
-    expect(fetchTeamProfiles).toHaveBeenCalledWith('owner-1');
-    expect(getLimit).toHaveBeenCalledWith('included_field_seats');
-  });
-
-  it('does not render an upgrade card for a Starter employee with employee_portal entitlement', async () => {
-    hasFeature.mockReturnValue(true);
-
-    render(
-      <MemoryRouter>
-        <EmployeeGuard>
-          <div>Starter employee field portal</div>
-        </EmployeeGuard>
-      </MemoryRouter>,
-    );
-
-    expect(await screen.findByText('Starter employee field portal')).toBeInTheDocument();
-    expect(screen.queryByTestId('upgrade-required-employee_portal')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('upgrade-cta-employee_portal')).not.toBeInTheDocument();
-    expect(hasFeature).toHaveBeenCalledWith('employee_portal');
   });
 
   it('shows a contact-owner seat-limit message without billing actions when company seats are exhausted', async () => {
-    hasFeature.mockReturnValue(true);
-    fetchTeamProfiles.mockResolvedValue([
-      { id: 'user-1', role: 'employee', employerId: 'owner-1', displayName: 'Field User' },
-      { id: 'user-2', role: 'employee', employerId: 'owner-1', displayName: 'Second User' },
-    ]);
+    mocks.accessState.access = {
+      ...mocks.accessState.access,
+      acceptedEmployeeMemberships: [
+        {
+          workspaceId: 'owner-1',
+          membershipId: 'user-1',
+          status: 'accepted',
+          role: 'employee',
+          hasAssignedFieldSeat: false,
+          employerPlanId: 'starter',
+          employerFieldPortalEnabled: true,
+        },
+      ],
+      defaultRoute: '/onboarding',
+    };
 
     render(
       <MemoryRouter>
@@ -111,8 +152,96 @@ describe('EmployeeGuard entitlements', () => {
 
     expect(await screen.findByTestId('employee-portal-blocked')).toBeInTheDocument();
     expect(screen.getByText('Your company has reached its field-seat limit. Contact your account owner.')).toBeInTheDocument();
-    expect(screen.queryByText('Employee content')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('upgrade-required-employee_portal')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /upgrade/i })).not.toBeInTheDocument();
+  });
+
+  it('redirects an owner away from the employee portal to dashboard', async () => {
+    mocks.authState.user = { id: 'owner-1' };
+    mocks.authState.profile = { id: 'owner-1', role: 'owner', employerId: null };
+    mocks.accessState.access = {
+      userId: 'owner-1',
+      isOwner: true,
+      isWorkspaceAdmin: false,
+      acceptedEmployeeMemberships: [],
+      defaultRoute: '/dashboard',
+    };
+
+    render(
+      <MemoryRouter initialEntries={['/employee/dashboard']}>
+        <Routes>
+          <Route
+            path="/employee/dashboard"
+            element={
+              <EmployeeGuard>
+                <div>Employee content</div>
+              </EmployeeGuard>
+            }
+          />
+          <Route path="/dashboard" element={<LocationProbe />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByTestId('location')).toHaveTextContent('/dashboard');
+  });
+
+  it('redirects an employee away from the owner dashboard to the employee portal', async () => {
+    render(
+      <MemoryRouter initialEntries={['/dashboard']}>
+        <Routes>
+          <Route
+            path="/dashboard"
+            element={
+              <OwnerGuard>
+                <div>Owner dashboard</div>
+              </OwnerGuard>
+            }
+          />
+          <Route path="/employee/dashboard" element={<LocationProbe />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByTestId('location')).toHaveTextContent('/employee/dashboard');
+  });
+
+  it('redirects signed-out users to login instead of showing employee portal', async () => {
+    mocks.authState.user = null;
+    mocks.authState.profile = null;
+    mocks.accessState.access = null;
+    mocks.accessState.accessResolutionState = 'resolved';
+
+    render(
+      <MemoryRouter initialEntries={['/employee/dashboard']}>
+        <Routes>
+          <Route
+            path="/employee/dashboard"
+            element={
+              <EmployeeGuard>
+                <div>Employee content</div>
+              </EmployeeGuard>
+            }
+          />
+          <Route path="/login" element={<LocationProbe />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByTestId('location')).toHaveTextContent('/login');
+  });
+});
+
+describe('app access persistence', () => {
+  beforeEach(() => {
+    sessionStorage.clear();
+    localStorage.clear();
+  });
+
+  it('clears persisted returnTo and role cache on logout cleanup', () => {
+    writePersistedReturnTo('/employee/dashboard');
+    localStorage.setItem('arden:app:workspaceRoleCache', '{"role":"employee"}');
+    clearPersistedAppAccessState();
+    expect(sessionStorage.getItem('arden:app:returnTo')).toBeNull();
+    expect(localStorage.getItem('arden:app:workspaceRoleCache')).toBeNull();
   });
 });

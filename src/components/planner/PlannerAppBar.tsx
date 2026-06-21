@@ -26,7 +26,7 @@ export default function PlannerAppBar({ onMenuClick, projectName }: PlannerAppBa
   const openTools = useToolsModalStore((s) => s.open);
   const toolsModalOpen = useToolsModalStore((s) => s.isOpen);
 
-  const dashboardHref = isEmployee && !isOwner ? '/employee/dashboard' : '/';
+  const dashboardHref = isEmployee && !isOwner ? '/employee/dashboard' : '/dashboard';
   const toolsActive = toolsModalOpen || isToolsPath(location.pathname);
 
   const sectionLabel = useMemo(() => {

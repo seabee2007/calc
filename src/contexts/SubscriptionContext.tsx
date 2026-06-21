@@ -7,6 +7,7 @@ import React, {
   useState,
   type ReactNode,
 } from 'react';
+import { useAppAccess } from './AppAccessContext';
 import { useAuth } from '../hooks/useAuth';
 import {
   canCreateProject as canCreateProjectEntitlement,
@@ -25,7 +26,7 @@ import {
   resolveEffectivePlanFromRow,
   type SubscriptionRow,
 } from '../services/subscriptionService';
-import { isOwnerRole } from '../types/fieldPlanner';
+import { subscriptionOwnerIdFromAccess } from '../services/appAccessService';
 
 export interface SubscriptionContextValue {
   plan: PlanId;
@@ -46,21 +47,21 @@ export interface SubscriptionContextValue {
 
 const SubscriptionContext = createContext<SubscriptionContextValue | null>(null);
 
-function resolveSubscriptionOwnerId(
-  userId: string | undefined,
-  profile: ReturnType<typeof useAuth>['profile'],
-): string | null {
-  if (!userId || !profile) return null;
-  if (isOwnerRole(profile.role)) return userId;
-  return profile.employerId ?? null;
-}
-
 export function SubscriptionProvider({ children }: { children: ReactNode }) {
-  const { user, profile, loading: authLoading, profileLoading } = useAuth();
+  const { user, loading: authLoading, profileLoading } = useAuth();
+  const { access, accessResolutionState, authSessionResolved } = useAppAccess();
   const [subscription, setSubscription] = useState<SubscriptionRow | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const subscriptionOwnerId = resolveSubscriptionOwnerId(user?.id, profile);
+  const accessReady =
+    authSessionResolved &&
+    accessResolutionState === 'resolved' &&
+    (!user || !profileLoading);
+
+  const subscriptionOwnerId = useMemo(
+    () => subscriptionOwnerIdFromAccess(user?.id, access),
+    [access, user?.id],
+  );
 
   const refresh = useCallback(async () => {
     if (!subscriptionOwnerId) {
@@ -81,14 +82,20 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
   }, [subscriptionOwnerId]);
 
   useEffect(() => {
-    if (authLoading || profileLoading || !user || !profile) {
+    if (!accessReady) {
       setSubscription(null);
-      setLoading(Boolean(user && (authLoading || profileLoading)));
+      setLoading(Boolean(user));
+      return;
+    }
+
+    if (!user) {
+      setSubscription(null);
+      setLoading(false);
       return;
     }
 
     void refresh();
-  }, [authLoading, profileLoading, user?.id, profile?.id, refresh]);
+  }, [accessReady, accessResolutionState, authSessionResolved, refresh, user]);
 
   const plan = useMemo(
     () => resolveEffectivePlanFromRow(subscription),

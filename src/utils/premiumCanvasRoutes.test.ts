@@ -4,6 +4,7 @@ import { usesPremiumCanvas } from './premiumCanvasRoutes';
 describe('usesPremiumCanvas', () => {
   it('matches in-scope main app routes', () => {
     expect(usesPremiumCanvas('/')).toBe(true);
+    expect(usesPremiumCanvas('/dashboard')).toBe(true);
     expect(usesPremiumCanvas('/projects')).toBe(true);
     expect(usesPremiumCanvas('/projects/abc-123')).toBe(true);
     expect(usesPremiumCanvas('/resources')).toBe(true);

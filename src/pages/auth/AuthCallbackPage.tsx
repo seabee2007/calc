@@ -4,7 +4,8 @@ import AppLoadingScreenComp from '../../components/ui/AppLoadingScreen';
 import { supabase } from '../../lib/supabase';
 import { consumeLoginIntent } from '../../lib/loginIntent';
 import { consumePendingProjectInviteToken } from '../../services/projectInviteService';
-import { resolvePostLoginDest } from './Login';
+import { resolveAppAccess } from '../../services/appAccessService';
+import { resolvePostLoginRoute } from '../../lib/appAccessRouting';
 import {
   applyFieldEmployeeProfileLinking,
   loadAuthenticatedUserProfile,
@@ -45,7 +46,9 @@ async function navigateAfterAuth(
     return;
   }
 
-  const dest = resolvePostLoginDest(profile?.role);
+  const dest = profile
+    ? resolvePostLoginRoute(await resolveAppAccess(profile.id, profile))
+    : '/login';
 
   navigate(dest, { replace: true });
 }

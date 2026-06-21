@@ -29,6 +29,29 @@ vi.mock('../../lib/loginIntent', () => ({
   consumeLoginIntent: vi.fn(() => 'field'),
 }));
 
+vi.mock('../../services/appAccessService', () => ({
+  resolveAppAccess: vi.fn(async (_userId: string, profile: { role?: string } | null) => ({
+    userId: 'user-1',
+    isOwner: profile?.role === 'owner',
+    isWorkspaceAdmin: profile?.role === 'admin',
+    acceptedEmployeeMemberships:
+      profile?.role === 'employee'
+        ? [
+            {
+              workspaceId: 'owner-1',
+              membershipId: 'user-1',
+              status: 'accepted',
+              role: 'employee',
+              hasAssignedFieldSeat: true,
+              employerPlanId: 'starter',
+              employerFieldPortalEnabled: true,
+            },
+          ]
+        : [],
+    defaultRoute: profile?.role === 'employee' ? '/employee/dashboard' : '/dashboard',
+  })),
+}));
+
 vi.mock('./postAuthRouting', () => ({
   applyFieldEmployeeProfileLinking,
   loadAuthenticatedUserProfile,

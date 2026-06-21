@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { getVerifiedAuthUser } from '../lib/authSession';
+import { getVerifiedAuthUser, clearStaleAuthSession } from '../lib/authSession';
 import { bootstrapAuthenticatedUser } from '../services/authBootstrapService';
 import { useAuth } from './useAuth';
 
@@ -40,7 +40,10 @@ export function useAuthBootstrap() {
       try {
         const verified = await getVerifiedAuthUser();
         if (!verified) {
-          if (!cancelled) setPhase('ready');
+          if (user) {
+            await clearStaleAuthSession();
+          }
+          if (!cancelled) setPhase('unauthenticated');
           return;
         }
 
