@@ -19,7 +19,22 @@ import {
   type RidgeAxis,
   UNSUPPORTED_ROOF_FOOTPRINT_MESSAGE,
 } from './roofFootprintSupport';
-import { resolveRoofFraming, resolveRidgeCapPlacement } from './roofFramingResolver';
+import {
+  assertGableEndOverhangMeters,
+  extendRidgeEndpointsForGableOverhang,
+  gableEndOutwardNormal2D,
+  resolveCladdingPerimeterWithOverhangs,
+  resolveFixedRoofPitch,
+  claddingEaveElevationMeters,
+  claddingHorizontalRunMeters,
+  ridgeLengthMeters,
+} from './roofOverhangSupport';
+import {
+  buildCladdingDisplayPlanes,
+  claddingRidgePointOnDisplayPlanes,
+  resolveRoofFraming,
+  resolveRidgeCapPlacement,
+} from './roofFramingResolver';
 
 const ROOF_RENDER_EPSILON_METERS = 0.001;
 
@@ -103,18 +118,49 @@ function buildGableRoofPlanes(params: {
   cladding: readonly PlanVec2[];
   roofBeamTopY: number;
   peakY: number;
-}): { topPlanes: RoofPlane[]; undersidePlanes: RoofPlane[]; ridgeStart: RoofVec3; ridgeEnd: RoofVec3; gableEndSegmentIds: string[] } {
+  gableEndOverhangMeters: number;
+  sideEaveOverhangMeters: number;
+  fixedRoofSlope: number;
+}): {
+  topPlanes: RoofPlane[];
+  undersidePlanes: RoofPlane[];
+  structuralRidgeStart: RoofVec3;
+  structuralRidgeEnd: RoofVec3;
+  claddingRidgeStart: RoofVec3;
+  claddingRidgeEnd: RoofVec3;
+  gableEndSegmentIds: string[];
+} {
   const { analysis, bearing, cladding, roofBeamTopY, peakY } = params;
-  const { ridgeStart, ridgeEnd } = ridgeEndpointsForAxis({
+  const structural = ridgeEndpointsForAxis({
     bearing,
     ridgeAxis: params.ridgeAxis,
     peakY,
   });
+  const ridge = extendRidgeEndpointsForGableOverhang({
+    structuralRidgeStart: structural.ridgeStart,
+    structuralRidgeEnd: structural.ridgeEnd,
+    gableEndOverhangMeters: params.gableEndOverhangMeters,
+    gableOutwardNormalStart: gableEndOutwardNormal2D({
+      bearing,
+      ridgeAxis: params.ridgeAxis,
+      atStartGable: true,
+    }),
+    gableOutwardNormalEnd: gableEndOutwardNormal2D({
+      bearing,
+      ridgeAxis: params.ridgeAxis,
+      atStartGable: false,
+    }),
+  });
+  const { claddingRidgeStart: ridgeStart, claddingRidgeEnd: ridgeEnd } = ridge;
   const evenLong = longEdgesAreEven(bearing);
   const ridgeParallelToEvenEdges =
     (params.ridgeAxis === 'localX' && evenLong) || (params.ridgeAxis === 'localZ' && !evenLong);
 
-  const eaveY = roofBeamTopY;
+  const eaveY = claddingEaveElevationMeters({
+    structuralEaveY: roofBeamTopY,
+    fixedSlope: params.fixedRoofSlope,
+    sideEaveOverhangMeters: params.sideEaveOverhangMeters,
+  });
   let topPlanes: RoofPlane[];
 
   if (ridgeParallelToEvenEdges) {
@@ -166,8 +212,10 @@ function buildGableRoofPlanes(params: {
   return {
     topPlanes,
     undersidePlanes: topPlanes.map((plane) => offsetPlaneDown(plane, 0)),
-    ridgeStart,
-    ridgeEnd,
+    structuralRidgeStart: ridge.structuralRidgeStart,
+    structuralRidgeEnd: ridge.structuralRidgeEnd,
+    claddingRidgeStart: ridge.claddingRidgeStart,
+    claddingRidgeEnd: ridge.claddingRidgeEnd,
     gableEndSegmentIds: gableEndSegmentIdsForRidgeAxis(analysis, params.ridgeAxis),
   };
 }
@@ -240,30 +288,115 @@ function buildHipRoofPlanes(params: {
   return { topPlanes, undersidePlanes: topPlanes.map((plane) => offsetPlaneDown(plane, 0)), ridgeStart, ridgeEnd };
 }
 
-export function roofUndersideElevationAt(params: {
+function pointInTriangle2d(
+  x: number,
+  z: number,
+  a: { x: number; z: number },
+  b: { x: number; z: number },
+  c: { x: number; z: number },
+): boolean {
+  const sign = (p1x: number, p1z: number, p2x: number, p2z: number, p3x: number, p3z: number) =>
+    (p1x - p3x) * (p2z - p3z) - (p2x - p3x) * (p1z - p3z);
+  const d1 = sign(x, z, a.x, a.z, b.x, b.z);
+  const d2 = sign(x, z, b.x, b.z, c.x, c.z);
+  const d3 = sign(x, z, c.x, c.z, a.x, a.z);
+  const hasNegative = d1 < 0 || d2 < 0 || d3 < 0;
+  const hasPositive = d1 > 0 || d2 > 0 || d3 > 0;
+  return !(hasNegative && hasPositive);
+}
+
+function pointInRoofPlaneFootprint(plane: RoofPlane, x: number, z: number): boolean {
+  if (plane.corners.length === 3) {
+    const [a, b, c] = plane.corners;
+    return pointInTriangle2d(x, z, a!, b!, c!);
+  }
+  if (plane.corners.length === 4) {
+    const [a, b, c, d] = plane.corners;
+    return (
+      pointInTriangle2d(x, z, a!, b!, c!) ||
+      pointInTriangle2d(x, z, a!, c!, d!)
+    );
+  }
+  return false;
+}
+
+function elevationOnRoofPlaneAtPoint(plane: RoofPlane, x: number, z: number): number | null {
+  const anchor = plane.corners[0];
+  if (!anchor) return null;
+  const normal = plane.normal;
+  if (Math.abs(normal.y) <= 1e-6) return null;
+  return anchor.y - (normal.x * (x - anchor.x) + normal.z * (z - anchor.z)) / normal.y;
+}
+
+export function resolveRoofTopPlaneAtPoint(params: {
+  resolved: ResolvedRoofSystem;
+  x: number;
+  z: number;
+}): RoofPlane | null {
+  let matched: { plane: RoofPlane; topY: number } | null = null;
+  for (const plane of params.resolved.roofTopPlanes) {
+    if (!pointInRoofPlaneFootprint(plane, params.x, params.z)) continue;
+    const topY = elevationOnRoofPlaneAtPoint(plane, params.x, params.z);
+    if (topY == null) continue;
+    if (!matched || topY > matched.topY) {
+      matched = { plane, topY };
+    }
+  }
+  return matched?.plane ?? null;
+}
+
+export function roofCladdingTopYAtPoint(params: {
   resolved: ResolvedRoofSystem;
   x: number;
   z: number;
 }): number {
-  const thickness = params.resolved.roofAssemblyThicknessMeters ?? 0.15;
+  let matchedTopY = -Infinity;
+  for (const plane of params.resolved.roofTopPlanes) {
+    if (!pointInRoofPlaneFootprint(plane, params.x, params.z)) continue;
+    const topY = elevationOnRoofPlaneAtPoint(plane, params.x, params.z);
+    if (topY != null) {
+      matchedTopY = Math.max(matchedTopY, topY);
+    }
+  }
+  if (Number.isFinite(matchedTopY)) {
+    return matchedTopY;
+  }
+
   const topY = params.resolved.peakElevationMeters;
   const eaveY = params.resolved.roofBeamTopElevationMeters;
-
   let roofTopY = eaveY;
   if (params.resolved.ridgeStart && params.resolved.ridgeEnd) {
     const ridgeStart2 = { x: params.resolved.ridgeStart.x, z: params.resolved.ridgeStart.z };
     const ridgeEnd2 = { x: params.resolved.ridgeEnd.x, z: params.resolved.ridgeEnd.z };
     const distFromRidge = distancePointToLine2D({ x: params.x, z: params.z }, ridgeStart2, ridgeEnd2);
-    const halfRun = Math.max(0.001, params.resolved.rafterRunMeters);
+    const halfRun = Math.max(0.001, params.resolved.structuralRafterRunMeters || params.resolved.rafterRunMeters);
     const rise = topY - eaveY;
     roofTopY = topY - (distFromRidge / halfRun) * rise;
   } else if (params.resolved.peakPoint) {
-    const halfRun = Math.max(0.001, params.resolved.rafterRunMeters);
+    const halfRun = Math.max(0.001, params.resolved.structuralRafterRunMeters || params.resolved.rafterRunMeters);
     const distFromPeak = Math.hypot(params.x - params.resolved.peakPoint.x, params.z - params.resolved.peakPoint.z);
     const rise = topY - eaveY;
     roofTopY = topY - (distFromPeak / halfRun) * rise;
   }
-  return roofTopY - thickness;
+  return roofTopY;
+}
+
+export function roofCladdingUndersideYAtPoint(params: {
+  resolved: ResolvedRoofSystem;
+  x: number;
+  z: number;
+}): number {
+  const thickness = params.resolved.roofAssemblyThicknessMeters ?? 0.15;
+  return roofCladdingTopYAtPoint(params) - thickness;
+}
+
+/** @deprecated Use roofCladdingUndersideYAtPoint — kept for legacy callers. */
+export function roofUndersideElevationAt(params: {
+  resolved: ResolvedRoofSystem;
+  x: number;
+  z: number;
+}): number {
+  return roofCladdingUndersideYAtPoint(params);
 }
 
 export function resolveRoofSystem(params: {
@@ -277,12 +410,27 @@ export function resolveRoofSystem(params: {
 }): ResolvedRoofSystem & { roofAssemblyThicknessMeters: number } {
   const settings = params.roofSystem;
   const bearingLoop = params.structuralBearingPerimeter.map((point) => ({ ...point }));
-  const claddingLoop = resolveCladdingPerimeterFromBearing(bearingLoop, settings.eaveOverhangMeters);
 
   const analysis = analyzeRectangularFootprint({
     layout: params.layout,
     exteriorFootprint: bearingLoop,
   });
+
+  const ridgeAxis = analysis.supported
+    ? resolveRidgeAxis(analysis, settings.ridgeDirection, settings.selectedRidgeWallSegmentId)
+    : ('localX' as RidgeAxis);
+
+  assertGableEndOverhangMeters(settings.gableEndOverhangMeters);
+
+  const claddingLoop =
+    settings.roofType === 'gable'
+      ? resolveCladdingPerimeterWithOverhangs({
+          bearingPerimeter: bearingLoop,
+          ridgeAxis,
+          eaveOverhangMeters: settings.eaveOverhangMeters,
+          gableEndOverhangMeters: settings.gableEndOverhangMeters,
+        })
+      : resolveCladdingPerimeterFromBearing(bearingLoop, settings.eaveOverhangMeters);
 
   const emptyPerimeterVec3 = (points: readonly PlanVec2[]) =>
     points.map((point) => vec3(point.x, params.roofBeamTopElevationMeters, point.z));
@@ -307,11 +455,16 @@ export function resolveRoofSystem(params: {
     roofPeakY: params.roofBeamTopElevationMeters,
     roofAssemblyThicknessMeters: settings.roofAssemblyThicknessMeters,
     roofTopPlanes: [],
+    claddingDisplayPlanes: [],
     roofUndersidePlanes: [],
     gableEndSegmentIds: [],
     rafterRunMeters: 0,
     rafterRiseMeters: 0,
     rafterLengthMeters: 0,
+    structuralRafterRunMeters: 0,
+    claddingRafterRunMeters: 0,
+    claddingRafterLengthMeters: 0,
+    roofPitchRadians: 0,
     roofRunMeters: 0,
     roofRiseMeters: 0,
     roofMemberReferenceLengthMeters: 0,
@@ -326,6 +479,9 @@ export function resolveRoofSystem(params: {
     purlinPlacements: [],
     hipFramingMembers: [],
     ridgeCapPlacement: null,
+    structuralRidgeLengthMeters: 0,
+    claddingRidgeLengthMeters: 0,
+    gableEndOverhangMeters: settings.gableEndOverhangMeters,
     gableCmuAreaSquareMeters: 0,
     rakedCapVolumeCubicMeters: 0,
     gableEnds: [],
@@ -345,17 +501,23 @@ export function resolveRoofSystem(params: {
   const claddingPerimeter = emptyPerimeterVec3(claddingLoop);
   const roofBeamTopY = params.roofBeamTopElevationMeters;
   const peakY = roofBeamTopY + Math.max(0, settings.peakHeightAboveRoofBeamMeters);
-  const ridgeAxis = resolveRidgeAxis(
-    analysis,
-    settings.ridgeDirection,
-    settings.selectedRidgeWallSegmentId,
-  );
   const isSquare = Math.abs(analysis.lengthMeters - analysis.widthMeters) < 0.05;
+  const bearingHalfRun =
+    (ridgeAxis === 'localX' ? analysis.localZSpanMeters : analysis.localXSpanMeters) / 2;
+  const rafterRiseMeters = settings.peakHeightAboveRoofBeamMeters;
+  const fixedRoofPitch = resolveFixedRoofPitch({
+    structuralHalfRunMeters: bearingHalfRun,
+    structuralRiseMeters: rafterRiseMeters,
+  });
 
   let topPlanes: RoofPlane[] = [];
   let undersidePlanes: RoofPlane[] = [];
   let ridgeStart: RoofVec3 | undefined;
   let ridgeEnd: RoofVec3 | undefined;
+  let structuralRidgeStart: RoofVec3 | undefined;
+  let structuralRidgeEnd: RoofVec3 | undefined;
+  let claddingRidgeStart: RoofVec3 | undefined;
+  let claddingRidgeEnd: RoofVec3 | undefined;
   let peakPoint: RoofVec3 | undefined;
   let gableEndSegmentIds: string[] = [];
 
@@ -367,11 +529,18 @@ export function resolveRoofSystem(params: {
       cladding: claddingLoop,
       roofBeamTopY,
       peakY,
+      gableEndOverhangMeters: settings.gableEndOverhangMeters,
+      sideEaveOverhangMeters: settings.eaveOverhangMeters,
+      fixedRoofSlope: fixedRoofPitch.slope,
     });
     topPlanes = gable.topPlanes;
     undersidePlanes = gable.undersidePlanes.map((plane) => offsetPlaneDown(plane, settings.roofAssemblyThicknessMeters));
-    ridgeStart = gable.ridgeStart;
-    ridgeEnd = gable.ridgeEnd;
+    structuralRidgeStart = gable.structuralRidgeStart;
+    structuralRidgeEnd = gable.structuralRidgeEnd;
+    claddingRidgeStart = gable.claddingRidgeStart;
+    claddingRidgeEnd = gable.claddingRidgeEnd;
+    ridgeStart = gable.claddingRidgeStart;
+    ridgeEnd = gable.claddingRidgeEnd;
     gableEndSegmentIds = settings.gable.enabled ? gable.gableEndSegmentIds : [];
   } else {
     const hip = buildHipRoofPlanes({
@@ -391,13 +560,30 @@ export function resolveRoofSystem(params: {
     gableEndSegmentIds = [];
   }
 
-  const bearingHalfRun =
-    (ridgeAxis === 'localX' ? analysis.localZSpanMeters : analysis.localXSpanMeters) / 2;
-  const rafterRiseMeters = settings.peakHeightAboveRoofBeamMeters;
-  const rafterRunMeters = bearingHalfRun + settings.eaveOverhangMeters;
-  const rafterLengthMeters = Math.hypot(rafterRunMeters, rafterRiseMeters);
-  const ridgeLengthMeters =
-    ridgeStart && ridgeEnd ? Math.hypot(ridgeEnd.x - ridgeStart.x, ridgeEnd.z - ridgeStart.z) : 0;
+  const structuralRafterRunMeters = bearingHalfRun;
+  const claddingRafterRunMeters = claddingHorizontalRunMeters({
+    structuralHalfRunMeters: bearingHalfRun,
+    sideEaveOverhangMeters: settings.eaveOverhangMeters,
+  });
+  const rafterRunMeters = structuralRafterRunMeters;
+  const rafterLengthMeters = Math.hypot(structuralRafterRunMeters, rafterRiseMeters);
+  const claddingRafterLengthMeters = Math.hypot(
+    claddingRafterRunMeters,
+    rafterRiseMeters + fixedRoofPitch.slope * Math.max(0, settings.eaveOverhangMeters),
+  );
+  const structuralRidgeLengthMeters =
+    structuralRidgeStart && structuralRidgeEnd
+      ? ridgeLengthMeters(structuralRidgeStart, structuralRidgeEnd)
+      : ridgeStart && ridgeEnd
+        ? ridgeLengthMeters(ridgeStart, ridgeEnd)
+        : 0;
+  const claddingRidgeLengthMeters =
+    claddingRidgeStart && claddingRidgeEnd
+      ? ridgeLengthMeters(claddingRidgeStart, claddingRidgeEnd)
+      : ridgeStart && ridgeEnd
+        ? ridgeLengthMeters(ridgeStart, ridgeEnd)
+        : 0;
+  const ridgeLengthMetersValue = claddingRidgeLengthMeters;
   const roofSurfaceAreaSquareMeters = topPlanes.reduce((sum, plane) => {
     if (plane.corners.length === 3) {
       return sum + triangleArea(plane.corners[0]!, plane.corners[1]!, plane.corners[2]!);
@@ -429,18 +615,51 @@ export function resolveRoofSystem(params: {
     ridgeAxis,
     roofBeamTopY,
     peakY,
-    ridgeStart,
-    ridgeEnd,
+    structuralRidgeStart: structuralRidgeStart ?? ridgeStart,
+    structuralRidgeEnd: structuralRidgeEnd ?? ridgeEnd,
+    claddingRidgeStart: claddingRidgeStart ?? ridgeStart,
+    claddingRidgeEnd: claddingRidgeEnd ?? ridgeEnd,
     peakPoint,
     roofTopPlanes: topPlanes,
     rafterLengthMeters,
-    ridgeLengthMeters,
+    claddingRafterLengthMeters,
+    rafterRunMeters,
+    structuralHalfRunMeters: bearingHalfRun,
+    sideEaveOverhangMeters: settings.eaveOverhangMeters,
+    fixedRoofSlope: fixedRoofPitch.slope,
+    ridgeLengthMeters: ridgeLengthMetersValue,
   });
+
+  const claddingDisplayPlanes =
+    settings.purlins.enabled && framing.purlinPlacements.length > 0
+      ? buildCladdingDisplayPlanes({
+          structuralPlanes: topPlanes,
+          trussPlacements: framing.trussPlacements,
+          peakY,
+          claddingRidgeStart: claddingRidgeStart ?? ridgeStart,
+          claddingRidgeEnd: claddingRidgeEnd ?? ridgeEnd,
+        })
+      : topPlanes.map((plane) => ({ ...plane }));
+
+  const ridgeCapRidgeStart =
+    claddingRidgeStart && claddingDisplayPlanes.length > 0
+      ? claddingRidgePointOnDisplayPlanes({
+          displayPlanes: claddingDisplayPlanes,
+          ridgePoint: claddingRidgeStart,
+        })
+      : claddingRidgeStart;
+  const ridgeCapRidgeEnd =
+    claddingRidgeEnd && claddingDisplayPlanes.length > 0
+      ? claddingRidgePointOnDisplayPlanes({
+          displayPlanes: claddingDisplayPlanes,
+          ridgePoint: claddingRidgeEnd,
+        })
+      : claddingRidgeEnd;
 
   const ridgeCapPlacement = resolveRidgeCapPlacement({
     roofType: settings.roofType,
-    ridgeStart,
-    ridgeEnd,
+    ridgeStart: ridgeCapRidgeStart ?? ridgeStart,
+    ridgeEnd: ridgeCapRidgeEnd ?? ridgeEnd,
     rafterRunMeters,
     rafterRiseMeters,
     enabled: settings.corrugatedMetal.enabled && settings.corrugatedMetal.ridgeCapEnabled,
@@ -456,6 +675,13 @@ export function resolveRoofSystem(params: {
     eaveFootprint: claddingPerimeter,
     ridgeStart,
     ridgeEnd,
+    structuralRidgeStart,
+    structuralRidgeEnd,
+    claddingRidgeStart,
+    claddingRidgeEnd,
+    structuralRidgeLengthMeters,
+    claddingRidgeLengthMeters,
+    gableEndOverhangMeters: settings.gableEndOverhangMeters,
     ridgeCapPlacement,
     peakPoint,
     roofBeamTopElevationMeters: roofBeamTopY,
@@ -464,15 +690,20 @@ export function resolveRoofSystem(params: {
     roofPeakY: peakY,
     roofAssemblyThicknessMeters: settings.roofAssemblyThicknessMeters,
     roofTopPlanes: topPlanes,
+    claddingDisplayPlanes,
     roofUndersidePlanes: undersidePlanes,
     gableEndSegmentIds,
     rafterRunMeters,
     rafterRiseMeters,
     rafterLengthMeters,
-    roofRunMeters: rafterRunMeters,
+    roofRunMeters: structuralRafterRunMeters,
     roofRiseMeters: rafterRiseMeters,
     roofMemberReferenceLengthMeters: rafterLengthMeters,
-    ridgeLengthMeters,
+    roofPitchRadians: fixedRoofPitch.pitchRadians,
+    structuralRafterRunMeters,
+    claddingRafterRunMeters,
+    claddingRafterLengthMeters,
+    ridgeLengthMeters: ridgeLengthMetersValue,
     roofSurfaceAreaSquareMeters,
     gableCmuAreaSquareMeters: 0,
     rakedCapVolumeCubicMeters: 0,

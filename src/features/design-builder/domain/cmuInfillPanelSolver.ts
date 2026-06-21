@@ -13,7 +13,11 @@ import {
   resolveInfillPanelBoundsForSegment,
   type ResolvedInfillPanelBounds,
 } from './infillPanelBoundsResolver';
-import type { CmuBlockInstance, CmuUnitPlacement, SegmentFrame } from '../geometry/designGeometry';
+import type { CmuBlockInstance, SegmentFrame } from '../geometry/designGeometry';
+import {
+  layoutHorizontalCourseUnits,
+  type CourseLayoutCounters,
+} from './cmuCourseLayoutEngine';
 
 export const FRAME_INFILL_HEIGHT_TOLERANCE_METERS = 0.002;
 export const TOP_COURSE_RENDER_EPSILON_METERS = 0.001;
@@ -60,191 +64,6 @@ export function resolvePanelVerticalCourses(params: {
     topClosureHeightMeters,
     hasTopClosureCourse,
   };
-}
-
-function blockFromPanelUnit(params: {
-  panel: CmuInfillPanel;
-  frame: SegmentFrame;
-  courseIndex: number;
-  moduleIndex: number;
-  stationMeters: number;
-  nominalLengthMeters: number;
-  actualLengthMeters: number;
-  courseBottomElevationMeters: number;
-  physicalHeightMeters: number;
-  blockType: CmuBlockInstance['blockType'];
-  kind?: CmuUnitPlacement['kind'];
-  source?: CmuUnitPlacement['source'];
-}): CmuBlockInstance {
-  const centerStation = params.stationMeters + params.nominalLengthMeters / 2;
-  const y = params.courseBottomElevationMeters + params.physicalHeightMeters / 2;
-  const unitType =
-    params.kind === 'cut_height_block'
-      ? 'cut'
-      : params.blockType === 'half'
-        ? 'half_block'
-        : params.blockType === 'cut'
-          ? 'cut_block'
-          : 'full_block';
-  return {
-    id: `${params.panel.id}-c${params.courseIndex}-m${params.moduleIndex}`,
-    face: 'north',
-    segmentId: params.panel.hostSegmentId,
-    course: params.courseIndex + 1,
-    courseIndex: params.courseIndex,
-    moduleIndex: params.moduleIndex,
-    blockType: params.blockType,
-    unitType,
-    kind: params.kind,
-    stationMeters: params.stationMeters,
-    nominalLengthMeters: params.nominalLengthMeters,
-    actualLengthMeters: params.actualLengthMeters,
-    heightMeters: params.physicalHeightMeters,
-    physicalHeightMeters: params.physicalHeightMeters,
-    depthMeters: params.frame.wallThicknessMeters,
-    source: params.source ?? 'infill_panel_solver',
-    x:
-      params.frame.exteriorStart.x +
-      params.frame.tangent.x * centerStation +
-      params.frame.inwardNormal.x * (params.frame.wallThicknessMeters / 2),
-    y,
-    z:
-      params.frame.exteriorStart.z +
-      params.frame.tangent.z * centerStation +
-      params.frame.inwardNormal.z * (params.frame.wallThicknessMeters / 2),
-    rotationY: params.frame.rotationY,
-    lengthMeters: params.actualLengthMeters,
-    startAlongMeters: params.stationMeters,
-    endAlongMeters: params.stationMeters + params.nominalLengthMeters,
-  };
-}
-
-function layoutHorizontalCourseUnits(params: {
-  panel: CmuInfillPanel;
-  frame: SegmentFrame;
-  courseIndex: number;
-  courseBottomElevationMeters: number;
-  physicalHeightMeters: number;
-  isTopClosure: boolean;
-  nominalModule: number;
-  actualFull: number;
-  halfNominal: number;
-  halfActual: number;
-  bondPattern: 'running_bond' | 'stack_bond';
-  counters: { full: number; half: number; cut: number; topClosure: number };
-}): CmuBlockInstance[] {
-  const blocks: CmuBlockInstance[] = [];
-  const runningBondOffset = params.bondPattern === 'running_bond' && params.courseIndex % 2 === 1;
-  let station = params.panel.startStationMeters;
-  const panelEnd = params.panel.endStationMeters;
-  let moduleIndex = 0;
-
-  const pushBlock = (blockParams: {
-    stationMeters: number;
-    nominalLengthMeters: number;
-    actualLengthMeters: number;
-    blockType: CmuBlockInstance['blockType'];
-    kind?: CmuUnitPlacement['kind'];
-    source?: CmuUnitPlacement['source'];
-  }) => {
-    blocks.push(
-      blockFromPanelUnit({
-        panel: params.panel,
-        frame: params.frame,
-        courseIndex: params.courseIndex,
-        moduleIndex,
-        stationMeters: blockParams.stationMeters,
-        nominalLengthMeters: blockParams.nominalLengthMeters,
-        actualLengthMeters: blockParams.actualLengthMeters,
-        courseBottomElevationMeters: params.courseBottomElevationMeters,
-        physicalHeightMeters: params.physicalHeightMeters,
-        blockType: blockParams.blockType,
-        kind: params.isTopClosure ? 'cut_height_block' : blockParams.kind,
-        source: params.isTopClosure ? 'panel_top_closure' : blockParams.source,
-      }),
-    );
-    moduleIndex += 1;
-  };
-
-  if (runningBondOffset && panelEnd - station >= params.halfNominal - 0.005) {
-    pushBlock({
-      stationMeters: station,
-      nominalLengthMeters: params.halfNominal,
-      actualLengthMeters: params.halfActual,
-      blockType: 'half',
-    });
-    if (params.isTopClosure) {
-      params.counters.topClosure += 1;
-    } else {
-      params.counters.half += 1;
-    }
-    station += params.halfNominal;
-  }
-
-  while (panelEnd - station > 0.001) {
-    const remaining = panelEnd - station;
-    if (remaining >= params.nominalModule - 0.005) {
-      pushBlock({
-        stationMeters: station,
-        nominalLengthMeters: params.nominalModule,
-        actualLengthMeters: params.actualFull,
-        blockType: 'stretcher' as CmuBlockInstance['blockType'],
-      });
-      if (params.isTopClosure) {
-        params.counters.topClosure += 1;
-      } else {
-        params.counters.full += 1;
-      }
-      station += params.nominalModule;
-    } else if (remaining >= params.halfNominal - 0.005) {
-      pushBlock({
-        stationMeters: station,
-        nominalLengthMeters: params.halfNominal,
-        actualLengthMeters: params.halfActual,
-        blockType: 'half',
-      });
-      if (params.isTopClosure) {
-        params.counters.topClosure += 1;
-      } else {
-        params.counters.half += 1;
-      }
-      station += params.halfNominal;
-    } else if (remaining >= 0.05) {
-      pushBlock({
-        stationMeters: station,
-        nominalLengthMeters: remaining,
-        actualLengthMeters: remaining,
-        blockType: 'cut',
-        kind: 'cut_block',
-      });
-      if (params.isTopClosure) {
-        params.counters.topClosure += 1;
-      } else {
-        params.counters.cut += 1;
-      }
-      station += remaining;
-    } else {
-      break;
-    }
-  }
-
-  const tailRemaining = panelEnd - station;
-  if (tailRemaining > 0.001) {
-    pushBlock({
-      stationMeters: station,
-      nominalLengthMeters: tailRemaining,
-      actualLengthMeters: tailRemaining,
-      blockType: 'cut',
-      kind: 'cut_block',
-    });
-    if (params.isTopClosure) {
-      params.counters.topClosure += 1;
-    } else {
-      params.counters.cut += 1;
-    }
-  }
-
-  return blocks;
 }
 
 export function deriveInfillPanelsForSegment(params: {
@@ -343,7 +162,7 @@ export function solveInfillPanelBlocks(params: {
   const halfActual = actualFull / 2;
   const bondPattern = params.panel.masonrySettings.bondPattern ?? 'running_bond';
   const blocks: CmuBlockInstance[] = [];
-  const counters = { full: 0, half: 0, cut: 0, topClosure: 0 };
+  const counters: CourseLayoutCounters = { full: 0, half: 0, cut: 0, topClosure: 0 };
   const warnings: string[] = [];
 
   const vertical = resolvePanelVerticalCourses({
@@ -390,10 +209,10 @@ export function solveInfillPanelBlocks(params: {
         courseBottomElevationMeters,
         physicalHeightMeters,
         isTopClosure,
-        nominalModule,
-        actualFull,
-        halfNominal,
-        halfActual,
+        nominalModuleMeters: nominalModule,
+        actualFullLengthMeters: actualFull,
+        halfNominalMeters: halfNominal,
+        halfActualLengthMeters: halfActual,
         bondPattern,
         counters,
       }),

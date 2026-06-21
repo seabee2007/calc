@@ -194,6 +194,75 @@ export function offsetClosedPolygonOutward(
   return corners;
 }
 
+/** Offset each polygon edge outward by its own distance; corners are offset-line intersections. */
+export function offsetClosedPolygonWithEdgeOffsets(
+  polygon: readonly PlanVec2[],
+  edgeOffsetMeters: readonly number[],
+): PlanVec2[] {
+  if (polygon.length < 3) {
+    return polygon.map((point) => ({ ...point }));
+  }
+  const n = polygon.length;
+  if (edgeOffsetMeters.length !== n) {
+    return polygon.map((point) => ({ ...point }));
+  }
+  if (edgeOffsetMeters.every((offset) => offset <= 0)) {
+    return polygon.map((point) => ({ ...point }));
+  }
+
+  let signedArea = 0;
+  for (let index = 0; index < n; index += 1) {
+    const current = polygon[index]!;
+    const next = polygon[(index + 1) % n]!;
+    signedArea += current.x * next.z - next.x * current.z;
+  }
+  const ccw = signedArea > 0;
+
+  const offsetLines: Array<{ start: PlanVec2; end: PlanVec2 }> = [];
+  for (let index = 0; index < n; index += 1) {
+    const offsetMeters = Math.max(0, edgeOffsetMeters[index] ?? 0);
+    const start = polygon[index]!;
+    const end = polygon[(index + 1) % n]!;
+    const dx = end.x - start.x;
+    const dz = end.z - start.z;
+    const len = Math.hypot(dx, dz) || 1;
+    const nx = ccw ? dz / len : -dz / len;
+    const nz = ccw ? -dx / len : dx / len;
+    offsetLines.push({
+      start: { x: start.x + nx * offsetMeters, z: start.z + nz * offsetMeters },
+      end: { x: end.x + nx * offsetMeters, z: end.z + nz * offsetMeters },
+    });
+  }
+
+  const corners: PlanVec2[] = [];
+  for (let index = 0; index < n; index += 1) {
+    const prev = offsetLines[(index - 1 + n) % n]!;
+    const curr = offsetLines[index]!;
+    const corner = intersectInfiniteLines2D(prev.start, prev.end, curr.start, curr.end);
+    corners.push(corner ?? curr.start);
+  }
+  return corners;
+}
+
+export function resolveGableRoofEdgeOffsets(params: {
+  bearing: readonly PlanVec2[];
+  ridgeAxis: RidgeAxis;
+  eaveOverhangMeters: number;
+  gableEndOverhangMeters: number;
+}): number[] {
+  if (params.bearing.length !== 4) {
+    return params.bearing.map(() => 0);
+  }
+  const evenLong = longEdgesAreEven(params.bearing);
+  const ridgeParallelToEvenEdges =
+    (params.ridgeAxis === 'localX' && evenLong) || (params.ridgeAxis === 'localZ' && !evenLong);
+  return params.bearing.map((_, index) => {
+    const isEvenEdge = index % 2 === 0;
+    const isEaveEdge = ridgeParallelToEvenEdges ? isEvenEdge : !isEvenEdge;
+    return isEaveEdge ? params.eaveOverhangMeters : params.gableEndOverhangMeters;
+  });
+}
+
 function segmentTangent(
   segment: DesignWallSegment,
   nodes: DesignWallLayoutParameters['nodes'],

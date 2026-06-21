@@ -1,11 +1,13 @@
 import type {
   GradeBeamSettings,
+  InteriorFloorSlabSettings,
   IsolatedFootingSettings,
   LegacyStructuralFoundationSettings,
   RcFrameFoundationSettings,
   StructuralBeamSettings,
   StructuralFoundationSettings,
 } from '../types';
+import { defaultInteriorFloorSlabSettings } from './interiorFloorSlab';
 
 /** @deprecated Intermediate persisted shape — tie beam drop lived on tieBeam + footings.dropBelowTieBeamMeters */
 type IntermediateRcFrameFoundationSettings = RcFrameFoundationSettings & {
@@ -38,6 +40,7 @@ function migrateIntermediateFoundationSettings(
       followsExteriorSegments: settings.plinthBeam.followsExteriorSegments ?? true,
       followsInteriorSegments: settings.plinthBeam.followsInteriorSegments ?? false,
     },
+    interiorFloorSlab: defaultInteriorFloorSlabSettings(),
     roofBeam: settings.roofBeam,
     tieBeam: {
       enabled: settings.tieBeam.enabled,
@@ -70,6 +73,7 @@ export function migrateLegacyFoundationSettings(
       followsExteriorSegments: gradeBeam.followsExteriorSegments,
       followsInteriorSegments: gradeBeam.followsInteriorSegments,
     },
+    interiorFloorSlab: defaultInteriorFloorSlabSettings(),
     roofBeam: {
       enabled: ringBeam?.enabled ?? true,
       widthMeters: ringBeam?.widthMeters ?? 0.25,
@@ -131,6 +135,10 @@ function ensurePlinthBeamFollowFlags(settings: RcFrameFoundationSettings): RcFra
       followsExteriorSegments: settings.plinthBeam.followsExteriorSegments ?? true,
       followsInteriorSegments: settings.plinthBeam.followsInteriorSegments ?? false,
     },
+    interiorFloorSlab: {
+      ...defaultInteriorFloorSlabSettings(),
+      ...settings.interiorFloorSlab,
+    },
   };
 }
 
@@ -143,6 +151,7 @@ export function createDefaultRcFrameFoundationSettings(): RcFrameFoundationSetti
       followsExteriorSegments: true,
       followsInteriorSegments: false,
     },
+    interiorFloorSlab: defaultInteriorFloorSlabSettings(),
     roofBeam: {
       enabled: true,
       widthMeters: 0.25,

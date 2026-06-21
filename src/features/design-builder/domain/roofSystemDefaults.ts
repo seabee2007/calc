@@ -1,5 +1,14 @@
-import type { RoofSystemSettings, RoofSupportStyle } from '../types';
+import type { RoofLayerVisibility, RoofSystemSettings, RoofSupportStyle } from '../types';
 import { DEFAULT_ROOF_TO_MASONRY_CLEARANCE_METERS } from './structuralFrameDefaults';
+
+export const DEFAULT_ROOF_LAYER_VISIBILITY: RoofLayerVisibility = {
+  roofCladding: true,
+  ridgeCap: true,
+  steelTrusses: true,
+  purlins: true,
+  gableEndCmu: true,
+  rakedConcreteCap: true,
+};
 
 export function createDefaultRoofSystemSettings(): RoofSystemSettings {
   return {
@@ -8,6 +17,7 @@ export function createDefaultRoofSystemSettings(): RoofSystemSettings {
     supportSystem: 'steel_trusses',
     peakHeightAboveRoofBeamMeters: 1.25,
     eaveOverhangMeters: 0.3,
+    gableEndOverhangMeters: 0.3,
     roofAssemblyThicknessMeters: 0.15,
     ridgeDirection: 'along_longest_axis',
     steelTrusses: {
@@ -58,15 +68,27 @@ export function normalizeRoofSystemSettings(
   const resolvedSupportSystem =
     roofType === 'hip' ? 'steel_hip_framing' : supportSystem === 'steel_hip_framing' ? 'steel_trusses' : supportSystem;
 
+  const eaveOverhangMeters = Math.max(0, input.eaveOverhangMeters ?? defaults.eaveOverhangMeters);
+  const gableEndOverhangMeters = Math.max(
+    0,
+    input.gableEndOverhangMeters ?? eaveOverhangMeters,
+  );
+
   const gableInput = input.gable ?? {};
   const rakedConcreteCapEnabled =
     gableInput.rakedConcreteCapEnabled ?? gableInput.capEnabled ?? defaults.gable.rakedConcreteCapEnabled;
-  const rakedConcreteCapDepthMeters =
-    gableInput.rakedConcreteCapDepthMeters ?? gableInput.capDepthMeters ?? defaults.gable.rakedConcreteCapDepthMeters;
+  const rakedConcreteCapWallDepthMeters =
+    gableInput.rakedConcreteCapWallDepthMeters ??
+    gableInput.rakedConcreteCapDepthMeters ??
+    gableInput.capDepthMeters ??
+    defaults.gable.rakedConcreteCapDepthMeters;
+  const rakedConcreteCapDepthMeters = rakedConcreteCapWallDepthMeters;
 
   return {
     ...defaults,
     ...input,
+    eaveOverhangMeters,
+    gableEndOverhangMeters,
     supportSystem: resolvedSupportSystem,
     steelTrusses: { ...defaults.steelTrusses, ...input.steelTrusses },
     purlins: { ...defaults.purlins, ...input.purlins },
@@ -75,6 +97,7 @@ export function normalizeRoofSystemSettings(
       ...defaults.gable,
       ...gableInput,
       rakedConcreteCapEnabled,
+      rakedConcreteCapWallDepthMeters,
       rakedConcreteCapDepthMeters,
     },
   };

@@ -7,6 +7,11 @@ const mocks = vi.hoisted(() => ({
   plan: vi.fn(),
   confirm: vi.fn(),
   setFocusMode: vi.fn(),
+  createDesignModel: vi.fn(),
+  upsertDesignModelObjects: vi.fn(),
+  findDesignModelByEstimateId: vi.fn(),
+  listDesignModelObjects: vi.fn(),
+  updateDesignModelMetadata: vi.fn(),
 }));
 
 vi.mock('../../../hooks/useAuth', () => ({
@@ -43,8 +48,11 @@ vi.mock('../ui/DesignBuilderViewer', () => ({
 }));
 
 vi.mock('../services/designBuilderService', () => ({
-  createDesignModel: vi.fn(),
-  upsertDesignModelObjects: vi.fn(),
+  createDesignModel: mocks.createDesignModel,
+  upsertDesignModelObjects: mocks.upsertDesignModelObjects,
+  findDesignModelByEstimateId: mocks.findDesignModelByEstimateId,
+  listDesignModelObjects: mocks.listDesignModelObjects,
+  updateDesignModelMetadata: mocks.updateDesignModelMetadata,
 }));
 
 vi.mock('../application/designBuilderToEstimate', () => ({
@@ -78,6 +86,9 @@ describe('Design Builder draw wall settings', () => {
     mocks.plan.mockClear();
     mocks.setFocusMode.mockClear();
     mocks.confirm.mockReset();
+    mocks.findDesignModelByEstimateId.mockResolvedValue({ data: null, error: null });
+    mocks.listDesignModelObjects.mockResolvedValue({ data: [], error: null });
+    mocks.updateDesignModelMetadata.mockResolvedValue({ data: null, error: null });
     sessionStorage.clear();
     useDesignBuilderSessionStore.setState({ sessions: {} });
   });

@@ -17,11 +17,13 @@ export const DESIGN_BUILDER_COPY = {
   },
   status: {
     loadingTemplate: 'Loading CMU template...',
-    templateLoadedLocal: 'CMU template loaded locally. Sign in to save and commit it to an estimate.',
+    templateLoadedLocal: 'CMU template loaded locally. Open this tool from a saved Detailed Estimate to store the design with your project.',
     templateLoaded: 'CMU template loaded. Geometry and quantities are generated from saved parameters.',
     blankReady: 'Blank layout ready. Select Draw Wall to trace your wall lines.',
     footprintOpen: 'Footprint open — slab and roof generation unavailable.',
     estimateRequiresUpdate: 'Design revision pending — update linked estimate items before pricing.',
     quantitiesDisclaimer: 'Verify quantities and structural requirements before pricing.',
+    designSaved: 'Design saved to this estimate.',
+    saveFailed: 'Unable to save design. Your changes are still open in this browser. Check your connection and try again.',
   },
 } as const;

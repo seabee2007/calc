@@ -652,13 +652,20 @@ export function buildFrameInfillEstimatePreview(input: FrameInfillQuantityInput)
   const topClosureCutBlockCount = input.geometryResult.wallCmuLayout.topClosureCutBlockCount ?? 0;
   const infillBlockCount = counts.full + counts.half + counts.cut;
   const gableCutCount =
-    input.geometryResult.gablePlacements?.filter((p) => p.kind === 'cut_block').length ?? 0;
-  const roofSettings = normalizeRoofSystemSettings(input.roofSystem);
-  const roofGablePlacements =
+    input.geometryResult.blockInstances?.filter(
+      (block) => block.source === 'gable_end_solver' && (block.blockType === 'cut' || block.kind === 'cut_block'),
+    ).length ?? 0;
+  const roofGableBlocks =
     resolvedRoof?.gableEnds.flatMap((gableEnd) => gableEnd.cmuUnitPlacements) ?? [];
-  const roofGableCutCount = roofGablePlacements.filter((placement) => placement.kind === 'cut_block').length;
-  const roofGableBlockCount = roofGablePlacements.length;
+  const roofGableCutCount = roofGableBlocks.filter(
+    (block) => block.blockType === 'cut' || block.kind === 'cut_block',
+  ).length;
+  const roofGableBlockCount = roofGableBlocks.length;
+  const roofSettings = normalizeRoofSystemSettings(input.roofSystem);
   const rakedCapVolumeCubicMeters = resolvedRoof?.rakedCapVolumeCubicMeters ?? 0;
+  const rakedCapLinearLengthMeters = (resolvedRoof?.gableEnds ?? [])
+    .flatMap((gableEnd) => gableEnd.rakedCapPlacements)
+    .reduce((sum, cap) => sum + (cap.endStationMeters - cap.startStationMeters), 0);
   const metaBase = {
     buildingSystemMode: input.buildingSystemMode,
     quantityFormula: 'parametric_design_builder',
@@ -721,6 +728,32 @@ export function buildFrameInfillEstimatePreview(input: FrameInfillQuantityInput)
           divisionCode: '03',
           divisionName: 'Concrete',
         },
+        ...(breakdown.interiorFloorSlabVolumeCubicMeters > 0
+          ? [
+              {
+                id: 'interior-floor-slab-volume',
+                designModelId: input.designModelId,
+                designObjectId: input.frameObjectId,
+                quantityType: 'interior_floor_slab_volume',
+                description: 'Interior Floor Slab',
+                quantity: roundQuantity(
+                  cubicMetersToCubicYards(breakdown.interiorFloorSlabVolumeCubicMeters),
+                  2,
+                ),
+                unit: 'CY',
+                formula: 'interior_footprint_area * slab_thickness',
+                parameterSnapshot: {
+                  interiorFloorSlab: input.geometryResult.interiorFloorSlab,
+                  structuralObjectId: input.frameObjectId,
+                  ...metaBase,
+                },
+                source: 'parametric_design_builder',
+                confidence: 'calculated_from_parameters',
+                divisionCode: '03',
+                divisionName: 'Concrete',
+              },
+            ]
+          : []),
         {
           id: 'rc-tie-beams-volume',
           designModelId: input.designModelId,
@@ -1160,10 +1193,51 @@ export function buildFrameInfillEstimatePreview(input: FrameInfillQuantityInput)
                   designModelId: input.designModelId,
                   designObjectId: input.gableEndObjectId,
                   quantityType: 'raked_concrete_cap_volume',
-                  description: 'Raked Concrete Cap',
+                  description: 'Raked Concrete Cap — Concrete Volume',
                   quantity: roundQuantity(cubicMetersToCubicYards(rakedCapVolumeCubicMeters), 2),
                   unit: 'CY',
                   formula: 'sum(resolved_raked_cap_segment_volumes)',
+                  parameterSnapshot: {
+                    rakedCapVolumeCubicMeters,
+                    rakedCapLinearLengthMeters,
+                    gableEndSegmentIds: resolvedRoof.gableEndSegmentIds,
+                    gableEndId: input.gableEndObjectId,
+                    ...metaBase,
+                  },
+                  source: 'parametric_design_builder',
+                  confidence: 'calculated_from_parameters',
+                  divisionCode: '03',
+                  divisionName: 'Concrete',
+                },
+                {
+                  id: 'raked-concrete-cap-length',
+                  designModelId: input.designModelId,
+                  designObjectId: input.gableEndObjectId,
+                  quantityType: 'raked_concrete_cap_linear_length',
+                  description: 'Raked Concrete Cap — Linear Length',
+                  quantity: roundQuantity(rakedCapLinearLengthMeters, 2),
+                  unit: 'LF',
+                  formula: 'sum(resolved_raked_cap_segment_lengths)',
+                  parameterSnapshot: {
+                    rakedCapLinearLengthMeters,
+                    gableEndSegmentIds: resolvedRoof.gableEndSegmentIds,
+                    gableEndId: input.gableEndObjectId,
+                    ...metaBase,
+                  },
+                  source: 'parametric_design_builder',
+                  confidence: 'calculated_from_parameters',
+                  divisionCode: '03',
+                  divisionName: 'Concrete',
+                },
+                {
+                  id: 'raked-concrete-cap-reinf-placeholder',
+                  designModelId: input.designModelId,
+                  designObjectId: input.gableEndObjectId,
+                  quantityType: 'raked_concrete_cap_reinforcement_placeholder',
+                  description: 'Raked Concrete Cap — Reinforcement Allowance (placeholder)',
+                  quantity: 0,
+                  unit: 'EA',
+                  formula: 'reserved_for_future_structural_detailing',
                   parameterSnapshot: {
                     rakedCapVolumeCubicMeters,
                     gableEndSegmentIds: resolvedRoof.gableEndSegmentIds,
