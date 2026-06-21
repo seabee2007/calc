@@ -85,6 +85,11 @@ import { createDefaultRoofSystemSettings, normalizeRoofSystemSettings } from '..
 
 export type DesignGeometrySourcePath = 'blank' | 'layout_graph' | 'legacy_preset' | 'manual_masonry';
 
+export type DesignGeometryState = {
+  revision: number;
+  lastReason?: string;
+};
+
 export type DimensionBasis = DesignWallDimensionBasis;
 const DEFAULT_MINIMUM_CUT_BLOCK_LENGTH_METERS = 0.1;
 

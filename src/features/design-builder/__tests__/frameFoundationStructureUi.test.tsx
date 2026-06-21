@@ -6,6 +6,9 @@ import DesignBuilderPage from '../ui/DesignBuilderPage';
 const mocks = vi.hoisted(() => ({
   createDesignModel: vi.fn(),
   upsertDesignModelObjects: vi.fn(),
+  findDesignModelByEstimateId: vi.fn(),
+  listDesignModelObjects: vi.fn(),
+  updateDesignModelMetadata: vi.fn(),
   persistDesignEstimatePreview: vi.fn(),
   commitDesignEstimatePreview: vi.fn(),
   confirm: vi.fn(),
@@ -30,6 +33,9 @@ vi.mock('../ui/DesignBuilderViewer', () => ({
 vi.mock('../services/designBuilderService', () => ({
   createDesignModel: mocks.createDesignModel,
   upsertDesignModelObjects: mocks.upsertDesignModelObjects,
+  findDesignModelByEstimateId: mocks.findDesignModelByEstimateId,
+  listDesignModelObjects: mocks.listDesignModelObjects,
+  updateDesignModelMetadata: mocks.updateDesignModelMetadata,
 }));
 
 vi.mock('../application/designBuilderToEstimate', () => ({
@@ -97,6 +103,9 @@ describe('Structure dropdown — unified frame modal', () => {
       ],
       error: null,
     });
+    mocks.findDesignModelByEstimateId.mockResolvedValue({ data: null, error: null });
+    mocks.listDesignModelObjects.mockResolvedValue({ data: [], error: null });
+    mocks.updateDesignModelMetadata.mockResolvedValue({ data: null, error: null });
   });
 
   it('shows only system modes in CMU bearing wall mode', async () => {

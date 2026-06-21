@@ -149,6 +149,45 @@ export async function createDesignModel(input: CreateDesignModelInput): Promise<
   }
 }
 
+export async function findDesignModelByEstimateId(
+  projectId: string,
+  estimateId: string,
+): Promise<RepositoryResult<DesignModel | null>> {
+  try {
+    const { data, error } = await supabase
+      .from('design_models')
+      .select('*')
+      .eq('project_id', projectId)
+      .eq('estimate_id', estimateId)
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) return failure(error.message);
+    if (!data) return success(null);
+    return success(mapModelRow(data as DesignModelRow));
+  } catch (err) {
+    return failure(err);
+  }
+}
+
+export async function updateDesignModelMetadata(
+  designModelId: string,
+  metadata: Record<string, unknown>,
+): Promise<RepositoryResult<DesignModel>> {
+  try {
+    const { data, error } = await supabase
+      .from('design_models')
+      .update({ metadata, updated_at: new Date().toISOString() })
+      .eq('id', designModelId)
+      .select('*')
+      .single();
+    if (error) return failure(error.message);
+    return success(mapModelRow(data as DesignModelRow));
+  } catch (err) {
+    return failure(err);
+  }
+}
+
 export async function listDesignModels(projectId: string): Promise<RepositoryResult<DesignModel[]>> {
   try {
     const { data, error } = await supabase

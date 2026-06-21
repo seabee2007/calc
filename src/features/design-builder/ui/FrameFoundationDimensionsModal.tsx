@@ -32,8 +32,10 @@ export type FrameFoundationDimensionsModalProps = {
   preset: CmuBuildingPreset;
   wallLayout: DesignWallLayoutParameters;
   exteriorFootprint: readonly { x: number; z: number }[];
+  geometryRevision: number;
+  lastStructureApplyRevision: number;
   onClose: () => void;
-  onApply: (payload: FrameFoundationDimensionsApplyPayload) => void;
+  onApply: (payload: FrameFoundationDimensionsApplyPayload) => boolean;
 };
 
 type FoundationSection = 'plinthBeam' | 'roofBeam' | 'tieBeam' | 'columns' | 'isolatedFootings';
@@ -168,6 +170,8 @@ export default function FrameFoundationDimensionsModal({
   preset,
   wallLayout,
   exteriorFootprint,
+  geometryRevision,
+  lastStructureApplyRevision,
   onClose,
   onApply,
 }: FrameFoundationDimensionsModalProps) {
@@ -301,6 +305,22 @@ export default function FrameFoundationDimensionsModal({
     return errors;
   }, [foundationDraft, layoutPreview.columnCount, resolvedRoof, roofDraft]);
 
+  const isDraftDirty = useMemo(() => {
+    const normalizedFoundation = normalizeRcFrameFoundationSettings(foundationDraft);
+    const normalizedPresetFoundation = normalizeRcFrameFoundationSettings(preset.foundationSettings);
+    const normalizedRoof = normalizeRoofSystemSettings(roofDraft);
+    const normalizedPresetRoof = normalizeRoofSystemSettings(preset.roofSystem);
+    return (
+      JSON.stringify(normalizedFoundation) !== JSON.stringify(normalizedPresetFoundation) ||
+      JSON.stringify(normalizedRoof) !== JSON.stringify(normalizedPresetRoof)
+    );
+  }, [foundationDraft, roofDraft, preset.foundationSettings, preset.roofSystem]);
+
+  const appliedToModel =
+    !isDraftDirty &&
+    lastStructureApplyRevision > 0 &&
+    geometryRevision === lastStructureApplyRevision;
+
   const validationErrors = [...foundationValidation.errors, ...Object.values(fieldErrors)];
   const isValid = validationErrors.length === 0;
 
@@ -350,12 +370,14 @@ export default function FrameFoundationDimensionsModal({
 
   function handleApply() {
     if (!isValid) return;
-    onApply({
+    const applied = onApply({
       foundation: foundationDraft,
       roofSystem: { ...roofDraft, enabled: roofDraft.enabled },
       autoGenerateFrameLayout,
     });
-    onClose();
+    if (applied) {
+      onClose();
+    }
   }
 
   const roofBeamUndersideY = elevations.roofBeamTopY - foundationDraft.roofBeam.depthMeters;
@@ -369,8 +391,15 @@ export default function FrameFoundationDimensionsModal({
       size="2xl"
       footer={
         <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="min-w-0 flex-1 text-xs text-red-400">
-            {validationErrors.length > 0 ? validationErrors[0] : null}
+          <div className="min-w-0 flex-1 space-y-1 text-xs">
+            {isDraftDirty ? (
+              <p className="text-amber-300">Changes are staged. Select Apply Dimensions to update the model.</p>
+            ) : appliedToModel ? (
+              <p className="text-emerald-300">Applied to 3D model</p>
+            ) : null}
+            {validationErrors.length > 0 ? (
+              <p className="text-red-400">{validationErrors[0]}</p>
+            ) : null}
           </div>
           <div className="flex shrink-0 flex-wrap justify-end gap-2">
             <Button variant="secondary" onClick={onClose}>

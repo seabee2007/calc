@@ -1,6 +1,8 @@
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { createFiveBySixCmuBuildingPreset } from '../domain/designBuilderPreset';
+import { buildPresetObjects, createFiveBySixCmuBuildingPreset } from '../domain/designBuilderPreset';
+import { applyAutoFrameLayout } from '../domain/structureActions';
+import { serializePersistedDesignBuilderState } from '../domain/designBuilderPersistence';
 import { generateCmuLayout } from '../geometry/designGeometry';
 import { useDesignBuilderSessionStore } from '../state/designBuilderStore';
 import DesignBuilderPage from '../ui/DesignBuilderPage';
@@ -9,6 +11,9 @@ import type { DesignBuilderInteractionEvent, MasonryCourseRun } from '../types';
 const mocks = vi.hoisted(() => ({
   createDesignModel: vi.fn(),
   upsertDesignModelObjects: vi.fn(),
+  findDesignModelByEstimateId: vi.fn(),
+  listDesignModelObjects: vi.fn(),
+  updateDesignModelMetadata: vi.fn(),
   persistDesignEstimatePreview: vi.fn(),
   commitDesignEstimatePreview: vi.fn(),
   confirm: vi.fn(),
@@ -53,6 +58,9 @@ vi.mock('../ui/DesignBuilderViewer', () => ({
 vi.mock('../services/designBuilderService', () => ({
   createDesignModel: mocks.createDesignModel,
   upsertDesignModelObjects: mocks.upsertDesignModelObjects,
+  findDesignModelByEstimateId: mocks.findDesignModelByEstimateId,
+  listDesignModelObjects: mocks.listDesignModelObjects,
+  updateDesignModelMetadata: mocks.updateDesignModelMetadata,
 }));
 
 vi.mock('../application/designBuilderToEstimate', () => ({
@@ -187,6 +195,9 @@ describe('DesignBuilderPage', () => {
     useDesignBuilderSessionStore.setState({ sessions: {} });
     mocks.createDesignModel.mockReset();
     mocks.upsertDesignModelObjects.mockReset();
+    mocks.findDesignModelByEstimateId.mockReset();
+    mocks.listDesignModelObjects.mockReset();
+    mocks.updateDesignModelMetadata.mockReset();
     mocks.persistDesignEstimatePreview.mockReset();
     mocks.commitDesignEstimatePreview.mockReset();
     mocks.confirm.mockReset();
@@ -232,6 +243,24 @@ describe('DesignBuilderPage', () => {
       data: { bundles: [], committedQuantityItems: [{ id: 'quantity-1' }] },
       error: null,
     });
+    mocks.findDesignModelByEstimateId.mockResolvedValue({ data: null, error: null });
+    mocks.listDesignModelObjects.mockResolvedValue({ data: [], error: null });
+    mocks.updateDesignModelMetadata.mockImplementation(async (_id, metadata) => ({
+      data: {
+        id: 'model-1',
+        projectId: 'project-1',
+        estimateId: 'estimate-1',
+        name: '5m x 6m CMU Template',
+        unitSystem: 'metric',
+        modelType: 'cmu_building',
+        status: 'draft',
+        createdBy: 'user-1',
+        metadata,
+        createdAt: '',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+      },
+      error: null,
+    }));
   });
 
   it('loads the preset, generates an estimate preview, and commits only after confirmation', async () => {
@@ -896,14 +925,8 @@ describe('DesignBuilderPage', () => {
   });
 
   it('debounces supabase saves after opening placement edits', async () => {
-    vi.useFakeTimers();
     render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /load cmu template/i }));
-    });
-    await act(async () => {
-      await Promise.resolve();
-    });
+    await loadTemplate();
     const callsAfterLoad = mocks.upsertDesignModelObjects.mock.calls.length;
 
     await act(async () => {
@@ -916,13 +939,7 @@ describe('DesignBuilderPage', () => {
       });
     });
     expect(mocks.upsertDesignModelObjects.mock.calls.length).toBe(callsAfterLoad);
-
-    await act(async () => {
-      vi.advanceTimersByTime(1000);
-      await Promise.resolve();
-    });
-    expect(mocks.upsertDesignModelObjects.mock.calls.length).toBeGreaterThan(callsAfterLoad);
-    vi.useRealTimers();
+    expect(screen.getByText(/unsaved changes/i)).toBeInTheDocument();
   });
 
   it('shows stale committed preview warning after editing a design with committed estimate lines', async () => {
@@ -1332,6 +1349,92 @@ describe('DesignBuilderPage', () => {
     await waitFor(() =>
       expect(useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']?.camera).toEqual(camera),
     );
+  });
+
+  it('shows project-bound persistence copy instead of demo sign-in messaging', async () => {
+    render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
+    await waitFor(() =>
+      expect(screen.getByText(/design is linked to this detailed estimate/i)).toBeInTheDocument(),
+    );
+    expect(screen.queryByText(/sign in and load the example/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/load the example to generate estimate-ready quantities/i)).not.toBeInTheDocument();
+  });
+
+  it('saves blank design state to the active estimate without requiring a template load', async () => {
+    render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
+    await waitFor(() => expect(mocks.findDesignModelByEstimateId).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByRole('button', { name: /save design/i }));
+    await waitFor(() => expect(mocks.createDesignModel).toHaveBeenCalled());
+    await waitFor(() => expect(mocks.updateDesignModelMetadata).toHaveBeenCalled());
+    expect(mocks.upsertDesignModelObjects).toHaveBeenCalled();
+    expect(screen.getByText(/design saved to this estimate/i)).toBeInTheDocument();
+    expect(screen.getByText(/^saved$/i)).toBeInTheDocument();
+  });
+
+  it('reloads persisted RC settings when opening from a saved estimate', async () => {
+    const preset = applyAutoFrameLayout(createFiveBySixCmuBuildingPreset());
+    preset.buildingSystemMode = 'reinforced_concrete_frame_with_cmu_infill';
+    preset.foundationSettings.isolatedFootings.enabled = true;
+    preset.foundationSettings.isolatedFootings.autoCreateAtStructuralColumns = true;
+    preset.foundationSettings.isolatedFootings.widthMeters = 1.5;
+    preset.foundationSettings.isolatedFootings.lengthMeters = 1.6;
+    preset.foundationSettings.isolatedFootings.thicknessMeters = 0.45;
+    const savedObjects = buildPresetObjects({
+      designModelId: 'model-1',
+      projectId: 'project-1',
+      preset,
+      includeStableIds: false,
+    }).map((object, index) => ({
+      ...object,
+      id: `object-${index}`,
+      parentObjectId: null,
+      quantitySummary: {},
+      estimateMapping: {},
+      geometryCache: null,
+      createdAt: '',
+      updatedAt: '',
+    }));
+    mocks.findDesignModelByEstimateId.mockResolvedValue({
+      data: {
+        id: 'model-1',
+        projectId: 'project-1',
+        estimateId: 'estimate-1',
+        name: 'Saved RC design',
+        unitSystem: 'metric',
+        modelType: 'cmu_building',
+        status: 'draft',
+        createdBy: 'user-1',
+        metadata: {
+          designBuilderState: serializePersistedDesignBuilderState(preset),
+        },
+        createdAt: '',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+      },
+      error: null,
+    });
+    mocks.listDesignModelObjects.mockResolvedValue({ data: savedObjects, error: null });
+
+    render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
+    await waitFor(() => expect(mocks.listDesignModelObjects).toHaveBeenCalled());
+    await waitFor(() =>
+      expect(latestViewerProps().geometryResult?.isolatedFootings?.[0]?.widthMeters).toBe(1.5),
+    );
+    expect(latestViewerProps().geometryResult?.isolatedFootings?.[0]?.lengthMeters).toBe(1.6);
+    expect(latestViewerProps().geometryResult?.isolatedFootings?.[0]?.thicknessMeters).toBe(0.45);
+  });
+
+  it('keeps local unsaved state when save fails', async () => {
+    mocks.updateDesignModelMetadata.mockResolvedValueOnce({ data: null, error: 'Network unavailable' });
+    render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
+    await waitFor(() => expect(mocks.findDesignModelByEstimateId).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByRole('button', { name: /save design/i }));
+    await waitFor(() =>
+      expect(screen.getByText(/unable to save design/i)).toBeInTheDocument(),
+    );
+    expect(screen.getByText(/save failed/i)).toBeInTheDocument();
+    expect(screen.getByTestId('design-builder-viewer')).toBeInTheDocument();
   });
 });
 

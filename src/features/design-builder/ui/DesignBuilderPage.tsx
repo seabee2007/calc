@@ -134,7 +134,20 @@ import { createDefaultFoundationSettings, normalizeRcFrameFoundationSettings } f
 import { createDefaultRoofSystemSettings, normalizeRoofSystemSettings } from '../domain/roofSystemDefaults';
 import FrameFoundationDimensionsModal from './FrameFoundationDimensionsModal';
 import {
+  designModelMetadataWithPersistedState,
+  persistenceStatusMessage,
+  presetFromStoredDesign,
+  readPersistedDesignBuilderState,
+  resolveDesignBuilderPersistenceContext,
+  saveStateLabel,
+  validateDesignBuilderPersistenceContext,
+  type DesignBuilderSaveState,
+} from '../domain/designBuilderPersistence';
+import {
   createDesignModel,
+  findDesignModelByEstimateId,
+  listDesignModelObjects,
+  updateDesignModelMetadata,
   upsertDesignModelObjects,
 } from '../services/designBuilderService';
 import type {
@@ -210,7 +223,6 @@ const VIEWER_DEFAULT_HEIGHT = 560;
 const RIGHT_PANEL_DEFAULT_WIDTH = 360;
 const RIGHT_PANEL_MIN_WIDTH = 320;
 const RIGHT_PANEL_MAX_WIDTH = 520;
-const DESIGN_SAVE_DEBOUNCE_MS = 1000;
 
 function leftPanelCollapsedKey(projectId: string, estimateId: string | null): string {
   return `arden:designBuilder:leftPanelCollapsed:${projectId}:${estimateId ?? 'project'}`;
@@ -294,6 +306,15 @@ export default function DesignBuilderPage({
   const headerCollapse = useEstimateWorkspaceHeaderCollapse();
   const focusMode = Boolean(headerCollapse?.focusMode);
   const sessionKey = designBuilderSessionKey(projectId, estimateId);
+  const persistenceContext = useMemo(
+    () =>
+      resolveDesignBuilderPersistenceContext({
+        projectId,
+        estimateId,
+        userId: user?.id,
+      }),
+    [estimateId, projectId, user?.id],
+  );
   const storedSession = useDesignBuilderSessionStore((store) => store.sessions[sessionKey]);
   const saveDesignBuilderSession = useDesignBuilderSessionStore((store) => store.saveSession);
   const clearDesignBuilderSession = useDesignBuilderSessionStore((store) => store.clearSession);
@@ -309,8 +330,7 @@ export default function DesignBuilderPage({
   const sessionFramingValidatedRef = useRef(false);
   const orthogonalGuidesPreferenceTouchedRef = useRef(storedSession?.orthogonalGuidesPreferenceTouched ?? false);
   const resizeFrameRef = useRef<number | null>(null);
-  const saveDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const savingRef = useRef(false);
+  const persistedDesignLoadedRef = useRef(false);
   const hydratedSessionKeyRef = useRef<string | null>(null);
   const [layoutState, setLayoutState] = useState<DesignBuilderLayoutMode>(() => storedSession?.layoutState ?? 'blank');
   const [layoutEpoch, setLayoutEpoch] = useState(() => storedSession?.layoutEpoch ?? 0);
@@ -342,10 +362,13 @@ export default function DesignBuilderPage({
   const [persistedQuantityItems, setPersistedQuantityItems] = useState<DesignQuantityItem[]>(
     () => storedSession?.persistedQuantityItems ?? [],
   );
-  const [status, setStatus] = useState<PageStatus>({
+  const [status, setStatus] = useState<PageStatus>(() => ({
     tone: 'info',
-    message: 'Load the example to generate parametric geometry and quantities.',
-  });
+    message: persistenceStatusMessage(persistenceContext.mode),
+  }));
+  const [saveState, setSaveState] = useState<DesignBuilderSaveState>('unsaved');
+  const [lastSaveTime, setLastSaveTime] = useState<string | null>(null);
+  const [lastSaveError, setLastSaveError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(() =>
     storedSession?.leftPanelCollapsed ?? readBooleanStorage(leftPanelCollapsedKey(projectId, estimateId), false),
@@ -364,9 +387,14 @@ export default function DesignBuilderPage({
   const [showInfillPanelBounds, setShowInfillPanelBounds] = useState(false);
   const [showRoofReferencePerimeters, setShowRoofReferencePerimeters] = useState(false);
   const [showRoofFramingGuides, setShowRoofFramingGuides] = useState(false);
+  const [showDesignPersistenceDebug, setShowDesignPersistenceDebug] = useState(false);
   const [foundationViewMode, setFoundationViewMode] = useState<FoundationViewMode>('full_model');
   const [roofDisplayMode, setRoofDisplayMode] = useState<RoofDisplayMode>('full_roof');
   const [frameFoundationModalOpen, setFrameFoundationModalOpen] = useState(false);
+  const [designGeometryState, setDesignGeometryState] = useState<{ revision: number; lastReason?: string }>({
+    revision: 0,
+  });
+  const [lastStructureApplyRevision, setLastStructureApplyRevision] = useState(0);
   const [viewMode, setViewMode] = useState<'plan' | '3d'>(() => storedSession?.viewMode ?? '3d');
   const builderViewMode = builderViewModeFromStored(viewMode);
   const [snapMode, setSnapMode] = useState<DesignBuilderSnapMode>(() => storedSession?.snapMode ?? 'grid');
@@ -444,6 +472,72 @@ export default function DesignBuilderPage({
     setRightPanelCollapsed(readBooleanStorage(rightPanelCollapsedKey(projectId, estimateId), false));
     setViewerSize(readViewerSize(projectId, estimateId, focusMode));
   }, [projectId, estimateId, focusMode, sessionKey, storedSession]);
+
+  useEffect(() => {
+    persistedDesignLoadedRef.current = false;
+  }, [sessionKey]);
+
+  useEffect(() => {
+    if (!persistenceContext.canPersist || persistedDesignLoadedRef.current) return;
+    persistedDesignLoadedRef.current = true;
+
+    void (async () => {
+      try {
+        const modelResult = await findDesignModelByEstimateId(projectId, persistenceContext.estimateId!);
+        if (modelResult.error) {
+          setLastSaveError(modelResult.error);
+          setSaveState('failed');
+          setStatus({ tone: 'error', message: DESIGN_BUILDER_COPY.status.saveFailed });
+          return;
+        }
+        if (!modelResult.data) {
+          setSaveState('unsaved');
+          setStatus({ tone: 'info', message: persistenceStatusMessage('project_bound') });
+          return;
+        }
+
+        const objectsResult = await listDesignModelObjects(modelResult.data.id);
+        if (objectsResult.error || !objectsResult.data) {
+          setLastSaveError(objectsResult.error ?? 'Could not load saved design objects.');
+          setSaveState('failed');
+          setStatus({ tone: 'error', message: DESIGN_BUILDER_COPY.status.saveFailed });
+          return;
+        }
+
+        const persistedState = readPersistedDesignBuilderState(modelResult.data);
+        const nextPreset = presetFromStoredDesign({
+          objects: objectsResult.data,
+          persistedState,
+          fallbackName: modelResult.data.name,
+        });
+        setDesignModel(modelResult.data);
+        setObjects(objectsResult.data);
+        setPreset(nextPreset);
+        setLayoutState(nextPreset.wallLayout.segments.length > 0 ? 'editing' : 'blank');
+        setManualMasonryRuns(nextPreset.wall.manualMasonryCourseRuns ?? []);
+        setSaveState('saved');
+        setLastSaveTime(persistedState?.updatedAt ?? modelResult.data.updatedAt);
+        setLastSaveError(null);
+        setDesignGeometryState((current) => ({
+          revision: current.revision + 1,
+          lastReason: 'design_loaded_from_estimate',
+        }));
+        if (persistedState?.displayPreferences?.activeView) {
+          setViewMode(persistedState.displayPreferences.activeView);
+        }
+        if (persistedState?.displayPreferences?.roofDisplayMode) {
+          setRoofDisplayMode(persistedState.displayPreferences.roofDisplayMode as RoofDisplayMode);
+        }
+        if (persistedState?.displayPreferences?.foundationViewMode) {
+          setFoundationViewMode(persistedState.displayPreferences.foundationViewMode as FoundationViewMode);
+        }
+        setStatus({ tone: 'info', message: persistenceStatusMessage('project_bound') });
+      } catch {
+        setLastSaveError('Could not load saved design.');
+        setSaveState('failed');
+      }
+    })();
+  }, [persistenceContext.canPersist, persistenceContext.estimateId, projectId]);
 
   useEffect(() => {
     if (!storedSession?.viewerSize) {
@@ -990,55 +1084,6 @@ export default function DesignBuilderPage({
         ? { kind: 'opening', id: selectedOpeningId }
         : { kind: 'none' };
 
-  const buildObjectsForSave = useCallback(() => {
-    if (!designModel || !preset) return [];
-    const byKey = new Map(
-      objects.map((object) => [objectSaveKey(object.objectType, object.parameters as { kind?: string }), object.id]),
-    );
-    return buildPresetObjects({
-      designModelId: designModel.id,
-      projectId,
-      preset: syncPresetFromLayout(preset, preset.wallLayout),
-      includeStableIds: false,
-    }).map((input) => ({
-      ...input,
-      ...(byKey.get(objectSaveKey(input.objectType, input.parameters as { kind?: string }))
-        ? { id: byKey.get(objectSaveKey(input.objectType, input.parameters as { kind?: string })) }
-        : {}),
-    }));
-  }, [designModel, objects, preset, projectId]);
-
-  const persistDesignObjects = useCallback(async () => {
-    if (!user?.id || !designModel || !preset || savingRef.current) return;
-    const payload = buildObjectsForSave();
-    if (payload.length === 0) return;
-    savingRef.current = true;
-    try {
-      const objectResult = await upsertDesignModelObjects(payload);
-      if (objectResult.error || !objectResult.data) {
-        setStatus({ tone: 'error', message: objectResult.error ?? 'Could not save design objects.' });
-        return;
-      }
-      setObjects(objectResult.data);
-    } finally {
-      savingRef.current = false;
-    }
-  }, [buildObjectsForSave, designModel, preset, user?.id]);
-
-  const scheduleDebouncedSave = useCallback(() => {
-    if (!designModel || !user?.id) return;
-    if (saveDebounceRef.current) clearTimeout(saveDebounceRef.current);
-    saveDebounceRef.current = setTimeout(() => {
-      void persistDesignObjects();
-    }, DESIGN_SAVE_DEBOUNCE_MS);
-  }, [designModel, persistDesignObjects, user?.id]);
-
-  useEffect(() => {
-    return () => {
-      if (saveDebounceRef.current) clearTimeout(saveDebounceRef.current);
-    };
-  }, []);
-
   function issueViewCommand(action: 'fit' | 'reset' | 'grid_scale', spacingMeters?: number) {
     setViewCommand({ id: Date.now() + Math.random(), action, spacingMeters });
   }
@@ -1100,7 +1145,9 @@ export default function DesignBuilderPage({
       return [];
     });
     setPreviewLines([]);
-    scheduleDebouncedSave();
+    if (persistenceContext.canPersist) {
+      setSaveState('unsaved');
+    }
   }
 
   function finishUndoRedo(command: DesignHistoryCommand, direction: 'undo' | 'redo') {
@@ -1120,10 +1167,10 @@ export default function DesignBuilderPage({
     mutate: (before: DesignBuilderSnapshot) => DesignBuilderSnapshot;
     recordHistory?: boolean;
     afterApply?: () => void;
-  }) {
+  }): boolean {
     const before = captureDesignSnapshot();
     const after = params.mutate(before);
-    if (snapshotsEqual(before, after)) return;
+    if (snapshotsEqual(before, after)) return false;
 
     applyDesignSnapshot(after);
     finalizeMutationAfterCommand();
@@ -1141,6 +1188,7 @@ export default function DesignBuilderPage({
     }
 
     params.afterApply?.();
+    return true;
   }
 
   function recordDesignHistoryCommand(
@@ -1233,13 +1281,35 @@ export default function DesignBuilderPage({
     }
   }
 
-  function handleApplyFrameFoundationDimensions(payload: FrameFoundationDimensionsApplyPayload) {
-    applyPresetPatch(
-      (current) => applyFrameFoundationDimensions(current, payload),
-      'Update frame & foundation dimensions',
-      'structure_update',
-    );
-    setStatus({ tone: 'success', message: 'Frame and foundation dimensions applied.' });
+  function handleApplyFrameFoundationDimensions(
+    payload: FrameFoundationDimensionsApplyPayload,
+  ): boolean {
+    const applied = executeDesignCommand({
+      label: 'Update frame & foundation dimensions',
+      kind: 'structure_update',
+      mutate: (before) =>
+        patchDesignSnapshot(before, resolvePresetName(), (current) =>
+          applyFrameFoundationDimensions(current, payload),
+        ),
+      afterApply: () => {
+        setDesignGeometryState((current) => {
+          const nextRevision = current.revision + 1;
+          setLastStructureApplyRevision(nextRevision);
+          return {
+            revision: nextRevision,
+            lastReason: 'structure_dimensions_applied',
+          };
+        });
+        setStatus({
+          tone: 'success',
+          message: 'Frame, foundation, and roof dimensions applied.',
+        });
+      },
+    });
+    if (!applied) {
+      setStatus({ tone: 'info', message: 'No dimension changes to apply.' });
+    }
+    return applied;
   }
 
   function addOpening(opening: WallOpeningParameters) {
@@ -2322,23 +2392,85 @@ export default function DesignBuilderPage({
   };
 
   async function handleSaveDesign() {
-    if (!modelLoaded) {
-      setStatus({ tone: 'info', message: 'Load the example before saving design parameters.' });
+    if (!preset) return;
+    if (!persistenceContext.canPersist) {
+      setStatus({ tone: 'info', message: persistenceStatusMessage('standalone_demo') });
       return;
     }
-    if (!designModel) {
-      setStatus({ tone: 'info', message: 'Sign in and load the example to save design parameters to the project.' });
+    try {
+      validateDesignBuilderPersistenceContext(persistenceContext);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Design Builder must be opened from a saved project estimate.';
+      setStatus({ tone: 'error', message });
       return;
-    }
-    if (saveDebounceRef.current) {
-      clearTimeout(saveDebounceRef.current);
-      saveDebounceRef.current = null;
     }
     setBusy(true);
-    setStatus({ tone: 'info', message: 'Saving design parameters...' });
+    setSaveState('saving');
+    setLastSaveError(null);
+    setStatus({ tone: 'info', message: 'Saving design...' });
     try {
-      await persistDesignObjects();
-      setStatus({ tone: 'success', message: 'Design parameters saved.' });
+      let activeModel = designModel;
+      if (!activeModel) {
+        const modelResult = await createDesignModel({
+          projectId,
+          estimateId,
+          name: preset.name,
+          unitSystem: 'metric',
+          createdBy: persistenceContext.userId!,
+          metadata: {
+            source: 'parametric_design_builder',
+          },
+        });
+        if (modelResult.error || !modelResult.data) {
+          throw new Error(modelResult.error ?? 'Could not create design model.');
+        }
+        activeModel = modelResult.data;
+        setDesignModel(activeModel);
+      }
+
+      const syncedPreset = syncPresetFromLayout(preset, preset.wallLayout);
+      const metadata = designModelMetadataWithPersistedState(activeModel, syncedPreset, {
+        activeView: viewMode,
+        roofDisplayMode,
+        foundationViewMode,
+      });
+      const metadataResult = await updateDesignModelMetadata(activeModel.id, metadata);
+      if (metadataResult.error || !metadataResult.data) {
+        throw new Error(metadataResult.error ?? 'Could not save design metadata.');
+      }
+      activeModel = metadataResult.data;
+      setDesignModel(activeModel);
+
+      const byKey = new Map(
+        objects.map((object) => [objectSaveKey(object.objectType, object.parameters as { kind?: string }), object.id]),
+      );
+      const payload = buildPresetObjects({
+        designModelId: activeModel.id,
+        projectId,
+        preset: syncedPreset,
+        includeStableIds: false,
+      }).map((input) => ({
+        ...input,
+        ...(byKey.get(objectSaveKey(input.objectType, input.parameters as { kind?: string }))
+          ? { id: byKey.get(objectSaveKey(input.objectType, input.parameters as { kind?: string })) }
+          : {}),
+      }));
+      if (payload.length === 0) {
+        throw new Error('No design objects available to save.');
+      }
+      const objectResult = await upsertDesignModelObjects(payload);
+      if (objectResult.error || !objectResult.data) {
+        throw new Error(objectResult.error ?? 'Could not save design objects.');
+      }
+      setObjects(objectResult.data);
+      setSaveState('saved');
+      setLastSaveTime(new Date().toISOString());
+      setStatus({ tone: 'success', message: DESIGN_BUILDER_COPY.status.designSaved });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Could not save design.';
+      setLastSaveError(message);
+      setSaveState('failed');
+      setStatus({ tone: 'error', message: DESIGN_BUILDER_COPY.status.saveFailed });
     } finally {
       setBusy(false);
     }
@@ -2695,7 +2827,6 @@ export default function DesignBuilderPage({
     try {
       const nextPreset = createFiveBySixCmuBuildingPreset();
       let nextObjects: DesignModelObject[] = [];
-      let nextModel: DesignModel | null = null;
 
       if (!user?.id) {
         const after = createDesignSnapshot({
@@ -2726,25 +2857,36 @@ export default function DesignBuilderPage({
         return;
       }
 
-      const modelResult = await createDesignModel({
-        projectId,
-        estimateId,
-        name: nextPreset.name,
-        unitSystem: 'metric',
-        createdBy: user.id,
-        metadata: {
-          preset: '5m_x_6m_cmu_building',
-          source: 'parametric_design_builder',
-        },
-      });
-      if (modelResult.error || !modelResult.data) {
-        setStatus({ tone: 'error', message: modelResult.error ?? 'Could not save design model.' });
-        return;
+      let nextModel: DesignModel | null = designModel;
+      if (persistenceContext.canPersist && !nextModel) {
+        const existingResult = await findDesignModelByEstimateId(projectId, persistenceContext.estimateId!);
+        if (existingResult.data) {
+          nextModel = existingResult.data;
+        }
+      }
+
+      if (!nextModel) {
+        const modelResult = await createDesignModel({
+          projectId,
+          estimateId,
+          name: nextPreset.name,
+          unitSystem: 'metric',
+          createdBy: user.id,
+          metadata: {
+            preset: '5m_x_6m_cmu_building',
+            source: 'parametric_design_builder',
+          },
+        });
+        if (modelResult.error || !modelResult.data) {
+          setStatus({ tone: 'error', message: modelResult.error ?? 'Could not save design model.' });
+          return;
+        }
+        nextModel = modelResult.data;
       }
 
       const objectResult = await upsertDesignModelObjects(
         buildPresetObjects({
-          designModelId: modelResult.data.id,
+          designModelId: nextModel.id,
           projectId,
           preset: nextPreset,
           includeStableIds: false,
@@ -2756,7 +2898,6 @@ export default function DesignBuilderPage({
       }
 
       nextObjects = objectResult.data;
-      nextModel = modelResult.data;
       const after = createDesignSnapshot({
         preset: nextPreset,
         objects: nextObjects,
@@ -2900,7 +3041,6 @@ export default function DesignBuilderPage({
       objectTreeExpanded: DEFAULT_OBJECT_TREE_EXPANSION,
       camera: null,
     });
-    scheduleDebouncedSave();
   }
 
   async function handleGeneratePreview() {
@@ -3554,6 +3694,11 @@ export default function DesignBuilderPage({
                         checked={showRoofFramingGuides}
                         onChange={setShowRoofFramingGuides}
                       />
+                      <ToggleField
+                        label="Design Persistence"
+                        checked={showDesignPersistenceDebug}
+                        onChange={setShowDesignPersistenceDebug}
+                      />
                     </div>
                   ) : null}
                   {import.meta.env.DEV && resolvedPreset.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill' ? (
@@ -3663,11 +3808,24 @@ export default function DesignBuilderPage({
               <button
                 type="button"
                 onClick={() => void handleSaveDesign()}
-                disabled={busy || !modelLoaded}
+                disabled={busy || !persistenceContext.canPersist}
                 className="h-9 rounded-lg bg-slate-900 px-3 text-xs font-semibold text-white shadow-sm hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-cyan-500 dark:text-slate-950 dark:hover:bg-cyan-400"
               >
                 {DESIGN_BUILDER_COPY.actions.saveDesign}
               </button>
+              {persistenceContext.canPersist ? (
+                <span
+                  className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${
+                    saveState === 'failed'
+                      ? 'border-red-300 text-red-700 dark:border-red-800 dark:text-red-200'
+                      : saveState === 'unsaved'
+                        ? 'border-amber-300 text-amber-900 dark:border-amber-800 dark:text-amber-100'
+                        : 'border-slate-200 text-slate-600 dark:border-slate-700 dark:text-slate-300'
+                  }`}
+                >
+                  {saveStateLabel(saveState)}
+                </span>
+              ) : null}
 
               <div className="ml-auto flex flex-wrap items-center gap-2 text-[11px]">
                 <span className="rounded-full border border-slate-200 px-2.5 py-1 font-semibold text-slate-600 dark:border-slate-700 dark:text-slate-300">
@@ -4071,6 +4229,28 @@ export default function DesignBuilderPage({
                 })()}
               </div>
             ) : null}
+            {import.meta.env.DEV && viewMode === '3d' ? (
+              <div className="pointer-events-none absolute left-3 bottom-24 z-10 rounded-xl border border-slate-500/60 bg-slate-900/95 px-3 py-2 font-mono text-[11px] text-slate-200 shadow-lg">
+                <div>Geometry revision: {designGeometryState.revision}</div>
+                {designGeometryState.lastReason ? (
+                  <div>Last rebuild: {designGeometryState.lastReason}</div>
+                ) : null}
+              </div>
+            ) : null}
+            {import.meta.env.DEV && showDesignPersistenceDebug ? (
+              <div className="pointer-events-none absolute left-3 bottom-44 z-10 rounded-xl border border-violet-400/60 bg-slate-900/95 px-3 py-2 font-mono text-[11px] text-slate-200 shadow-lg">
+                <div className="font-semibold uppercase tracking-wide text-violet-300">Design Persistence</div>
+                <div>Mode: {persistenceContext.mode}</div>
+                <div>Project ID: {persistenceContext.projectId ?? '—'}</div>
+                <div>Estimate ID: {persistenceContext.estimateId ?? '—'}</div>
+                <div>Can Persist: {persistenceContext.canPersist ? 'yes' : 'no'}</div>
+                <div>Schema Version: 1</div>
+                <div>Geometry Revision: {designGeometryState.revision}</div>
+                <div>Dirty State: {saveState}</div>
+                <div>Last Save Time: {lastSaveTime ?? '—'}</div>
+                <div>Last Save Error: {lastSaveError ?? '—'}</div>
+              </div>
+            ) : null}
           </div>
           {!focusMode ? (
             <div
@@ -4153,7 +4333,9 @@ export default function DesignBuilderPage({
             <div className="space-y-2">
               {visiblePreviewLines.length === 0 ? (
                 <div className="rounded-xl border border-dashed border-slate-300 p-4 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
-                  Load the example to generate estimate-ready quantities.
+                  {persistenceContext.canPersist
+                    ? 'Draw walls or load a template, then generate an estimate preview from the current design parameters.'
+                    : 'Open this tool from a saved Detailed Estimate to generate and commit estimate-ready quantities.'}
                 </div>
               ) : null}
               {visiblePreviewLines.map((line) => (
@@ -4227,6 +4409,8 @@ export default function DesignBuilderPage({
       preset={resolvedPreset}
       wallLayout={wallLayout}
       exteriorFootprint={designGeometryResult.exteriorFootprint ?? []}
+      geometryRevision={designGeometryState.revision}
+      lastStructureApplyRevision={lastStructureApplyRevision}
       onClose={() => setFrameFoundationModalOpen(false)}
       onApply={handleApplyFrameFoundationDimensions}
     />

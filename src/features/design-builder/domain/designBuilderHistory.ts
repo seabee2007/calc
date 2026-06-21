@@ -5,6 +5,11 @@ import {
   createEmptyCmuInfillSystem,
   createEmptyGableEndSystem,
 } from './structuralFrameDefaults';
+import {
+  createDefaultRcFrameFoundationSettings,
+  normalizeRcFrameFoundationSettings,
+} from './rcFrameFoundationMigration';
+import { createDefaultRoofSystemSettings, normalizeRoofSystemSettings } from './roofSystemDefaults';
 import type {
   CmuWallSystemParameters,
   DesignBuilderLayoutMode,
@@ -12,6 +17,8 @@ import type {
   DesignObjectType,
   DesignWallLayoutParameters,
   FoundationSetout,
+  RcFrameFoundationSettings,
+  RoofSystemSettings,
   ThickenedEdgeSlabParameters,
   WallOpeningParameters,
 } from '../types';
@@ -45,6 +52,8 @@ export type DesignBuilderSnapshot = {
   frameSystem: CmuBuildingPreset['frameSystem'];
   infillSystem: CmuBuildingPreset['infillSystem'];
   gableEndSystem: CmuBuildingPreset['gableEndSystem'];
+  rcFrameFoundationSettings: RcFrameFoundationSettings;
+  roofSystem: RoofSystemSettings;
   designObjects: DesignModelObject[];
   layoutState: DesignBuilderLayoutMode;
   selectedOpeningId: string | null;
@@ -102,6 +111,12 @@ export function createDesignSnapshot(params: {
     frameSystem: structuredClone(params.preset.frameSystem ?? createDefaultStructuralFrameSystem()),
     infillSystem: structuredClone(params.preset.infillSystem ?? createEmptyCmuInfillSystem()),
     gableEndSystem: structuredClone(params.preset.gableEndSystem ?? createEmptyGableEndSystem()),
+    rcFrameFoundationSettings: structuredClone(
+      normalizeRcFrameFoundationSettings(params.preset.foundationSettings),
+    ),
+    roofSystem: structuredClone(
+      normalizeRoofSystemSettings(params.preset.roofSystem ?? createDefaultRoofSystemSettings()),
+    ),
     buildingSystemMode: params.preset.buildingSystemMode ?? 'cmu_bearing_wall',
     designObjects: structuredClone(params.objects),
     layoutState: params.layoutState,
@@ -124,6 +139,10 @@ export function snapshotToPreset(snapshot: DesignBuilderSnapshot, name: string):
     frameSystem: structuredClone(snapshot.frameSystem ?? createDefaultStructuralFrameSystem()),
     infillSystem: structuredClone(snapshot.infillSystem ?? createEmptyCmuInfillSystem()),
     gableEndSystem: structuredClone(snapshot.gableEndSystem ?? createEmptyGableEndSystem()),
+    foundationSettings: structuredClone(
+      snapshot.rcFrameFoundationSettings ?? createDefaultRcFrameFoundationSettings(),
+    ),
+    roofSystem: structuredClone(snapshot.roofSystem ?? createDefaultRoofSystemSettings()),
     wall: {
       ...structuredClone(snapshot.masonryWall),
       openings: structuredClone(snapshot.openings),
