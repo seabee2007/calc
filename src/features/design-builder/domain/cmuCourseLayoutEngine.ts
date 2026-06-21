@@ -149,6 +149,7 @@ export function blockFromPanelUnit(params: {
     id: `${params.panel.id}-c${params.courseIndex}-m${params.moduleIndex}`,
     face: 'north',
     segmentId: params.panel.hostSegmentId,
+    wallFace: params.panel.hostSegmentId,
     course: params.courseIndex + 1,
     courseIndex: params.courseIndex,
     moduleIndex: params.moduleIndex,
@@ -162,6 +163,12 @@ export function blockFromPanelUnit(params: {
     physicalHeightMeters: params.physicalHeightMeters,
     depthMeters: params.frame.wallThicknessMeters,
     source: params.source ?? 'infill_panel_solver',
+    infillBand:
+      params.panel.infillZone === 'below_grade'
+        ? 'below_grade'
+        : params.panel.infillZone === 'above_grade'
+          ? 'above_grade'
+          : 'main',
     x:
       params.frame.exteriorStart.x +
       params.frame.tangent.x * centerStation +

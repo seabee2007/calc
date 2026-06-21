@@ -4208,10 +4208,15 @@ export default function DesignBuilderPage({
                   <div className="text-red-300">Red: invalid joint or overlap</div>
                 </div>
                 <div className="mt-2 space-y-0.5 border-t border-slate-700 pt-2 font-mono text-[11px]">
+                  <div>Eligible CMU blocks: {mortarJointDiagnostics?.eligibleBlockCount ?? 0}</div>
+                  <div>Mortar row groups: {mortarJointDiagnostics?.rowGroupCount ?? 0}</div>
+                  <div>Head-joint candidates: {mortarJointDiagnostics?.headJointCandidateCount ?? 0}</div>
                   <div>Mortar head-joint instances: {mortarJointDiagnostics?.headJointCount ?? 0}</div>
+                  <div>Zero-gap fallback joints: {mortarJointDiagnostics?.zeroGapFallbackCount ?? 0}</div>
                   <div>Mortar bed-joint instances: {mortarJointDiagnostics?.bedJointCount ?? 0}</div>
                   <div>Skipped opening gaps: {mortarJointDiagnostics?.skippedOpeningGaps ?? 0}</div>
                   <div>Skipped non-contiguous gaps: {mortarJointDiagnostics?.skippedNonContiguousGaps ?? 0}</div>
+                  <div>Invalid joint candidates: {mortarJointDiagnostics?.invalidJointCount ?? 0}</div>
                   <div>
                     Mortar face recess: {(mortarJointDiagnostics?.faceRecessMeters ?? 0.002).toFixed(3)} m
                   </div>

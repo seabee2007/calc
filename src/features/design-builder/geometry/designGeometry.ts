@@ -363,6 +363,8 @@ export interface CmuBlockInstance {
   lengthMeters: number;
   startAlongMeters: number;
   endAlongMeters: number;
+  wallFace?: CmuBlockInstanceWallFace | string;
+  infillBand?: 'above_grade' | 'below_grade' | 'gable' | 'main';
   nearOpeningId?: string;
   closureRole?: OpeningClosureRole;
   adjacentTo?: 'rough_opening_start' | 'rough_opening_end';
@@ -407,7 +409,9 @@ export type CmuUnitPlacement = {
     | 'lintel_closure'
     | 'infill_panel_solver'
     | 'panel_top_closure'
-    | 'gable_end_solver';
+    | 'gable_end_solver'
+    | 'rc_frame_infill'
+    | 'below_grade_rc_infill';
   openingId?: string;
   adjacentTo?: 'rough_opening_start' | 'rough_opening_end';
   terminalClosure?: TerminalClosureUnit;

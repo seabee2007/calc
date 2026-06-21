@@ -279,6 +279,8 @@ export function solveInfillPanelBlocks(params: {
         halfActualLengthMeters: halfActual,
         bondPattern,
         counters,
+        source:
+          params.panel.infillZone === 'below_grade' ? 'below_grade_rc_infill' : 'rc_frame_infill',
       }),
     );
   }

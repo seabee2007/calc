@@ -2,8 +2,29 @@ import type { CmuBlockInstance } from '../../geometry/designGeometry';
 
 export const MORTAR_FACE_RECESS_METERS = 0.002;
 export const MIN_MORTAR_JOINT_METERS = 0.001;
+export const JOINT_EPSILON_METERS = 0.002;
 
 export type MortarJointKind = 'head' | 'bed';
+
+export type MortarEligibleBlockSource =
+  | 'wall'
+  | 'wall_run'
+  | 'corner_assembly'
+  | 'opening_closure'
+  | 'terminal_closure'
+  | 'auto_layout'
+  | 'closed_perimeter_solver'
+  | 'manual_override'
+  | 'opening_assembly_solver'
+  | 'opening_jamb_closure'
+  | 'lintel_closure'
+  | 'infill_panel_solver'
+  | 'panel_top_closure'
+  | 'gable_end_solver'
+  | 'rc_frame_infill'
+  | 'below_grade_rc_infill';
+
+export type MortarInfillBand = 'above_grade' | 'below_grade' | 'gable' | 'main';
 
 export type MortarJointInstance = {
   kind: MortarJointKind;
@@ -15,10 +36,15 @@ export type MortarJointInstance = {
   scaleY: number;
   scaleZ: number;
   valid: boolean;
+  zeroGapFallback?: boolean;
 };
 
 export type MortarJointDiagnostics = {
+  eligibleBlockCount: number;
+  rowGroupCount: number;
+  headJointCandidateCount: number;
   headJointCount: number;
+  zeroGapFallbackCount: number;
   bedJointCount: number;
   skippedOpeningGaps: number;
   skippedNonContiguousGaps: number;
@@ -32,6 +58,8 @@ export type GenerateMortarJointInstancesParams = {
   defaultBlockDepthMeters: number;
   defaultBlockHeightMeters: number;
 };
+
+const EXCLUDED_BLOCK_SOURCES = new Set<string>(['lintel_bond_beam']);
 
 function wallTangent(rotationY: number): { x: number; z: number } {
   return { x: Math.cos(rotationY), z: -Math.sin(rotationY) };
@@ -69,14 +97,33 @@ function positionAtStation(
   };
 }
 
-function courseGroupKey(block: CmuBlockInstance): string {
-  const segmentId = block.segmentId ?? block.face;
-  const courseIndex = block.courseIndex ?? block.course ?? 0;
-  return `${segmentId}|${courseIndex}|${block.rotationY.toFixed(6)}`;
+export function deriveMortarInfillBand(block: CmuBlockInstance): MortarInfillBand {
+  if (block.infillBand) {
+    return block.infillBand;
+  }
+  if (block.source === 'gable_end_solver') {
+    return 'gable';
+  }
+  if (block.source === 'below_grade_rc_infill') {
+    return 'below_grade';
+  }
+  if (block.source === 'rc_frame_infill' || block.source === 'infill_panel_solver' || block.source === 'panel_top_closure') {
+    return 'above_grade';
+  }
+  return 'main';
 }
 
-function shouldParticipateInMortar(block: CmuBlockInstance): boolean {
+export function courseGroupKey(block: CmuBlockInstance): string {
+  const hostSegmentId = block.segmentId ?? block.face;
+  const wallFace = block.wallFace ?? block.face;
+  const infillBand = deriveMortarInfillBand(block);
+  const courseIndex = block.courseIndex ?? block.course ?? 0;
+  return [hostSegmentId, wallFace, infillBand, courseIndex].join(':');
+}
+
+export function shouldParticipateInMortar(block: CmuBlockInstance): boolean {
   if (block.blockType === 'lintel_bond_beam') return false;
+  if (block.source && EXCLUDED_BLOCK_SOURCES.has(block.source)) return false;
   return true;
 }
 
@@ -116,6 +163,33 @@ function buildContiguousRuns(
   return { runs, skippedNonContiguousGaps };
 }
 
+function createHeadJointInstance(params: {
+  previous: CmuBlockInstance;
+  next: CmuBlockInstance;
+  rotationY: number;
+  centerStation: number;
+  jointWidth: number;
+  mortarDepth: number;
+  defaultBlockHeightMeters: number;
+  zeroGapFallback?: boolean;
+}): MortarJointInstance {
+  const headHeight = Math.min(
+    resolveBlockHeight(params.previous, params.defaultBlockHeightMeters),
+    resolveBlockHeight(params.next, params.defaultBlockHeightMeters),
+  );
+  const centerY = (params.previous.y + params.next.y) / 2;
+  return {
+    kind: 'head',
+    ...positionAtStation(params.previous, params.centerStation, centerY),
+    rotationY: params.rotationY,
+    scaleX: Math.max(MIN_MORTAR_JOINT_METERS, params.jointWidth),
+    scaleY: headHeight,
+    scaleZ: params.mortarDepth,
+    valid: true,
+    zeroGapFallback: params.zeroGapFallback,
+  };
+}
+
 export function generateMortarJointInstances(
   params: GenerateMortarJointInstancesParams,
 ): { instances: MortarJointInstance[]; diagnostics: MortarJointDiagnostics } {
@@ -131,11 +205,15 @@ export function generateMortarJointInstances(
   let skippedNonContiguousGaps = 0;
   let invalidJointCount = 0;
   let headJointCount = 0;
+  let zeroGapFallbackCount = 0;
   let bedJointCount = 0;
+  let headJointCandidateCount = 0;
+  let eligibleBlockCount = 0;
 
   const grouped = new Map<string, CmuBlockInstance[]>();
   blocks.forEach((block) => {
     if (!shouldParticipateInMortar(block)) return;
+    eligibleBlockCount += 1;
     const key = courseGroupKey(block);
     const existing = grouped.get(key) ?? [];
     existing.push(block);
@@ -164,55 +242,63 @@ export function generateMortarJointInstances(
         const next = run[index + 1];
         const gapStart = resolveBlockSpan(previous).end;
         const gapEnd = resolveBlockSpan(next).start;
-        const jointWidth = gapEnd - gapStart;
+        const actualGapMeters = gapEnd - gapStart;
+        headJointCandidateCount += 1;
 
-        if (jointWidth <= MIN_MORTAR_JOINT_METERS) {
-          if (jointWidth < -MIN_MORTAR_JOINT_METERS) {
-            invalidJointCount += 1;
-            instances.push({
-              kind: 'head',
-              ...positionAtStation(
-                previous,
-                (gapStart + gapEnd) / 2,
-                (previous.y + next.y) / 2,
+        if (actualGapMeters < -JOINT_EPSILON_METERS) {
+          invalidJointCount += 1;
+          instances.push({
+            kind: 'head',
+            ...positionAtStation(previous, (gapStart + gapEnd) / 2, (previous.y + next.y) / 2),
+            rotationY,
+            scaleX: Math.max(MIN_MORTAR_JOINT_METERS, Math.abs(actualGapMeters)),
+            scaleY: Math.max(
+              MIN_MORTAR_JOINT_METERS,
+              Math.min(
+                resolveBlockHeight(previous, defaultBlockHeightMeters),
+                resolveBlockHeight(next, defaultBlockHeightMeters),
               ),
-              rotationY,
-              scaleX: Math.max(MIN_MORTAR_JOINT_METERS, Math.abs(jointWidth)),
-              scaleY: Math.max(
-                MIN_MORTAR_JOINT_METERS,
-                Math.min(
-                  resolveBlockHeight(previous, defaultBlockHeightMeters),
-                  resolveBlockHeight(next, defaultBlockHeightMeters),
-                ),
-              ),
-              scaleZ: mortarDepth,
-              valid: false,
-            });
-          }
+            ),
+            scaleZ: mortarDepth,
+            valid: false,
+          });
           continue;
         }
 
-        if (jointWidth > maxHeadGapMeters) {
+        if (Math.abs(actualGapMeters) <= JOINT_EPSILON_METERS) {
+          instances.push(
+            createHeadJointInstance({
+              previous,
+              next,
+              rotationY,
+              centerStation: gapStart,
+              jointWidth: mortarJointMeters,
+              mortarDepth,
+              defaultBlockHeightMeters,
+              zeroGapFallback: true,
+            }),
+          );
+          headJointCount += 1;
+          zeroGapFallbackCount += 1;
+          continue;
+        }
+
+        if (actualGapMeters > maxHeadGapMeters) {
           skippedOpeningGaps += 1;
           continue;
         }
 
-        const headHeight = Math.min(
-          resolveBlockHeight(previous, defaultBlockHeightMeters),
-          resolveBlockHeight(next, defaultBlockHeightMeters),
+        instances.push(
+          createHeadJointInstance({
+            previous,
+            next,
+            rotationY,
+            centerStation: (gapStart + gapEnd) / 2,
+            jointWidth: actualGapMeters,
+            mortarDepth,
+            defaultBlockHeightMeters,
+          }),
         );
-        const centerStation = (gapStart + gapEnd) / 2;
-        const centerY = (previous.y + next.y) / 2;
-
-        instances.push({
-          kind: 'head',
-          ...positionAtStation(previous, centerStation, centerY),
-          rotationY,
-          scaleX: jointWidth,
-          scaleY: headHeight,
-          scaleZ: mortarDepth,
-          valid: true,
-        });
         headJointCount += 1;
       }
 
@@ -242,7 +328,11 @@ export function generateMortarJointInstances(
   return {
     instances,
     diagnostics: {
+      eligibleBlockCount,
+      rowGroupCount: grouped.size,
+      headJointCandidateCount,
       headJointCount,
+      zeroGapFallbackCount,
       bedJointCount,
       skippedOpeningGaps,
       skippedNonContiguousGaps,
