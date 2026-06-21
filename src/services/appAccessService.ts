@@ -9,7 +9,6 @@ import type { Profile } from '../types/fieldPlanner';
 import { isEmployeeRole } from '../types/fieldPlanner';
 import {
   fetchEmployeePortalAccess,
-  logEmployeePortalAccessDiagnostics,
   type EmployeePortalAccessResult,
 } from './employeePortalAccessService';
 import { fetchProfile, fetchTeamProfiles } from './profileService';
@@ -199,7 +198,6 @@ export function resolveDefaultRouteFromAccess(
 export async function resolveAppAccess(
   userId: string,
   profileInput?: Profile | null,
-  options?: { authEmail?: string | null },
 ): Promise<ResolvedAppAccess> {
   const profile = profileInput ?? (await fetchProfile(userId));
   if (!profile) {
@@ -228,19 +226,6 @@ export async function resolveAppAccess(
       const employeeContext = await resolveEmployeePortalContext(userId, profile);
       acceptedEmployeeMemberships = employeeContext.acceptedEmployeeMemberships;
       employeePortalAccess = employeeContext.employeePortalAccess;
-
-      if (employeePortalAccess) {
-        logEmployeePortalAccessDiagnostics({
-          authUserId: userId,
-          authEmail: options?.authEmail ?? null,
-          acceptedMembershipId: employeePortalAccess.employeeMembershipId,
-          workspaceId: employeePortalAccess.workspaceId,
-          employerPlanId: employeePortalAccess.employerPlanId,
-          seatAssigned: employeePortalAccess.seatAssigned,
-          allowed: employeePortalAccess.allowed,
-          reason: employeePortalAccess.reason,
-        });
-      }
     }
   }
 

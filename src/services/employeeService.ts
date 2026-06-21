@@ -254,22 +254,10 @@ export async function acceptInviteForCurrentUser(
   userId?: string,
 ): Promise<void> {
   void userId;
-  const { data, error } = await supabase.rpc('accept_employee_invite', {
+  const { error } = await supabase.rpc('accept_employee_invite', {
     p_token: inviteToken,
   });
   if (error) throw error;
-
-  if (import.meta.env.DEV && data && typeof data === 'object') {
-    const row = data as Record<string, unknown>;
-    console.info('[employee-invite-acceptance]', {
-      invitationId: row.invitationId ?? row.invitation_id ?? null,
-      employeeUserId: row.employeeUserId ?? row.employee_user_id ?? null,
-      workspaceId: row.workspaceId ?? row.workspace_id ?? row.employer_id ?? null,
-      membershipId: row.membershipId ?? row.membership_id ?? null,
-      seatId: row.membershipId ?? row.membership_id ?? null,
-      outcome: row.outcome ?? (row.ok === true ? 'accepted' : 'unknown'),
-    });
-  }
 }
 
 export async function syncEmployeeProfileFromInvites(): Promise<{

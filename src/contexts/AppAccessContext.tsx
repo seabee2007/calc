@@ -60,9 +60,7 @@ export function AppAccessProvider({ children }: { children: ReactNode }) {
 
     setAccessResolutionState('loading');
     try {
-      const resolved = await resolveAppAccess(user.id, profile, {
-        authEmail: user.email,
-      });
+      const resolved = await resolveAppAccess(user.id, profile);
       setAccess(resolved);
       setAccessResolutionState('resolved');
       logResolvedAppAccessDiagnostics(resolved);

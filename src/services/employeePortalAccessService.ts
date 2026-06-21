@@ -79,34 +79,5 @@ export async function fetchEmployeePortalAccess(
     return null;
   }
 
-  const mapped = mapRpcResult(data as Record<string, unknown>);
-
-  if (import.meta.env.DEV && mapped.repaired) {
-    console.info('[employee-membership-repair]', mapped);
-  }
-
-  return mapped;
-}
-
-export function logEmployeePortalAccessDiagnostics(params: {
-  authUserId: string;
-  authEmail?: string | null;
-  acceptedMembershipId: string | null;
-  workspaceId: string | null;
-  employerPlanId: PlanId | null;
-  seatAssigned: boolean;
-  allowed: boolean;
-  reason: EmployeePortalAccessReason;
-}): void {
-  if (!import.meta.env.DEV) return;
-  console.table({
-    authUserId: params.authUserId,
-    authEmail: params.authEmail ?? '—',
-    acceptedMembershipId: params.acceptedMembershipId ?? '—',
-    workspaceId: params.workspaceId ?? '—',
-    employerPlanId: params.employerPlanId ?? '—',
-    seatAssigned: params.seatAssigned,
-    allowed: params.allowed,
-    reason: params.reason,
-  });
+  return mapRpcResult(data as Record<string, unknown>);
 }
