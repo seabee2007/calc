@@ -15,34 +15,42 @@ describe('resolvePostLoginDest', () => {
   });
 
   it('routes owner to dashboard root', () => {
-    expect(resolvePostLoginDest('owner')).toBe('/');
+    expect(resolvePostLoginDest('owner')).toBe('/dashboard');
   });
 
   it('routes admin to dashboard root', () => {
-    expect(resolvePostLoginDest('admin')).toBe('/');
+    expect(resolvePostLoginDest('admin')).toBe('/dashboard');
   });
 
-  it('routes client to dashboard root', () => {
-    expect(resolvePostLoginDest('client')).toBe('/');
+  it('routes client to onboarding', () => {
+    expect(resolvePostLoginDest('client')).toBe('/onboarding');
   });
 
-  it('routes undefined role to dashboard root', () => {
-    expect(resolvePostLoginDest(undefined)).toBe('/');
+  it('routes undefined role to onboarding', () => {
+    expect(resolvePostLoginDest(undefined)).toBe('/onboarding');
   });
 
   it('owner respects safe returnTo', () => {
     expect(resolvePostLoginDest('owner', '/projects/123')).toBe('/projects/123');
   });
 
-  it('employee ignores returnTo and always goes to Field Portal', () => {
+  it('employee ignores owner-app returnTo and goes to Field Portal', () => {
     expect(resolvePostLoginDest('employee', '/projects/123')).toBe('/employee/dashboard');
   });
 
+  it('employee preserves employee portal returnTo', () => {
+    expect(resolvePostLoginDest('employee', '/employee/tasks')).toBe('/employee/tasks');
+  });
+
+  it('owner does not preserve employee portal returnTo', () => {
+    expect(resolvePostLoginDest('owner', '/employee/dashboard')).toBe('/dashboard');
+  });
+
   it('rejects protocol-relative returnTo as unsafe', () => {
-    expect(resolvePostLoginDest('owner', '//evil.com')).toBe('/');
+    expect(resolvePostLoginDest('owner', '//evil.com')).toBe('/dashboard');
   });
 
   it('rejects non-path returnTo', () => {
-    expect(resolvePostLoginDest('owner', 'https://evil.com')).toBe('/');
+    expect(resolvePostLoginDest('owner', 'https://evil.com')).toBe('/dashboard');
   });
 });

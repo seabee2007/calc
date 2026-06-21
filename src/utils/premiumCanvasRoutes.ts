@@ -1,6 +1,7 @@
 /** Routes that use the premium solid canvas (no concrete texture). */
 
 const PREMIUM_CANVAS_PREFIXES = [
+  '/dashboard',
   '/projects',
   '/resources',
   '/planner/hub',
@@ -18,7 +19,7 @@ const PREMIUM_CANVAS_PREFIXES = [
 ] as const;
 
 export function usesPremiumCanvas(pathname: string): boolean {
-  if (pathname === '/') return true;
+  if (pathname === '/' || pathname === '/dashboard') return true;
   if (/^\/projects\/[^/]+\/planner(?:\/|$)/.test(pathname)) {
     return false;
   }

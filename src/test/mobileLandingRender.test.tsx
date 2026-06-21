@@ -19,6 +19,16 @@ vi.mock('../hooks/useAuth', () => ({
   useAuth: () => authState,
 }));
 
+vi.mock('../contexts/AppAccessContext', () => ({
+  useAppAccess: () => ({
+    authSessionResolved: true,
+    accessResolutionState: 'resolved',
+    access: null,
+    refreshAccess: vi.fn(),
+    clearAccess: vi.fn(),
+  }),
+}));
+
 vi.mock('../store/toolsModalStore', () => ({
   useToolsModalStore: () => ({ open: vi.fn() }),
 }));

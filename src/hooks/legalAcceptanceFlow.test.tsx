@@ -9,6 +9,7 @@ import React from 'react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 import LegalAcceptanceGate from '../components/legal/LegalAcceptanceGate';
 
 const authUser = vi.hoisted(() => ({
@@ -26,6 +27,20 @@ const serviceMock = vi.hoisted(() => ({
 
 vi.mock('../hooks/useAuth', () => ({
   useAuth: () => ({ user: authUser, signOut: vi.fn() }),
+}));
+
+vi.mock('../services/appLogout', () => ({
+  logoutAndRedirect: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock('../contexts/AppAccessContext', () => ({
+  useAppAccess: () => ({
+    authSessionResolved: true,
+    accessResolutionState: 'resolved',
+    access: null,
+    refreshAccess: vi.fn(),
+    clearAccess: vi.fn(),
+  }),
 }));
 
 vi.mock('../services/legalAcceptanceService', () => ({
@@ -94,7 +109,11 @@ describe('legal acceptance flow (App Pattern A)', () => {
   });
 
   it('authenticated user without acceptance sees modal', async () => {
-    render(<AppLegalFlowSimulator />);
+    render(
+      <MemoryRouter>
+        <AppLegalFlowSimulator />
+      </MemoryRouter>,
+    );
 
     await waitFor(() => {
       expect(screen.getByTestId('legal-acceptance-modal')).toBeInTheDocument();
@@ -104,7 +123,11 @@ describe('legal acceptance flow (App Pattern A)', () => {
 
   it('after accept resolves, dashboard renders immediately without refresh', async () => {
     const user = userEvent.setup();
-    render(<AppLegalFlowSimulator />);
+    render(
+      <MemoryRouter>
+        <AppLegalFlowSimulator />
+      </MemoryRouter>,
+    );
 
     await waitFor(() => {
       expect(screen.getByTestId('legal-acceptance-modal')).toBeInTheDocument();
@@ -125,7 +148,11 @@ describe('legal acceptance flow (App Pattern A)', () => {
     serviceMock.acceptCurrentLegalDocuments.mockResolvedValue(acceptedRow);
 
     const user = userEvent.setup();
-    render(<AppLegalFlowSimulator />);
+    render(
+      <MemoryRouter>
+        <AppLegalFlowSimulator />
+      </MemoryRouter>,
+    );
 
     await waitFor(() => {
       expect(screen.getByTestId('legal-acceptance-modal')).toBeInTheDocument();
@@ -143,7 +170,11 @@ describe('legal acceptance flow (App Pattern A)', () => {
     serviceMock.getCurrentLegalAcceptance.mockRejectedValue(new Error('JWT issued at future'));
     serviceMock.getLatestLegalAcceptance.mockResolvedValue(null);
 
-    render(<AppLegalFlowSimulator />);
+    render(
+      <MemoryRouter>
+        <AppLegalFlowSimulator />
+      </MemoryRouter>,
+    );
 
     await waitFor(() => {
       expect(screen.getByTestId('legal-acceptance-session-error')).toBeInTheDocument();
@@ -196,7 +227,11 @@ describe('dual hook instance bug (regression)', () => {
     serviceMock.acceptCurrentLegalDocuments.mockResolvedValue(acceptedRow);
 
     const user = userEvent.setup();
-    const { container } = render(<BrokenAppShell />);
+    const { container } = render(
+      <MemoryRouter>
+        <BrokenAppShell />
+      </MemoryRouter>,
+    );
 
     await waitFor(() => {
       expect(screen.getByTestId('gate-accept-button')).toBeInTheDocument();

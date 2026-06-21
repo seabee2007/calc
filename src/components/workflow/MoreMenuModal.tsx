@@ -5,6 +5,7 @@ import Modal from '../ui/Modal';
 import Button from '../ui/Button';
 import { useMoreMenuStore } from '../../store/moreMenuStore';
 import { useAuth } from '../../hooks/useAuth';
+import { logoutAndRedirect } from '../../services/appLogout';
 
 interface MoreItem {
   title: string;
@@ -30,8 +31,7 @@ const MoreMenuModal: React.FC = () => {
 
   const handleSignOut = async () => {
     close();
-    await signOut();
-    navigate('/', { replace: true });
+    await logoutAndRedirect(signOut, navigate);
   };
 
   return (

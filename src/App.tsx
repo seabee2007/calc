@@ -4,6 +4,8 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useThemeStore } from './store/themeStore';
 import Layout from './components/layout/Layout';
 import Home from './pages/Home';
+import RootRoute from './components/routing/RootRoute';
+import OnboardingRoute from './pages/OnboardingRoute';
 import Calculator from './pages/Calculator';
 import Login from './pages/auth/Login';
 import SignUp from './pages/auth/SignUp';
@@ -363,8 +365,17 @@ function App() {
   ]);
 
   const isLoggedOutLanding = location.pathname === '/' && !user && !authLoading;
+  const isOwnerOnboardingRoute =
+    location.pathname === '/onboarding' &&
+    Boolean(user) &&
+    hasAcceptedCurrentLegal &&
+    profile?.role === 'owner' &&
+    !profile?.onboardingCompletedAt;
   const isOnboardingActive =
-    onboardingChecked && ((showOnboarding && user) || location.pathname === '/test-onboarding');
+    onboardingChecked &&
+    ((showOnboarding && user) ||
+      location.pathname === '/test-onboarding' ||
+      isOwnerOnboardingRoute);
 
   useEffect(() => {
     const shouldUseDark = isLoggedOutLanding || isDark || isOnboardingActive;
@@ -457,7 +468,8 @@ function App() {
 
   if (
     ((showOnboarding && user && hasAcceptedCurrentLegal) ||
-      location.pathname === '/test-onboarding')
+      location.pathname === '/test-onboarding' ||
+      isOwnerOnboardingRoute)
   ) {
     return (
       <Suspense fallback={<RouteFallback />}>
@@ -471,7 +483,17 @@ function App() {
       <Suspense fallback={<RouteFallback />}>
         <Routes>
           <Route element={<Layout />}>
-            <Route index element={<Home />} />
+            <Route index element={<RootRoute />} />
+            <Route
+              path="dashboard"
+              element={
+                <AuthGuard>
+                  <OwnerGuard>
+                    <Home />
+                  </OwnerGuard>
+                </AuthGuard>
+              }
+            />
             <Route
               path="calculator"
               element={
@@ -805,6 +827,14 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/complete-profile" element={<ProfileCompletePage />} />
+          <Route
+            path="/onboarding"
+            element={
+              <AuthGuard>
+                <OnboardingRoute />
+              </AuthGuard>
+            }
+          />
           <Route path="/auth/callback" element={<AuthCallbackPage />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route
@@ -824,7 +854,7 @@ function App() {
             </>
           )}
 
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<RootRoute />} />
         </Routes>
 
         {chatStore.isVisible &&

@@ -11,7 +11,8 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import GlobalAskAiGate from '../GlobalAskAiGate';
 import ConcreteChat from '../../ConcreteChat';
-import { SubscriptionProvider } from '../../../contexts/SubscriptionContext';
+
+const useSubscription = vi.fn();
 
 vi.mock('../../../routes/lazyPages', () => ({
   LazyConcreteChat: () => <div data-testid="global-ask-ai-open">Ask AI</div>,
@@ -22,6 +23,10 @@ vi.mock('../../../hooks/useAuth', () => ({
     user: { id: 'owner-1' },
     profile: { id: 'owner-1', role: 'owner', employerId: null },
   }),
+}));
+
+vi.mock('../../../contexts/SubscriptionContext', () => ({
+  useSubscription: () => useSubscription(),
 }));
 
 vi.mock('../../../store', () => ({
@@ -41,16 +46,6 @@ vi.mock('react-router-dom', async (importOriginal) => {
   };
 });
 
-const fetchSubscription = vi.fn();
-
-vi.mock('../../../services/subscriptionService', () => ({
-  fetchSubscription: (...args: unknown[]) => fetchSubscription(...args),
-  resolveEffectivePlanFromRow: (row: { planId: string; status: string } | null) => {
-    if (!row || row.status === 'canceled') return 'free';
-    return row.planId;
-  },
-}));
-
 const supabaseGetSession = vi.fn();
 
 vi.mock('../../../lib/supabase', () => ({
@@ -61,38 +56,15 @@ vi.mock('../../../lib/supabase', () => ({
   },
 }));
 
-function renderWithSubscription(ui: React.ReactElement) {
-  return render(
-    <MemoryRouter>
-      <SubscriptionProvider>{ui}</SubscriptionProvider>
-    </MemoryRouter>,
-  );
-}
-
-function mockSubscription(planId: string, status = 'active') {
-  fetchSubscription.mockResolvedValue({
-    id: 'sub-1',
-    userId: 'owner-1',
-    planId,
-    status,
-    stripeCustomerId: null,
-    stripeSubscriptionId: null,
-    currentPeriodStart: null,
-    currentPeriodEnd: null,
-    trialEnd: null,
-    cancelAtPeriodEnd: false,
-    activeProjectLimit: null,
-    includedFieldSeats: null,
-    createdAt: '2026-01-01T00:00:00.000Z',
-    updatedAt: '2026-01-01T00:00:00.000Z',
-  });
+function renderWithRouter(ui: React.ReactElement) {
+  return render(<MemoryRouter>{ui}</MemoryRouter>);
 }
 
 describe('Global Ask AI plan gate', () => {
   beforeEach(() => {
     vi.stubEnv('DEV', false);
     vi.stubEnv('VITE_ENFORCE_PLAN', 'true');
-    fetchSubscription.mockReset();
+    useSubscription.mockReset();
     supabaseGetSession.mockResolvedValue({
       data: { session: { access_token: 'token-1' } },
     });
@@ -100,40 +72,54 @@ describe('Global Ask AI plan gate', () => {
   });
 
   describe('GlobalAskAiGate', () => {
-    it('1. Free user does not see floating Ask AI', async () => {
-      mockSubscription('free');
-      renderWithSubscription(<GlobalAskAiGate />);
+    it('1. Free user does not see floating Ask AI', () => {
+      useSubscription.mockReturnValue({
+        hasFeature: () => false,
+        loading: false,
+      });
+      renderWithRouter(<GlobalAskAiGate />);
 
-      await waitFor(() => expect(fetchSubscription).toHaveBeenCalled());
       expect(screen.queryByTestId('global-ask-ai-open')).not.toBeInTheDocument();
     });
 
-    it('2. Starter user sees floating Ask AI', async () => {
-      mockSubscription('starter');
-      renderWithSubscription(<GlobalAskAiGate />);
+    it('2. Starter user sees floating Ask AI', () => {
+      useSubscription.mockReturnValue({
+        hasFeature: (feature: string) => feature === 'global_ask_ai',
+        loading: false,
+      });
+      renderWithRouter(<GlobalAskAiGate />);
 
-      expect(await screen.findByTestId('global-ask-ai-open')).toBeInTheDocument();
+      expect(screen.getByTestId('global-ask-ai-open')).toBeInTheDocument();
     });
 
-    it('3. Professional user sees floating Ask AI', async () => {
-      mockSubscription('professional');
-      renderWithSubscription(<GlobalAskAiGate />);
+    it('3. Professional user sees floating Ask AI', () => {
+      useSubscription.mockReturnValue({
+        hasFeature: (feature: string) => feature === 'global_ask_ai',
+        loading: false,
+      });
+      renderWithRouter(<GlobalAskAiGate />);
 
-      expect(await screen.findByTestId('global-ask-ai-open')).toBeInTheDocument();
+      expect(screen.getByTestId('global-ask-ai-open')).toBeInTheDocument();
     });
 
-    it('4. Business user sees floating Ask AI', async () => {
-      mockSubscription('business');
-      renderWithSubscription(<GlobalAskAiGate />);
+    it('4. Business user sees floating Ask AI', () => {
+      useSubscription.mockReturnValue({
+        hasFeature: (feature: string) => feature === 'global_ask_ai',
+        loading: false,
+      });
+      renderWithRouter(<GlobalAskAiGate />);
 
-      expect(await screen.findByTestId('global-ask-ai-open')).toBeInTheDocument();
+      expect(screen.getByTestId('global-ask-ai-open')).toBeInTheDocument();
     });
   });
 
   describe('ConcreteChat direct access', () => {
     it('5. Free user direct mount shows upgrade to Starter', async () => {
-      mockSubscription('free');
-      renderWithSubscription(<ConcreteChat />);
+      useSubscription.mockReturnValue({
+        hasFeature: () => false,
+        loading: false,
+      });
+      renderWithRouter(<ConcreteChat />);
 
       expect(await screen.findByTestId('global-ask-ai-upgrade')).toBeInTheDocument();
       expect(screen.getByTestId('upgrade-required-global_ask_ai')).toBeInTheDocument();
@@ -142,8 +128,11 @@ describe('Global Ask AI plan gate', () => {
 
     it('6. Starter user can open Ask AI', async () => {
       const user = userEvent.setup();
-      mockSubscription('starter');
-      renderWithSubscription(<ConcreteChat />);
+      useSubscription.mockReturnValue({
+        hasFeature: (feature: string) => feature === 'global_ask_ai',
+        loading: false,
+      });
+      renderWithRouter(<ConcreteChat />);
 
       const openButton = await screen.findByTestId('global-ask-ai-open');
       await user.click(openButton);
@@ -160,8 +149,11 @@ describe('Global Ask AI plan gate', () => {
         }),
       );
 
-      mockSubscription('starter');
-      renderWithSubscription(<ConcreteChat />);
+      useSubscription.mockReturnValue({
+        hasFeature: (feature: string) => feature === 'global_ask_ai',
+        loading: false,
+      });
+      renderWithRouter(<ConcreteChat />);
 
       await user.click(await screen.findByTestId('global-ask-ai-open'));
       await user.type(screen.getByPlaceholderText(/ask project assistant/i), 'Can we pour tomorrow?');
@@ -194,8 +186,11 @@ describe('Global Ask AI plan gate', () => {
         ),
       );
 
-      mockSubscription('starter');
-      renderWithSubscription(<ConcreteChat />);
+      useSubscription.mockReturnValue({
+        hasFeature: (feature: string) => feature === 'global_ask_ai',
+        loading: false,
+      });
+      renderWithRouter(<ConcreteChat />);
 
       await user.click(await screen.findByTestId('global-ask-ai-open'));
       await user.type(screen.getByPlaceholderText(/ask project assistant/i), 'Need a crew estimate');

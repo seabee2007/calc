@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut } from 'lucide-react';
+import { logoutAndRedirect } from '../../services/appLogout';
 import { useAuth } from '../../hooks/useAuth';
 import { useEmployeePageTitle } from '../../components/employee/EmployeePageTitleContext';
 import Button from '../../components/ui/Button';
@@ -11,7 +12,7 @@ export default function EmployeeProfilePage() {
   const { user, profile, signOut } = useAuth();
 
   const handleSignOut = () => {
-    void signOut().then(() => navigate('/login'));
+    void logoutAndRedirect(signOut, navigate);
   };
 
   return (
