@@ -433,6 +433,7 @@ export const DESIGN_MATERIAL_REGISTRY: readonly DesignMaterialOption[] = [
     ]),
     projection: 'uv',
     uvRepeat: 1,
+    uvRotationRadians: Math.PI / 2,
     corrugationRepeatPerMeter: 7,
     roughness: 0.42,
     metalness: 0.78,

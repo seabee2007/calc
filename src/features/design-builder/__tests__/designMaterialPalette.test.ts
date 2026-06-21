@@ -39,12 +39,13 @@ describe('designMaterialRegistry', () => {
   it('rotates ridge-to-eave roof sheet UVs by 90 degrees', () => {
     const quarterTurn = Math.PI / 2;
     expect(getMaterialOptionById('corrugated-iron')?.uvRotationRadians).toBe(quarterTurn);
-    expect(getMaterialOptionById('box-profile-metal-sheet')?.uvRotationRadians).toBeUndefined();
+    expect(getMaterialOptionById('box-profile-metal-sheet')?.uvRotationRadians).toBe(quarterTurn);
     expect(getMaterialOptionById('box-profile-metal-sheet')?.corrugationRepeatPerMeter).toBe(7);
     expect(getMaterialOptionById('corrugated-steel-001')?.roofTextureFallbackId).toBe('corrugated-steel-009');
     expect(getMaterialOptionById('corrugated-steel-009')?.uvRotationRadians).toBeUndefined();
     expect(resolveRoofCladdingUvOptions('corrugated-iron').swapCorrugationAxis).toBe(true);
     expect(resolveRoofCladdingUvOptions('corrugated-steel-009').swapCorrugationAxis).toBe(false);
+    expect(resolveRoofCladdingUvOptions('box-profile-metal-sheet').swapCorrugationAxis).toBe(true);
     expect(resolveRoofCladdingUvOptions('box-profile-metal-sheet').corrugationRepeatPerMeter).toBe(7);
   });
 });

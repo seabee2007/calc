@@ -97,20 +97,18 @@ function positionAtStation(
   };
 }
 
-export function deriveMortarInfillBand(block: CmuBlockInstance): MortarInfillBand {
-  if (block.infillBand) {
-    return block.infillBand;
-  }
-  if (block.source === 'gable_end_solver') {
-    return 'gable';
-  }
-  if (block.source === 'below_grade_rc_infill') {
-    return 'below_grade';
-  }
-  if (block.source === 'rc_frame_infill' || block.source === 'infill_panel_solver' || block.source === 'panel_top_closure') {
+function deriveMortarInfillBand(block: CmuBlockInstance): MortarInfillBand {
+  if (block.source === 'gable_end_solver') return 'gable';
+  if (block.source === 'below_grade_rc_infill') return 'below_grade';
+  if (
+    block.source === 'rc_frame_infill' ||
+    block.source === 'infill_panel_solver' ||
+    block.source === 'panel_top_closure'
+  ) {
     return 'above_grade';
   }
-  return 'main';
+
+  return block.infillBand ?? 'main';
 }
 
 export function courseGroupKey(block: CmuBlockInstance): string {
