@@ -71,6 +71,7 @@ function setOwnerAccess(overrides: Partial<ResolvedAppAccess> = {}) {
     isOwner: true,
     isWorkspaceAdmin: false,
     isFieldEmployeeAccount: false,
+    employeeMembershipRemoved: false,
     acceptedEmployeeMemberships: [],
     employeePortalAccess: null,
     defaultRoute: '/dashboard',
@@ -92,6 +93,7 @@ function setEmployeeAccess(overrides: Partial<ResolvedAppAccess> = {}) {
     isOwner: false,
     isWorkspaceAdmin: false,
     isFieldEmployeeAccount: true,
+    employeeMembershipRemoved: false,
     employeePortalAccess: {
       allowed: true,
       reason: 'allowed',

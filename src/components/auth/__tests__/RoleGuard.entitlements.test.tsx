@@ -30,6 +30,7 @@ const mocks = vi.hoisted(() => ({
       isOwner: false,
       isWorkspaceAdmin: false,
       isFieldEmployeeAccount: true,
+      employeeMembershipRemoved: false,
       employeePortalAccess: {
         allowed: true,
         reason: 'allowed' as const,
@@ -86,6 +87,7 @@ describe('EmployeeGuard entitlements', () => {
       isOwner: false,
       isWorkspaceAdmin: false,
       isFieldEmployeeAccount: true,
+      employeeMembershipRemoved: false,
       employeePortalAccess: {
         allowed: true,
         reason: 'allowed',
@@ -204,6 +206,43 @@ describe('EmployeeGuard entitlements', () => {
     expect(screen.queryByRole('button', { name: /upgrade/i })).not.toBeInTheDocument();
   });
 
+  it('routes removed employees to the access removed message without billing errors', async () => {
+    mocks.accessState.access = {
+      ...mocks.accessState.access,
+      employeeMembershipRemoved: true,
+      isFieldEmployeeAccount: false,
+      acceptedEmployeeMemberships: [],
+      employeePortalAccess: {
+        allowed: false,
+        reason: 'membership_removed',
+        workspaceId: null,
+        employerPlanId: null,
+        employeeMembershipId: 'user-1',
+        seatAssigned: false,
+        repaired: false,
+      },
+      defaultRoute: '/employee/dashboard',
+    };
+
+    render(
+      <MemoryRouter>
+        <EmployeeGuard>
+          <div>Employee content</div>
+        </EmployeeGuard>
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByTestId('employee-portal-blocked')).toBeInTheDocument();
+    expect(screen.getByText('Access removed')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Your access to this company workspace has been removed. Contact the account owner if you believe this is an error.',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/subscription|billing|upgrade/i)).not.toBeInTheDocument();
+    expect(screen.queryByText('Employee content')).not.toBeInTheDocument();
+  });
+
   it('redirects an owner away from the employee portal to dashboard', async () => {
     mocks.authState.user = { id: 'owner-1' };
     mocks.authState.profile = { id: 'owner-1', role: 'owner', employerId: null };
@@ -212,6 +251,7 @@ describe('EmployeeGuard entitlements', () => {
       isOwner: true,
       isWorkspaceAdmin: false,
       isFieldEmployeeAccount: false,
+      employeeMembershipRemoved: false,
       employeePortalAccess: null,
       acceptedEmployeeMemberships: [],
       defaultRoute: '/dashboard',

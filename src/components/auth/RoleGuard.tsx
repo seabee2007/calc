@@ -13,6 +13,7 @@ import { AccessRedirect } from '../routing/AccessRedirect';
 import AuthenticatedSessionPrompt from './AuthenticatedSessionPrompt';
 import {
   employeePortalBlockedMessage,
+  employeePortalBlockedTitle,
   resolveEmployeePortalAccess,
 } from '../../lib/employeePortalAccess';
 import { resolveEmployeePortalState } from '../../lib/employeeOnboarding';
@@ -238,13 +239,9 @@ export function EmployeeGuard({ children }: { children: React.ReactNode }) {
     return (
       <div className="mx-auto max-w-2xl p-6">
         <EmployeePortalBlockedCard
-          title={
-            portalAccess.reason === 'invite_acceptance_incomplete' ||
-            portalAccess.reason === 'workspace_not_found'
-              ? 'Invite setup incomplete'
-              : 'Field portal unavailable'
-          }
+          title={employeePortalBlockedTitle(portalAccess.reason)}
           message={employeePortalBlockedMessage(portalAccess.reason)}
+          membershipRemoved={portalAccess.reason === 'membership_removed'}
         />
       </div>
     );
@@ -263,12 +260,15 @@ export function EmployeeGuard({ children }: { children: React.ReactNode }) {
 function EmployeePortalBlockedCard({
   message,
   title = 'Field portal unavailable',
+  membershipRemoved = false,
 }: {
   message: string;
   title?: string;
+  membershipRemoved?: boolean;
 }) {
   const { access } = useAppAccess();
-  const continueHref = access ? resolvePostLoginRoute(access) : '/login';
+  const continueHref = membershipRemoved ? '/login' : access ? resolvePostLoginRoute(access) : '/login';
+  const continueLabel = membershipRemoved ? 'Sign in with a different account' : 'Try again';
 
   return (
     <div
@@ -281,7 +281,7 @@ function EmployeePortalBlockedCard({
       <div className="mt-4">
         <AuthenticatedSessionPrompt
           continueHref={continueHref}
-          continueLabel="Try again"
+          continueLabel={continueLabel}
         />
       </div>
     </div>

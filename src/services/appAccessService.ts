@@ -33,6 +33,7 @@ export type ResolvedAppAccess = {
   isOwner: boolean;
   isWorkspaceAdmin: boolean;
   isFieldEmployeeAccount: boolean;
+  employeeMembershipRemoved: boolean;
   acceptedEmployeeMemberships: AcceptedEmployeeMembership[];
   employeePortalAccess: EmployeePortalAccessResult | null;
   defaultRoute: '/dashboard' | '/employee/dashboard' | '/onboarding';
@@ -181,14 +182,22 @@ async function resolveEmployeePortalContext(
 export function resolveDefaultRouteFromAccess(
   access: Pick<
     ResolvedAppAccess,
-    'isOwner' | 'isWorkspaceAdmin' | 'acceptedEmployeeMemberships' | 'isFieldEmployeeAccount'
+    | 'isOwner'
+    | 'isWorkspaceAdmin'
+    | 'acceptedEmployeeMemberships'
+    | 'isFieldEmployeeAccount'
+    | 'employeeMembershipRemoved'
   >,
 ): ResolvedAppAccess['defaultRoute'] {
   if (access.isOwner || access.isWorkspaceAdmin) {
     return '/dashboard';
   }
 
-  if (access.acceptedEmployeeMemberships.length > 0 || access.isFieldEmployeeAccount) {
+  if (
+    access.acceptedEmployeeMemberships.length > 0 ||
+    access.isFieldEmployeeAccount ||
+    access.employeeMembershipRemoved
+  ) {
     return '/employee/dashboard';
   }
 
@@ -206,6 +215,7 @@ export async function resolveAppAccess(
       isOwner: false,
       isWorkspaceAdmin: false,
       isFieldEmployeeAccount: false,
+      employeeMembershipRemoved: false,
       acceptedEmployeeMemberships: [],
       employeePortalAccess: null,
       defaultRoute: '/onboarding',
@@ -229,11 +239,17 @@ export async function resolveAppAccess(
     }
   }
 
+  const employeeMembershipRemoved =
+    !ownership.isOwner &&
+    !ownership.isWorkspaceAdmin &&
+    employeePortalAccess?.reason === 'membership_removed';
+
   const resolved: ResolvedAppAccess = {
     userId,
     isOwner: ownership.isOwner,
     isWorkspaceAdmin: ownership.isWorkspaceAdmin,
     isFieldEmployeeAccount,
+    employeeMembershipRemoved,
     acceptedEmployeeMemberships,
     employeePortalAccess,
     defaultRoute: '/onboarding',

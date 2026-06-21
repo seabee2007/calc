@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 export type EmployeePortalAccessReason =
   | 'allowed'
   | 'no_accepted_membership'
+  | 'membership_removed'
   | 'workspace_not_found'
   | 'seat_not_assigned'
   | 'seat_limit_reached'
@@ -26,6 +27,7 @@ export type EmployeePortalAccessResult = {
 const VALID_REASONS = new Set<EmployeePortalAccessReason>([
   'allowed',
   'no_accepted_membership',
+  'membership_removed',
   'workspace_not_found',
   'seat_not_assigned',
   'seat_limit_reached',

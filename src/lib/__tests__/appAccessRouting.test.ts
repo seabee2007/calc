@@ -10,8 +10,9 @@ const ownerAccess: ResolvedAppAccess = {
   userId: 'owner-1',
   isOwner: true,
   isWorkspaceAdmin: false,
-  isFieldEmployeeAccount: false,
-  acceptedEmployeeMemberships: [],
+    isFieldEmployeeAccount: false,
+    employeeMembershipRemoved: false,
+    acceptedEmployeeMemberships: [],
   employeePortalAccess: null,
   defaultRoute: '/dashboard',
 };
@@ -21,6 +22,7 @@ const employeeAccess: ResolvedAppAccess = {
   isOwner: false,
   isWorkspaceAdmin: false,
   isFieldEmployeeAccount: true,
+  employeeMembershipRemoved: false,
   employeePortalAccess: {
     allowed: true,
     reason: 'allowed',

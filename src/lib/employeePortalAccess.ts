@@ -3,6 +3,16 @@ import type { EmployeePortalAccessReason } from '../services/employeePortalAcces
 
 export type { EmployeePortalAccessReason };
 
+export function employeePortalBlockedTitle(reason: EmployeePortalAccessReason): string {
+  if (reason === 'membership_removed') {
+    return 'Access removed';
+  }
+  if (reason === 'invite_acceptance_incomplete' || reason === 'workspace_not_found') {
+    return 'Invite setup incomplete';
+  }
+  return 'Field portal unavailable';
+}
+
 export function employeePortalBlockedMessage(reason: EmployeePortalAccessReason): string {
   switch (reason) {
     case 'field_portal_not_in_employer_plan':
@@ -18,6 +28,8 @@ export function employeePortalBlockedMessage(reason: EmployeePortalAccessReason)
       return 'Your employee account was created, but it was not connected to the company workspace. Ask the account owner to resend or repair the invitation.';
     case 'no_accepted_membership':
       return 'Your company membership could not be verified. Contact your account owner.';
+    case 'membership_removed':
+      return 'Your access to this company workspace has been removed. Contact the account owner if you believe this is an error.';
     case 'access_resolution_failed':
       return 'Field portal access could not be verified. Contact your account owner.';
     default:
@@ -34,6 +46,10 @@ export function resolveEmployeePortalAccess(
   }
   if (access.isOwner || access.isWorkspaceAdmin) {
     return { allowed: false, reason: 'owner_or_admin' };
+  }
+
+  if (access.employeeMembershipRemoved) {
+    return { allowed: false, reason: 'membership_removed' };
   }
 
   if (access.employeePortalAccess) {

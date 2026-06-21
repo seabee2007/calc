@@ -9,6 +9,7 @@ const mockSendEmployeeInviteEmail = vi.fn();
 const mockFetchPendingInvites = vi.fn();
 const mockFetchTeamProfiles = vi.fn();
 const mockRevokeEmployeeInvite = vi.fn();
+const mockRemoveEmployeeFromWorkspace = vi.fn();
 const mockUser = { id: 'owner-1' };
 
 vi.mock('../../hooks/useAuth', () => ({
@@ -34,6 +35,7 @@ vi.mock('../../services/employeeService', () => ({
   createEmployeeInvite: (...args: unknown[]) => mockCreateEmployeeInvite(...args),
   sendEmployeeInviteEmail: (...args: unknown[]) => mockSendEmployeeInviteEmail(...args),
   revokeEmployeeInvite: (...args: unknown[]) => mockRevokeEmployeeInvite(...args),
+  removeEmployeeFromWorkspace: (...args: unknown[]) => mockRemoveEmployeeFromWorkspace(...args),
   fetchPendingInvites: (...args: unknown[]) => mockFetchPendingInvites(...args),
   fetchAssignmentsForProject: vi.fn().mockResolvedValue([]),
   assignEmployeeToProject: vi.fn(),
@@ -85,6 +87,14 @@ describe('EmployeeManagement invite gating', () => {
       emailStatus: 'sent',
     });
     mockRevokeEmployeeInvite.mockResolvedValue(undefined);
+    mockRemoveEmployeeFromWorkspace.mockResolvedValue({
+      employeeId: 'employee-1',
+      workspaceId: 'owner-1',
+      assignmentsRemoved: 2,
+      teamMemberCount: 0,
+      pendingInviteCount: 0,
+      seatReleased: true,
+    });
   });
 
   it('shows upgrade required for users without employee_portal', async () => {
@@ -173,7 +183,7 @@ describe('EmployeeManagement invite gating', () => {
     fireEvent.click(screen.getByTestId('invite-actions-invite-1'));
     fireEvent.click(await screen.findByTestId('revoke-invite-invite-1'));
 
-    expect(await screen.findByText('Revoke invitation?')).toBeInTheDocument();
+    expect(await screen.findByText('Cancel invitation?')).toBeInTheDocument();
     expect(
       screen.getByText(
         'This immediately disables the invitation link and releases the reserved field seat. The recipient will no longer be able to join using this invitation.',
@@ -181,16 +191,16 @@ describe('EmployeeManagement invite gating', () => {
     ).toBeInTheDocument();
     expect(mockRevokeEmployeeInvite).not.toHaveBeenCalled();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Revoke invitation' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel invitation' }));
 
     await waitFor(() => {
-      expect(screen.queryByText('Revoke invitation?')).not.toBeInTheDocument();
+      expect(screen.queryByText('Cancel invitation?')).not.toBeInTheDocument();
     });
 
     await waitFor(() => {
       expect(mockRevokeEmployeeInvite).toHaveBeenCalledWith('invite-1');
     });
-    expect(await screen.findByText('Invite revoked for crew@example.com.')).toBeInTheDocument();
+    expect(await screen.findByText('Invitation cancelled for crew@example.com.')).toBeInTheDocument();
     expect(screen.queryByText('crew@example.com')).not.toBeInTheDocument();
   });
 
@@ -221,5 +231,72 @@ describe('EmployeeManagement invite gating', () => {
         screen.getByText('Invite created, but email delivery failed. Resend from Pending Invites.'),
       ).toBeInTheDocument();
     });
+  });
+});
+
+describe('EmployeeManagement employee removal', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockFetchPendingInvites.mockResolvedValue([]);
+    mockHasFeature.mockImplementation((feature: string) => feature === 'employee_portal');
+    mockCanInviteTeamMember.mockReturnValue(true);
+    mockRemoveEmployeeFromWorkspace.mockResolvedValue({
+      employeeId: 'employee-1',
+      workspaceId: 'owner-1',
+      assignmentsRemoved: 1,
+      teamMemberCount: 0,
+      pendingInviteCount: 0,
+      seatReleased: true,
+    });
+    mockFetchTeamProfiles.mockResolvedValue([
+      {
+        id: 'employee-1',
+        role: 'employee',
+        employerId: 'owner-1',
+        displayName: 'Field Worker',
+        firstName: 'Field',
+        lastName: 'Worker',
+        phone: null,
+        businessAddressStreet: null,
+        businessAddressStreet2: null,
+        businessAddressCity: null,
+        businessAddressState: null,
+        businessAddressPostalCode: null,
+        agreementAcceptedAt: null,
+        agreementVersion: null,
+        onboardingCompletedAt: '2026-01-01T00:00:00.000Z',
+        onboardingVersion: null,
+        createdAt: '',
+        updatedAt: '',
+      },
+    ]);
+  });
+
+  it('requires confirmation before removing an accepted employee', async () => {
+    renderTeamManagement();
+
+    await screen.findByTestId('team-member-employee-1');
+    fireEvent.click(screen.getByTestId('remove-team-member-employee-1'));
+
+    expect(await screen.findByText('Remove Field Worker from your company?')).toBeInTheDocument();
+    expect(
+      screen.getByText(/Their personal Arden account will not be deleted\./),
+    ).toBeInTheDocument();
+    expect(mockRemoveEmployeeFromWorkspace).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Remove employee' }));
+
+    await waitFor(() => {
+      expect(mockRemoveEmployeeFromWorkspace).toHaveBeenCalledWith('employee-1');
+    });
+    expect(await screen.findByText('Employee removed and field seat released.')).toBeInTheDocument();
+  });
+
+  it('does not duplicate remove actions in Field Portal access', async () => {
+    renderTeamManagement();
+
+    await screen.findByTestId('field-portal-member-employee-1');
+    expect(screen.queryByTestId('remove-team-member-employee-1')).toBeInTheDocument();
+    expect(screen.queryByTestId('remove-field-portal-member-employee-1')).not.toBeInTheDocument();
   });
 });

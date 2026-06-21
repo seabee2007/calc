@@ -73,6 +73,7 @@ describe('RootRoute', () => {
       isOwner: true,
       isWorkspaceAdmin: false,
       isFieldEmployeeAccount: false,
+      employeeMembershipRemoved: false,
       acceptedEmployeeMemberships: [],
       employeePortalAccess: null,
       defaultRoute: '/dashboard',
@@ -102,6 +103,7 @@ describe('RootRoute', () => {
       isOwner: false,
       isWorkspaceAdmin: false,
       isFieldEmployeeAccount: true,
+      employeeMembershipRemoved: false,
       employeePortalAccess: {
         allowed: true,
         reason: 'allowed',
