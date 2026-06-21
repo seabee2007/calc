@@ -27,7 +27,6 @@ vi.mock('../subscriptionService', () => ({
 
 vi.mock('../employeePortalAccessService', () => ({
   fetchEmployeePortalAccess: vi.fn(),
-  logEmployeePortalAccessDiagnostics: vi.fn(),
 }));
 
 describe('resolveAppAccess', () => {
