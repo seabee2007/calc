@@ -4,6 +4,7 @@ import type {
   StructuralColumn,
 } from '../types';
 import { normalizeRcFrameFoundationSettings } from './rcFrameFoundationMigration';
+import { resolveInteriorFloorSlabSettings } from './interiorFloorSlab';
 
 /** Canonical structural origin: top face of plinth beam (floor level). */
 export const TOP_OF_PLINTH_BEAM_Y = 0;
@@ -21,6 +22,9 @@ export type FoundationElevations = {
   wallBaseY: number;
   roofBeamBottomY: number;
   roofBeamTopY: number;
+  cmuWallBaseY: number;
+  interiorFloorSlabTopY: number;
+  interiorFloorSlabThicknessMeters: number;
   cmuClearHeightMeters: number;
   columnBottomY: number;
   columnTopY: number;
@@ -46,6 +50,13 @@ export function resolveFoundationElevations(params: {
   const topOfTieBeamY = bottomOfTieBeamY + tieDepth;
   const bottomOfFootingY = topOfFootingY - footingThickness;
   const wallBaseY = topOfPlinthBeamY;
+  const interiorFloorSlab = resolveInteriorFloorSlabSettings(foundation);
+  const interiorFloorSlabThicknessMeters =
+    interiorFloorSlab.enabled && interiorFloorSlab.thicknessMeters > 0
+      ? interiorFloorSlab.thicknessMeters
+      : 0;
+  const interiorFloorSlabTopY = topOfPlinthBeamY;
+  const cmuWallBaseY = topOfPlinthBeamY;
   const roofBeamBottomY = wallBaseY + Math.max(0, params.wallHeightMeters);
   const roofDepth = Math.max(0, foundation.roofBeam.depthMeters);
   const roofBeamTopY = roofBeamBottomY + roofDepth;
@@ -64,6 +75,9 @@ export function resolveFoundationElevations(params: {
     wallBaseY,
     roofBeamBottomY,
     roofBeamTopY,
+    cmuWallBaseY,
+    interiorFloorSlabTopY,
+    interiorFloorSlabThicknessMeters,
     cmuClearHeightMeters,
     columnBottomY,
     columnTopY,
@@ -279,6 +293,19 @@ export function validateRcFrameFoundationSettings(params: {
 
   if (params.foundation.plinthBeam.enabled && params.foundation.plinthBeam.depthMeters <= 0) {
     errors.push('Plinth Beam depth must be greater than zero.');
+  }
+  if (
+    params.foundation.interiorFloorSlab?.enabled &&
+    params.foundation.interiorFloorSlab.thicknessMeters <= 0
+  ) {
+    errors.push('Interior floor slab thickness must be greater than zero when enabled.');
+  }
+  if (
+    params.foundation.interiorFloorSlab?.enabled &&
+    params.foundation.plinthBeam.enabled &&
+    params.foundation.interiorFloorSlab.thicknessMeters > params.foundation.plinthBeam.depthMeters
+  ) {
+    errors.push('Interior floor slab thickness cannot exceed plinth beam depth.');
   }
   if (params.foundation.roofBeam.enabled && params.foundation.roofBeam.depthMeters <= 0) {
     errors.push('Roof Beam depth must be greater than zero.');

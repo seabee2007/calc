@@ -336,6 +336,11 @@ export interface PlinthBeamSettings extends StructuralBeamSettings {
   followsInteriorSegments: boolean;
 }
 
+export interface InteriorFloorSlabSettings {
+  enabled: boolean;
+  thicknessMeters: number;
+}
+
 export type ColumnPlacementMode = 'corners_only' | 'corners_and_junctions' | 'manual';
 
 /** @deprecated Legacy persisted shape — migrate via rcFrameFoundationMigration */
@@ -370,6 +375,8 @@ export type IsolatedFootingSettings = LegacyIsolatedFootingSettings;
 
 export interface RcFrameFoundationSettings {
   plinthBeam: PlinthBeamSettings;
+  /** Cast-in-place floor slab between plinth beams; top flush with plinth top, thickness measured downward. */
+  interiorFloorSlab: InteriorFloorSlabSettings;
   roofBeam: StructuralBeamSettings;
   tieBeam: StructuralBeamSettings;
   columns: {
@@ -530,7 +537,10 @@ export interface RoofSystemSettings {
   roofType: RoofType;
   supportSystem: RoofSupportSystem;
   peakHeightAboveRoofBeamMeters: number;
+  /** Side-eave overhang, perpendicular to ridge. */
   eaveOverhangMeters: number;
+  /** Rake/gable-end overhang, parallel to ridge. */
+  gableEndOverhangMeters: number;
   roofAssemblyThicknessMeters: number;
   ridgeDirection: RoofRidgeDirection;
   selectedRidgeWallSegmentId?: string;
@@ -561,13 +571,16 @@ export interface RoofSystemSettings {
   };
   gable: {
     enabled: boolean;
+    /** Minimum concrete depth between highest CMU corner and roof underside. */
     rakeClearanceMeters: number;
     rakedConcreteCapEnabled: boolean;
     /** @deprecated Use rakedConcreteCapEnabled */
     capEnabled?: boolean;
     capMaterial: 'cast_in_place_concrete';
+    /** Through-wall thickness of the raked cap (defaults to gable wall thickness). */
+    rakedConcreteCapWallDepthMeters?: number;
     rakedConcreteCapDepthMeters: number;
-    /** @deprecated Use rakedConcreteCapDepthMeters */
+    /** @deprecated Use rakedConcreteCapDepthMeters / rakedConcreteCapWallDepthMeters */
     capDepthMeters?: number;
   };
 }
@@ -588,6 +601,8 @@ export type PurlinPlacement = {
   rowIndex: number;
   start: RoofVec3;
   end: RoofVec3;
+  /** Outward normal of the supporting roof slope (top flange faces this direction). */
+  planeNormal: RoofVec3;
 };
 
 export type SteelMemberKind =
@@ -632,6 +647,15 @@ export type RidgeCapPlacement = {
   roofAngleRadians: number;
 };
 
+export type RoofLayerVisibility = {
+  roofCladding: boolean;
+  ridgeCap: boolean;
+  steelTrusses: boolean;
+  purlins: boolean;
+  gableEndCmu: boolean;
+  rakedConcreteCap: boolean;
+};
+
 export type DesignWarning = {
   code: string;
   message: string;
@@ -656,16 +680,20 @@ export type GableCourseAssembly = {
 export type RakedCapPlacement = {
   id: string;
   gableEndSegmentId: string;
-  courseIndex?: number;
+  slope: 'left' | 'right';
   startStationMeters: number;
   endStationMeters: number;
-  baseElevationMeters: number;
-  topLeftElevationMeters: number;
-  topRightElevationMeters: number;
+  startBottomY: number;
+  endBottomY: number;
+  startTopY: number;
+  endTopY: number;
   wallDepthMeters: number;
   concreteVolumeCubicMeters: number;
-  source: 'gable_raked_cap';
+  source: 'gable_raked_concrete_cap';
 };
+
+/** Canonical resolved raked concrete cap segment. */
+export type ResolvedRakedConcreteCap = RakedCapPlacement;
 
 export type ResolvedGableEnd = {
   hostSegmentId: string;
@@ -673,7 +701,7 @@ export type ResolvedGableEnd = {
   rightRoofUnderside?: RoofPlane;
   masonryCourses: GableCourseAssembly[];
   rakedCapPlacements: RakedCapPlacement[];
-  cmuUnitPlacements: GableCmuPlacement[];
+  cmuUnitPlacements: import('../geometry/designGeometry').CmuBlockInstance[];
   warnings: DesignWarning[];
 };
 
@@ -696,8 +724,16 @@ export type ResolvedRoofSystem = {
   claddingPerimeter: RoofVec3[];
   /** @deprecated Alias for claddingPerimeter — plan/3D eave outline. */
   eaveFootprint: RoofVec3[];
+  /** Cladding ridge endpoints (includes gable-end overhang). */
   ridgeStart?: RoofVec3;
   ridgeEnd?: RoofVec3;
+  structuralRidgeStart?: RoofVec3;
+  structuralRidgeEnd?: RoofVec3;
+  claddingRidgeStart?: RoofVec3;
+  claddingRidgeEnd?: RoofVec3;
+  structuralRidgeLengthMeters: number;
+  claddingRidgeLengthMeters: number;
+  gableEndOverhangMeters: number;
   ridgeCapPlacement: RidgeCapPlacement | null;
   peakPoint?: RoofVec3;
   roofBeamTopElevationMeters: number;
@@ -705,12 +741,22 @@ export type ResolvedRoofSystem = {
   peakElevationMeters: number;
   roofPeakY: number;
   roofAssemblyThicknessMeters: number;
+  /** Structural slope reference — used by gable/raked-cap solvers (unchanged). */
   roofTopPlanes: RoofPlane[];
+  /** Elevated cladding outer surface for 3D display when purlins are enabled. */
+  claddingDisplayPlanes: RoofPlane[];
   roofUndersidePlanes: RoofPlane[];
   gableEndSegmentIds: string[];
   rafterRunMeters: number;
   rafterRiseMeters: number;
   rafterLengthMeters: number;
+  /** Structural half-span run — pitch source of truth; unchanged by side eave overhang. */
+  structuralRafterRunMeters: number;
+  /** Horizontal half-span run including side eave overhang. */
+  claddingRafterRunMeters: number;
+  /** Slope length from cladding eave to ridge at fixed pitch. */
+  claddingRafterLengthMeters: number;
+  roofPitchRadians: number;
   roofRunMeters: number;
   roofRiseMeters: number;
   roofMemberReferenceLengthMeters: number;

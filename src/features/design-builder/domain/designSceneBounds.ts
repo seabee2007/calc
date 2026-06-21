@@ -165,6 +165,22 @@ export function deriveDesignSceneBounds(params: {
     const centerY = beam.baseElevationMeters + beam.depthMeters / 2;
     addOrientedBox(acc, centerX, centerY, centerZ, length / 2, beam.depthMeters / 2, beam.widthMeters / 2, -Math.atan2(dz, dx));
   });
+  geometry?.blockInstances
+    ?.filter((block) => block.source === 'gable_end_solver')
+    .forEach((block) => {
+      const height = block.physicalHeightMeters ?? block.heightMeters ?? block.lengthMeters;
+      const depth = block.depthMeters ?? 0.2;
+      addOrientedBox(
+        acc,
+        block.x,
+        block.y,
+        block.z,
+        block.lengthMeters / 2,
+        height / 2,
+        depth / 2,
+        block.rotationY,
+      );
+    });
   geometry?.gablePlacements?.forEach((placement) => {
     addOrientedBox(
       acc,

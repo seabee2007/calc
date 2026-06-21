@@ -12,6 +12,7 @@ import {
   resolveOuterRoofBeamBearingLoop,
   type PlanVec2,
 } from '../domain/roofFootprintSupport';
+import { resolveCladdingPerimeterWithOverhangs } from '../domain/roofOverhangSupport';
 import { resolveRoofSystem } from '../domain/roofSystemResolver';
 import { createOutsideFaceRectangleLayout } from '../domain/wallLayoutRules';
 import { normalizeRcFrameFoundationSettings } from '../domain/rcFrameFoundationMigration';
@@ -118,7 +119,7 @@ describe('Roof bearing loop geometry', () => {
       wallFootprint,
       roofBeams: preset.frameSystem.beams,
       segmentFrames,
-      roofSystem: { ...createDefaultRoofSystemSettings(), eaveOverhangMeters: 0 },
+      roofSystem: { ...createDefaultRoofSystemSettings(), eaveOverhangMeters: 0, gableEndOverhangMeters: 0 },
     });
     expect(roof.supported).toBe(true);
     const planeEaveZs = roof.roofTopPlanes.flatMap((plane) =>
@@ -144,10 +145,19 @@ describe('Roof bearing loop geometry', () => {
       wallFootprint,
       roofBeams: preset.frameSystem.beams,
       segmentFrames,
-      roofSystem: { ...createDefaultRoofSystemSettings(), eaveOverhangMeters: overhang },
+      roofSystem: {
+        ...createDefaultRoofSystemSettings(),
+        eaveOverhangMeters: overhang,
+        gableEndOverhangMeters: 0,
+      },
     });
     const cladding = roof.claddingPerimeter.map((point) => ({ x: point.x, z: point.z }));
-    const expected = resolveCladdingPerimeterFromBearing(bearingLoop.points, overhang);
+    const expected = resolveCladdingPerimeterWithOverhangs({
+      bearingPerimeter: bearingLoop.points,
+      ridgeAxis: 'localX',
+      eaveOverhangMeters: overhang,
+      gableEndOverhangMeters: 0,
+    });
     for (let index = 0; index < 4; index += 1) {
       expect(cladding[index]?.x).toBeCloseTo(expected[index]!.x, 3);
       expect(cladding[index]?.z).toBeCloseTo(expected[index]!.z, 3);

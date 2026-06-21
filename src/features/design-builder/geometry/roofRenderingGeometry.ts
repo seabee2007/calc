@@ -5,7 +5,6 @@ import {
   DEFAULT_RIDGE_CAP_WIDTH_METERS,
   PURLIN_PROFILE_DEPTH_METERS,
   PURLIN_PROFILE_WIDTH_METERS,
-  ROOF_RIDGE_CAP_CLEARANCE_METERS,
   TRUSS_CHORD_PROFILE_METERS,
 } from '../domain/roofFramingResolver';
 
@@ -176,18 +175,49 @@ export function buildTrussAnchorBoltMeshes(params: {
   return bolts;
 }
 
-export function buildPurlinMesh(
-  start: THREE.Vector3,
-  end: THREE.Vector3,
-  material: THREE.Material,
-): THREE.Mesh {
-  return createMemberBetween(
-    start,
-    end,
-    PURLIN_PROFILE_WIDTH_METERS,
-    PURLIN_PROFILE_DEPTH_METERS,
-    material,
+export function buildPurlinMesh(params: {
+  start: THREE.Vector3;
+  end: THREE.Vector3;
+  planeNormal: THREE.Vector3;
+  material: THREE.Material;
+}): THREE.Mesh {
+  const direction = params.end.clone().sub(params.start);
+  const length = direction.length();
+  if (length <= 0.001) {
+    return new THREE.Mesh(
+      new THREE.BoxGeometry(PURLIN_PROFILE_WIDTH_METERS, PURLIN_PROFILE_WIDTH_METERS, PURLIN_PROFILE_DEPTH_METERS),
+      params.material,
+    );
+  }
+
+  const runAxis = direction.clone().normalize();
+  let outwardNormal = params.planeNormal.clone();
+  if (outwardNormal.lengthSq() <= 1e-8) {
+    outwardNormal.set(0, 1, 0);
+  } else {
+    outwardNormal.normalize();
+  }
+  if (outwardNormal.y < 0) {
+    outwardNormal.negate();
+  }
+
+  const yAxis = runAxis;
+  const zAxis = outwardNormal;
+  let xAxis = new THREE.Vector3().crossVectors(yAxis, zAxis);
+  if (xAxis.lengthSq() <= 1e-8) {
+    xAxis.set(1, 0, 0);
+  } else {
+    xAxis.normalize();
+  }
+  const zOrtho = new THREE.Vector3().crossVectors(xAxis, yAxis).normalize();
+
+  const mesh = new THREE.Mesh(
+    new THREE.BoxGeometry(PURLIN_PROFILE_WIDTH_METERS, length, PURLIN_PROFILE_DEPTH_METERS),
+    params.material,
   );
+  mesh.position.copy(params.start.clone().add(params.end).multiplyScalar(0.5));
+  mesh.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(xAxis, yAxis, zOrtho));
+  return mesh;
 }
 
 export function buildTrussPlaneGuide(params: {
@@ -269,7 +299,6 @@ export function createFoldedRidgeCapGroup(
   }
   const ridgeDir = ridgeVector.clone().normalize();
   const ridgeMidpoint = start.clone().add(end).multiplyScalar(0.5);
-  ridgeMidpoint.y += ROOF_RIDGE_CAP_CLEARANCE_METERS;
   const halfWidthMeters = capWidthMeters / 2;
 
   for (const sign of [-1, 1] as const) {
@@ -351,4 +380,99 @@ export function memberWorldEndpoints(
     start: toWorldVector(member.start, slabOffsetY),
     end: toWorldVector(member.end, slabOffsetY),
   };
+}
+
+/** Solid trapezoidal raked cap prism: bottom may step, top follows roof underside. */
+export function createRakedCapPrismGeometry(params: {
+  spanMeters: number;
+  startBottomY: number;
+  endBottomY: number;
+  startTopY: number;
+  endTopY: number;
+  wallDepthMeters: number;
+}): THREE.BufferGeometry {
+  return createRakedCapStripGeometry([params]);
+}
+
+/** Continuous raked cap strip along the wall tangent — shared top slope, stepped bottom envelope. */
+export function createRakedCapStripGeometry(
+  segments: ReadonlyArray<{
+    spanMeters: number;
+    startBottomY: number;
+    endBottomY: number;
+    startTopY: number;
+    endTopY: number;
+    wallDepthMeters: number;
+  }>,
+): THREE.BufferGeometry {
+  if (segments.length === 0) {
+    return new THREE.BufferGeometry();
+  }
+
+  const depth = Math.max(0.05, segments[0]!.wallDepthMeters);
+  const halfDepth = depth / 2;
+  const stations: Array<{ x: number; bottomY: number; topY: number }> = [];
+
+  let x = 0;
+  for (let index = 0; index < segments.length; index += 1) {
+    const segment = segments[index]!;
+    const spanMeters = Math.max(0.001, segment.spanMeters);
+    if (index === 0) {
+      stations.push({ x, bottomY: segment.startBottomY, topY: segment.startTopY });
+    }
+    x += spanMeters;
+    stations.push({ x, bottomY: segment.endBottomY, topY: segment.endTopY });
+  }
+
+  const positions: number[] = [];
+  const indices: number[] = [];
+
+  for (const station of stations) {
+    positions.push(
+      station.x,
+      station.bottomY,
+      -halfDepth,
+      station.x,
+      station.bottomY,
+      halfDepth,
+      station.x,
+      station.topY,
+      -halfDepth,
+      station.x,
+      station.topY,
+      halfDepth,
+    );
+  }
+
+  const vertsPerStation = 4;
+  for (let index = 0; index < stations.length - 1; index += 1) {
+    const a = index * vertsPerStation;
+    const b = (index + 1) * vertsPerStation;
+    const quad = (i0: number, i1: number, i2: number, i3: number) => {
+      indices.push(i0, i1, i2, i0, i2, i3);
+    };
+    quad(a, b, b + 2, a + 2);
+    quad(a + 3, a + 1, b + 1, b + 3);
+    quad(a + 1, a + 3, b + 3, b + 1);
+    quad(a + 2, b + 2, b, a);
+  }
+
+  const first = 0;
+  const last = (stations.length - 1) * vertsPerStation;
+  indices.push(first, first + 1, first + 3, first, first + 3, first + 2);
+  indices.push(last + 1, last, last + 2, last + 1, last + 2, last + 3);
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  return geometry;
+}
+
+export function createRakedConcreteCapMaterial(selected: boolean): THREE.MeshStandardMaterial {
+  return new THREE.MeshStandardMaterial({
+    color: selected ? 0x9ca3af : 0x78716c,
+    metalness: 0.08,
+    roughness: 0.88,
+  });
 }

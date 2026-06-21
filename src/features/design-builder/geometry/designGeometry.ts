@@ -334,6 +334,7 @@ export interface DesignGeometryResult {
   rakedCapPlacements?: import('../types').RakedCapPlacement[];
   resolvedRoofSystem?: import('../types').ResolvedRoofSystem | null;
   resolvedInfillPanelBounds?: import('../domain/infillPanelBoundsResolver').ResolvedInfillPanelBounds[];
+  interiorFloorSlab?: import('../domain/interiorFloorSlab').ResolvedInteriorFloorSlab;
 }
 
 export interface CmuBlockInstance {
@@ -405,7 +406,8 @@ export type CmuUnitPlacement = {
     | 'opening_jamb_closure'
     | 'lintel_closure'
     | 'infill_panel_solver'
-    | 'panel_top_closure';
+    | 'panel_top_closure'
+    | 'gable_end_solver';
   openingId?: string;
   adjacentTo?: 'rough_opening_start' | 'rough_opening_end';
   terminalClosure?: TerminalClosureUnit;

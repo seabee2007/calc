@@ -122,7 +122,7 @@ import {
   generateDesignGeometry,
 } from '../geometry/designGeometry';
 import { useEstimateWorkspaceHeaderCollapse } from '../../estimating/ui/EstimateWorkspaceHeaderCollapseContext';
-import { buildDesignEstimatePreview } from '../quantity/designQuantityFormulas';
+import { buildDesignEstimatePreview, cubicMetersToCubicYards } from '../quantity/designQuantityFormulas';
 import {
   applyAutoFrameLayout,
   applyFrameFoundationDimensions,
@@ -131,7 +131,7 @@ import {
   type FrameFoundationDimensionsApplyPayload,
 } from '../domain/structureActions';
 import { createDefaultFoundationSettings, normalizeRcFrameFoundationSettings } from '../domain/foundationElevations';
-import { createDefaultRoofSystemSettings, normalizeRoofSystemSettings } from '../domain/roofSystemDefaults';
+import { createDefaultRoofSystemSettings, DEFAULT_ROOF_LAYER_VISIBILITY, normalizeRoofSystemSettings } from '../domain/roofSystemDefaults';
 import FrameFoundationDimensionsModal from './FrameFoundationDimensionsModal';
 import {
   designModelMetadataWithPersistedState,
@@ -162,6 +162,7 @@ import type {
   DesignEstimatePreviewLine,
   FoundationViewMode,
   RoofDisplayMode,
+  RoofLayerVisibility,
   RcFrameFoundationSettings,
   RoofSystemSettings,
   DesignModel,
@@ -388,8 +389,12 @@ export default function DesignBuilderPage({
   const [showRoofReferencePerimeters, setShowRoofReferencePerimeters] = useState(false);
   const [showRoofFramingGuides, setShowRoofFramingGuides] = useState(false);
   const [showDesignPersistenceDebug, setShowDesignPersistenceDebug] = useState(false);
+  const [showGableRakeGeometry, setShowGableRakeGeometry] = useState(false);
   const [foundationViewMode, setFoundationViewMode] = useState<FoundationViewMode>('full_model');
   const [roofDisplayMode, setRoofDisplayMode] = useState<RoofDisplayMode>('full_roof');
+  const [roofLayerVisibility, setRoofLayerVisibility] = useState<RoofLayerVisibility>(
+    DEFAULT_ROOF_LAYER_VISIBILITY,
+  );
   const [frameFoundationModalOpen, setFrameFoundationModalOpen] = useState(false);
   const [designGeometryState, setDesignGeometryState] = useState<{ revision: number; lastReason?: string }>({
     revision: 0,
@@ -1031,6 +1036,24 @@ export default function DesignBuilderPage({
         value: modelLoaded ? (generatedPreview.find((line) => line.id === 'steel-trusses')?.quantity ?? 0) : 0,
         unit: 'EA',
         objectType: 'steel_truss_system' as DesignObjectType,
+      },
+      {
+        label: 'Gable-end CMU blocks',
+        value: modelLoaded ? (generatedPreview.find((line) => line.id === 'gable-end-cmu')?.quantity ?? 0) : 0,
+        unit: 'EA',
+        objectType: 'gable_end_system' as DesignObjectType,
+      },
+      {
+        label: 'Raked concrete cap volume',
+        value: modelLoaded ? (generatedPreview.find((line) => line.id === 'raked-concrete-cap')?.quantity ?? 0) : 0,
+        unit: 'CY',
+        objectType: 'gable_end_system' as DesignObjectType,
+      },
+      {
+        label: 'Interior floor slab volume',
+        value: modelLoaded ? (generatedPreview.find((line) => line.id === 'interior-floor-slab-volume')?.quantity ?? 0) : 0,
+        unit: 'CY',
+        objectType: 'structural_frame_system' as DesignObjectType,
       },
     ],
     [cmuLayout, designGeometryResult.blockCount, generatedPreview, manualMasonrySummary, modelLoaded],
@@ -3690,7 +3713,7 @@ export default function DesignBuilderPage({
                         onChange={setShowRoofReferencePerimeters}
                       />
                       <ToggleField
-                        label="Show Roof Framing Guides"
+                        label="Show Roof Layer Contacts"
                         checked={showRoofFramingGuides}
                         onChange={setShowRoofFramingGuides}
                       />
@@ -3698,6 +3721,11 @@ export default function DesignBuilderPage({
                         label="Design Persistence"
                         checked={showDesignPersistenceDebug}
                         onChange={setShowDesignPersistenceDebug}
+                      />
+                      <ToggleField
+                        label="Show Gable Rake Geometry"
+                        checked={showGableRakeGeometry}
+                        onChange={setShowGableRakeGeometry}
                       />
                     </div>
                   ) : null}
@@ -3748,6 +3776,33 @@ export default function DesignBuilderPage({
                             name="roof-display-mode"
                             checked={roofDisplayMode === mode}
                             onChange={() => setRoofDisplayMode(mode)}
+                          />
+                          <span>{label}</span>
+                        </label>
+                      ))}
+                      <div className="pt-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                        Roof Layers
+                      </div>
+                      {(
+                        [
+                          ['roofCladding', 'Roof Cladding'],
+                          ['ridgeCap', 'Ridge Cap'],
+                          ['steelTrusses', 'Steel Trusses'],
+                          ['purlins', 'Purlins'],
+                          ['gableEndCmu', 'Gable-End CMU'],
+                          ['rakedConcreteCap', 'Raked Concrete Cap'],
+                        ] as const
+                      ).map(([key, label]) => (
+                        <label key={key} className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 hover:bg-slate-50 dark:hover:bg-slate-800">
+                          <input
+                            type="checkbox"
+                            checked={roofLayerVisibility[key]}
+                            onChange={(event) =>
+                              setRoofLayerVisibility((current) => ({
+                                ...current,
+                                [key]: event.currentTarget.checked,
+                              }))
+                            }
                           />
                           <span>{label}</span>
                         </label>
@@ -4090,9 +4145,11 @@ export default function DesignBuilderPage({
                 showInfillPanelBounds={showInfillPanelBounds}
                 showRoofReferencePerimeters={showRoofReferencePerimeters}
                 showRoofFramingGuides={showRoofFramingGuides}
+                showGableRakeGeometry={showGableRakeGeometry}
                 foundationViewMode={foundationViewMode}
                 roofSystem={resolvedPreset.roofSystem}
                 roofDisplayMode={roofDisplayMode}
+                roofLayerVisibility={roofLayerVisibility}
               />
             )}
             {viewMode === 'plan' && toolMode === 'draw_wall' ? (
@@ -4145,6 +4202,26 @@ export default function DesignBuilderPage({
               <div className="pointer-events-none absolute right-3 top-36 z-10 space-y-1 rounded-xl border border-slate-500/60 bg-slate-900/95 px-3 py-2 text-xs text-slate-100 shadow-lg">
                 <div className="font-semibold uppercase tracking-wide text-slate-300">Roof Framing Guides</div>
                 <div className="flex items-center gap-2">
+                  <span className="inline-block h-2 w-4 rounded-sm bg-teal-400" aria-hidden />
+                  <span>Structural gable wall boundary</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="inline-block h-2 w-4 rounded-sm bg-yellow-400" aria-hidden />
+                  <span>Gable-end cladding edge</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="inline-block h-2 w-4 rounded-sm bg-blue-500" aria-hidden />
+                  <span>Purlins</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="inline-block h-2 w-4 rounded-sm bg-slate-400" aria-hidden />
+                  <span>Roof sheets</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="inline-block h-2 w-4 rounded-sm bg-green-500" aria-hidden />
+                  <span>Structural supports</span>
+                </div>
+                <div className="flex items-center gap-2">
                   <span className="inline-block h-2 w-4 rounded-sm bg-orange-500" aria-hidden />
                   <span>Truss top chords</span>
                 </div>
@@ -4156,18 +4233,36 @@ export default function DesignBuilderPage({
                   <span className="inline-block h-2 w-4 rounded-sm bg-yellow-400" aria-hidden />
                   <span>Truss web members</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="inline-block h-2 w-4 rounded-sm bg-blue-500" aria-hidden />
-                  <span>Purlins</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="inline-block h-2 w-4 rounded-sm bg-green-500" aria-hidden />
-                  <span>Base plates</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="inline-block h-2 w-4 rounded-sm bg-teal-400" aria-hidden />
-                  <span>Ridge cap</span>
-                </div>
+              </div>
+            ) : null}
+            {import.meta.env.DEV &&
+            viewMode === '3d' &&
+            showRoofFramingGuides &&
+            resolvedPreset.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill' &&
+            designGeometryResult.resolvedRoofSystem?.supported &&
+            designGeometryResult.resolvedRoofSystem.roofType === 'gable' ? (
+              <div className="pointer-events-none absolute right-3 top-[22rem] z-10 max-w-xs space-y-1 rounded-xl border border-cyan-400/60 bg-slate-900/95 px-3 py-2 text-xs text-slate-100 shadow-lg">
+                {(() => {
+                  const roof = designGeometryResult.resolvedRoofSystem!;
+                  const purlinLength =
+                    roof.purlinPlacements[0]
+                      ? Math.hypot(
+                          roof.purlinPlacements[0].end.x - roof.purlinPlacements[0].start.x,
+                          roof.purlinPlacements[0].end.z - roof.purlinPlacements[0].start.z,
+                        )
+                      : 0;
+                  return (
+                    <>
+                      <div className="font-semibold uppercase tracking-wide text-cyan-300">Gable-End Overhang</div>
+                      <div className="mt-2 space-y-0.5 border-t border-slate-700 pt-2 font-mono text-[11px]">
+                        <div>Structural Ridge Length: {roof.structuralRidgeLengthMeters.toFixed(3)} m</div>
+                        <div>Gable-End Overhang: {roof.gableEndOverhangMeters.toFixed(3)} m</div>
+                        <div>Purlin Full Length: {purlinLength.toFixed(3)} m</div>
+                        <div>Roof Cladding Length: {roof.claddingRidgeLengthMeters.toFixed(3)} m</div>
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             ) : null}
             {import.meta.env.DEV &&
@@ -4249,6 +4344,62 @@ export default function DesignBuilderPage({
                 <div>Dirty State: {saveState}</div>
                 <div>Last Save Time: {lastSaveTime ?? '—'}</div>
                 <div>Last Save Error: {lastSaveError ?? '—'}</div>
+              </div>
+            ) : null}
+            {import.meta.env.DEV && showGableRakeGeometry ? (
+              <div className="pointer-events-none absolute right-3 bottom-24 z-10 max-w-xs rounded-xl border border-amber-400/60 bg-slate-900/95 px-3 py-2 font-mono text-[11px] text-slate-200 shadow-lg">
+                <div className="font-semibold uppercase tracking-wide text-amber-300">Gable Rake Geometry</div>
+                <div className="mt-1 text-[10px] text-slate-400">
+                  Teal: purlin bottom (cap top) · Yellow: CMU 4-in ceiling · Gray: raked cap · Orange: gable CMU
+                </div>
+                {(designGeometryResult.resolvedRoofSystem?.gableEnds ?? []).map((gableEnd) => {
+                  const caps = gableEnd.rakedCapPlacements;
+                  const capVolume = caps.reduce((sum, cap) => sum + cap.concreteVolumeCubicMeters, 0);
+                  const capLength = caps.reduce(
+                    (sum, cap) => sum + (cap.endStationMeters - cap.startStationMeters),
+                    0,
+                  );
+                  const minDepth = caps.reduce((min, cap) => {
+                    const startDepth = cap.startTopY - cap.startBottomY;
+                    const endDepth = cap.endTopY - cap.endBottomY;
+                    return Math.min(min, startDepth, endDepth);
+                  }, Number.POSITIVE_INFINITY);
+                  const cutBlocks = gableEnd.cmuUnitPlacements.filter(
+                    (block) => block.blockType === 'cut' || block.kind === 'cut_block',
+                  ).length;
+                  const sampleCap = caps[0];
+                  return (
+                    <div key={gableEnd.hostSegmentId} className="mt-2 border-t border-slate-700 pt-2">
+                      <div>Gable Segment: {gableEnd.hostSegmentId.slice(0, 8)}…</div>
+                      <div>
+                        Minimum Rake Cap Depth:{' '}
+                        {(resolvedPreset.roofSystem?.gable.rakeClearanceMeters ?? 0.1016).toFixed(3)} m
+                      </div>
+                      <div>
+                        Actual Minimum Cap Depth:{' '}
+                        {Number.isFinite(minDepth) ? minDepth.toFixed(3) : '—'} m
+                      </div>
+                      {sampleCap ? (
+                        <>
+                          <div>Cap Top (sample): {sampleCap.startTopY.toFixed(3)} m</div>
+                          <div>CMU Envelope (sample): {sampleCap.startBottomY.toFixed(3)} m</div>
+                          <div>
+                            Actual Cap Depth (sample):{' '}
+                            {(sampleCap.startTopY - sampleCap.startBottomY).toFixed(3)} m
+                          </div>
+                          <div>
+                            Roof-to-Cap Clearance (sample):{' '}
+                            {(0.002).toFixed(3)} m target
+                          </div>
+                        </>
+                      ) : null}
+                      <div>Raked Cap Volume: {capVolume.toFixed(3)} m³</div>
+                      <div>Raked Cap Linear Length: {capLength.toFixed(2)} m</div>
+                      <div>CMU Courses Resolved: {gableEnd.masonryCourses.length}</div>
+                      <div>Cut Blocks Used: {cutBlocks}</div>
+                    </div>
+                  );
+                })}
               </div>
             ) : null}
           </div>
@@ -4821,8 +4972,31 @@ function EditableControls({
 
   if (selectedObjectType === 'gable_end_system') {
     const gable = preset.gableEndSystem.gableEnds[0];
+    const resolvedRoof = designGeometryResult.resolvedRoofSystem;
+    const rakedCapVolumeCubicMeters = resolvedRoof?.rakedCapVolumeCubicMeters ?? 0;
+    const rakedCapLinearLengthMeters = (resolvedRoof?.gableEnds ?? [])
+      .flatMap((gableEnd) => gableEnd.rakedCapPlacements)
+      .reduce((sum, cap) => sum + (cap.endStationMeters - cap.startStationMeters), 0);
+    const gableCmuBlockCount =
+      resolvedRoof?.gableEnds.flatMap((gableEnd) => gableEnd.cmuUnitPlacements).length ?? 0;
     return (
       <div className="space-y-3">
+        {resolvedRoof?.supported && resolvedRoof.roofType === 'gable' ? (
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm dark:border-slate-700 dark:bg-slate-800/60">
+            <div className="font-semibold text-slate-800 dark:text-slate-100">Estimate quantities</div>
+            <div className="mt-2 grid gap-1 text-xs text-slate-600 dark:text-slate-300">
+              <div>Gable-end CMU: {gableCmuBlockCount} EA</div>
+              <div>
+                Raked cap concrete: {rakedCapVolumeCubicMeters.toFixed(3)} m³ (
+                {cubicMetersToCubicYards(rakedCapVolumeCubicMeters).toFixed(2)} CY)
+              </div>
+              <div>Raked cap length: {rakedCapLinearLengthMeters.toFixed(2)} m</div>
+            </div>
+            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+              Volume is calculated from the resolved cap prism between the CMU envelope and the purlin bottom — not render-only geometry.
+            </p>
+          </div>
+        ) : null}
         {gable ? (
           <>
             <NumberField label="Eave elevation" value={gable.eaveElevationMeters} suffix="m" onChange={(value) => onGableFieldChange(gable.id, { eaveElevationMeters: value })} />
@@ -5254,18 +5428,41 @@ function positiveOrFallback(value: number, fallback: number): number {
 
 function objectIdForType(
   objectType: DesignObjectType,
-  objectIds: { slabObjectId: string; wallObjectId: string; roofObjectId: string; trussObjectId: string },
+  objectIds: {
+    slabObjectId: string;
+    wallObjectId: string;
+    roofObjectId: string;
+    trussObjectId: string;
+    frameObjectId: string;
+    infillObjectId: string;
+    gableEndObjectId: string;
+  },
 ): string {
   if (objectType === 'thickened_edge_slab') return objectIds.slabObjectId;
   if (objectType === 'gable_roof_system') return objectIds.roofObjectId;
   if (objectType === 'steel_truss_system') return objectIds.trussObjectId;
+  if (objectType === 'structural_frame_system') return objectIds.frameObjectId;
+  if (objectType === 'cmu_infill_system') return objectIds.infillObjectId;
+  if (objectType === 'gable_end_system') return objectIds.gableEndObjectId;
   return objectIds.wallObjectId;
 }
 
 function objectTypeForPreviewLine(line: DesignEstimatePreviewLine): DesignObjectType {
-  if (line.quantityType.includes('slab')) return 'thickened_edge_slab';
-  if (line.quantityType.includes('roof')) return 'gable_roof_system';
-  if (line.quantityType.includes('truss')) return 'steel_truss_system';
+  if (line.quantityType.includes('slab') || line.id.includes('slab')) return 'thickened_edge_slab';
+  if (line.quantityType.includes('raked_concrete_cap') || line.quantityType.includes('gable_end')) {
+    return 'gable_end_system';
+  }
+  if (line.quantityType.startsWith('rc_')) return 'structural_frame_system';
+  if (line.quantityType.includes('infill') || line.id.startsWith('infill-')) return 'cmu_infill_system';
+  if (line.quantityType.includes('truss') || line.id.includes('truss')) return 'steel_truss_system';
+  if (
+    line.quantityType.includes('roof') ||
+    line.quantityType.includes('ridge') ||
+    line.quantityType.includes('hip') ||
+    line.quantityType.includes('corrugated')
+  ) {
+    return 'gable_roof_system';
+  }
   return 'cmu_wall_system';
 }
 

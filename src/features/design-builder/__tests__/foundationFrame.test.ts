@@ -208,12 +208,14 @@ describe('RC frame foundation — plinth / roof / tie beams', () => {
     expect(preset.frameSystem.beams.some((beam) => beam.kind === 'tie_beam')).toBe(true);
   });
 
-  it('sets CMU infill base at top of plinth beam and top at roof beam underside', () => {
+  it('sets CMU infill base at plinth top with interior floor slab flush at same elevation', () => {
     const geometry = geometryForPreset();
     (geometry.resolvedInfillPanelBounds ?? []).forEach((bounds) => {
       expect(bounds.bottomElevationMeters).toBeCloseTo(0, 6);
       expect(bounds.topElevationMeters).toBeCloseTo(wallHeightMeters, 6);
     });
+    expect(geometry.interiorFloorSlab?.topElevationMeters).toBeCloseTo(0, 6);
+    expect(geometry.interiorFloorSlab?.bottomElevationMeters).toBeLessThan(0);
   });
 
   it('keeps existing RC Frame + CMU Infill designs valid via normalization', () => {

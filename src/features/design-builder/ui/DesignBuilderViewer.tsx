@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { DEFAULT_ROOF_LAYER_VISIBILITY } from '../domain/roofSystemDefaults';
 import {
-  generateCmuLayout,
   logOpeningCoursePlacementsTableForDev,
   type CmuBlockType,
   type DesignGeometryBlockInstance,
@@ -10,6 +10,19 @@ import {
 } from '../geometry/designGeometry';
 import { resolveCmuModuleConfig } from '../domain/cmuModuleRules';
 import { TOP_COURSE_RENDER_EPSILON_METERS } from '../domain/cmuInfillPanelSolver';
+import {
+  CORRUGATED_SHEET_DISPLAY_THICKNESS_METERS,
+  distanceAlongRoofNormal,
+  elevationOnRoofPlaneAtPoint,
+  insetPointBelowRoofSurface,
+  normalizeOutwardRoofNormal,
+  offsetPointAlongRoofNormal,
+  PURLIN_PROFILE_DEPTH_METERS,
+  PURLIN_TO_CHORD_CLEARANCE_METERS,
+  PURLIN_TO_SHEET_CLEARANCE_METERS,
+  resolveTrussTopChordUpperPoint,
+  TRUSS_CHORD_PROFILE_METERS,
+} from '../domain/roofFramingResolver';
 import {
   fitPerspectiveCameraToBounds,
   logDesignFramingDiagnostics,
@@ -36,6 +49,7 @@ import type {
   ThickenedEdgeSlabParameters,
   FoundationViewMode,
   RoofDisplayMode,
+  RoofLayerVisibility,
   RoofSystemSettings,
   WallOpeningParameters,
 } from '../types';
@@ -44,6 +58,8 @@ import {
   buildPurlinMesh,
   createCorrugatedMetalMaterial,
   createFoldedRidgeCapGroup,
+  createRakedCapStripGeometry,
+  createRakedConcreteCapMaterial,
   createRidgeCapMaterial,
   buildSteelTrussMemberMeshes,
   buildTrussAnchorBoltMeshes,
@@ -51,6 +67,11 @@ import {
   buildTrussPlaneGuide,
   createSteelTrussMaterials,
 } from '../geometry/roofRenderingGeometry';
+import {
+  allowedMasonryTopYAtStation,
+  purlinBottomYAtStation,
+  rakedCapTopYAtStation,
+} from '../domain/roofGableSolver';
 
 const CLICK_DRAG_THRESHOLD_PX = 5;
 
@@ -98,9 +119,11 @@ interface DesignBuilderViewerProps {
   showInfillPanelBounds?: boolean;
   showRoofReferencePerimeters?: boolean;
   showRoofFramingGuides?: boolean;
+  showGableRakeGeometry?: boolean;
   foundationViewMode?: FoundationViewMode;
   roofSystem?: RoofSystemSettings | null;
   roofDisplayMode?: RoofDisplayMode;
+  roofLayerVisibility?: RoofLayerVisibility;
   manualMasonryEnabled?: boolean;
   onManualMasonryPointer?: (event: {
     kind: 'preview' | 'start' | 'commit' | 'cancel_preview' | 'undo';
@@ -185,9 +208,11 @@ export default function DesignBuilderViewer({
   showInfillPanelBounds = false,
   showRoofReferencePerimeters = false,
   showRoofFramingGuides = false,
+  showGableRakeGeometry = false,
   foundationViewMode = 'full_model',
   roofSystem = null,
   roofDisplayMode = 'full_roof',
+  roofLayerVisibility = DEFAULT_ROOF_LAYER_VISIBILITY,
   manualMasonryEnabled = false,
   onManualMasonryPointer,
 }: DesignBuilderViewerProps) {
@@ -224,9 +249,11 @@ export default function DesignBuilderViewer({
     showInfillPanelBounds,
     showRoofReferencePerimeters,
     showRoofFramingGuides,
+    showGableRakeGeometry,
     foundationViewMode,
     roofSystem,
     roofDisplayMode,
+    roofLayerVisibility,
   });
   modelParamsRef.current = {
     modelLoaded,
@@ -244,9 +271,11 @@ export default function DesignBuilderViewer({
     showInfillPanelBounds,
     showRoofReferencePerimeters,
     showRoofFramingGuides,
+    showGableRakeGeometry,
     foundationViewMode,
     roofSystem,
     roofDisplayMode,
+    roofLayerVisibility,
   };
   onSelectRef.current = onSelectObjectType;
   onInteractionRef.current = onInteraction;
@@ -593,9 +622,11 @@ export default function DesignBuilderViewer({
         showInfillPanelBounds: currentShowInfillPanelBounds,
         showRoofReferencePerimeters: currentShowRoofReferencePerimeters,
         showRoofFramingGuides: currentShowRoofFramingGuides,
+        showGableRakeGeometry: currentShowGableRakeGeometry,
         foundationViewMode: currentFoundationViewMode,
         roofSystem: currentRoofSystem,
         roofDisplayMode: currentRoofDisplayMode,
+        roofLayerVisibility: currentRoofLayerVisibility,
       } = params;
       root.clear();
       selectable.length = 0;
@@ -739,6 +770,29 @@ export default function DesignBuilderViewer({
             addSelectable(mesh, 'structural_frame_system');
           });
         }
+        const interiorFloorSlab = currentGeometry.interiorFloorSlab;
+        if (
+          interiorFloorSlab?.enabled &&
+          currentGeometry.resolvedFootprint?.interiorFacePolygon.length
+        ) {
+          const interiorSlabMaterial = makeMaterial(0xb8c5d6, currentSelectedObjectType === 'structural_frame_system', {
+            roughness: 0.92,
+            metalness: 0.02,
+          });
+          const interiorSlabMesh = new THREE.Mesh(
+            trackGeometry(
+              createFootprintSlabGeometry(
+                currentGeometry.resolvedFootprint.interiorFacePolygon,
+                interiorFloorSlab.thicknessMeters,
+              ),
+            ),
+            interiorSlabMaterial,
+          );
+          interiorSlabMesh.position.y =
+            currentSlab.slabThicknessMeters + interiorFloorSlab.topElevationMeters;
+          addSelectable(interiorSlabMesh, 'structural_frame_system');
+          root.add(interiorSlabMesh);
+        }
         if (currentGeometry.isolatedFootings?.length) {
           const footingMaterial = makeMaterial(0x78716c, currentSelectedObjectType === 'structural_frame_system', {
             roughness: 0.9,
@@ -834,17 +888,28 @@ export default function DesignBuilderViewer({
         const roofSegmentFrames = currentGeometry.wallCmuLayout?.segmentFrames ?? [];
         const roofFrameById = buildSegmentFrameMap(roofSegmentFrames);
         const showRoofCladding =
-          currentRoofDisplayMode === 'full_roof' ||
-          currentRoofDisplayMode === 'roof_cladding_only' ||
-          currentRoofDisplayMode === 'foundation_frame_roof';
+          (currentRoofDisplayMode === 'full_roof' ||
+            currentRoofDisplayMode === 'roof_cladding_only' ||
+            currentRoofDisplayMode === 'foundation_frame_roof') &&
+          currentRoofLayerVisibility.roofCladding;
         const showRoofFraming =
           currentRoofDisplayMode === 'full_roof' ||
           currentRoofDisplayMode === 'steel_framing_only' ||
           currentRoofDisplayMode === 'foundation_frame_roof';
+        const showSteelTrusses = showRoofFraming && currentRoofLayerVisibility.steelTrusses;
+        const showPurlins = showRoofFraming && currentRoofLayerVisibility.purlins;
+        const showRidgeCap =
+          (currentRoofDisplayMode === 'full_roof' ||
+            currentRoofDisplayMode === 'roof_cladding_only' ||
+            currentRoofDisplayMode === 'foundation_frame_roof') &&
+          currentRoofLayerVisibility.ridgeCap;
         const showGableMasonry =
-          currentRoofDisplayMode === 'full_roof' ||
-          currentRoofDisplayMode === 'gable_masonry_only' ||
-          currentRoofDisplayMode === 'foundation_frame_roof';
+          (currentRoofDisplayMode === 'full_roof' ||
+            currentRoofDisplayMode === 'gable_masonry_only' ||
+            currentRoofDisplayMode === 'foundation_frame_roof') &&
+          (currentRoofLayerVisibility.gableEndCmu || currentRoofLayerVisibility.rakedConcreteCap);
+        const showRakedCap =
+          showGableMasonry && currentRoofLayerVisibility.rakedConcreteCap;
 
         if (currentGeometry.resolvedRoofSystem?.supported && currentRoofSystem?.enabled) {
           const resolvedRoof = currentGeometry.resolvedRoofSystem;
@@ -860,8 +925,6 @@ export default function DesignBuilderViewer({
           basePlateGroup.name = 'basePlateGroup';
           const anchorBoltGroup = new THREE.Group();
           anchorBoltGroup.name = 'anchorBoltGroup';
-          const gableCmuGroup = new THREE.Group();
-          gableCmuGroup.name = 'gableCmuGroup';
           const rakedCapGroup = new THREE.Group();
           rakedCapGroup.name = 'rakedCapGroup';
           const ridgeCapGroup = new THREE.Group();
@@ -871,15 +934,27 @@ export default function DesignBuilderViewer({
 
           const roofThickness = resolvedRoof.roofAssemblyThicknessMeters ?? 0.15;
           const corrugatedEnabled = currentRoofSystem.corrugatedMetal.enabled;
+          const claddingPlanes =
+            resolvedRoof.claddingDisplayPlanes.length > 0
+              ? resolvedRoof.claddingDisplayPlanes
+              : resolvedRoof.roofTopPlanes;
+          const claddingStackOffsetMeters = 0;
 
           if (showRoofCladding && corrugatedEnabled) {
-            const roofMaterial = createCorrugatedMetalMaterial();
+            const debugGuides = import.meta.env.DEV && currentShowRoofFramingGuides;
+            const roofMaterial = debugGuides
+              ? new THREE.MeshStandardMaterial({ color: 0x9ca3af, metalness: 0.72, roughness: 0.38 })
+              : createCorrugatedMetalMaterial();
             materialsToDispose.push(roofMaterial);
-            for (const plane of resolvedRoof.roofTopPlanes) {
+            for (const plane of claddingPlanes) {
               if (plane.corners.length < 3) continue;
+              const planeNormal = normalizeOutwardRoofNormal(plane.normal);
               const positions: number[] = [];
               for (const corner of plane.corners) {
-                positions.push(corner.x, currentSlab.slabThicknessMeters + corner.y, corner.z);
+                const elevated = claddingStackOffsetMeters > 0
+                  ? offsetPointAlongRoofNormal(corner, planeNormal, claddingStackOffsetMeters)
+                  : corner;
+                positions.push(elevated.x, currentSlab.slabThicknessMeters + elevated.y, elevated.z);
               }
               const indices = plane.corners.length === 3 ? [0, 1, 2] : [0, 1, 2, 0, 2, 3];
               const topGeometry = trackGeometry(new THREE.BufferGeometry());
@@ -890,15 +965,24 @@ export default function DesignBuilderViewer({
               roofCladdingGroup.add(mesh);
             }
           } else if (showRoofCladding) {
-            const roofMaterial = makeMaterial(0x64748b, currentSelectedObjectType === 'gable_roof_system', {
-              roughness: 0.75,
-              opacity: 0.92,
-            });
-            for (const plane of resolvedRoof.roofTopPlanes) {
+            const debugGuides = import.meta.env.DEV && currentShowRoofFramingGuides;
+            const roofMaterial = makeMaterial(
+              debugGuides ? 0x9ca3af : 0x64748b,
+              currentSelectedObjectType === 'gable_roof_system',
+              {
+                roughness: 0.75,
+                opacity: 0.92,
+              },
+            );
+            for (const plane of claddingPlanes) {
               if (plane.corners.length < 3) continue;
+              const planeNormal = normalizeOutwardRoofNormal(plane.normal);
               const positions: number[] = [];
               for (const corner of plane.corners) {
-                positions.push(corner.x, currentSlab.slabThicknessMeters + corner.y, corner.z);
+                const elevated = claddingStackOffsetMeters > 0
+                  ? offsetPointAlongRoofNormal(corner, planeNormal, claddingStackOffsetMeters)
+                  : corner;
+                positions.push(elevated.x, currentSlab.slabThicknessMeters + elevated.y, elevated.z);
               }
               const indices = plane.corners.length === 3 ? [0, 1, 2] : [0, 1, 2, 0, 2, 3];
               const topGeometry = trackGeometry(new THREE.BufferGeometry());
@@ -909,7 +993,7 @@ export default function DesignBuilderViewer({
             }
           }
 
-          if (showRoofFraming && resolvedRoof.roofType === 'gable' && currentRoofSystem.steelTrusses.enabled) {
+          if (showSteelTrusses && resolvedRoof.roofType === 'gable' && currentRoofSystem.steelTrusses.enabled) {
             const steelMaterials = createSteelTrussMaterials();
             materialsToDispose.push(
               steelMaterials.chord,
@@ -997,7 +1081,7 @@ export default function DesignBuilderViewer({
             }
           }
 
-          if (showRoofFraming && currentRoofSystem.purlins.enabled) {
+          if (showPurlins && currentRoofSystem.purlins.enabled) {
             const steelMaterials = createSteelTrussMaterials();
             const purlinMaterial =
               import.meta.env.DEV && currentShowRoofFramingGuides
@@ -1005,26 +1089,90 @@ export default function DesignBuilderViewer({
                 : steelMaterials.purlin;
             materialsToDispose.push(purlinMaterial);
             for (const purlin of resolvedRoof.purlinPlacements) {
-              const mesh = buildPurlinMesh(
-                new THREE.Vector3(
+              const mesh = buildPurlinMesh({
+                start: new THREE.Vector3(
                   purlin.start.x,
                   currentSlab.slabThicknessMeters + purlin.start.y,
                   purlin.start.z,
                 ),
-                new THREE.Vector3(
+                end: new THREE.Vector3(
                   purlin.end.x,
                   currentSlab.slabThicknessMeters + purlin.end.y,
                   purlin.end.z,
                 ),
-                purlinMaterial,
-              );
+                planeNormal: new THREE.Vector3(
+                  purlin.planeNormal.x,
+                  purlin.planeNormal.y,
+                  purlin.planeNormal.z,
+                ),
+                material: purlinMaterial,
+              });
               trackGeometry(mesh.geometry);
               purlinGroup.add(mesh);
+            }
+            if (import.meta.env.DEV && currentShowRoofFramingGuides && resolvedRoof.trussPlacements.length > 0) {
+              const slabY = currentSlab.slabThicknessMeters;
+              const samplePurlin = resolvedRoof.purlinPlacements[0]!;
+              const sampleTruss = resolvedRoof.trussPlacements[Math.floor(resolvedRoof.trussPlacements.length / 2)]!;
+              const topLeft = sampleTruss.members.find((member) => member.memberKind === 'top_chord_left')!;
+              const normal = normalizeOutwardRoofNormal(samplePurlin.planeNormal);
+              const chordCenter = {
+                x: (topLeft.start.x + topLeft.end.x) / 2,
+                y: (topLeft.start.y + topLeft.end.y) / 2,
+                z: (topLeft.start.z + topLeft.end.z) / 2,
+              };
+              const chordTop = resolveTrussTopChordUpperPoint({ chordCenter, outwardNormal: normal });
+              const purlinCenter = {
+                x: (samplePurlin.start.x + samplePurlin.end.x) / 2,
+                y: (samplePurlin.start.y + samplePurlin.end.y) / 2,
+                z: (samplePurlin.start.z + samplePurlin.end.z) / 2,
+              };
+              const purlinTop = offsetPointAlongRoofNormal(purlinCenter, normal, PURLIN_PROFILE_DEPTH_METERS / 2);
+              const displayPlane =
+                resolvedRoof.claddingDisplayPlanes.find(
+                  (plane) => plane.id === `${samplePurlin.slopePlaneId}-cladding-display`,
+                ) ?? resolvedRoof.claddingDisplayPlanes[0];
+              let renderedSheetUnderside = offsetPointAlongRoofNormal(
+                purlinTop,
+                normal,
+                PURLIN_TO_SHEET_CLEARANCE_METERS,
+              );
+              if (displayPlane) {
+                const displayTopY = elevationOnRoofPlaneAtPoint(displayPlane, purlinCenter.x, purlinCenter.z);
+                if (displayTopY != null) {
+                  renderedSheetUnderside = offsetPointAlongRoofNormal(
+                    { x: purlinCenter.x, y: displayTopY, z: purlinCenter.z },
+                    normal,
+                    -CORRUGATED_SHEET_DISPLAY_THICKNESS_METERS,
+                  );
+                }
+              }
+              const addContactLine = (from: { x: number; y: number; z: number }, to: { x: number; y: number; z: number }, color: number) => {
+                const material = new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.95 });
+                materialsToDispose.push(material);
+                const geometry = trackGeometry(
+                  new THREE.BufferGeometry().setFromPoints([
+                    new THREE.Vector3(from.x, slabY + from.y, from.z),
+                    new THREE.Vector3(to.x, slabY + to.y, to.z),
+                  ]),
+                );
+                const line = new THREE.Line(geometry, material);
+                line.userData.explicitHelperMarker = true;
+                framingGuideGroup.add(line);
+              };
+              const chordGap = distanceAlongRoofNormal(
+                offsetPointAlongRoofNormal(purlinCenter, normal, -PURLIN_PROFILE_DEPTH_METERS / 2),
+                chordTop,
+                normal,
+              );
+              const sheetGap = distanceAlongRoofNormal(purlinTop, renderedSheetUnderside, normal);
+              addContactLine(chordTop, purlinCenter, chordGap < -0.001 || chordGap > 0.003 ? 0xff0000 : 0xffff00);
+              addContactLine(purlinTop, renderedSheetUnderside, sheetGap < 0 || sheetGap > 0.006 ? 0xff0000 : 0xffa500);
             }
           }
 
           if (
-            showRoofCladding &&
+            showRidgeCap &&
             corrugatedEnabled &&
             resolvedRoof.ridgeCapPlacement
           ) {
@@ -1058,54 +1206,227 @@ export default function DesignBuilderViewer({
             ridgeCapGroup.add(ridgeCap);
           }
 
-          if (showGableMasonry && currentGeometry.rakedCapPlacements?.length) {
-            const capMaterial = makeMaterial(0x78716c, currentSelectedObjectType === 'gable_end_system', {
-              roughness: 0.85,
-            });
-            for (const cap of currentGeometry.rakedCapPlacements) {
-              const frame = roofFrameById.get(cap.gableEndSegmentId);
-              if (!frame) continue;
-              const span = cap.endStationMeters - cap.startStationMeters;
-              const avgHeight =
-                (cap.topLeftElevationMeters + cap.topRightElevationMeters) / 2 - cap.baseElevationMeters;
-              if (span <= 0 || avgHeight <= 0) continue;
-              const startX = frame.start.x + frame.tangent.x * cap.startStationMeters;
-              const startZ = frame.start.z + frame.tangent.z * cap.startStationMeters;
-              const endX = frame.start.x + frame.tangent.x * cap.endStationMeters;
-              const endZ = frame.start.z + frame.tangent.z * cap.endStationMeters;
-              const centerX = (startX + endX) / 2 + frame.inwardNormal.x * (cap.wallDepthMeters / 2);
-              const centerZ = (startZ + endZ) / 2 + frame.inwardNormal.z * (cap.wallDepthMeters / 2);
-              const mesh = new THREE.Mesh(
-                trackGeometry(new THREE.BoxGeometry(span, avgHeight, cap.wallDepthMeters)),
-                capMaterial,
+          if (
+            import.meta.env.DEV &&
+            currentShowRoofFramingGuides &&
+            resolvedRoof.roofType === 'gable' &&
+            resolvedRoof.structuralRidgeStart &&
+            resolvedRoof.structuralRidgeEnd &&
+            resolvedRoof.claddingRidgeStart &&
+            resolvedRoof.claddingRidgeEnd
+          ) {
+            const slabY = currentSlab.slabThicknessMeters;
+            const peakY = resolvedRoof.roofPeakY;
+            const addGuideLine = (start: THREE.Vector3, end: THREE.Vector3, color: number) => {
+              const material = new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.95 });
+              materialsToDispose.push(material);
+              const geometry = trackGeometry(new THREE.BufferGeometry().setFromPoints([start, end]));
+              const line = new THREE.Line(geometry, material);
+              line.userData.explicitHelperMarker = true;
+              framingGuideGroup.add(line);
+            };
+            const ridgeSpan = Math.hypot(
+              resolvedRoof.claddingRidgeEnd.x - resolvedRoof.claddingRidgeStart.x,
+              resolvedRoof.claddingRidgeEnd.z - resolvedRoof.claddingRidgeStart.z,
+            );
+            const ridgeUx =
+              ridgeSpan > 0
+                ? (resolvedRoof.claddingRidgeEnd.x - resolvedRoof.claddingRidgeStart.x) / ridgeSpan
+                : 1;
+            const ridgeUz =
+              ridgeSpan > 0
+                ? (resolvedRoof.claddingRidgeEnd.z - resolvedRoof.claddingRidgeStart.z) / ridgeSpan
+                : 0;
+            const spanPerpX = -ridgeUz;
+            const spanPerpZ = ridgeUx;
+            const spanHalf = resolvedRoof.rafterRunMeters;
+            for (const [point, color] of [
+              [resolvedRoof.structuralRidgeStart, 0x14b8a6],
+              [resolvedRoof.structuralRidgeEnd, 0x14b8a6],
+              [resolvedRoof.claddingRidgeStart, 0xeab308],
+              [resolvedRoof.claddingRidgeEnd, 0xeab308],
+            ] as const) {
+              addGuideLine(
+                new THREE.Vector3(
+                  point.x + spanPerpX * spanHalf,
+                  slabY + peakY,
+                  point.z + spanPerpZ * spanHalf,
+                ),
+                new THREE.Vector3(
+                  point.x - spanPerpX * spanHalf,
+                  slabY + peakY,
+                  point.z - spanPerpZ * spanHalf,
+                ),
+                color,
               );
-              mesh.position.set(
-                centerX,
-                currentSlab.slabThicknessMeters + cap.baseElevationMeters + avgHeight / 2,
-                centerZ,
-              );
-              mesh.rotation.y = frame.rotationY;
-              rakedCapGroup.add(mesh);
             }
           }
 
-          if (showGableMasonry && currentGeometry.gablePlacements?.length) {
-            const gableMaterial = makeMaterial(0xd97706, currentSelectedObjectType === 'gable_end_system');
-            currentGeometry.gablePlacements.forEach((placement) => {
+          if (
+            currentRoofSystem?.gable.rakedConcreteCapEnabled &&
+            showRakedCap &&
+            currentGeometry.rakedCapPlacements?.length
+          ) {
+            const capMaterial = createRakedConcreteCapMaterial(
+              currentSelectedObjectType === 'gable_end_system',
+            );
+            materialsToDispose.push(capMaterial);
+            const capsByStrip = new Map<
+              string,
+              Array<(typeof currentGeometry.rakedCapPlacements)[number]>
+            >();
+            for (const cap of currentGeometry.rakedCapPlacements) {
+              const key = `${cap.gableEndSegmentId}:${cap.slope}`;
+              const group = capsByStrip.get(key) ?? [];
+              group.push(cap);
+              capsByStrip.set(key, group);
+            }
+            for (const [, caps] of capsByStrip) {
+              const frame = roofFrameById.get(caps[0]!.gableEndSegmentId);
+              if (!frame) continue;
+              const sortedCaps = [...caps].sort(
+                (left, right) => left.startStationMeters - right.startStationMeters,
+              );
+              const segments = sortedCaps
+                .map((cap) => {
+                  const span = cap.endStationMeters - cap.startStationMeters;
+                  if (span <= 0) return null;
+                  const startHeight = cap.startTopY - cap.startBottomY;
+                  const endHeight = cap.endTopY - cap.endBottomY;
+                  if (startHeight <= 0 && endHeight <= 0) return null;
+                  return {
+                    spanMeters: span,
+                    startBottomY: cap.startBottomY,
+                    endBottomY: cap.endBottomY,
+                    startTopY: cap.startTopY,
+                    endTopY: cap.endTopY,
+                    wallDepthMeters: cap.wallDepthMeters,
+                  };
+                })
+                .filter((segment): segment is NonNullable<typeof segment> => segment != null);
+              if (segments.length === 0) continue;
+
+              const firstCap = sortedCaps[0]!;
+              const startX = frame.start.x + frame.tangent.x * firstCap.startStationMeters;
+              const startZ = frame.start.z + frame.tangent.z * firstCap.startStationMeters;
               const mesh = new THREE.Mesh(
-                trackGeometry(
-                  new THREE.BoxGeometry(placement.lengthMeters, placement.heightMeters, placement.depthMeters),
-                ),
-                gableMaterial,
+                trackGeometry(createRakedCapStripGeometry(segments)),
+                capMaterial,
               );
               mesh.position.set(
-                placement.x,
-                currentSlab.slabThicknessMeters + placement.y,
-                placement.z,
+                startX + frame.inwardNormal.x * (firstCap.wallDepthMeters / 2),
+                currentSlab.slabThicknessMeters,
+                startZ + frame.inwardNormal.z * (firstCap.wallDepthMeters / 2),
               );
-              mesh.rotation.y = placement.rotationY;
-              gableCmuGroup.add(mesh);
-            });
+              mesh.rotation.y = frame.rotationY;
+              rakedCapGroup.add(mesh);
+
+              if (currentShowGableRakeGeometry) {
+                const hostPanel = currentGeometry.infillSystem?.panels.find(
+                  (panel) => panel.hostSegmentId === frame.segmentId,
+                );
+                const panelStart = hostPanel?.startStationMeters ?? 0;
+                const panelEnd = hostPanel?.endStationMeters ?? frame.lengthMeters;
+                const minRakeCapDepthMeters = currentRoofSystem?.gable.rakeClearanceMeters ?? 0.1016;
+                const capTopGuideMaterial = new THREE.LineBasicMaterial({
+                  color: 0x14b8a6,
+                  transparent: true,
+                  opacity: 0.95,
+                });
+                const masonryGuideMaterial = new THREE.LineBasicMaterial({
+                  color: 0xeab308,
+                  transparent: true,
+                  opacity: 0.85,
+                });
+                materialsToDispose.push(capTopGuideMaterial, masonryGuideMaterial);
+                const purlinsEnabled = currentRoofSystem?.purlins.enabled ?? resolvedRoof.purlinPlacements.length > 0;
+                for (const cap of sortedCaps) {
+                  const capStartX = frame.start.x + frame.tangent.x * cap.startStationMeters;
+                  const capStartZ = frame.start.z + frame.tangent.z * cap.startStationMeters;
+                  const capEndX = frame.start.x + frame.tangent.x * cap.endStationMeters;
+                  const capEndZ = frame.start.z + frame.tangent.z * cap.endStationMeters;
+                  const capTopStartY = purlinsEnabled
+                    ? purlinBottomYAtStation({
+                        resolvedRoof,
+                        frame,
+                        stationMeters: cap.startStationMeters,
+                        panelStartStation: panelStart,
+                        panelEndStation: panelEnd,
+                      })
+                    : rakedCapTopYAtStation({
+                        resolvedRoof,
+                        roofSystem: currentRoofSystem ?? undefined,
+                        frame,
+                        stationMeters: cap.startStationMeters,
+                        panelStartStation: panelStart,
+                        panelEndStation: panelEnd,
+                      });
+                  const capTopEndY = purlinsEnabled
+                    ? purlinBottomYAtStation({
+                        resolvedRoof,
+                        frame,
+                        stationMeters: cap.endStationMeters,
+                        panelStartStation: panelStart,
+                        panelEndStation: panelEnd,
+                      })
+                    : rakedCapTopYAtStation({
+                        resolvedRoof,
+                        roofSystem: currentRoofSystem ?? undefined,
+                        frame,
+                        stationMeters: cap.endStationMeters,
+                        panelStartStation: panelStart,
+                        panelEndStation: panelEnd,
+                      });
+                  const capTopGuideLine = new THREE.BufferGeometry().setFromPoints([
+                    new THREE.Vector3(
+                      capStartX,
+                      currentSlab.slabThicknessMeters + capTopStartY,
+                      capStartZ,
+                    ),
+                    new THREE.Vector3(
+                      capEndX,
+                      currentSlab.slabThicknessMeters + capTopEndY,
+                      capEndZ,
+                    ),
+                  ]);
+                  framingGuideGroup.add(new THREE.Line(capTopGuideLine, capTopGuideMaterial));
+                  trackGeometry(capTopGuideLine);
+
+                  const masonryStartY = allowedMasonryTopYAtStation({
+                    resolvedRoof,
+                    roofSystem: currentRoofSystem ?? undefined,
+                    frame,
+                    stationMeters: cap.startStationMeters,
+                    panelStartStation: panelStart,
+                    panelEndStation: panelEnd,
+                    minRakeCapDepthMeters,
+                  });
+                  const masonryEndY = allowedMasonryTopYAtStation({
+                    resolvedRoof,
+                    roofSystem: currentRoofSystem ?? undefined,
+                    frame,
+                    stationMeters: cap.endStationMeters,
+                    panelStartStation: panelStart,
+                    panelEndStation: panelEnd,
+                    minRakeCapDepthMeters,
+                  });
+                  const masonryLine = new THREE.BufferGeometry().setFromPoints([
+                    new THREE.Vector3(
+                      capStartX,
+                      currentSlab.slabThicknessMeters + masonryStartY,
+                      capStartZ,
+                    ),
+                    new THREE.Vector3(
+                      capEndX,
+                      currentSlab.slabThicknessMeters + masonryEndY,
+                      capEndZ,
+                    ),
+                  ]);
+                  framingGuideGroup.add(new THREE.Line(masonryLine, masonryGuideMaterial));
+                  trackGeometry(masonryLine);
+                }
+              }
+            }
           }
 
           for (const group of [
@@ -1116,13 +1437,12 @@ export default function DesignBuilderViewer({
             purlinGroup,
             basePlateGroup,
             anchorBoltGroup,
-            gableCmuGroup,
             rakedCapGroup,
             framingGuideGroup,
           ]) {
             if (group.children.length === 0) continue;
             const roofObjectType: DesignObjectType =
-              group === gableCmuGroup || group === rakedCapGroup ? 'gable_end_system' : 'gable_roof_system';
+              group === rakedCapGroup ? 'gable_end_system' : 'gable_roof_system';
             const roofSelectionPriority = selectionPriorityForObjectType(roofObjectType);
             group.traverse((child) => {
               if (child instanceof THREE.Mesh || child instanceof THREE.InstancedMesh) {
@@ -1622,7 +1942,7 @@ export default function DesignBuilderViewer({
 
   useEffect(() => {
     if (modelLoaded) rebuildModelRef.current?.();
-  }, [geometryResult, layoutBounds, modelLoaded, roof, roofDisplayMode, roofSystem, selectedObjectType, selectedOpeningId, showClosureWarnings, showFootprintSetout, showInfillPanelBounds, showRoofReferencePerimeters, showRoofFramingGuides, foundationViewMode, showGroutCells, showOpeningLayout, slab, truss, wall]);
+  }, [geometryResult, layoutBounds, modelLoaded, roof, roofDisplayMode, roofLayerVisibility, roofSystem, selectedObjectType, selectedOpeningId, showClosureWarnings, showFootprintSetout, showInfillPanelBounds, showRoofReferencePerimeters, showRoofFramingGuides, showGableRakeGeometry, foundationViewMode, showGroutCells, showOpeningLayout, slab, truss, wall]);
 
   useEffect(() => {
     if (!viewCommand) return;

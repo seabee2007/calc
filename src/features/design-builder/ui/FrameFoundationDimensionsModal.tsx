@@ -38,7 +38,13 @@ export type FrameFoundationDimensionsModalProps = {
   onApply: (payload: FrameFoundationDimensionsApplyPayload) => boolean;
 };
 
-type FoundationSection = 'plinthBeam' | 'roofBeam' | 'tieBeam' | 'columns' | 'isolatedFootings';
+type FoundationSection =
+  | 'plinthBeam'
+  | 'interiorFloorSlab'
+  | 'roofBeam'
+  | 'tieBeam'
+  | 'columns'
+  | 'isolatedFootings';
 
 function positiveOrFallback(value: number, fallback: number): number {
   return Number.isFinite(value) && value > 0 ? value : fallback;
@@ -260,6 +266,12 @@ export default function FrameFoundationDimensionsModal({
     if (foundationDraft.plinthBeam.enabled && foundationDraft.plinthBeam.widthMeters <= 0) {
       errors.plinthWidth = 'Plinth Beam width must be greater than zero.';
     }
+    if (
+      foundationDraft.interiorFloorSlab.enabled &&
+      foundationDraft.interiorFloorSlab.thicknessMeters <= 0
+    ) {
+      errors.interiorFloorSlabThickness = 'Interior floor slab thickness must be greater than zero.';
+    }
     if (foundationDraft.roofBeam.enabled && foundationDraft.roofBeam.widthMeters <= 0) {
       errors.roofWidth = 'Roof Beam width must be greater than zero.';
     }
@@ -281,6 +293,9 @@ export default function FrameFoundationDimensionsModal({
     }
     if (roofDraft.enabled && roofDraft.eaveOverhangMeters < 0) {
       errors.eaveOverhang = 'Eave overhang cannot be negative.';
+    }
+    if (roofDraft.enabled && roofDraft.gableEndOverhangMeters < 0) {
+      errors.gableEndOverhang = 'Gable-End Overhang cannot be negative.';
     }
     if (roofDraft.enabled && roofDraft.roofType === 'gable' && roofDraft.steelTrusses.maxSpacingMeters <= 0) {
       errors.trussSpacing = 'Truss spacing must be greater than zero.';
@@ -469,7 +484,7 @@ export default function FrameFoundationDimensionsModal({
             <CollapsibleSection
               id="plinth-beam"
               title="Plinth Beam / Floor Level"
-              helper="Top of Plinth Beam = 0.00 m. CMU wall height is measured upward from this elevation."
+              helper="Top of Plinth Beam = 0.00 m. The interior floor slab is cast flush with the plinth top between the beams; thickness is measured downward from that floor level. CMU walls bear on the plinth / floor at 0.00 m."
             >
               <ToggleRow
                 label="Plinth Beam Enabled"
@@ -488,6 +503,20 @@ export default function FrameFoundationDimensionsModal({
                 value={foundationDraft.plinthBeam.depthMeters}
                 suffix="m"
                 onChange={(value) => patchSection('plinthBeam', { depthMeters: positiveOrFallback(value, 0.45) })}
+              />
+              <ToggleRow
+                label="Interior Floor Slab Enabled"
+                checked={foundationDraft.interiorFloorSlab.enabled}
+                onChange={(checked) => patchSection('interiorFloorSlab', { enabled: checked })}
+              />
+              <ModalNumberField
+                label="Interior Floor Slab Thickness"
+                value={foundationDraft.interiorFloorSlab.thicknessMeters}
+                suffix="m"
+                error={fieldErrors.interiorFloorSlabThickness}
+                onChange={(value) =>
+                  patchSection('interiorFloorSlab', { thicknessMeters: positiveOrFallback(value, 0.125) })
+                }
               />
               <ToggleRow
                 label="Apply Along Exterior Walls"
@@ -646,6 +675,16 @@ export default function FrameFoundationDimensionsModal({
                 onChange={(value) => patchRoof({ eaveOverhangMeters: positiveOrFallback(value, 0.3) })}
               />
               <ModalNumberField
+                label="Gable-End Overhang"
+                value={roofDraft.gableEndOverhangMeters}
+                suffix="m"
+                error={fieldErrors.gableEndOverhang}
+                onChange={(value) => patchRoof({ gableEndOverhangMeters: positiveOrFallback(value, 0.3) })}
+              />
+              <p className="-mt-2 text-xs text-slate-400">
+                Horizontal roof projection beyond each gable-end wall, parallel to the ridge.
+              </p>
+              <ModalNumberField
                 label="Roof Assembly Thickness"
                 value={roofDraft.roofAssemblyThicknessMeters}
                 suffix="m"
@@ -697,6 +736,12 @@ export default function FrameFoundationDimensionsModal({
                   </div>
                   <div>Rafter / Truss Reference Length: {resolvedRoof.roofMemberReferenceLengthMeters.toFixed(2)} m</div>
                   <div>Ridge Length: {resolvedRoof.ridgeLengthMeters.toFixed(2)} m</div>
+                  {resolvedRoof.roofType === 'gable' ? (
+                    <>
+                      <div>Structural Ridge Length: {resolvedRoof.structuralRidgeLengthMeters.toFixed(2)} m</div>
+                      <div>Gable-End Overhang: {resolvedRoof.gableEndOverhangMeters.toFixed(2)} m</div>
+                    </>
+                  ) : null}
                   <div>Roof Surface Area: {resolvedRoof.roofSurfaceAreaSquareMeters.toFixed(2)} m²</div>
                 </div>
               ) : null}
@@ -827,7 +872,7 @@ export default function FrameFoundationDimensionsModal({
               <CollapsibleSection
                 id="gable-end-masonry"
                 title="Gable-End Masonry"
-                helper="Gable-end CMU stair-steps below the roof line. The Raked Concrete Cap fills the calculated space between stepped CMU and the roof underside."
+                helper="Gable-end CMU follows the roof rake in running bond, staying at least 4 in below the cap bearing line. The raked concrete cap fills the course voids up to the purlin bottom."
               >
                 <ToggleRow
                   label="Generate Gable-End CMU"
@@ -835,7 +880,7 @@ export default function FrameFoundationDimensionsModal({
                   onChange={(checked) => patchGable({ enabled: checked })}
                 />
                 <ModalNumberField
-                  label="Rake Clearance"
+                  label="Minimum Rake Cap Depth"
                   value={roofDraft.gable.rakeClearanceMeters}
                   suffix="m"
                   onChange={(value) => patchGable({ rakeClearanceMeters: positiveOrFallback(value, 0.1016) })}
@@ -846,11 +891,19 @@ export default function FrameFoundationDimensionsModal({
                   onChange={(checked) => patchGable({ rakedConcreteCapEnabled: checked })}
                 />
                 <ModalNumberField
-                  label="Raked Concrete Cap Depth"
-                  value={roofDraft.gable.rakedConcreteCapDepthMeters}
+                  label="Raked Cap Wall Thickness"
+                  value={
+                    roofDraft.gable.rakedConcreteCapWallDepthMeters ??
+                    roofDraft.gable.rakedConcreteCapDepthMeters
+                  }
                   suffix="m"
                   error={fieldErrors.rakedCapDepth}
-                  onChange={(value) => patchGable({ rakedConcreteCapDepthMeters: positiveOrFallback(value, 0.19) })}
+                  onChange={(value) =>
+                    patchGable({
+                      rakedConcreteCapWallDepthMeters: positiveOrFallback(value, 0.19),
+                      rakedConcreteCapDepthMeters: positiveOrFallback(value, 0.19),
+                    })
+                  }
                 />
               </CollapsibleSection>
             ) : null}
@@ -871,6 +924,20 @@ export default function FrameFoundationDimensionsModal({
                 <dt>Top of Plinth Beam</dt>
                 <dd className="font-mono">0.00 m</dd>
               </div>
+              {foundationDraft.interiorFloorSlab.enabled ? (
+                <>
+                  <div className="flex justify-between gap-2">
+                    <dt>Floor Slab Top (same as plinth)</dt>
+                    <dd className="font-mono">{formatElevation(elevations.interiorFloorSlabTopY)}</dd>
+                  </div>
+                  <div className="flex justify-between gap-2">
+                    <dt>Floor Slab Bottom</dt>
+                    <dd className="font-mono">
+                      {formatElevation(elevations.interiorFloorSlabTopY - elevations.interiorFloorSlabThicknessMeters)}
+                    </dd>
+                  </div>
+                </>
+              ) : null}
               <div className="flex justify-between gap-2">
                 <dt>Bottom of Plinth Beam</dt>
                 <dd className="font-mono">{formatElevation(elevations.bottomOfPlinthBeamY)}</dd>
