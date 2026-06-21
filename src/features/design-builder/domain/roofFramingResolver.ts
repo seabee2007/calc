@@ -35,6 +35,7 @@ export const DEFAULT_RIDGE_CAP_THICKNESS_METERS = 0.02;
 export const TRUSS_CHORD_PROFILE_METERS = 0.04;
 export const PURLIN_PROFILE_WIDTH_METERS = 0.05;
 export const PURLIN_PROFILE_DEPTH_METERS = 0.08;
+export const ROOF_SHEET_EAVE_OVERHANG_METERS = 0.0254; // 1 inch
 /** Perpendicular inset from roof top surface to purlin bottom flange. */
 export const PURLIN_BOTTOM_INSET_FROM_ROOF_TOP_METERS =
   PURLIN_TO_SHEET_CLEARANCE_METERS + PURLIN_PROFILE_DEPTH_METERS;
@@ -777,11 +778,50 @@ export function buildCladdingDisplayPlanes(params: {
           chordCenter,
           outwardNormal: planeNormal,
         });
-        return resolveCladdingTopFromPurlinCenter({
+        
+        const claddingTop = resolveCladdingTopFromPurlinCenter({
           purlinCenter,
           outwardNormal: planeNormal,
           roofAssemblyThicknessMeters: displayThicknessMeters,
         });
+        
+        // Only move the two eave-side sheet corners.
+        // Ridge-side corners remain exactly where they are.
+        const isEaveCorner = rowT <= PURLIN_ROW_STATION_TOLERANCE;
+        
+        if (
+          !isEaveCorner ||
+          !paired ||
+          !params.claddingRidgeStart ||
+          !params.claddingRidgeEnd
+        ) {
+          return claddingTop;
+        }
+        
+        // eaveAtStart is paired to claddingRidgeStart.
+        // eaveAtEnd is paired to claddingRidgeEnd.
+        const isStartEaveCorner =
+          Math.hypot(
+            corner.x - paired.eaveAtStart.x,
+            corner.z - paired.eaveAtStart.z,
+          ) <=
+          Math.hypot(
+            corner.x - paired.eaveAtEnd.x,
+            corner.z - paired.eaveAtEnd.z,
+          );
+        
+        const ridgeForThisEave = isStartEaveCorner
+          ? params.claddingRidgeStart
+          : params.claddingRidgeEnd;
+        
+        // Actual slope direction from ridge down toward the eave.
+        const ridgeToEave = normalize3(sub3(corner, ridgeForThisEave));
+        
+        return {
+          x: claddingTop.x + ridgeToEave.x * ROOF_SHEET_EAVE_OVERHANG_METERS,
+          y: claddingTop.y + ridgeToEave.y * ROOF_SHEET_EAVE_OVERHANG_METERS,
+          z: claddingTop.z + ridgeToEave.z * ROOF_SHEET_EAVE_OVERHANG_METERS,
+        };
       }),
     };
   });
