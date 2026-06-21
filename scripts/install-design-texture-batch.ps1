@@ -1,6 +1,7 @@
 $root = Split-Path $PSScriptRoot -Parent
 $downloads = Join-Path $env:USERPROFILE 'Downloads'
 $install = Join-Path $PSScriptRoot 'install-design-texture-pack.ps1'
+$installPolyhaven = Join-Path $PSScriptRoot 'install-design-texture-pack-polyhaven.ps1'
 
 $packs = @(
   @{ zip = 'CorrugatedSteel006A_1K-JPG.zip'; dest = 'public\textures\roof\corrugated-steel-006a'; prefix = 'CorrugatedSteel006A_1K-JPG' },
@@ -37,6 +38,26 @@ foreach ($pack in $packs) {
     continue
   }
   & $install -ZipPath $zipPath -DestinationFolder (Join-Path $root $pack.dest) -Prefix $pack.prefix
+  $installed += 1
+}
+
+$polyhavenPacks = @(
+  @{ zip = 'clay_roof_tiles_02_1k.zip'; dest = 'public\textures\roof\clay-roof-tiles-02'; baseName = 'clay_roof_tiles_02' },
+  @{ zip = 'corrugated_iron_1k.zip'; dest = 'public\textures\roof\corrugated-iron'; baseName = 'corrugated_iron' },
+  @{ zip = 'box_profile_metal_sheet_1k.zip'; dest = 'public\textures\roof\box-profile-metal-sheet'; baseName = 'box_profile_metal_sheet' },
+  @{ zip = 'gravel_concrete_03_1k.zip'; dest = 'public\textures\concrete\gravel-concrete-03'; baseName = 'gravel_concrete_03' },
+  @{ zip = 'concrete_wall_006_1k.zip'; dest = 'public\textures\cmu\concrete-wall-006'; baseName = 'concrete_wall_006' },
+  @{ zip = 'concrete_layers_02_1k.zip'; dest = 'public\textures\concrete\concrete-layers-02'; baseName = 'concrete_layers_02' }
+)
+
+foreach ($pack in $polyhavenPacks) {
+  $zipPath = Join-Path $downloads $pack.zip
+  if (-not (Test-Path $zipPath)) {
+    Write-Warning "Missing zip: $zipPath"
+    $missing += 1
+    continue
+  }
+  & $installPolyhaven -ZipPath $zipPath -DestinationFolder (Join-Path $root $pack.dest) -BaseName $pack.baseName
   $installed += 1
 }
 

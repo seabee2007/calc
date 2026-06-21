@@ -184,7 +184,7 @@ function CategorySection({
       {config.tintPresets && config.tintField && selectedOption?.supportsTint ? (
         <div className="space-y-2 border-t border-slate-200 pt-3 dark:border-slate-700">
           <div className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-            Color
+            {config.category === 'roof_sheet' ? 'Roof Finish Color' : 'Color'}
           </div>
           <TintSwatches
             presets={config.tintPresets}

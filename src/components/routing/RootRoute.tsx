@@ -20,13 +20,20 @@ function getMarketingUrl(): string {
 }
 
 /**
- * `/` exists on the authenticated app host. Signed-out visitors belong on the
- * separate public marketing host, not the internal `/login` route.
+ * Only the deployed authenticated app host should hand signed-out visitors
+ * back to the separate public marketing site.
  *
- * `replace()` is intentional: when the browser Back button arrives at the app
- * root, replace that transient app-root history entry with the marketing page
- * instead of adding another entry that would create a back-navigation loop.
+ * Local Vite development stays inside the local app at /login so local work
+ * never jumps to production.
  */
+function shouldRedirectSignedOutRootToMarketing(): boolean {
+  if (import.meta.env.DEV || typeof window === 'undefined') {
+    return false;
+  }
+
+  return window.location.hostname.toLowerCase() === 'app.ardenprojectos.com';
+}
+
 function SignedOutMarketingRedirect() {
   const redirectStartedRef = useRef(false);
 
@@ -37,14 +44,9 @@ function SignedOutMarketingRedirect() {
 
     const destination = new URL(getMarketingUrl());
 
-    // Never create a self-redirect loop if VITE_MARKETING_URL is misconfigured.
-    if (
-      destination.origin === window.location.origin &&
-      destination.pathname === window.location.pathname
-    ) {
+    if (destination.origin === window.location.origin) {
       console.error(
-        '[routing] VITE_MARKETING_URL points to the authenticated app root. ' +
-          'Set it to the public marketing site, for example https://ardenprojectos.com.',
+        '[routing] VITE_MARKETING_URL must point to the separate public marketing site, not the app host.',
       );
       return;
     }
@@ -100,7 +102,10 @@ export default function RootRoute() {
     return <AccessLoadingSurface />;
   }
 
-  if (decision.accessKind === 'signed_out') {
+  if (
+    decision.accessKind === 'signed_out' &&
+    shouldRedirectSignedOutRootToMarketing()
+  ) {
     logRouteRedirect({
       from: location.pathname,
       to: getMarketingUrl(),

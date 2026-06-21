@@ -69,6 +69,8 @@ export type RoofCladdingUvParams = {
   planeNormal: THREE.Vector3;
   ridgeDirection: THREE.Vector3;
   corrugationRepeatPerMeter?: number;
+  /** When true, corrugation runs along the ridge instead of ridge-to-eave. */
+  swapCorrugationAxis?: boolean;
 };
 
 /**
@@ -113,7 +115,13 @@ export function createRoofCladdingGeometry(params: RoofCladdingUvParams): THREE.
     const offset = corner.clone().sub(origin);
     const alongRidgeMeters = offset.dot(ridgeAxis);
     const alongSlopeMeters = offset.dot(downslopeAxis);
-    uvs.push(alongSlopeMeters * corrugationRepeatPerMeter, alongRidgeMeters);
+    const corrugationCoord = alongSlopeMeters * corrugationRepeatPerMeter;
+    const ridgeCoord = alongRidgeMeters;
+    if (params.swapCorrugationAxis) {
+      uvs.push(ridgeCoord, corrugationCoord);
+    } else {
+      uvs.push(corrugationCoord, ridgeCoord);
+    }
   }
 
   geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));

@@ -78,6 +78,7 @@ import {
   resolveCastConcreteMaterial,
   resolveCmuMaterial,
   resolveRoofMetalMaterial,
+  resolveRoofCladdingUvOptions,
   resolveSiteGroundMaterial,
   resolveStructuralSteelMaterial,
   subscribeMaterialDiagnostics,
@@ -1089,8 +1090,10 @@ export default function DesignBuilderViewer({
                 }
               : undefined;
 
-          if (showRoofCladding && corrugatedEnabled) {
+          if (showRoofCladding) {
             const debugGuides = import.meta.env.DEV && currentShowRoofFramingGuides;
+            const roofUsesMeterUvGeometry = usePreviewMaterials && !debugGuides;
+            const roofCladdingUvOptions = roofUsesMeterUvGeometry ? resolveRoofCladdingUvOptions() : null;
             const roofMaterial = debugGuides
               ? new THREE.MeshStandardMaterial({ color: 0x9ca3af, metalness: 0.72, roughness: 0.38 })
               : usePreviewMaterials
@@ -1098,70 +1101,47 @@ export default function DesignBuilderViewer({
                     { visualStyle: currentVisualStyle, selected: roofSelected },
                     trackMat,
                   )
-                : createCorrugatedMetalMaterial();
+                : corrugatedEnabled
+                  ? createCorrugatedMetalMaterial()
+                  : makeMaterial(0x64748b, roofSelected, {
+                      roughness: 0.75,
+                      opacity: 0.92,
+                    });
             if (debugGuides || !usePreviewMaterials) {
               materialsToDispose.push(roofMaterial);
             }
             for (const plane of claddingPlanes) {
               if (plane.corners.length < 3) continue;
               const planeNormal = normalizeOutwardRoofNormal(plane.normal);
-              const topGeometry =
-                usePreviewMaterials && !debugGuides
-                  ? trackGeometry(
-                      createRoofCladdingGeometry({
-                        corners: plane.corners,
-                        slabTopMeters: currentSlab.slabThicknessMeters,
-                        planeNormal: new THREE.Vector3(planeNormal.x, planeNormal.y, planeNormal.z),
-                        ridgeDirection: resolveRoofRidgeDirection(plane.corners, ridgeDirectionHint),
-                      }),
-                    )
-                  : trackGeometry(
-                      (() => {
-                        const positions: number[] = [];
-                        for (const corner of plane.corners) {
-                          const elevated =
-                            claddingStackOffsetMeters > 0
-                              ? offsetPointAlongRoofNormal(corner, planeNormal, claddingStackOffsetMeters)
-                              : corner;
-                          positions.push(elevated.x, currentSlab.slabThicknessMeters + elevated.y, elevated.z);
-                        }
-                        const indices = plane.corners.length === 3 ? [0, 1, 2] : [0, 1, 2, 0, 2, 3];
-                        const geometry = new THREE.BufferGeometry();
-                        geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-                        geometry.setIndex(indices);
-                        geometry.computeVertexNormals();
-                        return geometry;
-                      })(),
-                    );
-              const mesh = new THREE.Mesh(topGeometry, roofMaterial);
-              roofCladdingGroup.add(mesh);
-            }
-          } else if (showRoofCladding) {
-            const debugGuides = import.meta.env.DEV && currentShowRoofFramingGuides;
-            const roofMaterial = usePreviewMaterials
-              ? resolveRoofMetalMaterial(
-                  { visualStyle: currentVisualStyle, selected: roofSelected },
-                  trackMat,
-                )
-              : makeMaterial(debugGuides ? 0x9ca3af : 0x64748b, roofSelected, {
-                  roughness: 0.75,
-                  opacity: 0.92,
-                });
-            for (const plane of claddingPlanes) {
-              if (plane.corners.length < 3) continue;
-              const planeNormal = normalizeOutwardRoofNormal(plane.normal);
-              const positions: number[] = [];
-              for (const corner of plane.corners) {
-                const elevated = claddingStackOffsetMeters > 0
-                  ? offsetPointAlongRoofNormal(corner, planeNormal, claddingStackOffsetMeters)
-                  : corner;
-                positions.push(elevated.x, currentSlab.slabThicknessMeters + elevated.y, elevated.z);
-              }
-              const indices = plane.corners.length === 3 ? [0, 1, 2] : [0, 1, 2, 0, 2, 3];
-              const topGeometry = trackGeometry(new THREE.BufferGeometry());
-              topGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-              topGeometry.setIndex(indices);
-              topGeometry.computeVertexNormals();
+              const topGeometry = roofUsesMeterUvGeometry
+                ? trackGeometry(
+                    createRoofCladdingGeometry({
+                      corners: plane.corners,
+                      slabTopMeters: currentSlab.slabThicknessMeters,
+                      planeNormal: new THREE.Vector3(planeNormal.x, planeNormal.y, planeNormal.z),
+                      ridgeDirection: resolveRoofRidgeDirection(plane.corners, ridgeDirectionHint),
+                      corrugationRepeatPerMeter: roofCladdingUvOptions?.corrugationRepeatPerMeter,
+                      swapCorrugationAxis: roofCladdingUvOptions?.swapCorrugationAxis,
+                    }),
+                  )
+                : trackGeometry(
+                    (() => {
+                      const positions: number[] = [];
+                      for (const corner of plane.corners) {
+                        const elevated =
+                          claddingStackOffsetMeters > 0
+                            ? offsetPointAlongRoofNormal(corner, planeNormal, claddingStackOffsetMeters)
+                            : corner;
+                        positions.push(elevated.x, currentSlab.slabThicknessMeters + elevated.y, elevated.z);
+                      }
+                      const indices = plane.corners.length === 3 ? [0, 1, 2] : [0, 1, 2, 0, 2, 3];
+                      const geometry = new THREE.BufferGeometry();
+                      geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+                      geometry.setIndex(indices);
+                      geometry.computeVertexNormals();
+                      return geometry;
+                    })(),
+                  );
               roofCladdingGroup.add(new THREE.Mesh(topGeometry, roofMaterial));
             }
           }

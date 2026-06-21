@@ -123,4 +123,46 @@ describe('designRenderingUv', () => {
     }
     expect(maxU).toBeGreaterThan(0);
   });
+
+  it('can swap corrugation axis for ridge-to-eave profile materials', () => {
+    const geometry = createRoofCladdingGeometry({
+      corners: [
+        { x: 0, y: 2, z: -2 },
+        { x: 0, y: 2, z: 2 },
+        { x: 4, y: 0, z: 2 },
+        { x: 4, y: 0, z: -2 },
+      ],
+      slabTopMeters: 0.15,
+      planeNormal: new THREE.Vector3(0, 0.894, 0.447).normalize(),
+      ridgeDirection: resolveRoofRidgeDirection(
+        [
+          { x: 0, z: -2 },
+          { x: 0, z: 2 },
+        ],
+        { x: 0, z: 4 },
+      ),
+      swapCorrugationAxis: true,
+    });
+    const defaultGeometry = createRoofCladdingGeometry({
+      corners: [
+        { x: 0, y: 2, z: -2 },
+        { x: 0, y: 2, z: 2 },
+        { x: 4, y: 0, z: 2 },
+        { x: 4, y: 0, z: -2 },
+      ],
+      slabTopMeters: 0.15,
+      planeNormal: new THREE.Vector3(0, 0.894, 0.447).normalize(),
+      ridgeDirection: resolveRoofRidgeDirection(
+        [
+          { x: 0, z: -2 },
+          { x: 0, z: 2 },
+        ],
+        { x: 0, z: 4 },
+      ),
+    });
+    const swapped = geometry.getAttribute('uv');
+    const normal = defaultGeometry.getAttribute('uv');
+    expect(swapped.getX(0)).toBeCloseTo(normal.getY(0), 6);
+    expect(swapped.getY(0)).toBeCloseTo(normal.getX(0), 6);
+  });
 });

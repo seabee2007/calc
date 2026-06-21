@@ -26,6 +26,12 @@ export type DesignMaterialOption = {
   projection: DesignMaterialProjection;
   tileSizeMeters?: number;
   uvRepeat?: number;
+  /** For roof sheets: π/2 swaps corrugation to ridge-to-eave via geometry UVs (not texture rotation). */
+  uvRotationRadians?: number;
+  /** Meter-scaled roof cladding repeats per meter along the corrugation axis. */
+  corrugationRepeatPerMeter?: number;
+  /** When this pack is missing, load maps from another roof_sheet material id. */
+  roofTextureFallbackId?: string;
   roughness: number;
   metalness: number;
   supportsTint: boolean;
@@ -53,6 +59,22 @@ function packPaths(folder: string, prefix: string, maps: Array<keyof typeof MAP>
   if (maps.includes('roughness')) paths.roughness = MAP.roughness(folder, prefix);
   if (maps.includes('ao')) paths.ao = MAP.ao(folder, prefix);
   if (maps.includes('metalness')) paths.metalness = MAP.metalness(folder, prefix);
+  return paths;
+}
+
+/** Poly Haven / ambientCG lowercase map naming (`*_diff_1k.jpg`, etc.). */
+function polyPaths(
+  folder: string,
+  baseName: string,
+  maps: Array<'normal' | 'roughness' | 'ao' | 'metalness'>,
+): DesignMaterialTexturePaths {
+  const paths: DesignMaterialTexturePaths = {
+    color: `${folder}${baseName}_diff_1k.jpg`,
+  };
+  if (maps.includes('normal')) paths.normal = `${folder}${baseName}_nor_gl_1k.jpg`;
+  if (maps.includes('roughness')) paths.roughness = `${folder}${baseName}_rough_1k.jpg`;
+  if (maps.includes('ao')) paths.ao = `${folder}${baseName}_ao_1k.jpg`;
+  if (maps.includes('metalness')) paths.metalness = `${folder}${baseName}_metal_1k.jpg`;
   return paths;
 }
 
@@ -88,6 +110,23 @@ export const DESIGN_MATERIAL_REGISTRY: readonly DesignMaterialOption[] = [
     projection: 'triplanar',
     tileSizeMeters: 0.45,
     roughness: 0.88,
+    metalness: 0.02,
+    supportsTint: false,
+  },
+  {
+    id: 'concrete-wall-006',
+    category: 'cmu',
+    label: 'Concrete Wall 006',
+    description: 'Formed concrete wall with subtle panel joints',
+    swatchColor: '#c8c2ba',
+    texturePaths: polyPaths('/textures/cmu/concrete-wall-006/', 'concrete_wall_006', [
+      'normal',
+      'roughness',
+      'ao',
+    ]),
+    projection: 'triplanar',
+    tileSizeMeters: 0.45,
+    roughness: 0.89,
     metalness: 0.02,
     supportsTint: false,
   },
@@ -195,6 +234,40 @@ export const DESIGN_MATERIAL_REGISTRY: readonly DesignMaterialOption[] = [
     supportsTint: false,
   },
   {
+    id: 'gravel-concrete-03',
+    category: 'cast_concrete',
+    label: 'Gravel Concrete 03',
+    description: 'Exposed gravel aggregate cast concrete',
+    swatchColor: '#9a948c',
+    texturePaths: polyPaths('/textures/concrete/gravel-concrete-03/', 'gravel_concrete_03', [
+      'normal',
+      'roughness',
+      'ao',
+    ]),
+    projection: 'triplanar',
+    tileSizeMeters: 1.25,
+    roughness: 0.92,
+    metalness: 0.03,
+    supportsTint: false,
+  },
+  {
+    id: 'concrete-layers-02',
+    category: 'cast_concrete',
+    label: 'Concrete Layers 02',
+    description: 'Layered cast concrete with pour-line variation',
+    swatchColor: '#a8a29e',
+    texturePaths: polyPaths('/textures/concrete/concrete-layers-02/', 'concrete_layers_02', [
+      'normal',
+      'roughness',
+      'ao',
+    ]),
+    projection: 'triplanar',
+    tileSizeMeters: 1.25,
+    roughness: 0.91,
+    metalness: 0.03,
+    supportsTint: false,
+  },
+  {
     id: 'corrugated-steel-009',
     category: 'roof_sheet',
     label: 'Corrugated Steel 009',
@@ -226,6 +299,7 @@ export const DESIGN_MATERIAL_REGISTRY: readonly DesignMaterialOption[] = [
     ]),
     projection: 'uv',
     uvRepeat: 1,
+    roofTextureFallbackId: 'corrugated-steel-009',
     roughness: 0.4,
     metalness: 0.8,
     supportsTint: true,
@@ -244,6 +318,7 @@ export const DESIGN_MATERIAL_REGISTRY: readonly DesignMaterialOption[] = [
     ]),
     projection: 'uv',
     uvRepeat: 1,
+    roofTextureFallbackId: 'corrugated-steel-009',
     roughness: 0.42,
     metalness: 0.78,
     supportsTint: true,
@@ -262,6 +337,7 @@ export const DESIGN_MATERIAL_REGISTRY: readonly DesignMaterialOption[] = [
     ]),
     projection: 'uv',
     uvRepeat: 1,
+    roofTextureFallbackId: 'corrugated-steel-009',
     roughness: 0.44,
     metalness: 0.76,
     supportsTint: true,
@@ -280,6 +356,7 @@ export const DESIGN_MATERIAL_REGISTRY: readonly DesignMaterialOption[] = [
     ]),
     projection: 'uv',
     uvRepeat: 1,
+    roofTextureFallbackId: 'corrugated-steel-009',
     roughness: 0.45,
     metalness: 0.75,
     supportsTint: true,
@@ -298,6 +375,7 @@ export const DESIGN_MATERIAL_REGISTRY: readonly DesignMaterialOption[] = [
     ]),
     projection: 'uv',
     uvRepeat: 1,
+    roofTextureFallbackId: 'corrugated-steel-009',
     roughness: 0.46,
     metalness: 0.74,
     supportsTint: true,
@@ -316,8 +394,48 @@ export const DESIGN_MATERIAL_REGISTRY: readonly DesignMaterialOption[] = [
     ]),
     projection: 'uv',
     uvRepeat: 1,
+    roofTextureFallbackId: 'corrugated-steel-009',
     roughness: 0.48,
     metalness: 0.72,
+    supportsTint: true,
+  },
+  {
+    id: 'corrugated-iron',
+    category: 'roof_sheet',
+    label: 'Corrugated Iron',
+    description: 'Classic corrugated iron roof sheeting',
+    swatchColor: '#8b939c',
+    texturePaths: polyPaths('/textures/roof/corrugated-iron/', 'corrugated_iron', [
+      'normal',
+      'roughness',
+      'ao',
+      'metalness',
+    ]),
+    projection: 'uv',
+    uvRepeat: 1,
+    uvRotationRadians: Math.PI / 2,
+    corrugationRepeatPerMeter: 10,
+    roughness: 0.44,
+    metalness: 0.76,
+    supportsTint: true,
+  },
+  {
+    id: 'box-profile-metal-sheet',
+    category: 'roof_sheet',
+    label: 'Box Profile Metal Sheet',
+    description: 'Trapezoidal box-profile metal roof sheet',
+    swatchColor: '#9aa3ad',
+    texturePaths: polyPaths('/textures/roof/box-profile-metal-sheet/', 'box_profile_metal_sheet', [
+      'normal',
+      'roughness',
+      'ao',
+      'metalness',
+    ]),
+    projection: 'uv',
+    uvRepeat: 1,
+    corrugationRepeatPerMeter: 7,
+    roughness: 0.42,
+    metalness: 0.78,
     supportsTint: true,
   },
   {

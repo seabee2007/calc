@@ -149,6 +149,10 @@ function resolveRoofTint(selection: DesignMaterialSelection): number {
   return hexToNumber(preset?.hex ?? ROOF_SHEET_TINT_PRESETS[0].hex);
 }
 
+export function resolveRoofTintStrength(selection: DesignMaterialSelection): number {
+  return selection.roofSheetTintId === 'galvanized-gray' ? 0.15 : 0.78;
+}
+
 function resolveSteelTint(selection: DesignMaterialSelection): number {
   const preset = getTintPresetById(STRUCTURAL_STEEL_TINT_PRESETS, selection.structuralSteelTintId);
   return hexToNumber(preset?.hex ?? STRUCTURAL_STEEL_TINT_PRESETS[0].hex);
@@ -286,34 +290,183 @@ function resolvePackStatus(maps: LoadedPackTextures): MaterialPackStatus {
   return 'partial';
 }
 
-async function loadMaterialTextures(option: DesignMaterialOption): Promise<LoadedPackTextures> {
-  const cached = state.textureCache.get(option.id);
-  if (cached) return cached;
-
+async function loadMapsFromPaths(
+  texturePaths: DesignMaterialOption['texturePaths'],
+): Promise<LoadedPackTextures> {
   const maps: LoadedPackTextures = {};
-  const color = await loadTexturePath(option.texturePaths.color, true);
+  const color = await loadTexturePath(texturePaths.color, true);
   if (color) maps.Color = color;
 
-  if (option.texturePaths.normal) {
-    const normal = await loadTexturePath(option.texturePaths.normal, false);
+  if (texturePaths.normal) {
+    const normal = await loadTexturePath(texturePaths.normal, false);
     if (normal) maps.NormalGL = normal;
   }
-  if (option.texturePaths.roughness) {
-    const roughness = await loadTexturePath(option.texturePaths.roughness, false);
+  if (texturePaths.roughness) {
+    const roughness = await loadTexturePath(texturePaths.roughness, false);
     if (roughness) maps.Roughness = roughness;
   }
-  if (option.texturePaths.ao) {
-    const ao = await loadTexturePath(option.texturePaths.ao, false);
+  if (texturePaths.ao) {
+    const ao = await loadTexturePath(texturePaths.ao, false);
     if (ao) maps.AmbientOcclusion = ao;
   }
-  if (option.texturePaths.metalness) {
-    const metalness = await loadTexturePath(option.texturePaths.metalness, false);
+  if (texturePaths.metalness) {
+    const metalness = await loadTexturePath(texturePaths.metalness, false);
     if (metalness) maps.Metalness = metalness;
+  }
+
+  return maps;
+}
+
+async function loadMaterialTextures(option: DesignMaterialOption): Promise<LoadedPackTextures> {
+  const cached = state.textureCache.get(option.id);
+  if (cached?.Color) return cached;
+
+  let maps = await loadMapsFromPaths(option.texturePaths);
+
+  if (
+    !maps.Color &&
+    option.category === 'roof_sheet' &&
+    option.roofTextureFallbackId &&
+    option.roofTextureFallbackId !== option.id
+  ) {
+    const fallbackOption = getMaterialOptionById(option.roofTextureFallbackId);
+    if (fallbackOption) {
+      maps = await loadMaterialTextures(fallbackOption);
+    }
   }
 
   state.textureCache.set(option.id, maps);
   state.materialStatus.set(option.id, resolvePackStatus(maps));
   return maps;
+}
+
+function applyTextureTransform(
+  texture: THREE.Texture,
+  repeat: THREE.Vector2,
+  rotationRadians = 0,
+): void {
+  texture.repeat.copy(repeat);
+  texture.offset.set(0, 0);
+  if (Math.abs(rotationRadians) > 1e-6) {
+    texture.center.set(0.5, 0.5);
+    texture.rotation = rotationRadians;
+  } else {
+    texture.center.set(0, 0);
+    texture.rotation = 0;
+  }
+  texture.needsUpdate = true;
+}
+
+/** Roof cladding UVs are already meter-scaled — never rotate texture coordinates in-place. */
+function applyRoofMapsToMaterial(
+  material: THREE.MeshStandardMaterial,
+  maps: LoadedPackTextures,
+  options?: {
+    forceColor?: number;
+    roughness?: number;
+    metalness?: number;
+  },
+): void {
+  const repeat = new THREE.Vector2(1, 1);
+
+  if (maps.Color) {
+    applyTextureTransform(maps.Color, repeat, 0);
+    material.map = maps.Color;
+    material.color.setHex(0xffffff);
+  } else if (options?.forceColor != null) {
+    material.map = null;
+    material.color.setHex(options.forceColor);
+  }
+
+  if (maps.NormalGL) {
+    applyTextureTransform(maps.NormalGL, repeat, 0);
+    material.normalMap = maps.NormalGL;
+    material.normalScale.set(1, 1);
+  } else {
+    material.normalMap = null;
+  }
+
+  if (maps.Roughness) {
+    applyTextureTransform(maps.Roughness, repeat, 0);
+    material.roughnessMap = maps.Roughness;
+    material.roughness = options?.roughness ?? material.roughness;
+  } else {
+    material.roughnessMap = null;
+  }
+
+  if (maps.AmbientOcclusion) {
+    applyTextureTransform(maps.AmbientOcclusion, repeat, 0);
+    material.aoMap = maps.AmbientOcclusion;
+    material.aoMapIntensity = 0.85;
+  } else {
+    material.aoMap = null;
+  }
+
+  if (maps.Metalness) {
+    applyTextureTransform(maps.Metalness, repeat, 0);
+    material.metalnessMap = maps.Metalness;
+    material.metalness = options?.metalness ?? material.metalness;
+  } else {
+    material.metalnessMap = null;
+  }
+
+  material.needsUpdate = true;
+}
+
+export function resolveRoofCladdingUvOptions(materialId?: string): {
+  corrugationRepeatPerMeter: number;
+  swapCorrugationAxis: boolean;
+} {
+  const option = getMaterialOptionById(
+    materialId ?? getActiveMaterialSelections().roofSheetMaterialId,
+  );
+  const rotation = option?.uvRotationRadians ?? 0;
+  return {
+    corrugationRepeatPerMeter: option?.corrugationRepeatPerMeter ?? 12,
+    swapCorrugationAxis: Math.abs(rotation - Math.PI / 2) < 0.01,
+  };
+}
+
+const ROOF_PAINT_FRAGMENT_DECL = `
+uniform vec3 uRoofPaintColor;
+uniform float uRoofTintStrength;
+`;
+
+const ROOF_PAINT_FRAGMENT_BLEND = `
+{
+  float roofLuma = dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+  vec3 recolor = uRoofPaintColor * (0.22 + 0.78 * roofLuma);
+  diffuseColor.rgb = mix(diffuseColor.rgb, recolor, uRoofTintStrength);
+}
+`;
+
+function applyRoofSheetPaintShader(
+  material: THREE.MeshStandardMaterial,
+  paintColor: number,
+  tintStrength: number,
+): void {
+  const paint = new THREE.Color(paintColor);
+  material.color.setHex(0xffffff);
+
+  material.customProgramCacheKey = () =>
+    `roof-paint:${paintColor.toString(16)}:${tintStrength.toFixed(3)}`;
+
+  material.onBeforeCompile = (shader) => {
+    shader.uniforms.uRoofPaintColor = { value: paint.clone() };
+    shader.uniforms.uRoofTintStrength = { value: tintStrength };
+
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <common>',
+      `#include <common>\n${ROOF_PAINT_FRAGMENT_DECL}`,
+    );
+
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <map_fragment>',
+      `#include <map_fragment>\n${ROOF_PAINT_FRAGMENT_BLEND}`,
+    );
+  };
+
+  material.needsUpdate = true;
 }
 
 function applyMapsToMaterial(
@@ -325,10 +478,13 @@ function applyMapsToMaterial(
     albedoColor?: number;
     metalness?: number;
     roughness?: number;
+    uvRotationRadians?: number;
   },
 ): void {
+  const rotationRadians = options?.uvRotationRadians ?? 0;
+
   if (maps.Color) {
-    maps.Color.repeat.copy(repeat);
+    applyTextureTransform(maps.Color, repeat, rotationRadians);
     material.map = maps.Color;
     material.color.setHex(options?.albedoColor ?? 0xffffff);
   } else if (options?.forceColor != null) {
@@ -336,7 +492,7 @@ function applyMapsToMaterial(
   }
 
   if (maps.NormalGL) {
-    maps.NormalGL.repeat.copy(repeat);
+    applyTextureTransform(maps.NormalGL, repeat, rotationRadians);
     material.normalMap = maps.NormalGL;
     material.normalScale.set(0.65, 0.65);
   } else {
@@ -344,7 +500,7 @@ function applyMapsToMaterial(
   }
 
   if (maps.Roughness) {
-    maps.Roughness.repeat.copy(repeat);
+    applyTextureTransform(maps.Roughness, repeat, rotationRadians);
     material.roughnessMap = maps.Roughness;
     material.roughness = options?.roughness ?? material.roughness;
   } else {
@@ -352,7 +508,7 @@ function applyMapsToMaterial(
   }
 
   if (maps.AmbientOcclusion) {
-    maps.AmbientOcclusion.repeat.copy(repeat);
+    applyTextureTransform(maps.AmbientOcclusion, repeat, rotationRadians);
     material.aoMap = maps.AmbientOcclusion;
     material.aoMapIntensity = 0.85;
   } else {
@@ -360,7 +516,7 @@ function applyMapsToMaterial(
   }
 
   if (maps.Metalness) {
-    maps.Metalness.repeat.copy(repeat);
+    applyTextureTransform(maps.Metalness, repeat, rotationRadians);
     material.metalnessMap = maps.Metalness;
     material.metalness = options?.metalness ?? material.metalness;
   } else {
@@ -391,7 +547,18 @@ function buildTriplanarPreviewMaterial(
 }
 
 function getCachedMaps(materialId: string, fallbackId: string): LoadedPackTextures {
-  return state.textureCache.get(materialId) ?? state.textureCache.get(fallbackId) ?? {};
+  const primary = state.textureCache.get(materialId);
+  if (primary?.Color) return primary;
+
+  const option = getMaterialOptionById(materialId);
+  const configuredFallbackId = option?.roofTextureFallbackId ?? fallbackId;
+  const configuredFallback = state.textureCache.get(configuredFallbackId);
+  if (configuredFallback?.Color) return configuredFallback;
+
+  const defaultFallback = state.textureCache.get(fallbackId);
+  if (defaultFallback?.Color) return defaultFallback;
+
+  return primary ?? configuredFallback ?? defaultFallback ?? {};
 }
 
 function statusForMaterialId(materialId: string, fallbackId: string): MaterialPackStatus {
@@ -452,16 +619,19 @@ function applyPreviewMaps(): void {
   }
 
   if (roofOption) {
-    applyMapsToMaterial(
+    applyRoofMapsToMaterial(
       library.roofMetalPreview,
       getCachedMaps(roofOption.id, 'corrugated-steel-009'),
-      new THREE.Vector2(roofOption.uvRepeat ?? 1, roofOption.uvRepeat ?? 1),
       {
         forceColor: PREVIEW_FALLBACK_TINTS.roofMetal,
-        albedoColor: resolveRoofTint(selection),
         roughness: roofOption.roughness,
         metalness: roofOption.metalness,
       },
+    );
+    applyRoofSheetPaintShader(
+      library.roofMetalPreview,
+      resolveRoofTint(selection),
+      resolveRoofTintStrength(selection),
     );
   }
 
