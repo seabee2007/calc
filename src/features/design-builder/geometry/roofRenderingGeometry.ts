@@ -405,69 +405,188 @@ export function createRakedCapStripGeometry(
     wallDepthMeters: number;
   }>,
 ): THREE.BufferGeometry {
-  if (segments.length === 0) {
+  /**
+   * A rake-cap strip is a single closed extruded profile:
+   *
+   * - the top contour follows the roof underside;
+   * - every segment retains its own flat CMU-contact bottom;
+   * - a vertical riser is emitted at each CMU step;
+   * - the solid is extruded through the wall depth.
+   *
+   * The previous indexed-mesh implementation accidentally omitted the
+   * top/bottom faces, duplicated side faces, and discarded a segment's
+   * `startBottomY` after the first station. That made one slope appear
+   * culled and turned stepped cap bottoms into diagonal planes.
+   */
+  const usableSegments = segments.filter((segment) => {
+    const spanMeters = Number(segment.spanMeters);
+    const values = [
+      spanMeters,
+      segment.startBottomY,
+      segment.endBottomY,
+      segment.startTopY,
+      segment.endTopY,
+      segment.wallDepthMeters,
+    ];
+
+    return (
+      spanMeters > 0.0005 &&
+      values.every((value) => Number.isFinite(value)) &&
+      (segment.startTopY > segment.startBottomY ||
+        segment.endTopY > segment.endBottomY)
+    );
+  });
+
+  if (usableSegments.length === 0) {
     return new THREE.BufferGeometry();
   }
 
-  const depth = Math.max(0.05, segments[0]!.wallDepthMeters);
-  const halfDepth = depth / 2;
-  const stations: Array<{ x: number; bottomY: number; topY: number }> = [];
+  const depthMeters = Math.max(
+    0.05,
+    ...usableSegments.map((segment) => segment.wallDepthMeters),
+  );
+  const halfDepthMeters = depthMeters / 2;
+  const pointToleranceMeters = 0.000001;
 
-  let x = 0;
-  for (let index = 0; index < segments.length; index += 1) {
-    const segment = segments[index]!;
-    const spanMeters = Math.max(0.001, segment.spanMeters);
-    if (index === 0) {
-      stations.push({ x, bottomY: segment.startBottomY, topY: segment.startTopY });
+  type ProfilePoint = { x: number; y: number };
+
+  const topProfile: ProfilePoint[] = [];
+  const bottomProfile: ProfilePoint[] = [];
+
+  const appendPoint = (
+    target: ProfilePoint[],
+    point: ProfilePoint,
+  ): void => {
+    const previous = target[target.length - 1];
+
+    if (
+      previous &&
+      Math.abs(previous.x - point.x) <= pointToleranceMeters &&
+      Math.abs(previous.y - point.y) <= pointToleranceMeters
+    ) {
+      return;
     }
-    x += spanMeters;
-    stations.push({ x, bottomY: segment.endBottomY, topY: segment.endTopY });
+
+    target.push(point);
+  };
+
+  let stationMeters = 0;
+  const firstSegment = usableSegments[0]!;
+
+  appendPoint(topProfile, {
+    x: stationMeters,
+    y: firstSegment.startTopY,
+  });
+
+  for (let index = 0; index < usableSegments.length; index += 1) {
+    const segment = usableSegments[index]!;
+    const nextSegment = usableSegments[index + 1];
+    const startStationMeters = stationMeters;
+    const endStationMeters = startStationMeters + segment.spanMeters;
+
+    /**
+     * Roof-contact top values should be continuous. Preserve a real
+     * discontinuity if upstream geometry supplies one, but do not create
+     * duplicate vertices for harmless floating-point noise.
+     */
+    appendPoint(topProfile, {
+      x: endStationMeters,
+      y: segment.endTopY,
+    });
+
+    if (
+      nextSegment &&
+      Math.abs(segment.endTopY - nextSegment.startTopY) >
+        pointToleranceMeters
+    ) {
+      appendPoint(topProfile, {
+        x: endStationMeters,
+        y: nextSegment.startTopY,
+      });
+    }
+
+    stationMeters = endStationMeters;
   }
 
-  const positions: number[] = [];
-  const indices: number[] = [];
+  /**
+   * Trace the CMU-contact profile from the far end back to the start.
+   *
+   * At every shared station this includes:
+   *   current segment start-bottom
+   *   previous segment end-bottom
+   *
+   * Those two points share X but may differ in Y, creating the required
+   * vertical step instead of diagonally bridging between CMU courses.
+   */
+  let reverseStationMeters = stationMeters;
+  const lastSegment = usableSegments[usableSegments.length - 1]!;
 
-  for (const station of stations) {
-    positions.push(
-      station.x,
-      station.bottomY,
-      -halfDepth,
-      station.x,
-      station.bottomY,
-      halfDepth,
-      station.x,
-      station.topY,
-      -halfDepth,
-      station.x,
-      station.topY,
-      halfDepth,
-    );
+  appendPoint(bottomProfile, {
+    x: reverseStationMeters,
+    y: lastSegment.endBottomY,
+  });
+
+  for (let index = usableSegments.length - 1; index >= 0; index -= 1) {
+    const segment = usableSegments[index]!;
+    const previousSegment = usableSegments[index - 1];
+    const startStationMeters =
+      reverseStationMeters - segment.spanMeters;
+
+    appendPoint(bottomProfile, {
+      x: startStationMeters,
+      y: segment.startBottomY,
+    });
+
+    if (
+      previousSegment &&
+      Math.abs(
+        segment.startBottomY - previousSegment.endBottomY,
+      ) > pointToleranceMeters
+    ) {
+      appendPoint(bottomProfile, {
+        x: startStationMeters,
+        y: previousSegment.endBottomY,
+      });
+    }
+
+    reverseStationMeters = startStationMeters;
   }
 
-  const vertsPerStation = 4;
-  for (let index = 0; index < stations.length - 1; index += 1) {
-    const a = index * vertsPerStation;
-    const b = (index + 1) * vertsPerStation;
-    const quad = (i0: number, i1: number, i2: number, i3: number) => {
-      indices.push(i0, i1, i2, i0, i2, i3);
-    };
-    quad(a, b, b + 2, a + 2);
-    quad(a + 3, a + 1, b + 1, b + 3);
-    quad(a + 1, a + 3, b + 3, b + 1);
-    quad(a + 2, b + 2, b, a);
+  const outline = [...topProfile, ...bottomProfile];
+
+  if (outline.length < 3) {
+    return new THREE.BufferGeometry();
   }
 
-  const first = 0;
-  const last = (stations.length - 1) * vertsPerStation;
-  indices.push(first, first + 1, first + 3, first, first + 3, first + 2);
-  indices.push(last + 1, last, last + 2, last + 1, last + 2, last + 3);
+  const shape = new THREE.Shape();
+  shape.moveTo(outline[0]!.x, outline[0]!.y);
 
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-  geometry.setIndex(indices);
+  for (let index = 1; index < outline.length; index += 1) {
+    const point = outline[index]!;
+    shape.lineTo(point.x, point.y);
+  }
+
+  shape.closePath();
+
+  const geometry = new THREE.ExtrudeGeometry(shape, {
+    depth: depthMeters,
+    bevelEnabled: false,
+    steps: 1,
+    curveSegments: 1,
+  });
+
+  /**
+   * ExtrudeGeometry spans local Z = 0..depth. Center it so the existing
+   * renderer position remains at the wall centerline.
+   */
+  geometry.translate(0, 0, -halfDepthMeters);
   geometry.computeVertexNormals();
+  geometry.computeBoundingBox();
+  geometry.computeBoundingSphere();
+
   return geometry;
 }
+
 
 export function createRakedConcreteCapMaterial(selected: boolean): THREE.MeshStandardMaterial {
   return new THREE.MeshStandardMaterial({
