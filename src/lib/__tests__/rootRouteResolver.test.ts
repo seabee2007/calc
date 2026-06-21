@@ -11,7 +11,9 @@ function baseAccess(overrides: Partial<ResolvedAppAccess> = {}): ResolvedAppAcce
     userId: 'user-1',
     isOwner: false,
     isWorkspaceAdmin: false,
+    isFieldEmployeeAccount: false,
     acceptedEmployeeMemberships: [],
+    employeePortalAccess: null,
     defaultRoute: '/onboarding',
     ...overrides,
   };
@@ -85,6 +87,7 @@ describe('rootRouteResolver', () => {
         accessLoading: false,
         access: baseAccess({
           defaultRoute: '/employee/dashboard',
+          isFieldEmployeeAccount: true,
           acceptedEmployeeMemberships: [
             {
               workspaceId: 'owner-1',
@@ -98,8 +101,38 @@ describe('rootRouteResolver', () => {
           ],
         }),
         profileRole: 'employee',
+        profileEmployerId: 'owner-1',
+        profileOnboardingCompletedAt: '2026-01-01T00:00:00.000Z',
       }),
     ).toMatchObject({ type: 'redirect', to: '/employee/dashboard' });
+  });
+
+  it('accepted employee with incomplete onboarding routes to /employee/onboarding', () => {
+    expect(
+      resolveRootRouteTarget({
+        authLoading: false,
+        hasSession: true,
+        accessLoading: false,
+        access: baseAccess({
+          defaultRoute: '/employee/dashboard',
+          isFieldEmployeeAccount: true,
+          acceptedEmployeeMemberships: [
+            {
+              workspaceId: 'owner-1',
+              membershipId: 'employee-1',
+              status: 'accepted',
+              role: 'employee',
+              hasAssignedFieldSeat: true,
+              employerPlanId: 'starter',
+              employerFieldPortalEnabled: true,
+            },
+          ],
+        }),
+        profileRole: 'employee',
+        profileEmployerId: 'owner-1',
+        profileOnboardingCompletedAt: null,
+      }),
+    ).toMatchObject({ type: 'redirect', to: '/employee/onboarding' });
   });
 
   it('new unassigned user routes to owner onboarding', () => {

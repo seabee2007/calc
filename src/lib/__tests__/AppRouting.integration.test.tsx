@@ -70,7 +70,9 @@ function setOwnerAccess(overrides: Partial<ResolvedAppAccess> = {}) {
     userId: 'owner-1',
     isOwner: true,
     isWorkspaceAdmin: false,
+    isFieldEmployeeAccount: false,
     acceptedEmployeeMemberships: [],
+    employeePortalAccess: null,
     defaultRoute: '/dashboard',
     ...overrides,
   };
@@ -78,12 +80,27 @@ function setOwnerAccess(overrides: Partial<ResolvedAppAccess> = {}) {
 
 function setEmployeeAccess(overrides: Partial<ResolvedAppAccess> = {}) {
   mocks.authState.user = { id: 'employee-1' };
-  mocks.authState.profile = { id: 'employee-1', role: 'employee', employerId: 'owner-1' };
+  mocks.authState.profile = {
+    id: 'employee-1',
+    role: 'employee',
+    employerId: 'owner-1',
+    onboardingCompletedAt: '2026-01-01T00:00:00.000Z',
+  };
   mocks.accessState.accessResolutionState = 'resolved';
   mocks.accessState.access = {
     userId: 'employee-1',
     isOwner: false,
     isWorkspaceAdmin: false,
+    isFieldEmployeeAccount: true,
+    employeePortalAccess: {
+      allowed: true,
+      reason: 'allowed',
+      workspaceId: 'owner-1',
+      employerPlanId: 'starter',
+      employeeMembershipId: 'employee-1',
+      seatAssigned: true,
+      repaired: false,
+    },
     acceptedEmployeeMemberships: [
       {
         workspaceId: 'owner-1',
@@ -307,6 +324,15 @@ describe('App routing integration', () => {
 
   it('missing employer subscription shows employer_subscription_not_found', () => {
     setEmployeeAccess({
+      employeePortalAccess: {
+        allowed: false,
+        reason: 'employer_subscription_not_found',
+        workspaceId: 'owner-1',
+        employerPlanId: null,
+        employeeMembershipId: 'employee-1',
+        seatAssigned: false,
+        repaired: false,
+      },
       acceptedEmployeeMemberships: [
         {
           workspaceId: 'owner-1',

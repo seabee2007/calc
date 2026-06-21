@@ -6,11 +6,18 @@ import {
 } from '../lib/entitlements';
 import { supabase } from '../lib/supabase';
 import type { Profile } from '../types/fieldPlanner';
-import { isEmployeeRole, isOwnerRole } from '../types/fieldPlanner';
+import { isEmployeeRole } from '../types/fieldPlanner';
+import {
+  fetchEmployeePortalAccess,
+  logEmployeePortalAccessDiagnostics,
+  type EmployeePortalAccessResult,
+} from './employeePortalAccessService';
 import { fetchProfile, fetchTeamProfiles } from './profileService';
 import { fetchSubscription, resolveEffectivePlanFromRow } from './subscriptionService';
 
 export type AccessResolutionState = 'idle' | 'loading' | 'resolved' | 'error';
+
+export type { EmployeePortalAccessResult };
 
 export type AcceptedEmployeeMembership = {
   workspaceId: string;
@@ -26,7 +33,9 @@ export type ResolvedAppAccess = {
   userId: string;
   isOwner: boolean;
   isWorkspaceAdmin: boolean;
+  isFieldEmployeeAccount: boolean;
   acceptedEmployeeMemberships: AcceptedEmployeeMembership[];
+  employeePortalAccess: EmployeePortalAccessResult | null;
   defaultRoute: '/dashboard' | '/employee/dashboard' | '/onboarding';
 };
 
@@ -64,8 +73,6 @@ async function resolveWorkspaceOwnership(
   );
   const ownsWorkspaceProjects = ownedProjectCount > 0;
 
-  // Live workspace ownership wins over profile.role/employerId — an account with its
-  // own active subscription or owned projects is always treated as owner/admin-priority.
   if (hasOwnActiveSubscription || ownsWorkspaceProjects) {
     return { isOwner: true, isWorkspaceAdmin: false };
   }
@@ -73,7 +80,39 @@ async function resolveWorkspaceOwnership(
   return { isOwner: false, isWorkspaceAdmin: false };
 }
 
-async function resolveAcceptedEmployeeMemberships(
+async function resolveAcceptedEmployeeMembershipsFromRpc(
+  userId: string,
+  profile: Profile,
+  portalAccess: EmployeePortalAccessResult,
+): Promise<AcceptedEmployeeMembership[]> {
+  if (
+    !portalAccess.employeeMembershipId ||
+    !portalAccess.workspaceId ||
+    !isEmployeeRole(profile.role)
+  ) {
+    return [];
+  }
+
+  const employerPlanId = portalAccess.employerPlanId;
+  const employerFieldPortalEnabled = employerPlanId
+    ? canUseFeature(employerPlanId, 'employee_portal')
+    : false;
+
+  return [
+    {
+      workspaceId: portalAccess.workspaceId,
+      membershipId: portalAccess.employeeMembershipId,
+      status: 'accepted',
+      role: profile.role,
+      hasAssignedFieldSeat: portalAccess.seatAssigned,
+      employerPlanId,
+      employerFieldPortalEnabled,
+    },
+  ];
+}
+
+/** Legacy client-side resolver when RPC is unavailable (local dev without migration). */
+async function resolveAcceptedEmployeeMembershipsLegacy(
   userId: string,
   profile: Profile,
 ): Promise<AcceptedEmployeeMembership[]> {
@@ -115,17 +154,42 @@ async function resolveAcceptedEmployeeMemberships(
   ];
 }
 
+async function resolveEmployeePortalContext(
+  userId: string,
+  profile: Profile,
+): Promise<{
+  acceptedEmployeeMemberships: AcceptedEmployeeMembership[];
+  employeePortalAccess: EmployeePortalAccessResult | null;
+}> {
+  const portalAccess = await fetchEmployeePortalAccess(true);
+
+  if (portalAccess) {
+    const acceptedEmployeeMemberships = await resolveAcceptedEmployeeMembershipsFromRpc(
+      userId,
+      profile,
+      portalAccess,
+    );
+    return { acceptedEmployeeMemberships, employeePortalAccess: portalAccess };
+  }
+
+  const acceptedEmployeeMemberships = await resolveAcceptedEmployeeMembershipsLegacy(
+    userId,
+    profile,
+  );
+  return { acceptedEmployeeMemberships, employeePortalAccess: null };
+}
+
 export function resolveDefaultRouteFromAccess(
   access: Pick<
     ResolvedAppAccess,
-    'isOwner' | 'isWorkspaceAdmin' | 'acceptedEmployeeMemberships'
+    'isOwner' | 'isWorkspaceAdmin' | 'acceptedEmployeeMemberships' | 'isFieldEmployeeAccount'
   >,
 ): ResolvedAppAccess['defaultRoute'] {
   if (access.isOwner || access.isWorkspaceAdmin) {
     return '/dashboard';
   }
 
-  if (access.acceptedEmployeeMemberships.length > 0) {
+  if (access.acceptedEmployeeMemberships.length > 0 || access.isFieldEmployeeAccount) {
     return '/employee/dashboard';
   }
 
@@ -135,6 +199,7 @@ export function resolveDefaultRouteFromAccess(
 export async function resolveAppAccess(
   userId: string,
   profileInput?: Profile | null,
+  options?: { authEmail?: string | null },
 ): Promise<ResolvedAppAccess> {
   const profile = profileInput ?? (await fetchProfile(userId));
   if (!profile) {
@@ -142,22 +207,50 @@ export async function resolveAppAccess(
       userId,
       isOwner: false,
       isWorkspaceAdmin: false,
+      isFieldEmployeeAccount: false,
       acceptedEmployeeMemberships: [],
+      employeePortalAccess: null,
       defaultRoute: '/onboarding',
     };
   }
 
   const ownership = await resolveWorkspaceOwnership(userId, profile);
-  const acceptedEmployeeMemberships =
-    ownership.isOwner || ownership.isWorkspaceAdmin
-      ? []
-      : await resolveAcceptedEmployeeMemberships(userId, profile);
+  let acceptedEmployeeMemberships: AcceptedEmployeeMembership[] = [];
+  let employeePortalAccess: EmployeePortalAccessResult | null = null;
+  const isFieldEmployeeAccount =
+    !ownership.isOwner &&
+    !ownership.isWorkspaceAdmin &&
+    isEmployeeRole(profile.role) &&
+    Boolean(profile.employerId);
+
+  if (!ownership.isOwner && !ownership.isWorkspaceAdmin) {
+    if (isEmployeeRole(profile.role) || profile.employerId) {
+      const employeeContext = await resolveEmployeePortalContext(userId, profile);
+      acceptedEmployeeMemberships = employeeContext.acceptedEmployeeMemberships;
+      employeePortalAccess = employeeContext.employeePortalAccess;
+
+      if (employeePortalAccess) {
+        logEmployeePortalAccessDiagnostics({
+          authUserId: userId,
+          authEmail: options?.authEmail ?? null,
+          acceptedMembershipId: employeePortalAccess.employeeMembershipId,
+          workspaceId: employeePortalAccess.workspaceId,
+          employerPlanId: employeePortalAccess.employerPlanId,
+          seatAssigned: employeePortalAccess.seatAssigned,
+          allowed: employeePortalAccess.allowed,
+          reason: employeePortalAccess.reason,
+        });
+      }
+    }
+  }
 
   const resolved: ResolvedAppAccess = {
     userId,
     isOwner: ownership.isOwner,
     isWorkspaceAdmin: ownership.isWorkspaceAdmin,
+    isFieldEmployeeAccount,
     acceptedEmployeeMemberships,
+    employeePortalAccess,
     defaultRoute: '/onboarding',
   };
   resolved.defaultRoute = resolveDefaultRouteFromAccess(resolved);
@@ -171,6 +264,9 @@ export function isOwnerAppAccess(access: ResolvedAppAccess | null | undefined): 
 export function hasEligibleEmployeePortalAccess(
   access: ResolvedAppAccess | null | undefined,
 ): boolean {
+  if (access?.employeePortalAccess) {
+    return access.employeePortalAccess.allowed;
+  }
   return access?.defaultRoute === '/employee/dashboard';
 }
 

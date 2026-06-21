@@ -15,6 +15,7 @@ import {
   employeePortalBlockedMessage,
   resolveEmployeePortalAccess,
 } from '../../lib/employeePortalAccess';
+import { resolveEmployeePortalState } from '../../lib/employeeOnboarding';
 import { resolvePostLoginRoute } from '../../lib/appAccessRouting';
 
 interface RoleGuardProps {
@@ -154,10 +155,15 @@ export function OwnerGuard({ children }: { children: React.ReactNode }) {
 }
 
 export function EmployeeGuard({ children }: { children: React.ReactNode }) {
-  const { user, loading: authLoading, profileLoading } = useAuth();
+  const { user, loading: authLoading, profileLoading, profile } = useAuth();
   const { access, accessResolutionState, authSessionResolved } = useAppAccess();
 
-  if (authLoading || profileLoading || !authSessionResolved || accessResolutionState === 'loading') {
+  const accessLoading =
+    accessResolutionState === 'idle' ||
+    accessResolutionState === 'loading' ||
+    !authSessionResolved;
+
+  if (authLoading || profileLoading || accessLoading) {
     return <AccessLoadingSurface />;
   }
 
@@ -198,8 +204,26 @@ export function EmployeeGuard({ children }: { children: React.ReactNode }) {
   }
 
   const portalAccess = resolveEmployeePortalAccess(access, false);
+  const portalState = resolveEmployeePortalState({
+    authLoading,
+    profileLoading,
+    accessLoading: false,
+    portalAllowed: portalAccess.allowed,
+    profile,
+  });
 
-  if (!portalAccess.allowed) {
+  if (portalState === 'needs_employee_onboarding') {
+    return (
+      <AccessRedirect
+        to="/employee/onboarding"
+        reason="employee-guard-onboarding"
+        authSessionResolved={authSessionResolved}
+        accessResolutionState={accessResolutionState}
+      />
+    );
+  }
+
+  if (portalState === 'denied') {
     if (portalAccess.reason === 'owner_or_admin') {
       return (
         <AccessRedirect
@@ -213,7 +237,15 @@ export function EmployeeGuard({ children }: { children: React.ReactNode }) {
 
     return (
       <div className="mx-auto max-w-2xl p-6">
-        <EmployeePortalBlockedCard message={employeePortalBlockedMessage(portalAccess.reason)} />
+        <EmployeePortalBlockedCard
+          title={
+            portalAccess.reason === 'invite_acceptance_incomplete' ||
+            portalAccess.reason === 'workspace_not_found'
+              ? 'Invite setup incomplete'
+              : 'Field portal unavailable'
+          }
+          message={employeePortalBlockedMessage(portalAccess.reason)}
+        />
       </div>
     );
   }
@@ -228,7 +260,13 @@ export function EmployeeGuard({ children }: { children: React.ReactNode }) {
   );
 }
 
-function EmployeePortalBlockedCard({ message }: { message: string }) {
+function EmployeePortalBlockedCard({
+  message,
+  title = 'Field portal unavailable',
+}: {
+  message: string;
+  title?: string;
+}) {
   const { access } = useAppAccess();
   const continueHref = access ? resolvePostLoginRoute(access) : '/login';
 
@@ -238,7 +276,7 @@ function EmployeePortalBlockedCard({ message }: { message: string }) {
       data-testid="employee-portal-blocked"
       role="alert"
     >
-      <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">Field portal unavailable</h3>
+      <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">{title}</h3>
       <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-300">{message}</p>
       <div className="mt-4">
         <AuthenticatedSessionPrompt
