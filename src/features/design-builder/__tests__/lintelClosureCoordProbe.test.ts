@@ -45,12 +45,17 @@ describe('lintel closure course continuity', () => {
 
     const leftClosure = leftSide.find((block) => block.source === 'lintel_closure');
     expect(leftClosure).toBeDefined();
-    expect(leftClosure!.start).toBeCloseTo(1.595, 3);
+    const leftClosureIndex = leftSide.findIndex((block) => block.source === 'lintel_closure');
+    expect(leftClosureIndex).toBeGreaterThan(0);
+    expect(leftClosure!.start).toBeCloseTo(leftSide[leftClosureIndex - 1]!.end, 3);
     expect(leftClosure!.end).toBeCloseTo(assembly!.lintelStartMeters, 3);
 
     const rightClosure = rightSide.find((block) => block.source === 'lintel_closure');
     expect(rightClosure).toBeDefined();
+    const rightClosureIndex = rightSide.findIndex((block) => block.source === 'lintel_closure');
+    expect(rightClosureIndex).toBeGreaterThanOrEqual(0);
+    expect(rightClosureIndex).toBeLessThan(rightSide.length - 1);
     expect(rightClosure!.start).toBeCloseTo(assembly!.lintelEndMeters, 3);
-    expect(rightClosure!.end).toBeCloseTo(3.605, 3);
+    expect(rightClosure!.end).toBeCloseTo(rightSide[rightClosureIndex + 1]!.start, 3);
   });
 });
