@@ -769,12 +769,16 @@ export default function DesignBuilderViewer({
       const wallY = currentSlab.slabThicknessMeters + currentWall.heightMeters / 2;
       const wallInset = Math.max(0, currentWall.wallThicknessMeters) / 2;
 
-      const slabMaterial = new THREE.MeshStandardMaterial({
-        color: currentSelectedObjectType === 'building_footprint' ? 0x22d3ee : 0xcbd5e1,
-        roughness: 0.78,
-        metalness: 0.05,
-      });
-      materialsToDispose.push(slabMaterial);
+      const footprintSelected = currentSelectedObjectType === 'building_footprint';
+      const slabMaterial = usePreviewMaterials
+        ? resolveCastConcreteMaterial(
+            { visualStyle: currentVisualStyle, selected: footprintSelected, role: 'structural' },
+            trackMat,
+          )
+        : makeMaterial(0x78716c, footprintSelected, {
+            roughness: 0.88,
+            metalness: 0.05,
+          });
       const layoutGraphActive = currentGeometry?.sourcePath === 'layout_graph';
       const legacyPresetActive = !currentGeometry || currentGeometry.sourcePath === 'legacy_preset';
       const slabMesh = new THREE.Mesh(
@@ -913,10 +917,15 @@ export default function DesignBuilderViewer({
           interiorFloorSlab?.enabled &&
           currentGeometry.resolvedFootprint?.interiorFacePolygon.length
         ) {
-          const interiorSlabMaterial = makeMaterial(0xb8c5d6, currentSelectedObjectType === 'structural_frame_system', {
-            roughness: 0.92,
-            metalness: 0.02,
-          });
+          const interiorSlabMaterial = usePreviewMaterials
+            ? resolveCastConcreteMaterial(
+                { visualStyle: currentVisualStyle, selected: frameSelected, role: 'structural' },
+                trackMat,
+              )
+            : makeMaterial(0x78716c, frameSelected, {
+                roughness: 0.92,
+                metalness: 0.02,
+              });
           const interiorSlabMesh = new THREE.Mesh(
             trackGeometry(
               createFootprintSlabGeometry(

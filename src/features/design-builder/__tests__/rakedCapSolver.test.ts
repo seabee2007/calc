@@ -262,6 +262,47 @@ describe('rakedCapSolver — purlin contact and minimum depth', () => {
     expect(strip?.segments.length).toBeGreaterThan(sortedCaps.length);
   });
 
+  it('drops terminal raked cap ends to the roof beam top at each eave', () => {
+    const { geometry } = gableGeometry();
+    const roof = geometry.resolvedRoofSystem!;
+
+    for (const gableSegmentId of roof.gableEndSegmentIds) {
+      const panel = geometry.infillSystem?.panels.find(
+        (entry) => entry.hostSegmentId === gableSegmentId,
+      );
+      expect(panel).toBeDefined();
+
+      const caps = (geometry.rakedCapPlacements ?? []).filter(
+        (cap) => cap.gableEndSegmentId === gableSegmentId,
+      );
+      const leftStartCap = caps
+        .filter((cap) => cap.slope === 'left')
+        .sort((a, b) => a.startStationMeters - b.startStationMeters)[0];
+      const rightEndCap = caps
+        .filter((cap) => cap.slope === 'right')
+        .sort((a, b) => b.endStationMeters - a.endStationMeters)[0];
+
+      expect(leftStartCap).toBeDefined();
+      expect(rightEndCap).toBeDefined();
+      expect(leftStartCap?.startStationMeters).toBeCloseTo(
+        panel!.startStationMeters,
+        3,
+      );
+      expect(rightEndCap?.endStationMeters).toBeCloseTo(
+        panel!.endStationMeters,
+        3,
+      );
+      expect(leftStartCap?.startBottomY).toBeCloseTo(
+        roof.roofBeamTopElevationMeters,
+        4,
+      );
+      expect(rightEndCap?.endBottomY).toBeCloseTo(
+        roof.roofBeamTopElevationMeters,
+        4,
+      );
+    }
+  });
+
   it('lowers CMU cutoff when minimum rake depth increases without changing roof-to-cap clearance', () => {
     const tight = gableGeometry({ gable: { ...createDefaultRoofSystemSettings().gable, enabled: true, rakeClearanceMeters: 0.08, rakedConcreteCapEnabled: true } });
     const loose = gableGeometry({ gable: { ...createDefaultRoofSystemSettings().gable, enabled: true, rakeClearanceMeters: 0.25, rakedConcreteCapEnabled: true } });

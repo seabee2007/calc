@@ -546,8 +546,19 @@ export function solveRakedCapPlacementsWithWarnings(params: {
       continue;
     }
 
-    const startDepth = startTopY - flatBottomY;
-    const endDepth = endTopY - flatBottomY;
+    const terminalStartBottomY =
+      startStationMeters <=
+      params.panelStartStation + CAP_SEAM_TOLERANCE_METERS
+        ? Math.min(flatBottomY, params.resolvedRoof.roofBeamTopElevationMeters)
+        : flatBottomY;
+    const terminalEndBottomY =
+      endStationMeters >=
+      params.panelEndStation - CAP_SEAM_TOLERANCE_METERS
+        ? Math.min(flatBottomY, params.resolvedRoof.roofBeamTopElevationMeters)
+        : flatBottomY;
+
+    const startDepth = startTopY - terminalStartBottomY;
+    const endDepth = endTopY - terminalEndBottomY;
 
     if (
       startDepth <
@@ -578,8 +589,8 @@ export function solveRakedCapPlacementsWithWarnings(params: {
       endStationMeters,
       startTopY,
       endTopY,
-      startBottomY: flatBottomY,
-      endBottomY: flatBottomY,
+      startBottomY: terminalStartBottomY,
+      endBottomY: terminalEndBottomY,
       wallDepthMeters: capWallDepthMeters,
     });
 
@@ -593,8 +604,8 @@ export function solveRakedCapPlacementsWithWarnings(params: {
       slope,
       startStationMeters,
       endStationMeters,
-      startBottomY: flatBottomY,
-      endBottomY: flatBottomY,
+      startBottomY: terminalStartBottomY,
+      endBottomY: terminalEndBottomY,
       startTopY,
       endTopY,
       wallDepthMeters: capWallDepthMeters,
