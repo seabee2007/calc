@@ -23,6 +23,17 @@ import { getSegmentFramesForWallLayout } from '../geometry/designGeometry';
 import { openingToLegacyFaceOffset, wallFaceForSegment } from './layoutWallAdapter';
 import { segmentLength } from './wallLayoutRules';
 import type { DesignWallLayoutParameters } from '../types';
+import {
+  DEFAULT_DOOR_DIMENSIONS,
+  DEFAULT_WINDOW_DIMENSIONS,
+  resolveHeadAlignedWindowSillHeight,
+} from './openingDefaults';
+export type { DefaultOpeningDimensions } from './openingDefaults';
+export {
+  DEFAULT_DOOR_DIMENSIONS,
+  DEFAULT_WINDOW_DIMENSIONS,
+  resolveHeadAlignedWindowSillHeight,
+};
 
 export type WallFace = NonNullable<WallOpeningParameters['wallFace']>;
 
@@ -31,23 +42,6 @@ export interface WallHitPoint {
   y: number;
   z: number;
 }
-
-export interface DefaultOpeningDimensions {
-  widthMeters: number;
-  heightMeters: number;
-  sillHeightMeters?: number;
-}
-
-export const DEFAULT_DOOR_DIMENSIONS: DefaultOpeningDimensions = {
-  widthMeters: 0.9,
-  heightMeters: 2.1,
-};
-
-export const DEFAULT_WINDOW_DIMENSIONS: DefaultOpeningDimensions = {
-  widthMeters: 1.2,
-  heightMeters: 0.9,
-  sillHeightMeters: 1,
-};
 
 export function resolveWallFaceFromHit(userData: { wallFace?: string } | undefined): WallFace | null {
   const face = userData?.wallFace;

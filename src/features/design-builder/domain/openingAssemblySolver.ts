@@ -77,6 +77,21 @@ export function resolveLintelCourseIndex(roughTopMeters: number, moduleHeightMet
   return Math.max(0, Math.ceil(roughTopMeters / Math.max(0.01, moduleHeightMeters)));
 }
 
+type OpeningCourseGridOptions = {
+  courseIndexElevationDatumMeters?: number;
+  courseIndexOffset?: number;
+};
+
+function resolveLintelCourseIndexForGrid(
+  roughTopMeters: number,
+  moduleHeightMeters: number,
+  options?: OpeningCourseGridOptions,
+): number {
+  const datum = options?.courseIndexElevationDatumMeters ?? 0;
+  const offset = options?.courseIndexOffset ?? 0;
+  return resolveLintelCourseIndex(roughTopMeters - datum, moduleHeightMeters) + offset;
+}
+
 export function resolveOpeningBlockVoidBounds(opening: ResolvedCmuOpening): {
   startAlongMeters: number;
   endAlongMeters: number;
@@ -460,13 +475,19 @@ export function resolveOpeningUnitSplits(params: {
   inheritedSource?: OpeningUnitSplitSegment['source'];
   inheritedAdjacentTo?: OpeningUnitSplitSegment['adjacentTo'];
   inheritedOpeningId?: string;
+  courseIndexElevationDatumMeters?: number;
+  courseIndexOffset?: number;
 }): OpeningUnitSplitSegment[] {
   const minimumCutLengthMeters = params.minimumCutLengthMeters ?? DEFAULT_OPENING_JAMB_MIN_CUT_LENGTH_METERS;
   const unitLengthMeters = params.endAlongMeters - params.startAlongMeters;
   if (unitLengthMeters <= 0) return [];
 
   if (params.opening.lintelType !== 'none') {
-    const lintelCourseIndex = resolveLintelCourseIndex(params.opening.roughTopMeters, params.moduleHeightMeters);
+    const lintelCourseIndex = resolveLintelCourseIndexForGrid(
+      params.opening.roughTopMeters,
+      params.moduleHeightMeters,
+      params,
+    );
     if (params.courseIndex === lintelCourseIndex) {
       const lintelSpan =
         params.moduleLengthMeters && params.wallLengthMeters
@@ -537,6 +558,8 @@ export function resolveUnitSegmentsAroundOpenings(params: {
   wallLengthMeters?: number;
   resolvedLintelSpans?: ReadonlyMap<string, ResolvedLintelSpan>;
   minimumCutLengthMeters?: number;
+  courseIndexElevationDatumMeters?: number;
+  courseIndexOffset?: number;
 }): OpeningUnitSplitSegment[] {
   let segments: OpeningUnitSplitSegment[] = [{
     startAlongMeters: params.startAlongMeters,
@@ -561,6 +584,8 @@ export function resolveUnitSegmentsAroundOpenings(params: {
         inheritedSource: segment.source,
         inheritedAdjacentTo: segment.adjacentTo,
         inheritedOpeningId: segment.openingId,
+        courseIndexElevationDatumMeters: params.courseIndexElevationDatumMeters,
+        courseIndexOffset: params.courseIndexOffset,
       }),
     );
   });
@@ -579,10 +604,16 @@ export function resolveOpeningUnitDisposition(params: {
   wallLengthMeters?: number;
   resolvedLintelSpans?: ReadonlyMap<string, ResolvedLintelSpan>;
   minimumCutLengthMeters?: number;
+  courseIndexElevationDatumMeters?: number;
+  courseIndexOffset?: number;
 }): OpeningUnitDisposition {
   const minimumCutLengthMeters = params.minimumCutLengthMeters ?? DEFAULT_OPENING_JAMB_MIN_CUT_LENGTH_METERS;
   if (params.opening.lintelType !== 'none') {
-    const lintelCourseIndex = resolveLintelCourseIndex(params.opening.roughTopMeters, params.moduleHeightMeters);
+    const lintelCourseIndex = resolveLintelCourseIndexForGrid(
+      params.opening.roughTopMeters,
+      params.moduleHeightMeters,
+      params,
+    );
     if (params.courseIndex === lintelCourseIndex) {
       const lintelSpan =
         params.moduleLengthMeters && params.wallLengthMeters
@@ -642,6 +673,8 @@ export function blockOverlapsOpeningAssembly(params: {
   moduleLengthMeters?: number;
   wallLengthMeters?: number;
   resolvedLintelSpans?: ReadonlyMap<string, ResolvedLintelSpan>;
+  courseIndexElevationDatumMeters?: number;
+  courseIndexOffset?: number;
 }): boolean {
   const voidBounds = resolveOpeningBlockVoidBounds(params.opening);
   const overlapsAlong = (start: number, end: number, oStart: number, oEnd: number) => start < oEnd && end > oStart;
@@ -657,7 +690,11 @@ export function blockOverlapsOpeningAssembly(params: {
   if (inVoidHorizontal && inVoidVertical) return true;
 
   if (params.opening.lintelType === 'none') return false;
-  const lintelCourseIndex = resolveLintelCourseIndex(params.opening.roughTopMeters, params.moduleHeightMeters);
+  const lintelCourseIndex = resolveLintelCourseIndexForGrid(
+    params.opening.roughTopMeters,
+    params.moduleHeightMeters,
+    params,
+  );
   if (params.courseIndex !== lintelCourseIndex) return false;
   const lintelSpan =
     params.moduleLengthMeters && params.wallLengthMeters
@@ -973,13 +1010,21 @@ export function buildLayoutLintelSolidPlacements(
   actualHeightMeters: number,
   moduleLengthMeters: number,
   resolvedSpans?: ReadonlyMap<string, ResolvedLintelSpan>,
+  courseGrid?: OpeningCourseGridOptions,
 ): LintelSolidPlacement[] {
   return openings
     .filter((opening) => opening.lintelType !== 'none')
     .map((opening) => {
       const segmentId = (opening as ResolvedCmuOpening & { wallSegmentId?: string }).wallSegmentId ?? '';
       const frame = framesById.get(segmentId);
-      const lintelCourseIndex = resolveLintelCourseIndex(opening.roughTopMeters, moduleHeightMeters);
+      const lintelCourseIndex = resolveLintelCourseIndexForGrid(
+        opening.roughTopMeters,
+        moduleHeightMeters,
+        courseGrid,
+      );
+      const courseIndexOffset = courseGrid?.courseIndexOffset ?? 0;
+      const courseIndexElevationDatumMeters = courseGrid?.courseIndexElevationDatumMeters ?? 0;
+      const localLintelCourseIndex = lintelCourseIndex - courseIndexOffset;
       const lintelDepthMeters = frame?.wallThicknessMeters ?? 0.19;
       const wallLengthMeters = frame?.lengthMeters ?? 0;
       const lintelSpan = resolveEffectiveLintelSpan(opening, moduleLengthMeters, wallLengthMeters, resolvedSpans);
@@ -993,7 +1038,10 @@ export function buildLayoutLintelSolidPlacements(
         courseIndex: lintelCourseIndex,
         center: {
           x: point.x,
-          y: lintelCourseIndex * moduleHeightMeters + actualHeightMeters / 2,
+          y:
+            courseIndexElevationDatumMeters +
+            localLintelCourseIndex * moduleHeightMeters +
+            actualHeightMeters / 2,
           z: point.z,
         },
         rotationY: frame?.rotationY ?? 0,

@@ -7,6 +7,7 @@ import type {
   WallOpeningParameters,
 } from '../types';
 import { generateWallCorners } from './cornerBondEngine';
+import { normalizeOpeningsHeadAlignment } from './openingDefaults';
 import {
   createOutsideFaceRectangleLayout,
   deriveExteriorBounds,
@@ -31,8 +32,8 @@ export function syncPresetFromLayout(
   const bounds = deriveExteriorBounds(layout);
   const lengthMeters = bounds?.exteriorLengthMeters ?? preset.footprint.lengthMeters;
   const widthMeters = bounds?.exteriorWidthMeters ?? preset.footprint.widthMeters;
-  const migratedOpenings = preset.wall.openings.map((opening) =>
-    migrateOpeningToSegment(opening, layout, preset.wall),
+  const migratedOpenings = normalizeOpeningsHeadAlignment(
+    preset.wall.openings.map((opening) => migrateOpeningToSegment(opening, layout, preset.wall)),
   );
   const closed = layout.isFootprintClosed;
   return {
@@ -124,7 +125,7 @@ export function wallParamsWithLegacyOpenings(
 ): CmuWallSystemParameters {
   return {
     ...wall,
-    openings: wall.openings.map((opening) => openingToLegacyFaceOffset(opening, layout)),
+    openings: normalizeOpeningsHeadAlignment(wall.openings).map((opening) => openingToLegacyFaceOffset(opening, layout)),
   };
 }
 

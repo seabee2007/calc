@@ -181,12 +181,15 @@ describe('designBuilderPersistence', () => {
       rcFrameFoundation: preset.foundationSettings,
       roofSystem: preset.roofSystem,
       wallLayout: preset.wallLayout,
-      openings: preset.wall.openings,
+      openings: preset.wall.openings.map((opening) =>
+        opening.type === 'window' ? { ...opening, sillHeightMeters: 1 } : opening,
+      ),
       buildingSystemMode: preset.buildingSystemMode,
     };
     const migrated = migratePersistedDesignBuilderState(raw);
     expect(migrated?.schemaVersion).toBe(1);
     expect(migrated?.rcFrameFoundation.isolatedFootings.widthMeters).toBe(1.1);
+    expect(migrated?.openings.find((opening) => opening.type === 'window')?.sillHeightMeters).toBeCloseTo(1.2, 6);
   });
 
   it('writes persisted state into design model metadata', () => {

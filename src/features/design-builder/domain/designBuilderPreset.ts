@@ -17,6 +17,7 @@ import {
 } from './structuralFrameDefaults';
 import { createDefaultFoundationSettings } from './foundationElevations';
 import { createDefaultRoofSystemSettings } from './roofSystemDefaults';
+import { DEFAULT_WINDOW_DIMENSIONS } from './openingDefaults';
 
 export const DESIGN_BUILDER_EXAMPLE_MODEL_ID = '11111111-1111-4111-8111-111111111111';
 export const DESIGN_BUILDER_EXAMPLE_FOOTPRINT_OBJECT_ID = '22222222-2222-4222-8222-222222222222';
@@ -86,7 +87,7 @@ export function createFiveBySixCmuBuildingPreset(): CmuBuildingPreset {
       offsetMeters: 2.1,
       widthMeters: 1.2,
       heightMeters: 0.9,
-      sillHeightMeters: 1,
+      sillHeightMeters: DEFAULT_WINDOW_DIMENSIONS.sillHeightMeters,
       roughOpeningAllowanceMeters: 0.05,
       lintelType: 'bond_beam',
       lintelBearingMeters: 0.2,

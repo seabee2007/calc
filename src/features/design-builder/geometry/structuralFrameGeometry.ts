@@ -16,6 +16,7 @@ import type {
 import type {
   CmuBlockInstance,
   CmuLayoutResult,
+  CmuLintelInstance,
   DesignGeometryResult,
   ResolvedWallLayoutGeometry,
   SegmentFrame,
@@ -48,6 +49,7 @@ import type { ResolvedInfillPanelBounds } from '../domain/infillPanelBoundsResol
 import { solveGableEndPlacements } from '../domain/gableEndSolver';
 import { solveGableEndMasonryBlocks } from '../domain/gableEndMasonrySolver';
 import { resolveCmuModuleDefinition } from '../domain/cmuModuleRules';
+import type { ResolvedCmuOpening } from '../domain/cmuOpeningRules';
 import { createEmptyCmuInfillSystem, createEmptyGableEndSystem } from '../domain/structuralFrameDefaults';
 import { createDefaultRoofSystemSettings } from '../domain/roofSystemDefaults';
 import { resolveRoofSystem } from '../domain/roofSystemResolver';
@@ -142,7 +144,9 @@ export function generateFrameInfillGeometry(
   );
 
   const module = resolveCmuModuleDefinition(wall);
+  const roughOpenings = resolveLayoutRoughOpeningsFromWall({ wall, segmentFrames });
   const allBlocks: CmuBlockInstance[] = [];
+  const allLintels: CmuLintelInstance[] = [];
   let totalFull = 0;
   let totalHalf = 0;
   let totalCut = 0;
@@ -182,12 +186,18 @@ export function generateFrameInfillGeometry(
     if (!frame) continue;
 
     for (const { panel, bounds } of segmentEntries) {
+      const segmentOpenings = isAboveGradeInfillPanel(panel)
+        ? roughOpenings.filter(
+            (opening) => (opening as ResolvedCmuOpening & { wallSegmentId?: string }).wallSegmentId === segment.id,
+          )
+        : [];
       const solved = solveInfillPanelBlocks({
         panel,
         bounds,
         frame,
         wall,
         courseIndexOffset,
+        openings: segmentOpenings,
         logBoundsForDev: import.meta.env.DEV,
       });
       if (panel.infillZone === 'below_grade') {
@@ -198,6 +208,7 @@ export function generateFrameInfillGeometry(
         });
       }
       allBlocks.push(...solved.blocks);
+      allLintels.push(...solved.lintels);
       totalFull += solved.fullBlockCount;
       totalHalf += solved.halfBlockCount;
       totalCut += solved.cutBlockCount;
@@ -293,21 +304,21 @@ export function generateFrameInfillGeometry(
     };
   }
 
-  const roughOpenings = resolveLayoutRoughOpeningsFromWall({ wall, segmentFrames });
   const wallCmuLayout: CmuLayoutResult = {
     ...emptyCmuLayout(wall),
     blocks: allBlocks,
     totalBlocks: allBlocks.length,
     segmentFrames,
     roughOpenings,
+    lintels: allLintels,
     counts: {
       full: totalFull,
       half: totalHalf,
       cut: totalCut,
       end: 0,
       corner: 0,
-      jamb: 0,
-      lintel_bond_beam: 0,
+      jamb: allBlocks.filter((block) => block.source === 'opening_jamb_closure').length,
+      lintel_bond_beam: allLintels.filter((lintel) => lintel.kind === 'bond_beam_lintel').length,
     },
     topClosureCutBlockCount: totalTopClosure,
     warnings: layoutWarnings,

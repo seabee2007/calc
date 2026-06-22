@@ -91,23 +91,27 @@ describe('Design Builder generated geometry', () => {
   it('does not generate block instances inside door and window openings', () => {
     const preset = createFiveBySixCmuBuildingPreset();
     const instances = generateCmuBlockInstances(preset.wall);
+    const layout = generateCmuLayout(preset.wall);
+    const doorOpening = layout.roughOpenings.find((opening) => opening.id === 'door-west-01')!;
+    const windowOpening = layout.roughOpenings.find((opening) => opening.id === 'window-east-01')!;
 
     const doorBlocks = instances.filter(
       (instance) =>
         instance.blockType !== 'jamb' &&
         instance.id.startsWith('south-') &&
-        instance.x >= -preset.wall.lengthMeters / 2 + 2.4 &&
-        instance.x <= -preset.wall.lengthMeters / 2 + 3.3 &&
-        instance.y <= 2.1,
+        instance.x >= -preset.wall.lengthMeters / 2 + doorOpening.actualStartAlongMeters &&
+        instance.x <= -preset.wall.lengthMeters / 2 + doorOpening.actualEndAlongMeters &&
+        instance.y >= doorOpening.actualBottomMeters &&
+        instance.y <= doorOpening.actualTopMeters,
     );
     const windowBlocks = instances.filter(
       (instance) =>
         instance.blockType !== 'jamb' &&
         instance.id.startsWith('east-') &&
-        instance.z >= -preset.wall.widthMeters / 2 + 2.1 &&
-        instance.z <= -preset.wall.widthMeters / 2 + 3.3 &&
-        instance.y >= 1 &&
-        instance.y <= 1.9,
+        instance.z >= -preset.wall.widthMeters / 2 + windowOpening.actualStartAlongMeters &&
+        instance.z <= -preset.wall.widthMeters / 2 + windowOpening.actualEndAlongMeters &&
+        instance.y >= windowOpening.actualBottomMeters &&
+        instance.y <= windowOpening.actualTopMeters,
     );
 
     expect(doorBlocks).toHaveLength(0);
@@ -346,7 +350,9 @@ describe('Design Builder generated geometry', () => {
     const windowOpening = geometry.wallCmuLayout.roughOpenings.find((opening) => opening.id === 'window-east-01') as
       | (typeof geometry.wallCmuLayout.roughOpenings[number] & { wallSegmentId?: string; worldX?: number; worldZ?: number; rotationY?: number })
       | undefined;
+    const doorOpening = geometry.wallCmuLayout.roughOpenings.find((opening) => opening.id === 'door-west-01');
     const windowLintel = geometry.wallCmuLayout.lintels.find((lintel) => lintel.openingId === 'window-east-01');
+    const doorLintel = geometry.wallCmuLayout.lintels.find((lintel) => lintel.openingId === 'door-west-01');
     const windowGrout = geometry.wallCmuLayout.jambGroutCells.filter((cell) => cell.openingId === 'window-east-01');
     const moduleConfig = resolveCmuModuleConfig(preset.wall);
 
@@ -365,6 +371,9 @@ describe('Design Builder generated geometry', () => {
       (windowLintel?.courseIndex ?? 0) * moduleConfig.moduleHeightMeters + moduleConfig.actualHeightMeters / 2,
       6,
     );
+    expect(windowOpening?.actualTopMeters).toBeCloseTo(doorOpening?.actualTopMeters ?? 0, 6);
+    expect(windowLintel?.courseIndex).toBe(doorLintel?.courseIndex);
+    expect(windowLintel?.y).toBeCloseTo(doorLintel?.y ?? 0, 6);
     expect(windowGrout.every((cell) => cell.segmentId === windowOpening?.wallSegmentId)).toBe(true);
   });
 

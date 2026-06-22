@@ -18,6 +18,7 @@ import {
   createBlankCmuBuildingPreset,
   type CmuBuildingPreset,
 } from '../domain/designBuilderPreset';
+import { normalizeOpeningsHeadAlignment } from '../domain/openingDefaults';
 import { DESIGN_BUILDER_COPY } from '../domain/designBuilderCopy';
 import { resolveDesignSnapPoint, type DesignSnapTarget } from '../domain/designSnapRules';
 import { useConfirm } from '../../../contexts/ConfirmContext';
@@ -29,6 +30,7 @@ import {
   DEFAULT_DOOR_DIMENSIONS,
   DEFAULT_WINDOW_DIMENSIONS,
   openingDraftFromPlacementResolution,
+  resolveHeadAlignedWindowSillHeight,
   resolveOpeningPlacementForHit,
   resolveOpeningPlacementForLegacyFaceOffset,
   summarizeOpeningPlacementStatus,
@@ -768,6 +770,10 @@ export default function DesignBuilderPage({
     const base = preset ?? createBlankCmuBuildingPreset();
     return {
       ...base,
+      wall: {
+        ...base.wall,
+        openings: normalizeOpeningsHeadAlignment(base.wall.openings),
+      },
       foundationSettings: normalizeRcFrameFoundationSettings(base.foundationSettings),
       roofSystem: normalizeRoofSystemSettings(base.roofSystem ?? createDefaultRoofSystemSettings()),
     };
@@ -1421,11 +1427,12 @@ export default function DesignBuilderPage({
     const width = Number(settings.widthMeters);
     const height = Number(settings.heightMeters);
     const roughOpeningAllowance = Number(settings.roughOpeningAllowanceMeters);
+    const resolvedHeight = Number.isFinite(height) && height > 0 ? height : defaults.heightMeters;
     return {
       type,
       widthMeters: Number.isFinite(width) && width > 0 ? width : defaults.widthMeters,
-      heightMeters: Number.isFinite(height) && height > 0 ? height : defaults.heightMeters,
-      sillHeightMeters: defaults.sillHeightMeters,
+      heightMeters: resolvedHeight,
+      sillHeightMeters: type === 'window' ? resolveHeadAlignedWindowSillHeight(resolvedHeight) : defaults.sillHeightMeters,
       roughOpeningAllowanceMeters:
         Number.isFinite(roughOpeningAllowance) && roughOpeningAllowance >= 0 ? roughOpeningAllowance : 0.05,
     };

@@ -33,13 +33,19 @@ describe('designBuilderInteractionRules', () => {
   });
 
   it('creates door and window opening drafts', () => {
-    const door = createOpeningDraft('door', 'south', 2.4, preset.wall, 'door-test');
-    const window = createOpeningDraft('window', 'east', 2.1, preset.wall, 'window-test');
+    const door = createOpeningDraft('door', 'south', 0.8, preset.wall, 'door-test');
+    const window = createOpeningDraft('window', 'south', 3.6, preset.wall, 'window-test');
 
     expect(door.type).toBe('door');
     expect(door.id).toBe('door-test');
     expect(window.type).toBe('window');
-    expect(window.sillHeightMeters).toBe(1);
+    expect(window.sillHeightMeters).toBeCloseTo(1.2, 6);
+
+    const layout = generateCmuLayout({ ...preset.wall, openings: [door, window] });
+    const doorLintel = layout.lintels.find((lintel) => lintel.openingId === door.id);
+    const windowLintel = layout.lintels.find((lintel) => lintel.openingId === window.id);
+    expect(windowLintel?.courseIndex).toBe(doorLintel?.courseIndex);
+    expect(windowLintel?.y).toBeCloseTo(doorLintel?.y ?? 0, 6);
   });
 
   it('creates segment-hosted opening drafts for every wall in a closed rectangle', () => {

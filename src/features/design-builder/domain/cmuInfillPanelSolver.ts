@@ -6,7 +6,6 @@ import type {
   StructuralBeam,
   StructuralColumn,
 } from '../types';
-import { resolveCmuModuleDefinition } from './cmuModuleRules';
 import {
   belowGradeInfillPanelFromResolvedBounds,
   infillPanelFromResolvedBounds,
@@ -17,10 +16,9 @@ import {
   type ResolvedInfillPanelBounds,
 } from './infillPanelBoundsResolver';
 import type { CmuBlockInstance, SegmentFrame } from '../geometry/designGeometry';
-import {
-  layoutHorizontalCourseUnits,
-  type CourseLayoutCounters,
-} from './cmuCourseLayoutEngine';
+import type { ResolvedCmuOpening } from './cmuOpeningRules';
+import { solveOpeningAwareMasonryPanel } from './openingAwareMasonryPanelSolver';
+import { lintelSolidToInstance } from './openingAssemblySolver';
 
 export const FRAME_INFILL_HEIGHT_TOLERANCE_METERS = 0.002;
 export const TOP_COURSE_RENDER_EPSILON_METERS = 0.001;
@@ -30,6 +28,7 @@ export type InfillPanelSolveResult = {
   panel: CmuInfillPanel;
   bounds: ResolvedInfillPanelBounds;
   blocks: CmuBlockInstance[];
+  lintels: ReturnType<typeof lintelSolidToInstance>[];
   fullBlockCount: number;
   halfBlockCount: number;
   cutBlockCount: number;
@@ -216,74 +215,28 @@ export function solveInfillPanelBlocks(params: {
   wall: CmuWallSystemParameters;
   logBoundsForDev?: boolean;
   courseIndexOffset?: number;
+  openings?: readonly ResolvedCmuOpening[];
 }): InfillPanelSolveResult {
-  const module = resolveCmuModuleDefinition(params.wall);
-  const nominalModule = module.nominalModuleLengthMeters;
-  const actualFull = module.actualFullBlockLengthMeters;
-  const halfNominal = nominalModule / 2;
-  const halfActual = actualFull / 2;
-  const bondPattern = params.panel.masonrySettings.bondPattern ?? 'running_bond';
-  const blocks: CmuBlockInstance[] = [];
-  const counters: CourseLayoutCounters = { full: 0, half: 0, cut: 0, topClosure: 0 };
-  const warnings: string[] = [];
   const courseIndexOffset = params.courseIndexOffset ?? 0;
+  const bondPattern = params.panel.masonrySettings.bondPattern ?? 'running_bond';
+  const panelOpenings = isAboveGradeInfillPanel(params.panel) ? params.openings ?? [] : [];
 
-  const vertical = resolvePanelVerticalCourses({
+  const solved = solveOpeningAwareMasonryPanel({
+    panelKind: 'rc_frame_infill',
+    panel: params.panel,
+    frame: params.frame,
+    panelStartStationMeters: params.panel.startStationMeters,
+    panelEndStationMeters: params.panel.endStationMeters,
     panelBottomElevationMeters: params.panel.bottomElevationMeters,
     panelTopElevationMeters: params.panel.topElevationMeters,
-    nominalCourseHeightMeters: module.nominalModuleHeightMeters,
+    openings: panelOpenings,
+    wall: params.wall,
+    bondPattern,
+    courseIndexOffset,
   });
 
-  if (
-    vertical.hasTopClosureCourse &&
-    vertical.topClosureHeightMeters < TOP_CLOSURE_PRACTICAL_MIN_HEIGHT_METERS
-  ) {
-    warnings.push(
-      `Top CMU closure course is under ${TOP_CLOSURE_PRACTICAL_MIN_HEIGHT_METERS} m high on panel ${params.panel.id}. Review beam elevation or masonry course layout.`,
-    );
-  }
-
-  const courseCount =
-    vertical.fullCourseCount + (vertical.hasTopClosureCourse ? 1 : 0);
-
-  for (let courseIndex = 0; courseIndex < courseCount; courseIndex += 1) {
-    const absoluteCourseIndex = courseIndex + courseIndexOffset;
-    const isTopClosure = vertical.hasTopClosureCourse && courseIndex === vertical.fullCourseCount;
-    const courseBottomElevationMeters =
-      params.panel.bottomElevationMeters +
-      courseIndex * module.nominalModuleHeightMeters;
-    const physicalHeightMeters = isTopClosure
-      ? vertical.topClosureHeightMeters
-      : module.actualBlockHeightMeters;
-
-    if (isTopClosure) {
-      const courseTop = courseBottomElevationMeters + physicalHeightMeters;
-      if (courseTop > params.panel.topElevationMeters + FRAME_INFILL_HEIGHT_TOLERANCE_METERS) {
-        warnings.push(
-          `Top CMU closure course on panel ${params.panel.id} exceeds ring beam underside by ${(courseTop - params.panel.topElevationMeters).toFixed(3)} m.`,
-        );
-      }
-    }
-
-    blocks.push(
-      ...layoutHorizontalCourseUnits({
-        panel: params.panel,
-        frame: params.frame,
-        courseIndex: absoluteCourseIndex,
-        courseBottomElevationMeters,
-        physicalHeightMeters,
-        isTopClosure,
-        nominalModuleMeters: nominalModule,
-        actualFullLengthMeters: actualFull,
-        halfNominalMeters: halfNominal,
-        halfActualLengthMeters: halfActual,
-        bondPattern,
-        counters,
-        source:
-          params.panel.infillZone === 'below_grade' ? 'below_grade_rc_infill' : 'rc_frame_infill',
-      }),
-    );
-  }
+  const blocks = solved.blocks;
+  const warnings = [...solved.warnings];
 
   const firstCmuStartStation =
     blocks.length > 0 ? Math.min(...blocks.map((block) => block.stationMeters ?? 0)) : params.panel.startStationMeters;
@@ -300,10 +253,11 @@ export function solveInfillPanelBlocks(params: {
     panel: params.panel,
     bounds: params.bounds,
     blocks,
-    fullBlockCount: counters.full,
-    halfBlockCount: counters.half,
-    cutBlockCount: counters.cut,
-    topClosureCutBlockCount: counters.topClosure,
+    lintels: solved.lintels,
+    fullBlockCount: solved.counts.full,
+    halfBlockCount: solved.counts.half,
+    cutBlockCount: solved.counts.cut,
+    topClosureCutBlockCount: solved.counts.topClosure,
     firstCmuStartStation,
     lastCmuEndStation,
     warnings,

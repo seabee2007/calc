@@ -1,5 +1,6 @@
 import type { CmuBuildingPreset } from './designBuilderPreset';
 import { createBlankCmuBuildingPreset } from './designBuilderPreset';
+import { normalizeOpeningsHeadAlignment } from './openingDefaults';
 import { normalizeRcFrameFoundationSettings } from './rcFrameFoundationMigration';
 import { normalizeRoofSystemSettings, createDefaultRoofSystemSettings } from './roofSystemDefaults';
 import type {
@@ -103,7 +104,7 @@ export function migratePersistedDesignBuilderState(
     rcFrameFoundation: normalizeRcFrameFoundationSettings(raw.rcFrameFoundation),
     roofSystem: normalizeRoofSystemSettings(raw.roofSystem),
     wallLayout: structuredClone(raw.wallLayout ?? createBlankCmuBuildingPreset().wallLayout),
-    openings: structuredClone(raw.openings ?? []),
+    openings: normalizeOpeningsHeadAlignment(structuredClone(raw.openings ?? [])),
     displayPreferences: raw.displayPreferences,
     updatedAt: raw.updatedAt ?? new Date().toISOString(),
   };
@@ -142,7 +143,7 @@ export function presetFromStoredDesign(params: {
 
   const resolvedWallLayout = wallLayout ?? persisted?.wallLayout ?? base.wallLayout;
   const resolvedWall = wall ?? base.wall;
-  const resolvedOpenings = persisted?.openings ?? resolvedWall.openings;
+  const resolvedOpenings = normalizeOpeningsHeadAlignment(persisted?.openings ?? resolvedWall.openings);
 
   return {
     name: params.fallbackName ?? base.name,
