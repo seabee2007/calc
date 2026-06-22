@@ -1,5 +1,11 @@
 import * as THREE from 'three';
-import type { RoofSystemSettings, SteelMemberKind, SteelMemberSegment, TrussPlacement } from '../types';
+import type {
+  RakedCapPlacement,
+  RoofSystemSettings,
+  SteelMemberKind,
+  SteelMemberSegment,
+  TrussPlacement,
+} from '../types';
 import {
   DEFAULT_RIDGE_CAP_THICKNESS_METERS,
   DEFAULT_RIDGE_CAP_WIDTH_METERS,
@@ -258,31 +264,19 @@ function slopeDirectionFromRidge(
   ).normalize();
 }
 
-function createRidgeCapWing(
-  ridgeMidpoint: THREE.Vector3,
-  ridgeDir: THREE.Vector3,
-  slopeDir: THREE.Vector3,
-  halfWidthMeters: number,
-  capThicknessMeters: number,
-  ridgeLengthMeters: number,
-  material: THREE.Material,
-): THREE.Mesh {
-  const mesh = new THREE.Mesh(
-    new THREE.BoxGeometry(halfWidthMeters, capThicknessMeters, ridgeLengthMeters),
-    material,
-  );
-  const xAxis = slopeDir.clone().normalize();
-  const zAxis = ridgeDir.clone().normalize();
-  const yAxis = new THREE.Vector3().crossVectors(zAxis, xAxis).normalize();
-  xAxis.crossVectors(yAxis, zAxis).normalize();
-  mesh.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(xAxis, yAxis, zAxis));
-  mesh.position.copy(
-    ridgeMidpoint.clone().add(slopeDir.clone().normalize().multiplyScalar(halfWidthMeters / 2)),
-  );
-  return mesh;
+function roofWingNormal(ridgeDir: THREE.Vector3, slopeDir: THREE.Vector3): THREE.Vector3 {
+  const normal = new THREE.Vector3().crossVectors(ridgeDir, slopeDir).normalize();
+  if (normal.y < 0) {
+    normal.negate();
+  }
+  return normal;
 }
 
-/** Folded ridge cap: two pitched wings meeting at the ridge apex. */
+function pushQuad(indices: number[], a: number, b: number, c: number, d: number): void {
+  indices.push(a, b, c, a, c, d);
+}
+
+/** One continuous folded ridge cap with its underside seated on the cladding ridge. */
 export function createFoldedRidgeCapGroup(
   start: THREE.Vector3,
   end: THREE.Vector3,
@@ -298,23 +292,69 @@ export function createFoldedRidgeCapGroup(
     return group;
   }
   const ridgeDir = ridgeVector.clone().normalize();
-  const ridgeMidpoint = start.clone().add(end).multiplyScalar(0.5);
   const halfWidthMeters = capWidthMeters / 2;
+  const leftSlope = slopeDirectionFromRidge(ridgeDir, -1, roofPitchRadians);
+  const rightSlope = slopeDirectionFromRidge(ridgeDir, 1, roofPitchRadians);
+  const leftNormal = roofWingNormal(ridgeDir, leftSlope);
+  const rightNormal = roofWingNormal(ridgeDir, rightSlope);
 
-  for (const sign of [-1, 1] as const) {
-    const slopeDir = slopeDirectionFromRidge(ridgeDir, sign, roofPitchRadians);
-    group.add(
-      createRidgeCapWing(
-        ridgeMidpoint,
-        ridgeDir,
-        slopeDir,
-        halfWidthMeters,
-        capThicknessMeters,
-        ridgeLengthMeters,
-        material,
-      ),
-    );
-  }
+  const leftOuterStart = start.clone().add(leftSlope.clone().multiplyScalar(halfWidthMeters));
+  const leftOuterEnd = end.clone().add(leftSlope.clone().multiplyScalar(halfWidthMeters));
+  const rightOuterStart = start.clone().add(rightSlope.clone().multiplyScalar(halfWidthMeters));
+  const rightOuterEnd = end.clone().add(rightSlope.clone().multiplyScalar(halfWidthMeters));
+
+  const leftTopRidgeStart = start.clone().add(leftNormal.clone().multiplyScalar(capThicknessMeters));
+  const leftTopRidgeEnd = end.clone().add(leftNormal.clone().multiplyScalar(capThicknessMeters));
+  const leftTopOuterStart = leftOuterStart.clone().add(leftNormal.clone().multiplyScalar(capThicknessMeters));
+  const leftTopOuterEnd = leftOuterEnd.clone().add(leftNormal.clone().multiplyScalar(capThicknessMeters));
+  const rightTopRidgeStart = start.clone().add(rightNormal.clone().multiplyScalar(capThicknessMeters));
+  const rightTopRidgeEnd = end.clone().add(rightNormal.clone().multiplyScalar(capThicknessMeters));
+  const rightTopOuterStart = rightOuterStart.clone().add(rightNormal.clone().multiplyScalar(capThicknessMeters));
+  const rightTopOuterEnd = rightOuterEnd.clone().add(rightNormal.clone().multiplyScalar(capThicknessMeters));
+
+  const vertices = [
+    start,
+    end,
+    leftOuterStart,
+    leftOuterEnd,
+    rightOuterStart,
+    rightOuterEnd,
+    leftTopRidgeStart,
+    leftTopRidgeEnd,
+    leftTopOuterStart,
+    leftTopOuterEnd,
+    rightTopRidgeStart,
+    rightTopRidgeEnd,
+    rightTopOuterStart,
+    rightTopOuterEnd,
+  ];
+  const indices: number[] = [];
+
+  pushQuad(indices, 6, 7, 9, 8);
+  pushQuad(indices, 10, 11, 13, 12);
+  pushQuad(indices, 2, 3, 9, 8);
+  pushQuad(indices, 4, 12, 13, 5);
+  pushQuad(indices, 0, 6, 7, 1);
+  pushQuad(indices, 0, 1, 11, 10);
+  pushQuad(indices, 0, 2, 8, 6);
+  pushQuad(indices, 0, 10, 12, 4);
+  pushQuad(indices, 1, 7, 9, 3);
+  pushQuad(indices, 1, 5, 13, 11);
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute(
+    'position',
+    new THREE.Float32BufferAttribute(
+      vertices.flatMap((vertex) => [vertex.x, vertex.y, vertex.z]),
+      3,
+    ),
+  );
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  geometry.computeBoundingBox();
+  geometry.computeBoundingSphere();
+
+  group.add(new THREE.Mesh(geometry, material));
   return group;
 }
 
@@ -395,6 +435,72 @@ export function createRakedCapPrismGeometry(params: {
 }
 
 /** Continuous raked cap strip along the wall tangent — shared top slope, stepped bottom envelope. */
+export const RAKED_CAP_STRIP_STATION_GAP_TOLERANCE_METERS = 0.001;
+
+export type RakedCapStripRenderSegment = {
+  spanMeters: number;
+  startBottomY: number;
+  endBottomY: number;
+  startTopY: number;
+  endTopY: number;
+  wallDepthMeters: number;
+};
+
+export function buildRakedCapStripRenderSegments(
+  caps: readonly RakedCapPlacement[],
+  gapToleranceMeters = RAKED_CAP_STRIP_STATION_GAP_TOLERANCE_METERS,
+): {
+  startStationMeters: number;
+  segments: RakedCapStripRenderSegment[];
+} | null {
+  const sortedCaps = [...caps].sort(
+    (left, right) => left.startStationMeters - right.startStationMeters,
+  );
+
+  if (sortedCaps.length === 0) {
+    return null;
+  }
+
+  const segments: RakedCapStripRenderSegment[] = [];
+  let previousCap: RakedCapPlacement | null = null;
+
+  for (const cap of sortedCaps) {
+    if (previousCap) {
+      const gapMeters =
+        cap.startStationMeters - previousCap.endStationMeters;
+
+      if (gapMeters > gapToleranceMeters) {
+        segments.push({
+          spanMeters: gapMeters,
+          startBottomY: previousCap.endBottomY,
+          endBottomY: cap.startBottomY,
+          startTopY: previousCap.endTopY,
+          endTopY: cap.startTopY,
+          wallDepthMeters: Math.max(
+            previousCap.wallDepthMeters,
+            cap.wallDepthMeters,
+          ),
+        });
+      }
+    }
+
+    segments.push({
+      spanMeters: cap.endStationMeters - cap.startStationMeters,
+      startBottomY: cap.startBottomY,
+      endBottomY: cap.endBottomY,
+      startTopY: cap.startTopY,
+      endTopY: cap.endTopY,
+      wallDepthMeters: cap.wallDepthMeters,
+    });
+    previousCap = cap;
+  }
+
+  return {
+    startStationMeters: sortedCaps[0]!.startStationMeters,
+    segments,
+  };
+}
+
 export function createRakedCapStripGeometry(
   segments: ReadonlyArray<{
     spanMeters: number;

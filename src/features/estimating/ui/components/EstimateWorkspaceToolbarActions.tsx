@@ -37,6 +37,7 @@ interface Props {
   onImportEstimate: () => void;
   onExportEstimate: () => void;
   onDownloadImportTemplate: () => void;
+  onOpenSettings?: () => void;
   onOpenHelp: () => void;
   onConvertToDetailed?: () => void;
   onActionsMenuOpenChange?: (open: boolean) => void;
@@ -70,6 +71,7 @@ export default function EstimateWorkspaceToolbarActions({
   onImportEstimate,
   onExportEstimate,
   onDownloadImportTemplate,
+  onOpenSettings,
   onOpenHelp,
   onConvertToDetailed,
   onActionsMenuOpenChange,
@@ -183,6 +185,7 @@ export default function EstimateWorkspaceToolbarActions({
             onImportEstimate={onImportEstimate}
             onExportEstimate={onExportEstimate}
             onDownloadTemplate={onDownloadImportTemplate}
+            onOpenSettings={onOpenSettings}
             onOpenHelp={onOpenHelp}
             onCollapseAll={() => handlers?.collapseAll()}
             onResetForm={onReset}
@@ -207,6 +210,7 @@ export default function EstimateWorkspaceToolbarActions({
             onImportEstimate={onImportEstimate}
             onExportEstimate={onExportEstimate}
             onDownloadTemplate={onDownloadImportTemplate}
+            onOpenSettings={onOpenSettings}
             onOpenHelp={onOpenHelp}
             onCollapseAll={() => handlers?.collapseAll()}
             onResetForm={onReset}

@@ -635,6 +635,7 @@ export function resolveRoofSystem(params: {
       ? buildCladdingDisplayPlanes({
           structuralPlanes: topPlanes,
           trussPlacements: framing.trussPlacements,
+          purlinPlacements: framing.purlinPlacements,
           peakY,
           claddingRidgeStart: claddingRidgeStart ?? ridgeStart,
           claddingRidgeEnd: claddingRidgeEnd ?? ridgeEnd,

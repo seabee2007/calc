@@ -23,7 +23,6 @@ describe('conceptual estimate workflow', () => {
       'scenarios',
       'risks-contingency',
       'overview',
-      'settings',
     ]);
   });
 

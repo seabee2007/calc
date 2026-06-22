@@ -8,6 +8,7 @@ import {
   HelpCircle,
   RotateCcw,
   Save,
+  Settings,
   Upload,
   ArrowRightLeft,
 } from 'lucide-react';
@@ -28,6 +29,7 @@ interface Props {
   onImportEstimate: () => void;
   onExportEstimate: () => void;
   onDownloadTemplate: () => void;
+  onOpenSettings?: () => void;
   onOpenHelp?: () => void;
   onCollapseAll?: () => void;
   onResetForm?: () => void;
@@ -44,6 +46,8 @@ function menuIcon(key: EstimateWorkspaceActionsMenuItemKey) {
       return <Download className="h-4 w-4 shrink-0" aria-hidden />;
     case 'download-template':
       return <FileSpreadsheet className="h-4 w-4 shrink-0" aria-hidden />;
+    case 'settings':
+      return <Settings className="h-4 w-4 shrink-0" aria-hidden />;
     case 'help-definitions':
       return <HelpCircle className="h-4 w-4 shrink-0" aria-hidden />;
     case 'collapse-all':
@@ -66,6 +70,7 @@ export default function EstimateWorkspaceActionsMenu({
   onImportEstimate,
   onExportEstimate,
   onDownloadTemplate,
+  onOpenSettings,
   onOpenHelp,
   onCollapseAll,
   onResetForm,
@@ -83,6 +88,7 @@ export default function EstimateWorkspaceActionsMenu({
     onImportEstimate,
     onExportEstimate,
     onDownloadTemplate,
+    onOpenSettings,
     onOpenHelp,
     onCollapseAll,
     onResetForm,

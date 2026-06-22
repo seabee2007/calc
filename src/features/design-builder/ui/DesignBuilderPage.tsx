@@ -197,6 +197,8 @@ import {
 import { buildLayoutFramingKey, deriveDesignLayoutBounds, logDesignFramingDiagnostics } from '../domain/designLayoutBounds';
 import { formatDrawWallSnapTargetFeedback } from '../domain/designDrawWallFeedback';
 import DesignBuilderViewer, { type DesignBuilderPlacementPreview } from './DesignBuilderViewer';
+import { DraggableDebugOverlay } from './DraggableDebugOverlay';
+import { DebugOverlayLayoutProvider } from './DebugOverlayLayoutContext';
 import {
   getMaterialDiagnostics,
   getTextureProjectionDiagnostics,
@@ -339,6 +341,7 @@ export default function DesignBuilderPage({
   const hasUserAdjustedPlanViewRef = useRef(storedSession?.hasUserAdjustedPlanView ?? false);
   const hasUserAdjusted3dViewRef = useRef(storedSession?.hasUserAdjusted3dView ?? false);
   const lastSnapTargetRef = useRef<DesignSnapTarget | null>(null);
+  const viewerOverlayContainerRef = useRef<HTMLDivElement | null>(null);
   const pending3dFitRef = useRef(false);
   const prevFootprintClosedRef = useRef(false);
   const autoFitPlanForLayoutKeyRef = useRef<string | null>(null);
@@ -4004,9 +4007,11 @@ export default function DesignBuilderPage({
             </div>
           ) : null}
           <div
+            ref={viewerOverlayContainerRef}
             className={focusMode ? 'relative min-h-0 flex-1 overflow-hidden' : 'relative overflow-hidden'}
             style={focusMode ? undefined : { height: viewerSize.height }}
           >
+            <DebugOverlayLayoutProvider containerRef={viewerOverlayContainerRef}>
             {viewMode === 'plan' ? (
               <DesignBuilderPlanCanvas
                 layout={wallLayout}
@@ -4092,8 +4097,12 @@ export default function DesignBuilderPage({
             viewMode === '3d' &&
             showRoofReferencePerimeters &&
             resolvedPreset.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill' ? (
-              <div className="pointer-events-none absolute right-3 top-12 z-10 space-y-1 rounded-xl border border-teal-400/60 bg-slate-900/95 px-3 py-2 text-xs text-slate-100 shadow-lg">
-                <div className="font-semibold uppercase tracking-wide text-teal-300">Roof Reference Perimeters</div>
+              <DraggableDebugOverlay
+                id="roof-reference-perimeters"
+                title="Roof Reference Perimeters"
+                titleClassName="text-teal-300"
+                className="border-teal-400/60"
+              >
                 <div className="flex items-center gap-2">
                   <span className="inline-block h-0.5 w-4 bg-white" aria-hidden />
                   <span>Wall exterior footprint</span>
@@ -4123,14 +4132,18 @@ export default function DesignBuilderPage({
                     {designGeometryResult.resolvedRoofSystem?.roofBearingSource ?? 'unknown'}
                   </div>
                 </div>
-              </div>
+              </DraggableDebugOverlay>
             ) : null}
             {import.meta.env.DEV &&
             viewMode === '3d' &&
             showRoofFramingGuides &&
             resolvedPreset.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill' ? (
-              <div className="pointer-events-none absolute right-3 top-36 z-10 space-y-1 rounded-xl border border-slate-500/60 bg-slate-900/95 px-3 py-2 text-xs text-slate-100 shadow-lg">
-                <div className="font-semibold uppercase tracking-wide text-slate-300">Roof Framing Guides</div>
+              <DraggableDebugOverlay
+                id="roof-framing-guides"
+                title="Roof Framing Guides"
+                titleClassName="text-slate-300"
+                className="border-slate-500/60"
+              >
                 <div className="flex items-center gap-2">
                   <span className="inline-block h-2 w-4 rounded-sm bg-teal-400" aria-hidden />
                   <span>Structural gable wall boundary</span>
@@ -4163,12 +4176,16 @@ export default function DesignBuilderPage({
                   <span className="inline-block h-2 w-4 rounded-sm bg-yellow-400" aria-hidden />
                   <span>Truss web members</span>
                 </div>
-              </div>
+              </DraggableDebugOverlay>
             ) : null}
             {import.meta.env.DEV && viewMode === '3d' && showMaterialDiagnostics ? (
-              <div className="pointer-events-none absolute left-3 bottom-3 z-10 max-w-xs space-y-1 rounded-xl border border-violet-400/60 bg-slate-900/95 px-3 py-2 text-xs text-slate-100 shadow-lg">
-                <div className="font-semibold uppercase tracking-wide text-violet-300">Material Diagnostics</div>
-                <div className="mt-2 space-y-0.5 font-mono text-[11px]">
+              <DraggableDebugOverlay
+                id="material-diagnostics"
+                title="Material Diagnostics"
+                titleClassName="text-violet-300"
+                className="border-violet-400/60"
+              >
+                <div className="space-y-0.5 font-mono text-[11px]">
                   <div>Visual Style: {materialDiagnostics.visualStyle === 'material_preview' ? 'Material Preview' : 'Technical'}</div>
                   <div>
                     Loaded texture packs:{' '}
@@ -4186,12 +4203,16 @@ export default function DesignBuilderPage({
                   <div>Active texture count: {materialDiagnostics.activeTextureCount}</div>
                   <div>Material instance count: {materialDiagnostics.materialInstanceCount}</div>
                 </div>
-              </div>
+              </DraggableDebugOverlay>
             ) : null}
             {import.meta.env.DEV && viewMode === '3d' && showTextureProjectionDebug ? (
-              <div className="pointer-events-none absolute left-3 bottom-48 z-10 max-w-xs space-y-1 rounded-xl border border-cyan-400/60 bg-slate-900/95 px-3 py-2 text-xs text-slate-100 shadow-lg">
-                <div className="font-semibold uppercase tracking-wide text-cyan-300">Texture Projection</div>
-                <div className="mt-2 space-y-0.5 font-mono text-[11px]">
+              <DraggableDebugOverlay
+                id="texture-projection"
+                title="Texture Projection"
+                titleClassName="text-cyan-300"
+                className="border-cyan-400/60"
+              >
+                <div className="space-y-0.5 font-mono text-[11px]">
                   <div>Active visual style: {visualStyle === 'material_preview' ? 'Material Preview' : 'Technical'}</div>
                   <div>CMU projection: {textureProjectionDiagnostics.cmuProjection}</div>
                   <div>Concrete projection: {textureProjectionDiagnostics.concreteProjection}</div>
@@ -4202,12 +4223,16 @@ export default function DesignBuilderPage({
                   <div>Texture material cache count: {textureProjectionDiagnostics.textureMaterialCacheCount}</div>
                   <div>Triplanar checker: {textureProjectionDiagnostics.useCheckerMap ? 'on' : 'off'}</div>
                 </div>
-              </div>
+              </DraggableDebugOverlay>
             ) : null}
             {import.meta.env.DEV && viewMode === '3d' && showMortarJointsDebug ? (
-              <div className="pointer-events-none absolute left-3 bottom-64 z-10 max-w-xs space-y-1 rounded-xl border border-slate-400/60 bg-slate-900/95 px-3 py-2 text-xs text-slate-100 shadow-lg">
-                <div className="font-semibold uppercase tracking-wide text-slate-300">Mortar Joints</div>
-                <div className="mt-2 space-y-0.5 font-mono text-[11px]">
+              <DraggableDebugOverlay
+                id="mortar-joints"
+                title="Mortar Joints"
+                titleClassName="text-slate-300"
+                className="border-slate-400/60"
+              >
+                <div className="space-y-0.5 font-mono text-[11px]">
                   <div className="text-blue-300">Blue: head joints</div>
                   <div className="text-yellow-300">Yellow: bed joints</div>
                   <div className="text-red-300">Red: invalid joint or overlap</div>
@@ -4226,7 +4251,7 @@ export default function DesignBuilderPage({
                     Mortar face recess: {(mortarJointDiagnostics?.faceRecessMeters ?? 0.002).toFixed(3)} m
                   </div>
                 </div>
-              </div>
+              </DraggableDebugOverlay>
             ) : null}
             {import.meta.env.DEV &&
             viewMode === '3d' &&
@@ -4234,7 +4259,12 @@ export default function DesignBuilderPage({
             resolvedPreset.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill' &&
             designGeometryResult.resolvedRoofSystem?.supported &&
             designGeometryResult.resolvedRoofSystem.roofType === 'gable' ? (
-              <div className="pointer-events-none absolute right-3 top-[22rem] z-10 max-w-xs space-y-1 rounded-xl border border-cyan-400/60 bg-slate-900/95 px-3 py-2 text-xs text-slate-100 shadow-lg">
+              <DraggableDebugOverlay
+                id="gable-end-overhang"
+                title="Gable-End Overhang"
+                titleClassName="text-cyan-300"
+                className="border-cyan-400/60"
+              >
                 {(() => {
                   const roof = designGeometryResult.resolvedRoofSystem!;
                   const purlinLength =
@@ -4245,25 +4275,27 @@ export default function DesignBuilderPage({
                         )
                       : 0;
                   return (
-                    <>
-                      <div className="font-semibold uppercase tracking-wide text-cyan-300">Gable-End Overhang</div>
-                      <div className="mt-2 space-y-0.5 border-t border-slate-700 pt-2 font-mono text-[11px]">
+                    <div className="space-y-0.5 border-t border-slate-700 pt-2 font-mono text-[11px]">
                         <div>Structural Ridge Length: {roof.structuralRidgeLengthMeters.toFixed(3)} m</div>
                         <div>Gable-End Overhang: {roof.gableEndOverhangMeters.toFixed(3)} m</div>
                         <div>Purlin Full Length: {purlinLength.toFixed(3)} m</div>
                         <div>Roof Cladding Length: {roof.claddingRidgeLengthMeters.toFixed(3)} m</div>
                       </div>
-                    </>
                   );
                 })()}
-              </div>
+              </DraggableDebugOverlay>
             ) : null}
             {import.meta.env.DEV &&
             viewMode === '3d' &&
             showRoofFramingGuides &&
             resolvedPreset.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill' &&
             designGeometryResult.resolvedRoofSystem?.trussPlacements.length ? (
-              <div className="pointer-events-none absolute right-3 top-52 z-10 max-w-xs space-y-1 rounded-xl border border-orange-400/60 bg-slate-900/95 px-3 py-2 text-xs text-slate-100 shadow-lg">
+              <DraggableDebugOverlay
+                id="truss-inspector"
+                title="Truss Inspector"
+                titleClassName="text-orange-300"
+                className="border-orange-400/60"
+              >
                 {(() => {
                   const truss = designGeometryResult.resolvedRoofSystem!.trussPlacements[0]!;
                   const topLeft = truss.members.find((member) => member.memberKind === 'top_chord_left');
@@ -4272,9 +4304,7 @@ export default function DesignBuilderPage({
                     (member) => member.memberKind === 'diagonal_web' || member.memberKind === 'vertical_web',
                   ).length;
                   return (
-                    <>
-                      <div className="font-semibold uppercase tracking-wide text-orange-300">Truss Inspector</div>
-                      <div className="mt-2 space-y-0.5 border-t border-slate-700 pt-2 font-mono text-[11px]">
+                    <div className="space-y-0.5 border-t border-slate-700 pt-2 font-mono text-[11px]">
                         <div>Truss ID: {truss.id}</div>
                         <div>Station: {truss.stationMeters.toFixed(3)} m</div>
                         <div>
@@ -4312,22 +4342,30 @@ export default function DesignBuilderPage({
                         </div>
                         <div>Web Member Count: {webCount}</div>
                       </div>
-                    </>
                   );
                 })()}
-              </div>
+              </DraggableDebugOverlay>
             ) : null}
             {import.meta.env.DEV && viewMode === '3d' ? (
-              <div className="pointer-events-none absolute left-3 bottom-24 z-10 rounded-xl border border-slate-500/60 bg-slate-900/95 px-3 py-2 font-mono text-[11px] text-slate-200 shadow-lg">
+              <DraggableDebugOverlay
+                id="geometry-revision"
+                title="Geometry Revision"
+                titleClassName="text-slate-300"
+                className="border-slate-500/60 font-mono text-[11px] text-slate-200"
+              >
                 <div>Geometry revision: {designGeometryState.revision}</div>
                 {designGeometryState.lastReason ? (
                   <div>Last rebuild: {designGeometryState.lastReason}</div>
                 ) : null}
-              </div>
+              </DraggableDebugOverlay>
             ) : null}
             {import.meta.env.DEV && showDesignPersistenceDebug ? (
-              <div className="pointer-events-none absolute left-3 bottom-44 z-10 rounded-xl border border-violet-400/60 bg-slate-900/95 px-3 py-2 font-mono text-[11px] text-slate-200 shadow-lg">
-                <div className="font-semibold uppercase tracking-wide text-violet-300">Design Persistence</div>
+              <DraggableDebugOverlay
+                id="design-persistence"
+                title="Design Persistence"
+                titleClassName="text-violet-300"
+                className="border-violet-400/60 font-mono text-[11px] text-slate-200"
+              >
                 <div>Mode: {persistenceContext.mode}</div>
                 <div>Project ID: {persistenceContext.projectId ?? '—'}</div>
                 <div>Estimate ID: {persistenceContext.estimateId ?? '—'}</div>
@@ -4337,11 +4375,15 @@ export default function DesignBuilderPage({
                 <div>Dirty State: {saveState}</div>
                 <div>Last Save Time: {lastSaveTime ?? '—'}</div>
                 <div>Last Save Error: {lastSaveError ?? '—'}</div>
-              </div>
+              </DraggableDebugOverlay>
             ) : null}
             {import.meta.env.DEV && showGableRakeGeometry ? (
-              <div className="pointer-events-none absolute right-3 bottom-24 z-10 max-w-xs rounded-xl border border-amber-400/60 bg-slate-900/95 px-3 py-2 font-mono text-[11px] text-slate-200 shadow-lg">
-                <div className="font-semibold uppercase tracking-wide text-amber-300">Gable Rake Geometry</div>
+              <DraggableDebugOverlay
+                id="gable-rake-geometry"
+                title="Gable Rake Geometry"
+                titleClassName="text-amber-300"
+                className="border-amber-400/60 font-mono text-[11px] text-slate-200"
+              >
                 <div className="mt-1 text-[10px] text-slate-400">
                   Teal: purlin bottom (cap top) · Yellow: CMU 4-in ceiling · Gray: raked cap · Orange: gable CMU
                 </div>
@@ -4393,8 +4435,9 @@ export default function DesignBuilderPage({
                     </div>
                   );
                 })}
-              </div>
+              </DraggableDebugOverlay>
             ) : null}
+            </DebugOverlayLayoutProvider>
           </div>
           {!focusMode ? (
             <div

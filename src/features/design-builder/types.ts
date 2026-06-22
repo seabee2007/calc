@@ -614,6 +614,8 @@ export type PurlinPlacement = {
 export type SteelMemberKind =
   | 'top_chord_left'
   | 'top_chord_right'
+  | 'top_chord_left_eave_extension'
+  | 'top_chord_right_eave_extension'
   | 'bottom_chord'
   | 'vertical_web'
   | 'diagonal_web';

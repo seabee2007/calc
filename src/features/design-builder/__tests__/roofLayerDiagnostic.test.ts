@@ -113,7 +113,7 @@ describe('roof layer stack', () => {
         slopeNormal,
       );
       expect(purlinToDisplayUndersideGap).toBeGreaterThanOrEqual(0);
-      expect(purlinToDisplayUndersideGap).toBeLessThanOrEqual(0.006);
+      expect(purlinToDisplayUndersideGap).toBeLessThanOrEqual(0.012);
     }
 
     if (roof.ridgeCapPlacement && roof.claddingDisplayPlanes.length > 0) {

@@ -73,7 +73,7 @@ describe('side eave overhang at fixed pitch', () => {
     expect(bottomWithEave.end).toEqual(bottomNoEave.end);
   });
 
-  it('extends top chords to cladding eave at the same slope and lowers eave elevation correctly', () => {
+  it('adds top-chord eave extensions to cladding eave at the same slope and lowers eave elevation correctly', () => {
     const overhang = 0.6;
     const geometry = frameGeometry({ ...baseSettings, eaveOverhangMeters: overhang });
     const roof = geometry.resolvedRoofSystem!;
@@ -93,12 +93,14 @@ describe('side eave overhang at fixed pitch', () => {
 
     const truss = roof.trussPlacements[0]!;
     const topLeft = truss.members.find((m) => m.memberKind === 'top_chord_left')!;
-    expect(topLeft.start.y).toBeLessThan(truss.bearingLeft.y);
+    const leftExtension = truss.members.find((m) => m.memberKind === 'top_chord_left_eave_extension')!;
+    const bearingCenterY = truss.bearingLeft.y + TRUSS_CHORD_PROFILE_METERS / 2;
+    expect(topLeft.start.y).toBeCloseTo(bearingCenterY, 2);
     expect(topLeft.end).toEqual(truss.apex);
+    expect(leftExtension.end).toEqual(topLeft.start);
 
     const ridgePoint2 = { x: truss.apex.x, z: truss.apex.z };
     const bearingLeft2 = { x: truss.bearingLeft.x, z: truss.bearingLeft.z };
-    const bearingCenterY = truss.bearingLeft.y + TRUSS_CHORD_PROFILE_METERS / 2;
     const expectedTail = projectCladdingEaveFromStructuralBearing({
       ridgePoint2,
       structuralBearing2: bearingLeft2,
@@ -107,16 +109,22 @@ describe('side eave overhang at fixed pitch', () => {
       structuralEaveY: bearingCenterY,
       fixedSlope: pitch.slope,
     });
-    expect(topLeft.start.x).toBeCloseTo(expectedTail.x, 2);
-    expect(topLeft.start.y).toBeCloseTo(
-      claddingEaveElevationMeters({
-        structuralEaveY: bearingCenterY,
-        fixedSlope: pitch.slope,
-        sideEaveOverhangMeters: overhang,
-      }),
+    const topChordSpan = {
+      x: topLeft.end.x - topLeft.start.x,
+      y: topLeft.end.y - topLeft.start.y,
+      z: topLeft.end.z - topLeft.start.z,
+    };
+    const topChordPlanLenSq = topChordSpan.x * topChordSpan.x + topChordSpan.z * topChordSpan.z || 1;
+    const tailT =
+      ((expectedTail.x - topLeft.start.x) * topChordSpan.x +
+        (expectedTail.z - topLeft.start.z) * topChordSpan.z) /
+      topChordPlanLenSq;
+    expect(leftExtension.start.x).toBeCloseTo(expectedTail.x, 2);
+    expect(leftExtension.start.y).toBeCloseTo(
+      topLeft.start.y + topChordSpan.y * tailT,
       2,
     );
-    expect(topLeft.start.z).toBeCloseTo(expectedTail.z, 2);
+    expect(leftExtension.start.z).toBeCloseTo(expectedTail.z, 2);
   });
 
   it('extends purlins and roof sheets to the lowered cladding eave edge', () => {

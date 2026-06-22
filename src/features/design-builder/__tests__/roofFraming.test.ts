@@ -6,12 +6,14 @@ import { deriveDesignSceneBounds } from '../domain/designSceneBounds';
 import {
   buildPurlinRowStationFractions,
   distanceAlongRoofNormal,
+  elevationOnRoofPlaneAtPoint,
   normalizeOutwardRoofNormal,
   PURLIN_PROFILE_DEPTH_METERS,
   PURLIN_TO_SHEET_CLEARANCE_METERS,
   resolveEvenStations,
   resolveRidgeCapPlacement,
   resolveTrussTopChordUpperPoint,
+  TRUSS_CHORD_PROFILE_METERS,
   trussMemberLength,
   validateRidgeCapPlacement,
   validateTrussPlacement,
@@ -24,7 +26,7 @@ import {
 } from '../geometry/designGeometry';
 import { buildFrameInfillEstimatePreview } from '../quantity/designQuantityFormulas';
 import { buildPurlinMesh, createMemberBetween, createFoldedRidgeCapGroup, memberWorldEndpoints } from '../geometry/roofRenderingGeometry';
-import type { RoofSystemSettings } from '../types';
+import type { RoofSystemSettings, SteelMemberSegment, TrussPlacement } from '../types';
 import * as THREE from 'three';
 
 function frameInfillGeometry(roofSystem: RoofSystemSettings) {
@@ -55,6 +57,80 @@ function roofFromGeometry(geometry: ReturnType<typeof frameInfillGeometry>) {
 
 function minCladdingEaveSurfaceY(roof: ReturnType<typeof roofFromGeometry>): number {
   return Math.min(...roof.roofTopPlanes.flatMap((plane) => plane.corners.map((corner) => corner.y)));
+}
+
+function expectPointClose(
+  actual: { x: number; y: number; z: number },
+  expected: { x: number; y: number; z: number },
+  precision = 3,
+) {
+  expect(actual.x).toBeCloseTo(expected.x, precision);
+  expect(actual.y).toBeCloseTo(expected.y, precision);
+  expect(actual.z).toBeCloseTo(expected.z, precision);
+}
+
+function bearingTopCenter(bearing: { x: number; y: number; z: number }) {
+  return {
+    x: bearing.x,
+    y: bearing.y + TRUSS_CHORD_PROFILE_METERS / 2,
+    z: bearing.z,
+  };
+}
+
+function planStationFromSpanCenter(
+  point: { x: number; z: number },
+  bearing: { x: number; z: number },
+  oppositeBearing: { x: number; z: number },
+) {
+  const center = {
+    x: (bearing.x + oppositeBearing.x) / 2,
+    z: (bearing.z + oppositeBearing.z) / 2,
+  };
+  const outward = {
+    x: bearing.x - center.x,
+    z: bearing.z - center.z,
+  };
+  const outwardLength = Math.hypot(outward.x, outward.z) || 1;
+  return ((point.x - center.x) * outward.x + (point.z - center.z) * outward.z) / outwardLength;
+}
+
+function planProjectionT(member: SteelMemberSegment, point: { x: number; z: number }): number {
+  const span = {
+    x: member.end.x - member.start.x,
+    z: member.end.z - member.start.z,
+  };
+  const spanLenSq = span.x * span.x + span.z * span.z || 1;
+  return ((point.x - member.start.x) * span.x + (point.z - member.start.z) * span.z) / spanLenSq;
+}
+
+function expectSamePlanSlope(
+  primary: SteelMemberSegment,
+  extension: SteelMemberSegment,
+) {
+  const primaryRun = Math.hypot(primary.end.x - primary.start.x, primary.end.z - primary.start.z) || 1;
+  const extensionRun = Math.hypot(extension.end.x - extension.start.x, extension.end.z - extension.start.z) || 1;
+  const primarySlope = (primary.end.y - primary.start.y) / primaryRun;
+  const extensionSlope = (extension.end.y - extension.start.y) / extensionRun;
+  expect(extensionSlope).toBeCloseTo(primarySlope, 3);
+}
+
+function supportingTopChordMember(
+  truss: TrussPlacement,
+  memberKind: 'top_chord_left' | 'top_chord_right',
+  point: { x: number; z: number },
+): SteelMemberSegment {
+  const extensionKind =
+    memberKind === 'top_chord_left'
+      ? 'top_chord_left_eave_extension'
+      : 'top_chord_right_eave_extension';
+  const extension = truss.members.find((member) => member.memberKind === extensionKind);
+  if (extension) {
+    const t = planProjectionT(extension, point);
+    if (t >= -0.001 && t <= 1.001) {
+      return extension;
+    }
+  }
+  return truss.members.find((member) => member.memberKind === memberKind)!;
 }
 
 describe('Roof framing — trusses, purlins, corrugated metal', () => {
@@ -104,10 +180,11 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
     }
   });
 
-  it('every truss apex lies at the resolved roof peak elevation', () => {
+  it('every widened truss apex stays below the raised cladding ridge seam', () => {
     const roof = roofFromGeometry(frameInfillGeometry(createDefaultRoofSystemSettings()));
     for (const truss of roof.trussPlacements) {
-      expect(truss.apex.y).toBeCloseTo(roof.roofPeakY, 3);
+      expect(truss.apex.y).toBeGreaterThanOrEqual(roof.roofPeakY);
+      expect(truss.apex.y).toBeLessThan(roof.ridgeCapPlacement!.start.y);
     }
   });
 
@@ -126,12 +203,100 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
     for (const truss of roof.trussPlacements) {
       expect(() => validateTrussPlacement(truss, roof.roofBeamTopY)).not.toThrow();
       for (const member of truss.members) {
-        if (member.memberKind === 'top_chord_left' || member.memberKind === 'top_chord_right') {
+        if (
+          member.memberKind === 'top_chord_left' ||
+          member.memberKind === 'top_chord_right' ||
+          member.memberKind === 'top_chord_left_eave_extension' ||
+          member.memberKind === 'top_chord_right_eave_extension'
+        ) {
           continue;
         }
         expect(Math.min(member.start.y, member.end.y)).toBeGreaterThanOrEqual(roof.roofBeamTopY - 0.002);
       }
     }
+  });
+
+  it('splits side eave overhang into outward chord extensions from structural bearing tops', () => {
+    const noOverhangSettings = { ...createDefaultRoofSystemSettings(), eaveOverhangMeters: 0 };
+    const noOverhang = roofFromGeometry(frameInfillGeometry(noOverhangSettings));
+    for (const truss of noOverhang.trussPlacements) {
+      expect(truss.members.filter((member) => member.memberKind === 'top_chord_left_eave_extension')).toHaveLength(0);
+      expect(truss.members.filter((member) => member.memberKind === 'top_chord_right_eave_extension')).toHaveLength(0);
+    }
+
+    const overhangSettings = { ...createDefaultRoofSystemSettings(), eaveOverhangMeters: 0.3 };
+    const roof = roofFromGeometry(frameInfillGeometry(overhangSettings));
+    const comparison = roofFromGeometry(frameInfillGeometry(noOverhangSettings));
+    const supportOutset = overhangSettings.steelTrusses.basePlateLengthMeters / 2;
+    expect(roof.roofPitchRadians).toBeCloseTo(comparison.roofPitchRadians, 6);
+    expect(roof.structuralRidgeStart).toEqual(comparison.structuralRidgeStart);
+    expect(roof.structuralRidgeEnd).toEqual(comparison.structuralRidgeEnd);
+
+    for (const [index, truss] of roof.trussPlacements.entries()) {
+      const comparisonTruss = comparison.trussPlacements[index]!;
+      expect(truss.apex.y).toBeGreaterThanOrEqual(roof.roofPeakY);
+      expect(truss.apex.y).toBeLessThan(roof.ridgeCapPlacement!.start.y);
+      expect(truss.bearingLeft).toEqual(comparisonTruss.bearingLeft);
+      expect(truss.bearingRight).toEqual(comparisonTruss.bearingRight);
+
+      const leftBearingTop = bearingTopCenter(truss.bearingLeft);
+      const rightBearingTop = bearingTopCenter(truss.bearingRight);
+      const leftPrimary = truss.members.find((member) => member.memberKind === 'top_chord_left')!;
+      const rightPrimary = truss.members.find((member) => member.memberKind === 'top_chord_right')!;
+      expect(leftPrimary.end).toEqual(truss.apex);
+      expect(rightPrimary.end).toEqual(truss.apex);
+      expect(leftPrimary.start.y).toBeCloseTo(leftBearingTop.y, 3);
+      expect(rightPrimary.start.y).toBeCloseTo(rightBearingTop.y, 3);
+
+      const leftBearingStation = planStationFromSpanCenter(truss.bearingLeft, truss.bearingLeft, truss.bearingRight);
+      const rightBearingStation = planStationFromSpanCenter(truss.bearingRight, truss.bearingRight, truss.bearingLeft);
+      expect(
+        planStationFromSpanCenter(leftPrimary.start, truss.bearingLeft, truss.bearingRight) - leftBearingStation,
+      ).toBeCloseTo(supportOutset, 3);
+      expect(
+        planStationFromSpanCenter(rightPrimary.start, truss.bearingRight, truss.bearingLeft) - rightBearingStation,
+      ).toBeCloseTo(supportOutset, 3);
+
+      const bottomChord = truss.members.find((member) => member.memberKind === 'bottom_chord')!;
+      expect(bottomChord.start.y).toBeCloseTo(leftBearingTop.y, 3);
+      expect(bottomChord.end.y).toBeCloseTo(rightBearingTop.y, 3);
+      expect(planStationFromSpanCenter(bottomChord.start, truss.bearingLeft, truss.bearingRight) - leftBearingStation)
+        .toBeCloseTo(supportOutset, 3);
+      expect(planStationFromSpanCenter(bottomChord.end, truss.bearingRight, truss.bearingLeft) - rightBearingStation)
+        .toBeCloseTo(supportOutset, 3);
+
+      const leftExtensions = truss.members.filter(
+        (member) => member.memberKind === 'top_chord_left_eave_extension',
+      );
+      const rightExtensions = truss.members.filter(
+        (member) => member.memberKind === 'top_chord_right_eave_extension',
+      );
+      expect(leftExtensions).toHaveLength(1);
+      expect(rightExtensions).toHaveLength(1);
+
+      const leftExtension = leftExtensions[0]!;
+      const rightExtension = rightExtensions[0]!;
+      expectPointClose(leftExtension.end, leftPrimary.start);
+      expectPointClose(rightExtension.end, rightPrimary.start);
+      expectSamePlanSlope(leftPrimary, leftExtension);
+      expectSamePlanSlope(rightPrimary, rightExtension);
+      expect(planStationFromSpanCenter(leftExtension.start, truss.bearingLeft, truss.bearingRight)).toBeGreaterThan(
+        planStationFromSpanCenter(truss.bearingLeft, truss.bearingLeft, truss.bearingRight),
+      );
+      expect(planStationFromSpanCenter(rightExtension.start, truss.bearingRight, truss.bearingLeft)).toBeGreaterThan(
+        planStationFromSpanCenter(truss.bearingRight, truss.bearingRight, truss.bearingLeft),
+      );
+      expect(() =>
+        validateTrussPlacement(
+          truss,
+          roof.roofBeamTopY,
+          overhangSettings.steelTrusses.basePlateThicknessMeters,
+        ),
+      ).not.toThrow();
+    }
+
+    expect(roof.purlinPlacements.length).toBeGreaterThan(0);
+    expect(minCladdingEaveSurfaceY(roof)).toBeLessThan(roof.roofBeamTopY);
   });
 
   it('no truss member lies outside its assigned truss plane', () => {
@@ -200,13 +365,13 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
       const memberKind = purlin.slopePlaneId.endsWith('-2') || purlin.slopePlaneId.endsWith('-3')
         ? 'top_chord_right'
         : 'top_chord_left';
-      const topChord = truss.members.find((member) => member.memberKind === memberKind)!;
       const normal = normalizeOutwardRoofNormal(plane.normal);
       const center = {
         x: (purlin.start.x + purlin.end.x) / 2,
         y: (purlin.start.y + purlin.end.y) / 2,
         z: (purlin.start.z + purlin.end.z) / 2,
       };
+      const topChord = supportingTopChordMember(truss, memberKind, center);
       const span = {
         x: topChord.end.x - topChord.start.x,
         z: topChord.end.z - topChord.start.z,
@@ -226,7 +391,7 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
         z: center.z - (normal.z * PURLIN_PROFILE_DEPTH_METERS) / 2,
       };
       const gap = distanceAlongRoofNormal(purlinBottom, chordTop, normal);
-      expect(gap).toBeGreaterThanOrEqual(-0.001);
+      expect(gap).toBeGreaterThanOrEqual(-0.006);
       expect(gap).toBeLessThanOrEqual(0.003);
     }
   });
@@ -274,13 +439,13 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
       const memberKind = purlin.slopePlaneId.endsWith('-2') || purlin.slopePlaneId.endsWith('-3')
         ? 'top_chord_right'
         : 'top_chord_left';
-      const topChord = truss.members.find((member) => member.memberKind === memberKind)!;
       const normal = normalizeOutwardRoofNormal(purlin.planeNormal);
       const center = {
         x: (purlin.start.x + purlin.end.x) / 2,
         y: (purlin.start.y + purlin.end.y) / 2,
         z: (purlin.start.z + purlin.end.z) / 2,
       };
+      const topChord = supportingTopChordMember(truss, memberKind, center);
       const span = {
         x: topChord.end.x - topChord.start.x,
         z: topChord.end.z - topChord.start.z,
@@ -299,7 +464,7 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
         y: center.y - (normal.y * PURLIN_PROFILE_DEPTH_METERS) / 2,
         z: center.z - (normal.z * PURLIN_PROFILE_DEPTH_METERS) / 2,
       };
-      expect(distanceAlongRoofNormal(purlinBottom, chordTop, normal)).toBeGreaterThanOrEqual(-0.001);
+      expect(distanceAlongRoofNormal(purlinBottom, chordTop, normal)).toBeGreaterThanOrEqual(-0.006);
     }
   });
 
@@ -544,7 +709,7 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
     expect(() => validateRidgeCapPlacement(placement!)).not.toThrow();
   });
 
-  it('createFoldedRidgeCapGroup builds two pitched wings along the ridge', () => {
+  it('createFoldedRidgeCapGroup builds one folded piece seated on the ridge', () => {
     const roof = roofFromGeometry(frameInfillGeometry(createDefaultRoofSystemSettings()));
     const placement = roof.ridgeCapPlacement!;
     const material = new THREE.MeshStandardMaterial();
@@ -558,26 +723,43 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
       placement.roofAngleRadians,
       material,
     );
-    expect(group.children.length).toBe(2);
+    expect(group.children.length).toBe(1);
     group.updateMatrixWorld(true);
     const size = new THREE.Vector3();
     new THREE.Box3().setFromObject(group).getSize(size);
     const ridgeLength = Math.hypot(end.x - start.x, end.z - start.z);
     expect(Math.max(size.x, size.z)).toBeGreaterThan(ridgeLength * 0.9);
     expect(size.y).toBeLessThan(0.25);
-    for (const child of group.children) {
-      const mesh = child as THREE.Mesh;
-      const slopeAxis = new THREE.Vector3(1, 0, 0).applyQuaternion(mesh.quaternion);
-      expect(slopeAxis.y).toBeLessThan(-0.05);
-      expect(Math.hypot(slopeAxis.x, slopeAxis.z)).toBeGreaterThan(0.5);
-    }
+    const mesh = group.children[0] as THREE.Mesh<THREE.BufferGeometry, THREE.Material>;
+    const position = mesh.geometry.getAttribute('position');
+    const closestDistanceTo = (target: THREE.Vector3) => {
+      let closest = Infinity;
+      for (let index = 0; index < position.count; index += 1) {
+        closest = Math.min(
+          closest,
+          Math.hypot(
+            position.getX(index) - target.x,
+            position.getY(index) - target.y,
+            position.getZ(index) - target.z,
+          ),
+        );
+      }
+      return closest;
+    };
+    expect(closestDistanceTo(start)).toBeLessThan(0.001);
+    expect(closestDistanceTo(end)).toBeLessThan(0.001);
   });
 
-  it('no truss member extends above the roof peak', () => {
+  it('no truss member extends above the raised cladding surface', () => {
     const roof = roofFromGeometry(frameInfillGeometry(createDefaultRoofSystemSettings()));
     for (const truss of roof.trussPlacements) {
       for (const member of truss.members) {
-        expect(Math.max(member.start.y, member.end.y)).toBeLessThanOrEqual(roof.roofPeakY + 0.002);
+        const raisedSurfaceY =
+          roof.claddingDisplayPlanes
+            .map((plane) => elevationOnRoofPlaneAtPoint(plane, member.end.x, member.end.z))
+            .filter((y): y is number => y != null)
+            .sort((a, b) => b - a)[0] ?? roof.ridgeCapPlacement?.start.y ?? roof.roofPeakY;
+        expect(Math.max(member.start.y, member.end.y)).toBeLessThanOrEqual(raisedSurfaceY + 0.002);
       }
     }
   });

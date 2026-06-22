@@ -46,7 +46,7 @@ describe('estimate workspace tab policy', () => {
     expect(tabs).toContain('logic-network');
     expect(tabs).toContain('level-iii-gantt');
     expect(tabs).toContain('overview');
-    expect(tabs).toContain('settings');
+    expect(tabs).not.toContain('settings');
   });
 
   it('shows activities, 3D takeoff, Design Builder, and schedule tabs for bid estimates', () => {
@@ -113,6 +113,8 @@ describe('estimate workspace tab policy', () => {
     expect(isTabVisibleForEstimateType('activities', 'detailed', true)).toBe(true);
     expect(isTabVisibleForEstimateType('activities', 'quick', false)).toBe(false);
     expect(isTabVisibleForEstimateType('quick-estimate', 'quick', false)).toBe(true);
+    expect(isTabVisibleForEstimateType('settings', 'detailed', true)).toBe(true);
+    expect(isTabVisibleForEstimateType('settings', 'quick', false)).toBe(true);
   });
 });
 

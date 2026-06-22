@@ -18,6 +18,10 @@ import {
 } from '../domain/roofGableSolver';
 import { PURLIN_BOTTOM_INSET_FROM_ROOF_TOP_METERS } from '../domain/roofFramingResolver';
 import { resolveCmuModuleDefinition } from '../domain/cmuModuleRules';
+import {
+  buildRakedCapStripRenderSegments,
+  RAKED_CAP_STRIP_STATION_GAP_TOLERANCE_METERS,
+} from '../geometry/roofRenderingGeometry';
 
 function gableGeometry(overrides: Partial<import('../types').RoofSystemSettings> = {}) {
   const preset = applyAutoFrameLayout(createFiveBySixCmuBuildingPreset());
@@ -208,6 +212,54 @@ describe('rakedCapSolver — purlin contact and minimum depth', () => {
       panelStartStation: panel!.startStationMeters,
       panelEndStation: panel!.endStationMeters,
     })).toBeCloseTo(underside, 4);
+  });
+
+  it('renders separated masonry cap spans as one continuous concrete strip', () => {
+    const { geometry } = gableGeometry();
+    const capsBySide = new Map<string, typeof geometry.rakedCapPlacements>();
+
+    for (const cap of geometry.rakedCapPlacements ?? []) {
+      const key = `${cap.gableEndSegmentId}:${cap.slope}`;
+      const caps = capsBySide.get(key) ?? [];
+      caps.push(cap);
+      capsBySide.set(key, caps);
+    }
+
+    const sideWithStationGaps = [...capsBySide.values()].find((caps) =>
+      [...(caps ?? [])]
+        .sort((left, right) => left.startStationMeters - right.startStationMeters)
+        .some((cap, index, sortedCaps) => {
+          const prior = sortedCaps[index - 1];
+          return (
+            prior !== undefined &&
+            cap.startStationMeters - prior.endStationMeters >
+              RAKED_CAP_STRIP_STATION_GAP_TOLERANCE_METERS
+          );
+        }),
+    );
+
+    expect(sideWithStationGaps).toBeDefined();
+
+    const sortedCaps = [...(sideWithStationGaps ?? [])].sort(
+      (left, right) => left.startStationMeters - right.startStationMeters,
+    );
+    const strip = buildRakedCapStripRenderSegments(sortedCaps);
+    const expectedLength =
+      sortedCaps[sortedCaps.length - 1]!.endStationMeters -
+      sortedCaps[0]!.startStationMeters;
+    const renderedLength =
+      strip?.segments.reduce(
+        (sum, segment) => sum + segment.spanMeters,
+        0,
+      ) ?? 0;
+
+    expect(strip).toBeDefined();
+    expect(strip?.startStationMeters).toBeCloseTo(
+      sortedCaps[0]!.startStationMeters,
+      4,
+    );
+    expect(renderedLength).toBeCloseTo(expectedLength, 4);
+    expect(strip?.segments.length).toBeGreaterThan(sortedCaps.length);
   });
 
   it('lowers CMU cutoff when minimum rake depth increases without changing roof-to-cap clearance', () => {

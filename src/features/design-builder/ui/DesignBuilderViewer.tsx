@@ -67,6 +67,7 @@ import {
   buildTrussBasePlateMesh,
   buildTrussPlaneGuide,
   createSteelTrussMaterials,
+  buildRakedCapStripRenderSegments,
 } from '../geometry/roofRenderingGeometry';
 import {
   allowedMasonryTopYAtStation,
@@ -1494,30 +1495,14 @@ export default function DesignBuilderViewer({
               const sortedCaps = [...caps].sort(
                 (left, right) => left.startStationMeters - right.startStationMeters,
               );
-              const segments = sortedCaps
-                .map((cap) => {
-                  const span = cap.endStationMeters - cap.startStationMeters;
-                  if (span <= 0) return null;
-                  const startHeight = cap.startTopY - cap.startBottomY;
-                  const endHeight = cap.endTopY - cap.endBottomY;
-                  if (startHeight <= 0 && endHeight <= 0) return null;
-                  return {
-                    spanMeters: span,
-                    startBottomY: cap.startBottomY,
-                    endBottomY: cap.endBottomY,
-                    startTopY: cap.startTopY,
-                    endTopY: cap.endTopY,
-                    wallDepthMeters: cap.wallDepthMeters,
-                  };
-                })
-                .filter((segment): segment is NonNullable<typeof segment> => segment != null);
-              if (segments.length === 0) continue;
+              const strip = buildRakedCapStripRenderSegments(sortedCaps);
+              if (!strip || strip.segments.length === 0) continue;
 
               const firstCap = sortedCaps[0]!;
-              const startX = frame.start.x + frame.tangent.x * firstCap.startStationMeters;
-              const startZ = frame.start.z + frame.tangent.z * firstCap.startStationMeters;
+              const startX = frame.start.x + frame.tangent.x * strip.startStationMeters;
+              const startZ = frame.start.z + frame.tangent.z * strip.startStationMeters;
               const mesh = new THREE.Mesh(
-                trackGeometry(createRakedCapStripGeometry(segments)),
+                trackGeometry(createRakedCapStripGeometry(strip.segments)),
                 capMaterial,
               );
               mesh.position.set(

@@ -21,10 +21,6 @@ function costsMarkupTab(): EstimateWorkspaceTab {
   return { id: 'overview', label: 'Costs & Markup' };
 }
 
-function settingsTab(): EstimateWorkspaceTab {
-  return { id: 'settings', label: 'Settings' };
-}
-
 function scheduleTabs(schedulingEnabled: boolean): EstimateWorkspaceTab[] {
   if (!schedulingEnabled) return [];
   return [
@@ -40,12 +36,11 @@ export function getVisibleWorkspaceTabs(
 ): EstimateWorkspaceTab[] {
   const type = normalizeEstimateMethod(estimateType);
   const costs = costsMarkupTab();
-  const settings = settingsTab();
   const schedule = scheduleTabs(schedulingEnabled);
 
   switch (type) {
     case 'quick':
-      return [{ id: 'quick-estimate', label: 'Quick Estimate' }, costs, ...schedule, settings];
+      return [{ id: 'quick-estimate', label: 'Quick Estimate' }, costs, ...schedule];
     case 'conceptual':
       return [
         { id: 'conceptual-budget', label: 'Conceptual Budget' },
@@ -54,7 +49,6 @@ export function getVisibleWorkspaceTabs(
         { id: 'risks-contingency', label: 'Risks & Contingency' },
         costs,
         ...schedule,
-        settings,
       ];
     case 'change_order':
       return [
@@ -62,21 +56,18 @@ export function getVisibleWorkspaceTabs(
         { id: 'pricing', label: 'Pricing' },
         costs,
         ...schedule,
-        settings,
       ];
     case 'unit_price':
       return [
         { id: 'unit-price-items', label: 'Unit Price Items' },
         costs,
         ...schedule,
-        settings,
       ];
     case 'subcontractor_quote':
       return [
         { id: 'subcontractor-quotes', label: 'Quotes' },
         { id: 'quote-comparison', label: 'Quote Comparison' },
         costs,
-        settings,
       ];
     case 'detailed':
     case 'bid':
@@ -88,7 +79,6 @@ export function getVisibleWorkspaceTabs(
         { id: 'design-builder', label: 'Design Builder' },
         ...schedule,
         costs,
-        settings,
       ];
   }
 }
@@ -121,6 +111,7 @@ export function isTabVisibleForEstimateType(
   estimateType: StoredEstimateType | string | null | undefined,
   schedulingEnabled: boolean,
 ): boolean {
+  if (tabId === 'settings') return true;
   return getVisibleWorkspaceTabs(estimateType, schedulingEnabled).some((tab) => tab.id === tabId);
 }
 

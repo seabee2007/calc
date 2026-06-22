@@ -2776,9 +2776,11 @@ export default function EstimateWorkspacePage() {
   }, [isModelWorkspaceFocusMode, isDesignBuilderFocusMode, headerCollapse]);
 
   const activeTabLabel =
-    visibleWorkspaceTabs.find((tab) => tab.id === activeTab)?.label ??
-    entitlementFilteredTabs.find((tab) => tab.id === activeTab)?.label ??
-    'Workspace';
+    activeTab === 'settings'
+      ? 'Settings'
+      : visibleWorkspaceTabs.find((tab) => tab.id === activeTab)?.label ??
+        entitlementFilteredTabs.find((tab) => tab.id === activeTab)?.label ??
+        'Workspace';
 
   useEffect(() => {
     if (!headerCollapseEnabled || !setHeaderMiniStatus) return;
@@ -2856,6 +2858,7 @@ export default function EstimateWorkspacePage() {
           onImportEstimate={() => setImportModalOpen(true)}
           onExportEstimate={handleExportEstimate}
           onDownloadImportTemplate={handleDownloadImportTemplate}
+          onOpenSettings={() => handleTabChange('settings')}
           onOpenHelp={handleOpenHelp}
           onConvertToDetailed={() => setConvertToDetailedModalOpen(true)}
           showGuidedHelpBadge={showGuidedHelpBadge}

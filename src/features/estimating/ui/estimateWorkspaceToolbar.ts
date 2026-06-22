@@ -15,6 +15,7 @@ export const ESTIMATE_WORKSPACE_ACTIONS_MENU_LABELS = {
   importEstimate: 'Import estimate',
   exportEstimate: 'Export estimate',
   downloadTemplate: 'Download template',
+  settings: 'Settings',
   helpDefinitions: 'Help / Definitions',
   collapseAll: 'Collapse all',
   resetForm: 'Reset form',
@@ -36,6 +37,7 @@ export type EstimateWorkspaceActionsMenuItemKey =
   | 'import-estimate'
   | 'export-estimate'
   | 'download-template'
+  | 'settings'
   | 'help-definitions'
   | 'collapse-all'
   | 'reset-form'
@@ -74,6 +76,7 @@ export interface EstimateWorkspaceMenuActionHandlers {
   onImportEstimate: () => void;
   onExportEstimate: () => void;
   onDownloadTemplate: () => void;
+  onOpenSettings?: () => void;
   onOpenHelp?: () => void;
   onCollapseAll?: () => void;
   onResetForm?: () => void;
@@ -94,6 +97,9 @@ export function runEstimateWorkspaceMenuAction(
       return;
     case 'download-template':
       handlers.onDownloadTemplate();
+      return;
+    case 'settings':
+      handlers.onOpenSettings?.();
       return;
     case 'help-definitions':
       handlers.onOpenHelp?.();
@@ -158,6 +164,11 @@ export function buildEstimateWorkspaceActionsMenuItems(
       label: ESTIMATE_WORKSPACE_ACTIONS_MENU_LABELS.convertToDetailed,
     });
   }
+
+  items.push({
+    key: 'settings',
+    label: ESTIMATE_WORKSPACE_ACTIONS_MENU_LABELS.settings,
+  });
 
   items.push({
     key: 'help-definitions',
