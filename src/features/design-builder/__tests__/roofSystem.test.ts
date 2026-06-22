@@ -495,7 +495,7 @@ describe('Roof system — hip, gable, raked cap', () => {
     });
     expect(preview.some((line) => line.id === 'roof-surface-area')).toBe(true);
     expect(preview.some((line) => line.id === 'roof-framing-reference-length')).toBe(true);
-    expect(preview.some((line) => line.id === 'gable-end-cmu')).toBe(true);
+    expect(preview.some((line) => line.id === 'cmu-blocks')).toBe(true);
     expect(preview.some((line) => line.id === 'raked-concrete-cap')).toBe(true);
     expect(preview.some((line) => line.id === 'rc-roof-beams-volume')).toBe(true);
   });

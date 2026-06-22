@@ -3,6 +3,7 @@ import { createFiveBySixCmuBuildingPreset } from '../domain/designBuilderPreset'
 import {
   buildCmuBuildingEstimatePreview,
   calculateCmuBlockCount,
+  calculateCmuFullCoreFillVolumeCubicMeters,
   calculateFloorArea,
   calculateGableRoofArea,
   calculateThickenedEdgeSlabVolume,
@@ -11,6 +12,7 @@ import {
   calculateWallNetArea,
   calculateWallOpeningArea,
   calculateWallRoughOpeningArea,
+  resolveCmuOrderBlockQuantity,
 } from '../quantity/designQuantityFormulas';
 
 describe('Design Builder quantity formulas', () => {
@@ -59,6 +61,11 @@ describe('Design Builder quantity formulas', () => {
     expect(calculateTrussCount(preset.truss)).toBe(11);
   });
 
+  it('orders CMU blocks as full units with waste applied to generated count', () => {
+    expect(resolveCmuOrderBlockQuantity({ totalGeneratedBlocks: 100, wasteFactor: 0.05 })).toBe(105);
+    expect(resolveCmuOrderBlockQuantity({ totalGeneratedBlocks: 0, wasteFactor: 0.05 })).toBe(0);
+  });
+
   it('generates construction-aware CMU estimate preview lines with parameter metadata', () => {
     const preset = createFiveBySixCmuBuildingPreset();
     const preview = buildCmuBuildingEstimatePreview({
@@ -75,9 +82,7 @@ describe('Design Builder quantity formulas', () => {
 
     expect(preview.map((line) => line.id)).toEqual(
       expect.arrayContaining([
-        'cmu-standard-blocks',
-        'cmu-special-blocks',
-        'cmu-terminal-cut-blocks',
+        'cmu-blocks',
         'mortar-allowance',
         'cmu-lintels',
         'opening-rough-area',
@@ -87,10 +92,14 @@ describe('Design Builder quantity formulas', () => {
         'cmu-lintel-grout',
         'cmu-bond-beam-grout',
         'cmu-total-grout',
+        'cmu-core-fill-grout',
         'cmu-bond-beam',
         'grouted-cells-columns',
       ]),
     );
+    expect(preview.map((line) => line.id)).not.toContain('cmu-standard-blocks');
+    expect(preview.map((line) => line.id)).not.toContain('cmu-special-blocks');
+    expect(preview.find((line) => line.id === 'cmu-blocks')?.quantity).toBeGreaterThan(0);
     expect(preview.find((line) => line.id === 'cmu-lintels')).toEqual(
       expect.objectContaining({
         source: 'parametric_design_builder',
@@ -115,7 +124,7 @@ describe('Design Builder quantity formulas', () => {
     );
   });
 
-  it('records terminal cut block metadata in estimate preview', () => {
+  it('retains terminal cut metadata on the consolidated CMU block line', () => {
     const preset = createFiveBySixCmuBuildingPreset();
     const preview = buildCmuBuildingEstimatePreview({
       designModelId: 'model-1',
@@ -128,15 +137,18 @@ describe('Design Builder quantity formulas', () => {
       roof: preset.roof,
       truss: preset.truss,
     });
-    const terminalCuts = preview.find((line) => line.id === 'cmu-terminal-cut-blocks');
+    const cmuBlocks = preview.find((line) => line.id === 'cmu-blocks');
 
-    expect(terminalCuts?.description).toBe('Terminal cut block');
-    expect(terminalCuts?.parameterSnapshot).toEqual(
+    expect(cmuBlocks?.description).toContain('full units');
+    expect(cmuBlocks?.parameterSnapshot).toEqual(
       expect.objectContaining({
-        source: 'closed_perimeter_solver',
-        terminalClosures: expect.any(Array),
+        result: expect.objectContaining({
+          terminalClosures: expect.any(Array),
+          orderingPolicy: 'site_cut_from_full_units',
+        }),
       }),
     );
+    expect(preview.some((line) => line.id === 'cmu-terminal-cut-blocks')).toBe(false);
   });
 
   it('generates separate top bond beam quantity only when enabled', () => {
@@ -156,5 +168,30 @@ describe('Design Builder quantity formulas', () => {
 
     expect(buildPreview(true).find((line) => line.id === 'cmu-bond-beam')?.quantity).toBeCloseTo(22, 6);
     expect(buildPreview(false).find((line) => line.id === 'cmu-bond-beam')?.quantity).toBe(0);
+  });
+
+  it('calculates CMU core fill grout from every block core void plus waste', () => {
+    const preset = createFiveBySixCmuBuildingPreset();
+    const preview = buildCmuBuildingEstimatePreview({
+      designModelId: 'model-1',
+      wallObjectId: 'wall-1',
+      slabObjectId: 'slab-1',
+      roofObjectId: 'roof-1',
+      trussObjectId: 'truss-1',
+      wall: preset.wall,
+      slab: preset.slab,
+      roof: preset.roof,
+      truss: preset.truss,
+    });
+    const coreFillLine = preview.find((line) => line.id === 'cmu-core-fill-grout');
+    const cmuBlocksLine = preview.find((line) => line.id === 'cmu-blocks');
+    const totalGeneratedBlocks =
+      (cmuBlocksLine?.parameterSnapshot as { result?: { totalGeneratedBlocks?: number } })?.result
+        ?.totalGeneratedBlocks ?? 0;
+
+    expect(totalGeneratedBlocks).toBeGreaterThan(0);
+    expect(calculateCmuFullCoreFillVolumeCubicMeters(totalGeneratedBlocks, preset.wall)).toBeGreaterThan(0);
+    expect(coreFillLine?.quantity).toBeGreaterThan(0);
+    expect(coreFillLine?.quantityType).toBe('cmu_core_fill_grout');
   });
 });

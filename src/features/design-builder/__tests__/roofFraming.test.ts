@@ -548,6 +548,38 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
     expect(line!.quantity).toBeCloseTo(roof.roofSurfaceAreaSquareMeters * 10.7639 * 1.1, 0);
   });
 
+  it('exposes steel-trusses quantity for frame infill quantity summary', () => {
+    const roofSystem = createDefaultRoofSystemSettings();
+    const geometry = frameInfillGeometry(roofSystem);
+    const roof = geometry.resolvedRoofSystem!;
+    const preview = buildFrameInfillEstimatePreview({
+      designModelId: 'test',
+      wallObjectId: 'wall',
+      slabObjectId: 'slab',
+      roofObjectId: 'roof',
+      trussObjectId: 'truss',
+      frameObjectId: 'frame',
+      infillObjectId: 'infill',
+      gableEndObjectId: 'gable',
+      wall: preset.wall,
+      slab: preset.slab,
+      roof: preset.roof,
+      truss: preset.truss,
+      buildingSystemMode: 'reinforced_concrete_frame_with_cmu_infill',
+      frameSystem: preset.frameSystem,
+      infillSystem: preset.infillSystem,
+      gableEndSystem: preset.gableEndSystem,
+      geometryResult: geometry,
+      roofSystem,
+    });
+
+    const trussLine = preview.find((line) => line.id === 'steel-trusses');
+    expect(trussLine).toBeDefined();
+    expect(trussLine!.quantity).toBe(roof.trussCount);
+    expect(trussLine!.quantity).toBeGreaterThan(0);
+    expect(preview.some((line) => line.id === 'steel-roof-trusses')).toBe(false);
+  });
+
   it('hip roof does not generate gable trusses or raked caps', () => {
     const roofSystem = {
       ...createDefaultRoofSystemSettings(),

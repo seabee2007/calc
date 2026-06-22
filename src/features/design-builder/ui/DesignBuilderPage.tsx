@@ -123,7 +123,16 @@ import {
   generateDesignGeometry,
 } from '../geometry/designGeometry';
 import { useEstimateWorkspaceHeaderCollapse } from '../../estimating/ui/EstimateWorkspaceHeaderCollapseContext';
-import { buildDesignEstimatePreview, cubicMetersToCubicYards } from '../quantity/designQuantityFormulas';
+import {
+  buildDesignEstimatePreview,
+  cubicMetersToCubicYards,
+  resolveCmuOrderBlockQuantity,
+} from '../quantity/designQuantityFormulas';
+import {
+  areaFromSquareMeters,
+  volumeFromCubicMeters,
+} from '../quantity/designQuantityUnits';
+import { usePreferencesStore } from '../../../store';
 import {
   applyAutoFrameLayout,
   applyFrameFoundationDimensions,
@@ -920,6 +929,9 @@ export default function DesignBuilderPage({
     };
   }, [objects]);
 
+  const { preferences } = usePreferencesStore();
+  const measurementSystem = preferences.measurementSystem;
+
   const generatedPreview = useMemo(() => {
     const modelId = designModel?.id ?? 'local-design-model';
     return buildDesignEstimatePreview({
@@ -934,8 +946,9 @@ export default function DesignBuilderPage({
       infillSystem: designGeometryResult.infillSystem ?? resolvedPreset.infillSystem,
       gableEndSystem: designGeometryResult.gableEndSystem ?? resolvedPreset.gableEndSystem,
       geometryResult: designGeometryResult,
+      measurementSystem,
     });
-  }, [designGeometryResult, designModel?.id, effectiveWall, footprintClosed, objectIds, resolvedPreset]);
+  }, [designGeometryResult, designModel?.id, effectiveWall, footprintClosed, measurementSystem, objectIds, resolvedPreset]);
   const visiblePreviewLines = modelLoaded ? (previewLines.length > 0 ? previewLines : generatedPreview) : [];
   const cmuModule = useMemo(() => resolveCmuModuleConfig(effectiveWall), [effectiveWall]);
   const wallModuleFits = useMemo(() => summarizeWallModuleFits(effectiveWall), [effectiveWall]);
@@ -999,40 +1012,56 @@ export default function DesignBuilderPage({
     [designGeometryResult.wallCmuLayout.warnings, effectiveWall],
   );
 
-  const quantityCards = useMemo(
-    () => [
-      {
-        label: 'Thickened edge slab concrete',
-        value: modelLoaded ? (generatedPreview.find((line) => line.id === 'slab-concrete')?.quantity ?? 0) : 0,
-        unit: 'CY',
-        objectType: 'thickened_edge_slab' as DesignObjectType,
-      },
+  const isRcFrameBuilding =
+    resolvedPreset.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill';
+  const quantityCards = useMemo(() => {
+    const previewLine = (id: string, alternateId?: string) =>
+      generatedPreview.find((line) => line.id === id) ??
+      (alternateId ? generatedPreview.find((line) => line.id === alternateId) : undefined);
+
+    const cmuBlockQuantity = resolveCmuOrderBlockQuantity({
+      totalGeneratedBlocks: designGeometryResult.blockCount + manualMasonrySummary.total,
+      wasteFactor: effectiveWall.wasteFactor,
+    });
+    const roughOpening = areaFromSquareMeters(
+      cmuLayout.openingGrout.roughOpeningAreaSquareMeters,
+      measurementSystem,
+    );
+    const actualOpening = areaFromSquareMeters(
+      cmuLayout.openingGrout.actualOpeningAreaSquareMeters,
+      measurementSystem,
+    );
+    const closureGrout = volumeFromCubicMeters(
+      cmuLayout.openingGrout.closureGroutVolumeCubicMeters,
+      measurementSystem,
+      3,
+    );
+    const openingGrout = volumeFromCubicMeters(
+      cmuLayout.openingGrout.totalGroutVolumeCubicMeters,
+      measurementSystem,
+      3,
+    );
+    const coreFillLine = previewLine('cmu-core-fill-grout');
+    const roofAreaLine = previewLine('roof-surface-area', 'roof-area');
+    const trussLine = previewLine('steel-trusses');
+    const rakedCapLine = previewLine('raked-concrete-cap');
+    const interiorSlabLine = previewLine('interior-floor-slab-volume');
+    const thickenedSlabLine = previewLine('slab-concrete');
+
+    return [
+      ...(isRcFrameBuilding
+        ? []
+        : [
+            {
+              label: 'Thickened edge slab concrete',
+              value: modelLoaded ? (thickenedSlabLine?.quantity ?? 0) : 0,
+              unit: thickenedSlabLine?.unit ?? (measurementSystem === 'metric' ? 'M3' : 'CY'),
+              objectType: 'thickened_edge_slab' as DesignObjectType,
+            },
+          ]),
       {
         label: 'CMU blocks including waste',
-        value: modelLoaded ? designGeometryResult.blockCount + manualMasonrySummary.total : 0,
-        unit: 'EA',
-        objectType: 'cmu_wall_system' as DesignObjectType,
-      },
-      {
-        label: 'CMU full blocks',
-        value: modelLoaded ? cmuLayout.counts.full + manualMasonrySummary.full_block : 0,
-        unit: 'EA',
-        objectType: 'cmu_wall_system' as DesignObjectType,
-      },
-      {
-        label: 'CMU special blocks',
-        value: modelLoaded
-          ? cmuLayout.counts.half +
-            cmuLayout.counts.corner +
-            cmuLayout.counts.end +
-            cmuLayout.counts.jamb +
-            cmuLayout.counts.cut +
-            manualMasonrySummary.half_block +
-            manualMasonrySummary.end_block +
-            manualMasonrySummary.jamb_block +
-            manualMasonrySummary.bond_beam_block +
-            manualMasonrySummary.grout_rebar_cell
-          : 0,
+        value: modelLoaded ? cmuBlockQuantity : 0,
         unit: 'EA',
         objectType: 'cmu_wall_system' as DesignObjectType,
       },
@@ -1044,14 +1073,14 @@ export default function DesignBuilderPage({
       },
       {
         label: 'Rough opening area',
-        value: modelLoaded ? Number(cmuLayout.openingGrout.roughOpeningAreaSquareMeters.toFixed(2)) : 0,
-        unit: 'M2',
+        value: modelLoaded ? roughOpening.quantity : 0,
+        unit: roughOpening.unit,
         objectType: 'door_opening' as DesignObjectType,
       },
       {
         label: 'Actual opening area',
-        value: modelLoaded ? Number(cmuLayout.openingGrout.actualOpeningAreaSquareMeters.toFixed(2)) : 0,
-        unit: 'M2',
+        value: modelLoaded ? actualOpening.quantity : 0,
+        unit: actualOpening.unit,
         objectType: 'window_opening' as DesignObjectType,
       },
       {
@@ -1061,68 +1090,100 @@ export default function DesignBuilderPage({
         objectType: 'cmu_wall_system' as DesignObjectType,
       },
       {
-        label: 'Closure cut blocks',
-        value: modelLoaded ? cmuLayout.openingGrout.courseClosureCutBlockCount : 0,
-        unit: 'EA',
-        objectType: 'cmu_wall_system' as DesignObjectType,
-      },
-      {
         label: 'Closure grout volume',
-        value: modelLoaded ? Number(cmuLayout.openingGrout.closureGroutVolumeCubicMeters.toFixed(3)) : 0,
-        unit: 'M3',
+        value: modelLoaded ? closureGrout.quantity : 0,
+        unit: closureGrout.unit,
         objectType: 'cmu_wall_system' as DesignObjectType,
       },
       {
-        label: 'Bond beam length',
-        value: modelLoaded ? cmuLayout.bondBeamLengthMeters : 0,
-        unit: 'M',
+        label: 'CMU core fill grout',
+        value: modelLoaded ? (coreFillLine?.quantity ?? 0) : 0,
+        unit: coreFillLine?.unit ?? (measurementSystem === 'metric' ? 'M3' : 'CY'),
         objectType: 'cmu_wall_system' as DesignObjectType,
       },
       {
         label: 'Opening grout volume',
-        value: modelLoaded ? Number(cmuLayout.openingGrout.totalGroutVolumeCubicMeters.toFixed(3)) : 0,
-        unit: 'M3',
+        value: modelLoaded ? openingGrout.quantity : 0,
+        unit: openingGrout.unit,
         objectType: 'cmu_wall_system' as DesignObjectType,
       },
-      {
-        label: 'Grouted cells',
-        value: modelLoaded ? cmuLayout.groutedCellCount : 0,
-        unit: 'EA',
-        objectType: 'cmu_wall_system' as DesignObjectType,
-      },
+      ...(isRcFrameBuilding
+        ? [
+            {
+              label: 'Footer concrete volume',
+              value: modelLoaded ? (previewLine('isolated-footings-volume')?.quantity ?? 0) : 0,
+              unit:
+                previewLine('isolated-footings-volume')?.unit ??
+                (measurementSystem === 'metric' ? 'M3' : 'CY'),
+              objectType: 'structural_frame_system' as DesignObjectType,
+            },
+            {
+              label: 'Columns concrete volume',
+              value: modelLoaded ? (previewLine('rc-columns-volume')?.quantity ?? 0) : 0,
+              unit:
+                previewLine('rc-columns-volume')?.unit ?? (measurementSystem === 'metric' ? 'M3' : 'CY'),
+              objectType: 'structural_frame_system' as DesignObjectType,
+            },
+            {
+              label: 'Plinth beam concrete volume',
+              value: modelLoaded ? (previewLine('rc-plinth-beams-volume')?.quantity ?? 0) : 0,
+              unit:
+                previewLine('rc-plinth-beams-volume')?.unit ??
+                (measurementSystem === 'metric' ? 'M3' : 'CY'),
+              objectType: 'structural_frame_system' as DesignObjectType,
+            },
+            {
+              label: 'Tie beam concrete volume',
+              value: modelLoaded ? (previewLine('rc-tie-beams-volume')?.quantity ?? 0) : 0,
+              unit:
+                previewLine('rc-tie-beams-volume')?.unit ?? (measurementSystem === 'metric' ? 'M3' : 'CY'),
+              objectType: 'structural_frame_system' as DesignObjectType,
+            },
+            {
+              label: 'Roof beam concrete volume',
+              value: modelLoaded ? (previewLine('rc-roof-beams-volume')?.quantity ?? 0) : 0,
+              unit:
+                previewLine('rc-roof-beams-volume')?.unit ??
+                (measurementSystem === 'metric' ? 'M3' : 'CY'),
+              objectType: 'structural_frame_system' as DesignObjectType,
+            },
+          ]
+        : []),
       {
         label: 'Gable roof surface area',
-        value: modelLoaded ? (generatedPreview.find((line) => line.id === 'roof-area')?.quantity ?? 0) : 0,
-        unit: 'SF',
+        value: modelLoaded ? (roofAreaLine?.quantity ?? 0) : 0,
+        unit: roofAreaLine?.unit ?? (measurementSystem === 'metric' ? 'M2' : 'SF'),
         objectType: 'gable_roof_system' as DesignObjectType,
       },
       {
         label: 'Steel trusses by spacing',
-        value: modelLoaded ? (generatedPreview.find((line) => line.id === 'steel-trusses')?.quantity ?? 0) : 0,
+        value: modelLoaded ? (trussLine?.quantity ?? 0) : 0,
         unit: 'EA',
         objectType: 'steel_truss_system' as DesignObjectType,
       },
       {
-        label: 'Gable-end CMU blocks',
-        value: modelLoaded ? (generatedPreview.find((line) => line.id === 'gable-end-cmu')?.quantity ?? 0) : 0,
-        unit: 'EA',
-        objectType: 'gable_end_system' as DesignObjectType,
-      },
-      {
         label: 'Raked concrete cap volume',
-        value: modelLoaded ? (generatedPreview.find((line) => line.id === 'raked-concrete-cap')?.quantity ?? 0) : 0,
-        unit: 'CY',
+        value: modelLoaded ? (rakedCapLine?.quantity ?? 0) : 0,
+        unit: rakedCapLine?.unit ?? (measurementSystem === 'metric' ? 'M3' : 'CY'),
         objectType: 'gable_end_system' as DesignObjectType,
       },
       {
         label: 'Interior floor slab volume',
-        value: modelLoaded ? (generatedPreview.find((line) => line.id === 'interior-floor-slab-volume')?.quantity ?? 0) : 0,
-        unit: 'CY',
+        value: modelLoaded ? (interiorSlabLine?.quantity ?? 0) : 0,
+        unit: interiorSlabLine?.unit ?? (measurementSystem === 'metric' ? 'M3' : 'CY'),
         objectType: 'structural_frame_system' as DesignObjectType,
       },
-    ],
-    [cmuLayout, designGeometryResult.blockCount, generatedPreview, manualMasonrySummary, modelLoaded],
-  );
+    ];
+  }, [
+    cmuLayout,
+    designGeometryResult.blockCount,
+    effectiveWall.wasteFactor,
+    generatedPreview,
+    isRcFrameBuilding,
+    manualMasonrySummary.total,
+    measurementSystem,
+    modelLoaded,
+  ]);
 
   const selectedObjectLabel = selectedSegmentId
     ? 'Wall Segment'

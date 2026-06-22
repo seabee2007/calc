@@ -310,8 +310,11 @@ describe('structural frame + CMU infill milestone', () => {
     expect(lines.some((l) => l.quantityType === 'rc_tie_beams_volume')).toBe(true);
     expect(lines.some((l) => l.quantityType === 'rc_columns_volume')).toBe(true);
     expect(lines.some((l) => l.quantityType === 'isolated_footings_volume')).toBe(true);
-    expect(lines.some((l) => l.quantityType === 'cmu_infill_blocks')).toBe(true);
-    expect(lines.some((l) => l.quantityType === 'cmu_top_closure_cut_course')).toBe(true);
+    expect(lines.some((l) => l.id === 'cmu-core-fill-grout')).toBe(true);
+    expect(lines.some((l) => l.quantityType === 'cmu_infill_blocks')).toBe(false);
+    expect(lines.some((l) => l.quantityType === 'cmu_top_closure_cut_course')).toBe(false);
+    expect(lines.find((l) => l.id === 'cmu-blocks')?.quantity).toBeGreaterThan(0);
+    expect(lines.some((l) => l.id === 'slab-concrete')).toBe(false);
   });
 
   it('module fit candidate table uses solver dimensions', () => {

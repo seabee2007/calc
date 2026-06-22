@@ -16,8 +16,117 @@ import {
   OPENING_GROUT_CONCEPTUAL_WARNING,
   calculateCmuOpeningGroutSummary,
 } from '../domain/cmuOpeningRules';
+import {
+  applyGroutWaste,
+  computeCellCoreVolumeCubicMeters,
+  resolveCmuCoreGeometry,
+} from '../domain/cmuCoreGeometry';
+import {
+  applyMeasurementSystemToPreviewLines,
+  type DesignMeasurementSystem,
+} from './designQuantityUnits';
 
 const SQUARE_METERS_PER_SQUARE_FOOT = 0.09290304;
+
+export const CMU_BLOCK_BREAKDOWN_PREVIEW_LINE_IDS = [
+  'cmu-standard-blocks',
+  'cmu-special-blocks',
+  'cmu-terminal-cut-blocks',
+  'cmu-closure-cut-blocks',
+  'cmu-lintel-closure-cut-blocks',
+  'cmu-infill-blocks',
+  'cmu-top-closure-cut-course',
+  'gable-cut-blocks',
+  'gable-end-cmu',
+  'gable-end-cut-blocks',
+] as const;
+
+export function resolveCmuOrderBlockQuantity(params: {
+  totalGeneratedBlocks: number;
+  wasteFactor?: number;
+}): number {
+  const waste = Math.max(0, params.wasteFactor ?? 0);
+  return Math.ceil(Math.max(0, params.totalGeneratedBlocks) * (1 + waste));
+}
+
+export function omitCmuBlockBreakdownPreviewLines(
+  lines: readonly DesignEstimatePreviewLine[],
+): DesignEstimatePreviewLine[] {
+  const omit = new Set<string>(CMU_BLOCK_BREAKDOWN_PREVIEW_LINE_IDS);
+  return lines.filter((line) => !omit.has(line.id));
+}
+
+export function calculateCmuFullCoreFillVolumeCubicMeters(
+  totalBlocks: number,
+  wall: CmuWallSystemParameters,
+): number {
+  const core = resolveCmuCoreGeometry(wall);
+  const perBlockVolume = computeCellCoreVolumeCubicMeters(core);
+  const grossVolume = Math.max(0, totalBlocks) * perBlockVolume;
+  const wastePercent = Math.max(0, (wall.groutWastePercent ?? 0.1) * 100);
+  return applyGroutWaste(grossVolume, wastePercent).netVolumeCubicMeters;
+}
+
+function buildCmuCoreFillGroutPreviewLine(
+  input: Pick<CmuBuildingQuantityInput, 'designModelId' | 'wallObjectId' | 'wall'>,
+  totalGeneratedBlocks: number,
+): DesignEstimatePreviewLine {
+  const core = resolveCmuCoreGeometry(input.wall);
+  const volumeCubicMeters = calculateCmuFullCoreFillVolumeCubicMeters(totalGeneratedBlocks, input.wall);
+  return {
+    id: 'cmu-core-fill-grout',
+    designModelId: input.designModelId,
+    designObjectId: input.wallObjectId,
+    quantityType: 'cmu_core_fill_grout',
+    description: 'CMU core fill grout (every block)',
+    quantity: roundQuantity(cubicMetersToCubicYards(volumeCubicMeters), 3),
+    unit: 'CY',
+    formula: 'total_blocks * cell_core_volume * (1 + grout_waste_percent)',
+    parameterSnapshot: {
+      totalGeneratedBlocks,
+      coreGeometry: core,
+      groutWastePercent: input.wall.groutWastePercent ?? 0.1,
+      perBlockCoreVolumeCubicMeters: computeCellCoreVolumeCubicMeters(core),
+      volumeCubicMeters,
+    },
+    source: 'parametric_design_builder',
+    confidence: 'calculated_from_parameters',
+    divisionCode: '04',
+    divisionName: 'Masonry',
+  };
+}
+
+function buildSiteCutCmuBlocksPreviewLine(
+  input: Pick<CmuBuildingQuantityInput, 'designModelId' | 'wallObjectId' | 'wall'>,
+  totalGeneratedBlocks: number,
+): DesignEstimatePreviewLine {
+  const quantity = resolveCmuOrderBlockQuantity({
+    totalGeneratedBlocks,
+    wasteFactor: input.wall.wasteFactor,
+  });
+  return {
+    id: 'cmu-blocks',
+    designModelId: input.designModelId,
+    designObjectId: input.wallObjectId,
+    quantityType: 'cmu_block_count',
+    description: 'CMU blocks (order as full units, cut on site)',
+    quantity,
+    unit: 'EA',
+    formula: 'ceil(total_generated_blocks * (1 + waste_factor))',
+    parameterSnapshot: {
+      ...input.wall,
+      result: {
+        totalGeneratedBlocks,
+        orderBlockQuantity: quantity,
+        orderingPolicy: 'site_cut_from_full_units',
+      },
+    },
+    source: 'parametric_design_builder',
+    confidence: 'calculated_from_parameters',
+    divisionCode: '04',
+    divisionName: 'Masonry',
+  };
+}
 const CUBIC_METERS_PER_CUBIC_YARD = 0.764554857984;
 
 export function roundQuantity(value: number, precision = 3): number {
@@ -136,24 +245,21 @@ export interface CmuBuildingQuantityInput {
   slab: ThickenedEdgeSlabParameters;
   roof: GableRoofSystemParameters;
   truss: SteelTrussSystemParameters;
+  measurementSystem?: DesignMeasurementSystem;
 }
 
 export function buildCmuBuildingEstimatePreview(input: CmuBuildingQuantityInput): DesignEstimatePreviewLine[] {
   const wallGrossArea = calculateWallGrossArea(input.wall);
   const wallActualOpeningArea = calculateWallOpeningArea(input.wall.openings);
-  const blockCount = calculateCmuBlockCount(input.wall);
   const cmuLayout = generateCmuLayout(input.wall);
   const openingGrout = cmuLayout.openingGrout;
   const wallOpeningArea = openingGrout.roughOpeningAreaSquareMeters;
   const wallNetArea = calculateWallNetArea(input.wall);
-  const standardBlocks = cmuLayout.counts.full;
   const terminalCutLengthMeters = cmuLayout.terminalClosures.reduce((sum, closure) => sum + closure.remainingLengthMeters, 0);
-  const specialBlocks =
-    cmuLayout.counts.half +
-    cmuLayout.counts.end +
-    cmuLayout.counts.corner +
-    cmuLayout.counts.jamb +
-    cmuLayout.counts.cut;
+  const orderBlockQuantity = resolveCmuOrderBlockQuantity({
+    totalGeneratedBlocks: cmuLayout.totalBlocks,
+    wasteFactor: input.wall.wasteFactor,
+  });
   const mortarAllowanceBags = Math.ceil(cmuLayout.totalBlocks / 100);
   const bondBeamLengthMeters = cmuLayout.bondBeamLengthMeters;
   const reinforcedCellCount = cmuLayout.groutedCellCount;
@@ -161,7 +267,7 @@ export function buildCmuBuildingEstimatePreview(input: CmuBuildingQuantityInput)
   const roofArea = calculateGableRoofArea(input.roof);
   const trussCount = calculateTrussCount(input.truss);
 
-  return [
+  return omitCmuBlockBreakdownPreviewLines([
     {
       id: 'slab-concrete',
       designModelId: input.designModelId,
@@ -178,14 +284,7 @@ export function buildCmuBuildingEstimatePreview(input: CmuBuildingQuantityInput)
       divisionName: 'Concrete',
     },
     {
-      id: 'cmu-blocks',
-      designModelId: input.designModelId,
-      designObjectId: input.wallObjectId,
-      quantityType: 'cmu_block_count',
-      description: 'CMU total blocks including waste',
-      quantity: Math.max(blockCount, cmuLayout.totalBlocks),
-      unit: 'EA',
-      formula: 'ceil(((gross_wall_area - openings_area) / block_face_area) * (1 + waste_factor))',
+      ...buildSiteCutCmuBlocksPreviewLine(input, cmuLayout.totalBlocks),
       parameterSnapshot: {
         ...input.wall,
         result: {
@@ -194,67 +293,18 @@ export function buildCmuBuildingEstimatePreview(input: CmuBuildingQuantityInput)
           actualOpeningAreaSquareMeters: wallActualOpeningArea,
           roughOpeningAreaSquareMeters: openingGrout.roughOpeningAreaSquareMeters,
           netAreaSquareMeters: wallNetArea,
+          totalGeneratedBlocks: cmuLayout.totalBlocks,
+          orderBlockQuantity,
+          orderingPolicy: 'site_cut_from_full_units',
           blockBreakdown: cmuLayout.counts,
           courseCount: cmuLayout.courseCount,
           moduleFits: cmuLayout.moduleFits,
           terminalClosures: cmuLayout.terminalClosures,
+          totalTerminalCutLengthMeters: roundQuantity(terminalCutLengthMeters, 3),
           openingGrout,
           warnings: [...new Set([...cmuLayout.warnings, ...openingGrout.warnings])],
         },
       },
-      source: 'parametric_design_builder',
-      confidence: 'calculated_from_parameters',
-      divisionCode: '04',
-      divisionName: 'Masonry',
-    },
-    {
-      id: 'cmu-standard-blocks',
-      designModelId: input.designModelId,
-      designObjectId: input.wallObjectId,
-      quantityType: 'cmu_standard_blocks',
-      description: 'CMU full/standard blocks',
-      quantity: standardBlocks,
-      unit: 'EA',
-      formula: 'generated_full_block_count_from_courses',
-      parameterSnapshot: { ...input.wall, result: { blockBreakdown: cmuLayout.counts, courseCount: cmuLayout.courseCount, moduleFits: cmuLayout.moduleFits } },
-      source: 'parametric_design_builder',
-      confidence: 'calculated_from_parameters',
-      divisionCode: '04',
-      divisionName: 'Masonry',
-    },
-    {
-      id: 'cmu-special-blocks',
-      designModelId: input.designModelId,
-      designObjectId: input.wallObjectId,
-      quantityType: 'cmu_special_blocks',
-      description: 'CMU half/end/corner/jamb/cut blocks',
-      quantity: specialBlocks,
-      unit: 'EA',
-      formula: 'generated_half_end_corner_jamb_cut_block_count_from_courses_and_openings',
-      parameterSnapshot: { ...input.wall, result: { blockBreakdown: cmuLayout.counts, moduleFits: cmuLayout.moduleFits, terminalClosures: cmuLayout.terminalClosures } },
-      source: 'parametric_design_builder',
-      confidence: 'calculated_from_parameters',
-      divisionCode: '04',
-      divisionName: 'Masonry',
-    },
-    {
-      id: 'cmu-terminal-cut-blocks',
-      designModelId: input.designModelId,
-      designObjectId: input.wallObjectId,
-      quantityType: 'cmu_terminal_cut_blocks',
-      description: 'Terminal cut block',
-      quantity: cmuLayout.terminalClosures.length,
-      unit: 'EA',
-      formula: 'terminal_cut_blocks = count(non_modular_terminal_closure units)',
-      parameterSnapshot: {
-        terminalClosures: cmuLayout.terminalClosures,
-        totalTerminalCutLengthMeters: roundQuantity(terminalCutLengthMeters, 3),
-        source: 'closed_perimeter_solver',
-      },
-      source: 'parametric_design_builder',
-      confidence: 'calculated_from_parameters',
-      divisionCode: '04',
-      divisionName: 'Masonry',
     },
     {
       id: 'mortar-allowance',
@@ -539,6 +589,7 @@ export function buildCmuBuildingEstimatePreview(input: CmuBuildingQuantityInput)
       divisionCode: '04',
       divisionName: 'Masonry',
     },
+    buildCmuCoreFillGroutPreviewLine(input, cmuLayout.totalBlocks),
     {
       id: 'cmu-bond-beam',
       designModelId: input.designModelId,
@@ -626,7 +677,7 @@ export function buildCmuBuildingEstimatePreview(input: CmuBuildingQuantityInput)
       divisionCode: '05',
       divisionName: 'Metals',
     },
-  ];
+  ]);
 }
 
 export interface FrameInfillQuantityInput extends CmuBuildingQuantityInput {
@@ -643,24 +694,19 @@ export interface FrameInfillQuantityInput extends CmuBuildingQuantityInput {
 
 export function buildFrameInfillEstimatePreview(input: FrameInfillQuantityInput): DesignEstimatePreviewLine[] {
   const resolvedRoof = input.geometryResult.resolvedRoofSystem;
-  const base = buildCmuBuildingEstimatePreview(input).filter(
-    (line) => !(resolvedRoof?.supported && line.id === 'steel-trusses'),
+  const hiddenLegacyLineIds = new Set<DesignEstimatePreviewLine['id']>([
+    'slab-concrete',
+    'cmu-blocks',
+    'cmu-core-fill-grout',
+  ]);
+  if (resolvedRoof?.supported) {
+    hiddenLegacyLineIds.add('steel-trusses');
+  }
+  const base = omitCmuBlockBreakdownPreviewLines(
+    buildCmuBuildingEstimatePreview(input).filter((line) => !hiddenLegacyLineIds.has(line.id)),
   );
   const breakdown = input.geometryResult.structuralConcreteVolumeBreakdown;
   const structuralVolume = input.geometryResult.structuralConcreteVolumeCubicMeters ?? 0;
-  const counts = input.geometryResult.wallCmuLayout.counts;
-  const topClosureCutBlockCount = input.geometryResult.wallCmuLayout.topClosureCutBlockCount ?? 0;
-  const infillBlockCount = counts.full + counts.half + counts.cut;
-  const gableCutCount =
-    input.geometryResult.blockInstances?.filter(
-      (block) => block.source === 'gable_end_solver' && (block.blockType === 'cut' || block.kind === 'cut_block'),
-    ).length ?? 0;
-  const roofGableBlocks =
-    resolvedRoof?.gableEnds.flatMap((gableEnd) => gableEnd.cmuUnitPlacements) ?? [];
-  const roofGableCutCount = roofGableBlocks.filter(
-    (block) => block.blockType === 'cut' || block.kind === 'cut_block',
-  ).length;
-  const roofGableBlockCount = roofGableBlocks.length;
   const roofSettings = normalizeRoofSystemSettings(input.roofSystem);
   const rakedCapVolumeCubicMeters = resolvedRoof?.rakedCapVolumeCubicMeters ?? 0;
   const rakedCapLinearLengthMeters = (resolvedRoof?.gableEnds ?? [])
@@ -859,69 +905,17 @@ export function buildFrameInfillEstimatePreview(input: FrameInfillQuantityInput)
         },
       ];
 
-  return [
+  return omitCmuBlockBreakdownPreviewLines([
     ...base,
     ...structuralLines,
-    {
-      id: 'cmu-infill-blocks',
-      designModelId: input.designModelId,
-      designObjectId: input.infillObjectId,
-      quantityType: 'cmu_infill_blocks',
-      description: 'CMU Infill Panels',
-      quantity: infillBlockCount,
-      unit: 'EA',
-      formula: 'solved_infill_panel_blocks',
-      parameterSnapshot: {
-        panels: input.infillSystem.panels,
-        blockBreakdown: counts,
-        topClosureCutBlockCount,
-        infillPanelId: input.infillObjectId,
-        ...metaBase,
-      },
-      source: 'parametric_design_builder',
-      confidence: 'calculated_from_parameters',
-      divisionCode: '04',
-      divisionName: 'Masonry',
-    },
-    {
-      id: 'cmu-top-closure-cut-course',
-      designModelId: input.designModelId,
-      designObjectId: input.infillObjectId,
-      quantityType: 'cmu_top_closure_cut_course',
-      description: 'CMU Top Closure Courses',
-      quantity: topClosureCutBlockCount,
-      unit: 'EA',
-      formula: 'panel_top_closure cut_height_block count',
-      parameterSnapshot: {
-        panels: input.infillSystem.panels,
-        topClosureCutBlockCount,
-        infillPanelId: input.infillObjectId,
-        ...metaBase,
-      },
-      source: 'parametric_design_builder',
-      confidence: 'calculated_from_parameters',
-      divisionCode: '04',
-      divisionName: 'Masonry',
-    },
-    {
-      id: 'gable-cut-blocks',
-      designModelId: input.designModelId,
-      designObjectId: input.gableEndObjectId,
-      quantityType: 'gable_cut_blocks',
-      description: 'Gable cut blocks',
-      quantity: gableCutCount,
-      unit: 'EA',
-      formula: 'gable_panel_solver cut_block count',
-      parameterSnapshot: {
-        gableEnds: input.gableEndSystem.gableEnds,
-        gableEndId: input.gableEndObjectId,
-        ...metaBase,
-      },
-      source: 'parametric_design_builder',
-      confidence: 'calculated_from_parameters',
-      divisionCode: '04',
-      divisionName: 'Masonry',
-    },
+    buildSiteCutCmuBlocksPreviewLine(
+      input,
+      input.geometryResult.blockCount ?? input.geometryResult.wallCmuLayout.totalBlocks,
+    ),
+    buildCmuCoreFillGroutPreviewLine(
+      input,
+      input.geometryResult.blockCount ?? input.geometryResult.wallCmuLayout.totalBlocks,
+    ),
     ...(resolvedRoof?.supported
       ? [
           {
@@ -968,11 +962,11 @@ export function buildFrameInfillEstimatePreview(input: FrameInfillQuantityInput)
           ...(resolvedRoof.roofType === 'gable' && roofSettings.steelTrusses.enabled
             ? [
                 {
-                  id: 'steel-roof-trusses',
+                  id: 'steel-trusses',
                   designModelId: input.designModelId,
                   designObjectId: input.trussObjectId,
                   quantityType: 'steel_roof_truss_count',
-                  description: 'Steel Roof Trusses',
+                  description: 'Steel trusses by spacing',
                   quantity: resolvedRoof.trussCount,
                   unit: 'EA',
                   formula: 'max(2, ceil(building_length / max_spacing) + 1)',
@@ -1143,49 +1137,6 @@ export function buildFrameInfillEstimatePreview(input: FrameInfillQuantityInput)
                   : []),
               ]
             : []),
-          ...(resolvedRoof.roofType === 'gable' && roofGableBlockCount > 0
-            ? [
-                {
-                  id: 'gable-end-cmu',
-                  designModelId: input.designModelId,
-                  designObjectId: input.gableEndObjectId,
-                  quantityType: 'gable_end_cmu',
-                  description: 'Gable-End CMU',
-                  quantity: roofGableBlockCount,
-                  unit: 'EA',
-                  formula: 'roof_gable_solver block count',
-                  parameterSnapshot: {
-                    gableEndSegmentIds: resolvedRoof.gableEndSegmentIds,
-                    gableCmuAreaSquareMeters: resolvedRoof.gableCmuAreaSquareMeters,
-                    gableEndId: input.gableEndObjectId,
-                    ...metaBase,
-                  },
-                  source: 'parametric_design_builder',
-                  confidence: 'calculated_from_parameters',
-                  divisionCode: '04',
-                  divisionName: 'Masonry',
-                },
-                {
-                  id: 'gable-end-cut-blocks',
-                  designModelId: input.designModelId,
-                  designObjectId: input.gableEndObjectId,
-                  quantityType: 'gable_end_cut_blocks',
-                  description: 'Gable-End Cut Blocks',
-                  quantity: roofGableCutCount,
-                  unit: 'EA',
-                  formula: 'roof_gable_solver cut_block count',
-                  parameterSnapshot: {
-                    gableEndSegmentIds: resolvedRoof.gableEndSegmentIds,
-                    gableEndId: input.gableEndObjectId,
-                    ...metaBase,
-                  },
-                  source: 'parametric_design_builder',
-                  confidence: 'calculated_from_parameters',
-                  divisionCode: '04',
-                  divisionName: 'Masonry',
-                },
-              ]
-            : []),
           ...(resolvedRoof.roofType === 'gable' && rakedCapVolumeCubicMeters > 0
             ? [
                 {
@@ -1253,12 +1204,14 @@ export function buildFrameInfillEstimatePreview(input: FrameInfillQuantityInput)
             : []),
         ]
       : []),
-  ];
+  ]);
 }
 
 export function buildDesignEstimatePreview(input: FrameInfillQuantityInput): DesignEstimatePreviewLine[] {
-  if (input.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill') {
-    return buildFrameInfillEstimatePreview(input);
-  }
-  return buildCmuBuildingEstimatePreview(input);
+  const measurementSystem = input.measurementSystem ?? 'imperial';
+  const lines =
+    input.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill'
+      ? buildFrameInfillEstimatePreview(input)
+      : buildCmuBuildingEstimatePreview(input);
+  return applyMeasurementSystemToPreviewLines(lines, measurementSystem);
 }

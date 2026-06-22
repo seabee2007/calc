@@ -179,10 +179,10 @@ describe('infill panel top closure course', () => {
       geometryResult: geometry,
     });
 
-    expect(lines.some((line) => line.quantityType === 'cmu_top_closure_cut_course')).toBe(true);
+    expect(lines.some((line) => line.quantityType === 'cmu_top_closure_cut_course')).toBe(false);
     expect(lines.some((line) => line.quantityType === 'rc_structural_concrete_volume')).toBe(true);
-    const topClosureLine = lines.find((line) => line.quantityType === 'cmu_top_closure_cut_course')!;
-    expect(topClosureLine.quantity).toBeGreaterThan(0);
-    expect(geometry.wallCmuLayout.topClosureCutBlockCount).toBe(topClosureLine.quantity);
+    const cmuBlocksLine = lines.find((line) => line.id === 'cmu-blocks')!;
+    expect(cmuBlocksLine.quantity).toBeGreaterThan(0);
+    expect(cmuBlocksLine.quantity).toBeGreaterThanOrEqual(geometry.wallCmuLayout.totalBlocks);
   });
 });
