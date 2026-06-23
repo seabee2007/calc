@@ -1,6 +1,8 @@
 import type { SegmentFrame } from '../geometry/designGeometry';
 import type { ResolvedOpeningPlacement } from './openingPlacementResolver';
-import type { WallOpeningParameters } from '../types';
+import type { DesignWallLayoutParameters, WallOpeningParameters } from '../types';
+
+export type PlanPoint = { x: number; z: number };
 
 export type PlanOpeningColorState = 'valid' | 'warning' | 'invalid';
 
@@ -51,10 +53,71 @@ export function openingFillColor(state: PlanOpeningColorState, alpha = 0.18): st
   return `rgba(34, 211, 238, ${alpha})`;
 }
 
-export function planPointOnWall(frame: SegmentFrame, alongMeters: number): { x: number; z: number } {
+export function planPointOnWall(frame: SegmentFrame, alongMeters: number): PlanPoint {
   return {
     x: frame.centerlineStart.x + frame.tangent.x * alongMeters,
     z: frame.centerlineStart.z + frame.tangent.z * alongMeters,
+  };
+}
+
+export function buildPlanDisplayNodeById(params: {
+  layout: DesignWallLayoutParameters;
+  framesBySegmentId: Map<string, SegmentFrame>;
+}): Map<string, PlanPoint> {
+  const points = new Map<string, PlanPoint>();
+  const nodesById = new Map(params.layout.nodes.map((node) => [node.id, node]));
+
+  params.layout.segments.forEach((segment) => {
+    const frame = params.framesBySegmentId.get(segment.id);
+    const startNode = nodesById.get(segment.startNodeId);
+    const endNode = nodesById.get(segment.endNodeId);
+
+    if (startNode) {
+      points.set(
+        segment.startNodeId,
+        frame?.centerlineStart ?? { x: startNode.x, z: startNode.z },
+      );
+    }
+    if (endNode) {
+      points.set(
+        segment.endNodeId,
+        frame?.centerlineEnd ?? { x: endNode.x, z: endNode.z },
+      );
+    }
+  });
+
+  return points;
+}
+
+export function resolveSegmentDisplayEndpoints(params: {
+  segment: { startNodeId: string; endNodeId: string };
+  layout: DesignWallLayoutParameters;
+  planDisplayNodeById: Map<string, PlanPoint>;
+}): { displayStart: PlanPoint; displayEnd: PlanPoint } | null {
+  const startNode = params.layout.nodes.find((node) => node.id === params.segment.startNodeId);
+  const endNode = params.layout.nodes.find((node) => node.id === params.segment.endNodeId);
+  if (!startNode || !endNode) return null;
+
+  const rawStart: PlanPoint = { x: startNode.x, z: startNode.z };
+  const rawEnd: PlanPoint = { x: endNode.x, z: endNode.z };
+
+  return {
+    displayStart: params.planDisplayNodeById.get(params.segment.startNodeId) ?? rawStart,
+    displayEnd: params.planDisplayNodeById.get(params.segment.endNodeId) ?? rawEnd,
+  };
+}
+
+export function resolvePlanWallRunEndpoints(params: {
+  frame: SegmentFrame;
+  run: PlanWallRun;
+  displayStart: PlanPoint;
+  displayEnd: PlanPoint;
+}): { start: PlanPoint; end: PlanPoint } {
+  const atStart = params.run.startAlongMeters <= 0.001;
+  const atEnd = params.run.endAlongMeters >= params.frame.lengthMeters - 0.001;
+  return {
+    start: atStart ? params.displayStart : planPointOnWall(params.frame, params.run.startAlongMeters),
+    end: atEnd ? params.displayEnd : planPointOnWall(params.frame, params.run.endAlongMeters),
   };
 }
 

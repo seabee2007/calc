@@ -586,6 +586,7 @@ describe('DesignBuilderPage', () => {
       latestPlanProps().onInteraction?.({ kind: 'undo_last_segment', toolMode: 'draw_wall' });
     });
     await waitFor(() => expect(latestPlanProps().layout?.segments).toHaveLength(1));
+    expect(latestPlanProps().toolMode).toBe('draw_wall');
     await act(async () => {
       latestPlanProps().onInteraction?.({ kind: 'draw_point', toolMode: 'draw_wall', planX: 5, planZ: 4, altHeld: true });
     });

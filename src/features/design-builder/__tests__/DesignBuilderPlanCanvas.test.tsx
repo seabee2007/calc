@@ -5,7 +5,32 @@ import { resolveOpeningPlacementFromPlanPoint } from '../domain/openingPlacement
 import { createEmptyWallLayout, createOutsideFaceRectangleLayout } from '../domain/wallLayoutRules';
 import { getSegmentFramesForWallLayout } from '../geometry/designGeometry';
 import { projectCellWidthPx } from '../domain/planGridState';
+import { DoorConfigurationControls } from '../ui/DoorConfigurationControls';
 import DesignBuilderPlanCanvas from '../ui/DesignBuilderPlanCanvas';
+
+function collectWallEndpointScreenPoints(container: HTMLElement): Array<{ x: number; y: number }> {
+  const points: Array<{ x: number; y: number }> = [];
+  container.querySelectorAll('line[data-plan-wall-visible="true"]').forEach((line) => {
+    points.push({ x: Number(line.getAttribute('x1')), y: Number(line.getAttribute('y1')) });
+    points.push({ x: Number(line.getAttribute('x2')), y: Number(line.getAttribute('y2')) });
+  });
+  return points;
+}
+
+function assertRenderedCornersMeet(
+  container: HTMLElement,
+  layout: ReturnType<typeof createOutsideFaceRectangleLayout>,
+) {
+  layout.nodes.forEach((node) => {
+    const circle = container.querySelector(`circle[data-plan-node-id="${node.id}"]`);
+    expect(circle).toBeTruthy();
+    const cx = Number(circle?.getAttribute('cx'));
+    const cy = Number(circle?.getAttribute('cy'));
+    const wallPoints = collectWallEndpointScreenPoints(container);
+    const matching = wallPoints.filter((point) => Math.hypot(point.x - cx, point.y - cy) < 0.75);
+    expect(matching.length).toBeGreaterThanOrEqual(2);
+  });
+}
 
 describe('DesignBuilderPlanCanvas', () => {
   it('shows adaptive view grid and persistent snap spacing in the status chip', () => {
@@ -440,5 +465,142 @@ describe('DesignBuilderPlanCanvas', () => {
       phase: 'preview',
       toolMode: 'place_door',
     }));
+  });
+
+  it('renders continuous rectangle corners with no opening', () => {
+    const preset = createFiveBySixCmuBuildingPreset();
+    const layout = createOutsideFaceRectangleLayout({ lengthMeters: 6, widthMeters: 5 });
+    const frames = getSegmentFramesForWallLayout(layout, preset.wall);
+    const { container } = render(
+      <DesignBuilderPlanCanvas
+        layout={layout}
+        toolMode="select"
+        segmentFrames={frames}
+        onInteraction={vi.fn()}
+      />,
+    );
+
+    assertRenderedCornersMeet(container, layout);
+  });
+
+  it('renders continuous rectangle corners while previewing a door', () => {
+    const preset = createFiveBySixCmuBuildingPreset();
+    const layout = createOutsideFaceRectangleLayout({ lengthMeters: 6, widthMeters: 5 });
+    const frames = getSegmentFramesForWallLayout(layout, preset.wall);
+    const frame = frames[0]!;
+    const station = frame.lengthMeters * 0.5;
+    const resolved = resolveOpeningPlacementFromPlanPoint({
+      planX: frame.exteriorStart.x + frame.tangent.x * station,
+      planZ: frame.exteriorStart.z + frame.tangent.z * station,
+      hostSegmentId: frame.segmentId,
+      segmentFrame: frame,
+      openingDefinition: {
+        type: 'door',
+        widthMeters: 0.9,
+        heightMeters: 2.1,
+        roughOpeningAllowanceMeters: 0.05,
+      },
+      snapMode: 'grid',
+      gridSpacingMeters: 0.1,
+      wall: { ...preset.wall, snapToModule: false },
+    });
+    const { container } = render(
+      <DesignBuilderPlanCanvas
+        layout={layout}
+        toolMode="place_door"
+        selectedSegmentId={frame.segmentId}
+        segmentFrames={frames}
+        openingPreview={{
+          resolvedPlacement: resolved,
+          openingType: 'door',
+          isValid: true,
+          statusKind: 'clean',
+          swingType: 'outswing',
+          swingDirection: 'right',
+        }}
+        onInteraction={vi.fn()}
+      />,
+    );
+
+    assertRenderedCornersMeet(container, layout);
+    expect(container.querySelectorAll('[data-wall-run="true"]').length).toBe(2);
+  });
+
+  it('renders continuous corners for centerline-basis layouts during door preview', () => {
+    const preset = createFiveBySixCmuBuildingPreset();
+    const layout = {
+      ...createOutsideFaceRectangleLayout({ lengthMeters: 6, widthMeters: 5 }),
+      dimensionBasis: 'wall_centerline' as const,
+    };
+    const frames = getSegmentFramesForWallLayout(layout, preset.wall);
+    const frame = frames[1]!;
+    const station = frame.lengthMeters * 0.5;
+    const resolved = resolveOpeningPlacementFromPlanPoint({
+      planX: frame.exteriorStart.x + frame.tangent.x * station,
+      planZ: frame.exteriorStart.z + frame.tangent.z * station,
+      hostSegmentId: frame.segmentId,
+      segmentFrame: frame,
+      openingDefinition: {
+        type: 'door',
+        widthMeters: 0.9,
+        heightMeters: 2.1,
+        roughOpeningAllowanceMeters: 0.05,
+      },
+      snapMode: 'grid',
+      gridSpacingMeters: 0.1,
+      wall: { ...preset.wall, snapToModule: false },
+    });
+    const { container } = render(
+      <DesignBuilderPlanCanvas
+        layout={layout}
+        toolMode="place_door"
+        selectedSegmentId={frame.segmentId}
+        segmentFrames={frames}
+        openingPreview={{
+          resolvedPlacement: resolved,
+          openingType: 'door',
+          isValid: true,
+          statusKind: 'clean',
+        }}
+        onInteraction={vi.fn()}
+      />,
+    );
+
+    assertRenderedCornersMeet(container, layout);
+  });
+});
+
+describe('DoorConfigurationControls', () => {
+  it('shows one compact row with the current handing label', () => {
+    render(
+      <DoorConfigurationControls
+        swingType="outswing"
+        swingDirection="right"
+        onSwingTypeChange={vi.fn()}
+        onSwingDirectionChange={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: /door handing: outswing · right/i })).toBeTruthy();
+    expect(screen.getByText('Door handing')).toBeTruthy();
+  });
+
+  it('applies handing immediately from the 2x2 menu without an apply button', () => {
+    const onSwingTypeChange = vi.fn();
+    const onSwingDirectionChange = vi.fn();
+    render(
+      <DoorConfigurationControls
+        swingType="inswing"
+        swingDirection="left"
+        onSwingTypeChange={onSwingTypeChange}
+        onSwingDirectionChange={onSwingDirectionChange}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /door handing: inswing · left/i }));
+    fireEvent.click(screen.getByRole('menuitemradio', { name: /outswing · right/i }));
+
+    expect(onSwingTypeChange).toHaveBeenCalledWith('outswing');
+    expect(onSwingDirectionChange).toHaveBeenCalledWith('right');
   });
 });

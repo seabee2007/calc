@@ -1278,13 +1278,7 @@ export function resolveRoofFraming(params: {
       fixedRoofSlope: params.fixedRoofSlope,
     });
   } else if (params.settings.roofType === 'hip') {
-    hipFramingMembers = resolveHipFramingMembers({
-      cladding: params.claddingPerimeter,
-      roofBeamTopY: params.roofBeamTopY,
-      ridgeStart: structuralRidgeStart,
-      ridgeEnd: structuralRidgeEnd,
-      peakPoint: params.peakPoint,
-    });
+    hipFramingMembers = [];
   }
 
   let purlinRowsPerSlope = 0;

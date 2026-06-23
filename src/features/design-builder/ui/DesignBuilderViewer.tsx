@@ -51,7 +51,9 @@ import type {
   DesignVisualStyle,
   RoofDisplayMode,
   RoofLayerVisibility,
+  RoofPlane,
   RoofSystemSettings,
+  RoofVec3,
   WallOpeningParameters,
 } from '../types';
 import {
@@ -171,6 +173,127 @@ function selectionPriorityForObjectType(objectType: DesignObjectType): number {
     return 20;
   }
   return 1;
+}
+
+const ROOF_PLAN_POINT_MATCH_TOLERANCE_METERS = 0.02;
+const ROOF_CLADDING_BEAM_CLEARANCE_METERS = CORRUGATED_SHEET_DISPLAY_THICKNESS_METERS;
+
+function roofPlanDistanceSquared(a: Pick<RoofVec3, 'x' | 'z'>, b: Pick<RoofVec3, 'x' | 'z'>): number {
+  const dx = a.x - b.x;
+  const dz = a.z - b.z;
+  return dx * dx + dz * dz;
+}
+
+function liftedRoofPoint(point: RoofVec3, yOffsetMeters: number): RoofVec3 {
+  return {
+    ...point,
+    y: point.y + yOffsetMeters,
+  };
+}
+
+function nearestPlanPoint(point: Pick<RoofVec3, 'x' | 'z'>, candidates: readonly RoofVec3[]): RoofVec3 | null {
+  let nearest: { point: RoofVec3; distanceSquared: number } | null = null;
+  for (const candidate of candidates) {
+    const distanceSquared = roofPlanDistanceSquared(point, candidate);
+    if (!nearest || distanceSquared < nearest.distanceSquared) {
+      nearest = { point: candidate, distanceSquared };
+    }
+  }
+  return nearest?.point ?? null;
+}
+
+function cornerMatchesPlanPoint(point: Pick<RoofVec3, 'x' | 'z'>, candidates: readonly RoofVec3[]): boolean {
+  const nearest = nearestPlanPoint(point, candidates);
+  if (!nearest) return false;
+  return roofPlanDistanceSquared(point, nearest) <= ROOF_PLAN_POINT_MATCH_TOLERANCE_METERS ** 2;
+}
+
+function adjacentEavePair(indices: number[], cornerCount: number): [number, number] | null {
+  if (indices.length !== 2) return null;
+  const [first, second] = [...indices].sort((a, b) => a - b);
+  if (second === first + 1) {
+    return [first, second];
+  }
+  if (first === 0 && second === cornerCount - 1) {
+    return [second, first];
+  }
+  return null;
+}
+
+function buildBeamClearedRoofCladdingPlanes(params: {
+  planes: readonly RoofPlane[];
+  structuralBearingPerimeter: readonly RoofVec3[];
+  claddingPerimeter: readonly RoofVec3[];
+  roofBeamTopY: number;
+  clearanceMeters: number;
+}): RoofPlane[] {
+  if (params.structuralBearingPerimeter.length < 3 || params.claddingPerimeter.length < 3) {
+    return params.planes.map((plane) => ({ ...plane, corners: plane.corners.map((corner) => ({ ...corner })) }));
+  }
+
+  const renderPlanes: RoofPlane[] = [];
+  for (const plane of params.planes) {
+    if (plane.id.endsWith('-cladding-display') || plane.corners.length < 3) {
+      renderPlanes.push({ ...plane, corners: plane.corners.map((corner) => ({ ...corner })) });
+      continue;
+    }
+
+    const eaveIndices = plane.corners
+      .map((corner, index) => (cornerMatchesPlanPoint(corner, params.claddingPerimeter) ? index : -1))
+      .filter((index) => index >= 0);
+    const eavePair = adjacentEavePair(eaveIndices, plane.corners.length);
+    if (!eavePair) {
+      renderPlanes.push({
+        ...plane,
+        corners: plane.corners.map((corner) => liftedRoofPoint(corner, params.clearanceMeters)),
+      });
+      continue;
+    }
+
+    const bearingCorners = new Map<number, RoofVec3>();
+    for (const eaveIndex of eavePair) {
+      const eaveCorner = plane.corners[eaveIndex]!;
+      const bearingPoint = nearestPlanPoint(eaveCorner, params.structuralBearingPerimeter);
+      if (!bearingPoint) continue;
+      bearingCorners.set(eaveIndex, {
+        x: bearingPoint.x,
+        y: params.roofBeamTopY + params.clearanceMeters,
+        z: bearingPoint.z,
+      });
+    }
+
+    if (bearingCorners.size !== 2) {
+      renderPlanes.push({
+        ...plane,
+        corners: plane.corners.map((corner) => liftedRoofPoint(corner, params.clearanceMeters)),
+      });
+      continue;
+    }
+
+    renderPlanes.push({
+      ...plane,
+      id: `${plane.id}-beam-clear-main`,
+      corners: plane.corners.map((corner, index) => bearingCorners.get(index) ?? liftedRoofPoint(corner, params.clearanceMeters)),
+    });
+
+    const [firstEaveIndex, secondEaveIndex] = eavePair;
+    const firstEave = liftedRoofPoint(plane.corners[firstEaveIndex]!, params.clearanceMeters);
+    const secondEave = liftedRoofPoint(plane.corners[secondEaveIndex]!, params.clearanceMeters);
+    const firstBearing = bearingCorners.get(firstEaveIndex)!;
+    const secondBearing = bearingCorners.get(secondEaveIndex)!;
+    const overhangHasDepth =
+      roofPlanDistanceSquared(firstEave, firstBearing) > 1e-8 ||
+      roofPlanDistanceSquared(secondEave, secondBearing) > 1e-8;
+
+    if (overhangHasDepth) {
+      renderPlanes.push({
+        ...plane,
+        id: `${plane.id}-beam-clear-overhang`,
+        corners: [firstEave, secondEave, secondBearing, firstBearing],
+      });
+    }
+  }
+  return renderPlanes;
 }
 
 function createFootprintSlabGeometry(
@@ -1086,11 +1209,17 @@ export default function DesignBuilderViewer({
 
           const roofThickness = resolvedRoof.roofAssemblyThicknessMeters ?? 0.15;
           const corrugatedEnabled = currentRoofSystem.corrugatedMetal.enabled;
-          const claddingPlanes =
+          const rawCladdingPlanes =
             resolvedRoof.claddingDisplayPlanes.length > 0
               ? resolvedRoof.claddingDisplayPlanes
               : resolvedRoof.roofTopPlanes;
-          const claddingStackOffsetMeters = 0;
+          const claddingPlanes = buildBeamClearedRoofCladdingPlanes({
+            planes: rawCladdingPlanes,
+            structuralBearingPerimeter: resolvedRoof.structuralBearingPerimeter,
+            claddingPerimeter: resolvedRoof.claddingPerimeter,
+            roofBeamTopY: resolvedRoof.roofBeamTopY,
+            clearanceMeters: ROOF_CLADDING_BEAM_CLEARANCE_METERS,
+          });
 
           const ridgeDirectionHint =
             resolvedRoof.claddingRidgeStart && resolvedRoof.claddingRidgeEnd
@@ -1123,13 +1252,14 @@ export default function DesignBuilderViewer({
             for (const plane of claddingPlanes) {
               if (plane.corners.length < 3) continue;
               const planeNormal = normalizeOutwardRoofNormal(plane.normal);
+              const visibleCorners = plane.corners;
               const topGeometry = roofUsesMeterUvGeometry
                 ? trackGeometry(
                     createRoofCladdingGeometry({
-                      corners: plane.corners,
+                      corners: visibleCorners,
                       slabTopMeters: currentSlab.slabThicknessMeters,
                       planeNormal: new THREE.Vector3(planeNormal.x, planeNormal.y, planeNormal.z),
-                      ridgeDirection: resolveRoofRidgeDirection(plane.corners, ridgeDirectionHint),
+                      ridgeDirection: resolveRoofRidgeDirection(visibleCorners, ridgeDirectionHint),
                       corrugationRepeatPerMeter: roofCladdingUvOptions?.corrugationRepeatPerMeter,
                       swapCorrugationAxis: roofCladdingUvOptions?.swapCorrugationAxis,
                     }),
@@ -1137,12 +1267,8 @@ export default function DesignBuilderViewer({
                 : trackGeometry(
                     (() => {
                       const positions: number[] = [];
-                      for (const corner of plane.corners) {
-                        const elevated =
-                          claddingStackOffsetMeters > 0
-                            ? offsetPointAlongRoofNormal(corner, planeNormal, claddingStackOffsetMeters)
-                            : corner;
-                        positions.push(elevated.x, currentSlab.slabThicknessMeters + elevated.y, elevated.z);
+                      for (const corner of visibleCorners) {
+                        positions.push(corner.x, currentSlab.slabThicknessMeters + corner.y, corner.z);
                       }
                       const indices = plane.corners.length === 3 ? [0, 1, 2] : [0, 1, 2, 0, 2, 3];
                       const geometry = new THREE.BufferGeometry();

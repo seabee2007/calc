@@ -289,6 +289,15 @@ export default function FrameFoundationDimensionsModal({
     const errors: Record<string, string> = {};
     if (foundationDraft.columns.widthMeters <= 0) errors.columnWidth = 'Column width must be greater than zero.';
     if (foundationDraft.columns.depthMeters <= 0) errors.columnDepth = 'Column depth must be greater than zero.';
+    if (foundationDraft.columns.heightAbovePlinthMeters <= 0) {
+      errors.columnHeight = 'Column height must be greater than zero.';
+    }
+    if (
+      foundationDraft.roofBeam.enabled &&
+      foundationDraft.columns.heightAbovePlinthMeters <= foundationDraft.roofBeam.depthMeters
+    ) {
+      errors.columnHeight = 'Column height must exceed roof beam depth.';
+    }
     if (foundationDraft.plinthBeam.enabled && foundationDraft.plinthBeam.widthMeters <= 0) {
       errors.plinthWidth = 'Plinth Beam width must be greater than zero.';
     }
@@ -487,9 +496,18 @@ export default function FrameFoundationDimensionsModal({
             <CollapsibleSection
               id="columns"
               title="Columns"
-              helper="Columns extend continuously from the top of isolated footings through the Tie Beam, Plinth Beam, and Roof Beam."
+              helper="Column height is measured from the top of the plinth beam (floor level, 0.00 m) to the top of the column at roof beam level. Columns also extend below the plinth through tie beams to isolated footings."
               defaultOpen
             >
+              <ModalNumberField
+                label="Column Height"
+                value={foundationDraft.columns.heightAbovePlinthMeters}
+                suffix="m"
+                error={fieldErrors.columnHeight}
+                onChange={(value) =>
+                  patchSection('columns', { heightAbovePlinthMeters: positiveOrFallback(value, 3.1) })
+                }
+              />
               <ModalNumberField
                 label="Column Width"
                 value={foundationDraft.columns.widthMeters}
@@ -984,7 +1002,13 @@ export default function FrameFoundationDimensionsModal({
                 <dd className="font-mono text-slate-900 dark:text-slate-100">{formatElevation(elevations.cmuClearHeightMeters)}</dd>
               </div>
               <div className="flex justify-between gap-2">
-                <dt>Column Height</dt>
+                <dt>Column Height (above plinth)</dt>
+                <dd className="font-mono text-slate-900 dark:text-slate-100">
+                  {formatElevation(elevations.columnHeightAbovePlinthMeters)}
+                </dd>
+              </div>
+              <div className="flex justify-between gap-2">
+                <dt>Column Height (total)</dt>
                 <dd className="font-mono text-slate-900 dark:text-slate-100">{formatElevation(elevations.columnHeightMeters)}</dd>
               </div>
               {roofDraft.enabled ? (

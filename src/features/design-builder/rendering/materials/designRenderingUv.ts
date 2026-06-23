@@ -95,7 +95,17 @@ export function createRoofCladdingGeometry(params: RoofCladdingUvParams): THREE.
   geometry.computeVertexNormals();
 
   const normal = planeNormal.clone().normalize();
-  let ridgeAxis = ridgeDirection.clone();
+  let ridgeAxis =
+    corners.length === 3
+      ? (() => {
+          const eaveCorners = [...worldCorners]
+            .sort((a, b) => a.y - b.y)
+            .slice(0, 2);
+          const edge = eaveCorners[1]!.clone().sub(eaveCorners[0]!);
+          edge.y = 0;
+          return edge.lengthSq() > 1e-8 ? edge : ridgeDirection.clone();
+        })()
+      : ridgeDirection.clone();
   ridgeAxis.y = 0;
   if (ridgeAxis.lengthSq() <= 1e-8) {
     ridgeAxis.set(1, 0, 0);
@@ -108,6 +118,30 @@ export function createRoofCladdingGeometry(params: RoofCladdingUvParams): THREE.
     downslopeAxis = new THREE.Vector3().crossVectors(ridgeAxis, normal);
   }
   downslopeAxis.normalize();
+
+  const slopeExtents = worldCorners.reduce(
+    (extents, corner) => {
+      const projected = corner.dot(downslopeAxis);
+      if (projected < extents.minProjection) {
+        extents.minProjection = projected;
+        extents.minY = corner.y;
+      }
+      if (projected > extents.maxProjection) {
+        extents.maxProjection = projected;
+        extents.maxY = corner.y;
+      }
+      return extents;
+    },
+    {
+      minProjection: Number.POSITIVE_INFINITY,
+      minY: 0,
+      maxProjection: Number.NEGATIVE_INFINITY,
+      maxY: 0,
+    },
+  );
+  if (slopeExtents.maxY > slopeExtents.minY) {
+    downslopeAxis.negate();
+  }
 
   const origin = worldCorners[0]!.clone();
   const uvs: number[] = [];
@@ -133,6 +167,16 @@ export function resolveRoofRidgeDirection(
   planeCorners: ReadonlyArray<{ x: number; z: number }>,
   fallbackRidge?: { x: number; z: number },
 ): THREE.Vector3 {
+  if (planeCorners.length === 3) {
+    const edge = new THREE.Vector3(
+      planeCorners[1]!.x - planeCorners[0]!.x,
+      0,
+      planeCorners[1]!.z - planeCorners[0]!.z,
+    );
+    if (edge.lengthSq() > 1e-8) {
+      return edge.normalize();
+    }
+  }
   if (fallbackRidge && Math.hypot(fallbackRidge.x, fallbackRidge.z) > 1e-6) {
     return new THREE.Vector3(fallbackRidge.x, 0, fallbackRidge.z).normalize();
   }

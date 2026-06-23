@@ -1,11 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { createFiveBySixCmuBuildingPreset } from '../domain/designBuilderPreset';
+import { createOutsideFaceRectangleLayout } from '../domain/wallLayoutRules';
 import {
+  buildPlanDisplayNodeById,
   buildPlanOpeningGeometry,
   buildWallRunsExcludingRoughOpenings,
   openingColorState,
   pickOpeningAtPlanPoint,
   planPointOnWall,
+  resolvePlanWallRunEndpoints,
+  resolveSegmentDisplayEndpoints,
 } from '../domain/planOpeningGraphics';
 import {
   buildPlanDoorSymbolGeometry,
@@ -287,6 +291,115 @@ describe('planOpeningGraphics', () => {
     expect(movedDraft.wallSegmentId).toBe(moved.hostSegmentId);
     expect(movedDraft.positionAlongSegment).toBeCloseTo(moved.positionAlongSegmentMeters, 6);
     expect(stored.positionAlongSegmentMeters).toBeCloseTo(moved.positionAlongSegmentMeters, 6);
+  });
+
+  describe('plan display node continuity', () => {
+    function assertSharedNodeDisplayContinuity(
+      layout: ReturnType<typeof createOutsideFaceRectangleLayout>,
+      wall: typeof preset.wall,
+    ) {
+      const frames = getSegmentFramesForWallLayout(layout, wall);
+      const framesBySegmentId = new Map(frames.map((frame) => [frame.segmentId, frame]));
+      const planDisplayNodeById = buildPlanDisplayNodeById({ layout, framesBySegmentId });
+
+      layout.nodes.forEach((node) => {
+        const expected = planDisplayNodeById.get(node.id);
+        expect(expected).toBeDefined();
+        const touching = layout.segments.filter(
+          (segment) => segment.startNodeId === node.id || segment.endNodeId === node.id,
+        );
+        expect(touching.length).toBeGreaterThanOrEqual(2);
+        touching.forEach((segment) => {
+          const endpoints = resolveSegmentDisplayEndpoints({ segment, layout, planDisplayNodeById });
+          expect(endpoints).not.toBeNull();
+          const atNode =
+            segment.startNodeId === node.id ? endpoints!.displayStart : endpoints!.displayEnd;
+          expect(atNode.x).toBeCloseTo(expected!.x, 6);
+          expect(atNode.z).toBeCloseTo(expected!.z, 6);
+        });
+      });
+    }
+
+    function assertOpeningWallEndpointsMatchAdjacent(
+      layout: ReturnType<typeof createOutsideFaceRectangleLayout>,
+      wall: typeof preset.wall,
+      hostSegmentId: string,
+      resolved: ReturnType<typeof resolveDoorAt>,
+    ) {
+      const frames = getSegmentFramesForWallLayout(layout, wall);
+      const framesBySegmentId = new Map(frames.map((frame) => [frame.segmentId, frame]));
+      const planDisplayNodeById = buildPlanDisplayNodeById({ layout, framesBySegmentId });
+      const segment = layout.segments.find((item) => item.id === hostSegmentId);
+      expect(segment).toBeDefined();
+      const endpoints = resolveSegmentDisplayEndpoints({
+        segment: segment!,
+        layout,
+        planDisplayNodeById,
+      });
+      expect(endpoints).not.toBeNull();
+      const frame = framesBySegmentId.get(hostSegmentId)!;
+      const runs = buildWallRunsExcludingRoughOpenings({
+        segmentLengthMeters: frame.lengthMeters,
+        roughOpenings: [{
+          roughOpeningStartMeters: resolved.roughOpeningStartMeters,
+          roughOpeningEndMeters: resolved.roughOpeningEndMeters,
+        }],
+      });
+      expect(runs.length).toBe(2);
+      const firstRun = resolvePlanWallRunEndpoints({
+        frame,
+        run: runs[0]!,
+        displayStart: endpoints!.displayStart,
+        displayEnd: endpoints!.displayEnd,
+      });
+      const lastRun = resolvePlanWallRunEndpoints({
+        frame,
+        run: runs[runs.length - 1]!,
+        displayStart: endpoints!.displayStart,
+        displayEnd: endpoints!.displayEnd,
+      });
+      expect(firstRun.start.x).toBeCloseTo(endpoints!.displayStart.x, 6);
+      expect(firstRun.start.z).toBeCloseTo(endpoints!.displayStart.z, 6);
+      expect(lastRun.end.x).toBeCloseTo(endpoints!.displayEnd.x, 6);
+      expect(lastRun.end.z).toBeCloseTo(endpoints!.displayEnd.z, 6);
+      expect(firstRun.end.x).not.toBeCloseTo(lastRun.start.x, 2);
+    }
+
+    it('keeps outside-face rectangle corners on one canonical centerline display point', () => {
+      const layout = createOutsideFaceRectangleLayout({ lengthMeters: 6, widthMeters: 5 });
+      assertSharedNodeDisplayContinuity(layout, preset.wall);
+    });
+
+    it('keeps centerline rectangle corners on one canonical centerline display point', () => {
+      const layout = {
+        ...createOutsideFaceRectangleLayout({ lengthMeters: 6, widthMeters: 5 }),
+        dimensionBasis: 'wall_centerline' as const,
+      };
+      assertSharedNodeDisplayContinuity(layout, preset.wall);
+    });
+
+    it('keeps opening-wall run endpoints aligned with adjacent segment corners during door preview', () => {
+      const layout = createOutsideFaceRectangleLayout({ lengthMeters: 6, widthMeters: 5 });
+      const frames = getSegmentFramesForWallLayout(layout, preset.wall);
+      const frame = frames[0]!;
+      const station = frame.lengthMeters * 0.5;
+      const resolved = resolveOpeningPlacementFromPlanPoint({
+        planX: frame.exteriorStart.x + frame.tangent.x * station,
+        planZ: frame.exteriorStart.z + frame.tangent.z * station,
+        hostSegmentId: frame.segmentId,
+        segmentFrame: frame,
+        openingDefinition: {
+          type: 'door',
+          widthMeters: 0.9,
+          heightMeters: 2.1,
+          roughOpeningAllowanceMeters: 0.05,
+        },
+        snapMode: 'grid',
+        gridSpacingMeters: 0.1,
+        wall: { ...preset.wall, snapToModule: false },
+      });
+      assertOpeningWallEndpointsMatchAdjacent(layout, preset.wall, frame.segmentId, resolved);
+    });
   });
 });
 

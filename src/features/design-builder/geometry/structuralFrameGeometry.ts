@@ -37,6 +37,7 @@ import {
   createDefaultFoundationSettings,
   resolveFoundationElevations,
   resolveStructuralConcreteVolumes,
+  resolveStructuralWallHeightMeters,
 } from '../domain/foundationElevations';
 import { resolveInteriorFloorSlab } from '../domain/interiorFloorSlab';
 import {
@@ -116,7 +117,11 @@ export function generateFrameInfillGeometry(
   const segmentFrames = getSegmentFramesForWallLayout(input.wallLayout, wall);
 
   const foundationSettings = input.foundationSettings ?? createDefaultFoundationSettings();
-  const wallHeightMeters = input.wallLayout.defaultWallHeightMeters;
+  const layoutWallHeight = input.wallLayout.defaultWallHeightMeters;
+  const wallHeightMeters = resolveStructuralWallHeightMeters({
+    foundation: foundationSettings,
+    wallHeightMeters: layoutWallHeight,
+  });
 
   const reconciled = reconcileStructuralFrameWithFoundation({
     layout: input.wallLayout,

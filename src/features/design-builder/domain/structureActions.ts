@@ -8,7 +8,9 @@ import {
   createPerimeterBeamsForLayout,
   reconcileStructuralFrameWithFoundation,
 } from './structuralFrameLayout';
-import { createDefaultFoundationSettings } from './foundationElevations';
+import { createDefaultFoundationSettings, resolveEffectiveWallHeightMeters } from './foundationElevations';
+import { applyProjectMasonryDefaultsToLayout } from './masonrySettings';
+import { syncPresetFromLayout } from './layoutWallAdapter';
 import { deriveInfillPanelsForLayout } from './cmuInfillPanelSolver';
 import { createDefaultGableEnd } from '../geometry/structuralFrameGeometry';
 import { getSegmentFramesForWallLayout } from '../geometry/designGeometry';
@@ -147,7 +149,10 @@ export function previewFrameLayoutCounts(params: {
   autoGenerateFrameLayout: boolean;
 }): { columnCount: number; frameSegmentCount: number } {
   const foundation = normalizeRcFrameFoundationSettings(params.foundation);
-  const wallHeightMeters = params.preset.wallLayout.defaultWallHeightMeters || params.preset.wall.heightMeters;
+  const wallHeightMeters = resolveEffectiveWallHeightMeters({
+    foundation,
+    wallHeightMeters: params.preset.wallLayout.defaultWallHeightMeters || params.preset.wall.heightMeters,
+  });
   const segmentFrames = getSegmentFramesForWallLayout(params.preset.wallLayout, params.preset.wall);
   const frameSystem =
     params.autoGenerateFrameLayout && params.foundation.columns.placementMode !== 'manual'
@@ -175,16 +180,30 @@ export function applyFrameFoundationDimensions(
   payload: FrameFoundationDimensionsApplyPayload,
 ): CmuBuildingPreset {
   const foundation = normalizeRcFrameFoundationSettings(payload.foundation);
-  let next: CmuBuildingPreset = {
-    ...preset,
-    buildingSystemMode: 'reinforced_concrete_frame_with_cmu_infill',
-    foundationSettings: foundation,
-    roofSystem: normalizeRoofSystemSettings(payload.roofSystem),
-    frameSystem: {
-      ...preset.frameSystem,
+  const layoutWallHeight =
+    preset.wallLayout.defaultWallHeightMeters || preset.wall.heightMeters;
+  const effectiveWallHeight = resolveEffectiveWallHeightMeters({
+    foundation,
+    wallHeightMeters: layoutWallHeight,
+  });
+  const syncedLayout = applyProjectMasonryDefaultsToLayout(preset.wallLayout, {
+    heightMeters: effectiveWallHeight,
+  });
+  let next: CmuBuildingPreset = syncPresetFromLayout(
+    {
+      ...preset,
       buildingSystemMode: 'reinforced_concrete_frame_with_cmu_infill',
+      foundationSettings: foundation,
+      roofSystem: normalizeRoofSystemSettings(payload.roofSystem),
+      wallLayout: syncedLayout,
+      wall: { ...preset.wall, heightMeters: effectiveWallHeight },
+      frameSystem: {
+        ...preset.frameSystem,
+        buildingSystemMode: 'reinforced_concrete_frame_with_cmu_infill',
+      },
     },
-  };
+    syncedLayout,
+  );
 
   if (payload.autoGenerateFrameLayout) {
     if (payload.foundation.columns.placementMode !== 'manual') {
@@ -202,7 +221,10 @@ export function applyFrameFoundationDimensions(
   }
 
   const segmentFrames = getSegmentFramesForWallLayout(next.wallLayout, next.wall);
-  const wallHeightMeters = next.wallLayout.defaultWallHeightMeters || next.wall.heightMeters;
+  const wallHeightMeters = resolveEffectiveWallHeightMeters({
+    foundation,
+    wallHeightMeters: next.wallLayout.defaultWallHeightMeters || next.wall.heightMeters,
+  });
   const { frameSystem } = reconcileStructuralFrameWithFoundation({
     layout: next.wallLayout,
     segmentFrames,

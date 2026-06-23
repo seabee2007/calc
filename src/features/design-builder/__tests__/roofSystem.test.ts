@@ -22,6 +22,7 @@ import { buildDesignGeometryInputFromLayout, generateDesignGeometry, getSegmentF
 import { projectPointToSegmentStation } from '../domain/openingPlacementResolver';
 import { buildFrameInfillEstimatePreview, cubicMetersToCubicYards } from '../quantity/designQuantityFormulas';
 import { resolveEaveRunExtensionMeters, ridgeLengthMeters } from '../domain/roofOverhangSupport';
+import type { ResolvedRoofSystem, RoofPlane, RoofSystemSettings, RoofVec3 } from '../types';
 
 function resolveRoofFromPreset(
   preset: ReturnType<typeof applyAutoFrameLayout>,
@@ -79,6 +80,134 @@ function gableRoofSystem(overrides: Partial<RoofSystemSettings> = {}): RoofSyste
   };
 }
 
+function resolveRectangularRoof(
+  lengthMeters: number,
+  widthMeters: number,
+  roofSystem: RoofSystemSettings,
+): ResolvedRoofSystem {
+  const layout = createOutsideFaceRectangleLayout({
+    lengthMeters,
+    widthMeters,
+    wallHeightMeters: 2.8,
+    wallThicknessMeters: 0.2,
+  });
+  const perimeter = [
+    { x: -lengthMeters / 2, z: -widthMeters / 2 },
+    { x: lengthMeters / 2, z: -widthMeters / 2 },
+    { x: lengthMeters / 2, z: widthMeters / 2 },
+    { x: -lengthMeters / 2, z: widthMeters / 2 },
+  ];
+  return resolveRoofSystem({
+    layout,
+    wallExteriorFootprint: perimeter,
+    structuralBearingPerimeter: perimeter,
+    bearingSource: 'wall_exterior_fallback',
+    roofSystem,
+    roofBeamTopElevationMeters: 2.8,
+  });
+}
+
+function splitLongRectangleLayout(lengthMeters: number, widthMeters: number): import('../types').DesignWallLayoutParameters {
+  const halfLength = lengthMeters / 2;
+  const halfWidth = widthMeters / 2;
+  return {
+    kind: 'wall_layout',
+    id: 'split-long-rectangle',
+    label: 'Split long rectangle',
+    dimensionBasis: 'outside_face',
+    gridSpacingMeters: 0.1,
+    defaultWallHeightMeters: 2.8,
+    defaultWallThicknessMeters: 0.2,
+    snapToGrid: false,
+    snapToModule: false,
+    orthogonalLock: true,
+    cornerOverrides: [],
+    activeNodeId: null,
+    selectedSegmentId: null,
+    isFootprintClosed: true,
+    nodes: [
+      { id: 'sw', x: -halfLength, z: -halfWidth },
+      { id: 's-mid', x: 0, z: -halfWidth },
+      { id: 'se', x: halfLength, z: -halfWidth },
+      { id: 'ne', x: halfLength, z: halfWidth },
+      { id: 'n-mid', x: 0, z: halfWidth },
+      { id: 'nw', x: -halfLength, z: halfWidth },
+    ],
+    segments: [
+      { id: 'south-a', startNodeId: 'sw', endNodeId: 's-mid', wallThicknessMeters: 0.2, wallHeightMeters: 2.8 },
+      { id: 'south-b', startNodeId: 's-mid', endNodeId: 'se', wallThicknessMeters: 0.2, wallHeightMeters: 2.8 },
+      { id: 'east', startNodeId: 'se', endNodeId: 'ne', wallThicknessMeters: 0.2, wallHeightMeters: 2.8 },
+      { id: 'north-a', startNodeId: 'ne', endNodeId: 'n-mid', wallThicknessMeters: 0.2, wallHeightMeters: 2.8 },
+      { id: 'north-b', startNodeId: 'n-mid', endNodeId: 'nw', wallThicknessMeters: 0.2, wallHeightMeters: 2.8 },
+      { id: 'west', startNodeId: 'nw', endNodeId: 'sw', wallThicknessMeters: 0.2, wallHeightMeters: 2.8 },
+    ],
+  };
+}
+
+function roofPlaneArea(plane: RoofPlane): number {
+  const [a, b, c, d] = plane.corners;
+  const triangle = (p0: RoofVec3, p1: RoofVec3, p2: RoofVec3) => {
+    const ab = { x: p1.x - p0.x, y: p1.y - p0.y, z: p1.z - p0.z };
+    const ac = { x: p2.x - p0.x, y: p2.y - p0.y, z: p2.z - p0.z };
+    return Math.hypot(
+      ab.y * ac.z - ab.z * ac.y,
+      ab.z * ac.x - ab.x * ac.z,
+      ab.x * ac.y - ab.y * ac.x,
+    ) / 2;
+  };
+  return d ? triangle(a!, b!, c!) + triangle(a!, c!, d) : triangle(a!, b!, c!);
+}
+
+function pointMatches(a: RoofVec3, b: RoofVec3): boolean {
+  return Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z) < 0.001;
+}
+
+function expectPointClose(actual: RoofVec3, expected: RoofVec3, precision = 3) {
+  expect(actual.x).toBeCloseTo(expected.x, precision);
+  expect(actual.y).toBeCloseTo(expected.y, precision);
+  expect(actual.z).toBeCloseTo(expected.z, precision);
+}
+
+function distanceFromPlane(point: RoofVec3, plane: RoofPlane): number {
+  const anchor = plane.corners[0]!;
+  return Math.abs(
+    plane.normal.x * (point.x - anchor.x) +
+      plane.normal.y * (point.y - anchor.y) +
+      plane.normal.z * (point.z - anchor.z),
+  );
+}
+
+function pointInTrianglePlan(
+  point: Pick<RoofVec3, 'x' | 'z'>,
+  a: Pick<RoofVec3, 'x' | 'z'>,
+  b: Pick<RoofVec3, 'x' | 'z'>,
+  c: Pick<RoofVec3, 'x' | 'z'>,
+): boolean {
+  const sign = (p1: Pick<RoofVec3, 'x' | 'z'>, p2: Pick<RoofVec3, 'x' | 'z'>, p3: Pick<RoofVec3, 'x' | 'z'>) =>
+    (p1.x - p3.x) * (p2.z - p3.z) - (p2.x - p3.x) * (p1.z - p3.z);
+  const d1 = sign(point, a, b);
+  const d2 = sign(point, b, c);
+  const d3 = sign(point, c, a);
+  const hasNegative = d1 < -0.001 || d2 < -0.001 || d3 < -0.001;
+  const hasPositive = d1 > 0.001 || d2 > 0.001 || d3 > 0.001;
+  return !(hasNegative && hasPositive);
+}
+
+function pointInPlanePlan(point: Pick<RoofVec3, 'x' | 'z'>, plane: RoofPlane): boolean {
+  const [a, b, c, d] = plane.corners;
+  if (d) {
+    return pointInTrianglePlan(point, a!, b!, c!) || pointInTrianglePlan(point, a!, c!, d);
+  }
+  return pointInTrianglePlan(point, a!, b!, c!);
+}
+
+function planCentroid(plane: RoofPlane): Pick<RoofVec3, 'x' | 'z'> {
+  return {
+    x: plane.corners.reduce((sum, corner) => sum + corner.x, 0) / plane.corners.length,
+    z: plane.corners.reduce((sum, corner) => sum + corner.z, 0) / plane.corners.length,
+  };
+}
+
 describe('Roof system — hip, gable, raked cap', () => {
   const preset = applyAutoFrameLayout(createFiveBySixCmuBuildingPreset());
   const foundation = normalizeRcFrameFoundationSettings(preset.foundationSettings);
@@ -102,6 +231,132 @@ describe('Roof system — hip, gable, raked cap', () => {
     expect(geometry.rakedCapPlacements?.length ?? 0).toBe(0);
   });
 
+  it('rectangular hip roof creates a centered long-axis ridge and four valid planes', () => {
+    const roof = resolveRectangularRoof(10, 6, {
+      ...createDefaultRoofSystemSettings(),
+      roofType: 'hip',
+      ridgeDirection: 'along_shortest_axis',
+      eaveOverhangMeters: 0,
+      peakHeightAboveRoofBeamMeters: 1.5,
+    });
+
+    expect(roof.supported).toBe(true);
+    expect(roof.roofTopPlanes).toHaveLength(4);
+    expect(roof.roofTopPlanes.filter((plane) => plane.corners.length === 4)).toHaveLength(2);
+    expect(roof.roofTopPlanes.filter((plane) => plane.corners.length === 3)).toHaveLength(2);
+    expect(roof.ridgeStart).toBeDefined();
+    expect(roof.ridgeEnd).toBeDefined();
+    expect(roof.ridgeStart!.z).toBeCloseTo(0, 3);
+    expect(roof.ridgeEnd!.z).toBeCloseTo(0, 3);
+    expect(Math.abs(roof.ridgeEnd!.x - roof.ridgeStart!.x)).toBeCloseTo(4, 3);
+    expect(roof.claddingRidgeLengthMeters).toBeCloseTo(4, 3);
+    expect(roof.ridgeLengthMeters).toBeCloseTo(4, 3);
+    expect(roof.ridgeStart!.x).toBeCloseTo(-2, 3);
+    expect(roof.ridgeEnd!.x).toBeCloseTo(2, 3);
+    expect(roof.ridgeStart!.x - -5).toBeCloseTo(3, 3);
+    expect(5 - roof.ridgeEnd!.x).toBeCloseTo(3, 3);
+    expect(roof.structuralRidgeStart).toEqual(roof.claddingRidgeStart);
+    expect(roof.structuralRidgeEnd).toEqual(roof.claddingRidgeEnd);
+    expect(roof.roofSurfaceAreaSquareMeters).toBeCloseTo(10 * 6 * Math.sqrt(1 + 0.5 ** 2), 3);
+
+    for (const plane of roof.roofTopPlanes) {
+      expect(plane.normal.y).toBeGreaterThan(0);
+      expect(roofPlaneArea(plane)).toBeGreaterThan(0.001);
+      for (const corner of plane.corners) {
+        expect(distanceFromPlane(corner, plane)).toBeLessThanOrEqual(0.001);
+      }
+    }
+
+    for (const plane of roof.roofTopPlanes) {
+      const centroid = planCentroid(plane);
+      const containingPlanes = roof.roofTopPlanes.filter((candidate) => pointInPlanePlan(centroid, candidate));
+      expect(containingPlanes.map((candidate) => candidate.id)).toEqual([plane.id]);
+    }
+
+    const ridgeEnds = [roof.ridgeStart!, roof.ridgeEnd!];
+    for (const corner of roof.claddingPerimeter) {
+      const eaveCorner = { ...corner, y: roof.roofBeamTopY };
+      const eaveMembershipCount = roof.roofTopPlanes.filter((plane) =>
+        plane.corners.some((planeCorner) => pointMatches(planeCorner, eaveCorner)),
+      ).length;
+      expect(eaveMembershipCount).toBe(2);
+      const nearestRidgeEnd =
+        Math.hypot(corner.x - ridgeEnds[0].x, corner.z - ridgeEnds[0].z) <
+        Math.hypot(corner.x - ridgeEnds[1].x, corner.z - ridgeEnds[1].z)
+          ? ridgeEnds[0]
+          : ridgeEnds[1];
+      expect(
+        roof.roofTopPlanes.some(
+          (plane) =>
+            plane.corners.some((planeCorner) => pointMatches(planeCorner, eaveCorner)) &&
+            plane.corners.some((planeCorner) => pointMatches(planeCorner, nearestRidgeEnd)),
+        ),
+      ).toBe(true);
+    }
+    for (const ridgeEnd of ridgeEnds) {
+      const ridgeMembershipCount = roof.roofTopPlanes.filter((plane) =>
+        plane.corners.some((planeCorner) => pointMatches(planeCorner, ridgeEnd)),
+      ).length;
+      expect(ridgeMembershipCount).toBe(3);
+    }
+  });
+
+  it('supports long rectangular footprints split into collinear wall segments', () => {
+    const layout = splitLongRectangleLayout(18, 6);
+    const footprint = [
+      { x: -9, z: -3 },
+      { x: 0, z: -3 },
+      { x: 9, z: -3 },
+      { x: 9, z: 3 },
+      { x: 0, z: 3 },
+      { x: -9, z: 3 },
+    ];
+    const analysis = analyzeRectangularFootprint({ layout, exteriorFootprint: footprint });
+
+    expect(analysis.supported).toBe(true);
+    expect(analysis.bearingCorners).toHaveLength(4);
+    expect(analysis.lengthMeters).toBeCloseTo(18, 6);
+    expect(analysis.widthMeters).toBeCloseTo(6, 6);
+    expect(analysis.localXSegmentIds).toEqual(['south-a', 'south-b', 'north-a', 'north-b']);
+    expect(analysis.localZSegmentIds).toEqual(['east', 'west']);
+  });
+
+  it('resolves gable and hip roofs on split long rectangular footprints', () => {
+    const layout = splitLongRectangleLayout(18, 6);
+    const footprint = [
+      { x: -9, z: -3 },
+      { x: 0, z: -3 },
+      { x: 9, z: -3 },
+      { x: 9, z: 3 },
+      { x: 0, z: 3 },
+      { x: -9, z: 3 },
+    ];
+    const base = {
+      layout,
+      wallExteriorFootprint: footprint,
+      structuralBearingPerimeter: footprint,
+      bearingSource: 'wall_exterior_fallback' as const,
+      roofBeamTopElevationMeters: 2.8,
+    };
+
+    const gable = resolveRoofSystem({
+      ...base,
+      roofSystem: { ...createDefaultRoofSystemSettings(), roofType: 'gable', eaveOverhangMeters: 0 },
+    });
+    const hip = resolveRoofSystem({
+      ...base,
+      roofSystem: { ...createDefaultRoofSystemSettings(), roofType: 'hip', eaveOverhangMeters: 0 },
+    });
+
+    expect(gable.supported).toBe(true);
+    expect(gable.roofTopPlanes).toHaveLength(2);
+    expect(gable.gableEndSegmentIds).toEqual(['east', 'west']);
+    expect(hip.supported).toBe(true);
+    expect(hip.roofTopPlanes).toHaveLength(4);
+    expect(hip.claddingRidgeStart?.x).toBeCloseTo(-6, 6);
+    expect(hip.claddingRidgeEnd?.x).toBeCloseTo(6, 6);
+  });
+
   it('hip roof on a square creates a pyramid roof with one peak', () => {
     const squareLayout = createOutsideFaceRectangleLayout({
       lengthMeters: 6,
@@ -121,6 +376,61 @@ describe('Roof system — hip, gable, raked cap', () => {
     expect(roof?.ridgeEnd).toBeUndefined();
     expect(roof?.roofTopPlanes.length).toBe(4);
     expect(roof?.roofTopPlanes.every((plane) => plane.corners.length === 3)).toBe(true);
+  });
+
+  it('square hip roof creates four triangles and a centered apex with no ridge', () => {
+    const roof = resolveRectangularRoof(6, 6, {
+      ...createDefaultRoofSystemSettings(),
+      roofType: 'hip',
+      eaveOverhangMeters: 0,
+      peakHeightAboveRoofBeamMeters: 1.5,
+    });
+
+    expect(roof.roofTopPlanes).toHaveLength(4);
+    expect(roof.roofTopPlanes.every((plane) => plane.corners.length === 3)).toBe(true);
+    expect(roof.peakPoint).toEqual(expect.objectContaining({ x: 0, z: 0 }));
+    expect(roof.ridgeStart).toBeUndefined();
+    expect(roof.ridgeEnd).toBeUndefined();
+    expect(roof.ridgeLengthMeters).toBe(0);
+    expect(roof.gableEndSegmentIds).toHaveLength(0);
+    for (const corner of roof.claddingPerimeter) {
+      const eaveCorner = { ...corner, y: roof.roofBeamTopY };
+      expect(
+        roof.roofTopPlanes.some(
+          (plane) =>
+            plane.corners.some((planeCorner) => pointMatches(planeCorner, eaveCorner)) &&
+            plane.corners.some((planeCorner) => pointMatches(planeCorner, roof.peakPoint!)),
+        ),
+      ).toBe(true);
+    }
+  });
+
+  it('hip eave overhang lowers cladding eaves without moving structural bearing or peak', () => {
+    const noOverhang = resolveRectangularRoof(10, 6, {
+      ...createDefaultRoofSystemSettings(),
+      roofType: 'hip',
+      eaveOverhangMeters: 0,
+      peakHeightAboveRoofBeamMeters: 1.5,
+    });
+    const withOverhang = resolveRectangularRoof(10, 6, {
+      ...createDefaultRoofSystemSettings(),
+      roofType: 'hip',
+      eaveOverhangMeters: 0.3,
+      peakHeightAboveRoofBeamMeters: 1.5,
+    });
+
+    const noOverhangEaveY = Math.min(...noOverhang.roofTopPlanes.flatMap((plane) => plane.corners.map((corner) => corner.y)));
+    const overhangEaveY = Math.min(...withOverhang.roofTopPlanes.flatMap((plane) => plane.corners.map((corner) => corner.y)));
+    expect(overhangEaveY).toBeLessThan(noOverhangEaveY);
+    expect(noOverhangEaveY - overhangEaveY).toBeCloseTo(0.5 * 0.3, 3);
+    expect(withOverhang.roofBeamTopY).toBeCloseTo(noOverhang.roofBeamTopY, 6);
+    expect(withOverhang.roofPeakY).toBeCloseTo(noOverhang.roofPeakY, 6);
+    expect(withOverhang.structuralRidgeStart).toEqual(noOverhang.structuralRidgeStart);
+    expect(withOverhang.structuralRidgeEnd).toEqual(noOverhang.structuralRidgeEnd);
+    expectPointClose(withOverhang.claddingRidgeStart!, withOverhang.structuralRidgeStart!, 3);
+    expectPointClose(withOverhang.claddingRidgeEnd!, withOverhang.structuralRidgeEnd!, 3);
+    expect(withOverhang.ridgeLengthMeters).toBeCloseTo(4, 3);
+    expect(withOverhang.roofTopPlanes).toHaveLength(4);
   });
 
   it('gable roof creates two roof planes and two gable ends', () => {

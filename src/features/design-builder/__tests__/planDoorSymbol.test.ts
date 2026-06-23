@@ -8,6 +8,8 @@ import {
   doorArcRadiusMeters,
   doorOpenLeafSideDot,
   deriveWallPlanOrientation,
+  resolveDoorSwingDirection,
+  resolveDoorSwingType,
 } from '../domain/planDoorSymbol';
 import { buildPlanOpeningRenderItem } from '../domain/planOpeningSymbols';
 import {
@@ -41,6 +43,30 @@ describe('planDoorSymbol', () => {
     });
     return { frame, resolved, geometry: buildPlanOpeningGeometry(resolved, frame) };
   }
+
+  function doorForHanding(
+    frameIndex: number,
+    swingDirection: 'left' | 'right',
+    swingType: 'inswing' | 'outswing',
+  ) {
+    const { geometry, frame } = doorGeometry(frameIndex);
+    const orientation = deriveWallPlanOrientation(frame);
+    const door = buildPlanDoorSymbolGeometry({ geometry, swingDirection, swingType });
+    return { geometry, frame, orientation, door };
+  }
+
+  it('defaults missing legacy door handing to inswing left', () => {
+    expect(resolveDoorSwingType({})).toBe(DEFAULT_DOOR_SWING_TYPE);
+    expect(resolveDoorSwingDirection({})).toBe(DEFAULT_DOOR_SWING_DIRECTION);
+    const { geometry } = doorGeometry(0);
+    const door = buildPlanDoorSymbolGeometry({
+      geometry,
+      swingDirection: resolveDoorSwingDirection({}),
+      swingType: resolveDoorSwingType({}),
+    });
+    expect(door.swingDirection).toBe('left');
+    expect(door.swingType).toBe('inswing');
+  });
 
   it('uses door leaf width equal to actual opening width', () => {
     const { geometry } = doorGeometry(0);
@@ -126,6 +152,78 @@ describe('planDoorSymbol', () => {
       });
       expect(doorArcRadiusMeters(door)).toBeCloseTo(0.9, 6);
       expect(doorOpenLeafSideDot(door, geometry.inwardNormal)).toBeGreaterThan(0);
+    });
+  });
+
+  it('renders inswing right with hinge at local-end jamb on interior side', () => {
+    const { geometry, orientation, door } = doorForHanding(0, 'right', 'inswing');
+    expect(door.hinge).toEqual(geometry.actualEnd);
+    expect(doorOpenLeafSideDot(door, orientation.interiorNormal)).toBeGreaterThan(0);
+  });
+
+  it('renders outswing left with hinge at local-start jamb on exterior side', () => {
+    const { geometry, orientation, door } = doorForHanding(0, 'left', 'outswing');
+    expect(door.hinge).toEqual(geometry.actualStart);
+    expect(doorOpenLeafSideDot(door, orientation.exteriorNormal)).toBeGreaterThan(0);
+  });
+
+  it('renders outswing right with hinge at local-end jamb on exterior side', () => {
+    const { geometry, orientation, door } = doorForHanding(0, 'right', 'outswing');
+    expect(door.hinge).toEqual(geometry.actualEnd);
+    expect(doorOpenLeafSideDot(door, orientation.exteriorNormal)).toBeGreaterThan(0);
+  });
+
+  it('does not change opening placement when only swing or hinge side changes', () => {
+    const { frame, resolved } = doorGeometry(1);
+    const baseOpening = {
+      id: 'door-hand-test',
+      type: 'door' as const,
+      wallSegmentId: frame.segmentId,
+      positionAlongSegment: resolved.positionAlongSegmentMeters,
+      placementUsesCenterStation: true,
+      wallFace: 'south' as const,
+      widthMeters: 0.9,
+      heightMeters: 2.1,
+      roughOpeningAllowanceMeters: 0.05,
+      offsetMeters: resolved.actualOpeningStartMeters,
+    };
+    const inswingLeft = resolveOpeningPlacementFromStoredOpening({
+      opening: { ...baseOpening, swingDirection: 'left', swingType: 'inswing' },
+      segmentFrame: frame,
+      wall: preset.wall,
+    });
+    const outswingRight = resolveOpeningPlacementFromStoredOpening({
+      opening: { ...baseOpening, swingDirection: 'right', swingType: 'outswing' },
+      segmentFrame: frame,
+      wall: preset.wall,
+    });
+    expect(outswingRight.roughOpeningStartMeters).toBeCloseTo(inswingLeft.roughOpeningStartMeters, 6);
+    expect(outswingRight.roughOpeningEndMeters).toBeCloseTo(inswingLeft.roughOpeningEndMeters, 6);
+    expect(outswingRight.actualOpeningStartMeters).toBeCloseTo(inswingLeft.actualOpeningStartMeters, 6);
+    expect(outswingRight.actualOpeningEndMeters).toBeCloseTo(inswingLeft.actualOpeningEndMeters, 6);
+  });
+
+  it('formats plan labels for all four handing combinations', () => {
+    const { frame, resolved } = doorGeometry(0);
+    const combinations = [
+      ['left', 'inswing', 'Inswing Left'],
+      ['right', 'inswing', 'Inswing Right'],
+      ['left', 'outswing', 'Outswing Left'],
+      ['right', 'outswing', 'Outswing Right'],
+    ] as const;
+    combinations.forEach(([swingDirection, swingType, label]) => {
+      const item = buildPlanOpeningRenderItem({
+        key: `${swingDirection}-${swingType}`,
+        openingType: 'door',
+        resolved,
+        frame,
+        isValid: true,
+        placing: true,
+        zoom: 36,
+        swingDirection,
+        swingType,
+      });
+      expect(item.swingLabel).toBe(label);
     });
   });
 

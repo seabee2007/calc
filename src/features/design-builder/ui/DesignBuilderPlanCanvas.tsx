@@ -9,10 +9,12 @@ import type { DesignSnapTarget } from '../domain/designSnapRules';
 import type { SegmentFrame } from '../geometry/designGeometry';
 import type { ResolvedOpeningPlacement } from '../domain/openingPlacementResolver';
 import {
+  buildPlanDisplayNodeById,
   buildPlanOpeningGeometry,
   buildWallRunsExcludingRoughOpenings,
   hitTestPlanOpeningGeometry,
-  planPointOnWall,
+  resolvePlanWallRunEndpoints,
+  resolveSegmentDisplayEndpoints,
 } from '../domain/planOpeningGraphics';
 import {
   PlanOpeningSymbol,
@@ -129,6 +131,11 @@ export default function DesignBuilderPlanCanvas({
   const framesBySegmentId = useMemo(
     () => new Map(segmentFrames.map((frame) => [frame.segmentId, frame])),
     [segmentFrames],
+  );
+
+  const planDisplayNodeById = useMemo(
+    () => buildPlanDisplayNodeById({ layout, framesBySegmentId }),
+    [framesBySegmentId, layout],
   );
 
   const roughOpeningsBySegmentId = useMemo(() => {
@@ -568,7 +575,10 @@ export default function DesignBuilderPlanCanvas({
     );
   }
 
-  const activeNode = layout.nodes.find((node) => node.id === activeNodeId) ?? null;
+  const activeNodeRaw = layout.nodes.find((node) => node.id === activeNodeId) ?? null;
+  const activeNode = activeNodeRaw
+    ? (planDisplayNodeById.get(activeNodeRaw.id) ?? { x: activeNodeRaw.x, z: activeNodeRaw.z })
+    : null;
   const drawGuidance = activeNode && draftEnd && toolMode === 'draw_wall' && layout.orthogonalLock
     ? resolveDrawWallGuidance({
         layout,
@@ -693,9 +703,13 @@ export default function DesignBuilderPlanCanvas({
         <text x={surfaceSize.width - 12} y={surfaceSize.height / 2} textAnchor="end" fill="#64748b" fontSize={11} fontWeight={700} pointerEvents="none">East (+X)</text>
         <text x={12} y={surfaceSize.height / 2} textAnchor="start" fill="#64748b" fontSize={11} fontWeight={700} pointerEvents="none">West</text>
         {layout.segments.map((segment) => {
-          const start = layout.nodes.find((node) => node.id === segment.startNodeId);
-          const end = layout.nodes.find((node) => node.id === segment.endNodeId);
-          if (!start || !end) return null;
+          const endpoints = resolveSegmentDisplayEndpoints({
+            segment,
+            layout,
+            planDisplayNodeById,
+          });
+          if (!endpoints) return null;
+          const { displayStart, displayEnd } = endpoints;
           const selected = selectedSegmentId === segment.id;
           const stroke = toolMode === 'delete' && selected ? '#f97316' : selected ? '#22d3ee' : '#94a3b8';
           const strokeWidth = selected ? 6 : 4;
@@ -709,29 +723,50 @@ export default function DesignBuilderPlanCanvas({
             return (
               <g key={segment.id}>
                 {runs.map((run, index) => {
-                  const runStart = planToSurfacePoint(planPointOnWall(frame, run.startAlongMeters));
-                  const runEnd = planToSurfacePoint(planPointOnWall(frame, run.endAlongMeters));
+                  const runEndpoints = resolvePlanWallRunEndpoints({
+                    frame,
+                    run,
+                    displayStart,
+                    displayEnd,
+                  });
+                  const runStart = planToSurfacePoint(runEndpoints.start);
+                  const runEnd = planToSurfacePoint(runEndpoints.end);
                   return (
-                    <line
-                      key={`${segment.id}-run-${index}`}
-                      x1={runStart.sx}
-                      y1={runStart.sy}
-                      x2={runEnd.sx}
-                      y2={runEnd.sy}
-                      stroke={stroke}
-                      strokeWidth={strokeWidth}
-                      strokeLinecap="round"
-                      pointerEvents="none"
-                      data-segment-id={segment.id}
-                      data-wall-run="true"
-                    />
+                    <g key={`${segment.id}-run-${index}`}>
+                      <line
+                        x1={runStart.sx}
+                        y1={runStart.sy}
+                        x2={runEnd.sx}
+                        y2={runEnd.sy}
+                        stroke="transparent"
+                        strokeWidth={18}
+                        strokeLinecap="round"
+                        pointerEvents="none"
+                        data-selectable="true"
+                        data-selectable-type="wall_segment"
+                        data-segment-id={segment.id}
+                      />
+                      <line
+                        x1={runStart.sx}
+                        y1={runStart.sy}
+                        x2={runEnd.sx}
+                        y2={runEnd.sy}
+                        stroke={stroke}
+                        strokeWidth={strokeWidth}
+                        strokeLinecap="round"
+                        pointerEvents="none"
+                        data-segment-id={segment.id}
+                        data-wall-run="true"
+                        data-plan-wall-visible="true"
+                      />
+                    </g>
                   );
                 })}
               </g>
             );
           }
-          const a = planToSurfacePoint(start);
-          const b = planToSurfacePoint(end);
+          const a = planToSurfacePoint(displayStart);
+          const b = planToSurfacePoint(displayEnd);
           return (
             <g key={segment.id}>
               <line
@@ -756,6 +791,7 @@ export default function DesignBuilderPlanCanvas({
                 strokeWidth={strokeWidth}
                 strokeLinecap="round"
                 pointerEvents="none"
+                data-plan-wall-visible="true"
               />
             </g>
           );
@@ -1073,7 +1109,8 @@ export default function DesignBuilderPlanCanvas({
           );
         })}
         {layout.nodes.map((node) => {
-          const point = planToSurfacePoint(node);
+          const displayPoint = planDisplayNodeById.get(node.id) ?? node;
+          const point = planToSurfacePoint(displayPoint);
           const selected = selectedNodeId === node.id || activeNodeId === node.id;
           return (
             <circle
@@ -1085,6 +1122,7 @@ export default function DesignBuilderPlanCanvas({
               stroke="#0f172a"
               strokeWidth={2}
               pointerEvents="none"
+              data-plan-node-id={node.id}
             />
           );
         })}

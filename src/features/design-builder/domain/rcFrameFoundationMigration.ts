@@ -112,7 +112,7 @@ export function normalizeRcFrameFoundationSettings(
     return createDefaultRcFrameFoundationSettings();
   }
   if (isLegacyFoundationSettings(settings)) {
-    return migrateLegacyFoundationSettings(settings);
+    return ensurePlinthBeamFollowFlags(migrateLegacyFoundationSettings(settings));
   }
   if ('plinthBeam' in settings) {
     const intermediate = settings as IntermediateRcFrameFoundationSettings;
@@ -128,6 +128,8 @@ export function normalizeRcFrameFoundationSettings(
 }
 
 function ensurePlinthBeamFollowFlags(settings: RcFrameFoundationSettings): RcFrameFoundationSettings {
+  const roofDepth = settings.roofBeam.enabled ? Math.max(0, settings.roofBeam.depthMeters) : 0;
+  const fallbackHeightAbovePlinth = 2.8 + roofDepth;
   return {
     ...settings,
     plinthBeam: {
@@ -138,6 +140,13 @@ function ensurePlinthBeamFollowFlags(settings: RcFrameFoundationSettings): RcFra
     interiorFloorSlab: {
       ...defaultInteriorFloorSlabSettings(),
       ...settings.interiorFloorSlab,
+    },
+    columns: {
+      ...settings.columns,
+      heightAbovePlinthMeters:
+        settings.columns.heightAbovePlinthMeters > 0
+          ? settings.columns.heightAbovePlinthMeters
+          : fallbackHeightAbovePlinth,
     },
   };
 }
@@ -165,6 +174,7 @@ export function createDefaultRcFrameFoundationSettings(): RcFrameFoundationSetti
     columns: {
       widthMeters: 0.35,
       depthMeters: 0.35,
+      heightAbovePlinthMeters: 3.1,
       placementMode: 'corners_only',
     },
     isolatedFootings: {

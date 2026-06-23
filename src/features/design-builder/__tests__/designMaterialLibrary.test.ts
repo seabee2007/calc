@@ -124,6 +124,38 @@ describe('designRenderingUv', () => {
     expect(maxU).toBeGreaterThan(0);
   });
 
+  it('uses the local eave edge for triangular hip cladding UVs', () => {
+    const direction = resolveRoofRidgeDirection(
+      [
+        { x: -3, z: -2 },
+        { x: -3, z: 2 },
+        { x: 0, z: 0 },
+      ],
+      { x: 4, z: 0 },
+    );
+
+    expect(direction.x).toBeCloseTo(0, 6);
+    expect(Math.abs(direction.z)).toBeCloseTo(1, 6);
+  });
+
+  it('maps triangular hip cladding corrugations down slope even with a bad ridge hint', () => {
+    const geometry = createRoofCladdingGeometry({
+      corners: [
+        { x: 0, y: 2, z: 0 },
+        { x: -3, y: 0, z: -2 },
+        { x: -3, y: 0, z: 2 },
+      ],
+      slabTopMeters: 0.15,
+      planeNormal: new THREE.Vector3(-0.55, 0.83, 0).normalize(),
+      ridgeDirection: new THREE.Vector3(1, 0, 0),
+    });
+
+    const uv = geometry.getAttribute('uv');
+    expect(uv.getX(1)).toBeCloseTo(uv.getX(2), 6);
+    expect(Math.abs(uv.getY(1) - uv.getY(2))).toBeGreaterThan(3);
+    expect(Math.abs(uv.getX(0) - uv.getX(1))).toBeGreaterThan(10);
+  });
+
   it('can swap corrugation axis for ridge-to-eave profile materials', () => {
     const geometry = createRoofCladdingGeometry({
       corners: [

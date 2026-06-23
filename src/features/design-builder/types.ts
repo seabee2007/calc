@@ -382,6 +382,8 @@ export interface RcFrameFoundationSettings {
   columns: {
     widthMeters: number;
     depthMeters: number;
+    /** Vertical extent from top of plinth beam (Y=0) to top of column / roof beam top. */
+    heightAbovePlinthMeters: number;
     placementMode: ColumnPlacementMode;
   };
   isolatedFootings: {

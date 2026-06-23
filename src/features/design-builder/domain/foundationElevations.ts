@@ -28,11 +28,59 @@ export type FoundationElevations = {
   cmuClearHeightMeters: number;
   columnBottomY: number;
   columnTopY: number;
+  /** Column extent above plinth top (user-facing story height including roof beam depth). */
+  columnHeightAbovePlinthMeters: number;
+  /** Full column from footing top through roof beam top. */
   columnHeightMeters: number;
 };
 
 /** Small render epsilon to prevent z-fighting — not large enough to show daylight. */
 export const FOUNDATION_CONTACT_EPSILON_METERS = 0.001;
+
+export function resolveColumnHeightAbovePlinthMeters(params: {
+  foundation: RcFrameFoundationSettings | import('../types').StructuralFoundationSettings | undefined;
+  wallHeightMeters: number;
+}): number {
+  const foundation = normalizeRcFrameFoundationSettings(params.foundation);
+  const roofDepth = foundation.roofBeam.enabled ? Math.max(0, foundation.roofBeam.depthMeters) : 0;
+  const configured = foundation.columns.heightAbovePlinthMeters;
+  if (typeof configured === 'number' && Number.isFinite(configured) && configured > 0) {
+    return configured;
+  }
+  return Math.max(0, params.wallHeightMeters) + roofDepth;
+}
+
+export function resolveEffectiveWallHeightMeters(params: {
+  foundation: RcFrameFoundationSettings | import('../types').StructuralFoundationSettings | undefined;
+  wallHeightMeters: number;
+}): number {
+  const foundation = normalizeRcFrameFoundationSettings(params.foundation);
+  const roofDepth = foundation.roofBeam.enabled ? Math.max(0, foundation.roofBeam.depthMeters) : 0;
+  const heightAbovePlinth = resolveColumnHeightAbovePlinthMeters(params);
+  return Math.max(0, heightAbovePlinth - roofDepth);
+}
+
+export function syncColumnHeightAbovePlinthForWallHeight(params: {
+  foundation: RcFrameFoundationSettings | import('../types').StructuralFoundationSettings | undefined;
+  wallHeightMeters: number;
+}): RcFrameFoundationSettings {
+  const foundation = normalizeRcFrameFoundationSettings(params.foundation);
+  const roofDepth = foundation.roofBeam.enabled ? Math.max(0, foundation.roofBeam.depthMeters) : 0;
+  return {
+    ...foundation,
+    columns: {
+      ...foundation.columns,
+      heightAbovePlinthMeters: Math.max(0, params.wallHeightMeters) + roofDepth,
+    },
+  };
+}
+
+export function resolveStructuralWallHeightMeters(params: {
+  foundation: RcFrameFoundationSettings | import('../types').StructuralFoundationSettings | undefined;
+  wallHeightMeters: number;
+}): number {
+  return resolveEffectiveWallHeightMeters(params);
+}
 
 export function resolveFoundationElevations(params: {
   foundation: RcFrameFoundationSettings | import('../types').StructuralFoundationSettings | undefined;
@@ -57,11 +105,15 @@ export function resolveFoundationElevations(params: {
       : 0;
   const interiorFloorSlabTopY = topOfPlinthBeamY;
   const cmuWallBaseY = topOfPlinthBeamY;
-  const roofBeamBottomY = wallBaseY + Math.max(0, params.wallHeightMeters);
-  const roofDepth = Math.max(0, foundation.roofBeam.depthMeters);
-  const roofBeamTopY = roofBeamBottomY + roofDepth;
+  const roofDepth = foundation.roofBeam.enabled ? Math.max(0, foundation.roofBeam.depthMeters) : 0;
+  const columnHeightAbovePlinthMeters = resolveColumnHeightAbovePlinthMeters({
+    foundation,
+    wallHeightMeters: params.wallHeightMeters,
+  });
+  const columnTopY = topOfPlinthBeamY + columnHeightAbovePlinthMeters;
+  const roofBeamTopY = columnTopY;
+  const roofBeamBottomY = roofBeamTopY - roofDepth;
   const columnBottomY = topOfFootingY;
-  const columnTopY = roofBeamTopY;
   const columnHeightMeters = Math.max(0, columnTopY - columnBottomY);
   const cmuClearHeightMeters = Math.max(0, roofBeamBottomY - wallBaseY);
 
@@ -81,6 +133,7 @@ export function resolveFoundationElevations(params: {
     cmuClearHeightMeters,
     columnBottomY,
     columnTopY,
+    columnHeightAbovePlinthMeters,
     columnHeightMeters,
   };
 }
@@ -310,9 +363,26 @@ export function validateRcFrameFoundationSettings(params: {
   if (params.foundation.roofBeam.enabled && params.foundation.roofBeam.depthMeters <= 0) {
     errors.push('Roof Beam depth must be greater than zero.');
   }
+  const heightAbovePlinth = resolveColumnHeightAbovePlinthMeters({
+    foundation: params.foundation,
+    wallHeightMeters: params.wallHeightMeters,
+  });
+  const effectiveWallHeight = resolveEffectiveWallHeightMeters({
+    foundation: params.foundation,
+    wallHeightMeters: params.wallHeightMeters,
+  });
+  if (params.foundation.columns.heightAbovePlinthMeters <= 0) {
+    errors.push('Column height above plinth must be greater than zero.');
+  }
   if (
     params.foundation.roofBeam.enabled &&
-    params.foundation.roofBeam.depthMeters >= params.wallHeightMeters
+    heightAbovePlinth <= params.foundation.roofBeam.depthMeters
+  ) {
+    errors.push('Column height above plinth must exceed roof beam depth.');
+  }
+  if (
+    params.foundation.roofBeam.enabled &&
+    params.foundation.roofBeam.depthMeters >= effectiveWallHeight
   ) {
     errors.push('Roof Beam depth must not consume the full wall height.');
   }

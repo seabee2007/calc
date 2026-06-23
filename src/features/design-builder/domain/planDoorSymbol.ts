@@ -4,6 +4,26 @@ import type { PlanOpeningGeometry } from './planOpeningGraphics';
 export type DoorSwingDirection = 'left' | 'right';
 export type DoorSwingType = 'inswing' | 'outswing';
 
+/** @alias swingType — inswing/outswing relative to wall interior. */
+export type DoorSwingDirectionSetting = DoorSwingType;
+/** @alias swingDirection — hinge side along increasing wall-station direction. */
+export type DoorHingeSide = DoorSwingDirection;
+
+export const DEFAULT_DOOR_SWING_DIRECTION: DoorSwingDirection = 'left';
+export const DEFAULT_DOOR_SWING_TYPE: DoorSwingType = 'inswing';
+
+export function resolveDoorSwingType(
+  opening: { swingType?: DoorSwingType } | null | undefined,
+): DoorSwingType {
+  return opening?.swingType ?? DEFAULT_DOOR_SWING_TYPE;
+}
+
+export function resolveDoorSwingDirection(
+  opening: { swingDirection?: DoorSwingDirection } | null | undefined,
+): DoorSwingDirection {
+  return opening?.swingDirection ?? DEFAULT_DOOR_SWING_DIRECTION;
+}
+
 export type WallPlanOrientation = {
   tangent: { x: number; z: number };
   interiorNormal: { x: number; z: number };
@@ -22,9 +42,6 @@ export type PlanDoorSymbolGeometry = {
   swingType: DoorSwingType;
   swingSideNormal: { x: number; z: number };
 };
-
-export const DEFAULT_DOOR_SWING_DIRECTION: DoorSwingDirection = 'left';
-export const DEFAULT_DOOR_SWING_TYPE: DoorSwingType = 'inswing';
 
 export function deriveWallPlanOrientation(frame: SegmentFrame): WallPlanOrientation {
   return {

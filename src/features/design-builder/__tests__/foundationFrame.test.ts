@@ -122,6 +122,23 @@ describe('RC frame foundation — plinth / roof / tie beams', () => {
     expect(migrated.isolatedFootings).not.toHaveProperty('dropBelowTieBeamMeters');
   });
 
+  it('derives CMU clear height from column height above plinth minus roof beam depth', () => {
+    const customFoundation = normalizeRcFrameFoundationSettings({
+      ...foundation,
+      columns: {
+        ...foundation.columns,
+        heightAbovePlinthMeters: 3.5,
+      },
+    });
+    const customElevations = resolveFoundationElevations({
+      foundation: customFoundation,
+      wallHeightMeters,
+    });
+    expect(customElevations.columnHeightAbovePlinthMeters).toBeCloseTo(3.5, 6);
+    expect(customElevations.cmuClearHeightMeters).toBeCloseTo(3.5 - customFoundation.roofBeam.depthMeters, 6);
+    expect(customElevations.roofBeamTopY).toBeCloseTo(3.5, 6);
+  });
+
   it('places top of plinth beam at Y = 0', () => {
     expect(elevations.topOfPlinthBeamY).toBe(TOP_OF_PLINTH_BEAM_Y);
     const plinthBeam = preset.frameSystem.beams.find((beam) => beam.kind === 'plinth_beam');

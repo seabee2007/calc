@@ -62,8 +62,8 @@ export type RectangularFootprintAnalysis = {
 export type RidgeAxis = 'localX' | 'localZ';
 
 const ORTHOGONAL_TOLERANCE = 0.08;
-const RECTANGLE_LENGTH_TOLERANCE_METERS = 0.05;
 const MIN_EDGE_LENGTH_METERS = 0.1;
+const COLLINEAR_TOLERANCE = 0.001;
 
 export function footprintBounds(footprint: readonly PlanVec2[]): FootprintBounds {
   const xs = footprint.map((point) => point.x);
@@ -105,6 +105,57 @@ export function midpoint2(a: PlanVec2, b: PlanVec2): PlanVec2 {
 
 function dot2(a: PlanVec2, b: PlanVec2): number {
   return a.x * b.x + a.z * b.z;
+}
+
+function cross2(a: PlanVec2, b: PlanVec2): number {
+  return a.x * b.z - a.z * b.x;
+}
+
+function pointsClose(a: PlanVec2, b: PlanVec2, toleranceMeters = 0.001): boolean {
+  return dist2(a, b) <= toleranceMeters;
+}
+
+function removeClosingDuplicate(points: readonly PlanVec2[]): PlanVec2[] {
+  if (points.length > 1 && pointsClose(points[0]!, points[points.length - 1]!)) {
+    return points.slice(0, -1).map((point) => ({ ...point }));
+  }
+  return points.map((point) => ({ ...point }));
+}
+
+function simplifyCollinearClosedLoop(points: readonly PlanVec2[]): PlanVec2[] {
+  let simplified = removeClosingDuplicate(points).filter((point, index, source) => {
+    const previous = source[index - 1];
+    return !previous || !pointsClose(previous, point);
+  });
+
+  let changed = true;
+  while (changed && simplified.length > 3) {
+    changed = false;
+    const next: PlanVec2[] = [];
+    for (let index = 0; index < simplified.length; index += 1) {
+      const prev = simplified[(index - 1 + simplified.length) % simplified.length]!;
+      const curr = simplified[index]!;
+      const after = simplified[(index + 1) % simplified.length]!;
+      const incoming = { x: curr.x - prev.x, z: curr.z - prev.z };
+      const outgoing = { x: after.x - curr.x, z: after.z - curr.z };
+      const incomingLength = vec2Length(incoming);
+      const outgoingLength = vec2Length(outgoing);
+      const cross = Math.abs(cross2(incoming, outgoing));
+      if (
+        incomingLength > MIN_EDGE_LENGTH_METERS &&
+        outgoingLength > MIN_EDGE_LENGTH_METERS &&
+        cross <= COLLINEAR_TOLERANCE * incomingLength * outgoingLength &&
+        dot2(incoming, outgoing) > 0
+      ) {
+        changed = true;
+        continue;
+      }
+      next.push(curr);
+    }
+    simplified = next;
+  }
+
+  return simplified;
 }
 
 /** Intersect two infinite lines defined by point pairs. */
@@ -345,14 +396,17 @@ export function resolveOuterRoofBeamBearingLoop(
     if (input.fallbackExteriorFootprint.length < 4) {
       warnings.push('Roof bearing loop fell back: missing exterior footprint.');
     }
+    const simplifiedFallback = simplifyCollinearClosedLoop(input.fallbackExteriorFootprint);
     return {
-      points: input.fallbackExteriorFootprint.map((point) => ({ ...point })),
+      points: simplifiedFallback.length >= 4
+        ? simplifiedFallback
+        : input.fallbackExteriorFootprint.map((point) => ({ ...point })),
       source: 'wall_exterior_fallback',
       warnings,
     };
   };
 
-  if (!input.layout.isFootprintClosed || input.layout.segments.length !== 4) {
+  if (!input.layout.isFootprintClosed || input.layout.segments.length < 4) {
     warnings.push('Roof bearing loop fell back to wall exterior: footprint is not a closed quadrilateral.');
     return fallback();
   }
@@ -378,15 +432,26 @@ export function resolveOuterRoofBeamBearingLoop(
     outerLines.push(outerFaceLineForBeam(frame, beam));
   }
 
-  if (outerLines.length !== 4) {
+  if (outerLines.length < 4) {
     warnings.push('Roof bearing loop fell back: could not resolve four outer roof-beam faces.');
     return fallback();
   }
 
   const points: PlanVec2[] = [];
-  for (let index = 0; index < 4; index += 1) {
-    const prev = outerLines[(index - 1 + 4) % 4]!;
+  for (let index = 0; index < outerLines.length; index += 1) {
     const curr = outerLines[index]!;
+    let prev: { start: PlanVec2; end: PlanVec2 } | null = null;
+    for (let offset = 1; offset < outerLines.length; offset += 1) {
+      const candidate = outerLines[(index - offset + outerLines.length) % outerLines.length]!;
+      if (intersectInfiniteLines2D(candidate.start, candidate.end, curr.start, curr.end)) {
+        prev = candidate;
+        break;
+      }
+    }
+    if (!prev) {
+      warnings.push('Roof bearing loop fell back: parallel roof-beam outer faces at a corner.');
+      return fallback();
+    }
     const corner = intersectInfiniteLines2D(prev.start, prev.end, curr.start, curr.end);
     if (!corner) {
       warnings.push('Roof bearing loop fell back: parallel roof-beam outer faces at a corner.');
@@ -395,14 +460,23 @@ export function resolveOuterRoofBeamBearingLoop(
     points.push(corner);
   }
 
-  return { points, source: 'roof_beam_outer_faces', warnings };
+  const simplifiedPoints = simplifyCollinearClosedLoop(points);
+  if (simplifiedPoints.length !== 4) {
+    warnings.push('Roof bearing loop fell back: roof-beam outer faces do not simplify to four corners.');
+    return fallback();
+  }
+
+  return { points: simplifiedPoints, source: 'roof_beam_outer_faces', warnings };
 }
 
 export function resolveCladdingPerimeterFromBearing(
   bearingPerimeter: readonly PlanVec2[],
   eaveOverhangMeters: number,
 ): PlanVec2[] {
-  return offsetClosedPolygonOutward(bearingPerimeter, Math.max(0, eaveOverhangMeters));
+  return offsetClosedPolygonOutward(
+    simplifyCollinearClosedLoop(bearingPerimeter),
+    Math.max(0, eaveOverhangMeters),
+  );
 }
 
 export function deriveLocalRectangularBasis(firstEdgeTangent: PlanVec2): LocalRectangularBasis {
@@ -436,14 +510,14 @@ export function analyzeRectangularFootprint(params: {
     axisZSegmentIds: [],
   };
 
-  if (!params.layout.isFootprintClosed || params.layout.segments.length !== 4) {
+  if (!params.layout.isFootprintClosed || params.layout.segments.length < 4) {
     return empty;
   }
-  if (params.exteriorFootprint.length !== 4) {
+  const corners = simplifyCollinearClosedLoop(params.exteriorFootprint);
+  if (corners.length !== 4) {
     return empty;
   }
 
-  const corners = params.exteriorFootprint.map((point) => ({ ...point }));
   const bounds = footprintBounds(corners);
   const edgeLengths = corners.map((_, index) =>
     dist2(corners[index]!, corners[(index + 1) % 4]!),
@@ -494,24 +568,6 @@ export function analyzeRectangularFootprint(params: {
     } else {
       localZSegmentIds.push(entry.segmentId);
     }
-  }
-
-  const localXLengths = localXSegmentIds.map((segmentId) => {
-    const segment = params.layout.segments.find((item) => item.id === segmentId)!;
-    return segmentTangent(segment, params.layout.nodes)!.length;
-  });
-  const localZLengths = localZSegmentIds.map((segmentId) => {
-    const segment = params.layout.segments.find((item) => item.id === segmentId)!;
-    return segmentTangent(segment, params.layout.nodes)!.length;
-  });
-  const xConsistent = localXLengths.every(
-    (value) => Math.abs(value - localXLengths[0]!) <= RECTANGLE_LENGTH_TOLERANCE_METERS,
-  );
-  const zConsistent = localZLengths.every(
-    (value) => Math.abs(value - localZLengths[0]!) <= RECTANGLE_LENGTH_TOLERANCE_METERS,
-  );
-  if (!xConsistent || !zConsistent) {
-    return empty;
   }
 
   const lengthAlongLocalX =

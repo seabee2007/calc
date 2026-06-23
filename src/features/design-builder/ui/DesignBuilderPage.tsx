@@ -140,9 +140,10 @@ import {
   setBuildingSystemMode,
   type FrameFoundationDimensionsApplyPayload,
 } from '../domain/structureActions';
-import { createDefaultFoundationSettings, normalizeRcFrameFoundationSettings } from '../domain/foundationElevations';
+import { createDefaultFoundationSettings, normalizeRcFrameFoundationSettings, syncColumnHeightAbovePlinthForWallHeight } from '../domain/foundationElevations';
 import { createDefaultRoofSystemSettings, DEFAULT_ROOF_LAYER_VISIBILITY, normalizeRoofSystemSettings } from '../domain/roofSystemDefaults';
 import FrameFoundationDimensionsModal from './FrameFoundationDimensionsModal';
+import { DoorConfigurationControls } from './DoorConfigurationControls';
 import {
   designModelMetadataWithPersistedState,
   persistenceStatusMessage,
@@ -996,15 +997,25 @@ export default function DesignBuilderPage({
   const planOpeningPreview = useMemo(() => {
     if (!placementPreview?.resolvedPlacement) return null;
     const draft = placementPreview.openingDraft;
+    const placingDoor = toolMode === 'place_door' && placementPreview.openingType === 'door';
     return {
       resolvedPlacement: placementPreview.resolvedPlacement,
       openingType: placementPreview.openingType,
       isValid: placementPreview.isValid,
       statusKind: placementPreview.statusKind,
-      swingDirection: draft?.swingDirection ?? openingToolSettings.door.swingDirection ?? 'left',
-      swingType: draft?.swingType ?? openingToolSettings.door.swingType ?? 'inswing',
+      swingDirection: placingDoor
+        ? openingToolSettings.door.swingDirection ?? 'left'
+        : draft?.swingDirection ?? openingToolSettings.door.swingDirection ?? 'left',
+      swingType: placingDoor
+        ? openingToolSettings.door.swingType ?? 'inswing'
+        : draft?.swingType ?? openingToolSettings.door.swingType ?? 'inswing',
     };
-  }, [openingToolSettings.door.swingDirection, openingToolSettings.door.swingType, placementPreview]);
+  }, [
+    openingToolSettings.door.swingDirection,
+    openingToolSettings.door.swingType,
+    placementPreview,
+    toolMode,
+  ]);
   const cmuLayout = designGeometryResult.wallCmuLayout;
   const manualMasonrySummary = useMemo(() => summarizeManualMasonryRuns(manualMasonryRuns), [manualMasonryRuns]);
   const moduleWarnings = useMemo(
@@ -1912,7 +1923,7 @@ export default function DesignBuilderPage({
     }
 
     if (event.kind === 'undo_last_segment') {
-      handleUndoDesign();
+      undoLastDrawSegment();
       return;
     }
 
@@ -2683,7 +2694,17 @@ export default function DesignBuilderPage({
               ),
             };
           }
-          return syncPresetFromLayout({ ...current, wall: nextWall, wallLayout: nextLayout }, nextLayout);
+          return syncPresetFromLayout({ ...current, wall: nextWall, wallLayout: nextLayout,
+            ...(typeof patch.heightMeters === 'number' &&
+            current.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill'
+              ? {
+                  foundationSettings: syncColumnHeightAbovePlinthForWallHeight({
+                    foundation: current.foundationSettings,
+                    wallHeightMeters: patch.heightMeters,
+                  }),
+                }
+              : {}),
+          }, nextLayout);
         });
       },
     });
@@ -3998,46 +4019,22 @@ export default function DesignBuilderPage({
                     />
                   </label>
                   {activeOpeningTool === 'door' ? (
-                    <>
-                      <label className="flex items-center gap-2 font-medium text-slate-600 dark:text-slate-300">
-                        Swing
-                        <select
-                          value={activeOpeningSettings.swingType ?? 'inswing'}
-                          onChange={(event) =>
-                            setOpeningToolSettings((current) => ({
-                              ...current,
-                              door: {
-                                ...current.door,
-                                swingType: event.target.value as 'inswing' | 'outswing',
-                              },
-                            }))
-                          }
-                          className="h-8 rounded border border-slate-300 bg-white px-2 dark:border-slate-700 dark:bg-slate-950"
-                        >
-                          <option value="inswing">Inswing</option>
-                          <option value="outswing">Outswing</option>
-                        </select>
-                      </label>
-                      <label className="flex items-center gap-2 font-medium text-slate-600 dark:text-slate-300">
-                        Handing
-                        <select
-                          value={activeOpeningSettings.swingDirection ?? 'left'}
-                          onChange={(event) =>
-                            setOpeningToolSettings((current) => ({
-                              ...current,
-                              door: {
-                                ...current.door,
-                                swingDirection: event.target.value as 'left' | 'right',
-                              },
-                            }))
-                          }
-                          className="h-8 rounded border border-slate-300 bg-white px-2 dark:border-slate-700 dark:bg-slate-950"
-                        >
-                          <option value="left">Left</option>
-                          <option value="right">Right</option>
-                        </select>
-                      </label>
-                    </>
+                    <DoorConfigurationControls
+                      swingType={activeOpeningSettings.swingType ?? 'inswing'}
+                      swingDirection={activeOpeningSettings.swingDirection ?? 'left'}
+                      onSwingTypeChange={(swingType) =>
+                        setOpeningToolSettings((current) => ({
+                          ...current,
+                          door: { ...current.door, swingType },
+                        }))
+                      }
+                      onSwingDirectionChange={(swingDirection) =>
+                        setOpeningToolSettings((current) => ({
+                          ...current,
+                          door: { ...current.door, swingDirection },
+                        }))
+                      }
+                    />
                   ) : null}
                   <span className="rounded-full border border-slate-200 px-2.5 py-1 font-semibold text-slate-600 dark:border-slate-700 dark:text-slate-300">
                     Snap to CMU: {snapMode === 'cmu_module' ? 'On' : 'Available'}
@@ -5200,26 +5197,12 @@ function EditableControls({
           />
         </>
       ) : (
-        <>
-          <SelectField
-            label="Swing"
-            value={opening.swingType ?? 'inswing'}
-            onChange={(value) => onOpeningChange(opening.id, { swingType: value as WallOpeningParameters['swingType'] })}
-            options={[
-              { value: 'inswing', label: 'Inswing' },
-              { value: 'outswing', label: 'Outswing' },
-            ]}
-          />
-          <SelectField
-            label="Handing"
-            value={opening.swingDirection ?? 'left'}
-            onChange={(value) => onOpeningChange(opening.id, { swingDirection: value as WallOpeningParameters['swingDirection'] })}
-            options={[
-              { value: 'left', label: 'Left-hand' },
-              { value: 'right', label: 'Right-hand' },
-            ]}
-          />
-        </>
+        <DoorConfigurationControls
+          swingType={opening.swingType ?? 'inswing'}
+          swingDirection={opening.swingDirection ?? 'left'}
+          onSwingTypeChange={(swingType) => onOpeningChange(opening.id, { swingType })}
+          onSwingDirectionChange={(swingDirection) => onOpeningChange(opening.id, { swingDirection })}
+        />
       )}
       <SelectField
         label="Lintel type"

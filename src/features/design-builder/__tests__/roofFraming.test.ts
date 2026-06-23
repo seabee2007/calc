@@ -580,7 +580,7 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
     expect(preview.some((line) => line.id === 'steel-roof-trusses')).toBe(false);
   });
 
-  it('hip roof does not generate gable trusses or raked caps', () => {
+  it('hip roof does not generate gable trusses, placeholder hip framing, or raked caps', () => {
     const roofSystem = {
       ...createDefaultRoofSystemSettings(),
       roofType: 'hip' as const,
@@ -589,7 +589,7 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
     };
     const geometry = frameInfillGeometry(roofSystem);
     expect(geometry.resolvedRoofSystem?.trussPlacements.length).toBe(0);
-    expect(geometry.resolvedRoofSystem?.hipFramingMembers.length).toBeGreaterThan(0);
+    expect(geometry.resolvedRoofSystem?.hipFramingMembers.length).toBe(0);
     expect(geometry.rakedCapPlacements?.length ?? 0).toBe(0);
   });
 

@@ -8,7 +8,6 @@ import type {
 import {
   analyzeRectangularFootprint,
   distancePointToLine2D,
-  footprintBounds,
   gableEndSegmentIdsForRidgeAxis,
   longEdgesAreEven,
   midpoint2,
@@ -109,6 +108,117 @@ function ridgeEndpointsForAxis(params: {
     ridgeStart: toVec3(midpoint2(bearing[0]!, bearing[1]!), peakY),
     ridgeEnd: toVec3(midpoint2(bearing[3]!, bearing[2]!), peakY),
   };
+}
+
+function dist2(a: PlanVec2, b: PlanVec2): number {
+  return Math.hypot(b.x - a.x, b.z - a.z);
+}
+
+function normalizedPlanVector(start: PlanVec2, end: PlanVec2): PlanVec2 {
+  const dx = end.x - start.x;
+  const dz = end.z - start.z;
+  const length = Math.hypot(dx, dz) || 1;
+  return { x: dx / length, z: dz / length };
+}
+
+function centerOfPerimeter(points: readonly PlanVec2[]): PlanVec2 {
+  const count = points.length || 1;
+  return {
+    x: points.reduce((sum, point) => sum + point.x, 0) / count,
+    z: points.reduce((sum, point) => sum + point.z, 0) / count,
+  };
+}
+
+function hipRidgeEndpointsForAxis(params: {
+  perimeter: readonly PlanVec2[];
+  ridgeAxis: RidgeAxis;
+  peakY: number;
+}): {
+  ridgeStart?: RoofVec3;
+  ridgeEnd?: RoofVec3;
+  ridgeLengthMeters: number;
+  isPyramid: boolean;
+  ridgeParallelToEvenEdges: boolean;
+  apex: RoofVec3;
+} {
+  const { perimeter, peakY } = params;
+  void params.ridgeAxis;
+
+  const evenSpanMeters = (dist2(perimeter[0]!, perimeter[1]!) + dist2(perimeter[2]!, perimeter[3]!)) / 2;
+  const oddSpanMeters = (dist2(perimeter[1]!, perimeter[2]!) + dist2(perimeter[3]!, perimeter[0]!)) / 2;
+  const ridgeParallelToEvenEdges = evenSpanMeters >= oddSpanMeters;
+  const longSpanMeters = Math.max(evenSpanMeters, oddSpanMeters);
+  const shortSpanMeters = Math.min(evenSpanMeters, oddSpanMeters);
+  const ridgeLengthMetersValue = Math.max(0, longSpanMeters - shortSpanMeters);
+  const center = centerOfPerimeter(perimeter);
+  const apex = toVec3(center, peakY);
+
+  if (ridgeLengthMetersValue <= ROOF_RENDER_EPSILON_METERS) {
+    return {
+      ridgeLengthMeters: 0,
+      isPyramid: true,
+      ridgeParallelToEvenEdges,
+      apex,
+    };
+  }
+
+  const startAnchor = ridgeParallelToEvenEdges
+    ? midpoint2(perimeter[3]!, perimeter[0]!)
+    : midpoint2(perimeter[0]!, perimeter[1]!);
+  const endAnchor = ridgeParallelToEvenEdges
+    ? midpoint2(perimeter[2]!, perimeter[1]!)
+    : midpoint2(perimeter[3]!, perimeter[2]!);
+  const ridgeUnit = normalizedPlanVector(startAnchor, endAnchor);
+  const insetMeters = shortSpanMeters / 2;
+  const ridgeStart = {
+    x: startAnchor.x + ridgeUnit.x * insetMeters,
+    z: startAnchor.z + ridgeUnit.z * insetMeters,
+  };
+  const ridgeEnd = {
+    x: endAnchor.x - ridgeUnit.x * insetMeters,
+    z: endAnchor.z - ridgeUnit.z * insetMeters,
+  };
+
+  return {
+    ridgeStart: toVec3(ridgeStart, peakY),
+    ridgeEnd: toVec3(ridgeEnd, peakY),
+    ridgeLengthMeters: ridgeLengthMetersValue,
+    isPyramid: false,
+    ridgeParallelToEvenEdges,
+    apex,
+  };
+}
+
+function createUpwardRoofPlane(id: string, corners: RoofVec3[]): RoofPlane {
+  if (corners.length < 3) {
+    throw new Error(`Roof plane ${id} requires at least three corners.`);
+  }
+  const area =
+    corners.length === 3
+      ? triangleArea(corners[0]!, corners[1]!, corners[2]!)
+      : quadArea(corners[0]!, corners[1]!, corners[2]!, corners[3]!);
+  if (area <= ROOF_RENDER_EPSILON_METERS ** 2) {
+    throw new Error(`Roof plane ${id} is degenerate.`);
+  }
+
+  let ordered = [...corners];
+  let normal = planeNormal(ordered[0]!, ordered[1]!, ordered[2]!);
+  if (normal.y < 0) {
+    ordered = [ordered[0]!, ...ordered.slice(1).reverse()];
+    normal = planeNormal(ordered[0]!, ordered[1]!, ordered[2]!);
+  }
+
+  if (ordered.length === 4) {
+    const [a, , , d] = ordered;
+    const distanceFromPlane = Math.abs(
+      normal.x * (d!.x - a!.x) + normal.y * (d!.y - a!.y) + normal.z * (d!.z - a!.z),
+    );
+    if (distanceFromPlane > ROOF_RENDER_EPSILON_METERS) {
+      throw new Error(`Roof plane ${id} is non-planar.`);
+    }
+  }
+
+  return { id, corners: ordered, normal };
 }
 
 function buildGableRoofPlanes(params: {
@@ -222,46 +332,61 @@ function buildGableRoofPlanes(params: {
 
 function buildHipRoofPlanes(params: {
   ridgeAxis: RidgeAxis;
-  analysis: RectangularFootprintAnalysis;
   bearing: readonly PlanVec2[];
   cladding: readonly PlanVec2[];
   roofBeamTopY: number;
   peakY: number;
   isSquare: boolean;
+  eaveOverhangMeters: number;
+  fixedRoofSlope: number;
 }): {
   topPlanes: RoofPlane[];
   undersidePlanes: RoofPlane[];
   ridgeStart?: RoofVec3;
   ridgeEnd?: RoofVec3;
+  structuralRidgeStart?: RoofVec3;
+  structuralRidgeEnd?: RoofVec3;
+  claddingRidgeStart?: RoofVec3;
+  claddingRidgeEnd?: RoofVec3;
   peakPoint?: RoofVec3;
 } {
   const { bearing, cladding, roofBeamTopY, peakY, isSquare } = params;
-  const eaveY = roofBeamTopY;
-  const bounds = footprintBounds(bearing);
+  const eaveY = claddingEaveElevationMeters({
+    structuralEaveY: roofBeamTopY,
+    fixedSlope: params.fixedRoofSlope,
+    sideEaveOverhangMeters: params.eaveOverhangMeters,
+  });
+  const structuralRidge = hipRidgeEndpointsForAxis({
+    perimeter: bearing,
+    ridgeAxis: params.ridgeAxis,
+    peakY,
+  });
+  const claddingRidge = hipRidgeEndpointsForAxis({
+    perimeter: cladding,
+    ridgeAxis: params.ridgeAxis,
+    peakY,
+  });
 
-  if (isSquare) {
-    const peakPoint = vec3(bounds.centerX, peakY, bounds.centerZ);
+  if (isSquare || claddingRidge.isPyramid) {
+    const peakPoint = claddingRidge.apex;
     const c0 = toVec3(cladding[0]!, eaveY);
     const c1 = toVec3(cladding[1]!, eaveY);
     const c2 = toVec3(cladding[2]!, eaveY);
     const c3 = toVec3(cladding[3]!, eaveY);
     const topPlanes: RoofPlane[] = [
-      { id: 'hip-pyramid-0', corners: [c0, c1, peakPoint], normal: planeNormal(c0, c1, peakPoint) },
-      { id: 'hip-pyramid-1', corners: [c1, c2, peakPoint], normal: planeNormal(c1, c2, peakPoint) },
-      { id: 'hip-pyramid-2', corners: [c2, c3, peakPoint], normal: planeNormal(c2, c3, peakPoint) },
-      { id: 'hip-pyramid-3', corners: [c3, c0, peakPoint], normal: planeNormal(c3, c0, peakPoint) },
+      createUpwardRoofPlane('hip-pyramid-0', [c0, c1, peakPoint]),
+      createUpwardRoofPlane('hip-pyramid-1', [c1, c2, peakPoint]),
+      createUpwardRoofPlane('hip-pyramid-2', [c2, c3, peakPoint]),
+      createUpwardRoofPlane('hip-pyramid-3', [c3, c0, peakPoint]),
     ];
     return { topPlanes, undersidePlanes: topPlanes.map((plane) => offsetPlaneDown(plane, 0)), peakPoint };
   }
 
-  const { ridgeStart, ridgeEnd } = ridgeEndpointsForAxis({
-    bearing,
-    ridgeAxis: params.ridgeAxis,
-    peakY,
-  });
-  const evenLong = longEdgesAreEven(bearing);
-  const ridgeParallelToEvenEdges =
-    (params.ridgeAxis === 'localX' && evenLong) || (params.ridgeAxis === 'localZ' && !evenLong);
+  const { ridgeStart, ridgeEnd } = claddingRidge;
+  if (!ridgeStart || !ridgeEnd) {
+    throw new Error('Hip roof ridge endpoints could not be resolved.');
+  }
+  const ridgeParallelToEvenEdges = claddingRidge.ridgeParallelToEvenEdges;
 
   const c0 = toVec3(cladding[0]!, eaveY);
   const c1 = toVec3(cladding[1]!, eaveY);
@@ -271,21 +396,30 @@ function buildHipRoofPlanes(params: {
   let topPlanes: RoofPlane[];
   if (ridgeParallelToEvenEdges) {
     topPlanes = [
-      { id: 'hip-0', corners: [c0, c1, ridgeEnd, ridgeStart], normal: planeNormal(c0, c1, ridgeEnd) },
-      { id: 'hip-2', corners: [c2, c3, ridgeStart, ridgeEnd], normal: planeNormal(c2, c3, ridgeStart) },
-      { id: 'hip-3', corners: [c3, c0, ridgeStart], normal: planeNormal(c3, c0, ridgeStart) },
-      { id: 'hip-1', corners: [c1, c2, ridgeEnd], normal: planeNormal(c1, c2, ridgeEnd) },
+      createUpwardRoofPlane('hip-0', [c0, c1, ridgeEnd, ridgeStart]),
+      createUpwardRoofPlane('hip-2', [c2, c3, ridgeStart, ridgeEnd]),
+      createUpwardRoofPlane('hip-3', [c3, c0, ridgeStart]),
+      createUpwardRoofPlane('hip-1', [c1, c2, ridgeEnd]),
     ];
   } else {
     topPlanes = [
-      { id: 'hip-1', corners: [c1, c2, ridgeEnd, ridgeStart], normal: planeNormal(c1, c2, ridgeEnd) },
-      { id: 'hip-3', corners: [c3, c0, ridgeStart, ridgeEnd], normal: planeNormal(c3, c0, ridgeStart) },
-      { id: 'hip-0', corners: [c0, c1, ridgeStart], normal: planeNormal(c0, c1, ridgeStart) },
-      { id: 'hip-2', corners: [c2, c3, ridgeEnd], normal: planeNormal(c2, c3, ridgeEnd) },
+      createUpwardRoofPlane('hip-1', [c1, c2, ridgeEnd, ridgeStart]),
+      createUpwardRoofPlane('hip-3', [c3, c0, ridgeStart, ridgeEnd]),
+      createUpwardRoofPlane('hip-0', [c0, c1, ridgeStart]),
+      createUpwardRoofPlane('hip-2', [c2, c3, ridgeEnd]),
     ];
   }
 
-  return { topPlanes, undersidePlanes: topPlanes.map((plane) => offsetPlaneDown(plane, 0)), ridgeStart, ridgeEnd };
+  return {
+    topPlanes,
+    undersidePlanes: topPlanes.map((plane) => offsetPlaneDown(plane, 0)),
+    ridgeStart,
+    ridgeEnd,
+    structuralRidgeStart: structuralRidge.ridgeStart,
+    structuralRidgeEnd: structuralRidge.ridgeEnd,
+    claddingRidgeStart: ridgeStart,
+    claddingRidgeEnd: ridgeEnd,
+  };
 }
 
 function pointInTriangle2d(
@@ -409,16 +543,22 @@ export function resolveRoofSystem(params: {
   roofBeamTopElevationMeters: number;
 }): ResolvedRoofSystem & { roofAssemblyThicknessMeters: number } {
   const settings = params.roofSystem;
-  const bearingLoop = params.structuralBearingPerimeter.map((point) => ({ ...point }));
+  const rawBearingLoop = params.structuralBearingPerimeter.map((point) => ({ ...point }));
 
   const analysis = analyzeRectangularFootprint({
     layout: params.layout,
-    exteriorFootprint: bearingLoop,
+    exteriorFootprint: rawBearingLoop,
   });
+  const bearingLoop = analysis.supported
+    ? analysis.bearingCorners.map((point) => ({ ...point }))
+    : rawBearingLoop;
 
   const ridgeAxis = analysis.supported
     ? resolveRidgeAxis(analysis, settings.ridgeDirection, settings.selectedRidgeWallSegmentId)
     : ('localX' as RidgeAxis);
+  const hipRidgeAxis: RidgeAxis =
+    analysis.supported && analysis.localZSpanMeters > analysis.localXSpanMeters ? 'localZ' : 'localX';
+  const activeRidgeAxis = settings.roofType === 'hip' ? hipRidgeAxis : ridgeAxis;
 
   assertGableEndOverhangMeters(settings.gableEndOverhangMeters);
 
@@ -503,7 +643,7 @@ export function resolveRoofSystem(params: {
   const peakY = roofBeamTopY + Math.max(0, settings.peakHeightAboveRoofBeamMeters);
   const isSquare = Math.abs(analysis.lengthMeters - analysis.widthMeters) < 0.05;
   const bearingHalfRun =
-    (ridgeAxis === 'localX' ? analysis.localZSpanMeters : analysis.localXSpanMeters) / 2;
+    (activeRidgeAxis === 'localX' ? analysis.localZSpanMeters : analysis.localXSpanMeters) / 2;
   const rafterRiseMeters = settings.peakHeightAboveRoofBeamMeters;
   const fixedRoofPitch = resolveFixedRoofPitch({
     structuralHalfRunMeters: bearingHalfRun,
@@ -544,18 +684,23 @@ export function resolveRoofSystem(params: {
     gableEndSegmentIds = settings.gable.enabled ? gable.gableEndSegmentIds : [];
   } else {
     const hip = buildHipRoofPlanes({
-      ridgeAxis,
-      analysis,
+      ridgeAxis: hipRidgeAxis,
       bearing: bearingLoop,
       cladding: claddingLoop,
       roofBeamTopY,
       peakY,
       isSquare,
+      eaveOverhangMeters: settings.eaveOverhangMeters,
+      fixedRoofSlope: fixedRoofPitch.slope,
     });
     topPlanes = hip.topPlanes;
     undersidePlanes = hip.undersidePlanes.map((plane) => offsetPlaneDown(plane, settings.roofAssemblyThicknessMeters));
     ridgeStart = hip.ridgeStart;
     ridgeEnd = hip.ridgeEnd;
+    structuralRidgeStart = hip.structuralRidgeStart;
+    structuralRidgeEnd = hip.structuralRidgeEnd;
+    claddingRidgeStart = hip.claddingRidgeStart;
+    claddingRidgeEnd = hip.claddingRidgeEnd;
     peakPoint = hip.peakPoint;
     gableEndSegmentIds = [];
   }
@@ -612,7 +757,7 @@ export function resolveRoofSystem(params: {
     analysis,
     structuralBearingPerimeter: bearingLoop,
     claddingPerimeter: claddingLoop,
-    ridgeAxis,
+    ridgeAxis: activeRidgeAxis,
     roofBeamTopY,
     peakY,
     structuralRidgeStart: structuralRidgeStart ?? ridgeStart,
