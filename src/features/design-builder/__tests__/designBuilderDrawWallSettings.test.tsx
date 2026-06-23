@@ -22,6 +22,16 @@ vi.mock('../../../contexts/ConfirmContext', () => ({
   useConfirm: () => mocks.confirm,
 }));
 
+vi.mock('../../../store', () => ({
+  usePreferencesStore: () => ({
+    preferences: { unit: 'metric', soundEnabled: false },
+  }),
+}));
+
+vi.mock('../../../services/soundService', () => ({
+  soundService: { play: vi.fn(), initialize: vi.fn() },
+}));
+
 vi.mock('../../estimating/ui/EstimateWorkspaceHeaderCollapseContext', () => ({
   useEstimateWorkspaceHeaderCollapse: () => ({
     enabled: true,
@@ -45,6 +55,24 @@ vi.mock('../ui/DesignBuilderPlanCanvas', () => ({
 
 vi.mock('../ui/DesignBuilderViewer', () => ({
   default: () => <div data-testid="design-builder-viewer">Generated preview</div>,
+}));
+
+vi.mock('../ui/FrameFoundationDimensionsModal', () => ({
+  default: () => null,
+}));
+
+vi.mock('../ui/MaterialsColorsModal', () => ({
+  default: () => null,
+}));
+
+vi.mock('../ui/DraggableDebugOverlay', () => ({
+  DraggableDebugOverlay: () => null,
+}));
+
+vi.mock('../ui/DebugOverlayLayoutContext', () => ({
+  DebugOverlayLayoutProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  useDebugOverlayLayout: () => null,
+  debugOverlayInitialStyle: () => ({ left: 0, top: 0, opacity: 0 }),
 }));
 
 vi.mock('../services/designBuilderService', () => ({

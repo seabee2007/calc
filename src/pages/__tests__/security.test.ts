@@ -14,6 +14,18 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, it, expect, vi, afterEach } from 'vitest';
+import { getPublicProposalUrl } from '../../lib/proposalTracking';
+
+vi.mock('../../lib/supabase', () => ({
+  supabase: {
+    from: vi.fn(),
+    rpc: vi.fn(),
+  },
+}));
+
+vi.mock('../../services/proposalNotificationService', () => ({
+  createProposalNotification: vi.fn(),
+}));
 
 const root = process.cwd();
 
@@ -119,7 +131,6 @@ describe('getPublicProposalUrl — host guard', () => {
     vi.stubGlobal('window', {
       location: { origin: 'https://app.ardenprojectos.com', hostname: 'app.ardenprojectos.com' },
     });
-    const { getPublicProposalUrl } = await import('../../lib/proposalTracking');
     const url = getPublicProposalUrl('tok-123');
     expect(url).toBe('https://app.ardenprojectos.com/proposal/tok-123');
     // Must not use the marketing host (no-subdomain form)
@@ -130,7 +141,6 @@ describe('getPublicProposalUrl — host guard', () => {
     vi.stubGlobal('window', {
       location: { origin: 'https://ardenprojectos.com', hostname: 'ardenprojectos.com' },
     });
-    const { getPublicProposalUrl } = await import('../../lib/proposalTracking');
     const url = getPublicProposalUrl('tok-456');
     expect(url).not.toContain('https://ardenprojectos.com/proposal');
     expect(url).toContain('/proposal/tok-456');

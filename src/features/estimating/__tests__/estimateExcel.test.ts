@@ -29,6 +29,45 @@ import {
   mapLoadedActivitiesToExportInput,
 } from '../excel/estimateExcelExportBuilder';
 import { resetProductionRateLibraryLoaderForTests } from '../data/productionRates/productionRateLibraryLoader';
+import {
+  SOURCE_DOCUMENT_FULL,
+  SOURCE_EDITION,
+  type ProductionRateLibraryEntry,
+} from '../data/productionRates/productionRateTypes';
+
+const testProductionRate: ProductionRateLibraryEntry = {
+  id: '03-31-00-footings-direct-chute',
+  divisionCode: '03',
+  divisionName: 'Concrete',
+  figure: 'test',
+  figureTitle: 'Test rates',
+  sourcePage: '1',
+  category: 'Concrete',
+  subcategory: 'Footings',
+  activityName: 'Place footing concrete',
+  description: 'Direct chute footing concrete',
+  unitOfMeasure: 'CY',
+  manHoursPerUnit: 0.337,
+  crewSize: 4,
+  sourceDocumentFull: SOURCE_DOCUMENT_FULL,
+  sourceEdition: SOURCE_EDITION,
+  referenceNote: 'Test production rate fixture',
+  keywords: ['concrete', 'footing'],
+};
+
+vi.mock('../data/productionRates/productionRateLibrary', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../data/productionRates/productionRateLibrary')>();
+  return {
+    ...actual,
+    loadApprovedProductionRateLibrary: vi.fn(async () => ({
+      rates: [testProductionRate],
+      loadedAt: '2026-01-01T00:00:00.000Z',
+    })),
+    getProductionRateLibraryEntryById: vi.fn((id: string) =>
+      id === testProductionRate.id ? testProductionRate : undefined,
+    ),
+  };
+});
 
 function workbookToFile(workbook: XLSX.WorkBook, name: string): File {
   const buffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });

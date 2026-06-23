@@ -26,12 +26,47 @@ vi.mock('../../../contexts/ConfirmContext', () => ({
   useConfirm: () => mocks.confirm,
 }));
 
+vi.mock('../../../store', () => ({
+  usePreferencesStore: () => ({
+    preferences: { unit: 'metric', soundEnabled: false },
+  }),
+}));
+
+vi.mock('../../../services/soundService', () => ({
+  soundService: { play: vi.fn(), initialize: vi.fn() },
+}));
+
 vi.mock('../ui/DesignBuilderPlanCanvas', () => ({
   default: () => <div data-testid="design-builder-plan">Plan</div>,
 }));
 
 vi.mock('../ui/DesignBuilderViewer', () => ({
   default: () => <div data-testid="design-builder-viewer">Viewer</div>,
+}));
+
+vi.mock('../ui/FrameFoundationDimensionsModal', () => ({
+  default: ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) =>
+    isOpen ? (
+      <div role="dialog" aria-label="Frame, Foundation & Roof Dimensions">
+        <button type="button" onClick={onClose}>
+          Cancel
+        </button>
+      </div>
+    ) : null,
+}));
+
+vi.mock('../ui/MaterialsColorsModal', () => ({
+  default: () => null,
+}));
+
+vi.mock('../ui/DraggableDebugOverlay', () => ({
+  DraggableDebugOverlay: () => null,
+}));
+
+vi.mock('../ui/DebugOverlayLayoutContext', () => ({
+  DebugOverlayLayoutProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  useDebugOverlayLayout: () => null,
+  debugOverlayInitialStyle: () => ({ left: 0, top: 0, opacity: 0 }),
 }));
 
 vi.mock('../services/designBuilderService', () => ({
