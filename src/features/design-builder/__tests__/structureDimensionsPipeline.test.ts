@@ -169,14 +169,23 @@ describe('Structure dimensions pipeline', () => {
     expect(footing.thicknessMeters).toBe(0.45);
   });
 
-  it('changing roof beam depth changes roof-bearing elevation', () => {
+  it('changing roof beam depth lowers roof beam underside while preserving roof-bearing elevation', () => {
     const shallow = applyDimensions(preset, { roofBeam: { depthMeters: 0.2 } });
     const deep = applyDimensions(preset, { roofBeam: { depthMeters: 0.35 } });
     const shallowGeometry = geometryForPreset(shallow);
     const deepGeometry = geometryForPreset(deep);
-    expect(deepGeometry.resolvedRoofSystem?.roofBeamTopY).toBeGreaterThan(
+    const shallowRoofBeam = shallowGeometry.frameSystem.beams.find((beam) => beam.kind === 'roof_beam');
+    const deepRoofBeam = deepGeometry.frameSystem.beams.find((beam) => beam.kind === 'roof_beam');
+
+    expect(deepGeometry.resolvedRoofSystem?.roofBeamTopY).toBeCloseTo(
       shallowGeometry.resolvedRoofSystem?.roofBeamTopY ?? 0,
+      6,
     );
+    expect(deepRoofBeam?.depthMeters).toBe(0.35);
+    expect(shallowRoofBeam?.depthMeters).toBe(0.2);
+    expect(deepRoofBeam?.topElevationMeters).toBeCloseTo(shallowRoofBeam?.topElevationMeters ?? 0, 6);
+    expect(deepRoofBeam?.baseElevationMeters).toBeLessThan(shallowRoofBeam?.baseElevationMeters ?? 0);
+    expect(deep.wall.heightMeters).toBeLessThan(shallow.wall.heightMeters);
   });
 
   it('changing roof peak height changes roof apex and truss apex', () => {

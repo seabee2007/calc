@@ -22,6 +22,7 @@ describe('infill panel top closure course', () => {
   const preset = applyAutoFrameLayout(createFiveBySixCmuBuildingPreset());
   const frames = getSegmentFramesForWallLayout(preset.wallLayout, preset.wall);
   const module = resolveCmuModuleDefinition(preset.wall);
+  const nonModularPanelTopElevationMeters = 10 * module.nominalModuleHeightMeters + 0.05;
 
   function solveFirstPanel(panelTopElevationMeters?: number) {
     const entries = resolveInfillPanelsWithBounds({
@@ -81,7 +82,7 @@ describe('infill panel top closure course', () => {
   });
 
   it('top closure reaches ring beam underside within tolerance', () => {
-    const solved = solveFirstPanel();
+    const solved = solveFirstPanel(nonModularPanelTopElevationMeters);
     const topClosureBlocks = solved.blocks.filter((block) => block.source === 'panel_top_closure');
     expect(topClosureBlocks.length).toBeGreaterThan(0);
 
@@ -94,7 +95,7 @@ describe('infill panel top closure course', () => {
   });
 
   it('top closure does not overlap ring beam', () => {
-    const solved = solveFirstPanel();
+    const solved = solveFirstPanel(nonModularPanelTopElevationMeters);
     solved.blocks
       .filter((block) => block.source === 'panel_top_closure')
       .forEach((block) => {
@@ -105,7 +106,7 @@ describe('infill panel top closure course', () => {
   });
 
   it('top closure retains running-bond phase and individual head joints', () => {
-    const solved = solveFirstPanel();
+    const solved = solveFirstPanel(nonModularPanelTopElevationMeters);
     const topCourseIndex = Math.max(
       ...solved.blocks.filter((block) => block.source === 'panel_top_closure').map((block) => block.courseIndex ?? 0),
     );
@@ -127,7 +128,7 @@ describe('infill panel top closure course', () => {
   });
 
   it('each top closure unit is an individual placement with physical height metadata', () => {
-    const solved = solveFirstPanel();
+    const solved = solveFirstPanel(nonModularPanelTopElevationMeters);
     const topClosureBlocks = solved.blocks.filter((block) => block.source === 'panel_top_closure');
     topClosureBlocks.forEach((block) => {
       expect(block.physicalHeightMeters).toBeGreaterThan(FRAME_INFILL_HEIGHT_TOLERANCE_METERS);

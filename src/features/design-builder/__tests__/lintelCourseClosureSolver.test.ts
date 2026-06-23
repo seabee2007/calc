@@ -244,7 +244,7 @@ describe('lintel course closure solver', () => {
       });
   });
 
-  it('counts lintel closure cut blocks separately in estimate preview', () => {
+  it('tracks lintel closure cut blocks separately while hiding breakdown lines from the default preview', () => {
     const preset = createFiveBySixCmuBuildingPreset();
     const layout = generateCmuLayout(preset.wall);
     const cutCount = countLintelClosureCutBlocks(layout.lintelCourseAssemblies);
@@ -262,14 +262,10 @@ describe('lintel course closure solver', () => {
     });
     const lintelCutLine = preview.find((line) => line.quantityType === 'cmu_lintel_closure_cut_blocks');
     const jambCutLine = preview.find((line) => line.quantityType === 'cmu_closure_cut_blocks');
-    expect(lintelCutLine).toBeDefined();
-    expect(lintelCutLine!.quantity).toBe(cutCount);
-    expect(lintelCutLine!.description).toBe('CMU lintel closure cut blocks');
     expect(metadata.every((item) => item.source === 'lintel_closure')).toBe(true);
     expect(metadata.length).toBe(cutCount);
-    if (cutCount > 0 && jambCutLine) {
-      expect(jambCutLine.quantity).not.toBe(lintelCutLine!.quantity);
-    }
+    expect(lintelCutLine).toBeUndefined();
+    expect(jambCutLine).toBeUndefined();
   });
 
   it('builds lintel course assemblies from the host course pattern and resolved lintel span', () => {
