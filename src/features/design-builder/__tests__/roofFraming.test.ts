@@ -3,6 +3,7 @@ import { createFiveBySixCmuBuildingPreset } from '../domain/designBuilderPreset'
 import { applyAutoFrameLayout } from '../domain/structureActions';
 import { createDefaultRoofSystemSettings } from '../domain/roofSystemDefaults';
 import { deriveDesignSceneBounds } from '../domain/designSceneBounds';
+import { createOutsideFaceRectangleLayout } from '../domain/wallLayoutRules';
 import {
   buildPurlinRowStationFractions,
   distanceAlongRoofNormal,
@@ -24,13 +25,17 @@ import {
   buildDesignGeometryInputFromLayout,
   generateDesignGeometry,
 } from '../geometry/designGeometry';
-import { buildFrameInfillEstimatePreview } from '../quantity/designQuantityFormulas';
+import { buildFrameInfillEstimatePreview, metersToFeet } from '../quantity/designQuantityFormulas';
 import { buildPurlinMesh, createMemberBetween, createFoldedRidgeCapGroup, memberWorldEndpoints } from '../geometry/roofRenderingGeometry';
 import type { RoofSystemSettings, SteelMemberSegment, TrussPlacement } from '../types';
 import * as THREE from 'three';
 
-function frameInfillGeometry(roofSystem: RoofSystemSettings) {
-  const preset = applyAutoFrameLayout(createFiveBySixCmuBuildingPreset());
+function frameInfillGeometry(roofSystem: RoofSystemSettings, layout?: import('../types').DesignWallLayoutParameters) {
+  const basePreset = createFiveBySixCmuBuildingPreset();
+  if (layout) {
+    basePreset.wallLayout = layout;
+  }
+  const preset = applyAutoFrameLayout(basePreset);
   const foundation = normalizeRcFrameFoundationSettings(preset.foundationSettings);
   return generateDesignGeometry(
     buildDesignGeometryInputFromLayout({
@@ -55,6 +60,25 @@ function roofFromGeometry(geometry: ReturnType<typeof frameInfillGeometry>) {
   return roof;
 }
 
+function rectangularLayout(lengthMeters: number, widthMeters: number): import('../types').DesignWallLayoutParameters {
+  return createOutsideFaceRectangleLayout({
+    lengthMeters,
+    widthMeters,
+    wallHeightMeters: 2.8,
+    wallThicknessMeters: 0.2,
+  });
+}
+
+function hipRoofSystem(overrides: Partial<RoofSystemSettings> = {}): RoofSystemSettings {
+  return {
+    ...createDefaultRoofSystemSettings(),
+    roofType: 'hip',
+    supportSystem: 'steel_hip_framing',
+    gable: { ...createDefaultRoofSystemSettings().gable, enabled: false, rakedConcreteCapEnabled: false },
+    ...overrides,
+  };
+}
+
 function minCladdingEaveSurfaceY(roof: ReturnType<typeof roofFromGeometry>): number {
   return Math.min(...roof.roofTopPlanes.flatMap((plane) => plane.corners.map((corner) => corner.y)));
 }
@@ -67,6 +91,26 @@ function expectPointClose(
   expect(actual.x).toBeCloseTo(expected.x, precision);
   expect(actual.y).toBeCloseTo(expected.y, precision);
   expect(actual.z).toBeCloseTo(expected.z, precision);
+}
+
+function hipMemberLength(member: { start: { x: number; y: number; z: number }; end: { x: number; y: number; z: number } }): number {
+  return Math.hypot(
+    member.end.x - member.start.x,
+    member.end.y - member.start.y,
+    member.end.z - member.start.z,
+  );
+}
+
+function purlinLength(purlin: { start: { x: number; y: number; z: number }; end: { x: number; y: number; z: number } }): number {
+  return hipMemberLength(purlin);
+}
+
+function countHipMembersByKind(roof: ReturnType<typeof roofFromGeometry>): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const member of roof.hipFramingMembers) {
+    counts.set(member.memberKind, (counts.get(member.memberKind) ?? 0) + 1);
+  }
+  return counts;
 }
 
 function bearingTopCenter(bearing: { x: number; y: number; z: number }) {
@@ -580,17 +624,118 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
     expect(preview.some((line) => line.id === 'steel-roof-trusses')).toBe(false);
   });
 
-  it('hip roof does not generate gable trusses, placeholder hip framing, or raked caps', () => {
-    const roofSystem = {
-      ...createDefaultRoofSystemSettings(),
-      roofType: 'hip' as const,
-      supportSystem: 'steel_hip_framing' as const,
-      gable: { ...createDefaultRoofSystemSettings().gable, enabled: false, rakedConcreteCapEnabled: false },
-    };
+  it('hip roof generates structural framing members without gable trusses or raked caps', () => {
+    const roofSystem = hipRoofSystem();
     const geometry = frameInfillGeometry(roofSystem);
     expect(geometry.resolvedRoofSystem?.trussPlacements.length).toBe(0);
-    expect(geometry.resolvedRoofSystem?.hipFramingMembers.length).toBe(0);
+    expect(geometry.resolvedRoofSystem?.hipFramingMembers.length).toBeGreaterThan(0);
+    expect(geometry.resolvedRoofSystem?.hipFramingMembers.every((member) => member.source === 'hip_roof_framing_solver')).toBe(true);
     expect(geometry.rakedCapPlacements?.length ?? 0).toBe(0);
+  });
+
+  it('rectangular 10 m by 6 m hip resolves ridge, hips, commons, jacks, and ridge-end support frames', () => {
+    const roof = roofFromGeometry(frameInfillGeometry(
+      hipRoofSystem({ eaveOverhangMeters: 0, peakHeightAboveRoofBeamMeters: 1.5 }),
+      rectangularLayout(10, 6),
+    ));
+    const counts = countHipMembersByKind(roof);
+
+    expect(roof.roofTopPlanes).toHaveLength(4);
+    expect(roof.roofTopPlanes.filter((plane) => plane.corners.length === 4)).toHaveLength(2);
+    expect(roof.roofTopPlanes.filter((plane) => plane.corners.length === 3)).toHaveLength(2);
+    expect(roof.trussPlacements).toHaveLength(0);
+    expect(counts.get('ridge')).toBe(1);
+    expect(counts.get('hip')).toBe(4);
+    expect(counts.get('ridge_end_frame')).toBe(4);
+    expect(counts.get('ridge_end_frame_bottom')).toBe(2);
+    expect(counts.get('ridge_end_frame_web')).toBe(2);
+    expect(counts.get('common')).toBeGreaterThan(0);
+    expect(counts.get('jack')).toBeGreaterThan(0);
+    const ridgeEndFrameBottoms = roof.hipFramingMembers.filter(
+      (member) => member.memberKind === 'ridge_end_frame_bottom',
+    );
+    expect(ridgeEndFrameBottoms).toHaveLength(2);
+    for (const frameBottom of ridgeEndFrameBottoms) {
+      expect(frameBottom.lengthMeters).toBeGreaterThan(4);
+    }
+    expect(roof.hipFramingMembers.every((member) => member.lengthMeters > 0.15)).toBe(true);
+    for (const member of roof.hipFramingMembers) {
+      expect(member.lengthMeters).toBeCloseTo(hipMemberLength(member), 6);
+    }
+  });
+
+  it('square pyramid hip resolves four hips to an apex with no ridge or ridge-end support frames', () => {
+    const roof = roofFromGeometry(frameInfillGeometry(
+      hipRoofSystem({ eaveOverhangMeters: 0 }),
+      rectangularLayout(6, 6),
+    ));
+    const counts = countHipMembersByKind(roof);
+
+    expect(roof.peakPoint).toBeDefined();
+    expect(roof.ridgeStart).toBeUndefined();
+    expect(roof.ridgeEnd).toBeUndefined();
+    expect(counts.get('ridge') ?? 0).toBe(0);
+    expect(counts.get('ridge_end_frame') ?? 0).toBe(0);
+    expect(counts.get('ridge_end_frame_bottom') ?? 0).toBe(0);
+    expect(counts.get('ridge_end_frame_web') ?? 0).toBe(0);
+    expect(counts.get('hip')).toBe(4);
+    expect(roof.trussPlacements).toHaveLength(0);
+  });
+
+  it('hip purlins are clipped on all four planes and triangular end rows shorten toward the ridge endpoints', () => {
+    const roof = roofFromGeometry(frameInfillGeometry(
+      hipRoofSystem({ eaveOverhangMeters: 0, peakHeightAboveRoofBeamMeters: 1.5 }),
+      rectangularLayout(10, 6),
+    ));
+
+    expect(new Set(roof.purlinPlacements.map((purlin) => purlin.slopePlaneId)).size).toBe(4);
+    const triangularPlaneIds = new Set(
+      roof.roofTopPlanes.filter((plane) => plane.corners.length === 3).map((plane) => plane.id),
+    );
+    const triangularPurlins = roof.purlinPlacements.filter((purlin) => triangularPlaneIds.has(purlin.slopePlaneId));
+    expect(triangularPurlins.length).toBeGreaterThan(1);
+    const lengthsByRow = [...triangularPurlins]
+      .sort((a, b) => a.rowIndex - b.rowIndex)
+      .map((purlin) => purlinLength(purlin));
+    expect(lengthsByRow[0]).toBeGreaterThan(lengthsByRow[lengthsByRow.length - 1]!);
+    expect(lengthsByRow[lengthsByRow.length - 1]!).toBeGreaterThan(0.15);
+  });
+
+  it('hip estimate uses actual hip member and clipped purlin lengths', () => {
+    const roofSystem = hipRoofSystem({ eaveOverhangMeters: 0, peakHeightAboveRoofBeamMeters: 1.5 });
+    const geometry = frameInfillGeometry(roofSystem, rectangularLayout(10, 6));
+    const roof = geometry.resolvedRoofSystem!;
+    const preview = buildFrameInfillEstimatePreview({
+      designModelId: 'test',
+      wallObjectId: 'wall',
+      slabObjectId: 'slab',
+      roofObjectId: 'roof',
+      trussObjectId: 'truss',
+      frameObjectId: 'frame',
+      infillObjectId: 'infill',
+      gableEndObjectId: 'gable',
+      wall: preset.wall,
+      slab: preset.slab,
+      roof: preset.roof,
+      truss: preset.truss,
+      buildingSystemMode: 'reinforced_concrete_frame_with_cmu_infill',
+      frameSystem: preset.frameSystem,
+      infillSystem: preset.infillSystem,
+      gableEndSystem: preset.gableEndSystem,
+      geometryResult: geometry,
+      roofSystem,
+    });
+
+    const expectedHipLength = roof.hipFramingMembers.reduce((sum, member) => sum + member.lengthMeters, 0);
+    const expectedPurlinLength = roof.purlinPlacements.reduce((sum, purlin) => sum + purlinLength(purlin), 0);
+    const hipLine = preview.find((line) => line.id === 'hip-steel-framing');
+    const frameLine = preview.find((line) => line.id === 'hip-ridge-end-support-frames');
+    const purlinLine = preview.find((line) => line.id === 'steel-purlins');
+
+    expect(hipLine?.quantity).toBeCloseTo(metersToFeet(expectedHipLength), 2);
+    expect(frameLine?.quantity).toBe(2);
+    expect(purlinLine?.quantity).toBeCloseTo(metersToFeet(expectedPurlinLength), 2);
+    expect(preview.some((line) => line.id === 'steel-trusses')).toBe(false);
   });
 
   it('base-plate and anchor-bolt counts use two bearings per truss', () => {

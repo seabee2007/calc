@@ -641,11 +641,23 @@ export type TrussPlacement = {
   members: SteelMemberSegment[];
 };
 
+export type HipFramingMemberKind =
+  | 'ridge'
+  | 'hip'
+  | 'common'
+  | 'jack'
+  | 'ridge_end_frame'
+  | 'ridge_end_frame_web'
+  | 'ridge_end_frame_bottom';
+
 export type HipFramingMember = {
   id: string;
   start: RoofVec3;
   end: RoofVec3;
-  memberKind: 'hip' | 'common' | 'ridge';
+  memberKind: HipFramingMemberKind;
+  lengthMeters: number;
+  slopePlaneId?: string;
+  source: 'hip_roof_framing_solver';
 };
 
 export type RidgeCapPlacement = {

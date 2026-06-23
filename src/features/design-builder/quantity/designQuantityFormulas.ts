@@ -2,6 +2,8 @@ import type {
   CmuWallSystemParameters,
   DesignEstimatePreviewLine,
   GableRoofSystemParameters,
+  HipFramingMember,
+  PurlinPlacement,
   SteelTrussSystemParameters,
   ThickenedEdgeSlabParameters,
   WallOpeningParameters,
@@ -144,6 +146,57 @@ export function squareMetersToSquareFeet(squareMeters: number): number {
 
 export function cubicMetersToCubicYards(cubicMeters: number): number {
   return cubicMeters / CUBIC_METERS_PER_CUBIC_YARD;
+}
+
+function segmentLengthMeters(start: { x: number; y: number; z: number }, end: { x: number; y: number; z: number }): number {
+  return Math.hypot(end.x - start.x, end.y - start.y, end.z - start.z);
+}
+
+function sumPurlinLengthMeters(purlins: readonly PurlinPlacement[]): number {
+  return purlins.reduce((sum, purlin) => sum + segmentLengthMeters(purlin.start, purlin.end), 0);
+}
+
+function summarizeHipFramingMembers(members: readonly HipFramingMember[]): {
+  hipSteelFramingLinearMeters: number;
+  hipRidgeLinearMeters: number;
+  hipRafterLinearMeters: number;
+  hipCommonRafterLinearMeters: number;
+  hipJackRafterLinearMeters: number;
+  hipRidgeEndFrameLinearMeters: number;
+  hipRidgeEndFrameCount: number;
+} {
+  const summary = {
+    hipSteelFramingLinearMeters: 0,
+    hipRidgeLinearMeters: 0,
+    hipRafterLinearMeters: 0,
+    hipCommonRafterLinearMeters: 0,
+    hipJackRafterLinearMeters: 0,
+    hipRidgeEndFrameLinearMeters: 0,
+    hipRidgeEndFrameCount: 0,
+  };
+  for (const member of members) {
+    const length = member.lengthMeters || segmentLengthMeters(member.start, member.end);
+    summary.hipSteelFramingLinearMeters += length;
+    if (member.memberKind === 'ridge') {
+      summary.hipRidgeLinearMeters += length;
+    } else if (member.memberKind === 'hip') {
+      summary.hipRafterLinearMeters += length;
+    } else if (member.memberKind === 'common') {
+      summary.hipCommonRafterLinearMeters += length;
+    } else if (member.memberKind === 'jack') {
+      summary.hipJackRafterLinearMeters += length;
+    } else if (
+      member.memberKind === 'ridge_end_frame' ||
+      member.memberKind === 'ridge_end_frame_web' ||
+      member.memberKind === 'ridge_end_frame_bottom'
+    ) {
+      summary.hipRidgeEndFrameLinearMeters += length;
+      if (member.memberKind === 'ridge_end_frame_web') {
+        summary.hipRidgeEndFrameCount += 1;
+      }
+    }
+  }
+  return summary;
 }
 
 export function calculateFloorArea(lengthMeters: number, widthMeters: number): number {
@@ -712,6 +765,8 @@ export function buildFrameInfillEstimatePreview(input: FrameInfillQuantityInput)
   const rakedCapLinearLengthMeters = (resolvedRoof?.gableEnds ?? [])
     .flatMap((gableEnd) => gableEnd.rakedCapPlacements)
     .reduce((sum, cap) => sum + (cap.endStationMeters - cap.startStationMeters), 0);
+  const hipFramingSummary = summarizeHipFramingMembers(resolvedRoof?.hipFramingMembers ?? []);
+  const purlinLinearMeters = sumPurlinLengthMeters(resolvedRoof?.purlinPlacements ?? []);
   const metaBase = {
     buildingSystemMode: input.buildingSystemMode,
     quantityFormula: 'parametric_design_builder',
@@ -1051,6 +1106,54 @@ export function buildFrameInfillEstimatePreview(input: FrameInfillQuantityInput)
                 },
               ]
             : []),
+          ...(resolvedRoof.roofType === 'hip' && hipFramingSummary.hipSteelFramingLinearMeters > 0
+            ? [
+                {
+                  id: 'hip-steel-framing',
+                  designModelId: input.designModelId,
+                  designObjectId: input.roofObjectId,
+                  quantityType: 'hip_steel_framing_length',
+                  description: 'Hip Roof Steel Framing',
+                  quantity: roundQuantity(metersToFeet(hipFramingSummary.hipSteelFramingLinearMeters), 2),
+                  unit: 'LF',
+                  formula: 'sum(resolved_hip_framing_member_lengths)',
+                  parameterSnapshot: {
+                    ...hipFramingSummary,
+                    hipPurlinLinearMeters: purlinLinearMeters,
+                    memberCount: resolvedRoof.hipFramingMembers.length,
+                    roofObjectId: input.roofObjectId,
+                    ...metaBase,
+                  },
+                  source: 'parametric_design_builder',
+                  confidence: 'calculated_from_parameters',
+                  divisionCode: '05',
+                  divisionName: 'Metals',
+                },
+                ...(hipFramingSummary.hipRidgeEndFrameCount > 0
+                  ? [
+                      {
+                        id: 'hip-ridge-end-support-frames',
+                        designModelId: input.designModelId,
+                        designObjectId: input.roofObjectId,
+                        quantityType: 'hip_ridge_end_support_frame_count',
+                        description: 'Hip Ridge-End Support Frames',
+                        quantity: hipFramingSummary.hipRidgeEndFrameCount,
+                        unit: 'EA',
+                        formula: 'count(resolved_hip_ridge_end_support_frames)',
+                        parameterSnapshot: {
+                          ...hipFramingSummary,
+                          roofObjectId: input.roofObjectId,
+                          ...metaBase,
+                        },
+                        source: 'parametric_design_builder',
+                        confidence: 'calculated_from_parameters',
+                        divisionCode: '05',
+                        divisionName: 'Metals',
+                      },
+                    ]
+                  : []),
+              ]
+            : []),
           ...(roofSettings.purlins.enabled
             ? [
                 {
@@ -1060,16 +1163,15 @@ export function buildFrameInfillEstimatePreview(input: FrameInfillQuantityInput)
                   quantityType: 'steel_purlin_length',
                   description: 'Steel Purlins',
                   quantity: roundQuantity(
-                    metersToFeet(
-                      resolvedRoof.purlinRowsPerSlope * 2 * Math.max(resolvedRoof.ridgeLengthMeters, 0.001),
-                    ),
+                    metersToFeet(purlinLinearMeters),
                     2,
                   ),
                   unit: 'LF',
-                  formula: 'purlin_rows_per_slope * 2 * ridge_length',
+                  formula: 'sum(resolved_purlin_placement_lengths)',
                   parameterSnapshot: {
                     purlinRowsPerSlope: resolvedRoof.purlinRowsPerSlope,
-                    ridgeLengthMeters: resolvedRoof.ridgeLengthMeters,
+                    purlinLinearMeters,
+                    hipPurlinLinearMeters: resolvedRoof.roofType === 'hip' ? purlinLinearMeters : 0,
                     ...metaBase,
                   },
                   source: 'parametric_design_builder',
