@@ -9,7 +9,12 @@ import {
   distanceAlongRoofNormal,
   elevationOnRoofPlaneAtPoint,
   normalizeOutwardRoofNormal,
+  offsetPointAlongRoofNormal,
+  HIP_SHEET_SEAM_WELD_ALLOWANCE_METERS,
   PURLIN_PROFILE_DEPTH_METERS,
+  PURLIN_PROFILE_WIDTH_METERS,
+  ROOF_SHEET_EAVE_OVERHANG_METERS,
+  PURLIN_TO_CHORD_CLEARANCE_METERS,
   PURLIN_TO_SHEET_CLEARANCE_METERS,
   resolveEvenStations,
   resolveRidgeCapPlacement,
@@ -103,6 +108,55 @@ function hipMemberLength(member: { start: { x: number; y: number; z: number }; e
 
 function purlinLength(purlin: { start: { x: number; y: number; z: number }; end: { x: number; y: number; z: number } }): number {
   return hipMemberLength(purlin);
+}
+
+function triangleArea3d(
+  a: { x: number; y: number; z: number },
+  b: { x: number; y: number; z: number },
+  c: { x: number; y: number; z: number },
+): number {
+  const ab = new THREE.Vector3(b.x - a.x, b.y - a.y, b.z - a.z);
+  const ac = new THREE.Vector3(c.x - a.x, c.y - a.y, c.z - a.z);
+  return ab.cross(ac).length() / 2;
+}
+
+function roofPlaneArea3d(plane: { corners: { x: number; y: number; z: number }[] }): number {
+  if (plane.corners.length === 3) {
+    return triangleArea3d(plane.corners[0]!, plane.corners[1]!, plane.corners[2]!);
+  }
+  if (plane.corners.length === 4) {
+    return (
+      triangleArea3d(plane.corners[0]!, plane.corners[1]!, plane.corners[2]!) +
+      triangleArea3d(plane.corners[0]!, plane.corners[2]!, plane.corners[3]!)
+    );
+  }
+  return 0;
+}
+
+function averagePoints(points: { x: number; y: number; z: number }[]) {
+  return {
+    x: points.reduce((sum, point) => sum + point.x, 0) / points.length,
+    y: points.reduce((sum, point) => sum + point.y, 0) / points.length,
+    z: points.reduce((sum, point) => sum + point.z, 0) / points.length,
+  };
+}
+
+function eaveAndHighCorners(plane: { corners: { x: number; y: number; z: number }[] }) {
+  const minY = Math.min(...plane.corners.map((corner) => corner.y));
+  const eave = plane.corners.filter((corner) => Math.abs(corner.y - minY) < 0.01);
+  const high = plane.corners.filter((corner) => Math.abs(corner.y - minY) >= 0.01);
+  return eave.length >= 2 && high.length >= 1 ? { eave, high } : null;
+}
+
+function nearestCornerByPlan(
+  corners: { x: number; y: number; z: number }[],
+  point: { x: number; z: number },
+) {
+  return [...corners].sort(
+    (a, b) =>
+      Math.hypot(a.x - point.x, a.z - point.z) -
+      Math.hypot(b.x - point.x, b.z - point.z),
+  )[0]!;
 }
 
 function countHipMembersByKind(roof: ReturnType<typeof roofFromGeometry>): Map<string, number> {
@@ -664,6 +718,38 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
     }
   });
 
+  it('hip steel framing sits on the roof beam and below the purlin and cladding stack', () => {
+    const roof = roofFromGeometry(frameInfillGeometry(
+      hipRoofSystem({ eaveOverhangMeters: 0, peakHeightAboveRoofBeamMeters: 1.5 }),
+      rectangularLayout(10, 6),
+    ));
+
+    for (const member of roof.hipFramingMembers) {
+      expect(Math.min(member.start.y, member.end.y)).toBeGreaterThanOrEqual(
+        roof.roofBeamTopY + TRUSS_CHORD_PROFILE_METERS / 2 - 0.003,
+      );
+      for (const endpoint of [member.start, member.end]) {
+        const surface = roof.roofTopPlanes
+          .map((plane) => {
+            const surfaceY = elevationOnRoofPlaneAtPoint(plane, endpoint.x, endpoint.z);
+            return surfaceY == null ? null : { plane, surface: { x: endpoint.x, y: surfaceY, z: endpoint.z } };
+          })
+          .filter((entry): entry is NonNullable<typeof entry> => entry != null)
+          .sort((a, b) => b.surface.y - a.surface.y)[0];
+
+        expect(surface).toBeDefined();
+        const normal = normalizeOutwardRoofNormal(surface!.plane.normal);
+        const steelTop = offsetPointAlongRoofNormal(endpoint, normal, TRUSS_CHORD_PROFILE_METERS / 2);
+        const purlinBottom = offsetPointAlongRoofNormal(
+          surface!.surface,
+          normal,
+          TRUSS_CHORD_PROFILE_METERS / 2 + PURLIN_TO_CHORD_CLEARANCE_METERS,
+        );
+        expect(distanceAlongRoofNormal(steelTop, purlinBottom, normal)).toBeGreaterThanOrEqual(-0.003);
+      }
+    }
+  });
+
   it('square pyramid hip resolves four hips to an apex with no ridge or ridge-end support frames', () => {
     const roof = roofFromGeometry(frameInfillGeometry(
       hipRoofSystem({ eaveOverhangMeters: 0 }),
@@ -736,6 +822,206 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
     expect(frameLine?.quantity).toBe(2);
     expect(purlinLine?.quantity).toBeCloseTo(metersToFeet(expectedPurlinLength), 2);
     expect(preview.some((line) => line.id === 'steel-trusses')).toBe(false);
+  });
+
+  it('rectangular hip resolves ridge caps on all hip ridges with the top ridge last', () => {
+    const roof = roofFromGeometry(frameInfillGeometry(
+      hipRoofSystem({ eaveOverhangMeters: 0.3, peakHeightAboveRoofBeamMeters: 1.5 }),
+      rectangularLayout(10, 6),
+    ));
+
+    expect(roof.ridgeCapPlacement).toBeNull();
+    expect(roof.ridgeCapPlacements).toHaveLength(5);
+    const topRidgeCap = roof.ridgeCapPlacements[roof.ridgeCapPlacements.length - 1]!;
+    expect(Math.abs(topRidgeCap.start.y - topRidgeCap.end.y)).toBeLessThan(0.01);
+    expect(Math.hypot(topRidgeCap.end.x - topRidgeCap.start.x, topRidgeCap.end.z - topRidgeCap.start.z)).toBeCloseTo(
+      roof.claddingRidgeLengthMeters,
+      2,
+    );
+    for (const hipCap of roof.ridgeCapPlacements.slice(0, -1)) {
+      expect(Math.abs(hipCap.start.y - hipCap.end.y)).toBeGreaterThan(0.5);
+    }
+    for (const cap of roof.ridgeCapPlacements) {
+      expect(cap.adjacentPlaneIds).toHaveLength(2);
+      for (const endpoint of [cap.start, cap.end]) {
+        expect(endpoint.y).toBeGreaterThan(roof.roofBeamTopY - 0.4);
+        expect(endpoint.y).toBeLessThan(roof.roofPeakY + 0.25);
+      }
+    }
+  });
+
+  it('rectangular hip cladding display keeps all four sheet planes visible', () => {
+    const roof = roofFromGeometry(frameInfillGeometry(
+      hipRoofSystem({ eaveOverhangMeters: 0.3, peakHeightAboveRoofBeamMeters: 1.5 }),
+      rectangularLayout(10, 6),
+    ));
+
+    expect(roof.claddingDisplayPlanes).toHaveLength(4);
+    expect(roof.claddingDisplayPlanes.filter((plane) => plane.corners.length === 4)).toHaveLength(2);
+    expect(roof.claddingDisplayPlanes.filter((plane) => plane.corners.length === 3)).toHaveLength(2);
+    for (const plane of roof.claddingDisplayPlanes) {
+      expect(roofPlaneArea3d(plane)).toBeGreaterThan(1);
+    }
+  });
+
+  it('rectangular hip cladding display welds shared hip sheet seams', () => {
+    const roof = roofFromGeometry(frameInfillGeometry(
+      hipRoofSystem({ eaveOverhangMeters: 0.3, peakHeightAboveRoofBeamMeters: 1.5 }),
+      rectangularLayout(10, 6),
+    ));
+
+    const displayBySourceId = new Map(
+      roof.claddingDisplayPlanes.map((plane) => [plane.id.replace(/-cladding-display$/, ''), plane]),
+    );
+    for (const cap of roof.ridgeCapPlacements) {
+      expect(cap.adjacentPlaneIds).toHaveLength(2);
+      const adjacentPlanes = cap.adjacentPlaneIds!.map((id) => displayBySourceId.get(id));
+      expect(adjacentPlanes.every((plane) => plane != null)).toBe(true);
+      const startCorners = adjacentPlanes.map((plane) => nearestCornerByPlan(plane!.corners, cap.start));
+      const endCorners = adjacentPlanes.map((plane) => nearestCornerByPlan(plane!.corners, cap.end));
+      expect(hipMemberLength({ start: startCorners[0]!, end: startCorners[1]! })).toBeLessThan(0.006);
+      expect(hipMemberLength({ start: endCorners[0]!, end: endCorners[1]! })).toBeLessThan(0.006);
+    }
+  });
+
+  it('hip cladding display sits above purlin tops on every roof plane', () => {
+    const roof = roofFromGeometry(frameInfillGeometry(
+      hipRoofSystem({ eaveOverhangMeters: 0.3, peakHeightAboveRoofBeamMeters: 1.5 }),
+      rectangularLayout(10, 6),
+    ));
+
+    const displayBySourceId = new Map(
+      roof.claddingDisplayPlanes.map((plane) => [plane.id.replace(/-cladding-display$/, ''), plane]),
+    );
+    for (const purlin of roof.purlinPlacements) {
+      const displayPlane = displayBySourceId.get(purlin.slopePlaneId);
+      expect(displayPlane).toBeDefined();
+      const center = {
+        x: (purlin.start.x + purlin.end.x) / 2,
+        y: (purlin.start.y + purlin.end.y) / 2,
+        z: (purlin.start.z + purlin.end.z) / 2,
+      };
+      const sheetY = elevationOnRoofPlaneAtPoint(displayPlane!, center.x, center.z);
+      expect(sheetY).not.toBeNull();
+      const purlinTop = offsetPointAlongRoofNormal(center, purlin.planeNormal, PURLIN_PROFILE_DEPTH_METERS / 2);
+      expect(
+        distanceAlongRoofNormal(purlinTop, { ...center, y: sheetY! }, purlin.planeNormal),
+      ).toBeGreaterThanOrEqual(PURLIN_TO_SHEET_CLEARANCE_METERS - 0.003);
+    }
+  });
+
+  it('hip top chords extend to cladding eaves so the outer purlin row is supported', () => {
+    const roof = roofFromGeometry(frameInfillGeometry(
+      hipRoofSystem({ eaveOverhangMeters: 0.3, peakHeightAboveRoofBeamMeters: 1.5 }),
+      rectangularLayout(10, 6),
+    ));
+
+    const hipRafterStarts = roof.hipFramingMembers
+      .filter((member) => member.memberKind === 'hip')
+      .map((member) => member.start);
+    for (const eaveCorner of roof.claddingPerimeter) {
+      expect(
+        hipRafterStarts.some(
+          (start) => Math.hypot(start.x - eaveCorner.x, start.z - eaveCorner.z) < 0.01,
+        ),
+      ).toBe(true);
+    }
+  });
+
+  it('hip cladding display overhangs the eave purlin face by one inch', () => {
+    const roof = roofFromGeometry(frameInfillGeometry(
+      hipRoofSystem({ eaveOverhangMeters: 0.3, peakHeightAboveRoofBeamMeters: 1.5 }),
+      rectangularLayout(10, 6),
+    ));
+
+    const claddingMaxX = Math.max(...roof.claddingPerimeter.map((point) => Math.abs(point.x)));
+    const claddingMaxZ = Math.max(...roof.claddingPerimeter.map((point) => Math.abs(point.z)));
+    const sheetMaxX = Math.max(...roof.roofSheetPerimeter.map((point) => Math.abs(point.x)));
+    const sheetMaxZ = Math.max(...roof.roofSheetPerimeter.map((point) => Math.abs(point.z)));
+
+    expect(sheetMaxX - claddingMaxX).toBeGreaterThanOrEqual(ROOF_SHEET_EAVE_OVERHANG_METERS);
+    expect(sheetMaxX - claddingMaxX).toBeLessThanOrEqual(
+      ROOF_SHEET_EAVE_OVERHANG_METERS + HIP_SHEET_SEAM_WELD_ALLOWANCE_METERS + 0.001,
+    );
+    expect(sheetMaxZ - claddingMaxZ).toBeGreaterThanOrEqual(ROOF_SHEET_EAVE_OVERHANG_METERS);
+    expect(sheetMaxZ - claddingMaxZ).toBeLessThanOrEqual(
+      ROOF_SHEET_EAVE_OVERHANG_METERS + HIP_SHEET_SEAM_WELD_ALLOWANCE_METERS + 0.001,
+    );
+
+    const eavePurlins = roof.purlinPlacements.filter((purlin) => purlin.rowIndex === 0);
+    expect(eavePurlins.length).toBeGreaterThan(0);
+    for (const purlin of eavePurlins) {
+      const sourcePlane = roof.roofTopPlanes.find((plane) => plane.id === purlin.slopePlaneId);
+      const sheetPlane = roof.claddingDisplayPlanes.find((plane) => plane.id.replace(/-cladding-display$/, '') === purlin.slopePlaneId);
+      expect(sourcePlane).toBeDefined();
+      expect(sheetPlane).toBeDefined();
+      const sourceCorners = eaveAndHighCorners(sourcePlane!);
+      const sheetCorners = eaveAndHighCorners(sheetPlane!);
+      expect(sourceCorners).toBeTruthy();
+      expect(sheetCorners).toBeTruthy();
+
+      const sourceEaveMid = averagePoints(sourceCorners!.eave);
+      const sourceHighMid = averagePoints(sourceCorners!.high);
+      const sheetEaveMid = averagePoints(sheetCorners!.eave);
+      const outboardAxis = new THREE.Vector3(
+        sourceEaveMid.x - sourceHighMid.x,
+        sourceEaveMid.y - sourceHighMid.y,
+        sourceEaveMid.z - sourceHighMid.z,
+      ).normalize();
+      const purlinRun = new THREE.Vector3(
+        purlin.end.x - purlin.start.x,
+        purlin.end.y - purlin.start.y,
+        purlin.end.z - purlin.start.z,
+      ).normalize();
+      const purlinNormal = new THREE.Vector3(purlin.planeNormal.x, purlin.planeNormal.y, purlin.planeNormal.z).normalize();
+      const purlinCrossSlope = new THREE.Vector3().crossVectors(purlinRun, purlinNormal).normalize();
+      if (purlinCrossSlope.dot(outboardAxis) < 0) {
+        purlinCrossSlope.negate();
+      }
+      const purlinCenter = {
+        x: (purlin.start.x + purlin.end.x) / 2,
+        y: (purlin.start.y + purlin.end.y) / 2,
+        z: (purlin.start.z + purlin.end.z) / 2,
+      };
+      const purlinOuterFace = new THREE.Vector3(purlinCenter.x, purlinCenter.y, purlinCenter.z).add(
+        purlinCrossSlope.multiplyScalar(PURLIN_PROFILE_WIDTH_METERS / 2),
+      );
+      const sheetEdge = new THREE.Vector3(sheetEaveMid.x, sheetEaveMid.y, sheetEaveMid.z);
+      expect(sheetEdge.sub(purlinOuterFace).dot(outboardAxis)).toBeGreaterThanOrEqual(
+        ROOF_SHEET_EAVE_OVERHANG_METERS - 0.003,
+      );
+    }
+  });
+
+  it('hip ridge cap centerlines follow the sheet hip edges out to the one-inch overhang', () => {
+    const roof = roofFromGeometry(frameInfillGeometry(
+      hipRoofSystem({ eaveOverhangMeters: 0.3, peakHeightAboveRoofBeamMeters: 1.5 }),
+      rectangularLayout(10, 6),
+    ));
+
+    const sheetMaxX = Math.max(...roof.roofSheetPerimeter.map((point) => Math.abs(point.x)));
+    const sheetMaxZ = Math.max(...roof.roofSheetPerimeter.map((point) => Math.abs(point.z)));
+    const slopedCaps = roof.ridgeCapPlacements.filter((cap) => Math.abs(cap.start.y - cap.end.y) > 0.01);
+    expect(slopedCaps).toHaveLength(4);
+
+    for (const cap of slopedCaps) {
+      const eaveEndpoint = cap.start.y < cap.end.y ? cap.start : cap.end;
+      expect(
+        Math.abs(Math.abs(eaveEndpoint.x) - sheetMaxX) < 0.001 ||
+          Math.abs(Math.abs(eaveEndpoint.z) - sheetMaxZ) < 0.001,
+      ).toBe(true);
+    }
+  });
+
+  it('square pyramid hip resolves ridge caps on the four sloped hips only', () => {
+    const roof = roofFromGeometry(frameInfillGeometry(
+      hipRoofSystem({ eaveOverhangMeters: 0.3, peakHeightAboveRoofBeamMeters: 1.5 }),
+      rectangularLayout(6, 6),
+    ));
+
+    expect(roof.ridgeCapPlacement).toBeNull();
+    expect(roof.ridgeCapPlacements).toHaveLength(4);
+    expect(roof.ridgeCapPlacements.every((cap) => Math.abs(cap.start.y - cap.end.y) > 0.5)).toBe(true);
   });
 
   it('base-plate and anchor-bolt counts use two bearings per truss', () => {
@@ -925,6 +1211,44 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
     };
     expect(closestDistanceTo(start)).toBeLessThan(0.001);
     expect(closestDistanceTo(end)).toBeLessThan(0.001);
+  });
+
+  it('hip folded ridge caps keep the centerline endpoint and miter the bottom wing edges inward', () => {
+    const material = new THREE.MeshStandardMaterial();
+    const start = new THREE.Vector3(0, 3, 0);
+    const end = new THREE.Vector3(2, 3, 0);
+    const group = createFoldedRidgeCapGroup(
+      start,
+      end,
+      0.3,
+      0.02,
+      Math.atan2(1.5, 3),
+      material,
+      { miterBottomEnds: true },
+    );
+    const mesh = group.children[0] as THREE.Mesh<THREE.BufferGeometry, THREE.Material>;
+    const position = mesh.geometry.getAttribute('position');
+    const outerXs: number[] = [];
+    let hasStartCenterline = false;
+    let hasEndCenterline = false;
+    for (let index = 0; index < position.count; index += 1) {
+      const x = position.getX(index);
+      const z = position.getZ(index);
+      if (Math.abs(x - start.x) < 0.001 && Math.abs(z - start.z) < 0.001) {
+        hasStartCenterline = true;
+      }
+      if (Math.abs(x - end.x) < 0.001 && Math.abs(z - end.z) < 0.001) {
+        hasEndCenterline = true;
+      }
+      if (Math.abs(z) > 0.01) {
+        outerXs.push(x);
+      }
+    }
+
+    expect(hasStartCenterline).toBe(true);
+    expect(hasEndCenterline).toBe(true);
+    expect(Math.min(...outerXs)).toBeGreaterThan(0.12);
+    expect(Math.max(...outerXs)).toBeLessThan(1.88);
   });
 
   it('no truss member extends above the raised cladding surface', () => {

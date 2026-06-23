@@ -276,6 +276,130 @@ function pushQuad(indices: number[], a: number, b: number, c: number, d: number)
   indices.push(a, b, c, a, c, d);
 }
 
+function projectedWingDirection(params: {
+  edgeDir: THREE.Vector3;
+  edgeMid: THREE.Vector3;
+  planeNormal: THREE.Vector3;
+  planeCorners: readonly THREE.Vector3[];
+}): THREE.Vector3 {
+  const centroid = params.planeCorners
+    .reduce((sum, corner) => sum.add(corner), new THREE.Vector3())
+    .multiplyScalar(1 / Math.max(1, params.planeCorners.length));
+  const towardPlane = centroid.sub(params.edgeMid);
+  const projected = towardPlane
+    .clone()
+    .sub(params.edgeDir.clone().multiplyScalar(towardPlane.dot(params.edgeDir)))
+    .sub(params.planeNormal.clone().multiplyScalar(towardPlane.dot(params.planeNormal)));
+  if (projected.lengthSq() > 1e-8) {
+    return projected.normalize();
+  }
+
+  const fallback = new THREE.Vector3().crossVectors(params.planeNormal, params.edgeDir);
+  if (fallback.lengthSq() <= 1e-8) {
+    return new THREE.Vector3(1, 0, 0);
+  }
+  fallback.normalize();
+  return fallback.dot(towardPlane) < 0 ? fallback.negate() : fallback;
+}
+
+export function createFoldedRoofEdgeCapGroup(params: {
+  start: THREE.Vector3;
+  end: THREE.Vector3;
+  capWidthMeters: number;
+  capThicknessMeters: number;
+  material: THREE.Material;
+  adjacentPlanes: readonly {
+    normal: THREE.Vector3;
+    corners: readonly THREE.Vector3[];
+  }[];
+  miterBottomEnds?: boolean;
+}): THREE.Group {
+  const group = new THREE.Group();
+  const edgeVector = params.end.clone().sub(params.start);
+  const edgeLengthMeters = edgeVector.length();
+  if (edgeLengthMeters <= 0.001) {
+    return group;
+  }
+
+  const edgeDir = edgeVector.clone().normalize();
+  const edgeMid = params.start.clone().add(params.end).multiplyScalar(0.5);
+  const halfWidthMeters = params.capWidthMeters / 2;
+  const miterInsetMeters = params.miterBottomEnds
+    ? Math.min(halfWidthMeters, edgeLengthMeters * 0.3)
+    : 0;
+  const vertices: THREE.Vector3[] = [];
+  const indices: number[] = [];
+
+  const planes = params.adjacentPlanes.slice(0, 2);
+  const sharedRidgeNormal = planes
+    .reduce((sum, plane) => {
+      const normal = plane.normal.clone().normalize();
+      if (normal.y < 0) {
+        normal.negate();
+      }
+      return sum.add(normal);
+    }, new THREE.Vector3());
+  if (sharedRidgeNormal.lengthSq() <= 1e-8) {
+    sharedRidgeNormal.set(0, 1, 0);
+  } else {
+    sharedRidgeNormal.normalize();
+  }
+  const ridgeStartTop = params.start.clone().add(sharedRidgeNormal.clone().multiplyScalar(params.capThicknessMeters));
+  const ridgeEndTop = params.end.clone().add(sharedRidgeNormal.clone().multiplyScalar(params.capThicknessMeters));
+
+  for (const plane of planes) {
+    const normal = plane.normal.clone().normalize();
+    if (normal.y < 0) {
+      normal.negate();
+    }
+    const wingDir = projectedWingDirection({
+      edgeDir,
+      edgeMid,
+      planeNormal: normal,
+      planeCorners: plane.corners,
+    });
+
+    const baseIndex = vertices.length;
+    const outerStart = params.start
+      .clone()
+      .add(edgeDir.clone().multiplyScalar(miterInsetMeters))
+      .add(wingDir.clone().multiplyScalar(halfWidthMeters));
+    const outerEnd = params.end
+      .clone()
+      .add(edgeDir.clone().multiplyScalar(-miterInsetMeters))
+      .add(wingDir.clone().multiplyScalar(halfWidthMeters));
+    const outerStartTop = outerStart.clone().add(normal.clone().multiplyScalar(params.capThicknessMeters));
+    const outerEndTop = outerEnd.clone().add(normal.clone().multiplyScalar(params.capThicknessMeters));
+    vertices.push(ridgeStartTop.clone(), outerStartTop, outerEndTop, ridgeEndTop.clone());
+
+    const faceNormal = new THREE.Vector3().crossVectors(
+      vertices[baseIndex + 1]!.clone().sub(vertices[baseIndex]!),
+      vertices[baseIndex + 2]!.clone().sub(vertices[baseIndex]!),
+    );
+    if (faceNormal.dot(normal) < 0) {
+      pushQuad(indices, baseIndex, baseIndex + 3, baseIndex + 2, baseIndex + 1);
+    } else {
+      pushQuad(indices, baseIndex, baseIndex + 1, baseIndex + 2, baseIndex + 3);
+    }
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute(
+    'position',
+    new THREE.Float32BufferAttribute(
+      vertices.flatMap((vertex) => [vertex.x, vertex.y, vertex.z]),
+      3,
+    ),
+  );
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  geometry.computeBoundingBox();
+  geometry.computeBoundingSphere();
+
+  group.add(new THREE.Mesh(geometry, params.material));
+  return group;
+}
+
 /** One continuous folded ridge cap with its underside seated on the cladding ridge. */
 export function createFoldedRidgeCapGroup(
   start: THREE.Vector3,
@@ -284,6 +408,7 @@ export function createFoldedRidgeCapGroup(
   capThicknessMeters: number,
   roofPitchRadians: number,
   material: THREE.Material,
+  options?: { miterBottomEnds?: boolean },
 ): THREE.Group {
   const group = new THREE.Group();
   const ridgeVector = end.clone().sub(start);
@@ -297,11 +422,16 @@ export function createFoldedRidgeCapGroup(
   const rightSlope = slopeDirectionFromRidge(ridgeDir, 1, roofPitchRadians);
   const leftNormal = roofWingNormal(ridgeDir, leftSlope);
   const rightNormal = roofWingNormal(ridgeDir, rightSlope);
+  const bottomMiterInsetMeters = options?.miterBottomEnds
+    ? Math.min(halfWidthMeters, ridgeLengthMeters * 0.45)
+    : 0;
+  const miteredStart = start.clone().add(ridgeDir.clone().multiplyScalar(bottomMiterInsetMeters));
+  const miteredEnd = end.clone().add(ridgeDir.clone().multiplyScalar(-bottomMiterInsetMeters));
 
-  const leftOuterStart = start.clone().add(leftSlope.clone().multiplyScalar(halfWidthMeters));
-  const leftOuterEnd = end.clone().add(leftSlope.clone().multiplyScalar(halfWidthMeters));
-  const rightOuterStart = start.clone().add(rightSlope.clone().multiplyScalar(halfWidthMeters));
-  const rightOuterEnd = end.clone().add(rightSlope.clone().multiplyScalar(halfWidthMeters));
+  const leftOuterStart = miteredStart.clone().add(leftSlope.clone().multiplyScalar(halfWidthMeters));
+  const leftOuterEnd = miteredEnd.clone().add(leftSlope.clone().multiplyScalar(halfWidthMeters));
+  const rightOuterStart = miteredStart.clone().add(rightSlope.clone().multiplyScalar(halfWidthMeters));
+  const rightOuterEnd = miteredEnd.clone().add(rightSlope.clone().multiplyScalar(halfWidthMeters));
 
   const leftTopRidgeStart = start.clone().add(leftNormal.clone().multiplyScalar(capThicknessMeters));
   const leftTopRidgeEnd = end.clone().add(leftNormal.clone().multiplyScalar(capThicknessMeters));

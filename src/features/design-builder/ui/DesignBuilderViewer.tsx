@@ -60,6 +60,7 @@ import {
   buildHipMemberMesh,
   buildPurlinMesh,
   createCorrugatedMetalMaterial,
+  createFoldedRoofEdgeCapGroup,
   createFoldedRidgeCapGroup,
   createRakedCapStripGeometry,
   createRakedConcreteCapMaterial,
@@ -175,7 +176,7 @@ function selectionPriorityForObjectType(objectType: DesignObjectType): number {
   return 1;
 }
 
-const ROOF_PLAN_POINT_MATCH_TOLERANCE_METERS = 0.02;
+const ROOF_PLAN_POINT_MATCH_TOLERANCE_METERS = 0.06;
 const ROOF_CLADDING_BEAM_CLEARANCE_METERS = CORRUGATED_SHEET_DISPLAY_THICKNESS_METERS;
 
 function roofPlanDistanceSquared(a: Pick<RoofVec3, 'x' | 'z'>, b: Pick<RoofVec3, 'x' | 'z'>): number {
@@ -233,7 +234,7 @@ function buildBeamClearedRoofCladdingPlanes(params: {
 
   const renderPlanes: RoofPlane[] = [];
   for (const plane of params.planes) {
-    if (plane.id.endsWith('-cladding-display') || plane.corners.length < 3) {
+    if (plane.corners.length < 3) {
       renderPlanes.push({ ...plane, corners: plane.corners.map((corner) => ({ ...corner })) });
       continue;
     }
@@ -255,9 +256,11 @@ function buildBeamClearedRoofCladdingPlanes(params: {
       const eaveCorner = plane.corners[eaveIndex]!;
       const bearingPoint = nearestPlanPoint(eaveCorner, params.structuralBearingPerimeter);
       if (!bearingPoint) continue;
+      const bearingSurfaceY =
+        elevationOnRoofPlaneAtPoint(plane, bearingPoint.x, bearingPoint.z) ?? params.roofBeamTopY;
       bearingCorners.set(eaveIndex, {
         x: bearingPoint.x,
-        y: params.roofBeamTopY + params.clearanceMeters,
+        y: Math.max(bearingSurfaceY, params.roofBeamTopY) + params.clearanceMeters,
         z: bearingPoint.z,
       });
     }
@@ -294,6 +297,39 @@ function buildBeamClearedRoofCladdingPlanes(params: {
     }
   }
   return renderPlanes;
+}
+
+function cloneLiftedRoofPlanes(planes: readonly RoofPlane[], clearanceMeters: number): RoofPlane[] {
+  return planes.map((plane) => ({
+    ...plane,
+    corners: plane.corners.map((corner) => liftedRoofPoint(corner, clearanceMeters)),
+  }));
+}
+
+function createRoofSheetEaveLipGeometry(params: {
+  corners: readonly RoofVec3[];
+  eavePair: [number, number];
+  planeNormal: RoofVec3;
+  slabTopMeters: number;
+  thicknessMeters: number;
+}): THREE.BufferGeometry {
+  const [firstIndex, secondIndex] = params.eavePair;
+  const topA = params.corners[firstIndex]!;
+  const topB = params.corners[secondIndex]!;
+  const bottomB = offsetPointAlongRoofNormal(topB, params.planeNormal, -params.thicknessMeters);
+  const bottomA = offsetPointAlongRoofNormal(topA, params.planeNormal, -params.thicknessMeters);
+  const vertices = [topA, topB, bottomB, bottomA];
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute(
+    'position',
+    new THREE.Float32BufferAttribute(
+      vertices.flatMap((vertex) => [vertex.x, params.slabTopMeters + vertex.y, vertex.z]),
+      3,
+    ),
+  );
+  geometry.setIndex([0, 1, 2, 0, 2, 3]);
+  geometry.computeVertexNormals();
+  return geometry;
 }
 
 function createFootprintSlabGeometry(
@@ -1213,13 +1249,20 @@ export default function DesignBuilderViewer({
             resolvedRoof.claddingDisplayPlanes.length > 0
               ? resolvedRoof.claddingDisplayPlanes
               : resolvedRoof.roofTopPlanes;
-          const claddingPlanes = buildBeamClearedRoofCladdingPlanes({
-            planes: rawCladdingPlanes,
-            structuralBearingPerimeter: resolvedRoof.structuralBearingPerimeter,
-            claddingPerimeter: resolvedRoof.claddingPerimeter,
-            roofBeamTopY: resolvedRoof.roofBeamTopY,
-            clearanceMeters: ROOF_CLADDING_BEAM_CLEARANCE_METERS,
-          });
+          const sheetReferencePerimeter =
+            resolvedRoof.roofSheetPerimeter.length > 0
+              ? resolvedRoof.roofSheetPerimeter
+              : resolvedRoof.claddingPerimeter;
+          const claddingPlanes =
+            resolvedRoof.roofType === 'hip'
+              ? cloneLiftedRoofPlanes(rawCladdingPlanes, ROOF_CLADDING_BEAM_CLEARANCE_METERS)
+              : buildBeamClearedRoofCladdingPlanes({
+                  planes: rawCladdingPlanes,
+                  structuralBearingPerimeter: resolvedRoof.structuralBearingPerimeter,
+                  claddingPerimeter: sheetReferencePerimeter,
+                  roofBeamTopY: resolvedRoof.roofBeamTopY,
+                  clearanceMeters: ROOF_CLADDING_BEAM_CLEARANCE_METERS,
+                });
 
           const ridgeDirectionHint =
             resolvedRoof.claddingRidgeStart && resolvedRoof.claddingRidgeEnd
@@ -1246,6 +1289,8 @@ export default function DesignBuilderViewer({
                       roughness: 0.75,
                       opacity: 0.92,
                     });
+            roofMaterial.side = THREE.DoubleSide;
+            roofMaterial.needsUpdate = true;
             if (debugGuides || !usePreviewMaterials) {
               materialsToDispose.push(roofMaterial);
             }
@@ -1279,6 +1324,24 @@ export default function DesignBuilderViewer({
                     })(),
                   );
               roofCladdingGroup.add(new THREE.Mesh(topGeometry, roofMaterial));
+              if (resolvedRoof.roofType === 'hip') {
+                const eaveIndices = visibleCorners
+                  .map((corner, index) => (cornerMatchesPlanPoint(corner, sheetReferencePerimeter) ? index : -1))
+                  .filter((index) => index >= 0);
+                const eavePair = adjacentEavePair(eaveIndices, visibleCorners.length);
+                if (eavePair) {
+                  const lipGeometry = trackGeometry(
+                    createRoofSheetEaveLipGeometry({
+                      corners: visibleCorners,
+                      eavePair,
+                      planeNormal,
+                      slabTopMeters: currentSlab.slabThicknessMeters,
+                      thicknessMeters: Math.max(CORRUGATED_SHEET_DISPLAY_THICKNESS_METERS, 0.012),
+                    }),
+                  );
+                  roofCladdingGroup.add(new THREE.Mesh(lipGeometry, roofMaterial));
+                }
+              }
             }
           }
 
@@ -1505,9 +1568,14 @@ export default function DesignBuilderViewer({
           if (
             showRidgeCap &&
             corrugatedEnabled &&
-            resolvedRoof.ridgeCapPlacement
+            (resolvedRoof.ridgeCapPlacements.length > 0 || resolvedRoof.ridgeCapPlacement)
           ) {
-            const ridgeCapPlacement = resolvedRoof.ridgeCapPlacement;
+            const ridgeCapPlacements =
+              resolvedRoof.ridgeCapPlacements.length > 0
+                ? resolvedRoof.ridgeCapPlacements
+                : resolvedRoof.ridgeCapPlacement
+                  ? [resolvedRoof.ridgeCapPlacement]
+                  : [];
             const debugGuides = import.meta.env.DEV && currentShowRoofFramingGuides;
             const ridgeCapMaterial = debugGuides
               ? new THREE.MeshStandardMaterial({ color: 0x14b8a6, metalness: 0.5, roughness: 0.45 })
@@ -1520,28 +1588,71 @@ export default function DesignBuilderViewer({
             if (debugGuides || !usePreviewMaterials) {
               materialsToDispose.push(ridgeCapMaterial);
             }
-            const ridgeCap = createFoldedRidgeCapGroup(
-              new THREE.Vector3(
+            for (const ridgeCapPlacement of ridgeCapPlacements) {
+              const capStart = new THREE.Vector3(
                 ridgeCapPlacement.start.x,
                 currentSlab.slabThicknessMeters + ridgeCapPlacement.start.y,
                 ridgeCapPlacement.start.z,
-              ),
-              new THREE.Vector3(
+              );
+              const capEnd = new THREE.Vector3(
                 ridgeCapPlacement.end.x,
                 currentSlab.slabThicknessMeters + ridgeCapPlacement.end.y,
                 ridgeCapPlacement.end.z,
-              ),
-              ridgeCapPlacement.widthMeters,
-              ridgeCapPlacement.thicknessMeters,
-              ridgeCapPlacement.roofAngleRadians,
-              ridgeCapMaterial,
-            );
-            ridgeCap.traverse((child) => {
-              if (child instanceof THREE.Mesh) {
-                trackGeometry(child.geometry);
-              }
-            });
-            ridgeCapGroup.add(ridgeCap);
+              );
+              const capAdjacentPlanes =
+                resolvedRoof.roofType === 'hip'
+                  ? (ridgeCapPlacement.adjacentPlaneIds ?? [])
+                      .map((planeId) => {
+                        const displayPlane =
+                          resolvedRoof.claddingDisplayPlanes.find(
+                            (plane) => plane.id.replace(/-cladding-display$/, '') === planeId,
+                          ) ?? resolvedRoof.roofTopPlanes.find((plane) => plane.id === planeId);
+                        return displayPlane
+                          ? {
+                              normal: new THREE.Vector3(
+                                displayPlane.normal.x,
+                                displayPlane.normal.y,
+                                displayPlane.normal.z,
+                              ),
+                              corners: displayPlane.corners.map(
+                                (corner) =>
+                                  new THREE.Vector3(
+                                    corner.x,
+                                    currentSlab.slabThicknessMeters + corner.y,
+                                    corner.z,
+                                  ),
+                              ),
+                            }
+                          : null;
+                      })
+                      .filter((plane): plane is { normal: THREE.Vector3; corners: THREE.Vector3[] } => plane != null)
+                  : [];
+              const ridgeCap =
+                resolvedRoof.roofType === 'hip' && capAdjacentPlanes.length > 0
+                  ? createFoldedRoofEdgeCapGroup({
+                      start: capStart,
+                      end: capEnd,
+                      capWidthMeters: ridgeCapPlacement.widthMeters,
+                      capThicknessMeters: ridgeCapPlacement.thicknessMeters,
+                      material: ridgeCapMaterial,
+                      adjacentPlanes: capAdjacentPlanes,
+                      miterBottomEnds: true,
+                    })
+                  : createFoldedRidgeCapGroup(
+                      capStart,
+                      capEnd,
+                      ridgeCapPlacement.widthMeters,
+                      ridgeCapPlacement.thicknessMeters,
+                      ridgeCapPlacement.roofAngleRadians,
+                      ridgeCapMaterial,
+                    );
+              ridgeCap.traverse((child) => {
+                if (child instanceof THREE.Mesh) {
+                  trackGeometry(child.geometry);
+                }
+              });
+              ridgeCapGroup.add(ridgeCap);
+            }
           }
 
           if (

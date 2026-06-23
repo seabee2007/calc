@@ -36,6 +36,7 @@ export const TRUSS_CHORD_PROFILE_METERS = 0.04;
 export const PURLIN_PROFILE_WIDTH_METERS = 0.05;
 export const PURLIN_PROFILE_DEPTH_METERS = 0.08;
 export const ROOF_SHEET_EAVE_OVERHANG_METERS = 0.0254; // 1 inch
+export const HIP_SHEET_SEAM_WELD_ALLOWANCE_METERS = 0.005;
 /** Perpendicular inset from roof top surface to purlin bottom flange. */
 export const PURLIN_BOTTOM_INSET_FROM_ROOF_TOP_METERS =
   PURLIN_TO_SHEET_CLEARANCE_METERS + PURLIN_PROFILE_DEPTH_METERS;
@@ -162,6 +163,17 @@ function cross3(a: RoofVec3, b: RoofVec3): RoofVec3 {
   };
 }
 
+function roofPlaneNormalFromCorners(corners: readonly RoofVec3[], fallback: RoofVec3): RoofVec3 {
+  if (corners.length < 3) {
+    return fallback;
+  }
+  const normal = normalize3(cross3(sub3(corners[1]!, corners[0]!), sub3(corners[2]!, corners[0]!)));
+  if (length3(normal) <= 1e-8) {
+    return fallback;
+  }
+  return normal.y < 0 ? vec3(-normal.x, -normal.y, -normal.z) : normal;
+}
+
 function lerpVec3(a: RoofVec3, b: RoofVec3, t: number): RoofVec3 {
   return {
     x: a.x + (b.x - a.x) * t,
@@ -205,6 +217,16 @@ function normalize2(v: PlanVec2): PlanVec2 {
 
 function planDistance(a: Pick<RoofVec3, 'x' | 'z'>, b: Pick<RoofVec3, 'x' | 'z'>): number {
   return Math.hypot(a.x - b.x, a.z - b.z);
+}
+
+function roofVertexKey(point: RoofVec3): string {
+  return `${point.x.toFixed(4)}:${point.y.toFixed(4)}:${point.z.toFixed(4)}`;
+}
+
+function canonicalRoofEdgeKey(start: RoofVec3, end: RoofVec3): string {
+  const startKey = roofVertexKey(start);
+  const endKey = roofVertexKey(end);
+  return startKey <= endKey ? `${startKey}|${endKey}` : `${endKey}|${startKey}`;
 }
 
 function withHipMemberMetadata(
@@ -986,6 +1008,91 @@ export function claddingRidgePointOnDisplayPlanes(params: {
     : params.ridgePoint;
 }
 
+function weldSharedCladdingDisplayPlaneCorners(params: {
+  sourcePlanes: readonly RoofPlane[];
+  displayPlanes: readonly RoofPlane[];
+}): RoofPlane[] {
+  const edgeRefs = new Map<string, { planeIndex: number; startIndex: number; endIndex: number }[]>();
+  for (const [planeIndex, plane] of params.sourcePlanes.entries()) {
+    for (let cornerIndex = 0; cornerIndex < plane.corners.length; cornerIndex += 1) {
+      const nextIndex = (cornerIndex + 1) % plane.corners.length;
+      const key = canonicalRoofEdgeKey(plane.corners[cornerIndex]!, plane.corners[nextIndex]!);
+      const refs = edgeRefs.get(key) ?? [];
+      refs.push({ planeIndex, startIndex: cornerIndex, endIndex: nextIndex });
+      edgeRefs.set(key, refs);
+    }
+  }
+
+  const displayPlanes = params.displayPlanes.map((plane) => ({
+    ...plane,
+    corners: plane.corners.map((corner) => ({ ...corner })),
+  }));
+  const originalDisplayPlanes = displayPlanes.map((plane) => ({
+    ...plane,
+    corners: plane.corners.map((corner) => ({ ...corner })),
+  }));
+  const vertexRefs = new Map<string, Map<string, { planeIndex: number; cornerIndex: number }>>();
+  const addVertexRef = (sourcePoint: RoofVec3, planeIndex: number, cornerIndex: number) => {
+    const vertexKey = roofVertexKey(sourcePoint);
+    const refs = vertexRefs.get(vertexKey) ?? new Map<string, { planeIndex: number; cornerIndex: number }>();
+    refs.set(`${planeIndex}:${cornerIndex}`, { planeIndex, cornerIndex });
+    vertexRefs.set(vertexKey, refs);
+  };
+
+  for (const refs of edgeRefs.values()) {
+    if (refs.length < 2) {
+      continue;
+    }
+    for (const ref of refs) {
+      const sourcePlane = params.sourcePlanes[ref.planeIndex];
+      if (!sourcePlane) continue;
+      addVertexRef(sourcePlane.corners[ref.startIndex]!, ref.planeIndex, ref.startIndex);
+      addVertexRef(sourcePlane.corners[ref.endIndex]!, ref.planeIndex, ref.endIndex);
+    }
+  }
+
+  for (const refs of vertexRefs.values()) {
+    const refList = [...refs.values()];
+    if (refList.length < 2) {
+      continue;
+    }
+    const corners = refList
+      .map((ref) => displayPlanes[ref.planeIndex]?.corners[ref.cornerIndex])
+      .filter((corner): corner is RoofVec3 => corner != null);
+    if (corners.length === 0) {
+      continue;
+    }
+    const weldedX = corners.reduce((sum, corner) => sum + corner.x, 0) / corners.length;
+    const weldedZ = corners.reduce((sum, corner) => sum + corner.z, 0) / corners.length;
+    const weldedY = Math.max(
+      ...refList.map((ref) => {
+        const plane = originalDisplayPlanes[ref.planeIndex];
+        const corner = plane?.corners[ref.cornerIndex];
+        if (!plane || !corner) {
+          return -Infinity;
+        }
+        return elevationOnRoofPlaneAtPoint(plane, weldedX, weldedZ) ?? corner.y;
+      }),
+    );
+    const welded = vec3(
+      weldedX,
+      Number.isFinite(weldedY) ? weldedY : corners.reduce((sum, corner) => sum + corner.y, 0) / corners.length,
+      weldedZ,
+    );
+    for (const ref of refList) {
+      const plane = displayPlanes[ref.planeIndex];
+      if (plane?.corners[ref.cornerIndex]) {
+        plane.corners[ref.cornerIndex] = { ...welded };
+      }
+    }
+  }
+
+  return displayPlanes.map((plane) => ({
+    ...plane,
+    normal: roofPlaneNormalFromCorners(plane.corners, plane.normal),
+  }));
+}
+
 export function buildCladdingDisplayPlanes(params: {
   structuralPlanes: readonly RoofPlane[];
   trussPlacements: readonly TrussPlacement[];
@@ -1000,7 +1107,7 @@ export function buildCladdingDisplayPlanes(params: {
   }
   const displayThicknessMeters =
     params.claddingDisplayThicknessMeters ?? CORRUGATED_SHEET_DISPLAY_THICKNESS_METERS;
-  return params.structuralPlanes.map((plane) => {
+  const displayPlanes = params.structuralPlanes.map((plane) => {
     const planeNormal = normalizeOutwardRoofNormal(plane.normal);
     const planePurlins = params.purlinPlacements.filter((purlin) => purlin.slopePlaneId === plane.id);
     if (planePurlins.length === 0) {
@@ -1071,6 +1178,12 @@ export function buildCladdingDisplayPlanes(params: {
       corners,
     };
   });
+  return params.claddingRidgeStart && params.claddingRidgeEnd
+    ? displayPlanes
+    : weldSharedCladdingDisplayPlaneCorners({
+        sourcePlanes: params.structuralPlanes,
+        displayPlanes,
+      });
 }
 
 function pairPlaneEaveToHighCorners(plane: RoofPlane): {
@@ -1097,7 +1210,7 @@ function pairPlaneEaveToHighCorners(plane: RoofPlane): {
     : { eaveA, eaveB, highA: secondHigh!, highB: firstHigh! };
 }
 
-function purlinCenterBelowRoofSurface(params: {
+function purlinCenterAboveHipFrameSurface(params: {
   plane: RoofPlane;
   planeNormal: RoofVec3;
   point: Pick<RoofVec3, 'x' | 'z'>;
@@ -1107,7 +1220,7 @@ function purlinCenterBelowRoofSurface(params: {
   return offsetPointAlongRoofNormal(
     { x: params.point.x, y: surfaceY, z: params.point.z },
     params.planeNormal,
-    -(PURLIN_TO_SHEET_CLEARANCE_METERS + PURLIN_PROFILE_DEPTH_METERS / 2),
+    TRUSS_CHORD_PROFILE_METERS / 2 + PURLIN_TO_CHORD_CLEARANCE_METERS + PURLIN_PROFILE_DEPTH_METERS / 2,
   );
 }
 
@@ -1125,13 +1238,32 @@ function resolveHipPurlinPlacements(params: {
     const planeNormal = normalizeOutwardRoofNormal(plane.normal);
     for (let rowIndex = 0; rowIndex < params.rowTs.length; rowIndex += 1) {
       const t = params.rowTs[rowIndex]!;
-      const startPlan = lerpVec3(paired.eaveA, paired.highA, t);
-      const endPlan = lerpVec3(paired.eaveB, paired.highB, t);
+      let startPlan = lerpVec3(paired.eaveA, paired.highA, t);
+      let endPlan = lerpVec3(paired.eaveB, paired.highB, t);
+      if (rowIndex === 0) {
+        const startInboard = normalize3(sub3(paired.highA, paired.eaveA));
+        const endInboard = normalize3(sub3(paired.highB, paired.eaveB));
+        const centerOffsetAlongNormal =
+          TRUSS_CHORD_PROFILE_METERS / 2 + PURLIN_TO_CHORD_CLEARANCE_METERS + PURLIN_PROFILE_DEPTH_METERS / 2;
+        const normalPlanOffsetMeters =
+          Math.hypot(planeNormal.x, planeNormal.z) * centerOffsetAlongNormal;
+        const inboardOffsetMeters = PURLIN_PROFILE_WIDTH_METERS / 2 + normalPlanOffsetMeters;
+        startPlan = {
+          x: startPlan.x + startInboard.x * inboardOffsetMeters,
+          y: startPlan.y + startInboard.y * inboardOffsetMeters,
+          z: startPlan.z + startInboard.z * inboardOffsetMeters,
+        };
+        endPlan = {
+          x: endPlan.x + endInboard.x * inboardOffsetMeters,
+          y: endPlan.y + endInboard.y * inboardOffsetMeters,
+          z: endPlan.z + endInboard.z * inboardOffsetMeters,
+        };
+      }
       if (planDistance(startPlan, endPlan) < MIN_HIP_JACK_LENGTH_METERS) {
         continue;
       }
-      const start = purlinCenterBelowRoofSurface({ plane, planeNormal, point: startPlan });
-      const end = purlinCenterBelowRoofSurface({ plane, planeNormal, point: endPlan });
+      const start = purlinCenterAboveHipFrameSurface({ plane, planeNormal, point: startPlan });
+      const end = purlinCenterAboveHipFrameSurface({ plane, planeNormal, point: endPlan });
       if (!start || !end || length3(sub3(end, start)) < MIN_HIP_JACK_LENGTH_METERS) {
         continue;
       }
@@ -1323,21 +1455,25 @@ function addHipFramingMember(
 
 function resolveHipFramingMembers(params: {
   structuralBearing: readonly PlanVec2[];
+  claddingBearing: readonly PlanVec2[];
   roofBeamTopY: number;
+  claddingEaveY: number;
   maxSpacingMeters: number;
   ridgeStart?: RoofVec3;
   ridgeEnd?: RoofVec3;
   peakPoint?: RoofVec3;
 }): HipFramingMember[] {
   const structuralEaveY = params.roofBeamTopY;
+  const framingEaveY = params.claddingEaveY;
   const corners = params.structuralBearing.map((point) => toVec3(point, structuralEaveY));
+  const framingCorners = params.claddingBearing.map((point) => toVec3(point, framingEaveY));
   const members: HipFramingMember[] = [];
 
   if (params.peakPoint) {
-    for (let index = 0; index < corners.length; index += 1) {
+    for (let index = 0; index < framingCorners.length; index += 1) {
       addHipFramingMember(members, {
         id: `hip-${index}`,
-        start: hipMemberCenterlinePoint(corners[index]!),
+        start: hipMemberCenterlinePoint(framingCorners[index]!),
         end: hipMemberCenterlinePoint(params.peakPoint),
         memberKind: 'hip',
       });
@@ -1369,7 +1505,7 @@ function resolveHipFramingMembers(params: {
   });
 
   const ridgeEnds = [ridgeStart, ridgeEnd] as const;
-  for (const [cornerIndex, corner] of corners.entries()) {
+  for (const [cornerIndex, corner] of framingCorners.entries()) {
     const target = planDistance(corner, ridgeStart) <= planDistance(corner, ridgeEnd) ? ridgeStart : ridgeEnd;
     addHipFramingMember(members, {
       id: `hip-rafter-${cornerIndex}`,
@@ -1379,14 +1515,23 @@ function resolveHipFramingMembers(params: {
     });
   }
 
-  const [sideAStart, sideAEnd, sideBStart, sideBEnd] = spanEdgesPerpendicularToRidge(
+  const [structuralSideAStart, structuralSideAEnd, structuralSideBStart, structuralSideBEnd] = spanEdgesPerpendicularToRidge(
     params.structuralBearing,
+    ridgeStart2,
+    ridgeEnd2,
+  );
+  const [sideAStart, sideAEnd, sideBStart, sideBEnd] = spanEdgesPerpendicularToRidge(
+    params.claddingBearing,
     ridgeStart2,
     ridgeEnd2,
   );
   const sideEdges = [
     { start: sideAStart, end: sideAEnd, id: 'a' },
     { start: sideBStart, end: sideBEnd, id: 'b' },
+  ];
+  const structuralSideEdges = [
+    { start: structuralSideAStart, end: structuralSideAEnd, id: 'a' },
+    { start: structuralSideBStart, end: structuralSideBEnd, id: 'b' },
   ];
 
   const perpUnit = normalize2({ x: -ridgeUnit.z, z: ridgeUnit.x });
@@ -1405,7 +1550,7 @@ function resolveHipFramingMembers(params: {
       if (!sidePoint2) continue;
       addHipFramingMember(members, {
         id: `hip-common-${side.id}-${station.toFixed(3)}`,
-        start: hipMemberCenterlinePoint(toVec3(sidePoint2, structuralEaveY)),
+        start: hipMemberCenterlinePoint(toVec3(sidePoint2, framingEaveY)),
         end: hipMemberCenterlinePoint(ridgePoint),
         memberKind: 'common',
       });
@@ -1414,7 +1559,7 @@ function resolveHipFramingMembers(params: {
 
   for (const [endIndex, ridgePoint] of ridgeEnds.entries()) {
     const ridgePoint2 = { x: ridgePoint.x, z: ridgePoint.z };
-    const sideBearings = sideEdges
+    const sideBearings = structuralSideEdges
       .map((side, sideIndex) =>
         intersectRayWithSegment2D(
           ridgePoint2,
@@ -1478,11 +1623,11 @@ function resolveHipFramingMembers(params: {
         : side.end;
       const intersection = intersectRayWithSegment2D(eavePoint, inward, sideCorner, targetRidge2);
       if (!intersection) continue;
-      const corner3 = toVec3(sideCorner, structuralEaveY);
+      const corner3 = toVec3(sideCorner, framingEaveY);
       const end = interpolateRoofMemberPoint(corner3, targetRidge, intersection);
       addHipFramingMember(members, {
         id: `hip-jack-long-${side.id}-${station.toFixed(3)}`,
-        start: hipMemberCenterlinePoint(toVec3(eavePoint, structuralEaveY)),
+        start: hipMemberCenterlinePoint(toVec3(eavePoint, framingEaveY)),
         end: hipMemberCenterlinePoint(end),
         memberKind: 'jack',
       });
@@ -1491,7 +1636,7 @@ function resolveHipFramingMembers(params: {
 
   for (const [endIndex, ridgePoint] of ridgeEnds.entries()) {
     const ridgePoint2 = { x: ridgePoint.x, z: ridgePoint.z };
-    const endCorners = params.structuralBearing
+    const endCorners = params.claddingBearing
       .map((corner) => ({ corner, distance: planDistance(corner, ridgePoint2) }))
       .sort((a, b) => a.distance - b.distance)
       .slice(0, 2)
@@ -1512,10 +1657,10 @@ function resolveHipFramingMembers(params: {
         .sort((a, b) => length2(sub2(a, eavePoint)) - length2(sub2(b, eavePoint)))[0];
       if (!hit) continue;
       const hipStart = hit === hitA ? edgeStart : edgeEnd;
-      const end = interpolateRoofMemberPoint(toVec3(hipStart, structuralEaveY), ridgePoint, hit);
+      const end = interpolateRoofMemberPoint(toVec3(hipStart, framingEaveY), ridgePoint, hit);
       addHipFramingMember(members, {
         id: `hip-jack-end-${frameId}-${station.toFixed(3)}`,
-        start: hipMemberCenterlinePoint(toVec3(eavePoint, structuralEaveY)),
+        start: hipMemberCenterlinePoint(toVec3(eavePoint, framingEaveY)),
         end: hipMemberCenterlinePoint(end),
         memberKind: 'jack',
       });
@@ -1612,7 +1757,13 @@ export function resolveRoofFraming(params: {
   } else if (params.settings.roofType === 'hip') {
     hipFramingMembers = resolveHipFramingMembers({
       structuralBearing: params.structuralBearingPerimeter,
+      claddingBearing: params.claddingPerimeter,
       roofBeamTopY: params.roofBeamTopY,
+      claddingEaveY: claddingEaveElevationMeters({
+        structuralEaveY: params.roofBeamTopY,
+        fixedSlope: params.fixedRoofSlope,
+        sideEaveOverhangMeters: params.sideEaveOverhangMeters,
+      }),
       maxSpacingMeters: params.settings.steelTrusses.maxSpacingMeters,
       ridgeStart: structuralRidgeStart,
       ridgeEnd: structuralRidgeEnd,

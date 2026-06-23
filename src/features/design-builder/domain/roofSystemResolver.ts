@@ -1,6 +1,7 @@
 import type {
   DesignWallLayoutParameters,
   ResolvedRoofSystem,
+  RidgeCapPlacement,
   RoofPlane,
   RoofSystemSettings,
   RoofVec3,
@@ -31,6 +32,10 @@ import {
 import {
   buildCladdingDisplayPlanes,
   claddingRidgePointOnDisplayPlanes,
+  DEFAULT_RIDGE_CAP_THICKNESS_METERS,
+  DEFAULT_RIDGE_CAP_WIDTH_METERS,
+  HIP_SHEET_SEAM_WELD_ALLOWANCE_METERS,
+  ROOF_SHEET_EAVE_OVERHANG_METERS,
   resolveRoofFraming,
   resolveRidgeCapPlacement,
 } from './roofFramingResolver';
@@ -86,6 +91,95 @@ function offsetPlaneDown(plane: RoofPlane, thicknessMeters: number): RoofPlane {
     })),
     normal: plane.normal,
   };
+}
+
+function roofPointKey(point: RoofVec3): string {
+  return `${point.x.toFixed(3)}:${point.z.toFixed(3)}`;
+}
+
+function canonicalRoofEdgeKey(start: RoofVec3, end: RoofVec3): string {
+  const startKey = roofPointKey(start);
+  const endKey = roofPointKey(end);
+  return startKey <= endKey ? `${startKey}|${endKey}` : `${endKey}|${startKey}`;
+}
+
+function resolveHipRidgeCapPlacements(params: {
+  roofType: RoofSystemSettings['roofType'];
+  sourcePlanes: readonly RoofPlane[];
+  displayPlanes: readonly RoofPlane[];
+  enabled: boolean;
+  roofPitchRadians: number;
+}): RidgeCapPlacement[] {
+  if (!params.enabled || params.roofType !== 'hip') {
+    return [];
+  }
+
+  const displayPlaneBySourceId = new Map(
+    params.displayPlanes.map((plane) => [plane.id.replace(/-cladding-display$/, ''), plane]),
+  );
+  const displayTopYAtPoint = (point: RoofVec3): number => {
+    const sourceMatches = params.sourcePlanes.filter((plane) =>
+      pointInRoofPlaneFootprint(plane, point.x, point.z),
+    );
+    const sourceElevations = sourceMatches
+      .map((plane) => displayPlaneBySourceId.get(plane.id) ?? params.displayPlanes.find((item) => item.id === plane.id))
+      .map((plane) => (plane ? elevationOnRoofPlaneAtPoint(plane, point.x, point.z) : null))
+      .filter((y): y is number => y != null && Number.isFinite(y));
+    if (sourceElevations.length > 0) {
+      return sourceElevations.sort((a, b) => b - a)[0]!;
+    }
+    const fallbackElevations = params.displayPlanes
+      .filter((plane) => pointInRoofPlaneFootprint(plane, point.x, point.z))
+      .map((plane) => elevationOnRoofPlaneAtPoint(plane, point.x, point.z))
+      .filter((y): y is number => y != null && Number.isFinite(y));
+    return fallbackElevations.sort((a, b) => b - a)[0] ?? point.y;
+  };
+
+  const edges = new Map<string, { start: RoofVec3; end: RoofVec3; planeIds: Set<string> }>();
+  for (const plane of params.sourcePlanes) {
+    for (let index = 0; index < plane.corners.length; index += 1) {
+      const start = plane.corners[index]!;
+      const end = plane.corners[(index + 1) % plane.corners.length]!;
+      if (Math.hypot(end.x - start.x, end.z - start.z) <= 0.05) {
+        continue;
+      }
+      const key = canonicalRoofEdgeKey(start, end);
+      const existing = edges.get(key);
+      if (existing) {
+        existing.planeIds.add(plane.id);
+      } else {
+        edges.set(key, { start, end, planeIds: new Set([plane.id]) });
+      }
+    }
+  }
+
+  return [...edges.values()]
+    .filter((edge) => edge.planeIds.size >= 2)
+    .map((edge) => {
+      return {
+        ...edge,
+        start: { ...edge.start, y: displayTopYAtPoint(edge.start) },
+        end: { ...edge.end, y: displayTopYAtPoint(edge.end) },
+      };
+    })
+    .sort((a, b) => {
+      const aHorizontal = Math.abs(a.start.y - a.end.y) <= 0.01 ? 1 : 0;
+      const bHorizontal = Math.abs(b.start.y - b.end.y) <= 0.01 ? 1 : 0;
+      if (aHorizontal !== bHorizontal) return aHorizontal - bHorizontal;
+      return (
+        Math.hypot(b.end.x - b.start.x, b.end.z - b.start.z) -
+        Math.hypot(a.end.x - a.start.x, a.end.z - a.start.z)
+      );
+    })
+    .map((edge, index) => ({
+      id: `hip-ridge-cap-${index}`,
+      start: edge.start,
+      end: edge.end,
+      widthMeters: DEFAULT_RIDGE_CAP_WIDTH_METERS,
+      thicknessMeters: DEFAULT_RIDGE_CAP_THICKNESS_METERS,
+      roofAngleRadians: params.roofPitchRadians,
+      adjacentPlaneIds: [...edge.planeIds],
+    }));
 }
 
 function ridgeEndpointsForAxis(params: {
@@ -588,6 +682,7 @@ export function resolveRoofSystem(params: {
     },
     structuralBearingPerimeter: [],
     claddingPerimeter: [],
+    roofSheetPerimeter: [],
     eaveFootprint: [],
     roofBeamTopElevationMeters: params.roofBeamTopElevationMeters,
     roofBeamTopY: params.roofBeamTopElevationMeters,
@@ -623,6 +718,7 @@ export function resolveRoofSystem(params: {
     claddingRidgeLengthMeters: 0,
     gableEndOverhangMeters: settings.gableEndOverhangMeters,
     gableCmuAreaSquareMeters: 0,
+    ridgeCapPlacements: [],
     rakedCapVolumeCubicMeters: 0,
     gableEnds: [],
     warnings: [],
@@ -775,15 +871,43 @@ export function resolveRoofSystem(params: {
     ridgeLengthMeters: ridgeLengthMetersValue,
   });
 
+  const hipSheetEaveOverhangMeters =
+    settings.eaveOverhangMeters +
+    ROOF_SHEET_EAVE_OVERHANG_METERS +
+    (settings.roofType === 'hip' ? HIP_SHEET_SEAM_WELD_ALLOWANCE_METERS : 0);
+  const hipSheetLoop =
+    settings.roofType === 'hip' && settings.purlins.enabled && framing.purlinPlacements.length > 0
+      ? resolveCladdingPerimeterFromBearing(
+          bearingLoop,
+          hipSheetEaveOverhangMeters,
+        )
+      : null;
+  const roofSheetPerimeter = emptyPerimeterVec3(hipSheetLoop ?? claddingLoop);
+
+  const hipSheet =
+    settings.roofType === 'hip' && settings.purlins.enabled && framing.purlinPlacements.length > 0
+      ? buildHipRoofPlanes({
+          ridgeAxis: hipRidgeAxis,
+          bearing: bearingLoop,
+          cladding: hipSheetLoop ?? claddingLoop,
+          roofBeamTopY,
+          peakY,
+          isSquare,
+          eaveOverhangMeters: hipSheetEaveOverhangMeters,
+          fixedRoofSlope: fixedRoofPitch.slope,
+        })
+      : null;
+  const hipSheetTopPlanes = hipSheet?.topPlanes ?? null;
+
   const claddingDisplayPlanes =
     settings.purlins.enabled && framing.purlinPlacements.length > 0
       ? buildCladdingDisplayPlanes({
-          structuralPlanes: topPlanes,
+          structuralPlanes: hipSheetTopPlanes ?? topPlanes,
           trussPlacements: framing.trussPlacements,
           purlinPlacements: framing.purlinPlacements,
           peakY,
-          claddingRidgeStart: claddingRidgeStart ?? ridgeStart,
-          claddingRidgeEnd: claddingRidgeEnd ?? ridgeEnd,
+          claddingRidgeStart: settings.roofType === 'gable' ? (claddingRidgeStart ?? ridgeStart) : undefined,
+          claddingRidgeEnd: settings.roofType === 'gable' ? (claddingRidgeEnd ?? ridgeEnd) : undefined,
         })
       : topPlanes.map((plane) => ({ ...plane }));
 
@@ -810,6 +934,19 @@ export function resolveRoofSystem(params: {
     rafterRiseMeters,
     enabled: settings.corrugatedMetal.enabled && settings.corrugatedMetal.ridgeCapEnabled,
   });
+  const hipRidgeCapPlacements = resolveHipRidgeCapPlacements({
+    roofType: settings.roofType,
+    sourcePlanes: hipSheetTopPlanes ?? topPlanes,
+    displayPlanes: claddingDisplayPlanes,
+    roofPitchRadians: fixedRoofPitch.pitchRadians,
+    enabled: settings.corrugatedMetal.enabled && settings.corrugatedMetal.ridgeCapEnabled,
+  });
+  const ridgeCapPlacements =
+    settings.roofType === 'hip'
+      ? hipRidgeCapPlacements
+      : ridgeCapPlacement
+        ? [ridgeCapPlacement]
+        : [];
 
   return {
     supported: true,
@@ -818,6 +955,7 @@ export function resolveRoofSystem(params: {
     ...framing,
     structuralBearingPerimeter,
     claddingPerimeter,
+    roofSheetPerimeter,
     eaveFootprint: claddingPerimeter,
     ridgeStart,
     ridgeEnd,
@@ -829,6 +967,7 @@ export function resolveRoofSystem(params: {
     claddingRidgeLengthMeters,
     gableEndOverhangMeters: settings.gableEndOverhangMeters,
     ridgeCapPlacement,
+    ridgeCapPlacements,
     peakPoint,
     roofBeamTopElevationMeters: roofBeamTopY,
     roofBeamTopY,

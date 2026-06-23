@@ -667,6 +667,7 @@ export type RidgeCapPlacement = {
   widthMeters: number;
   thicknessMeters: number;
   roofAngleRadians: number;
+  adjacentPlaneIds?: string[];
 };
 
 export type RoofLayerVisibility = {
@@ -744,6 +745,8 @@ export type ResolvedRoofSystem = {
   structuralBearingPerimeter: RoofVec3[];
   /** Cladding outline: bearing perimeter + eave overhang. */
   claddingPerimeter: RoofVec3[];
+  /** Visible sheet outline, including small corrugated-metal lap past the eave purlin. */
+  roofSheetPerimeter: RoofVec3[];
   /** @deprecated Alias for claddingPerimeter — plan/3D eave outline. */
   eaveFootprint: RoofVec3[];
   /** Cladding ridge endpoints (includes gable-end overhang). */
@@ -757,6 +760,7 @@ export type ResolvedRoofSystem = {
   claddingRidgeLengthMeters: number;
   gableEndOverhangMeters: number;
   ridgeCapPlacement: RidgeCapPlacement | null;
+  ridgeCapPlacements: RidgeCapPlacement[];
   peakPoint?: RoofVec3;
   roofBeamTopElevationMeters: number;
   roofBeamTopY: number;
