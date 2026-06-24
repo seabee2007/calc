@@ -181,6 +181,7 @@ export function generateFrameInfillGeometry(
     bearingWarnings: roofBearingLoop.warnings,
     roofSystem,
     roofBeamTopElevationMeters,
+    segmentFrames,
   });
   layoutWarnings.push(...resolvedRoofSystem.warnings.map((warning) => warning.message));
 

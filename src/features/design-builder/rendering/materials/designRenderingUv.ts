@@ -192,3 +192,87 @@ export function resolveRoofRidgeDirection(
   }
   return new THREE.Vector3(1, 0, 0);
 }
+
+export type VerticalCladdingUvParams = {
+  corners: ReadonlyArray<{ x: number; y: number; z: number }>;
+  slabTopMeters: number;
+  corrugationRepeatPerMeter?: number;
+};
+
+function inferVerticalWallProjection(worldCorners: THREE.Vector3[]): (corner: THREE.Vector3) => THREE.Vector2 {
+  const xs = worldCorners.map((corner) => corner.x);
+  const zs = worldCorners.map((corner) => corner.z);
+  const xRange = Math.max(...xs) - Math.min(...xs);
+  const zRange = Math.max(...zs) - Math.min(...zs);
+  if (xRange <= 0.02 && zRange > 0.02) {
+    return (corner) => new THREE.Vector2(corner.y, corner.z);
+  }
+  if (zRange <= 0.02 && xRange > 0.02) {
+    return (corner) => new THREE.Vector2(corner.y, corner.x);
+  }
+  return (corner) => new THREE.Vector2(corner.y, corner.z);
+}
+
+function triangulateVerticalWallCorners(worldCorners: THREE.Vector3[]): number[] {
+  if (worldCorners.length < 3) return [];
+  if (worldCorners.length === 3) return [0, 1, 2];
+  if (worldCorners.length === 4) return [0, 1, 2, 0, 2, 3];
+
+  const project = inferVerticalWallProjection(worldCorners);
+  const shapePoints = worldCorners.map((corner) => project(corner));
+  const faces = THREE.ShapeUtils.triangulateShape(shapePoints, []);
+  if (faces.length > 0) {
+    const indices: number[] = [];
+    for (const face of faces) {
+      indices.push(face[0]!, face[1]!, face[2]!);
+    }
+    return indices;
+  }
+
+  const indices: number[] = [];
+  for (let index = 1; index < worldCorners.length - 1; index += 1) {
+    indices.push(0, index, index + 1);
+  }
+  return indices;
+}
+
+/** Vertical wall cladding UVs: U runs bottom-to-top (corrugation direction), V runs along the wall base. */
+export function createVerticalCladdingGeometry(params: VerticalCladdingUvParams): THREE.BufferGeometry {
+  const { corners, slabTopMeters } = params;
+  const corrugationRepeatPerMeter = params.corrugationRepeatPerMeter ?? 12;
+
+  const worldCorners = corners.map(
+    (corner) => new THREE.Vector3(corner.x, slabTopMeters + corner.y, corner.z),
+  );
+  const positions: number[] = [];
+  for (const corner of worldCorners) {
+    positions.push(corner.x, corner.y, corner.z);
+  }
+
+  const indices = triangulateVerticalWallCorners(worldCorners);
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  if (indices.length > 0) {
+    geometry.setIndex(indices);
+  }
+  geometry.computeVertexNormals();
+
+  const sortedByHeight = [...worldCorners].sort((a, b) => a.y - b.y);
+  const baseA = sortedByHeight[0]!;
+  const baseB = sortedByHeight[1]!;
+  const baseEdge = baseB.clone().sub(baseA);
+  const baseLength = baseEdge.length() || 1;
+  baseEdge.divideScalar(baseLength);
+  const bottomY = Math.min(baseA.y, baseB.y);
+
+  const uvs: number[] = [];
+  for (const corner of worldCorners) {
+    const alongBaseMeters = corner.clone().sub(baseA).dot(baseEdge);
+    const verticalMeters = corner.y - bottomY;
+    uvs.push(verticalMeters * corrugationRepeatPerMeter, alongBaseMeters);
+  }
+
+  geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+  ensureAoUv2(geometry);
+  return geometry;
+}

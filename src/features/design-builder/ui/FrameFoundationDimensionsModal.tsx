@@ -16,6 +16,10 @@ import {
 } from '../domain/foundationElevations';
 import { normalizeRcFrameFoundationSettings, createDefaultRcFrameFoundationSettings } from '../domain/rcFrameFoundationMigration';
 import { createDefaultRoofSystemSettings, normalizeRoofSystemSettings } from '../domain/roofSystemDefaults';
+import {
+  describeGableEndRoofingClosureBlockReason,
+  totalGableEndRoofingClosureAreaSquareMeters,
+} from '../domain/gableEndRoofingClosureSolver';
 import { resolveRoofSystem } from '../domain/roofSystemResolver';
 import { resolveOuterRoofBeamBearingLoop } from '../domain/roofFootprintSupport';
 import { reconcileStructuralFrameWithFoundation } from '../domain/structuralFrameLayout';
@@ -64,6 +68,7 @@ export type FrameFoundationDimensionsModalProps = {
   lastStructureApplyRevision: number;
   onClose: () => void;
   onApply: (payload: FrameFoundationDimensionsApplyPayload) => boolean;
+  onRoofDraftChange?: (roofSystem: RoofSystemSettings) => void;
 };
 
 type FoundationSection =
@@ -206,6 +211,7 @@ export default function FrameFoundationDimensionsModal({
   lastStructureApplyRevision,
   onClose,
   onApply,
+  onRoofDraftChange,
 }: FrameFoundationDimensionsModalProps) {
   const confirm = useConfirm();
   const [foundationDraft, setFoundationDraft] = useState<RcFrameFoundationSettings>(() =>
@@ -220,6 +226,11 @@ export default function FrameFoundationDimensionsModal({
     setRoofDraft(normalizeRoofSystemSettings(preset.roofSystem));
     setAutoGenerateFrameLayout(true);
   }, [isOpen, preset.foundationSettings, preset.roofSystem]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    onRoofDraftChange?.(roofDraft);
+  }, [isOpen, onRoofDraftChange, roofDraft]);
 
   const wallHeightMeters = wallLayout.defaultWallHeightMeters || preset.wall.heightMeters;
 
@@ -265,6 +276,7 @@ export default function FrameFoundationDimensionsModal({
       bearingWarnings: roofBearingLoop.warnings,
       roofSystem: roofDraft,
       roofBeamTopElevationMeters: elevations.roofBeamTopY,
+      segmentFrames,
     });
   }, [
     elevations.roofBeamTopY,
@@ -914,7 +926,7 @@ export default function FrameFoundationDimensionsModal({
             {roofDraft.roofType === 'gable' ? (
               <CollapsibleSection
                 id="gable-end-masonry"
-                title="Gable-End Masonry"
+                title="Gable End"
                 helper="Gable-end CMU follows the roof rake in running bond, staying at least 4 in below the cap bearing line. The raked concrete cap fills the course voids up to the purlin bottom."
               >
                 <ToggleRow
@@ -948,6 +960,33 @@ export default function FrameFoundationDimensionsModal({
                     })
                   }
                 />
+                {preset.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill' ? (
+                  <>
+                    <ToggleRow
+                      label="Close in gable end with corrugated roofing"
+                      checked={roofDraft.gable.closeInWithRoofingEnabled}
+                      onChange={(checked) => patchGable({ closeInWithRoofingEnabled: checked })}
+                    />
+                    {roofDraft.gable.closeInWithRoofingEnabled ? (
+                      <p className={`text-xs ${TEXT_MUTED}`}>
+                        {resolvedRoof.gableEndRoofingClosures.length > 0 ? (
+                          <>
+                            Preview: {resolvedRoof.gableEndRoofingClosures.length} close-in panel
+                            {resolvedRoof.gableEndRoofingClosures.length === 1 ? '' : 's'},{' '}
+                            {totalGableEndRoofingClosureAreaSquareMeters(resolvedRoof.gableEndRoofingClosures).toFixed(2)}{' '}
+                            m². The 3D view updates live while this dialog is open. Click Apply Dimensions to save.
+                          </>
+                        ) : (
+                          describeGableEndRoofingClosureBlockReason({
+                            roofSystem: roofDraft,
+                            supported: resolvedRoof.supported,
+                            trussCount: resolvedRoof.trussCount,
+                          }) ?? 'Close-in panels could not be generated for the current roof layout.'
+                        )}
+                      </p>
+                    ) : null}
+                  </>
+                ) : null}
               </CollapsibleSection>
             ) : null}
           </div>

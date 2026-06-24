@@ -590,6 +590,8 @@ export interface RoofSystemSettings {
     rakedConcreteCapDepthMeters: number;
     /** @deprecated Use rakedConcreteCapDepthMeters / rakedConcreteCapWallDepthMeters */
     capDepthMeters?: number;
+    /** Vertical corrugated sheet on exterior of end trusses, roof beam to ridge. */
+    closeInWithRoofingEnabled: boolean;
   };
 }
 
@@ -691,6 +693,17 @@ export type RoofPlane = {
   id: string;
   corners: RoofVec3[];
   normal: RoofVec3;
+};
+
+export type GableEndRoofingClosure = {
+  id: string;
+  hostWallSegmentId: string;
+  /** Profile polygon on exterior truss face (CCW from outside). */
+  corners: RoofVec3[];
+  outwardNormal: RoofVec3;
+  /** Horizontal axis used for the gable profile (the other plan axis is held constant). */
+  profileSpanAxis: 'x' | 'z';
+  areaSquareMeters: number;
 };
 
 export type GableCourseAssembly = {
@@ -799,6 +812,7 @@ export type ResolvedRoofSystem = {
   gableCmuAreaSquareMeters: number;
   rakedCapVolumeCubicMeters: number;
   gableEnds: ResolvedGableEnd[];
+  gableEndRoofingClosures: GableEndRoofingClosure[];
   warnings: DesignWarning[];
 };
 

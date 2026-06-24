@@ -99,6 +99,17 @@ describe('Structure dimensions pipeline', () => {
     expect(restored.foundationSettings.columns.widthMeters).toBe(0.6);
   });
 
+  it('apply path generates gable end roofing closures in geometry', () => {
+    const next = applyDimensions(preset, {}, {
+      gable: {
+        ...createDefaultRoofSystemSettings().gable,
+        closeInWithRoofingEnabled: true,
+      },
+    });
+    const geometry = geometryForPreset(next);
+    expect(geometry.resolvedRoofSystem?.gableEndRoofingClosures.length).toBe(2);
+  });
+
   it('cancel path leaves snapshot unchanged', () => {
     const before = createDesignSnapshot({ preset, objects: [], layoutState: 'editing' });
     const after = structuredClone(before);

@@ -39,6 +39,8 @@ import {
   resolveRoofFraming,
   resolveRidgeCapPlacement,
 } from './roofFramingResolver';
+import type { SegmentFrame } from '../geometry/designGeometry';
+import { resolveGableEndRoofingClosures } from './gableEndRoofingClosureSolver';
 
 const ROOF_RENDER_EPSILON_METERS = 0.001;
 
@@ -635,6 +637,7 @@ export function resolveRoofSystem(params: {
   bearingWarnings?: readonly string[];
   roofSystem: RoofSystemSettings;
   roofBeamTopElevationMeters: number;
+  segmentFrames?: readonly SegmentFrame[];
 }): ResolvedRoofSystem & { roofAssemblyThicknessMeters: number } {
   const settings = params.roofSystem;
   const rawBearingLoop = params.structuralBearingPerimeter.map((point) => ({ ...point }));
@@ -721,6 +724,7 @@ export function resolveRoofSystem(params: {
     ridgeCapPlacements: [],
     rakedCapVolumeCubicMeters: 0,
     gableEnds: [],
+    gableEndRoofingClosures: [],
     warnings: [],
   };
 
@@ -948,6 +952,22 @@ export function resolveRoofSystem(params: {
         ? [ridgeCapPlacement]
         : [];
 
+  const gableEndRoofingClosures = resolveGableEndRoofingClosures({
+    roofSystem: settings,
+    analysis,
+    ridgeAxis,
+    segmentFrames: params.segmentFrames ?? [],
+    trussPlacements: framing.trussPlacements,
+    resolvedRoof: {
+      roofBeamTopElevationMeters: roofBeamTopY,
+      peakElevationMeters: peakY,
+      claddingRidgeStart,
+      claddingRidgeEnd,
+      claddingDisplayPlanes,
+      purlinPlacements: framing.purlinPlacements,
+    },
+  });
+
   return {
     supported: true,
     roofType: settings.roofType,
@@ -993,6 +1013,7 @@ export function resolveRoofSystem(params: {
     gableCmuAreaSquareMeters: 0,
     rakedCapVolumeCubicMeters: 0,
     gableEnds: [],
+    gableEndRoofingClosures,
     warnings,
   };
 }

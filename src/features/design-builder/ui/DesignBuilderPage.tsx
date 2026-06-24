@@ -441,6 +441,7 @@ export default function DesignBuilderPage({
     DEFAULT_ROOF_LAYER_VISIBILITY,
   );
   const [frameFoundationModalOpen, setFrameFoundationModalOpen] = useState(false);
+  const [structureModalRoofDraft, setStructureModalRoofDraft] = useState<RoofSystemSettings | null>(null);
   const [designGeometryState, setDesignGeometryState] = useState<{ revision: number; lastReason?: string }>({
     revision: 0,
   });
@@ -820,6 +821,15 @@ export default function DesignBuilderPage({
     }
     return wallLayout.gridSpacingMeters;
   }, [effectiveWall, snapMode, wallLayout.gridSpacingMeters]);
+  const activeRoofSystem = useMemo(
+    () =>
+      normalizeRoofSystemSettings(
+        frameFoundationModalOpen && structureModalRoofDraft
+          ? structureModalRoofDraft
+          : resolvedPreset.roofSystem,
+      ),
+    [frameFoundationModalOpen, resolvedPreset.roofSystem, structureModalRoofDraft],
+  );
   const designGeometryInput = useMemo(
     () =>
       buildDesignGeometryInputFromLayout({
@@ -834,9 +844,10 @@ export default function DesignBuilderPage({
         foundationSettings: resolvedPreset.foundationSettings,
         infillSystem: resolvedPreset.infillSystem,
         gableEndSystem: resolvedPreset.gableEndSystem,
-        roofSystem: resolvedPreset.roofSystem,
+        roofSystem: activeRoofSystem,
       }),
     [
+      activeRoofSystem,
       effectiveWall,
       footprintClosed,
       masonryGeometryKey,
@@ -845,7 +856,6 @@ export default function DesignBuilderPage({
       resolvedPreset.foundationSettings,
       resolvedPreset.gableEndSystem,
       resolvedPreset.infillSystem,
-      resolvedPreset.roofSystem,
       resolvedPreset.roof,
       resolvedPreset.slab,
       resolvedPreset.truss,
@@ -4140,7 +4150,7 @@ export default function DesignBuilderPage({
                 textureProjectionRevision={textureProjectionRevision}
                 showMortarJointsDebug={showMortarJointsDebug}
                 onMortarJointDiagnosticsChange={setMortarJointDiagnostics}
-                roofSystem={resolvedPreset.roofSystem}
+                roofSystem={activeRoofSystem}
                 roofDisplayMode={roofDisplayMode}
                 roofLayerVisibility={roofLayerVisibility}
               />
@@ -4656,8 +4666,12 @@ export default function DesignBuilderPage({
       exteriorFootprint={designGeometryResult.exteriorFootprint ?? []}
       geometryRevision={designGeometryState.revision}
       lastStructureApplyRevision={lastStructureApplyRevision}
-      onClose={() => setFrameFoundationModalOpen(false)}
+      onClose={() => {
+        setStructureModalRoofDraft(null);
+        setFrameFoundationModalOpen(false);
+      }}
       onApply={handleApplyFrameFoundationDimensions}
+      onRoofDraftChange={setStructureModalRoofDraft}
     />
     <MaterialsColorsModal
       isOpen={materialsColorsModalOpen}

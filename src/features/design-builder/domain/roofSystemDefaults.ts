@@ -49,6 +49,7 @@ export function createDefaultRoofSystemSettings(): RoofSystemSettings {
       rakedConcreteCapEnabled: true,
       capMaterial: 'cast_in_place_concrete',
       rakedConcreteCapDepthMeters: 0.19,
+      closeInWithRoofingEnabled: false,
     },
   };
 }
@@ -99,6 +100,8 @@ export function normalizeRoofSystemSettings(
       rakedConcreteCapEnabled,
       rakedConcreteCapWallDepthMeters,
       rakedConcreteCapDepthMeters,
+      closeInWithRoofingEnabled:
+        gableInput.closeInWithRoofingEnabled ?? defaults.gable.closeInWithRoofingEnabled,
     },
   };
 }

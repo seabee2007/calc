@@ -14,6 +14,7 @@ import {
   countLintelClosureCutBlocks,
 } from '../domain/lintelCourseClosureSolver';
 import { createDefaultRoofSystemSettings, normalizeRoofSystemSettings } from '../domain/roofSystemDefaults';
+import { totalGableEndRoofingClosureAreaSquareMeters } from '../domain/gableEndRoofingClosureSolver';
 import {
   OPENING_GROUT_CONCEPTUAL_WARNING,
   calculateCmuOpeningGroutSummary,
@@ -767,6 +768,11 @@ export function buildFrameInfillEstimatePreview(input: FrameInfillQuantityInput)
     .reduce((sum, cap) => sum + (cap.endStationMeters - cap.startStationMeters), 0);
   const hipFramingSummary = summarizeHipFramingMembers(resolvedRoof?.hipFramingMembers ?? []);
   const purlinLinearMeters = sumPurlinLengthMeters(resolvedRoof?.purlinPlacements ?? []);
+  const gableEndRoofingClosureAreaSquareMeters = totalGableEndRoofingClosureAreaSquareMeters(
+    resolvedRoof?.gableEndRoofingClosures ?? [],
+  );
+  const corrugatedRoofSurfaceAreaSquareMeters =
+    (resolvedRoof?.roofSurfaceAreaSquareMeters ?? 0) + gableEndRoofingClosureAreaSquareMeters;
   const metaBase = {
     buildingSystemMode: input.buildingSystemMode,
     quantityFormula: 'parametric_design_builder',
@@ -1191,16 +1197,19 @@ export function buildFrameInfillEstimatePreview(input: FrameInfillQuantityInput)
                   description: 'Corrugated Metal Roofing',
                   quantity: roundQuantity(
                     squareMetersToSquareFeet(
-                      resolvedRoof.roofSurfaceAreaSquareMeters *
+                      corrugatedRoofSurfaceAreaSquareMeters *
                         (1 + roofSettings.corrugatedMetal.wastePercent / 100),
                     ),
                     2,
                   ),
                   unit: 'SF',
-                  formula: 'resolved_roof_surface_area * (1 + waste_percent / 100)',
+                  formula:
+                    '(resolved_roof_surface_area + gable_end_roofing_closure_area) * (1 + waste_percent / 100)',
                   parameterSnapshot: {
                     wastePercent: roofSettings.corrugatedMetal.wastePercent,
                     roofSurfaceAreaSquareMeters: resolvedRoof.roofSurfaceAreaSquareMeters,
+                    gableEndRoofingClosureAreaSquareMeters,
+                    corrugatedRoofSurfaceAreaSquareMeters,
                     ...metaBase,
                   },
                   source: 'parametric_design_builder',

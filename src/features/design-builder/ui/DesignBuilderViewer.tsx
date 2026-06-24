@@ -45,6 +45,7 @@ import type {
   CmuWallSystemParameters,
   DesignObjectType,
   GableRoofSystemParameters,
+  GableEndRoofingClosure,
   SteelTrussSystemParameters,
   ThickenedEdgeSlabParameters,
   FoundationViewMode,
@@ -92,6 +93,7 @@ import type { MortarJointDiagnostics } from '../rendering/materials/cmuMortarJoi
 import type { CmuBlockInstance } from '../geometry/designGeometry';
 import {
   createRoofCladdingGeometry,
+  createVerticalCladdingGeometry,
   resolveRoofRidgeDirection,
 } from '../rendering/materials/designRenderingUv';
 
@@ -189,6 +191,60 @@ function liftedRoofPoint(point: RoofVec3, yOffsetMeters: number): RoofVec3 {
   return {
     ...point,
     y: point.y + yOffsetMeters,
+  };
+}
+
+function interpolateRoofVec3(start: RoofVec3, end: RoofVec3, t: number): RoofVec3 {
+  return {
+    x: start.x + (end.x - start.x) * t,
+    y: start.y + (end.y - start.y) * t,
+    z: start.z + (end.z - start.z) * t,
+  };
+}
+
+function trimPurlinRenderSegmentToGableClosures(params: {
+  start: RoofVec3;
+  end: RoofVec3;
+  closures: readonly GableEndRoofingClosure[];
+}): { start: RoofVec3; end: RoofVec3 } {
+  if (params.closures.length < 2) {
+    return { start: params.start, end: params.end };
+  }
+
+  const dx = params.end.x - params.start.x;
+  const dz = params.end.z - params.start.z;
+  const clipAxis: 'x' | 'z' = Math.abs(dx) >= Math.abs(dz) ? 'x' : 'z';
+  const closureCoords = params.closures
+    .map((closure) => closure.corners[0])
+    .filter((corner): corner is RoofVec3 => corner != null)
+    .map((corner) => (clipAxis === 'x' ? corner.x : corner.z));
+  if (closureCoords.length < 2) {
+    return { start: params.start, end: params.end };
+  }
+
+  const minCoord = Math.min(...closureCoords);
+  const maxCoord = Math.max(...closureCoords);
+  const startCoord = clipAxis === 'x' ? params.start.x : params.start.z;
+  const endCoord = clipAxis === 'x' ? params.end.x : params.end.z;
+  const delta = endCoord - startCoord;
+  if (Math.abs(delta) <= 1e-6) {
+    return { start: params.start, end: params.end };
+  }
+
+  const tAtMin = (minCoord - startCoord) / delta;
+  const tAtMax = (maxCoord - startCoord) / delta;
+  const lowT = Math.min(tAtMin, tAtMax);
+  const highT = Math.max(tAtMin, tAtMax);
+  const clippedStartT = Math.max(0, lowT);
+  const clippedEndT = Math.min(1, highT);
+
+  if (clippedEndT <= clippedStartT) {
+    return { start: params.start, end: params.end };
+  }
+
+  return {
+    start: interpolateRoofVec3(params.start, params.end, clippedStartT),
+    end: interpolateRoofVec3(params.start, params.end, clippedEndT),
   };
 }
 
@@ -1343,6 +1399,23 @@ export default function DesignBuilderViewer({
                 }
               }
             }
+
+            if (resolvedRoof.gableEndRoofingClosures.length > 0) {
+              const gableEndRoofingClosureGroup = new THREE.Group();
+              gableEndRoofingClosureGroup.name = 'gableEndRoofingClosureGroup';
+              for (const closure of resolvedRoof.gableEndRoofingClosures) {
+                if (closure.corners.length < 3) continue;
+                const closureGeometry = trackGeometry(
+                  createVerticalCladdingGeometry({
+                    corners: closure.corners,
+                    slabTopMeters: currentSlab.slabThicknessMeters,
+                    corrugationRepeatPerMeter: roofCladdingUvOptions?.corrugationRepeatPerMeter,
+                  }),
+                );
+                gableEndRoofingClosureGroup.add(new THREE.Mesh(closureGeometry, roofMaterial));
+              }
+              roofCladdingGroup.add(gableEndRoofingClosureGroup);
+            }
           }
 
           if (showSteelTrusses && resolvedRoof.roofType === 'gable' && currentRoofSystem.steelTrusses.enabled) {
@@ -1483,16 +1556,21 @@ export default function DesignBuilderViewer({
               materialsToDispose.push(purlinMaterial);
             }
             for (const purlin of resolvedRoof.purlinPlacements) {
+              const renderSegment = trimPurlinRenderSegmentToGableClosures({
+                start: purlin.start,
+                end: purlin.end,
+                closures: resolvedRoof.gableEndRoofingClosures,
+              });
               const mesh = buildPurlinMesh({
                 start: new THREE.Vector3(
-                  purlin.start.x,
-                  currentSlab.slabThicknessMeters + purlin.start.y,
-                  purlin.start.z,
+                  renderSegment.start.x,
+                  currentSlab.slabThicknessMeters + renderSegment.start.y,
+                  renderSegment.start.z,
                 ),
                 end: new THREE.Vector3(
-                  purlin.end.x,
-                  currentSlab.slabThicknessMeters + purlin.end.y,
-                  purlin.end.z,
+                  renderSegment.end.x,
+                  currentSlab.slabThicknessMeters + renderSegment.end.y,
+                  renderSegment.end.z,
                 ),
                 planeNormal: new THREE.Vector3(
                   purlin.planeNormal.x,
