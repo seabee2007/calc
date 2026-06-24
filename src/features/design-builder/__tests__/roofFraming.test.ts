@@ -701,6 +701,7 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
     expect(counts.get('ridge_end_frame')).toBe(4);
     expect(counts.get('ridge_end_frame_bottom')).toBe(2);
     expect(counts.get('ridge_end_frame_web')).toBe(2);
+    expect(counts.get('hip_jack_bottom_chord')).toBe(4);
     expect(counts.get('common')).toBeGreaterThan(0);
     expect(counts.get('jack')).toBeGreaterThan(0);
     const ridgeEndFrameBottoms = roof.hipFramingMembers.filter(
@@ -806,6 +807,100 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
     }
   });
 
+  it('adds straight roof-beam bottom chords at the lower side jack-rafter stations', () => {
+    const roof = roofFromGeometry(frameInfillGeometry(
+      hipRoofSystem({ eaveOverhangMeters: 0.3, peakHeightAboveRoofBeamMeters: 1.5 }),
+      rectangularLayout(14, 6),
+    ));
+
+    const bottomChords = roof.hipFramingMembers.filter(
+      (member) => member.memberKind === 'hip_jack_bottom_chord',
+    );
+    const structuralSideBearingAbsZ = Math.max(
+      ...roof.structuralBearingPerimeter.map((point) => Math.abs(point.z)),
+    );
+    const endEaveAbsX = Math.max(...roof.claddingPerimeter.map((point) => Math.abs(point.x)));
+    const ridgeEndAbsX = Math.max(
+      Math.abs(roof.ridgeStart?.x ?? 0),
+      Math.abs(roof.ridgeEnd?.x ?? 0),
+    );
+    const expectedOuterAbsX = endEaveAbsX - (endEaveAbsX - ridgeEndAbsX) / 3;
+    const expectedInnerAbsX = endEaveAbsX - ((endEaveAbsX - ridgeEndAbsX) * 2) / 3;
+
+    expect(bottomChords).toHaveLength(4);
+    expect(
+      bottomChords.filter((chord) => Math.abs(Math.abs(chord.start.x) - expectedOuterAbsX) < 0.01),
+    ).toHaveLength(2);
+    expect(
+      bottomChords.filter((chord) => Math.abs(Math.abs(chord.start.x) - expectedInnerAbsX) < 0.01),
+    ).toHaveLength(2);
+    for (const chord of bottomChords) {
+      expect(Math.abs(chord.start.x - chord.end.x)).toBeLessThan(0.01);
+      expect(Math.abs(Math.abs(chord.start.z) - structuralSideBearingAbsZ)).toBeLessThan(0.01);
+      expect(Math.abs(Math.abs(chord.end.z) - structuralSideBearingAbsZ)).toBeLessThan(0.01);
+      expect(chord.start.y).toBeCloseTo(roof.roofBeamTopY + TRUSS_CHORD_PROFILE_METERS / 2, 3);
+      expect(chord.end.y).toBeCloseTo(roof.roofBeamTopY + TRUSS_CHORD_PROFILE_METERS / 2, 3);
+    }
+  });
+
+  it('adds hip jack rafters at end centerlines, hip-side bays, and lower side triangular bays', () => {
+    const roof = roofFromGeometry(frameInfillGeometry(
+      hipRoofSystem({ eaveOverhangMeters: 0, peakHeightAboveRoofBeamMeters: 1.5 }),
+      rectangularLayout(14, 6),
+    ));
+
+    const endJacks = roof.hipFramingMembers.filter((member) => member.id.startsWith('hip-jack-end-'));
+    const sideJacks = roof.hipFramingMembers.filter((member) => member.id.startsWith('hip-jack-long-'));
+    const endEaveAbsX = Math.max(...roof.claddingPerimeter.map((point) => Math.abs(point.x)));
+    const sideEaveAbsZ = Math.max(...roof.claddingPerimeter.map((point) => Math.abs(point.z)));
+    const ridgeEndAbsX = Math.max(
+      Math.abs(roof.ridgeStart?.x ?? 0),
+      Math.abs(roof.ridgeEnd?.x ?? 0),
+    );
+    const sideTriangleLowerThirdAbsX = endEaveAbsX - (endEaveAbsX - ridgeEndAbsX) / 3;
+    const sideTriangleMidAbsX = (endEaveAbsX + ridgeEndAbsX) / 2;
+    const hipSideEndJackAbsZ = (sideEaveAbsZ * 2) / 3;
+    const hipSideEndJackAbsX = endEaveAbsX - (endEaveAbsX - ridgeEndAbsX) / 3;
+
+    const centerEndJacks = endJacks.filter(
+      (member) => Math.abs(member.start.z) < 0.01 && Math.abs(member.end.z) < 0.01,
+    );
+    expect(centerEndJacks).toHaveLength(2);
+    for (const jack of centerEndJacks) {
+      expect(Math.abs(Math.abs(jack.start.x) - endEaveAbsX)).toBeLessThan(0.01);
+      expect(Math.abs(Math.abs(jack.end.x) - ridgeEndAbsX)).toBeLessThan(0.01);
+    }
+
+    const hipSideEndJacks = endJacks.filter(
+      (member) =>
+        Math.abs(Math.abs(member.start.z) - hipSideEndJackAbsZ) < 0.01 &&
+        Math.abs(Math.abs(member.end.z) - hipSideEndJackAbsZ) < 0.01,
+    );
+    expect(hipSideEndJacks).toHaveLength(4);
+    for (const jack of hipSideEndJacks) {
+      expect(Math.abs(Math.abs(jack.start.x) - endEaveAbsX)).toBeLessThan(0.01);
+      expect(Math.abs(Math.abs(jack.end.x) - hipSideEndJackAbsX)).toBeLessThan(0.01);
+    }
+
+    const lowerSideJacks = sideJacks.filter(
+      (member) =>
+        Math.abs(Math.abs(member.start.x) - sideTriangleLowerThirdAbsX) < 0.01 &&
+        Math.abs(Math.abs(member.start.z) - sideEaveAbsZ) < 0.01,
+    );
+    expect(lowerSideJacks).toHaveLength(4);
+    for (const jack of lowerSideJacks) {
+      expect(Math.abs(jack.end.x - jack.start.x)).toBeLessThan(0.01);
+      expect(Math.abs(jack.end.z)).toBeLessThan(sideEaveAbsZ);
+    }
+    expect(
+      sideJacks.some(
+        (member) =>
+          Math.abs(Math.abs(member.start.x) - sideTriangleMidAbsX) < 0.01 &&
+          Math.abs(Math.abs(member.start.z) - sideEaveAbsZ) < 0.01,
+      ),
+    ).toBe(false);
+  });
+
   it('keeps hip end jack rafters while adding lower side-eave corner supports', () => {
     const roof = roofFromGeometry(frameInfillGeometry(
       hipRoofSystem({ eaveOverhangMeters: 0, peakHeightAboveRoofBeamMeters: 1.5 }),
@@ -826,7 +921,10 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
       Math.abs(roof.ridgeEnd?.x ?? 0),
     );
 
-    expect(endJacks).toHaveLength(4);
+    expect(endJacks).toHaveLength(10);
+    expect(
+      endJacks.filter((jack) => Math.abs(jack.start.z) < 0.01 && Math.abs(jack.end.z) < 0.01),
+    ).toHaveLength(2);
     for (const jack of endJacks) {
       expect(Math.abs(Math.abs(jack.start.x) - endEaveAbsX)).toBeLessThan(0.01);
       expect(Math.abs(jack.start.z)).toBeLessThan(sideEaveAbsZ);

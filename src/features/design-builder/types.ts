@@ -650,6 +650,7 @@ export type HipFramingMemberKind =
   | 'common'
   | 'jack'
   | 'hip_corner_support'
+  | 'hip_jack_bottom_chord'
   | 'ridge_end_frame'
   | 'ridge_end_frame_web'
   | 'ridge_end_frame_bottom';

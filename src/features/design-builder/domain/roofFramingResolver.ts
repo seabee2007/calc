@@ -1432,11 +1432,29 @@ function hipMemberCenterlinePoint(point: RoofVec3): RoofVec3 {
   };
 }
 
-function stationsAlongSegment(lengthMeters: number, maxSpacingMeters: number, includeEnds: boolean): number[] {
+function stationsAlongSegment(
+  lengthMeters: number,
+  maxSpacingMeters: number,
+  includeEnds: boolean,
+  requiredStations: number[] = [],
+): number[] {
   const resolution = resolveEvenStations(lengthMeters, maxSpacingMeters);
-  return includeEnds
+  const baseStations = includeEnds
     ? resolution.stations
     : resolution.stations.filter((station) => station > 0.05 && station < lengthMeters - 0.05);
+  const minStation = includeEnds ? -0.001 : 0.05;
+  const maxStation = includeEnds ? lengthMeters + 0.001 : lengthMeters - 0.05;
+  const allStations = [
+    ...baseStations,
+    ...requiredStations.filter((station) => station > minStation && station < maxStation),
+  ].sort((a, b) => a - b);
+  const deduped: number[] = [];
+  for (const station of allStations) {
+    if (deduped.length === 0 || Math.abs(station - deduped[deduped.length - 1]!) > 0.05) {
+      deduped.push(station);
+    }
+  }
+  return deduped;
 }
 
 function addHipFramingMember(
@@ -1619,11 +1637,66 @@ function resolveHipFramingMembers(params: {
     addRidgeSupportFrame(`hip-ridge-interior-frame-${index}`, lerpVec3(ridgeStart, ridgeEnd, fraction));
   }
 
+  const sideJackSupportPoints = ridgeEnds.flatMap((ridgePoint) => {
+    const ridgePoint2 = { x: ridgePoint.x, z: ridgePoint.z };
+    const jackStartPointGroups = [1 / 3, 2 / 3].map((fraction) => sideEdges.map((side) => {
+      const sideLength = length2(sub2(side.end, side.start));
+      const sideUnit = normalize2(sub2(side.end, side.start));
+      const projectedRidgeStation = dot2(sub2(ridgePoint2, side.start), sideUnit);
+      const nearestEndStation =
+        planDistance(side.start, ridgePoint2) <= planDistance(side.end, ridgePoint2)
+          ? 0
+          : sideLength;
+      const jackStartStation = nearestEndStation + (projectedRidgeStation - nearestEndStation) * fraction;
+      return lerp2(side.start, side.end, jackStartStation / sideLength);
+    }));
+    return jackStartPointGroups.map((jackStartPoints) => ({
+      x: jackStartPoints.reduce((sum, point) => sum + point.x, 0) / Math.max(1, jackStartPoints.length),
+      z: jackStartPoints.reduce((sum, point) => sum + point.z, 0) / Math.max(1, jackStartPoints.length),
+    }));
+  });
+
+  for (const [supportIndex, supportPoint] of sideJackSupportPoints.entries()) {
+    const sideBearings = structuralSideEdges
+      .map((side, sideIndex) =>
+        intersectRayWithSegment2D(
+          supportPoint,
+          sideIndex === 0 ? perpUnit : scale2(perpUnit, -1),
+          side.start,
+          side.end,
+        ) ??
+        intersectRayWithSegment2D(
+          supportPoint,
+          sideIndex === 0 ? scale2(perpUnit, -1) : perpUnit,
+          side.start,
+          side.end,
+        ),
+      )
+      .filter((point): point is PlanVec2 => point != null);
+    if (sideBearings.length !== 2) continue;
+    addHipFramingMember(members, {
+      id: `hip-jack-bottom-chord-${supportIndex}`,
+      start: hipMemberCenterlinePoint(toVec3(sideBearings[0]!, structuralEaveY)),
+      end: hipMemberCenterlinePoint(toVec3(sideBearings[1]!, structuralEaveY)),
+      memberKind: 'hip_jack_bottom_chord',
+    });
+  }
+
   for (const side of sideEdges) {
     const sideLength = length2(sub2(side.end, side.start));
+    const sideUnit = normalize2(sub2(side.end, side.start));
     const sideMid = midpoint2(side.start, side.end);
     const inward = normalize2(sub2(ridgeMid, sideMid));
-    for (const station of stationsAlongSegment(sideLength, params.maxSpacingMeters, false)) {
+    const sideJackStations = ridgeEnds.map((ridgePoint) => {
+      const ridgePoint2 = { x: ridgePoint.x, z: ridgePoint.z };
+      const projectedRidgeStation = dot2(sub2(ridgePoint2, side.start), sideUnit);
+      const nearestEndStation =
+        planDistance(side.start, ridgePoint2) <= planDistance(side.end, ridgePoint2)
+          ? 0
+          : sideLength;
+      return nearestEndStation + (projectedRidgeStation - nearestEndStation) / 3;
+    });
+    for (const station of sideJackStations.sort((a, b) => a - b)) {
       const eavePoint = lerp2(side.start, side.end, station / sideLength);
       const ridgeStation = dot2(sub2(eavePoint, ridgeStart2), ridgeUnit);
       if (ridgeStation >= -0.05 && ridgeStation <= ridgeLength + 0.05) {
@@ -1659,7 +1732,8 @@ function resolveHipFramingMembers(params: {
     const edgeLength = length2(sub2(edgeEnd, edgeStart));
     const inward = normalize2(sub2(ridgePoint2, midpoint2(edgeStart, edgeEnd)));
     const frameId = endIndex === 0 ? 'start' : 'end';
-    for (const station of stationsAlongSegment(edgeLength, params.maxSpacingMeters, false)) {
+    const hipSideJackStations = [edgeLength / 6, edgeLength / 2, (edgeLength * 5) / 6];
+    for (const station of stationsAlongSegment(edgeLength, params.maxSpacingMeters, false, hipSideJackStations)) {
       const eavePoint = lerp2(edgeStart, edgeEnd, station / edgeLength);
       const hipA = { start: edgeStart, end: ridgePoint2 };
       const hipB = { start: edgeEnd, end: ridgePoint2 };
@@ -1670,6 +1744,10 @@ function resolveHipFramingMembers(params: {
         .sort((a, b) => length2(sub2(a, eavePoint)) - length2(sub2(b, eavePoint)))[0];
       if (!hit) continue;
       const hipStart = hit === hitA ? edgeStart : edgeEnd;
+      const hitsRidgePoint = planDistance(hit, ridgePoint2) < 0.01;
+      const isOuterHipSideJack =
+        station < edgeLength / 4 ||
+        station > (edgeLength * 3) / 4;
       const end = interpolateRoofMemberPoint(toVec3(hipStart, framingEaveY), ridgePoint, hit);
       const lowerSideEdge = sideEdges.find(
         (side) =>
@@ -1690,7 +1768,7 @@ function resolveHipFramingMembers(params: {
           ) ?? eavePoint
         );
       })();
-      if (lowerSideEdge) {
+      if (lowerSideEdge && !hitsRidgePoint && !isOuterHipSideJack) {
         addHipFramingMember(members, {
           id: `hip-corner-support-${frameId}-${station.toFixed(3)}`,
           start: hipMemberCenterlinePoint(toVec3(lowerStart, framingEaveY)),
