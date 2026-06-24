@@ -13,6 +13,7 @@ import {
   PlannerWorkspaceFocusProvider,
   usePlannerWorkspaceFocus,
 } from '../../contexts/PlannerWorkspaceFocusContext';
+import { EstimateWorkspaceSidebarNavProvider } from '../../features/estimating/ui/EstimateWorkspaceSidebarNavContext';
 
 function PlannerWorkspaceMain() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -104,7 +105,9 @@ const PlannerWorkspaceLayout: React.FC = () => {
       <SiteBackground solidCanvas />
       <div className="relative z-10 flex min-h-0 min-h-[100dvh] flex-1 flex-col">
         <PlannerWorkspaceFocusProvider>
-          <PlannerWorkspaceMain />
+          <EstimateWorkspaceSidebarNavProvider>
+            <PlannerWorkspaceMain />
+          </EstimateWorkspaceSidebarNavProvider>
         </PlannerWorkspaceFocusProvider>
         {user && isOwner ? <NotificationAttentionToast /> : null}
         {user && isOwner && !isEmployee && <ToolsModal />}

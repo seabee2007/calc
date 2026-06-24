@@ -1,6 +1,8 @@
 import { useState, type ReactNode } from 'react';
 import { format } from 'date-fns';
+import { Calendar, Search } from 'lucide-react';
 import type { ProjectDocumentRow } from '../../../services/projectDocumentService';
+import Input from '../../ui/Input';
 import PlannerBuilderDocumentRow from '../PlannerBuilderDocumentRow';
 import ProjectRecordActions from '../ProjectRecordActions';
 import {
@@ -37,6 +39,58 @@ export function formatSigningMeta(doc: ProjectDocumentRow): string {
   if (status === 'declined') return 'Declined';
   if (status === 'void') return 'Void';
   return `Draft · v${doc.latest_version_number}`;
+}
+
+export function normalizeIsoDate(value: string | undefined | null): string {
+  if (!value) return '';
+  return value.split('T')[0];
+}
+
+export function matchesDateFilter(isoDate: string | undefined | null, dateFilter: string): boolean {
+  if (!dateFilter) return true;
+  return normalizeIsoDate(isoDate) === dateFilter;
+}
+
+export function matchesSearchTerm(haystack: string, term: string): boolean {
+  if (!term.trim()) return true;
+  return haystack.toLowerCase().includes(term.toLowerCase().trim());
+}
+
+export function DocumentsFilterBar({
+  searchPlaceholder,
+  searchTerm,
+  onSearchTermChange,
+  dateFilter,
+  onDateFilterChange,
+}: {
+  searchPlaceholder: string;
+  searchTerm: string;
+  onSearchTermChange: (value: string) => void;
+  dateFilter: string;
+  onDateFilterChange: (value: string) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-4 sm:flex-row">
+      <div className="flex-1">
+        <Input
+          placeholder={searchPlaceholder}
+          value={searchTerm}
+          onChange={(e) => onSearchTermChange(e.target.value)}
+          icon={<Search className="h-4 w-4 text-gray-400" />}
+          fullWidth
+        />
+      </div>
+      <div className="w-full sm:w-48">
+        <Input
+          type="date"
+          value={dateFilter}
+          onChange={(e) => onDateFilterChange(e.target.value)}
+          icon={<Calendar className="h-4 w-4 text-gray-400" />}
+          fullWidth
+        />
+      </div>
+    </div>
+  );
 }
 
 export function DocumentsSectionHeader({

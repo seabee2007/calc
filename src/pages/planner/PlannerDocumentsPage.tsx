@@ -8,13 +8,9 @@ import { listProjectDocuments } from '../../services/projectDocumentService';
 import { filterDocumentsTabBuilderDocuments } from '../../services/projectDocumentDisplay';
 import type { SafetyMeeting } from '../../types/fieldTools';
 import type { ConcreteInspectionChecklist } from '../../types/fieldTools';
-import PlannerDocumentsTabBar from '../../components/planner/documents/PlannerDocumentsTabBar';
 import {
-  DOCUMENTS_TAB_IDS,
   documentsTabFromHighlightParams,
-  documentsTabLabel,
   parseDocumentsTab,
-  type DocumentsTabId,
 } from '../../components/planner/documents/documentsTabConfig';
 import ContractsDocumentsPanel from '../../components/planner/documents/panels/ContractsDocumentsPanel';
 import SubmittalsDocumentsPanel from '../../components/planner/documents/panels/SubmittalsDocumentsPanel';
@@ -78,37 +74,6 @@ export default function PlannerDocumentsPage() {
   const grouped = useMemo(
     () => filterDocumentsTabBuilderDocuments(builderDocs),
     [builderDocs],
-  );
-
-  const tabCounts: Record<DocumentsTabId, number> = useMemo(
-    () => ({
-      contracts: grouped.contracts.length,
-      submittals: grouped.submittals.length,
-      'daily-reports': grouped.dailyReports.length,
-      'qc-reports': grouped.qcReports.length + inspections.length,
-      'safety-meetings': safetyMeetings.length,
-      'punch-lists': grouped.punchLists.length,
-      closeout: grouped.closeout.length + grouped.other.length,
-    }),
-    [grouped, inspections.length, safetyMeetings.length],
-  );
-
-  const tabs = useMemo(
-    () =>
-      DOCUMENTS_TAB_IDS.map((id) => ({
-        id,
-        label: documentsTabLabel(id, tabCounts[id]),
-      })),
-    [tabCounts],
-  );
-
-  const setActiveTab = useCallback(
-    (tabId: DocumentsTabId) => {
-      const next = new URLSearchParams(searchParams);
-      next.set('tab', tabId);
-      setSearchParams(next, { replace: true });
-    },
-    [searchParams, setSearchParams],
   );
 
   const renderActivePanel = () => {
@@ -187,8 +152,6 @@ export default function PlannerDocumentsPage() {
 
   return (
     <div className={`${PLANNER_PAGE_BG} flex min-h-0 flex-1 flex-col`}>
-      <PlannerDocumentsTabBar tabs={tabs} activeTabId={activeTab} onTabChange={setActiveTab} />
-
       <div className="flex-1 overflow-y-auto p-4 sm:p-6">
         {loading ? (
           <div className="flex justify-center py-12">

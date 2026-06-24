@@ -197,10 +197,11 @@ describe('buildAccountingExportData — warnings', () => {
     expect(result.warnings.map((w) => w.key)).not.toContain('non_schedule_c_entity');
   });
 
-  it('adds no_recognized_revenue warning when no proposals match', () => {
+  it('does NOT add no_recognized_revenue warning when no proposals match (checklist covers it)', () => {
     const p = makeProposal({ accepted_at: '2020-01-01T00:00:00.000Z' });
     const result = buildAccountingExportData([p], NO_COS, NO_PROJECTS, settings2025);
-    expect(result.warnings.map((w) => w.key)).toContain('no_recognized_revenue');
+    expect(result.warnings.map((w) => w.key)).not.toContain('no_recognized_revenue');
+    expect(result.warnings.map((w) => w.key)).not.toContain('no_cost_data');
   });
 });
 

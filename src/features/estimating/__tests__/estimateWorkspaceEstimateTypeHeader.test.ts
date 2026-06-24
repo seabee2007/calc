@@ -49,12 +49,12 @@ describe('Estimate Workspace estimate type header', () => {
     expect(workspacePageSource).toContain('void handleStartEstimate(nextType)');
   });
 
-  it('keeps estimate type control in the tab bar above workspace tabs', () => {
+  it('keeps estimate type control and toolbar actions on one header row', () => {
     expect(tabBarSource).toContain('estimateTypeControl');
-    const controlPos = tabBarSource.indexOf('{estimateTypeControl}');
-    const navPos = tabBarSource.indexOf('<nav');
-    expect(controlPos).toBeGreaterThan(-1);
-    expect(navPos).toBeGreaterThan(controlPos);
+    expect(tabBarSource).toContain('rightActions');
+    expect(tabBarSource).toContain('justify-between');
+    expect(tabBarSource).not.toContain('<Tabs');
+    expect(tabBarSource).not.toContain('<nav');
   });
 
   it('keeps estimate type control outside tab-specific content branches', () => {

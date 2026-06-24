@@ -168,4 +168,17 @@ describe('AccountingTaxPage', () => {
     expect(screen.getByTestId('tax-category-card')).toBeInTheDocument();
     expect(screen.getByTestId('tax-category-mapping')).toBeInTheDocument();
   });
+
+  it('shows each export readiness issue once in the checklist', () => {
+    renderPage();
+    const checklist = screen.getByTestId('export-checklist');
+    const text = checklist.textContent ?? '';
+    expect(text.match(/No accepted proposals found/g)?.length ?? 0).toBe(1);
+    expect(text.match(/Not tracked/g)?.length ?? 0).toBe(1);
+  });
+
+  it('does not show a success banner when business name is set', () => {
+    renderPage();
+    expect(screen.queryByText(/Business name set:/i)).not.toBeInTheDocument();
+  });
 });

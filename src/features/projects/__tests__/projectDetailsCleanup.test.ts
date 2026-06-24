@@ -64,8 +64,11 @@ describe('Documents QC actions', () => {
     expect(qcReportsPanelSource).toContain('DocumentsSectionCard');
     expect(qcReportsPanelSource).toContain('title="QC Reports"');
     expect(qcReportsPanelSource).toContain('No QC reports yet.');
+    expect(qcReportsPanelSource).toContain('Search QC reports...');
     expect(qcReportsPanelSource).toContain('title="QC Checklists"');
+    expect(qcReportsPanelSource).toContain('Search QC checklists...');
     expect(qcReportsPanelSource).toContain('No QC checklists found.');
+    expect(qcReportsPanelSource).toContain('DocumentsFilterBar');
     expect(qcReportsPanelSource).not.toContain('DocumentsPanelFootnote');
   });
 
@@ -81,6 +84,7 @@ describe('Documents QC actions', () => {
 
   it('uses documents presentation copy for concrete QC records', () => {
     expect(qcRecordsSource).toContain("presentation === 'documents'");
+    expect(qcRecordsSource).toContain('DocumentsFilterBar');
     expect(qcRecordsSource).toContain('Search QC records...');
     expect(qcRecordsSource).toContain('No concrete QC records found.');
     expect(qcRecordsSource).toContain('Track slump tests and concrete break results for this project.');

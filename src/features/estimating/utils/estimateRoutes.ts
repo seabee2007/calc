@@ -60,6 +60,22 @@ export function parseEstimateWorkspaceTabParam(
   return parseEstimateWorkspaceTabParamRaw(tabSegment);
 }
 
+/** Active estimate tab from a project planner pathname. */
+export function parseEstimateWorkspaceTabFromPath(
+  pathname: string,
+  projectId: string,
+): EstimateWorkspaceTabId {
+  const base = `/projects/${projectId}/planner/estimate`;
+  if (pathname === base || pathname === `${base}/`) {
+    return DEFAULT_ESTIMATE_WORKSPACE_TAB;
+  }
+  if (!pathname.startsWith(`${base}/`)) {
+    return DEFAULT_ESTIMATE_WORKSPACE_TAB;
+  }
+  const segment = pathname.slice(`${base}/`.length).split('/')[0];
+  return normalizeEstimateWorkspaceTabParam(segment);
+}
+
 /** Project-scoped estimate workspace href; bare path opens Activities (default workflow). */
 export function estimateWorkspaceHref(
   projectId: string,

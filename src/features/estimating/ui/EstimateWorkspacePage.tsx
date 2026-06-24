@@ -72,6 +72,7 @@ import Button from '../../../components/ui/Button';
 import EstimateWorkspaceTabBar, {
   type EstimateWorkspaceTabId,
 } from './components/EstimateWorkspaceTabBar';
+import { useSyncEstimateWorkspaceSidebarNav } from './EstimateWorkspaceSidebarNavContext';
 import EstimateWorkspaceLoading from './components/EstimateWorkspaceLoading';
 import EstimateWorkspaceEmptyState from './components/EstimateWorkspaceEmptyState';
 import EstimateWorkspaceToast from './components/EstimateWorkspaceToast';
@@ -442,6 +443,8 @@ export default function EstimateWorkspacePage() {
       }),
     [visibleWorkspaceTabs, hasFeature],
   );
+
+  useSyncEstimateWorkspaceSidebarNav(entitlementFilteredTabs);
 
   // Construction activities for schedule source (Milestone 5) — must be declared before
   // scheduleActivitiesResult reads constructionActivities.
@@ -2816,9 +2819,6 @@ export default function EstimateWorkspacePage() {
 
   const estimateWorkspaceTabBar = (
     <EstimateWorkspaceTabBar
-      activeTabId={activeTab}
-      visibleTabs={entitlementFilteredTabs}
-      onTabChange={handleTabChange}
       estimateTypeControl={
         <EstimateTypeHeaderControl
           hasEstimate={hasEstimate}

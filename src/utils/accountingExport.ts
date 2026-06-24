@@ -422,22 +422,6 @@ export function buildAccountingExportData(
     });
   }
 
-  if (recognizedProposals.length === 0) {
-    warnings.push({
-      key: 'no_recognized_revenue',
-      message: `No accepted proposals found for ${taxYear} under the selected accounting method.`,
-    });
-  }
-
-  if (totalLaborEstimate === null && totalMaterialEstimate === null) {
-    warnings.push({
-      key: 'no_cost_data',
-      message:
-        'No job-cost data found on recognized proposals. ' +
-        'Cost fields will show "Not tracked" in exports.',
-    });
-  }
-
   return {
     taxYear,
     accountingMethod,

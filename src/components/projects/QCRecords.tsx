@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Save, Trash2, Edit, Search, Calendar } from 'lucide-react';
+import { Plus, Save, Trash2, Edit } from 'lucide-react';
 import type { QCRecord, QCRecordType } from '../../types';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
@@ -16,6 +16,7 @@ import {
 } from '../dashboard/opsTheme';
 import {
   DocumentsEmptyState,
+  DocumentsFilterBar,
   DocumentsSectionHeader,
 } from '../planner/documents/documentsPanelUtils';
 
@@ -330,26 +331,13 @@ const QCRecords: React.FC<QCRecordsProps> = ({
         </div>
       )}
 
-      <div className="flex flex-col gap-4 sm:flex-row">
-        <div className="flex-1">
-          <Input
-            placeholder={isDocumentsPresentation ? 'Search QC records...' : 'Search records...'}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            icon={<Search className="h-4 w-4 text-gray-400" />}
-            fullWidth
-          />
-        </div>
-        <div className="w-full sm:w-48">
-          <Input
-            type="date"
-            value={dateFilter}
-            onChange={(e) => setDateFilter(e.target.value)}
-            icon={<Calendar className="h-4 w-4 text-gray-400" />}
-            fullWidth
-          />
-        </div>
-      </div>
+      <DocumentsFilterBar
+        searchPlaceholder={isDocumentsPresentation ? 'Search QC records...' : 'Search records...'}
+        searchTerm={searchTerm}
+        onSearchTermChange={setSearchTerm}
+        dateFilter={dateFilter}
+        onDateFilterChange={setDateFilter}
+      />
 
       {showForm && (
         <Card className="p-6">

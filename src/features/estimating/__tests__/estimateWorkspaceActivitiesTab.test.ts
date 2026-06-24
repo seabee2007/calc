@@ -9,6 +9,7 @@ import {
 import {
   ESTIMATE_WORKSPACE_TAB_IDS,
   estimateWorkspaceHref,
+  parseEstimateWorkspaceTabFromPath,
   parseEstimateWorkspaceTabParam,
 } from '../utils/estimateRoutes';
 import {
@@ -31,7 +32,7 @@ describe('estimate workspace — Activities as primary workflow', () => {
   });
 
   it('does not show a fixed tab list — tabs adapt by estimate type', () => {
-    expect(workspacePageSource).toContain('visibleTabs={entitlementFilteredTabs}');
+    expect(workspacePageSource).toContain('useSyncEstimateWorkspaceSidebarNav(entitlementFilteredTabs)');
     expect(workspacePageSource).toContain('ChooseEstimateTypeModal');
     expect(workspacePageSource).toContain('EstimateTypeHeaderControl');
   });
@@ -45,6 +46,9 @@ describe('estimate workspace — Activities as primary workflow', () => {
   it('bare estimate workspace href opens Activities', () => {
     expect(estimateWorkspaceHref('proj-1')).toBe('/projects/proj-1/planner/estimate');
     expect(estimateWorkspaceHref('proj-1', 'activities')).toBe('/projects/proj-1/planner/estimate');
+    expect(parseEstimateWorkspaceTabFromPath('/projects/proj-1/planner/estimate', 'proj-1')).toBe(
+      'activities',
+    );
   });
 
   it('overview uses explicit /overview segment', () => {

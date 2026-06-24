@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom';
 import {
   CheckCircle2,
   ChevronDown,
@@ -14,7 +14,17 @@ import { useAuth } from '../../hooks/useAuth';
 import { supabase } from '../../lib/supabase';
 import { fetchAssignedProjects } from '../../services/employeeService';
 import { resolveProjectWorkflow } from '../../utils/projectWorkflow';
-import { plannerProjectSwitchHref } from '../../utils/plannerRoutes';
+import { plannerDocumentsHref, plannerProjectSwitchHref } from '../../utils/plannerRoutes';
+import {
+  DOCUMENTS_TAB_IDS,
+  documentsTabLabel,
+  parseDocumentsTab,
+} from './documents/documentsTabConfig';
+import { useEstimateWorkspaceSidebarNavTabs } from '../../features/estimating/ui/EstimateWorkspaceSidebarNavContext';
+import {
+  estimateWorkspaceHref,
+  parseEstimateWorkspaceTabFromPath,
+} from '../../features/estimating/utils/estimateRoutes';
 import type { Project } from '../../types';
 
 interface SidebarProject {
@@ -42,6 +52,8 @@ export default function PlannerSidebar({
   collapsedForWorkspaceFocus = false,
 }: PlannerSidebarProps) {
   const location = useLocation();
+  const { projectId } = useParams<{ projectId: string }>();
+  const [searchParams] = useSearchParams();
   const { user, isOwner, isEmployee } = useAuth();
   const [projects, setProjects] = useState<SidebarProject[]>([]);
   const [activeOpen, setActiveOpen] = useState(true);
@@ -100,6 +112,20 @@ export default function PlannerSidebar({
     () => projects.filter((p) => p.isClosed),
     [projects],
   );
+
+  const isDocumentsRoute = Boolean(
+    projectId && location.pathname.startsWith(`/projects/${projectId}/planner/documents`),
+  );
+  const activeDocumentsTab = parseDocumentsTab(searchParams.get('tab'));
+
+  const isEstimateRoute = Boolean(
+    projectId && location.pathname.startsWith(`/projects/${projectId}/planner/estimate`),
+  );
+  const estimateNavTabs = useEstimateWorkspaceSidebarNavTabs();
+  const activeEstimateTab =
+    projectId && isEstimateRoute
+      ? parseEstimateWorkspaceTabFromPath(location.pathname, projectId)
+      : null;
 
   const navClass = (active: boolean) =>
     [
@@ -218,6 +244,60 @@ export default function PlannerSidebar({
           ))}
         </>
       )}
+
+      {isDocumentsRoute && projectId ? (
+        <>
+          <div
+            className="my-2 border-t border-slate-200 dark:border-slate-700"
+            aria-hidden
+            data-testid="planner-documents-sidebar-divider"
+          />
+          <div
+            role="group"
+            aria-label="Document sections"
+            data-testid="planner-documents-sidebar-nav"
+          >
+            {DOCUMENTS_TAB_IDS.map((tabId) => (
+              <Link
+                key={tabId}
+                to={plannerDocumentsHref(projectId, { tab: tabId })}
+                onClick={onMobileClose}
+                className={navClass(activeDocumentsTab === tabId)}
+                data-testid={`documents-sidebar-link-${tabId}`}
+              >
+                <span className="truncate">{documentsTabLabel(tabId)}</span>
+              </Link>
+            ))}
+          </div>
+        </>
+      ) : null}
+
+      {isEstimateRoute && projectId && estimateNavTabs.length > 0 ? (
+        <>
+          <div
+            className="my-2 border-t border-slate-200 dark:border-slate-700"
+            aria-hidden
+            data-testid="planner-estimate-sidebar-divider"
+          />
+          <div
+            role="group"
+            aria-label="Estimate sections"
+            data-testid="planner-estimate-sidebar-nav"
+          >
+            {estimateNavTabs.map((tab) => (
+              <Link
+                key={tab.id}
+                to={estimateWorkspaceHref(projectId, tab.id)}
+                onClick={onMobileClose}
+                className={navClass(activeEstimateTab === tab.id)}
+                data-testid={`estimate-sidebar-link-${tab.id}`}
+              >
+                <span className="truncate">{tab.label}</span>
+              </Link>
+            ))}
+          </div>
+        </>
+      ) : null}
     </nav>
   );
 

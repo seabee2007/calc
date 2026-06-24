@@ -23,15 +23,18 @@ const ExportValidationChecklist: React.FC<ExportValidationChecklistProps> = ({
 }) => {
   if (!data) return null;
 
-  const checks: CheckItem[] = [
-    {
+  const checks: CheckItem[] = [];
+
+  if (!businessName?.trim()) {
+    checks.push({
       key: 'business_name',
-      label: businessName?.trim()
-        ? `Business name set: ${businessName}`
-        : 'Business name is missing — add it in Settings for export headers.',
-      passed: Boolean(businessName?.trim()),
-      severity: businessName?.trim() ? 'ok' : 'warning',
-    },
+      label: 'Business name is missing — add it in Settings for export headers.',
+      passed: false,
+      severity: 'warning',
+    });
+  }
+
+  checks.push(
     {
       key: 'recognized_revenue',
       label:
@@ -51,7 +54,7 @@ const ExportValidationChecklist: React.FC<ExportValidationChecklistProps> = ({
       severity:
         data.totalLaborEstimate !== null || data.totalMaterialEstimate !== null ? 'ok' : 'info',
     },
-  ];
+  );
 
   const warnings = data.warnings;
 
