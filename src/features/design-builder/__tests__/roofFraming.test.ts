@@ -17,7 +17,6 @@ import {
   PURLIN_TO_CHORD_CLEARANCE_METERS,
   PURLIN_TO_SHEET_CLEARANCE_METERS,
   resolveEvenStations,
-  resolveRidgeCapPlacement,
   resolveTrussTopChordUpperPoint,
   TRUSS_CHORD_PROFILE_METERS,
   trussMemberLength,
@@ -498,7 +497,6 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
     const roof = roofFromGeometry(frameInfillGeometry(createDefaultRoofSystemSettings()));
     const material = new THREE.MeshStandardMaterial();
     for (const purlin of roof.purlinPlacements) {
-      const plane = roof.roofTopPlanes.find((item) => item.id === purlin.slopePlaneId)!;
       const start = new THREE.Vector3(purlin.start.x, purlin.start.y, purlin.start.z);
       const end = new THREE.Vector3(purlin.end.x, purlin.end.y, purlin.end.z);
       const mesh = buildPurlinMesh({
@@ -715,6 +713,140 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
     expect(roof.hipFramingMembers.every((member) => member.lengthMeters > 0.15)).toBe(true);
     for (const member of roof.hipFramingMembers) {
       expect(member.lengthMeters).toBeCloseTo(hipMemberLength(member), 6);
+    }
+  });
+
+  it('evenly distributes requested interior hip mini trusses without moving ridge-end mini trusses', () => {
+    const interiorTrussCount = 3;
+    const roof = roofFromGeometry(frameInfillGeometry(
+      hipRoofSystem({
+        eaveOverhangMeters: 0,
+        peakHeightAboveRoofBeamMeters: 1.5,
+        steelTrusses: {
+          ...createDefaultRoofSystemSettings().steelTrusses,
+          hipInteriorTrussCount: interiorTrussCount,
+        },
+      }),
+      rectangularLayout(14, 6),
+    ));
+    const counts = countHipMembersByKind(roof);
+    const ridgeStart = roof.ridgeStart!;
+    const ridgeEnd = roof.ridgeEnd!;
+    const ridgeVector = {
+      x: ridgeEnd.x - ridgeStart.x,
+      z: ridgeEnd.z - ridgeStart.z,
+    };
+    const ridgeLength = Math.hypot(ridgeVector.x, ridgeVector.z);
+    const ridgeUnit = {
+      x: ridgeVector.x / ridgeLength,
+      z: ridgeVector.z / ridgeLength,
+    };
+    const stationAlongRidge = (point: { x: number; z: number }) =>
+      (point.x - ridgeStart.x) * ridgeUnit.x + (point.z - ridgeStart.z) * ridgeUnit.z;
+
+    const endWebs = roof.hipFramingMembers.filter(
+      (member) =>
+        member.memberKind === 'ridge_end_frame_web' &&
+        member.id.startsWith('hip-ridge-end-frame-'),
+    );
+    const interiorWebs = roof.hipFramingMembers
+      .filter(
+        (member) =>
+          member.memberKind === 'ridge_end_frame_web' &&
+          member.id.startsWith('hip-ridge-interior-frame-'),
+      )
+      .sort((a, b) => stationAlongRidge(a.end) - stationAlongRidge(b.end));
+
+    expect(counts.get('ridge_end_frame')).toBe(2 * (2 + interiorTrussCount));
+    expect(counts.get('ridge_end_frame_bottom')).toBe(2 + interiorTrussCount);
+    expect(counts.get('ridge_end_frame_web')).toBe(2 + interiorTrussCount);
+    expect(endWebs).toHaveLength(2);
+    expect(interiorWebs).toHaveLength(interiorTrussCount);
+    expect(stationAlongRidge(endWebs.find((member) => member.id.endsWith('start-web'))!.end)).toBeCloseTo(0, 3);
+    expect(stationAlongRidge(endWebs.find((member) => member.id.endsWith('end-web'))!.end)).toBeCloseTo(ridgeLength, 3);
+
+    for (const [index, web] of interiorWebs.entries()) {
+      expect(stationAlongRidge(web.end)).toBeCloseTo(
+        (ridgeLength * (index + 1)) / (interiorTrussCount + 1),
+        3,
+      );
+    }
+  });
+
+  it('extends hip mini-truss top chords to the eave purlin line while keeping bottom chords on the roof beam', () => {
+    const roof = roofFromGeometry(frameInfillGeometry(
+      hipRoofSystem({
+        eaveOverhangMeters: 0.3,
+        peakHeightAboveRoofBeamMeters: 1.5,
+        steelTrusses: {
+          ...createDefaultRoofSystemSettings().steelTrusses,
+          hipInteriorTrussCount: 2,
+        },
+      }),
+      rectangularLayout(14, 6),
+    ));
+
+    const topChords = roof.hipFramingMembers.filter((member) => member.memberKind === 'ridge_end_frame');
+    const bottomChords = roof.hipFramingMembers.filter((member) => member.memberKind === 'ridge_end_frame_bottom');
+    const claddingSideEaveAbsZ = Math.max(...roof.claddingPerimeter.map((point) => Math.abs(point.z)));
+    const structuralSideBearingAbsZ = Math.max(
+      ...roof.structuralBearingPerimeter.map((point) => Math.abs(point.z)),
+    );
+
+    expect(topChords).toHaveLength(8);
+    for (const chord of topChords) {
+      expect(Math.abs(Math.abs(chord.start.z) - claddingSideEaveAbsZ)).toBeLessThan(0.01);
+      expect(Math.abs(Math.abs(chord.start.z) - structuralSideBearingAbsZ)).toBeGreaterThan(0.1);
+    }
+
+    expect(bottomChords).toHaveLength(4);
+    for (const chord of bottomChords) {
+      expect(Math.abs(Math.abs(chord.start.z) - structuralSideBearingAbsZ)).toBeLessThan(0.01);
+      expect(Math.abs(Math.abs(chord.end.z) - structuralSideBearingAbsZ)).toBeLessThan(0.01);
+    }
+  });
+
+  it('keeps hip end jack rafters while adding lower side-eave corner supports', () => {
+    const roof = roofFromGeometry(frameInfillGeometry(
+      hipRoofSystem({ eaveOverhangMeters: 0, peakHeightAboveRoofBeamMeters: 1.5 }),
+      rectangularLayout(10, 6),
+    ));
+
+    const endJacks = roof.hipFramingMembers.filter((member) => member.id.startsWith('hip-jack-end-'));
+    const cornerSupports = roof.hipFramingMembers.filter(
+      (member) => member.memberKind === 'hip_corner_support',
+    );
+    const sideLegs = roof.hipFramingMembers.filter(
+      (member) => member.memberKind === 'ridge_end_frame',
+    );
+    const sideEaveAbsZ = Math.max(...roof.claddingPerimeter.map((point) => Math.abs(point.z)));
+    const endEaveAbsX = Math.max(...roof.claddingPerimeter.map((point) => Math.abs(point.x)));
+    const ridgeEndAbsX = Math.max(
+      Math.abs(roof.ridgeStart?.x ?? 0),
+      Math.abs(roof.ridgeEnd?.x ?? 0),
+    );
+
+    expect(endJacks).toHaveLength(4);
+    for (const jack of endJacks) {
+      expect(Math.abs(Math.abs(jack.start.x) - endEaveAbsX)).toBeLessThan(0.01);
+      expect(Math.abs(jack.start.z)).toBeLessThan(sideEaveAbsZ);
+      expect(Math.abs(jack.end.z)).toBeLessThan(sideEaveAbsZ);
+    }
+
+    expect(cornerSupports).toHaveLength(4);
+    for (const support of cornerSupports) {
+      expect(Math.abs(support.end.x - support.start.x)).toBeLessThan(0.01);
+      expect(Math.abs(Math.abs(support.start.z) - sideEaveAbsZ)).toBeLessThan(0.01);
+      expect(Math.abs(support.start.x)).toBeLessThan(endEaveAbsX - 0.01);
+      expect(Math.abs(support.end.z)).toBeLessThan(sideEaveAbsZ);
+    }
+
+    expect(sideLegs).toHaveLength(4);
+    for (const sideLeg of sideLegs) {
+      expect(Math.abs(sideLeg.end.x - sideLeg.start.x)).toBeLessThan(0.01);
+      expect(Math.abs(Math.abs(sideLeg.start.x) - ridgeEndAbsX)).toBeLessThan(0.01);
+      expect(Math.abs(Math.abs(sideLeg.start.z) - sideEaveAbsZ)).toBeLessThan(0.01);
+      expect(Math.abs(sideLeg.end.z)).toBeLessThan(0.01);
     }
   });
 

@@ -74,11 +74,6 @@ import {
   buildRakedCapStripRenderSegments,
 } from '../geometry/roofRenderingGeometry';
 import {
-  allowedMasonryTopYAtStation,
-  purlinBottomYAtStation,
-  rakedCapTopYAtStation,
-} from '../domain/roofGableSolver';
-import {
   ensurePreviewMaterialsLoaded,
   resolveCastConcreteMaterial,
   resolveCmuMaterial,
@@ -139,16 +134,10 @@ interface DesignBuilderViewerProps {
   showOpeningLayout?: boolean;
   showGroutCells?: boolean;
   showClosureWarnings?: boolean;
-  showFootprintSetout?: boolean;
-  showInfillPanelBounds?: boolean;
   showRoofReferencePerimeters?: boolean;
   showRoofFramingGuides?: boolean;
-  showGableRakeGeometry?: boolean;
   foundationViewMode?: FoundationViewMode;
   visualStyle?: DesignVisualStyle;
-  textureProjectionRevision?: number;
-  showMortarJointsDebug?: boolean;
-  onMortarJointDiagnosticsChange?: (diagnostics: MortarJointDiagnostics | null) => void;
   roofSystem?: RoofSystemSettings | null;
   roofDisplayMode?: RoofDisplayMode;
   roofLayerVisibility?: RoofLayerVisibility;
@@ -480,16 +469,10 @@ export default function DesignBuilderViewer({
   showOpeningLayout = false,
   showGroutCells = false,
   showClosureWarnings = false,
-  showFootprintSetout = false,
-  showInfillPanelBounds = false,
   showRoofReferencePerimeters = false,
   showRoofFramingGuides = false,
-  showGableRakeGeometry = false,
   foundationViewMode = 'full_model',
   visualStyle = 'technical',
-  textureProjectionRevision = 0,
-  showMortarJointsDebug = false,
-  onMortarJointDiagnosticsChange,
   roofSystem = null,
   roofDisplayMode = 'full_roof',
   roofLayerVisibility = DEFAULT_ROOF_LAYER_VISIBILITY,
@@ -515,8 +498,6 @@ export default function DesignBuilderViewer({
   const updateGhostRef = useRef<(() => void) | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const previewMaterialsReadyRef = useRef(false);
-  const onMortarJointDiagnosticsChangeRef = useRef(onMortarJointDiagnosticsChange);
-  onMortarJointDiagnosticsChangeRef.current = onMortarJointDiagnosticsChange;
   const modelParamsRef = useRef({
     modelLoaded,
     slab,
@@ -529,15 +510,10 @@ export default function DesignBuilderViewer({
     showOpeningLayout,
     showGroutCells,
     showClosureWarnings,
-    showFootprintSetout,
-    showInfillPanelBounds,
     showRoofReferencePerimeters,
     showRoofFramingGuides,
-    showGableRakeGeometry,
     foundationViewMode,
     visualStyle,
-    textureProjectionRevision,
-    showMortarJointsDebug,
     roofSystem,
     roofDisplayMode,
     roofLayerVisibility,
@@ -554,15 +530,10 @@ export default function DesignBuilderViewer({
     showOpeningLayout,
     showGroutCells,
     showClosureWarnings,
-    showFootprintSetout,
-    showInfillPanelBounds,
     showRoofReferencePerimeters,
     showRoofFramingGuides,
-    showGableRakeGeometry,
     foundationViewMode,
     visualStyle,
-    textureProjectionRevision,
-    showMortarJointsDebug,
     roofSystem,
     roofDisplayMode,
     roofLayerVisibility,
@@ -922,15 +893,10 @@ export default function DesignBuilderViewer({
         showOpeningLayout: currentShowOpeningLayout,
         showGroutCells: currentShowGroutCells,
         showClosureWarnings: currentShowClosureWarnings,
-        showFootprintSetout: currentShowFootprintSetout,
-        showInfillPanelBounds: currentShowInfillPanelBounds,
         showRoofReferencePerimeters: currentShowRoofReferencePerimeters,
         showRoofFramingGuides: currentShowRoofFramingGuides,
-        showGableRakeGeometry: currentShowGableRakeGeometry,
         foundationViewMode: currentFoundationViewMode,
         visualStyle: currentVisualStyle,
-        textureProjectionRevision: currentTextureProjectionRevision,
-        showMortarJointsDebug: currentShowMortarJointsDebug,
         roofSystem: currentRoofSystem,
         roofDisplayMode: currentRoofDisplayMode,
         roofLayerVisibility: currentRoofLayerVisibility,
@@ -958,7 +924,6 @@ export default function DesignBuilderViewer({
       wallPickables.length = 0;
       geometriesToDispose.splice(0).forEach((geometry) => geometry.dispose());
       materialsToDispose.splice(0).forEach((material) => material.dispose());
-      let latestMortarDiagnostics: MortarJointDiagnostics | null = null;
 
       applySceneFraming(currentLayoutBounds);
       const blankGeometryActive = currentGeometry?.sourcePath === 'blank';
@@ -1021,18 +986,6 @@ export default function DesignBuilderViewer({
         }
       }
       if (layoutGraphActive) {
-        if (import.meta.env.DEV && currentShowFootprintSetout && currentGeometry.resolvedFootprint) {
-          [
-            createFootprintSetoutLine(currentGeometry.resolvedFootprint.exteriorFacePolygon, currentSlab.slabThicknessMeters + 0.035, 0x22d3ee),
-            createFootprintSetoutLine(currentGeometry.resolvedFootprint.interiorFacePolygon, currentSlab.slabThicknessMeters + 0.045, 0xf97316),
-            createFootprintSetoutLine(currentGeometry.resolvedFootprint.centerlinePolygon, currentSlab.slabThicknessMeters + 0.055, 0xa78bfa),
-          ].forEach((line) => {
-            trackGeometry(line.geometry);
-            materialsToDispose.push(line.material as THREE.Material);
-            root.add(line);
-          });
-        }
-
         currentGeometry.wallSegments.forEach((segment) => {
           const pickMesh = new THREE.Mesh(
             trackGeometry(new THREE.BoxGeometry(segment.lengthMeters, segment.heightMeters, segment.thicknessMeters)),
@@ -1177,45 +1130,6 @@ export default function DesignBuilderViewer({
               footing.position.z,
             );
             addSelectable(mesh, 'structural_frame_system');
-          });
-        }
-        if (import.meta.env.DEV && currentShowInfillPanelBounds && currentGeometry.resolvedInfillPanelBounds?.length) {
-          const boundsMaterial = new THREE.LineBasicMaterial({ color: 0x22d3ee, transparent: true, opacity: 0.95 });
-          currentGeometry.resolvedInfillPanelBounds.forEach((bounds) => {
-            const bottomY = currentSlab.slabThicknessMeters + bounds.bottomElevationMeters;
-            const topY = currentSlab.slabThicknessMeters + bounds.topElevationMeters;
-            const left = bounds.leftSupportInsideFaceWorld;
-            const right = bounds.rightSupportInsideFaceWorld;
-            [
-              [left, left],
-              [right, right],
-            ].forEach(([point]) => {
-              const line = new THREE.Line(
-                trackGeometry(
-                  new THREE.BufferGeometry().setFromPoints([
-                    new THREE.Vector3(point.x, bottomY, point.z),
-                    new THREE.Vector3(point.x, topY, point.z),
-                  ]),
-                ),
-                boundsMaterial,
-              );
-              line.userData.explicitHelperMarker = true;
-              root.add(line);
-            });
-            const spanLine = new THREE.Line(
-              trackGeometry(
-                new THREE.BufferGeometry().setFromPoints([
-                  new THREE.Vector3(left.x, bottomY, left.z),
-                  new THREE.Vector3(right.x, bottomY, right.z),
-                  new THREE.Vector3(right.x, topY, right.z),
-                  new THREE.Vector3(left.x, topY, left.z),
-                  new THREE.Vector3(left.x, bottomY, left.z),
-                ]),
-              ),
-              boundsMaterial,
-            );
-            spanLine.userData.explicitHelperMarker = true;
-            root.add(spanLine);
           });
         }
         if (import.meta.env.DEV && currentShowRoofReferencePerimeters && currentGeometry.resolvedRoofSystem?.supported) {
@@ -1836,112 +1750,6 @@ export default function DesignBuilderViewer({
               );
               mesh.rotation.y = frame.rotationY;
               rakedCapGroup.add(mesh);
-
-              if (currentShowGableRakeGeometry) {
-                const hostPanel = currentGeometry.infillSystem?.panels.find(
-                  (panel) => panel.hostSegmentId === frame.segmentId && panel.infillZone !== 'below_grade',
-                );
-                const panelStart = hostPanel?.startStationMeters ?? 0;
-                const panelEnd = hostPanel?.endStationMeters ?? frame.lengthMeters;
-                const minRakeCapDepthMeters = currentRoofSystem?.gable.rakeClearanceMeters ?? 0.1016;
-                const capTopGuideMaterial = new THREE.LineBasicMaterial({
-                  color: 0x14b8a6,
-                  transparent: true,
-                  opacity: 0.95,
-                });
-                const masonryGuideMaterial = new THREE.LineBasicMaterial({
-                  color: 0xeab308,
-                  transparent: true,
-                  opacity: 0.85,
-                });
-                materialsToDispose.push(capTopGuideMaterial, masonryGuideMaterial);
-                const purlinsEnabled = currentRoofSystem?.purlins.enabled ?? resolvedRoof.purlinPlacements.length > 0;
-                for (const cap of sortedCaps) {
-                  const capStartX = frame.start.x + frame.tangent.x * cap.startStationMeters;
-                  const capStartZ = frame.start.z + frame.tangent.z * cap.startStationMeters;
-                  const capEndX = frame.start.x + frame.tangent.x * cap.endStationMeters;
-                  const capEndZ = frame.start.z + frame.tangent.z * cap.endStationMeters;
-                  const capTopStartY = purlinsEnabled
-                    ? purlinBottomYAtStation({
-                        resolvedRoof,
-                        frame,
-                        stationMeters: cap.startStationMeters,
-                        panelStartStation: panelStart,
-                        panelEndStation: panelEnd,
-                      })
-                    : rakedCapTopYAtStation({
-                        resolvedRoof,
-                        roofSystem: currentRoofSystem ?? undefined,
-                        frame,
-                        stationMeters: cap.startStationMeters,
-                        panelStartStation: panelStart,
-                        panelEndStation: panelEnd,
-                      });
-                  const capTopEndY = purlinsEnabled
-                    ? purlinBottomYAtStation({
-                        resolvedRoof,
-                        frame,
-                        stationMeters: cap.endStationMeters,
-                        panelStartStation: panelStart,
-                        panelEndStation: panelEnd,
-                      })
-                    : rakedCapTopYAtStation({
-                        resolvedRoof,
-                        roofSystem: currentRoofSystem ?? undefined,
-                        frame,
-                        stationMeters: cap.endStationMeters,
-                        panelStartStation: panelStart,
-                        panelEndStation: panelEnd,
-                      });
-                  const capTopGuideLine = new THREE.BufferGeometry().setFromPoints([
-                    new THREE.Vector3(
-                      capStartX,
-                      currentSlab.slabThicknessMeters + capTopStartY,
-                      capStartZ,
-                    ),
-                    new THREE.Vector3(
-                      capEndX,
-                      currentSlab.slabThicknessMeters + capTopEndY,
-                      capEndZ,
-                    ),
-                  ]);
-                  framingGuideGroup.add(new THREE.Line(capTopGuideLine, capTopGuideMaterial));
-                  trackGeometry(capTopGuideLine);
-
-                  const masonryStartY = allowedMasonryTopYAtStation({
-                    resolvedRoof,
-                    roofSystem: currentRoofSystem ?? undefined,
-                    frame,
-                    stationMeters: cap.startStationMeters,
-                    panelStartStation: panelStart,
-                    panelEndStation: panelEnd,
-                    minRakeCapDepthMeters,
-                  });
-                  const masonryEndY = allowedMasonryTopYAtStation({
-                    resolvedRoof,
-                    roofSystem: currentRoofSystem ?? undefined,
-                    frame,
-                    stationMeters: cap.endStationMeters,
-                    panelStartStation: panelStart,
-                    panelEndStation: panelEnd,
-                    minRakeCapDepthMeters,
-                  });
-                  const masonryLine = new THREE.BufferGeometry().setFromPoints([
-                    new THREE.Vector3(
-                      capStartX,
-                      currentSlab.slabThicknessMeters + masonryStartY,
-                      capStartZ,
-                    ),
-                    new THREE.Vector3(
-                      capEndX,
-                      currentSlab.slabThicknessMeters + masonryEndY,
-                      capEndZ,
-                    ),
-                  ]);
-                  framingGuideGroup.add(new THREE.Line(masonryLine, masonryGuideMaterial));
-                  trackGeometry(masonryLine);
-                }
-              }
             }
           }
 
@@ -1976,22 +1784,20 @@ export default function DesignBuilderViewer({
 
         const cmuBlocksForMortar =
           showCmuInfill && currentWall.showIndividualBlocks ? cmuLayout.blocks : [];
-        let mortarDiagnostics: MortarJointDiagnostics | null = null;
         if (cmuBlocksForMortar.length > 0) {
-          mortarDiagnostics = addCmuMortarJointMeshes({
+          addCmuMortarJointMeshes({
             blocks: cmuBlocksForMortar,
             wall: currentWall,
             slabTopMeters: currentSlab.slabThicknessMeters,
             visualStyle: currentVisualStyle,
             cmuCutawayActive,
             cmuOpacity,
-            debugMode: currentShowMortarJointsDebug,
+            debugMode: false,
             root,
             trackGeometry,
             trackMat,
           });
         }
-        latestMortarDiagnostics = mortarDiagnostics;
 
         const blockInstances =
           showCmuInfill && currentWall.showIndividualBlocks ? currentGeometry.blockInstances : [];
@@ -2066,14 +1872,14 @@ export default function DesignBuilderViewer({
 
         const blockInstances = currentWall.showIndividualBlocks ? cmuLayout.blocks : [];
         if (blockInstances.length > 0) {
-        latestMortarDiagnostics = addCmuMortarJointMeshes({
+        addCmuMortarJointMeshes({
           blocks: blockInstances,
           wall: currentWall,
           slabTopMeters: currentSlab.slabThicknessMeters,
           visualStyle: currentVisualStyle,
           cmuCutawayActive,
           cmuOpacity,
-          debugMode: currentShowMortarJointsDebug,
+          debugMode: false,
           root,
           trackGeometry,
           trackMat,
@@ -2250,7 +2056,6 @@ export default function DesignBuilderViewer({
           });
       }
 
-      onMortarJointDiagnosticsChangeRef.current?.(latestMortarDiagnostics);
       refreshSiteGroundMaterial();
       updateGhost();
     }
@@ -2505,7 +2310,7 @@ export default function DesignBuilderViewer({
 
   useEffect(() => {
     if (modelLoaded) rebuildModelRef.current?.();
-  }, [geometryResult, layoutBounds, modelLoaded, roof, roofDisplayMode, roofLayerVisibility, roofSystem, selectedObjectType, selectedOpeningId, showClosureWarnings, showFootprintSetout, showInfillPanelBounds, showRoofReferencePerimeters, showRoofFramingGuides, showGableRakeGeometry, foundationViewMode, showGroutCells, showOpeningLayout, showMortarJointsDebug, slab, truss, wall, visualStyle, textureProjectionRevision]);
+  }, [geometryResult, layoutBounds, modelLoaded, roof, roofDisplayMode, roofLayerVisibility, roofSystem, selectedObjectType, selectedOpeningId, showClosureWarnings, showRoofReferencePerimeters, showRoofFramingGuides, foundationViewMode, showGroutCells, showOpeningLayout, slab, truss, wall, visualStyle]);
 
   useEffect(() => {
     if (visualStyle === 'material_preview') {

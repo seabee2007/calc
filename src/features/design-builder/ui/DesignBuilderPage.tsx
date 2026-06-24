@@ -7,6 +7,7 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
+  type ReactNode,
 } from 'react';
 import { useAuth } from '../../../hooks/useAuth';
 import {
@@ -210,19 +211,11 @@ import DesignBuilderViewer, { type DesignBuilderPlacementPreview } from './Desig
 import { DraggableDebugOverlay } from './DraggableDebugOverlay';
 import { DebugOverlayLayoutProvider } from './DebugOverlayLayoutContext';
 import {
-  getMaterialDiagnostics,
-  getTextureProjectionDiagnostics,
   initializeMaterialSelectionsFromPersistence,
   normalizeDesignMaterialSelection,
-  refreshTriplanarPreviewMaterials,
   setActiveMaterialSelections,
-  setTriplanarCheckerDebugEnabled,
-  subscribeMaterialDiagnostics,
   type DesignMaterialSelection,
-  type MaterialDiagnostics,
-  type TextureProjectionDiagnostics,
 } from '../rendering/materials/designMaterialLibrary';
-import type { MortarJointDiagnostics } from '../rendering/materials/cmuMortarJointInstances';
 import MaterialsColorsModal from './MaterialsColorsModal';
 import DesignBuilderPlanCanvas from './DesignBuilderPlanCanvas';
 import {
@@ -412,29 +405,13 @@ export default function DesignBuilderPage({
   const [showOpeningLayout, setShowOpeningLayout] = useState(false);
   const [showGroutCells, setShowGroutCells] = useState(false);
   const [showClosureWarnings, setShowClosureWarnings] = useState(false);
-  const [showFootprintSetout, setShowFootprintSetout] = useState(false);
-  const [showInfillPanelBounds, setShowInfillPanelBounds] = useState(false);
   const [showRoofReferencePerimeters, setShowRoofReferencePerimeters] = useState(false);
   const [showRoofFramingGuides, setShowRoofFramingGuides] = useState(false);
-  const [showDesignPersistenceDebug, setShowDesignPersistenceDebug] = useState(false);
-  const [showGableRakeGeometry, setShowGableRakeGeometry] = useState(false);
-  const [showMaterialDiagnostics, setShowMaterialDiagnostics] = useState(false);
-  const [showTextureProjectionDebug, setShowTextureProjectionDebug] = useState(false);
-  const [showMortarJointsDebug, setShowMortarJointsDebug] = useState(false);
-  const [showTriplanarChecker, setShowTriplanarChecker] = useState(false);
-  const [textureProjectionRevision, setTextureProjectionRevision] = useState(0);
   const [visualStyle, setVisualStyle] = useState<DesignVisualStyle>('technical');
   const [materialSelections, setMaterialSelections] = useState<DesignMaterialSelection>(() =>
     normalizeDesignMaterialSelection(),
   );
   const [materialsColorsModalOpen, setMaterialsColorsModalOpen] = useState(false);
-  const [materialDiagnostics, setMaterialDiagnostics] = useState<MaterialDiagnostics>(() =>
-    getMaterialDiagnostics('technical'),
-  );
-  const [textureProjectionDiagnostics, setTextureProjectionDiagnostics] = useState<TextureProjectionDiagnostics>(() =>
-    getTextureProjectionDiagnostics(),
-  );
-  const [mortarJointDiagnostics, setMortarJointDiagnostics] = useState<MortarJointDiagnostics | null>(null);
   const [foundationViewMode, setFoundationViewMode] = useState<FoundationViewMode>('full_model');
   const [roofDisplayMode, setRoofDisplayMode] = useState<RoofDisplayMode>('full_roof');
   const [roofLayerVisibility, setRoofLayerVisibility] = useState<RoofLayerVisibility>(
@@ -448,24 +425,6 @@ export default function DesignBuilderPage({
   const [lastStructureApplyRevision, setLastStructureApplyRevision] = useState(0);
   const [viewMode, setViewMode] = useState<'plan' | '3d'>(() => storedSession?.viewMode ?? '3d');
   const builderViewMode = builderViewModeFromStored(viewMode);
-
-  useEffect(() => {
-    setMaterialDiagnostics(getMaterialDiagnostics(visualStyle));
-    setTextureProjectionDiagnostics(getTextureProjectionDiagnostics());
-    return subscribeMaterialDiagnostics(() => {
-      setMaterialDiagnostics(getMaterialDiagnostics(visualStyle));
-      setTextureProjectionDiagnostics(getTextureProjectionDiagnostics());
-    });
-  }, [visualStyle]);
-
-  function handleTriplanarCheckerChange(enabled: boolean) {
-    setShowTriplanarChecker(enabled);
-    setTriplanarCheckerDebugEnabled(enabled);
-    if (visualStyle === 'material_preview') {
-      refreshTriplanarPreviewMaterials();
-      setTextureProjectionRevision((revision) => revision + 1);
-    }
-  }
 
   const [snapMode, setSnapMode] = useState<DesignBuilderSnapMode>(() => storedSession?.snapMode ?? 'grid');
   const [moduleFitMode, setModuleFitMode] = useState<ModuleFitMode>(() => storedSession?.moduleFitMode ?? 'exact');
@@ -3689,21 +3648,20 @@ export default function DesignBuilderPage({
                 menuKind="display"
                 label={<>Display <span aria-hidden>▾</span></>}
                 closeOnSelect={false}
-                panelClassName="w-64 space-y-2 p-3 text-xs"
+                panelClassName="w-64 max-h-[min(70vh,520px)] space-y-1 overflow-y-auto p-3 text-xs"
                 summaryClassName="flex h-9 items-center gap-1 rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-cyan-400/40 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
               >
-                  <ToggleField label="Show opening layout" checked={showOpeningLayout} onChange={setShowOpeningLayout} />
-                  <ToggleField
-                    label="Show Grout / Reinforced Cells"
-                    title="Shows only calculated CMU core fills, bond-beam cells, and valid closure voids. Does not represent the rough opening itself."
-                    checked={showGroutCells}
-                    onChange={setShowGroutCells}
-                  />
-                  <ToggleField label="Show Cut-Block Conditions" checked={showClosureWarnings} onChange={setShowClosureWarnings} />
-                  <div className="space-y-1 border-t border-slate-200 pt-2 dark:border-slate-700">
-                    <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                      Visual Style
-                    </div>
+                  <DisplayMenuCollapsibleSection id="display-wall-overlays" title="Wall Overlays">
+                    <ToggleField label="Show opening layout" checked={showOpeningLayout} onChange={setShowOpeningLayout} />
+                    <ToggleField
+                      label="Show Grout / Reinforced Cells"
+                      title="Shows only calculated CMU core fills, bond-beam cells, and valid closure voids. Does not represent the rough opening itself."
+                      checked={showGroutCells}
+                      onChange={setShowGroutCells}
+                    />
+                    <ToggleField label="Show Cut-Block Conditions" checked={showClosureWarnings} onChange={setShowClosureWarnings} />
+                  </DisplayMenuCollapsibleSection>
+                  <DisplayMenuCollapsibleSection id="display-visual-style" title="Visual Style">
                     {(
                       [
                         ['technical', 'Technical'],
@@ -3720,48 +3678,15 @@ export default function DesignBuilderPage({
                         <span>{label}</span>
                       </label>
                     ))}
-                  </div>
-                  <CommandMenuAction
-                    onClick={() => setMaterialsColorsModalOpen(true)}
-                    className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
-                  >
-                    Materials &amp; Colors
-                  </CommandMenuAction>
-                  {import.meta.env.DEV ? (
-                    <div className="space-y-1 border-t border-slate-200 pt-2 dark:border-slate-700">
-                      <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                        Debug
-                      </div>
-                      <ToggleField
-                        label="Material Diagnostics"
-                        checked={showMaterialDiagnostics}
-                        onChange={setShowMaterialDiagnostics}
-                      />
-                      <ToggleField
-                        label="Texture Projection"
-                        checked={showTextureProjectionDebug}
-                        onChange={setShowTextureProjectionDebug}
-                      />
-                      <ToggleField
-                        label="Mortar Joints"
-                        checked={showMortarJointsDebug}
-                        onChange={setShowMortarJointsDebug}
-                      />
-                      <ToggleField
-                        label="Triplanar checker (dev)"
-                        checked={showTriplanarChecker}
-                        onChange={handleTriplanarCheckerChange}
-                      />
-                    </div>
-                  ) : null}
-                  {import.meta.env.DEV ? (
-                    <ToggleField label="Show footprint setout" checked={showFootprintSetout} onChange={setShowFootprintSetout} />
-                  ) : null}
+                    <CommandMenuAction
+                      onClick={() => setMaterialsColorsModalOpen(true)}
+                      className="mt-1 block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                    >
+                      Materials &amp; Colors
+                    </CommandMenuAction>
+                  </DisplayMenuCollapsibleSection>
                   {import.meta.env.DEV && resolvedPreset.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill' ? (
-                    <div className="space-y-1 border-t border-slate-200 pt-2 dark:border-slate-700">
-                      <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                        Debug
-                      </div>
+                    <DisplayMenuCollapsibleSection id="display-debug" title="Debug">
                       <ToggleField
                         label="Show Roof Reference Perimeters"
                         checked={showRoofReferencePerimeters}
@@ -3772,97 +3697,77 @@ export default function DesignBuilderPage({
                         checked={showRoofFramingGuides}
                         onChange={setShowRoofFramingGuides}
                       />
-                      <ToggleField
-                        label="Design Persistence"
-                        checked={showDesignPersistenceDebug}
-                        onChange={setShowDesignPersistenceDebug}
-                      />
-                      <ToggleField
-                        label="Show Gable Rake Geometry"
-                        checked={showGableRakeGeometry}
-                        onChange={setShowGableRakeGeometry}
-                      />
-                    </div>
-                  ) : null}
-                  {import.meta.env.DEV && resolvedPreset.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill' ? (
-                    <ToggleField
-                      label="Show Infill Panel Bounds"
-                      checked={showInfillPanelBounds}
-                      onChange={setShowInfillPanelBounds}
-                    />
+                    </DisplayMenuCollapsibleSection>
                   ) : null}
                   {resolvedPreset.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill' ? (
-                    <div className="space-y-1 border-t border-slate-200 pt-2 dark:border-slate-700">
-                      <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                        Foundation View
-                      </div>
-                      {(
-                        [
-                          ['full_model', 'Full Model'],
-                          ['cutaway_below_grade', 'Cutaway / Below Grade'],
-                          ['structural_frame_only', 'Structural Frame Only'],
-                        ] as const
-                      ).map(([mode, label]) => (
-                        <label key={mode} className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 hover:bg-slate-50 dark:hover:bg-slate-800">
-                          <input
-                            type="radio"
-                            name="foundation-view-mode"
-                            checked={foundationViewMode === mode}
-                            onChange={() => setFoundationViewMode(mode)}
-                          />
-                          <span>{label}</span>
-                        </label>
-                      ))}
-                      <div className="pt-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                        Roof Display
-                      </div>
-                      {(
-                        [
-                          ['full_roof', 'Full Roof'],
-                          ['roof_cladding_only', 'Roof Cladding Only'],
-                          ['steel_framing_only', 'Steel Framing Only'],
-                          ['gable_masonry_only', 'Gable Masonry Only'],
-                          ['foundation_frame_roof', 'Foundation + Frame + Roof'],
-                        ] as const
-                      ).map(([mode, label]) => (
-                        <label key={mode} className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 hover:bg-slate-50 dark:hover:bg-slate-800">
-                          <input
-                            type="radio"
-                            name="roof-display-mode"
-                            checked={roofDisplayMode === mode}
-                            onChange={() => setRoofDisplayMode(mode)}
-                          />
-                          <span>{label}</span>
-                        </label>
-                      ))}
-                      <div className="pt-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                        Roof Layers
-                      </div>
-                      {(
-                        [
-                          ['roofCladding', 'Roof Cladding'],
-                          ['ridgeCap', 'Ridge Cap'],
-                          ['steelTrusses', 'Steel Trusses'],
-                          ['purlins', 'Purlins'],
-                          ['gableEndCmu', 'Gable-End CMU'],
-                          ['rakedConcreteCap', 'Raked Concrete Cap'],
-                        ] as const
-                      ).map(([key, label]) => (
-                        <label key={key} className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 hover:bg-slate-50 dark:hover:bg-slate-800">
-                          <input
-                            type="checkbox"
-                            checked={roofLayerVisibility[key]}
-                            onChange={(event) =>
-                              setRoofLayerVisibility((current) => ({
-                                ...current,
-                                [key]: event.currentTarget.checked,
-                              }))
-                            }
-                          />
-                          <span>{label}</span>
-                        </label>
-                      ))}
-                    </div>
+                    <>
+                      <DisplayMenuCollapsibleSection id="display-foundation-view" title="Foundation View">
+                        {(
+                          [
+                            ['full_model', 'Full Model'],
+                            ['cutaway_below_grade', 'Cutaway / Below Grade'],
+                            ['structural_frame_only', 'Structural Frame Only'],
+                          ] as const
+                        ).map(([mode, label]) => (
+                          <label key={mode} className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 hover:bg-slate-50 dark:hover:bg-slate-800">
+                            <input
+                              type="radio"
+                              name="foundation-view-mode"
+                              checked={foundationViewMode === mode}
+                              onChange={() => setFoundationViewMode(mode)}
+                            />
+                            <span>{label}</span>
+                          </label>
+                        ))}
+                      </DisplayMenuCollapsibleSection>
+                      <DisplayMenuCollapsibleSection id="display-roof-display" title="Roof Display">
+                        {(
+                          [
+                            ['full_roof', 'Full Roof'],
+                            ['roof_cladding_only', 'Roof Cladding Only'],
+                            ['steel_framing_only', 'Steel Framing Only'],
+                            ['gable_masonry_only', 'Gable Masonry Only'],
+                            ['foundation_frame_roof', 'Foundation + Frame + Roof'],
+                          ] as const
+                        ).map(([mode, label]) => (
+                          <label key={mode} className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 hover:bg-slate-50 dark:hover:bg-slate-800">
+                            <input
+                              type="radio"
+                              name="roof-display-mode"
+                              checked={roofDisplayMode === mode}
+                              onChange={() => setRoofDisplayMode(mode)}
+                            />
+                            <span>{label}</span>
+                          </label>
+                        ))}
+                      </DisplayMenuCollapsibleSection>
+                      <DisplayMenuCollapsibleSection id="display-roof-layers" title="Roof Layers">
+                        {(
+                          [
+                            ['roofCladding', 'Roof Cladding'],
+                            ['ridgeCap', 'Ridge Cap'],
+                            ['steelTrusses', 'Steel Trusses'],
+                            ['purlins', 'Purlins'],
+                            ['gableEndCmu', 'Gable-End CMU'],
+                            ['rakedConcreteCap', 'Raked Concrete Cap'],
+                          ] as const
+                        ).map(([key, label]) => (
+                          <label key={key} className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 hover:bg-slate-50 dark:hover:bg-slate-800">
+                            <input
+                              type="checkbox"
+                              checked={roofLayerVisibility[key]}
+                              onChange={(event) =>
+                                setRoofLayerVisibility((current) => ({
+                                  ...current,
+                                  [key]: event.currentTarget.checked,
+                                }))
+                              }
+                            />
+                            <span>{label}</span>
+                          </label>
+                        ))}
+                      </DisplayMenuCollapsibleSection>
+                    </>
                   ) : null}
               </DesignBuilderCommandMenu>
 
@@ -4140,16 +4045,10 @@ export default function DesignBuilderPage({
                 showOpeningLayout={showOpeningLayout}
                 showGroutCells={showGroutCells}
                 showClosureWarnings={showClosureWarnings}
-                showFootprintSetout={showFootprintSetout}
-                showInfillPanelBounds={showInfillPanelBounds}
                 showRoofReferencePerimeters={showRoofReferencePerimeters}
                 showRoofFramingGuides={showRoofFramingGuides}
-                showGableRakeGeometry={showGableRakeGeometry}
                 foundationViewMode={foundationViewMode}
                 visualStyle={visualStyle}
-                textureProjectionRevision={textureProjectionRevision}
-                showMortarJointsDebug={showMortarJointsDebug}
-                onMortarJointDiagnosticsChange={setMortarJointDiagnostics}
                 roofSystem={activeRoofSystem}
                 roofDisplayMode={roofDisplayMode}
                 roofLayerVisibility={roofLayerVisibility}
@@ -4246,81 +4145,6 @@ export default function DesignBuilderPage({
                 </div>
               </DraggableDebugOverlay>
             ) : null}
-            {import.meta.env.DEV && viewMode === '3d' && showMaterialDiagnostics ? (
-              <DraggableDebugOverlay
-                id="material-diagnostics"
-                title="Material Diagnostics"
-                titleClassName="text-violet-300"
-                className="border-violet-400/60"
-              >
-                <div className="space-y-0.5 font-mono text-[11px]">
-                  <div>Visual Style: {materialDiagnostics.visualStyle === 'material_preview' ? 'Material Preview' : 'Technical'}</div>
-                  <div>
-                    Loaded texture packs:{' '}
-                    {materialDiagnostics.loadedTexturePacks.length > 0
-                      ? materialDiagnostics.loadedTexturePacks.join(', ')
-                      : 'none'}
-                  </div>
-                  <div>CMU material status: {materialDiagnostics.cmuMaterialStatus}</div>
-                  <div>Mortar material status: {materialDiagnostics.mortarMaterialStatus}</div>
-                  <div>Concrete042A status: {materialDiagnostics.concreteStructuralMaterialStatus}</div>
-                  <div>Concrete044D status: {materialDiagnostics.concreteBeamMaterialStatus}</div>
-                  <div>Roof material status: {materialDiagnostics.roofMaterialStatus}</div>
-                  <div>Steel material status: {materialDiagnostics.steelMaterialStatus}</div>
-                  <div>Texture resolution: {materialDiagnostics.textureResolution}</div>
-                  <div>Active texture count: {materialDiagnostics.activeTextureCount}</div>
-                  <div>Material instance count: {materialDiagnostics.materialInstanceCount}</div>
-                </div>
-              </DraggableDebugOverlay>
-            ) : null}
-            {import.meta.env.DEV && viewMode === '3d' && showTextureProjectionDebug ? (
-              <DraggableDebugOverlay
-                id="texture-projection"
-                title="Texture Projection"
-                titleClassName="text-cyan-300"
-                className="border-cyan-400/60"
-              >
-                <div className="space-y-0.5 font-mono text-[11px]">
-                  <div>Active visual style: {visualStyle === 'material_preview' ? 'Material Preview' : 'Technical'}</div>
-                  <div>CMU projection: {textureProjectionDiagnostics.cmuProjection}</div>
-                  <div>Concrete projection: {textureProjectionDiagnostics.concreteProjection}</div>
-                  <div>CMU world tile size: {textureProjectionDiagnostics.cmuWorldTileSize.toFixed(2)} m</div>
-                  <div>
-                    Concrete world tile size: {textureProjectionDiagnostics.concreteWorldTileSize.toFixed(2)} m
-                  </div>
-                  <div>Texture material cache count: {textureProjectionDiagnostics.textureMaterialCacheCount}</div>
-                  <div>Triplanar checker: {textureProjectionDiagnostics.useCheckerMap ? 'on' : 'off'}</div>
-                </div>
-              </DraggableDebugOverlay>
-            ) : null}
-            {import.meta.env.DEV && viewMode === '3d' && showMortarJointsDebug ? (
-              <DraggableDebugOverlay
-                id="mortar-joints"
-                title="Mortar Joints"
-                titleClassName="text-slate-300"
-                className="border-slate-400/60"
-              >
-                <div className="space-y-0.5 font-mono text-[11px]">
-                  <div className="text-blue-300">Blue: head joints</div>
-                  <div className="text-yellow-300">Yellow: bed joints</div>
-                  <div className="text-red-300">Red: invalid joint or overlap</div>
-                </div>
-                <div className="mt-2 space-y-0.5 border-t border-slate-700 pt-2 font-mono text-[11px]">
-                  <div>Eligible CMU blocks: {mortarJointDiagnostics?.eligibleBlockCount ?? 0}</div>
-                  <div>Mortar row groups: {mortarJointDiagnostics?.rowGroupCount ?? 0}</div>
-                  <div>Head-joint candidates: {mortarJointDiagnostics?.headJointCandidateCount ?? 0}</div>
-                  <div>Mortar head-joint instances: {mortarJointDiagnostics?.headJointCount ?? 0}</div>
-                  <div>Zero-gap fallback joints: {mortarJointDiagnostics?.zeroGapFallbackCount ?? 0}</div>
-                  <div>Mortar bed-joint instances: {mortarJointDiagnostics?.bedJointCount ?? 0}</div>
-                  <div>Skipped opening gaps: {mortarJointDiagnostics?.skippedOpeningGaps ?? 0}</div>
-                  <div>Skipped non-contiguous gaps: {mortarJointDiagnostics?.skippedNonContiguousGaps ?? 0}</div>
-                  <div>Invalid joint candidates: {mortarJointDiagnostics?.invalidJointCount ?? 0}</div>
-                  <div>
-                    Mortar face recess: {(mortarJointDiagnostics?.faceRecessMeters ?? 0.002).toFixed(3)} m
-                  </div>
-                </div>
-              </DraggableDebugOverlay>
-            ) : null}
             {import.meta.env.DEV &&
             viewMode === '3d' &&
             showRoofFramingGuides &&
@@ -4412,97 +4236,6 @@ export default function DesignBuilderPage({
                       </div>
                   );
                 })()}
-              </DraggableDebugOverlay>
-            ) : null}
-            {import.meta.env.DEV && viewMode === '3d' ? (
-              <DraggableDebugOverlay
-                id="geometry-revision"
-                title="Geometry Revision"
-                titleClassName="text-slate-300"
-                className="border-slate-500/60 font-mono text-[11px] text-slate-200"
-              >
-                <div>Geometry revision: {designGeometryState.revision}</div>
-                {designGeometryState.lastReason ? (
-                  <div>Last rebuild: {designGeometryState.lastReason}</div>
-                ) : null}
-              </DraggableDebugOverlay>
-            ) : null}
-            {import.meta.env.DEV && showDesignPersistenceDebug ? (
-              <DraggableDebugOverlay
-                id="design-persistence"
-                title="Design Persistence"
-                titleClassName="text-violet-300"
-                className="border-violet-400/60 font-mono text-[11px] text-slate-200"
-              >
-                <div>Mode: {persistenceContext.mode}</div>
-                <div>Project ID: {persistenceContext.projectId ?? '—'}</div>
-                <div>Estimate ID: {persistenceContext.estimateId ?? '—'}</div>
-                <div>Can Persist: {persistenceContext.canPersist ? 'yes' : 'no'}</div>
-                <div>Schema Version: 1</div>
-                <div>Geometry Revision: {designGeometryState.revision}</div>
-                <div>Dirty State: {saveState}</div>
-                <div>Last Save Time: {lastSaveTime ?? '—'}</div>
-                <div>Last Save Error: {lastSaveError ?? '—'}</div>
-              </DraggableDebugOverlay>
-            ) : null}
-            {import.meta.env.DEV && showGableRakeGeometry ? (
-              <DraggableDebugOverlay
-                id="gable-rake-geometry"
-                title="Gable Rake Geometry"
-                titleClassName="text-amber-300"
-                className="border-amber-400/60 font-mono text-[11px] text-slate-200"
-              >
-                <div className="mt-1 text-[10px] text-slate-400">
-                  Teal: purlin bottom (cap top) · Yellow: CMU 4-in ceiling · Gray: raked cap · Orange: gable CMU
-                </div>
-                {(designGeometryResult.resolvedRoofSystem?.gableEnds ?? []).map((gableEnd) => {
-                  const caps = gableEnd.rakedCapPlacements;
-                  const capVolume = caps.reduce((sum, cap) => sum + cap.concreteVolumeCubicMeters, 0);
-                  const capLength = caps.reduce(
-                    (sum, cap) => sum + (cap.endStationMeters - cap.startStationMeters),
-                    0,
-                  );
-                  const minDepth = caps.reduce((min, cap) => {
-                    const startDepth = cap.startTopY - cap.startBottomY;
-                    const endDepth = cap.endTopY - cap.endBottomY;
-                    return Math.min(min, startDepth, endDepth);
-                  }, Number.POSITIVE_INFINITY);
-                  const cutBlocks = gableEnd.cmuUnitPlacements.filter(
-                    (block) => block.blockType === 'cut' || block.kind === 'cut_block',
-                  ).length;
-                  const sampleCap = caps[0];
-                  return (
-                    <div key={gableEnd.hostSegmentId} className="mt-2 border-t border-slate-700 pt-2">
-                      <div>Gable Segment: {gableEnd.hostSegmentId.slice(0, 8)}…</div>
-                      <div>
-                        Minimum Rake Cap Depth:{' '}
-                        {(resolvedPreset.roofSystem?.gable.rakeClearanceMeters ?? 0.1016).toFixed(3)} m
-                      </div>
-                      <div>
-                        Actual Minimum Cap Depth:{' '}
-                        {Number.isFinite(minDepth) ? minDepth.toFixed(3) : '—'} m
-                      </div>
-                      {sampleCap ? (
-                        <>
-                          <div>Cap Top (sample): {sampleCap.startTopY.toFixed(3)} m</div>
-                          <div>CMU Envelope (sample): {sampleCap.startBottomY.toFixed(3)} m</div>
-                          <div>
-                            Actual Cap Depth (sample):{' '}
-                            {(sampleCap.startTopY - sampleCap.startBottomY).toFixed(3)} m
-                          </div>
-                          <div>
-                            Roof-to-Cap Clearance (sample):{' '}
-                            {(0.002).toFixed(3)} m target
-                          </div>
-                        </>
-                      ) : null}
-                      <div>Raked Cap Volume: {capVolume.toFixed(3)} m³</div>
-                      <div>Raked Cap Linear Length: {capLength.toFixed(2)} m</div>
-                      <div>CMU Courses Resolved: {gableEnd.masonryCourses.length}</div>
-                      <div>Cut Blocks Used: {cutBlocks}</div>
-                    </div>
-                  );
-                })}
               </DraggableDebugOverlay>
             ) : null}
             </DebugOverlayLayoutProvider>
@@ -5363,6 +5096,46 @@ function TextField({
         className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none dark:border-slate-700 dark:bg-slate-950"
       />
     </label>
+  );
+}
+
+function DisplayMenuCollapsibleSection({
+  id,
+  title,
+  defaultOpen = false,
+  children,
+}: {
+  id: string;
+  title: string;
+  defaultOpen?: boolean;
+  children: ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+
+  return (
+    <div className="border-t border-slate-200 pt-1 dark:border-slate-700">
+      <button
+        type="button"
+        id={`${id}-header`}
+        aria-expanded={open}
+        aria-controls={`${id}-panel`}
+        onClick={(event) => {
+          event.stopPropagation();
+          setOpen((current) => !current);
+        }}
+        className="flex w-full items-center justify-between rounded px-1 py-1.5 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800"
+      >
+        <span>{title}</span>
+        <span aria-hidden className="text-[10px]">
+          {open ? '▾' : '▸'}
+        </span>
+      </button>
+      {open ? (
+        <div id={`${id}-panel`} className="space-y-1 pb-1">
+          {children}
+        </div>
+      ) : null}
+    </div>
   );
 }
 

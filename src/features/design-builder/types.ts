@@ -557,6 +557,7 @@ export interface RoofSystemSettings {
   steelTrusses: {
     enabled: boolean;
     maxSpacingMeters: number;
+    hipInteriorTrussCount: number;
     profileLabel: string;
     webSteelAllowanceFactor: number;
     basePlateEnabled: boolean;
@@ -648,6 +649,7 @@ export type HipFramingMemberKind =
   | 'hip'
   | 'common'
   | 'jack'
+  | 'hip_corner_support'
   | 'ridge_end_frame'
   | 'ridge_end_frame_web'
   | 'ridge_end_frame_bottom';

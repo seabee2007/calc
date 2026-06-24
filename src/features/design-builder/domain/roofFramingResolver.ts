@@ -151,10 +151,6 @@ function normalize3(v: RoofVec3): RoofVec3 {
   return { x: v.x / len, y: v.y / len, z: v.z / len };
 }
 
-function dot3(a: RoofVec3, b: RoofVec3): number {
-  return a.x * b.x + a.y * b.y + a.z * b.z;
-}
-
 function cross3(a: RoofVec3, b: RoofVec3): RoofVec3 {
   return {
     x: a.y * b.z - a.z * b.y,
@@ -1459,13 +1455,13 @@ function resolveHipFramingMembers(params: {
   roofBeamTopY: number;
   claddingEaveY: number;
   maxSpacingMeters: number;
+  hipInteriorTrussCount: number;
   ridgeStart?: RoofVec3;
   ridgeEnd?: RoofVec3;
   peakPoint?: RoofVec3;
 }): HipFramingMember[] {
   const structuralEaveY = params.roofBeamTopY;
   const framingEaveY = params.claddingEaveY;
-  const corners = params.structuralBearing.map((point) => toVec3(point, structuralEaveY));
   const framingCorners = params.claddingBearing.map((point) => toVec3(point, framingEaveY));
   const members: HipFramingMember[] = [];
 
@@ -1533,8 +1529,64 @@ function resolveHipFramingMembers(params: {
     { start: structuralSideAStart, end: structuralSideAEnd, id: 'a' },
     { start: structuralSideBStart, end: structuralSideBEnd, id: 'b' },
   ];
+  const hipInteriorTrussCount = Number.isFinite(params.hipInteriorTrussCount)
+    ? Math.max(0, Math.round(params.hipInteriorTrussCount))
+    : 0;
 
   const perpUnit = normalize2({ x: -ridgeUnit.z, z: ridgeUnit.x });
+  const addRidgeSupportFrame = (frameId: string, ridgePoint: RoofVec3) => {
+    const ridgePoint2 = { x: ridgePoint.x, z: ridgePoint.z };
+    const sideBearingPoints = (edges: typeof sideEdges) =>
+      edges
+      .map((side, sideIndex) =>
+        intersectRayWithSegment2D(
+          ridgePoint2,
+          sideIndex === 0 ? perpUnit : scale2(perpUnit, -1),
+          side.start,
+          side.end,
+        ) ??
+        intersectRayWithSegment2D(
+          ridgePoint2,
+          sideIndex === 0 ? scale2(perpUnit, -1) : perpUnit,
+          side.start,
+          side.end,
+        ),
+      )
+      .filter((point): point is PlanVec2 => point != null);
+    const structuralBearings = sideBearingPoints(structuralSideEdges);
+    const eaveBearings = sideBearingPoints(sideEdges);
+    if (structuralBearings.length !== 2 || eaveBearings.length !== 2) return;
+    const left = hipMemberCenterlinePoint(toVec3(structuralBearings[0]!, structuralEaveY));
+    const right = hipMemberCenterlinePoint(toVec3(structuralBearings[1]!, structuralEaveY));
+    const leftTopChordStart = hipMemberCenterlinePoint(toVec3(eaveBearings[0]!, framingEaveY));
+    const rightTopChordStart = hipMemberCenterlinePoint(toVec3(eaveBearings[1]!, framingEaveY));
+    const apex = hipMemberCenterlinePoint(ridgePoint);
+    addHipFramingMember(members, {
+      id: `${frameId}-left`,
+      start: leftTopChordStart,
+      end: apex,
+      memberKind: 'ridge_end_frame',
+    });
+    addHipFramingMember(members, {
+      id: `${frameId}-right`,
+      start: rightTopChordStart,
+      end: apex,
+      memberKind: 'ridge_end_frame',
+    });
+    addHipFramingMember(members, {
+      id: `${frameId}-bottom`,
+      start: left,
+      end: right,
+      memberKind: 'ridge_end_frame_bottom',
+    });
+    addHipFramingMember(members, {
+      id: `${frameId}-web`,
+      start: lerpVec3(left, right, 0.5),
+      end: apex,
+      memberKind: 'ridge_end_frame_web',
+    });
+  };
+
   const commonStations = stationsAlongSegment(ridgeLength, params.maxSpacingMeters, false);
   for (const station of commonStations) {
     const ridgePoint2 = add2(ridgeStart2, scale2(ridgeUnit, station));
@@ -1558,52 +1610,13 @@ function resolveHipFramingMembers(params: {
   }
 
   for (const [endIndex, ridgePoint] of ridgeEnds.entries()) {
-    const ridgePoint2 = { x: ridgePoint.x, z: ridgePoint.z };
-    const sideBearings = structuralSideEdges
-      .map((side, sideIndex) =>
-        intersectRayWithSegment2D(
-          ridgePoint2,
-          sideIndex === 0 ? perpUnit : scale2(perpUnit, -1),
-          side.start,
-          side.end,
-        ) ??
-        intersectRayWithSegment2D(
-          ridgePoint2,
-          sideIndex === 0 ? scale2(perpUnit, -1) : perpUnit,
-          side.start,
-          side.end,
-        ),
-      )
-      .filter((point): point is PlanVec2 => point != null);
-    if (sideBearings.length !== 2) continue;
-    const left = hipMemberCenterlinePoint(toVec3(sideBearings[0]!, structuralEaveY));
-    const right = hipMemberCenterlinePoint(toVec3(sideBearings[1]!, structuralEaveY));
-    const apex = hipMemberCenterlinePoint(ridgePoint);
     const frameId = endIndex === 0 ? 'start' : 'end';
-    addHipFramingMember(members, {
-      id: `hip-ridge-end-frame-${frameId}-left`,
-      start: left,
-      end: apex,
-      memberKind: 'ridge_end_frame',
-    });
-    addHipFramingMember(members, {
-      id: `hip-ridge-end-frame-${frameId}-right`,
-      start: right,
-      end: apex,
-      memberKind: 'ridge_end_frame',
-    });
-    addHipFramingMember(members, {
-      id: `hip-ridge-end-frame-${frameId}-bottom`,
-      start: left,
-      end: right,
-      memberKind: 'ridge_end_frame_bottom',
-    });
-    addHipFramingMember(members, {
-      id: `hip-ridge-end-frame-${frameId}-web`,
-      start: lerpVec3(left, right, 0.5),
-      end: apex,
-      memberKind: 'ridge_end_frame_web',
-    });
+    addRidgeSupportFrame(`hip-ridge-end-frame-${frameId}`, ridgePoint);
+  }
+
+  for (let index = 1; index <= hipInteriorTrussCount; index += 1) {
+    const fraction = index / (hipInteriorTrussCount + 1);
+    addRidgeSupportFrame(`hip-ridge-interior-frame-${index}`, lerpVec3(ridgeStart, ridgeEnd, fraction));
   }
 
   for (const side of sideEdges) {
@@ -1658,6 +1671,33 @@ function resolveHipFramingMembers(params: {
       if (!hit) continue;
       const hipStart = hit === hitA ? edgeStart : edgeEnd;
       const end = interpolateRoofMemberPoint(toVec3(hipStart, framingEaveY), ridgePoint, hit);
+      const lowerSideEdge = sideEdges.find(
+        (side) =>
+          planDistance(side.start, hipStart) < 0.01 ||
+          planDistance(side.end, hipStart) < 0.01,
+      );
+      const lowerStart = (() => {
+        if (!lowerSideEdge) {
+          return eavePoint;
+        }
+        const sideInward = normalize2(sub2(ridgeMid, midpoint2(lowerSideEdge.start, lowerSideEdge.end)));
+        return (
+          intersectRayWithSegment2D(
+            hit,
+            scale2(sideInward, -1),
+            lowerSideEdge.start,
+            lowerSideEdge.end,
+          ) ?? eavePoint
+        );
+      })();
+      if (lowerSideEdge) {
+        addHipFramingMember(members, {
+          id: `hip-corner-support-${frameId}-${station.toFixed(3)}`,
+          start: hipMemberCenterlinePoint(toVec3(lowerStart, framingEaveY)),
+          end: hipMemberCenterlinePoint(end),
+          memberKind: 'hip_corner_support',
+        });
+      }
       addHipFramingMember(members, {
         id: `hip-jack-end-${frameId}-${station.toFixed(3)}`,
         start: hipMemberCenterlinePoint(toVec3(eavePoint, framingEaveY)),
@@ -1765,6 +1805,7 @@ export function resolveRoofFraming(params: {
         sideEaveOverhangMeters: params.sideEaveOverhangMeters,
       }),
       maxSpacingMeters: params.settings.steelTrusses.maxSpacingMeters,
+      hipInteriorTrussCount: params.settings.steelTrusses.hipInteriorTrussCount,
       ridgeStart: structuralRidgeStart,
       ridgeEnd: structuralRidgeEnd,
       peakPoint: params.peakPoint,

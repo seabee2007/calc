@@ -866,6 +866,17 @@ export default function FrameFoundationDimensionsModal({
                   />
                 </>
               ) : null}
+              {roofDraft.roofType === 'hip' ? (
+                <ModalNumberField
+                  label="Number of Trusses"
+                  value={roofDraft.steelTrusses.hipInteriorTrussCount}
+                  suffix="EA"
+                  min={0}
+                  onChange={(value) =>
+                    patchSteelTrusses({ hipInteriorTrussCount: Math.max(0, Math.round(value)) })
+                  }
+                />
+              ) : null}
               <ToggleRow
                 label="Purlins Enabled"
                 checked={roofDraft.purlins.enabled}

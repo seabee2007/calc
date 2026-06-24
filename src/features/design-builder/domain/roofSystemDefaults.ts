@@ -23,6 +23,7 @@ export function createDefaultRoofSystemSettings(): RoofSystemSettings {
     steelTrusses: {
       enabled: true,
       maxSpacingMeters: 2.4,
+      hipInteriorTrussCount: 0,
       profileLabel: 'Conceptual steel truss',
       webSteelAllowanceFactor: 0.35,
       basePlateEnabled: true,
@@ -84,6 +85,12 @@ export function normalizeRoofSystemSettings(
     gableInput.capDepthMeters ??
     defaults.gable.rakedConcreteCapDepthMeters;
   const rakedConcreteCapDepthMeters = rakedConcreteCapWallDepthMeters;
+  const steelTrussesInput = input.steelTrusses ?? {};
+  const rawHipInteriorTrussCount =
+    steelTrussesInput.hipInteriorTrussCount ?? defaults.steelTrusses.hipInteriorTrussCount;
+  const hipInteriorTrussCount = Number.isFinite(rawHipInteriorTrussCount)
+    ? Math.max(0, Math.round(rawHipInteriorTrussCount))
+    : defaults.steelTrusses.hipInteriorTrussCount;
 
   return {
     ...defaults,
@@ -91,7 +98,7 @@ export function normalizeRoofSystemSettings(
     eaveOverhangMeters,
     gableEndOverhangMeters,
     supportSystem: resolvedSupportSystem,
-    steelTrusses: { ...defaults.steelTrusses, ...input.steelTrusses },
+    steelTrusses: { ...defaults.steelTrusses, ...steelTrussesInput, hipInteriorTrussCount },
     purlins: { ...defaults.purlins, ...input.purlins },
     corrugatedMetal: { ...defaults.corrugatedMetal, ...input.corrugatedMetal },
     gable: {
