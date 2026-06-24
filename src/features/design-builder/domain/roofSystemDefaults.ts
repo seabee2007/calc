@@ -4,6 +4,7 @@ import { DEFAULT_ROOF_TO_MASONRY_CLEARANCE_METERS } from './structuralFrameDefau
 export const DEFAULT_ROOF_LAYER_VISIBILITY: RoofLayerVisibility = {
   roofCladding: true,
   ridgeCap: true,
+  fascia: true,
   steelTrusses: true,
   purlins: true,
   gableEndCmu: true,
@@ -43,6 +44,11 @@ export function createDefaultRoofSystemSettings(): RoofSystemSettings {
       wastePercent: 10,
       ridgeCapEnabled: true,
       ridgeCapLapAllowancePercent: 10,
+    },
+    fascia: {
+      enabled: false,
+      profileLabel: 'Metal fascia trim',
+      bottomExtensionBelowFrameMeters: 0.0254,
     },
     gable: {
       enabled: true,
@@ -91,6 +97,12 @@ export function normalizeRoofSystemSettings(
   const hipInteriorTrussCount = Number.isFinite(rawHipInteriorTrussCount)
     ? Math.max(0, Math.round(rawHipInteriorTrussCount))
     : defaults.steelTrusses.hipInteriorTrussCount;
+  const fasciaInput = input.fascia ?? {};
+  const rawFasciaBottomExtension =
+    fasciaInput.bottomExtensionBelowFrameMeters ?? defaults.fascia.bottomExtensionBelowFrameMeters;
+  const fasciaBottomExtension = Number.isFinite(rawFasciaBottomExtension)
+    ? Math.max(0, rawFasciaBottomExtension)
+    : defaults.fascia.bottomExtensionBelowFrameMeters;
 
   return {
     ...defaults,
@@ -101,6 +113,11 @@ export function normalizeRoofSystemSettings(
     steelTrusses: { ...defaults.steelTrusses, ...steelTrussesInput, hipInteriorTrussCount },
     purlins: { ...defaults.purlins, ...input.purlins },
     corrugatedMetal: { ...defaults.corrugatedMetal, ...input.corrugatedMetal },
+    fascia: {
+      ...defaults.fascia,
+      ...fasciaInput,
+      bottomExtensionBelowFrameMeters: fasciaBottomExtension,
+    },
     gable: {
       ...defaults.gable,
       ...gableInput,

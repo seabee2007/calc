@@ -20,6 +20,7 @@ import {
   describeGableEndRoofingClosureBlockReason,
   totalGableEndRoofingClosureAreaSquareMeters,
 } from '../domain/gableEndRoofingClosureSolver';
+import { totalRoofFasciaLengthMeters } from '../domain/roofFasciaSolver';
 import { resolveRoofSystem } from '../domain/roofSystemResolver';
 import { resolveOuterRoofBeamBearingLoop } from '../domain/roofFootprintSupport';
 import { reconcileStructuralFrameWithFoundation } from '../domain/structuralFrameLayout';
@@ -410,6 +411,10 @@ export default function FrameFoundationDimensionsModal({
 
   function patchCorrugatedMetal(patch: Partial<RoofSystemSettings['corrugatedMetal']>) {
     setRoofDraft((current) => ({ ...current, corrugatedMetal: { ...current.corrugatedMetal, ...patch } }));
+  }
+
+  function patchFascia(patch: Partial<RoofSystemSettings['fascia']>) {
+    setRoofDraft((current) => ({ ...current, fascia: { ...current.fascia, ...patch } }));
   }
 
   function patchGable(patch: Partial<RoofSystemSettings['gable']>) {
@@ -932,6 +937,18 @@ export default function FrameFoundationDimensionsModal({
                 suffix="%"
                 onChange={(value) => patchCorrugatedMetal({ ridgeCapLapAllowancePercent: positiveOrFallback(value, 10) })}
               />
+              <ToggleRow
+                label="Fascia Trim Enabled"
+                checked={roofDraft.fascia.enabled}
+                onChange={(checked) => patchFascia({ enabled: checked })}
+              />
+              {roofDraft.fascia.enabled ? (
+                <p className={`text-xs ${TEXT_MUTED}`}>
+                  Preview: {resolvedRoof.fasciaPlacements.length} fascia trim
+                  {resolvedRoof.fasciaPlacements.length === 1 ? '' : 's'},{' '}
+                  {totalRoofFasciaLengthMeters(resolvedRoof.fasciaPlacements).toFixed(2)} m.
+                </p>
+              ) : null}
             </CollapsibleSection>
 
             {roofDraft.roofType === 'gable' ? (

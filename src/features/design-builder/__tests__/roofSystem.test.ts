@@ -20,8 +20,16 @@ import { createOutsideFaceRectangleLayout } from '../domain/wallLayoutRules';
 import { normalizeRcFrameFoundationSettings } from '../domain/rcFrameFoundationMigration';
 import { buildDesignGeometryInputFromLayout, generateDesignGeometry, getSegmentFramesForWallLayout } from '../geometry/designGeometry';
 import { projectPointToSegmentStation } from '../domain/openingPlacementResolver';
-import { buildFrameInfillEstimatePreview, cubicMetersToCubicYards } from '../quantity/designQuantityFormulas';
+import { buildFrameInfillEstimatePreview, cubicMetersToCubicYards, metersToFeet } from '../quantity/designQuantityFormulas';
 import { resolveEaveRunExtensionMeters, ridgeLengthMeters } from '../domain/roofOverhangSupport';
+import {
+  PURLIN_PROFILE_DEPTH_METERS,
+  PURLIN_TO_CHORD_CLEARANCE_METERS,
+  PURLIN_TO_SHEET_CLEARANCE_METERS,
+  ROOF_SHEET_EAVE_OVERHANG_METERS,
+  TRUSS_CHORD_PROFILE_METERS,
+} from '../domain/roofFramingResolver';
+import { totalRoofFasciaLengthMeters } from '../domain/roofFasciaSolver';
 import type { ResolvedRoofSystem, RoofPlane, RoofSystemSettings, RoofVec3 } from '../types';
 
 function resolveRoofFromPreset(
@@ -214,6 +222,21 @@ describe('Roof system — hip, gable, raked cap', () => {
 
   it('defaults rake clearance to 0.1016 m (4 in)', () => {
     expect(createDefaultRoofSystemSettings().gable.rakeClearanceMeters).toBe(0.1016);
+  });
+
+  it('defaults fascia trim off with a one-inch frame drop', () => {
+    const defaults = createDefaultRoofSystemSettings();
+    expect(defaults.fascia.enabled).toBe(false);
+    expect(defaults.fascia.bottomExtensionBelowFrameMeters).toBeCloseTo(0.0254, 6);
+    const normalized = normalizeRoofSystemSettings({
+      fascia: {
+        ...defaults.fascia,
+        enabled: true,
+        bottomExtensionBelowFrameMeters: -0.2,
+      },
+    });
+    expect(normalized.fascia.enabled).toBe(true);
+    expect(normalized.fascia.bottomExtensionBelowFrameMeters).toBe(0);
   });
 
   it('hip roof on a rectangle creates four roof faces and no gable-end CMU', () => {
@@ -810,6 +833,40 @@ describe('Roof system — hip, gable, raked cap', () => {
     expect(preview.some((line) => line.id === 'rc-roof-beams-volume')).toBe(true);
   });
 
+  it('adds fascia trim as a separate roof linear quantity when enabled', () => {
+    const roofSystem = gableRoofSystem({
+      fascia: { ...createDefaultRoofSystemSettings().fascia, enabled: true },
+    });
+    const geometry = frameInfillGeometry(roofSystem);
+    const fasciaMeters = totalRoofFasciaLengthMeters(geometry.resolvedRoofSystem?.fasciaPlacements ?? []);
+    const preview = buildFrameInfillEstimatePreview({
+      designModelId: 'test-model',
+      wallObjectId: 'wall',
+      slabObjectId: 'slab',
+      roofObjectId: 'roof',
+      trussObjectId: 'truss',
+      frameObjectId: 'frame',
+      infillObjectId: 'infill',
+      gableEndObjectId: 'gable',
+      wall: preset.wall,
+      slab: preset.slab,
+      roof: preset.roof,
+      truss: preset.truss,
+      buildingSystemMode: 'reinforced_concrete_frame_with_cmu_infill',
+      frameSystem: preset.frameSystem,
+      infillSystem: preset.infillSystem,
+      gableEndSystem: preset.gableEndSystem,
+      geometryResult: geometry,
+      roofSystem,
+    });
+    const fasciaLine = preview.find((line) => line.id === 'fascia-trim');
+    expect(fasciaLine).toBeDefined();
+    expect(fasciaLine?.quantityType).toBe('roof_fascia_trim_length');
+    expect(fasciaLine?.unit).toBe('LF');
+    expect(fasciaLine?.quantity).toBeCloseTo(metersToFeet(fasciaMeters), 2);
+    expect(fasciaLine?.parameterSnapshot.fasciaLinearMeters).toBeCloseTo(fasciaMeters, 6);
+  });
+
   it('unsupported footprints show warning instead of invalid geometry', () => {
     const openLayout = {
       ...preset.wallLayout,
@@ -908,6 +965,39 @@ describe('Gable-end / rake overhang', () => {
     expect(ridgeLengthMeters(ridgeCorners[0]!, ridgeCorners[1] ?? ridgeCorners[0]!)).toBeGreaterThan(0);
   });
 
+  it('gable roof sheets overhang the fascia support perimeter by one inch', () => {
+    const roofSystem = gableRoofSystem({
+      ridgeDirection: 'along_longest_axis',
+      eaveOverhangMeters: 0.3,
+      gableEndOverhangMeters: 0.6,
+      fascia: { ...createDefaultRoofSystemSettings().fascia, enabled: true },
+    });
+    const roof = resolveRoofFromPreset(preset, roofSystem, wallFootprint);
+    const supportMaxX = Math.max(...roof.claddingPerimeter.map((point) => Math.abs(point.x)));
+    const supportMaxZ = Math.max(...roof.claddingPerimeter.map((point) => Math.abs(point.z)));
+    const sheetMaxX = Math.max(...roof.roofSheetPerimeter.map((point) => Math.abs(point.x)));
+    const sheetMaxZ = Math.max(...roof.roofSheetPerimeter.map((point) => Math.abs(point.z)));
+    const fasciaMaxX = Math.max(
+      ...roof.fasciaPlacements.flatMap((placement) => [
+        Math.abs(placement.topStart.x),
+        Math.abs(placement.topEnd.x),
+      ]),
+    );
+    const fasciaMaxZ = Math.max(
+      ...roof.fasciaPlacements.flatMap((placement) => [
+        Math.abs(placement.topStart.z),
+        Math.abs(placement.topEnd.z),
+      ]),
+    );
+
+    expect(sheetMaxX - supportMaxX).toBeCloseTo(ROOF_SHEET_EAVE_OVERHANG_METERS, 3);
+    expect(sheetMaxZ - supportMaxZ).toBeCloseTo(ROOF_SHEET_EAVE_OVERHANG_METERS, 3);
+    expect(fasciaMaxX).toBeCloseTo(supportMaxX, 2);
+    expect(fasciaMaxZ).toBeCloseTo(supportMaxZ, 2);
+    expect(sheetMaxX - fasciaMaxX).toBeCloseTo(ROOF_SHEET_EAVE_OVERHANG_METERS, 2);
+    expect(sheetMaxZ - fasciaMaxZ).toBeCloseTo(ROOF_SHEET_EAVE_OVERHANG_METERS, 2);
+  });
+
   it('gable CMU stops at structural gable faces', () => {
     const geometry = frameInfillGeometry(
       gableRoofSystem({ gableEndOverhangMeters: 0.6, ridgeDirection: 'along_longest_axis' }),
@@ -942,6 +1032,41 @@ describe('Gable-end / rake overhang', () => {
     expect(roof.ridgeCapPlacement).toBeDefined();
     expect(roof.ridgeCapPlacement!.start.y).toBeCloseTo(roof.ridgeCapPlacement!.end.y, 3);
     expect(roof.ridgeCapPlacement!.thicknessMeters).toBeLessThan(0.05);
+  });
+
+  it('fascia trim follows gable eaves and rakes below structural frame ends', () => {
+    const roofSystem = gableRoofSystem({
+      ridgeDirection: 'along_longest_axis',
+      eaveOverhangMeters: 0.3,
+      gableEndOverhangMeters: 0.6,
+      fascia: { ...createDefaultRoofSystemSettings().fascia, enabled: true },
+    });
+    const roof = resolveRoofFromPreset(preset, roofSystem, wallFootprint);
+    const sideEaves = roof.fasciaPlacements.filter((placement) => placement.edgeRole === 'side_eave');
+    const gableRakes = roof.fasciaPlacements.filter((placement) => placement.edgeRole === 'gable_rake');
+    expect(roof.fasciaPlacements).toHaveLength(6);
+    expect(sideEaves).toHaveLength(2);
+    expect(gableRakes).toHaveLength(4);
+    for (const sideEave of sideEaves) {
+      expect(sideEave.lengthMeters).toBeCloseTo(roof.claddingRidgeLengthMeters, 2);
+    }
+
+    const frameStackAlongRoofNormal =
+      TRUSS_CHORD_PROFILE_METERS +
+      PURLIN_TO_CHORD_CLEARANCE_METERS +
+      PURLIN_PROFILE_DEPTH_METERS +
+      PURLIN_TO_SHEET_CLEARANCE_METERS;
+    for (const placement of roof.fasciaPlacements) {
+      const expectedFrameDepth = frameStackAlongRoofNormal * Math.max(0, placement.outwardNormal.y);
+      expect(placement.faceDepthMeters).toBeCloseTo(
+        expectedFrameDepth + roofSystem.fascia.bottomExtensionBelowFrameMeters,
+        6,
+      );
+      expect(placement.topStart.y - placement.bottomStart.y).toBeCloseTo(placement.faceDepthMeters, 6);
+      expect(placement.topEnd.y - placement.bottomEnd.y).toBeCloseTo(placement.faceDepthMeters, 6);
+      expect(placement.bottomStart.y).toBeLessThan(placement.topStart.y - expectedFrameDepth);
+      expect(placement.bottomEnd.y).toBeLessThan(placement.topEnd.y - expectedFrameDepth);
+    }
   });
 
   it('does not add truss stations in gable-end overhang zones', () => {

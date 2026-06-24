@@ -41,6 +41,7 @@ import {
 } from './roofFramingResolver';
 import type { SegmentFrame } from '../geometry/designGeometry';
 import { resolveGableEndRoofingClosures } from './gableEndRoofingClosureSolver';
+import { resolveRoofFasciaPlacements } from './roofFasciaSolver';
 
 const ROOF_RENDER_EPSILON_METERS = 0.001;
 
@@ -725,6 +726,7 @@ export function resolveRoofSystem(params: {
     rakedCapVolumeCubicMeters: 0,
     gableEnds: [],
     gableEndRoofingClosures: [],
+    fasciaPlacements: [],
     warnings: [],
   };
 
@@ -875,6 +877,35 @@ export function resolveRoofSystem(params: {
     ridgeLengthMeters: ridgeLengthMetersValue,
   });
 
+  const gableSheetEaveOverhangMeters =
+    settings.eaveOverhangMeters + ROOF_SHEET_EAVE_OVERHANG_METERS;
+  const gableSheetEndOverhangMeters =
+    settings.gableEndOverhangMeters + ROOF_SHEET_EAVE_OVERHANG_METERS;
+  const gableSheetLoop =
+    settings.roofType === 'gable' && settings.purlins.enabled && framing.purlinPlacements.length > 0
+      ? resolveCladdingPerimeterWithOverhangs({
+          bearingPerimeter: bearingLoop,
+          ridgeAxis: activeRidgeAxis,
+          eaveOverhangMeters: gableSheetEaveOverhangMeters,
+          gableEndOverhangMeters: gableSheetEndOverhangMeters,
+        })
+      : null;
+  const gableSheet =
+    gableSheetLoop != null
+      ? buildGableRoofPlanes({
+          ridgeAxis,
+          analysis,
+          bearing: bearingLoop,
+          cladding: gableSheetLoop,
+          roofBeamTopY,
+          peakY,
+          gableEndOverhangMeters: gableSheetEndOverhangMeters,
+          sideEaveOverhangMeters: gableSheetEaveOverhangMeters,
+          fixedRoofSlope: fixedRoofPitch.slope,
+        })
+      : null;
+  const gableSheetTopPlanes = gableSheet?.topPlanes ?? null;
+
   const hipSheetEaveOverhangMeters =
     settings.eaveOverhangMeters +
     ROOF_SHEET_EAVE_OVERHANG_METERS +
@@ -886,7 +917,7 @@ export function resolveRoofSystem(params: {
           hipSheetEaveOverhangMeters,
         )
       : null;
-  const roofSheetPerimeter = emptyPerimeterVec3(hipSheetLoop ?? claddingLoop);
+  const roofSheetPerimeter = emptyPerimeterVec3(gableSheetLoop ?? hipSheetLoop ?? claddingLoop);
 
   const hipSheet =
     settings.roofType === 'hip' && settings.purlins.enabled && framing.purlinPlacements.length > 0
@@ -902,31 +933,40 @@ export function resolveRoofSystem(params: {
         })
       : null;
   const hipSheetTopPlanes = hipSheet?.topPlanes ?? null;
+  const sheetTopPlanes = gableSheetTopPlanes ?? hipSheetTopPlanes ?? null;
+  const displayRidgeStart =
+    settings.roofType === 'gable'
+      ? (gableSheet?.claddingRidgeStart ?? claddingRidgeStart ?? ridgeStart)
+      : undefined;
+  const displayRidgeEnd =
+    settings.roofType === 'gable'
+      ? (gableSheet?.claddingRidgeEnd ?? claddingRidgeEnd ?? ridgeEnd)
+      : undefined;
 
   const claddingDisplayPlanes =
     settings.purlins.enabled && framing.purlinPlacements.length > 0
       ? buildCladdingDisplayPlanes({
-          structuralPlanes: hipSheetTopPlanes ?? topPlanes,
+          structuralPlanes: sheetTopPlanes ?? topPlanes,
           trussPlacements: framing.trussPlacements,
           purlinPlacements: framing.purlinPlacements,
           peakY,
-          claddingRidgeStart: settings.roofType === 'gable' ? (claddingRidgeStart ?? ridgeStart) : undefined,
-          claddingRidgeEnd: settings.roofType === 'gable' ? (claddingRidgeEnd ?? ridgeEnd) : undefined,
+          claddingRidgeStart: displayRidgeStart,
+          claddingRidgeEnd: displayRidgeEnd,
         })
       : topPlanes.map((plane) => ({ ...plane }));
 
   const ridgeCapRidgeStart =
-    claddingRidgeStart && claddingDisplayPlanes.length > 0
+    (displayRidgeStart ?? claddingRidgeStart) && claddingDisplayPlanes.length > 0
       ? claddingRidgePointOnDisplayPlanes({
           displayPlanes: claddingDisplayPlanes,
-          ridgePoint: claddingRidgeStart,
+          ridgePoint: displayRidgeStart ?? claddingRidgeStart!,
         })
       : claddingRidgeStart;
   const ridgeCapRidgeEnd =
-    claddingRidgeEnd && claddingDisplayPlanes.length > 0
+    (displayRidgeEnd ?? claddingRidgeEnd) && claddingDisplayPlanes.length > 0
       ? claddingRidgePointOnDisplayPlanes({
           displayPlanes: claddingDisplayPlanes,
-          ridgePoint: claddingRidgeEnd,
+          ridgePoint: displayRidgeEnd ?? claddingRidgeEnd!,
         })
       : claddingRidgeEnd;
 
@@ -940,7 +980,7 @@ export function resolveRoofSystem(params: {
   });
   const hipRidgeCapPlacements = resolveHipRidgeCapPlacements({
     roofType: settings.roofType,
-    sourcePlanes: hipSheetTopPlanes ?? topPlanes,
+    sourcePlanes: sheetTopPlanes ?? topPlanes,
     displayPlanes: claddingDisplayPlanes,
     roofPitchRadians: fixedRoofPitch.pitchRadians,
     enabled: settings.corrugatedMetal.enabled && settings.corrugatedMetal.ridgeCapEnabled,
@@ -966,6 +1006,11 @@ export function resolveRoofSystem(params: {
       claddingDisplayPlanes,
       purlinPlacements: framing.purlinPlacements,
     },
+  });
+  const fasciaPlacements = resolveRoofFasciaPlacements({
+    roofSystem: settings,
+    claddingDisplayPlanes,
+    supportRoofTopPlanes: topPlanes,
   });
 
   return {
@@ -1014,6 +1059,7 @@ export function resolveRoofSystem(params: {
     rakedCapVolumeCubicMeters: 0,
     gableEnds: [],
     gableEndRoofingClosures,
+    fasciaPlacements,
     warnings,
   };
 }

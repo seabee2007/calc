@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import type {
+  FasciaPlacement,
   RakedCapPlacement,
   RoofSystemSettings,
   SteelMemberKind,
@@ -13,6 +14,8 @@ import {
   PURLIN_PROFILE_WIDTH_METERS,
   TRUSS_CHORD_PROFILE_METERS,
 } from '../domain/roofFramingResolver';
+
+export type PurlinMeshProfile = 'roof_normal' | 'vertical_eave';
 
 export function createMemberBetween(
   start: THREE.Vector3,
@@ -186,6 +189,7 @@ export function buildPurlinMesh(params: {
   end: THREE.Vector3;
   planeNormal: THREE.Vector3;
   material: THREE.Material;
+  profile?: PurlinMeshProfile;
 }): THREE.Mesh {
   const direction = params.end.clone().sub(params.start);
   const length = direction.length();
@@ -194,6 +198,10 @@ export function buildPurlinMesh(params: {
       new THREE.BoxGeometry(PURLIN_PROFILE_WIDTH_METERS, PURLIN_PROFILE_WIDTH_METERS, PURLIN_PROFILE_DEPTH_METERS),
       params.material,
     );
+  }
+
+  if (params.profile === 'vertical_eave') {
+    return buildVerticalEavePurlinMesh(params);
   }
 
   const runAxis = direction.clone().normalize();
@@ -226,6 +234,132 @@ export function buildPurlinMesh(params: {
   return mesh;
 }
 
+function buildVerticalEavePurlinMesh(params: {
+  start: THREE.Vector3;
+  end: THREE.Vector3;
+  planeNormal: THREE.Vector3;
+  material: THREE.Material;
+}): THREE.Mesh {
+  let normal = params.planeNormal.clone();
+  if (normal.lengthSq() <= 1e-8) {
+    normal.set(0, 1, 0);
+  } else {
+    normal.normalize();
+  }
+  if (normal.y < 0) {
+    normal.negate();
+  }
+
+  const runAxis = params.end.clone().sub(params.start);
+  runAxis.y = 0;
+  if (runAxis.lengthSq() <= 1e-8) {
+    runAxis.copy(params.end).sub(params.start);
+  }
+  if (runAxis.lengthSq() <= 1e-8) {
+    runAxis.set(1, 0, 0);
+  } else {
+    runAxis.normalize();
+  }
+
+  let outboardAxis = new THREE.Vector3().crossVectors(runAxis, normal);
+  outboardAxis.y = 0;
+  if (outboardAxis.lengthSq() <= 1e-8) {
+    outboardAxis.set(-runAxis.z, 0, runAxis.x);
+  }
+  if (outboardAxis.lengthSq() <= 1e-8) {
+    outboardAxis.set(1, 0, 0);
+  } else {
+    outboardAxis.normalize();
+  }
+
+  const roofSlopeAlongOutboard =
+    normal.y === 0 ? 0 : -(normal.x * outboardAxis.x + normal.z * outboardAxis.z) / normal.y;
+  if (roofSlopeAlongOutboard > 0) {
+    outboardAxis.negate();
+  }
+
+  const halfWidth = PURLIN_PROFILE_WIDTH_METERS / 2;
+  const startTopPlanePoint = params.start.clone().add(normal.clone().multiplyScalar(PURLIN_PROFILE_DEPTH_METERS / 2));
+  const endTopPlanePoint = params.end.clone().add(normal.clone().multiplyScalar(PURLIN_PROFILE_DEPTH_METERS / 2));
+  const startBottomPoint = params.start.clone().add(normal.clone().multiplyScalar(-PURLIN_PROFILE_DEPTH_METERS / 2));
+  const endBottomPoint = params.end.clone().add(normal.clone().multiplyScalar(-PURLIN_PROFILE_DEPTH_METERS / 2));
+
+  const roofParallelY = (planePoint: THREE.Vector3, x: number, z: number): number =>
+    normal.y === 0
+      ? planePoint.y
+      : planePoint.y - (normal.x * (x - planePoint.x) + normal.z * (z - planePoint.z)) / normal.y;
+
+  const pointAt = (
+    center: THREE.Vector3,
+    crossOffsetMeters: number,
+    y: number,
+  ): THREE.Vector3 => new THREE.Vector3(
+    center.x + outboardAxis.x * crossOffsetMeters,
+    y,
+    center.z + outboardAxis.z * crossOffsetMeters,
+  );
+
+  const startInboardBottom = pointAt(params.start, -halfWidth, startBottomPoint.y);
+  const startOutboardBottom = pointAt(params.start, halfWidth, startBottomPoint.y);
+  const endOutboardBottom = pointAt(params.end, halfWidth, endBottomPoint.y);
+  const endInboardBottom = pointAt(params.end, -halfWidth, endBottomPoint.y);
+  const startInboardTop = pointAt(
+    params.start,
+    -halfWidth,
+    roofParallelY(startTopPlanePoint, params.start.x - outboardAxis.x * halfWidth, params.start.z - outboardAxis.z * halfWidth),
+  );
+  const startOutboardTop = pointAt(
+    params.start,
+    halfWidth,
+    roofParallelY(startTopPlanePoint, params.start.x + outboardAxis.x * halfWidth, params.start.z + outboardAxis.z * halfWidth),
+  );
+  const endOutboardTop = pointAt(
+    params.end,
+    halfWidth,
+    roofParallelY(endTopPlanePoint, params.end.x + outboardAxis.x * halfWidth, params.end.z + outboardAxis.z * halfWidth),
+  );
+  const endInboardTop = pointAt(
+    params.end,
+    -halfWidth,
+    roofParallelY(endTopPlanePoint, params.end.x - outboardAxis.x * halfWidth, params.end.z - outboardAxis.z * halfWidth),
+  );
+
+  const vertices = [
+    startInboardBottom,
+    startOutboardBottom,
+    endOutboardBottom,
+    endInboardBottom,
+    startInboardTop,
+    startOutboardTop,
+    endOutboardTop,
+    endInboardTop,
+  ];
+  const indices = [
+    0, 2, 1, 0, 3, 2,
+    4, 5, 6, 4, 6, 7,
+    1, 2, 6, 1, 6, 5,
+    0, 4, 7, 0, 7, 3,
+    0, 1, 5, 0, 5, 4,
+    3, 7, 6, 3, 6, 2,
+  ];
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute(
+    'position',
+    new THREE.Float32BufferAttribute(
+      vertices.flatMap((vertex) => [vertex.x, vertex.y, vertex.z]),
+      3,
+    ),
+  );
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  geometry.computeBoundingBox();
+  geometry.computeBoundingSphere();
+
+  const mesh = new THREE.Mesh(geometry, params.material);
+  mesh.userData.purlinProfile = 'vertical_eave';
+  return mesh;
+}
+
 export function buildTrussPlaneGuide(params: {
   placement: TrussPlacement;
   slabOffsetY: number;
@@ -244,6 +378,37 @@ export function buildTrussPlaneGuide(params: {
 
 export function createRidgeCapMaterial(): THREE.MeshStandardMaterial {
   return new THREE.MeshStandardMaterial({ color: 0x64748b, metalness: 0.72, roughness: 0.34 });
+}
+
+export function createFasciaTrimGeometry(params: {
+  placement: FasciaPlacement;
+  slabTopMeters: number;
+}): THREE.BufferGeometry {
+  const { placement, slabTopMeters } = params;
+  const renderOutboardBiasMeters = 0.003;
+  const vertices = [
+    placement.topStart,
+    placement.topEnd,
+    placement.bottomEnd,
+    placement.bottomStart,
+  ].map((vertex) => ({
+    x: vertex.x + placement.faceOutwardNormal.x * renderOutboardBiasMeters,
+    y: vertex.y,
+    z: vertex.z + placement.faceOutwardNormal.z * renderOutboardBiasMeters,
+  }));
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute(
+    'position',
+    new THREE.Float32BufferAttribute(
+      vertices.flatMap((vertex) => [vertex.x, slabTopMeters + vertex.y, vertex.z]),
+      3,
+    ),
+  );
+  geometry.setIndex([0, 1, 2, 0, 2, 3]);
+  geometry.computeVertexNormals();
+  geometry.computeBoundingBox();
+  geometry.computeBoundingSphere();
+  return geometry;
 }
 
 function slopeDirectionFromRidge(

@@ -493,10 +493,10 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
     }
   });
 
-  it('purlins are clocked perpendicular to the roof cladding with full top-flange contact', () => {
+  it('interior purlins are clocked perpendicular to the roof cladding with full top-flange contact', () => {
     const roof = roofFromGeometry(frameInfillGeometry(createDefaultRoofSystemSettings()));
     const material = new THREE.MeshStandardMaterial();
-    for (const purlin of roof.purlinPlacements) {
+    for (const purlin of roof.purlinPlacements.filter((placement) => placement.rowIndex > 0)) {
       const start = new THREE.Vector3(purlin.start.x, purlin.start.y, purlin.start.z);
       const end = new THREE.Vector3(purlin.end.x, purlin.end.y, purlin.end.z);
       const mesh = buildPurlinMesh({
@@ -504,6 +504,7 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
         end,
         planeNormal: new THREE.Vector3(purlin.planeNormal.x, purlin.planeNormal.y, purlin.planeNormal.z),
         material,
+        profile: 'roof_normal',
       });
 
       const localTopNormal = new THREE.Vector3(0, 0, 1).applyQuaternion(mesh.quaternion).normalize();
@@ -525,6 +526,62 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
         const gap = distanceAlongRoofNormal(topFacePoint, sheetUnderside, purlin.planeNormal);
         expect(gap).toBeCloseTo(PURLIN_TO_SHEET_CLEARANCE_METERS, 3);
       }
+    }
+  });
+
+  it('outer eave purlins render vertical with roof-slope top cuts for fascia backing', () => {
+    const roof = roofFromGeometry(frameInfillGeometry(createDefaultRoofSystemSettings()));
+    const purlin = roof.purlinPlacements.find((placement) => placement.rowIndex === 0)!;
+    const start = new THREE.Vector3(purlin.start.x, purlin.start.y, purlin.start.z);
+    const end = new THREE.Vector3(purlin.end.x, purlin.end.y, purlin.end.z);
+    const normal = new THREE.Vector3(purlin.planeNormal.x, purlin.planeNormal.y, purlin.planeNormal.z).normalize();
+    if (normal.y < 0) {
+      normal.negate();
+    }
+
+    const mesh = buildPurlinMesh({
+      start,
+      end,
+      planeNormal: normal,
+      material: new THREE.MeshStandardMaterial(),
+      profile: 'vertical_eave',
+    });
+    const position = mesh.geometry.getAttribute('position') as THREE.BufferAttribute;
+    expect(position.count).toBe(8);
+    expect(mesh.userData.purlinProfile).toBe('vertical_eave');
+
+    const vertexAt = (index: number) =>
+      new THREE.Vector3(position.getX(index), position.getY(index), position.getZ(index));
+    const pairs = [
+      [0, 4],
+      [1, 5],
+      [2, 6],
+      [3, 7],
+    ] as const;
+    for (const [bottomIndex, topIndex] of pairs) {
+      const bottom = vertexAt(bottomIndex);
+      const top = vertexAt(topIndex);
+      expect(top.x).toBeCloseTo(bottom.x, 5);
+      expect(top.z).toBeCloseTo(bottom.z, 5);
+      expect(top.y).toBeGreaterThan(bottom.y);
+    }
+
+    const topVertices = [4, 5, 6, 7].map(vertexAt);
+    const topYRange = Math.max(...topVertices.map((vertex) => vertex.y)) -
+      Math.min(...topVertices.map((vertex) => vertex.y));
+    expect(topYRange).toBeGreaterThan(0.001);
+
+    const yOnPlane = (planePoint: THREE.Vector3, point: THREE.Vector3) =>
+      normal.y === 0
+        ? planePoint.y
+        : planePoint.y - (normal.x * (point.x - planePoint.x) + normal.z * (point.z - planePoint.z)) / normal.y;
+    const startTopPlanePoint = start.clone().add(normal.clone().multiplyScalar(PURLIN_PROFILE_DEPTH_METERS / 2));
+    const endTopPlanePoint = end.clone().add(normal.clone().multiplyScalar(PURLIN_PROFILE_DEPTH_METERS / 2));
+    for (const point of topVertices.slice(0, 2)) {
+      expect(point.y).toBeCloseTo(yOnPlane(startTopPlanePoint, point), 5);
+    }
+    for (const point of topVertices.slice(2)) {
+      expect(point.y).toBeCloseTo(yOnPlane(endTopPlanePoint, point), 5);
     }
   });
 
@@ -1392,10 +1449,13 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
     const roof = roofFromGeometry(frameInfillGeometry(createDefaultRoofSystemSettings()));
     const placement = roof.ridgeCapPlacement;
     expect(placement).not.toBeNull();
-    expect(placement!.start.x).toBeCloseTo(roof.ridgeStart!.x, 3);
-    expect(placement!.start.z).toBeCloseTo(roof.ridgeStart!.z, 3);
-    expect(placement!.end.x).toBeCloseTo(roof.ridgeEnd!.x, 3);
-    expect(placement!.end.z).toBeCloseTo(roof.ridgeEnd!.z, 3);
+    const startTail = Math.hypot(placement!.start.x - roof.ridgeStart!.x, placement!.start.z - roof.ridgeStart!.z);
+    const endTail = Math.hypot(placement!.end.x - roof.ridgeEnd!.x, placement!.end.z - roof.ridgeEnd!.z);
+    const supportRidgeLength = Math.hypot(roof.ridgeEnd!.x - roof.ridgeStart!.x, roof.ridgeEnd!.z - roof.ridgeStart!.z);
+    const capRidgeLength = Math.hypot(placement!.end.x - placement!.start.x, placement!.end.z - placement!.start.z);
+    expect(startTail).toBeCloseTo(ROOF_SHEET_EAVE_OVERHANG_METERS, 3);
+    expect(endTail).toBeCloseTo(ROOF_SHEET_EAVE_OVERHANG_METERS, 3);
+    expect(capRidgeLength - supportRidgeLength).toBeCloseTo(ROOF_SHEET_EAVE_OVERHANG_METERS * 2, 3);
     expect(placement!.start.y).toBeGreaterThan(roof.roofPeakY);
     expect(Math.abs(placement!.end.y - placement!.start.y)).toBeLessThan(0.002);
     expect(placement!.thicknessMeters).toBeLessThanOrEqual(0.05);

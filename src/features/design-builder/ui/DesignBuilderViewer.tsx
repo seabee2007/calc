@@ -60,6 +60,7 @@ import {
   buildHipMemberMesh,
   buildPurlinMesh,
   createCorrugatedMetalMaterial,
+  createFasciaTrimGeometry,
   createFoldedRoofEdgeCapGroup,
   createFoldedRidgeCapGroup,
   createRakedCapStripGeometry,
@@ -1129,6 +1130,11 @@ export default function DesignBuilderViewer({
             currentRoofDisplayMode === 'roof_cladding_only' ||
             currentRoofDisplayMode === 'foundation_frame_roof') &&
           currentRoofLayerVisibility.ridgeCap;
+        const showFascia =
+          (currentRoofDisplayMode === 'full_roof' ||
+            currentRoofDisplayMode === 'roof_cladding_only' ||
+            currentRoofDisplayMode === 'foundation_frame_roof') &&
+          currentRoofLayerVisibility.fascia;
         const showGableMasonry =
           (currentRoofDisplayMode === 'full_roof' ||
             currentRoofDisplayMode === 'gable_masonry_only' ||
@@ -1155,6 +1161,8 @@ export default function DesignBuilderViewer({
           rakedCapGroup.name = 'rakedCapGroup';
           const ridgeCapGroup = new THREE.Group();
           ridgeCapGroup.name = 'ridgeCapGroup';
+          const fasciaGroup = new THREE.Group();
+          fasciaGroup.name = 'fasciaGroup';
           const framingGuideGroup = new THREE.Group();
           framingGuideGroup.name = 'framingGuideGroup';
 
@@ -1432,13 +1440,16 @@ export default function DesignBuilderViewer({
                   purlin.planeNormal.z,
                 ),
                 material: purlinMaterial,
+                profile: purlin.rowIndex === 0 ? 'vertical_eave' : 'roof_normal',
               });
               trackGeometry(mesh.geometry);
               purlinGroup.add(mesh);
             }
             if (import.meta.env.DEV && currentShowRoofFramingGuides && resolvedRoof.trussPlacements.length > 0) {
               const slabY = currentSlab.slabThicknessMeters;
-              const samplePurlin = resolvedRoof.purlinPlacements[0]!;
+              const samplePurlin =
+                resolvedRoof.purlinPlacements.find((purlin) => purlin.rowIndex > 0) ??
+                resolvedRoof.purlinPlacements[0]!;
               const sampleTruss = resolvedRoof.trussPlacements[Math.floor(resolvedRoof.trussPlacements.length / 2)]!;
               const topLeft = sampleTruss.members.find((member) => member.memberKind === 'top_chord_left')!;
               const normal = normalizeOutwardRoofNormal(samplePurlin.planeNormal);
@@ -1588,6 +1599,38 @@ export default function DesignBuilderViewer({
           }
 
           if (
+            showFascia &&
+            currentRoofSystem.fascia.enabled &&
+            resolvedRoof.fasciaPlacements.length > 0
+          ) {
+            const debugGuides = import.meta.env.DEV && currentShowRoofFramingGuides;
+            const fasciaMaterial = debugGuides
+              ? new THREE.MeshStandardMaterial({ color: 0x22c55e, metalness: 0.5, roughness: 0.45 })
+              : usePreviewMaterials
+                ? resolveRoofMetalMaterial(
+                    { visualStyle: currentVisualStyle, selected: roofSelected },
+                    trackMat,
+                  )
+                : createRidgeCapMaterial();
+            fasciaMaterial.side = THREE.DoubleSide;
+            fasciaMaterial.needsUpdate = true;
+            if (debugGuides || !usePreviewMaterials) {
+              materialsToDispose.push(fasciaMaterial);
+            }
+            for (const placement of resolvedRoof.fasciaPlacements) {
+              const mesh = new THREE.Mesh(
+                trackGeometry(createFasciaTrimGeometry({
+                  placement,
+                  slabTopMeters: currentSlab.slabThicknessMeters,
+                })),
+                fasciaMaterial,
+              );
+              mesh.userData.fasciaEdgeRole = placement.edgeRole;
+              fasciaGroup.add(mesh);
+            }
+          }
+
+          if (
             import.meta.env.DEV &&
             currentShowRoofFramingGuides &&
             resolvedRoof.roofType === 'gable' &&
@@ -1696,6 +1739,7 @@ export default function DesignBuilderViewer({
           for (const group of [
             roofCladdingGroup,
             ridgeCapGroup,
+            fasciaGroup,
             trussChordGroup,
             trussWebGroup,
             purlinGroup,

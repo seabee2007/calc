@@ -3746,6 +3746,7 @@ export default function DesignBuilderPage({
                           [
                             ['roofCladding', 'Roof Cladding'],
                             ['ridgeCap', 'Ridge Cap'],
+                            ['fascia', 'Fascia'],
                             ['steelTrusses', 'Steel Trusses'],
                             ['purlins', 'Purlins'],
                             ['gableEndCmu', 'Gable-End CMU'],

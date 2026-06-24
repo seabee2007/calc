@@ -578,6 +578,11 @@ export interface RoofSystemSettings {
     ridgeCapEnabled: boolean;
     ridgeCapLapAllowancePercent: number;
   };
+  fascia: {
+    enabled: boolean;
+    profileLabel: string;
+    bottomExtensionBelowFrameMeters: number;
+  };
   gable: {
     enabled: boolean;
     /** Minimum concrete depth between highest CMU corner and roof underside. */
@@ -675,9 +680,24 @@ export type RidgeCapPlacement = {
   adjacentPlaneIds?: string[];
 };
 
+export type FasciaPlacement = {
+  id: string;
+  sourcePlaneId: string;
+  edgeRole: 'side_eave' | 'gable_rake' | 'hip_eave' | 'roof_perimeter';
+  topStart: RoofVec3;
+  topEnd: RoofVec3;
+  bottomStart: RoofVec3;
+  bottomEnd: RoofVec3;
+  outwardNormal: RoofVec3;
+  faceOutwardNormal: RoofVec3;
+  lengthMeters: number;
+  faceDepthMeters: number;
+};
+
 export type RoofLayerVisibility = {
   roofCladding: boolean;
   ridgeCap: boolean;
+  fascia: boolean;
   steelTrusses: boolean;
   purlins: boolean;
   gableEndCmu: boolean;
@@ -816,6 +836,7 @@ export type ResolvedRoofSystem = {
   rakedCapVolumeCubicMeters: number;
   gableEnds: ResolvedGableEnd[];
   gableEndRoofingClosures: GableEndRoofingClosure[];
+  fasciaPlacements: FasciaPlacement[];
   warnings: DesignWarning[];
 };
 

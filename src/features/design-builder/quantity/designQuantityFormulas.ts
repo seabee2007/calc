@@ -15,6 +15,7 @@ import {
 } from '../domain/lintelCourseClosureSolver';
 import { createDefaultRoofSystemSettings, normalizeRoofSystemSettings } from '../domain/roofSystemDefaults';
 import { totalGableEndRoofingClosureAreaSquareMeters } from '../domain/gableEndRoofingClosureSolver';
+import { totalRoofFasciaLengthMeters } from '../domain/roofFasciaSolver';
 import {
   OPENING_GROUT_CONCEPTUAL_WARNING,
   calculateCmuOpeningGroutSummary,
@@ -768,6 +769,7 @@ export function buildFrameInfillEstimatePreview(input: FrameInfillQuantityInput)
     .reduce((sum, cap) => sum + (cap.endStationMeters - cap.startStationMeters), 0);
   const hipFramingSummary = summarizeHipFramingMembers(resolvedRoof?.hipFramingMembers ?? []);
   const purlinLinearMeters = sumPurlinLengthMeters(resolvedRoof?.purlinPlacements ?? []);
+  const fasciaLinearMeters = totalRoofFasciaLengthMeters(resolvedRoof?.fasciaPlacements ?? []);
   const gableEndRoofingClosureAreaSquareMeters = totalGableEndRoofingClosureAreaSquareMeters(
     resolvedRoof?.gableEndRoofingClosures ?? [],
   );
@@ -1237,6 +1239,30 @@ export function buildFrameInfillEstimatePreview(input: FrameInfillQuantityInput)
                         parameterSnapshot: {
                           ridgeLengthMeters: resolvedRoof.ridgeLengthMeters,
                           ridgeCapLapAllowancePercent: roofSettings.corrugatedMetal.ridgeCapLapAllowancePercent,
+                          ...metaBase,
+                        },
+                        source: 'parametric_design_builder',
+                        confidence: 'calculated_from_parameters',
+                        divisionCode: '07',
+                        divisionName: 'Thermal & Moisture Protection',
+                      },
+                    ]
+                  : []),
+                ...(roofSettings.fascia.enabled && fasciaLinearMeters > 0
+                  ? [
+                      {
+                        id: 'fascia-trim',
+                        designModelId: input.designModelId,
+                        designObjectId: input.roofObjectId,
+                        quantityType: 'roof_fascia_trim_length',
+                        description: 'Roof Fascia Trim',
+                        quantity: roundQuantity(metersToFeet(fasciaLinearMeters), 2),
+                        unit: 'LF',
+                        formula: 'sum(resolved_fascia_placement_lengths)',
+                        parameterSnapshot: {
+                          fasciaLinearMeters,
+                          fasciaPlacementCount: resolvedRoof.fasciaPlacements.length,
+                          bottomExtensionBelowFrameMeters: roofSettings.fascia.bottomExtensionBelowFrameMeters,
                           ...metaBase,
                         },
                         source: 'parametric_design_builder',

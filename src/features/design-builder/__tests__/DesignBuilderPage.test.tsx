@@ -1071,6 +1071,7 @@ describe('DesignBuilderPage', () => {
 
     openDisplayMenu();
     expect(openCommandMenus()).toHaveLength(1);
+    fireEvent.click(screen.getByRole('button', { name: /wall overlays/i }));
     fireEvent.click(screen.getByRole('checkbox', { name: /show opening layout/i }));
     expect(openCommandMenus()).toHaveLength(1);
   });
