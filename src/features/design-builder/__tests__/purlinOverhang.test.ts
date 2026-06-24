@@ -103,6 +103,45 @@ describe('purlin overhang cantilever', () => {
     }
   });
 
+  it('keeps purlins cantilevered past gable close-in sheet metal', () => {
+    const gableOverhang = 0.6;
+    const geometry = frameGeometry(
+      gableRoofSystem({
+        gableEndOverhangMeters: gableOverhang,
+        eaveOverhangMeters: 0.4,
+        ridgeDirection: 'along_longest_axis',
+        gable: {
+          ...createDefaultRoofSystemSettings().gable,
+          enabled: true,
+          closeInWithRoofingEnabled: true,
+        },
+      }),
+    );
+    const roof = geometry.resolvedRoofSystem!;
+    expect(roof.gableEndRoofingClosures).toHaveLength(2);
+
+    const firstPurlin = roof.purlinPlacements[0]!;
+    const runVector = {
+      x: firstPurlin.end.x - firstPurlin.start.x,
+      z: firstPurlin.end.z - firstPurlin.start.z,
+    };
+    const runLength = Math.hypot(runVector.x, runVector.z) || 1;
+    const runAxis = { x: runVector.x / runLength, z: runVector.z / runLength };
+    const project = (point: { x: number; z: number }) => point.x * runAxis.x + point.z * runAxis.z;
+    const closureStations = roof.gableEndRoofingClosures.map((closure) =>
+      closure.corners.reduce((sum, corner) => sum + project(corner), 0) / closure.corners.length,
+    );
+    const minClosureStation = Math.min(...closureStations);
+    const maxClosureStation = Math.max(...closureStations);
+
+    for (const purlin of roof.purlinPlacements) {
+      const startStation = project(purlin.start);
+      const endStation = project(purlin.end);
+      expect(Math.min(startStation, endStation)).toBeLessThan(minClosureStation - gableOverhang * 0.5);
+      expect(Math.max(startStation, endStation)).toBeGreaterThan(maxClosureStation + gableOverhang * 0.5);
+    }
+  });
+
   it('keeps equal perpendicular gable-end extension at eave and ridge rows', () => {
     const gableOverhang = 1;
     const geometry = frameGeometry(
