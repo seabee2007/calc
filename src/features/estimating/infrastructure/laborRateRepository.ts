@@ -13,6 +13,8 @@ import { STARTER_LABOR_ROLES } from '../domain/laborRateTypes';
 import type { RepositoryResult } from './estimateDbTypes';
 import type { CompanyLaborRateRow, ProjectLaborRateRow } from './activityDbTypes';
 
+const REMOVED_STARTER_LABOR_ROLE_KEYS = ['general_trade', 'ironworker'];
+
 function success<T>(data: T): RepositoryResult<T> {
   return { data, error: null };
 }
@@ -186,28 +188,33 @@ export async function seedStarterCompanyLaborRatesInDb(
   userId: string,
 ): Promise<RepositoryResult<CompanyLaborRate[]>> {
   try {
-    const { error: rpcError } = await supabase.rpc('seed_starter_company_labor_rates', {
-      p_user_id: userId,
-    });
-    if (rpcError) {
-      // Fallback when RPC not deployed yet — insert directly if table empty.
-      const existing = await fetchCompanyLaborRatesFromDb(userId, false);
-      if (existing.data && existing.data.length > 0) {
-        return success(existing.data);
-      }
+    const clearDefault = await clearCompanyLaborRateDefaultInDb(userId);
+    if (clearDefault.error) return failure(clearDefault.error);
 
-      const rows = STARTER_LABOR_ROLES.map((role, index) => ({
-        user_id: userId,
-        role_key: role.roleKey,
-        role_name: role.roleName,
-        trade_category: role.tradeCategory,
-        is_default: index === 0,
-      }));
+    const starterRows = STARTER_LABOR_ROLES.map((role) => ({
+      user_id: userId,
+      role_key: role.roleKey,
+      role_name: role.roleName,
+      trade_category: role.tradeCategory,
+      hourly_rate: role.hourlyRate,
+      burden_percent: role.burdenPercent,
+      billing_rate: role.billingRate,
+      description: 'Starter commercial labor rate default.',
+      is_active: true,
+      is_default: role.roleKey === 'laborer',
+    }));
 
-      const { data, error } = await supabase.from('company_labor_rates').insert(rows).select('*');
-      if (error) return failure(error.message);
-      return success((data as CompanyLaborRateRow[]).map(mapCompanyLaborRateFromRow));
-    }
+    const { error } = await supabase
+      .from('company_labor_rates')
+      .upsert(starterRows, { onConflict: 'user_id,role_key' });
+    if (error) return failure(error.message);
+
+    const { error: staleRoleError } = await supabase
+      .from('company_labor_rates')
+      .update({ is_active: false, is_default: false })
+      .eq('user_id', userId)
+      .in('role_key', REMOVED_STARTER_LABOR_ROLE_KEYS);
+    if (staleRoleError) return failure(staleRoleError.message);
 
     return fetchCompanyLaborRatesFromDb(userId);
   } catch (err) {
