@@ -6,6 +6,7 @@ import {
   getMaterialOptionsForCategory,
   MORTAR_TINT_PRESETS,
   normalizeDesignMaterialSelection,
+  PLASTER_TINT_PRESETS,
   ROOF_SHEET_TINT_PRESETS,
   STRUCTURAL_STEEL_TINT_PRESETS,
   type DesignMaterialCategory,
@@ -24,12 +25,31 @@ export type MaterialsColorsModalProps = {
 type CategoryConfig = {
   category: DesignMaterialCategory;
   title: string;
+  materialField?: MaterialSelectionField;
   tintPresets?: readonly DesignMaterialTintPreset[];
   tintField?: keyof Pick<
     DesignMaterialSelection,
-    'mortarTintId' | 'roofSheetTintId' | 'structuralSteelTintId'
+    | 'mortarTintId'
+    | 'plasterTintId'
+    | 'roofSheetTintId'
+    | 'fasciaTintId'
+    | 'soffitTintId'
+    | 'structuralSteelTintId'
   >;
 };
+
+type MaterialSelectionField = keyof Pick<
+  DesignMaterialSelection,
+  | 'cmuMaterialId'
+  | 'mortarMaterialId'
+  | 'plasterMaterialId'
+  | 'castConcreteMaterialId'
+  | 'roofSheetMaterialId'
+  | 'fasciaMaterialId'
+  | 'soffitMaterialId'
+  | 'structuralSteelMaterialId'
+  | 'siteGroundMaterialId'
+>;
 
 const CATEGORY_CONFIG: readonly CategoryConfig[] = [
   { category: 'cmu', title: 'CMU Blocks' },
@@ -39,12 +59,32 @@ const CATEGORY_CONFIG: readonly CategoryConfig[] = [
     tintPresets: MORTAR_TINT_PRESETS,
     tintField: 'mortarTintId',
   },
+  {
+    category: 'plaster_finish',
+    title: 'Plaster Finish',
+    tintPresets: PLASTER_TINT_PRESETS,
+    tintField: 'plasterTintId',
+  },
   { category: 'cast_concrete', title: 'Cast Concrete' },
   {
     category: 'roof_sheet',
     title: 'Roof Sheets',
     tintPresets: ROOF_SHEET_TINT_PRESETS,
     tintField: 'roofSheetTintId',
+  },
+  {
+    category: 'roof_trim',
+    title: 'Fascia Trim',
+    materialField: 'fasciaMaterialId',
+    tintPresets: ROOF_SHEET_TINT_PRESETS,
+    tintField: 'fasciaTintId',
+  },
+  {
+    category: 'roof_trim',
+    title: 'Soffit Panels',
+    materialField: 'soffitMaterialId',
+    tintPresets: ROOF_SHEET_TINT_PRESETS,
+    tintField: 'soffitTintId',
   },
   {
     category: 'structural_steel',
@@ -57,20 +97,14 @@ const CATEGORY_CONFIG: readonly CategoryConfig[] = [
 
 const MATERIAL_FIELD: Record<
   DesignMaterialCategory,
-  keyof Pick<
-    DesignMaterialSelection,
-    | 'cmuMaterialId'
-    | 'mortarMaterialId'
-    | 'castConcreteMaterialId'
-    | 'roofSheetMaterialId'
-    | 'structuralSteelMaterialId'
-    | 'siteGroundMaterialId'
-  >
+  MaterialSelectionField
 > = {
   cmu: 'cmuMaterialId',
   mortar: 'mortarMaterialId',
+  plaster_finish: 'plasterMaterialId',
   cast_concrete: 'castConcreteMaterialId',
   roof_sheet: 'roofSheetMaterialId',
+  roof_trim: 'fasciaMaterialId',
   structural_steel: 'structuralSteelMaterialId',
   site_ground: 'siteGroundMaterialId',
 };
@@ -155,11 +189,11 @@ function CategorySection({
 }: {
   config: CategoryConfig;
   selections: DesignMaterialSelection;
-  onChangeMaterial: (category: DesignMaterialCategory, materialId: string) => void;
+  onChangeMaterial: (field: MaterialSelectionField, materialId: string) => void;
   onChangeTint: (field: CategoryConfig['tintField'], tintId: string) => void;
 }) {
   const options = getMaterialOptionsForCategory(config.category);
-  const field = MATERIAL_FIELD[config.category];
+  const field = config.materialField ?? MATERIAL_FIELD[config.category];
   const selectedMaterialId = selections[field];
   const selectedOption = options.find((option) => option.id === selectedMaterialId) ?? options[0];
 
@@ -177,14 +211,14 @@ function CategorySection({
             key={option.id}
             option={option}
             selected={option.id === selectedMaterialId}
-            onSelect={() => onChangeMaterial(config.category, option.id)}
+            onSelect={() => onChangeMaterial(field, option.id)}
           />
         ))}
       </div>
       {config.tintPresets && config.tintField && selectedOption?.supportsTint ? (
         <div className="space-y-2 border-t border-slate-200 pt-3 dark:border-slate-700">
           <div className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-            {config.category === 'roof_sheet' ? 'Roof Finish Color' : 'Color'}
+            {config.category === 'roof_sheet' || config.category === 'roof_trim' ? 'Roof Finish Color' : 'Color'}
           </div>
           <TintSwatches
             presets={config.tintPresets}
@@ -217,8 +251,7 @@ export default function MaterialsColorsModal({
     [appliedSelections, draft],
   );
 
-  function updateMaterial(category: DesignMaterialCategory, materialId: string) {
-    const field = MATERIAL_FIELD[category];
+  function updateMaterial(field: MaterialSelectionField, materialId: string) {
     setDraft((current) => normalizeDesignMaterialSelection({ ...current, [field]: materialId }));
   }
 

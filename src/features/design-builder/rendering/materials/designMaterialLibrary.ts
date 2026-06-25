@@ -14,6 +14,7 @@ import {
   getMaterialOptionById,
   getTintPresetById,
   MORTAR_TINT_PRESETS,
+  PLASTER_TINT_PRESETS,
   ROOF_SHEET_TINT_PRESETS,
   STRUCTURAL_STEEL_TINT_PRESETS,
   type DesignMaterialOption,
@@ -40,6 +41,7 @@ export {
   getMaterialOptionsForCategory,
   getMaterialOptionById,
   MORTAR_TINT_PRESETS,
+  PLASTER_TINT_PRESETS,
   ROOF_SHEET_TINT_PRESETS,
   STRUCTURAL_STEEL_TINT_PRESETS,
   type DesignMaterialCategory,
@@ -54,12 +56,18 @@ export type DesignMaterialLibrary = {
   cmuPreview: THREE.MeshStandardMaterial;
   mortarTechnical: THREE.MeshStandardMaterial;
   mortarPreview: THREE.MeshStandardMaterial;
+  plasterFinishTechnical: THREE.MeshStandardMaterial;
+  plasterFinishPreview: THREE.MeshStandardMaterial;
   castConcreteStructuralTechnical: THREE.MeshStandardMaterial;
   castConcreteStructuralPreview: THREE.MeshStandardMaterial;
   castConcreteBeamTechnical: THREE.MeshStandardMaterial;
   castConcreteBeamPreview: THREE.MeshStandardMaterial;
   roofMetalTechnical: THREE.MeshStandardMaterial;
   roofMetalPreview: THREE.MeshStandardMaterial;
+  fasciaTrimTechnical: THREE.MeshStandardMaterial;
+  fasciaTrimPreview: THREE.MeshStandardMaterial;
+  soffitTrimTechnical: THREE.MeshStandardMaterial;
+  soffitTrimPreview: THREE.MeshStandardMaterial;
   structuralSteelTechnical: THREE.MeshStandardMaterial;
   structuralSteelPreview: THREE.MeshStandardMaterial;
 
@@ -74,9 +82,12 @@ export type MaterialDiagnostics = {
   loadedTexturePacks: string[];
   cmuMaterialStatus: MaterialPackStatus;
   mortarMaterialStatus: MaterialPackStatus;
+  plasterMaterialStatus: MaterialPackStatus;
   concreteStructuralMaterialStatus: MaterialPackStatus;
   concreteBeamMaterialStatus: MaterialPackStatus;
   roofMaterialStatus: MaterialPackStatus;
+  fasciaMaterialStatus: MaterialPackStatus;
+  soffitMaterialStatus: MaterialPackStatus;
   steelMaterialStatus: MaterialPackStatus;
   siteGroundMaterialStatus: MaterialPackStatus;
   textureResolution: string;
@@ -118,9 +129,12 @@ const state: LibraryState = {
 const TECHNICAL_COLORS = {
   cmu: 0xd1d5db,
   mortar: 0xc4c0ba,
+  plasterFinish: 0xded8cf,
   castConcreteStructural: 0x78716c,
   castConcreteBeam: 0x6b7280,
   roofMetal: 0x64748b,
+  fasciaTrim: 0x64748b,
+  soffitTrim: 0x64748b,
   structuralSteel: 0x546e7a,
   siteGround: 0xe2e8f0,
 } as const;
@@ -128,9 +142,12 @@ const TECHNICAL_COLORS = {
 const PREVIEW_FALLBACK_TINTS = {
   cmu: 0xe8e4df,
   mortar: 0xd8d4ce,
+  plasterFinish: 0xded8cf,
   castConcreteStructural: 0x8a8580,
   castConcreteBeam: 0x94908a,
   roofMetal: 0x94a3b8,
+  fasciaTrim: 0x94a3b8,
+  soffitTrim: 0x94a3b8,
   structuralSteel: 0x3d4852,
   siteGround: 0xffffff,
 } as const;
@@ -139,9 +156,18 @@ function hexToNumber(hex: string): number {
   return Number.parseInt(hex.replace('#', ''), 16);
 }
 
+function optionSwatchColor(option: DesignMaterialOption | undefined, fallback: number): number {
+  return option?.swatchColor ? hexToNumber(option.swatchColor) : fallback;
+}
+
 function resolveMortarTint(selection: DesignMaterialSelection): number {
   const preset = getTintPresetById(MORTAR_TINT_PRESETS, selection.mortarTintId);
   return hexToNumber(preset?.hex ?? MORTAR_TINT_PRESETS[0].hex);
+}
+
+function resolvePlasterTint(selection: DesignMaterialSelection): number {
+  const preset = getTintPresetById(PLASTER_TINT_PRESETS, selection.plasterTintId);
+  return hexToNumber(preset?.hex ?? PLASTER_TINT_PRESETS[0].hex);
 }
 
 function resolveRoofTint(selection: DesignMaterialSelection): number {
@@ -149,8 +175,17 @@ function resolveRoofTint(selection: DesignMaterialSelection): number {
   return hexToNumber(preset?.hex ?? ROOF_SHEET_TINT_PRESETS[0].hex);
 }
 
+function resolveRoofTrimTint(tintId: string | undefined): number {
+  const preset = getTintPresetById(ROOF_SHEET_TINT_PRESETS, tintId);
+  return hexToNumber(preset?.hex ?? ROOF_SHEET_TINT_PRESETS[0].hex);
+}
+
 export function resolveRoofTintStrength(selection: DesignMaterialSelection): number {
-  return selection.roofSheetTintId === 'galvanized-gray' ? 0.15 : 0.78;
+  return selection.roofSheetTintId === 'galvanized-gray' ? 0.38 : 0.94;
+}
+
+function resolveRoofTrimTintStrength(tintId: string | undefined): number {
+  return tintId === 'galvanized-gray' ? 0.96 : 1;
 }
 
 function resolveSteelTint(selection: DesignMaterialSelection): number {
@@ -190,6 +225,16 @@ function ensureLibrary(): DesignMaterialLibrary {
     cmuPreview: createPreviewBaseMaterial(PREVIEW_FALLBACK_TINTS.cmu, { roughness: 0.84, metalness: 0.02 }),
     mortarTechnical: createTechnicalMaterial(TECHNICAL_COLORS.mortar, { roughness: 0.92, metalness: 0.01 }),
     mortarPreview: createPreviewBaseMaterial(PREVIEW_FALLBACK_TINTS.mortar, { roughness: 0.94, metalness: 0.01 }),
+    plasterFinishTechnical: createTechnicalMaterial(TECHNICAL_COLORS.plasterFinish, {
+      roughness: 0.94,
+      metalness: 0.01,
+      side: THREE.DoubleSide,
+    }),
+    plasterFinishPreview: createPreviewBaseMaterial(PREVIEW_FALLBACK_TINTS.plasterFinish, {
+      roughness: 0.95,
+      metalness: 0.01,
+      side: THREE.DoubleSide,
+    }),
     castConcreteStructuralTechnical: createTechnicalMaterial(TECHNICAL_COLORS.castConcreteStructural, {
       roughness: 0.88,
       metalness: 0.05,
@@ -214,6 +259,26 @@ function ensureLibrary(): DesignMaterialLibrary {
     roofMetalPreview: createPreviewBaseMaterial(PREVIEW_FALLBACK_TINTS.roofMetal, {
       roughness: 0.38,
       metalness: 0.72,
+      side: THREE.DoubleSide,
+    }),
+    fasciaTrimTechnical: createTechnicalMaterial(TECHNICAL_COLORS.fasciaTrim, {
+      roughness: 0.42,
+      metalness: 0.62,
+      side: THREE.DoubleSide,
+    }),
+    fasciaTrimPreview: createPreviewBaseMaterial(PREVIEW_FALLBACK_TINTS.fasciaTrim, {
+      roughness: 0.42,
+      metalness: 0.68,
+      side: THREE.DoubleSide,
+    }),
+    soffitTrimTechnical: createTechnicalMaterial(TECHNICAL_COLORS.soffitTrim, {
+      roughness: 0.48,
+      metalness: 0.58,
+      side: THREE.DoubleSide,
+    }),
+    soffitTrimPreview: createPreviewBaseMaterial(PREVIEW_FALLBACK_TINTS.soffitTrim, {
+      roughness: 0.48,
+      metalness: 0.62,
       side: THREE.DoubleSide,
     }),
     structuralSteelTechnical: createTechnicalMaterial(TECHNICAL_COLORS.structuralSteel, {
@@ -435,7 +500,7 @@ uniform float uRoofTintStrength;
 const ROOF_PAINT_FRAGMENT_BLEND = `
 {
   float roofLuma = dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722));
-  vec3 recolor = uRoofPaintColor * (0.22 + 0.78 * roofLuma);
+  vec3 recolor = uRoofPaintColor * (0.34 + 0.66 * roofLuma);
   diffuseColor.rgb = mix(diffuseColor.rgb, recolor, uRoofTintStrength);
 }
 `;
@@ -526,11 +591,34 @@ function applyMapsToMaterial(
   material.needsUpdate = true;
 }
 
+function applySmoothPaintedMetalToMaterial(
+  material: THREE.MeshStandardMaterial,
+  paintColor: number,
+  tintStrength: number,
+  options?: {
+    roughness?: number;
+    metalness?: number;
+  },
+): void {
+  material.map = null;
+  material.normalMap = null;
+  material.roughnessMap = null;
+  material.metalnessMap = null;
+  material.aoMap = null;
+  const baseColor = new THREE.Color(PREVIEW_FALLBACK_TINTS.roofMetal);
+  const paint = new THREE.Color(paintColor);
+  material.color.copy(baseColor.lerp(paint, tintStrength));
+  material.roughness = options?.roughness ?? material.roughness;
+  material.metalness = options?.metalness ?? material.metalness;
+  material.needsUpdate = true;
+}
+
 function buildTriplanarPreviewMaterial(
   maps: LoadedPackTextures,
   textureScaleMeters: number,
   fallbackTint: number,
   albedoTint: number,
+  paintStrength: number,
   roughness: number,
   metalness: number,
 ): THREE.MeshStandardMaterial {
@@ -539,7 +627,9 @@ function buildTriplanarPreviewMaterial(
     roughnessMap: maps.Roughness,
     aoMap: maps.AmbientOcclusion,
     textureScaleMeters,
-    baseColor: maps.Color ? albedoTint : fallbackTint,
+    baseColor: maps.Color ? 0xffffff : fallbackTint,
+    paintColor: albedoTint,
+    paintStrength: maps.Color ? paintStrength : 0,
     roughness,
     metalness,
     useCheckerMap: isTriplanarCheckerDebugEnabled(),
@@ -571,8 +661,11 @@ function applyPreviewMaps(): void {
 
   const cmuOption = getMaterialOptionById(selection.cmuMaterialId);
   const mortarOption = getMaterialOptionById(selection.mortarMaterialId);
+  const plasterOption = getMaterialOptionById(selection.plasterMaterialId);
   const concreteOption = getMaterialOptionById(selection.castConcreteMaterialId);
   const roofOption = getMaterialOptionById(selection.roofSheetMaterialId);
+  const fasciaOption = getMaterialOptionById(selection.fasciaMaterialId);
+  const soffitOption = getMaterialOptionById(selection.soffitMaterialId);
   const steelOption = getMaterialOptionById(selection.structuralSteelMaterialId);
   const siteGroundOption = getMaterialOptionById(selection.siteGroundMaterialId);
 
@@ -581,7 +674,8 @@ function applyPreviewMaps(): void {
       getCachedMaps(cmuOption.id, 'concrete-012'),
       cmuOption.tileSizeMeters ?? CMU_TEXTURE_TILE_METERS,
       PREVIEW_FALLBACK_TINTS.cmu,
-      0xffffff,
+      optionSwatchColor(cmuOption, PREVIEW_FALLBACK_TINTS.cmu),
+      0.7,
       cmuOption.roughness,
       cmuOption.metalness,
     );
@@ -593,9 +687,23 @@ function applyPreviewMaps(): void {
       mortarOption.tileSizeMeters ?? MORTAR_TEXTURE_TILE_METERS,
       PREVIEW_FALLBACK_TINTS.mortar,
       resolveMortarTint(selection),
+      0.82,
       mortarOption.roughness,
       mortarOption.metalness,
     );
+  }
+
+  if (plasterOption) {
+    library.plasterFinishPreview = buildTriplanarPreviewMaterial(
+      getCachedMaps(plasterOption.id, 'textured-3-coat-plaster'),
+      plasterOption.tileSizeMeters ?? 0.85,
+      PREVIEW_FALLBACK_TINTS.plasterFinish,
+      resolvePlasterTint(selection),
+      0.86,
+      plasterOption.roughness,
+      plasterOption.metalness,
+    );
+    library.plasterFinishPreview.side = THREE.DoubleSide;
   }
 
   if (concreteOption) {
@@ -604,7 +712,8 @@ function applyPreviewMaps(): void {
       concreteMaps,
       concreteOption.tileSizeMeters ?? CAST_CONCRETE_TEXTURE_TILE_METERS,
       PREVIEW_FALLBACK_TINTS.castConcreteStructural,
-      0xffffff,
+      optionSwatchColor(concreteOption, PREVIEW_FALLBACK_TINTS.castConcreteStructural),
+      0.72,
       concreteOption.roughness,
       concreteOption.metalness,
     );
@@ -612,7 +721,8 @@ function applyPreviewMaps(): void {
       concreteMaps,
       concreteOption.tileSizeMeters ?? CAST_CONCRETE_TEXTURE_TILE_METERS,
       PREVIEW_FALLBACK_TINTS.castConcreteBeam,
-      0xffffff,
+      optionSwatchColor(concreteOption, PREVIEW_FALLBACK_TINTS.castConcreteBeam),
+      0.72,
       concreteOption.roughness,
       concreteOption.metalness,
     );
@@ -632,6 +742,30 @@ function applyPreviewMaps(): void {
       library.roofMetalPreview,
       resolveRoofTint(selection),
       resolveRoofTintStrength(selection),
+    );
+  }
+
+  if (fasciaOption) {
+    applySmoothPaintedMetalToMaterial(
+      library.fasciaTrimPreview,
+      resolveRoofTrimTint(selection.fasciaTintId),
+      resolveRoofTrimTintStrength(selection.fasciaTintId),
+      {
+        roughness: fasciaOption.roughness,
+        metalness: fasciaOption.metalness,
+      },
+    );
+  }
+
+  if (soffitOption) {
+    applySmoothPaintedMetalToMaterial(
+      library.soffitTrimPreview,
+      resolveRoofTrimTint(selection.soffitTintId),
+      resolveRoofTrimTintStrength(selection.soffitTintId),
+      {
+        roughness: soffitOption.roughness,
+        metalness: soffitOption.metalness,
+      },
     );
   }
 
@@ -674,8 +808,11 @@ function uniqueMaterialIdsForSelections(selection: DesignMaterialSelection): str
   return [
     selection.cmuMaterialId,
     selection.mortarMaterialId,
+    selection.plasterMaterialId,
     selection.castConcreteMaterialId,
     selection.roofSheetMaterialId,
+    selection.fasciaMaterialId,
+    selection.soffitMaterialId,
     selection.structuralSteelMaterialId,
     selection.siteGroundMaterialId,
   ].filter((id, index, array) => array.indexOf(id) === index);
@@ -747,6 +884,10 @@ export function getMaterialDiagnostics(visualStyle: DesignVisualStyle): Material
       visualStyle === 'technical' ? 'technical_only' : statusForMaterialId(selection.cmuMaterialId, 'concrete-012'),
     mortarMaterialStatus:
       visualStyle === 'technical' ? 'technical_only' : statusForMaterialId(selection.mortarMaterialId, 'concrete-032'),
+    plasterMaterialStatus:
+      visualStyle === 'technical'
+        ? 'technical_only'
+        : statusForMaterialId(selection.plasterMaterialId, 'textured-3-coat-plaster'),
     concreteStructuralMaterialStatus:
       visualStyle === 'technical'
         ? 'technical_only'
@@ -759,6 +900,14 @@ export function getMaterialDiagnostics(visualStyle: DesignVisualStyle): Material
       visualStyle === 'technical'
         ? 'technical_only'
         : statusForMaterialId(selection.roofSheetMaterialId, 'corrugated-steel-009'),
+    fasciaMaterialStatus:
+      visualStyle === 'technical'
+        ? 'technical_only'
+        : statusForMaterialId(selection.fasciaMaterialId, 'smooth-painted-roof-trim'),
+    soffitMaterialStatus:
+      visualStyle === 'technical'
+        ? 'technical_only'
+        : statusForMaterialId(selection.soffitMaterialId, 'smooth-painted-roof-trim'),
     steelMaterialStatus:
       visualStyle === 'technical'
         ? 'technical_only'
@@ -769,7 +918,7 @@ export function getMaterialDiagnostics(visualStyle: DesignVisualStyle): Material
         : statusForMaterialId(selection.siteGroundMaterialId, 'ground-037'),
     textureResolution: state.textureResolution,
     activeTextureCount: visualStyle === 'technical' ? 0 : state.textureCount,
-    materialInstanceCount: 14,
+    materialInstanceCount: 20,
     activeMaterialSelections: selection,
   };
 }
@@ -841,6 +990,18 @@ export function resolveMortarMaterial(
   return finalizeMaterial(base, options, trackDisposable);
 }
 
+export function resolvePlasterFinishMaterial(
+  options: ResolveDesignMaterialOptions,
+  trackDisposable: (material: THREE.Material) => void,
+): THREE.MeshStandardMaterial {
+  const library = ensureLibrary();
+  const base =
+    options.visualStyle === 'material_preview' && state.previewLoaded
+      ? library.plasterFinishPreview
+      : library.plasterFinishTechnical;
+  return finalizeMaterial(base, options, trackDisposable);
+}
+
 export type ResolveCastConcreteMaterialOptions = ResolveDesignMaterialOptions & {
   role?: CastConcreteMaterialRole;
 };
@@ -872,6 +1033,30 @@ export function resolveRoofMetalMaterial(
     options.visualStyle === 'material_preview' && state.previewLoaded
       ? library.roofMetalPreview
       : library.roofMetalTechnical;
+  return finalizeMaterial(base, options, trackDisposable);
+}
+
+export function resolveFasciaTrimMaterial(
+  options: ResolveDesignMaterialOptions,
+  trackDisposable: (material: THREE.Material) => void,
+): THREE.MeshStandardMaterial {
+  const library = ensureLibrary();
+  const base =
+    options.visualStyle === 'material_preview' && state.previewLoaded
+      ? library.fasciaTrimPreview
+      : library.fasciaTrimTechnical;
+  return finalizeMaterial(base, options, trackDisposable);
+}
+
+export function resolveSoffitTrimMaterial(
+  options: ResolveDesignMaterialOptions,
+  trackDisposable: (material: THREE.Material) => void,
+): THREE.MeshStandardMaterial {
+  const library = ensureLibrary();
+  const base =
+    options.visualStyle === 'material_preview' && state.previewLoaded
+      ? library.soffitTrimPreview
+      : library.soffitTrimTechnical;
   return finalizeMaterial(base, options, trackDisposable);
 }
 

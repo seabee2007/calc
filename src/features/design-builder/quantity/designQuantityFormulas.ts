@@ -18,6 +18,12 @@ import { totalGableEndRoofingClosureAreaSquareMeters } from '../domain/gableEndR
 import { totalRoofFasciaLengthMeters } from '../domain/roofFasciaSolver';
 import { totalRoofSoffitAreaSquareMeters } from '../domain/roofSoffitSolver';
 import {
+  resolveInfillPlasterPanelPlacements,
+  normalizeCmuInfillSystem,
+  totalInfillPlasterAreaSquareMeters,
+  type PlasterOpening,
+} from '../domain/infillPlaster';
+import {
   OPENING_GROUT_CONCEPTUAL_WARNING,
   calculateCmuOpeningGroutSummary,
 } from '../domain/cmuOpeningRules';
@@ -748,6 +754,63 @@ export interface FrameInfillQuantityInput extends CmuBuildingQuantityInput {
   roofSystem?: import('../types').RoofSystemSettings;
 }
 
+function buildInfillPlasterPreviewLines(params: {
+  input: FrameInfillQuantityInput;
+  plasterAreaSquareMeters: number;
+  placementCount: number;
+  finish: import('../types').CmuInfillPlasterFinish;
+  profileLabel: string;
+  metaBase: Record<string, unknown>;
+}): DesignEstimatePreviewLine[] {
+  const quantity = roundQuantity(squareMetersToSquareFeet(params.plasterAreaSquareMeters), 2);
+  const snapshot = {
+    plasterAreaSquareMeters: params.plasterAreaSquareMeters,
+    plasterPlacementCount: params.placementCount,
+    plasterFinish: params.finish,
+    plasterProfileLabel: params.profileLabel,
+    coatCount: 3,
+    plasterSides: 'exterior_with_panel_edge_returns',
+    infillObjectId: params.input.infillObjectId,
+    ...params.metaBase,
+  };
+  const baseLine = {
+    designModelId: params.input.designModelId,
+    designObjectId: params.input.infillObjectId,
+    quantity,
+    unit: 'SF',
+    source: 'parametric_design_builder' as const,
+    confidence: 'calculated_from_parameters' as const,
+    divisionCode: '09',
+    divisionName: 'Finishes',
+  };
+  return [
+    {
+      ...baseLine,
+      id: 'infill-plaster-scratch-coat',
+      quantityType: 'infill_plaster_scratch_coat_area',
+      description: 'CMU Infill Plaster - Scratch Coat',
+      formula: 'net_exterior_infill_plaster_area',
+      parameterSnapshot: { ...snapshot, coat: 'scratch' },
+    },
+    {
+      ...baseLine,
+      id: 'infill-plaster-base-coat',
+      quantityType: 'infill_plaster_base_coat_area',
+      description: 'CMU Infill Plaster - Base Coat',
+      formula: 'net_exterior_infill_plaster_area',
+      parameterSnapshot: { ...snapshot, coat: 'base' },
+    },
+    {
+      ...baseLine,
+      id: 'infill-plaster-finish-coat',
+      quantityType: 'infill_plaster_finish_coat_area',
+      description: `CMU Infill Plaster - ${params.finish === 'smooth' ? 'Smooth' : 'Textured'} Finish Coat`,
+      formula: 'net_exterior_infill_plaster_area',
+      parameterSnapshot: { ...snapshot, coat: 'finish' },
+    },
+  ];
+}
+
 export function buildFrameInfillEstimatePreview(input: FrameInfillQuantityInput): DesignEstimatePreviewLine[] {
   const resolvedRoof = input.geometryResult.resolvedRoofSystem;
   const hiddenLegacyLineIds = new Set<DesignEstimatePreviewLine['id']>([
@@ -772,6 +835,14 @@ export function buildFrameInfillEstimatePreview(input: FrameInfillQuantityInput)
   const purlinLinearMeters = sumPurlinLengthMeters(resolvedRoof?.purlinPlacements ?? []);
   const fasciaLinearMeters = totalRoofFasciaLengthMeters(resolvedRoof?.fasciaPlacements ?? []);
   const soffitAreaSquareMeters = totalRoofSoffitAreaSquareMeters(resolvedRoof?.soffitPlacements ?? []);
+  const plasterPlacements = resolveInfillPlasterPanelPlacements({
+    infillSystem: input.geometryResult.infillSystem ?? input.infillSystem,
+    panelBounds: input.geometryResult.resolvedInfillPanelBounds ?? [],
+    openings: input.geometryResult.wallCmuLayout.roughOpenings as PlasterOpening[],
+    wallThicknessMeters: input.wall.wallThicknessMeters,
+  });
+  const plasterAreaSquareMeters = totalInfillPlasterAreaSquareMeters(plasterPlacements);
+  const plasterSettings = normalizeCmuInfillSystem(input.geometryResult.infillSystem ?? input.infillSystem).plaster;
   const gableEndRoofingClosureAreaSquareMeters = totalGableEndRoofingClosureAreaSquareMeters(
     resolvedRoof?.gableEndRoofingClosures ?? [],
   );
@@ -981,6 +1052,16 @@ export function buildFrameInfillEstimatePreview(input: FrameInfillQuantityInput)
       input,
       input.geometryResult.blockCount ?? input.geometryResult.wallCmuLayout.totalBlocks,
     ),
+    ...(plasterSettings?.enabled && plasterAreaSquareMeters > 0
+      ? buildInfillPlasterPreviewLines({
+          input,
+          plasterAreaSquareMeters,
+          placementCount: plasterPlacements.length,
+          finish: plasterSettings.finish,
+          profileLabel: plasterSettings.profileLabel,
+          metaBase,
+        })
+      : []),
     ...(resolvedRoof?.supported
       ? [
           {

@@ -453,6 +453,14 @@ export interface CmuInfillPanel {
   masonrySettings: DesignMasonrySettings;
 }
 
+export type CmuInfillPlasterFinish = 'smooth' | 'textured';
+
+export interface CmuInfillPlasterSettings {
+  enabled: boolean;
+  finish: CmuInfillPlasterFinish;
+  profileLabel: string;
+}
+
 export interface GableEndSettings {
   kind: 'gable_end';
   id: string;
@@ -521,6 +529,7 @@ export interface StructuralFrameSystemParameters {
 export interface CmuInfillSystemParameters {
   kind: 'cmu_infill_system';
   panels: CmuInfillPanel[];
+  plaster?: CmuInfillPlasterSettings;
 }
 
 export interface GableEndSystemParameters {

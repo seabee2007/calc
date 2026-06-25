@@ -21,7 +21,7 @@ import { normalizeRcFrameFoundationSettings } from '../domain/rcFrameFoundationM
 import { buildDesignGeometryInputFromLayout, generateDesignGeometry, getSegmentFramesForWallLayout } from '../geometry/designGeometry';
 import { projectPointToSegmentStation } from '../domain/openingPlacementResolver';
 import { buildFrameInfillEstimatePreview, cubicMetersToCubicYards, metersToFeet, squareMetersToSquareFeet } from '../quantity/designQuantityFormulas';
-import { resolveEaveRunExtensionMeters, ridgeLengthMeters } from '../domain/roofOverhangSupport';
+import { ridgeLengthMeters } from '../domain/roofOverhangSupport';
 import {
   PURLIN_PROFILE_DEPTH_METERS,
   PURLIN_PROFILE_WIDTH_METERS,
@@ -220,7 +220,6 @@ function planCentroid(plane: RoofPlane): Pick<RoofVec3, 'x' | 'z'> {
 
 describe('Roof system — hip, gable, raked cap', () => {
   const preset = applyAutoFrameLayout(createFiveBySixCmuBuildingPreset());
-  const foundation = normalizeRcFrameFoundationSettings(preset.foundationSettings);
 
   it('defaults rake clearance to 0.1016 m (4 in)', () => {
     expect(createDefaultRoofSystemSettings().gable.rakeClearanceMeters).toBe(0.1016);
@@ -1098,11 +1097,11 @@ describe('Gable-end / rake overhang', () => {
     const gableRakes = roof.fasciaPlacements.filter((placement) => placement.edgeRole === 'gable_rake');
 
     expect(sheetMaxX - supportMaxX).toBeCloseTo(ROOF_SHEET_EAVE_OVERHANG_METERS, 3);
-    expect(sheetMaxZ).toBeGreaterThan(fasciaMaxZ);
+    expect(sheetMaxZ - supportMaxZ).toBeCloseTo(ROOF_SHEET_EAVE_OVERHANG_METERS, 3);
     expect(fasciaMaxX).toBeCloseTo(supportMaxX, 2);
     expect(sheetMaxX - fasciaMaxX).toBeCloseTo(ROOF_SHEET_EAVE_OVERHANG_METERS, 2);
     expect(fasciaMaxZ).toBeGreaterThan(supportMaxZ);
-    expect(sheetMaxZ - fasciaMaxZ).toBeGreaterThan(0.001);
+    expect(sheetMaxZ - supportMaxZ).toBeLessThan(fasciaMaxZ - supportMaxZ);
 
     for (const fascia of sideEaves) {
       const purlin = roof.purlinPlacements.find(

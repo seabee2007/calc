@@ -143,6 +143,7 @@ import {
 } from '../domain/structureActions';
 import { createDefaultFoundationSettings, normalizeRcFrameFoundationSettings, syncColumnHeightAbovePlinthForWallHeight } from '../domain/foundationElevations';
 import { createDefaultRoofSystemSettings, DEFAULT_ROOF_LAYER_VISIBILITY, normalizeRoofSystemSettings } from '../domain/roofSystemDefaults';
+import { normalizeCmuInfillSystem, normalizeCmuInfillPlasterSettings } from '../domain/infillPlaster';
 import FrameFoundationDimensionsModal from './FrameFoundationDimensionsModal';
 import { DoorConfigurationControls } from './DoorConfigurationControls';
 import {
@@ -184,6 +185,7 @@ import type {
   DesignUnitSystem,
   DesignWallSegment,
   DesignWallLayoutParameters,
+  CmuInfillPlasterSettings,
   MasonryCourseRun,
   MasonryToolMode,
   ModuleFitMode,
@@ -2582,6 +2584,30 @@ export default function DesignBuilderPage({
   function handleApplyMaterialSelections(nextSelections: DesignMaterialSelection) {
     const normalized = normalizeDesignMaterialSelection(nextSelections);
     setMaterialSelections(normalized);
+    const nextPlasterFinish = finishForPlasterMaterialId(normalized.plasterMaterialId);
+    if (
+      resolvedPreset.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill' &&
+      nextPlasterFinish &&
+      normalizeCmuInfillSystem(resolvedPreset.infillSystem).plaster.finish !== nextPlasterFinish
+    ) {
+      applyPresetPatch(
+        (current) => {
+          const infillSystem = normalizeCmuInfillSystem(current.infillSystem);
+          return {
+            ...current,
+            infillSystem: {
+              ...infillSystem,
+              plaster: {
+                ...infillSystem.plaster,
+                finish: nextPlasterFinish,
+              },
+            },
+          };
+        },
+        'Edit plaster finish',
+        'masonry_settings_update',
+      );
+    }
     void setActiveMaterialSelections(normalized).then(() => {
       setTextureProjectionRevision((revision) => revision + 1);
     });
@@ -2774,6 +2800,32 @@ export default function DesignBuilderPage({
       changedSetting: changedSetting ?? 'wallOption',
       previousValue: changedSetting ? resolvedPreset.wall[changedSetting] : undefined,
     });
+  }
+
+  function updateInfillPlaster(patch: Partial<CmuInfillPlasterSettings>) {
+    const currentPlaster = normalizeCmuInfillSystem(resolvedPreset.infillSystem).plaster;
+    const nextPlaster = normalizeCmuInfillPlasterSettings({ ...currentPlaster, ...patch });
+    applyPresetPatch(
+      (current) => ({
+        ...current,
+        infillSystem: {
+          ...normalizeCmuInfillSystem(current.infillSystem),
+          plaster: nextPlaster,
+        },
+      }),
+      'Edit plaster finish',
+      'masonry_settings_update',
+    );
+    if (patch.finish) {
+      const nextSelections = normalizeDesignMaterialSelection({
+        ...materialSelections,
+        plasterMaterialId: plasterMaterialIdForFinish(patch.finish),
+      });
+      setMaterialSelections(nextSelections);
+      void setActiveMaterialSelections(nextSelections).then(() => {
+        setTextureProjectionRevision((revision) => revision + 1);
+      });
+    }
   }
 
   function updateBlockModuleField(field: keyof NonNullable<CmuBuildingPreset['wall']['blockModule']>, value: number | string) {
@@ -3331,6 +3383,7 @@ export default function DesignBuilderPage({
               onRoofChange={updateRoofField}
               onTrussSpacingChange={updateTrussSpacing}
               onStructureFieldChange={updateStructureField}
+              onInfillPlasterChange={updateInfillPlaster}
               onFoundationFieldChange={updateFoundationField}
               onGableFieldChange={updateGableField}
               onOpeningChange={updateSelectedOpening}
@@ -4450,6 +4503,18 @@ const TOOL_MODE_OPTIONS: Array<{ mode: DesignBuilderToolMode; label: string }> =
   { mode: 'delete', label: 'Delete' },
 ];
 
+function plasterMaterialIdForFinish(finish: CmuInfillPlasterSettings['finish']): string {
+  return finish === 'smooth' ? 'smooth-3-coat-plaster' : 'textured-3-coat-plaster';
+}
+
+function finishForPlasterMaterialId(
+  materialId: DesignMaterialSelection['plasterMaterialId'],
+): CmuInfillPlasterSettings['finish'] | null {
+  if (materialId === 'smooth-3-coat-plaster') return 'smooth';
+  if (materialId === 'textured-3-coat-plaster') return 'textured';
+  return null;
+}
+
 const OBJECT_TREE_ITEMS: Array<{ id: string; objectType: DesignObjectType; label: string; description: string }> = [
   { id: 'footprint', objectType: 'building_footprint', label: 'Nodes', description: '' },
   { id: 'segments', objectType: 'cmu_wall_system', label: 'Wall Segments', description: '' },
@@ -4546,6 +4611,7 @@ function EditableControls({
   onRoofChange,
   onTrussSpacingChange,
   onStructureFieldChange,
+  onInfillPlasterChange,
   onFoundationFieldChange,
   onGableFieldChange,
   onOpeningChange,
@@ -4577,6 +4643,7 @@ function EditableControls({
       buildingSystemMode?: import('../types').BuildingSystemMode;
     },
   ) => void;
+  onInfillPlasterChange: (patch: Partial<CmuInfillPlasterSettings>) => void;
   onFoundationFieldChange?: (
     patch: Partial<
       RcFrameFoundationSettings[
@@ -4788,11 +4855,32 @@ function EditableControls({
   }
 
   if (selectedObjectType === 'cmu_infill_system') {
+    const plaster = normalizeCmuInfillSystem(preset.infillSystem).plaster;
     return (
       <div className="space-y-3">
         <p className="text-sm text-slate-600 dark:text-slate-300">
           Infill panels: {preset.infillSystem.panels.length}
         </p>
+        <label className="flex items-center justify-between rounded-lg bg-slate-100 px-3 py-2 text-sm dark:bg-slate-800">
+          <span>Plaster Applied</span>
+          <input
+            type="checkbox"
+            checked={plaster.enabled}
+            onChange={(event) => onInfillPlasterChange({ enabled: event.currentTarget.checked })}
+            className="h-4 w-4"
+          />
+        </label>
+        <SelectField
+          label="Finish"
+          value={plaster.finish}
+          onChange={(value) =>
+            onInfillPlasterChange({ finish: value === 'smooth' ? 'smooth' : 'textured' })
+          }
+          options={[
+            { value: 'textured', label: 'Textured' },
+            { value: 'smooth', label: 'Smooth' },
+          ]}
+        />
         {designGeometryResult.wallCmuLayout.counts ? (
           <p className="text-xs text-slate-500">
             Full {designGeometryResult.wallCmuLayout.counts.full} · Half {designGeometryResult.wallCmuLayout.counts.half} · Cut{' '}

@@ -17,6 +17,7 @@ import { getSegmentFramesForWallLayout } from '../geometry/designGeometry';
 import type { BuildingSystemMode, RcFrameFoundationSettings, RoofSystemSettings } from '../types';
 import { normalizeRcFrameFoundationSettings } from './rcFrameFoundationMigration';
 import { normalizeRoofSystemSettings } from './roofSystemDefaults';
+import { normalizeCmuInfillSystem } from './infillPlaster';
 
 export function resolveFoundationSettings(preset: CmuBuildingPreset): RcFrameFoundationSettings {
   return normalizeRcFrameFoundationSettings(preset.foundationSettings);
@@ -81,7 +82,7 @@ export function applyAutoFrameLayout(preset: CmuBuildingPreset): CmuBuildingPres
     buildingSystemMode: 'reinforced_concrete_frame_with_cmu_infill',
     foundationSettings: foundation,
     frameSystem,
-    infillSystem: { kind: 'cmu_infill_system', panels },
+    infillSystem: { ...normalizeCmuInfillSystem(preset.infillSystem), panels },
   };
 }
 
@@ -243,6 +244,6 @@ export function applyFrameFoundationDimensions(
   return {
     ...next,
     frameSystem,
-    infillSystem: { kind: 'cmu_infill_system', panels },
+    infillSystem: { ...normalizeCmuInfillSystem(next.infillSystem), panels },
   };
 }

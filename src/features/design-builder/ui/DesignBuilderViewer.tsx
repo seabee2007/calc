@@ -32,6 +32,7 @@ import {
 } from '../domain/openingAssembly3dRender';
 import { createOpeningFrame3dGroup } from '../domain/openingFrame3dGraphics';
 import type { ResolvedCmuOpening } from '../domain/cmuOpeningRules';
+import { resolveInfillPlasterPanelPlacements, type PlasterOpening } from '../domain/infillPlaster';
 import { getNormalizedPointerFromClient } from '../domain/pointerPlanMapping';
 import { buildSegmentFrameMap, projectPointToSegmentStation } from '../domain/openingPlacementResolver';
 import type {
@@ -74,9 +75,12 @@ import {
   ensurePreviewMaterialsLoaded,
   resolveCastConcreteMaterial,
   resolveCmuMaterial,
+  resolveFasciaTrimMaterial,
+  resolvePlasterFinishMaterial,
   resolveRoofMetalMaterial,
   resolveRoofCladdingUvOptions,
   resolveSiteGroundMaterial,
+  resolveSoffitTrimMaterial,
   resolveStructuralSteelMaterial,
   subscribeMaterialDiagnostics,
 } from '../rendering/materials/designMaterialLibrary';
@@ -1607,7 +1611,7 @@ export default function DesignBuilderViewer({
             const fasciaMaterial = debugGuides
               ? new THREE.MeshStandardMaterial({ color: 0x22c55e, metalness: 0.5, roughness: 0.45 })
               : usePreviewMaterials
-                ? resolveRoofMetalMaterial(
+                ? resolveFasciaTrimMaterial(
                     { visualStyle: currentVisualStyle, selected: roofSelected },
                     trackMat,
                   )
@@ -1639,7 +1643,7 @@ export default function DesignBuilderViewer({
             const soffitMaterial = debugGuides
               ? new THREE.MeshStandardMaterial({ color: 0x38bdf8, metalness: 0.45, roughness: 0.5 })
               : usePreviewMaterials
-                ? resolveRoofMetalMaterial(
+                ? resolveSoffitTrimMaterial(
                     { visualStyle: currentVisualStyle, selected: roofSelected },
                     trackMat,
                   )
@@ -1864,6 +1868,58 @@ export default function DesignBuilderViewer({
             wallMesh.rotation.y = segment.rotationY;
             addSelectable(wallMesh, 'cmu_wall_system');
           });
+        }
+
+        if (showCmuInfill) {
+          const plasterPlacements = resolveInfillPlasterPanelPlacements({
+            infillSystem: currentGeometry.infillSystem,
+            panelBounds: currentGeometry.resolvedInfillPanelBounds ?? [],
+            openings: cmuLayout.roughOpenings as PlasterOpening[],
+            wallThicknessMeters: currentWall.wallThicknessMeters,
+          });
+          if (plasterPlacements.length > 0) {
+            const plasterGroup = new THREE.Group();
+            plasterGroup.name = 'plasterGroup';
+            const plasterMaterial = usePreviewMaterials
+              ? resolvePlasterFinishMaterial(
+                  {
+                    visualStyle: currentVisualStyle,
+                    selected: currentSelectedObjectType === 'cmu_infill_system',
+                  },
+                  trackMat,
+                )
+              : makeMaterial(0xded8cf, currentSelectedObjectType === 'cmu_infill_system', {
+                  side: THREE.DoubleSide,
+                });
+            plasterPlacements.forEach((placement) => {
+              const mesh = new THREE.Mesh(
+                trackGeometry(
+                  new THREE.BoxGeometry(
+                    placement.widthMeters,
+                    placement.heightMeters,
+                    placement.thicknessMeters,
+                  ),
+                ),
+                plasterMaterial,
+              );
+              mesh.position.set(
+                placement.center.x,
+                currentSlab.slabThicknessMeters + placement.center.y,
+                placement.center.z,
+              );
+              mesh.rotation.y = placement.rotationY;
+              plasterGroup.add(mesh);
+            });
+            plasterGroup.traverse((child) => {
+              if (child instanceof THREE.Mesh) {
+                child.userData.selectable = true;
+                child.userData.designObjectType = 'cmu_infill_system';
+                child.userData.selectionPriority = selectionPriorityForObjectType('cmu_infill_system');
+                selectable.push(child);
+              }
+            });
+            root.add(plasterGroup);
+          }
         }
       } else if (legacyPresetActive) {
         addLabel(root, 'NORTH WALL', new THREE.Vector3(0, 0.06, -currentWall.widthMeters / 2 - 0.8), 0x0284c7);

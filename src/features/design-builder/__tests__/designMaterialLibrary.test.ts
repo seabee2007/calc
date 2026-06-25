@@ -14,6 +14,7 @@ import {
 } from '../rendering/materials/createTriplanarStandardMaterial';
 import {
   getDesignMaterialLibrary,
+  getMaterialOptionsForCategory,
   getMaterialDiagnostics,
   resetDesignMaterialLibraryForTests,
   resolveCastConcreteMaterial,
@@ -52,9 +53,20 @@ describe('designMaterialLibrary', () => {
     const diagnostics = getMaterialDiagnostics('technical');
     expect(diagnostics.visualStyle).toBe('technical');
     expect(diagnostics.activeTextureCount).toBe(0);
-    expect(diagnostics.materialInstanceCount).toBe(14);
+    expect(diagnostics.materialInstanceCount).toBe(20);
     expect(diagnostics.concreteStructuralMaterialStatus).toBe('technical_only');
     expect(diagnostics.concreteBeamMaterialStatus).toBe('technical_only');
+    expect(diagnostics.plasterMaterialStatus).toBe('technical_only');
+  });
+
+  it('registers non-corrugated plaster finish material options', () => {
+    const options = getMaterialOptionsForCategory('plaster_finish');
+    expect(options.map((option) => option.id)).toEqual([
+      'textured-3-coat-plaster',
+      'smooth-3-coat-plaster',
+    ]);
+    expect(options.every((option) => option.category === 'plaster_finish')).toBe(true);
+    expect(options.every((option) => option.supportsTint)).toBe(true);
   });
 });
 

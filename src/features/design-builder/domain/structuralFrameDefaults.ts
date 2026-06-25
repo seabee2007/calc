@@ -1,4 +1,5 @@
 import type { StructuralFrameSystemParameters } from '../types';
+import { normalizeCmuInfillSystem } from './infillPlaster';
 
 export const DEFAULT_RC_COLUMN_WIDTH_METERS = 0.35;
 export const DEFAULT_RC_COLUMN_DEPTH_METERS = 0.35;
@@ -29,10 +30,10 @@ export function createDefaultStructuralFrameSystem(): StructuralFrameSystemParam
 }
 
 export function createEmptyCmuInfillSystem() {
-  return {
+  return normalizeCmuInfillSystem({
     kind: 'cmu_infill_system' as const,
     panels: [],
-  };
+  });
 }
 
 export function createEmptyGableEndSystem() {

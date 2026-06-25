@@ -13,6 +13,8 @@ export type TriplanarMaterialOptions = {
   normalMap?: THREE.Texture;
   textureScaleMeters: number;
   baseColor: THREE.ColorRepresentation;
+  paintColor?: THREE.ColorRepresentation;
+  paintStrength?: number;
   roughness: number;
   metalness: number;
   useCheckerMap?: boolean;
@@ -85,6 +87,8 @@ const TRIPLANAR_VERTEX_WORLD = `
 const TRIPLANAR_FRAGMENT_DECL = `
 uniform float uTriplanarScale;
 uniform float uUseChecker;
+uniform vec3 uTriplanarPaintColor;
+uniform float uTriplanarPaintStrength;
 varying vec3 vTriplanarWorldPos;
 varying vec3 vTriplanarWorldNormal;
 
@@ -119,15 +123,24 @@ vec4 sampleTriplanarChecker( vec3 worldPos, vec3 worldNormal ) {
 }
 `;
 
-function attachTriplanarShader(material: THREE.MeshStandardMaterial, textureScaleMeters: number, checker: boolean): void {
+function attachTriplanarShader(
+  material: THREE.MeshStandardMaterial,
+  textureScaleMeters: number,
+  checker: boolean,
+  paintColor: THREE.Color,
+  paintStrength: number,
+): void {
   const textureScale = 1 / textureScaleMeters;
+  const normalizedPaintStrength = THREE.MathUtils.clamp(paintStrength, 0, 1);
 
   material.customProgramCacheKey = () =>
-    `triplanar_${textureScale}_${checker ? 1 : 0}_${Boolean(material.map)}_${Boolean(material.roughnessMap)}_${Boolean(material.aoMap)}`;
+    `triplanar_${textureScale}_${checker ? 1 : 0}_${Boolean(material.map)}_${Boolean(material.roughnessMap)}_${Boolean(material.aoMap)}_${paintColor.getHexString()}_${normalizedPaintStrength.toFixed(3)}`;
 
   material.onBeforeCompile = (shader) => {
     shader.uniforms.uTriplanarScale = { value: textureScale };
     shader.uniforms.uUseChecker = { value: checker ? 1 : 0 };
+    shader.uniforms.uTriplanarPaintColor = { value: paintColor.clone() };
+    shader.uniforms.uTriplanarPaintStrength = { value: normalizedPaintStrength };
 
     shader.vertexShader = TRIPLANAR_VERTEX_DECL + shader.vertexShader;
     shader.fragmentShader = TRIPLANAR_FRAGMENT_DECL + shader.fragmentShader;
@@ -147,6 +160,9 @@ function attachTriplanarShader(material: THREE.MeshStandardMaterial, textureScal
   #ifdef DECODE_VIDEO_TEXTURE
     sampledDiffuseColor = sRGBTransferEOTF( sampledDiffuseColor );
   #endif
+  float triplanarLuma = dot( sampledDiffuseColor.rgb, vec3( 0.2126, 0.7152, 0.0722 ) );
+  vec3 triplanarRecolor = uTriplanarPaintColor * ( 0.36 + 0.64 * triplanarLuma );
+  sampledDiffuseColor.rgb = mix( sampledDiffuseColor.rgb, triplanarRecolor, uTriplanarPaintStrength );
   diffuseColor *= sampledDiffuseColor;
 #endif`,
     );
@@ -202,7 +218,13 @@ export function createTriplanarStandardMaterial(options: TriplanarMaterialOption
     material.aoMapIntensity = 0.85;
   }
 
-  attachTriplanarShader(material, options.textureScaleMeters, options.useCheckerMap ?? useCheckerMap);
+  attachTriplanarShader(
+    material,
+    options.textureScaleMeters,
+    options.useCheckerMap ?? useCheckerMap,
+    new THREE.Color(options.paintColor ?? 0xffffff),
+    options.paintStrength ?? 0,
+  );
   triplanarMaterialCacheCount += 1;
   return material;
 }
@@ -212,5 +234,5 @@ export function reapplyTriplanarShaderToClone(
   material: THREE.MeshStandardMaterial,
   textureScaleMeters: number,
 ): void {
-  attachTriplanarShader(material, textureScaleMeters, useCheckerMap);
+  attachTriplanarShader(material, textureScaleMeters, useCheckerMap, new THREE.Color(0xffffff), 0);
 }

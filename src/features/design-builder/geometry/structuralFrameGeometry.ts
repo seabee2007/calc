@@ -53,6 +53,7 @@ import { resolveCmuModuleDefinition } from '../domain/cmuModuleRules';
 import type { ResolvedCmuOpening } from '../domain/cmuOpeningRules';
 import { createEmptyCmuInfillSystem, createEmptyGableEndSystem } from '../domain/structuralFrameDefaults';
 import { createDefaultRoofSystemSettings } from '../domain/roofSystemDefaults';
+import { normalizeCmuInfillSystem } from '../domain/infillPlaster';
 import { resolveRoofSystem } from '../domain/roofSystemResolver';
 import { resolveOuterRoofBeamBearingLoop } from '../domain/roofFootprintSupport';
 import { buildResolvedGableEnd } from '../domain/roofGableSolver';
@@ -424,7 +425,7 @@ export function generateFrameInfillGeometry(
     frameSystem,
     foundationSettings,
     isolatedFootings,
-    infillSystem: { kind: 'cmu_infill_system', panels },
+    infillSystem: { ...normalizeCmuInfillSystem(input.infillSystem), panels },
     gableEndSystem: input.gableEndSystem,
     structuralConcreteVolumeCubicMeters,
     structuralConcreteVolumeBreakdown,

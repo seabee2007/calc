@@ -82,6 +82,7 @@ import {
 } from './structuralFrameGeometry';
 import { createDefaultFoundationSettings } from '../domain/foundationElevations';
 import { createDefaultRoofSystemSettings, normalizeRoofSystemSettings } from '../domain/roofSystemDefaults';
+import { normalizeCmuInfillSystem } from '../domain/infillPlaster';
 
 export type DesignGeometrySourcePath = 'blank' | 'layout_graph' | 'legacy_preset' | 'manual_masonry';
 
@@ -670,7 +671,7 @@ export function generateDesignGeometry(input: DesignGeometryInput): DesignGeomet
       frameSystem: input.frameSystem ?? defaults.frameSystem,
       foundationSettings: input.foundationSettings ?? createDefaultFoundationSettings(),
       roofSystem: normalizeRoofSystemSettings(input.roofSystem ?? createDefaultRoofSystemSettings()),
-      infillSystem: input.infillSystem ?? defaults.infillSystem,
+      infillSystem: normalizeCmuInfillSystem(input.infillSystem ?? defaults.infillSystem),
       gableEndSystem: input.gableEndSystem ?? defaults.gableEndSystem,
     });
   }

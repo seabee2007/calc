@@ -1,8 +1,10 @@
 export type DesignMaterialCategory =
   | 'cmu'
   | 'mortar'
+  | 'plaster_finish'
   | 'cast_concrete'
   | 'roof_sheet'
+  | 'roof_trim'
   | 'structural_steel'
   | 'site_ground';
 
@@ -142,6 +144,38 @@ export const DESIGN_MATERIAL_REGISTRY: readonly DesignMaterialOption[] = [
     ]),
     projection: 'triplanar',
     tileSizeMeters: 0.35,
+    roughness: 0.96,
+    metalness: 0.01,
+    supportsTint: true,
+  },
+  {
+    id: 'textured-3-coat-plaster',
+    category: 'plaster_finish',
+    label: 'Textured 3-Coat Plaster',
+    description: 'Fine textured plaster finish coat over scratch and base coats',
+    swatchColor: '#d8d1c5',
+    texturePaths: polyPaths('/textures/cmu/concrete-wall-006/', 'concrete_wall_006', [
+      'normal',
+      'roughness',
+      'ao',
+    ]),
+    projection: 'triplanar',
+    tileSizeMeters: 0.85,
+    roughness: 0.94,
+    metalness: 0.01,
+    supportsTint: true,
+  },
+  {
+    id: 'smooth-3-coat-plaster',
+    category: 'plaster_finish',
+    label: 'Smooth 3-Coat Plaster',
+    description: 'Smooth plaster finish coat over scratch and base coats',
+    swatchColor: '#ded8cf',
+    texturePaths: packPaths('/textures/mortar/concrete-032/', 'Concrete032_1K-JPG', [
+      'roughness',
+    ]),
+    projection: 'triplanar',
+    tileSizeMeters: 0.9,
     roughness: 0.96,
     metalness: 0.01,
     supportsTint: true,
@@ -440,6 +474,38 @@ export const DESIGN_MATERIAL_REGISTRY: readonly DesignMaterialOption[] = [
     supportsTint: true,
   },
   {
+    id: 'smooth-painted-roof-trim',
+    category: 'roof_trim',
+    label: 'Smooth Painted Metal Trim',
+    description: 'Flat painted metal fascia and soffit finish',
+    swatchColor: '#94a3b8',
+    texturePaths: packPaths('/textures/steel/painted-metal-004/', 'PaintedMetal004_1K-JPG', [
+      'roughness',
+      'metalness',
+    ]),
+    projection: 'uv',
+    uvRepeat: 1,
+    roughness: 0.42,
+    metalness: 0.68,
+    supportsTint: true,
+  },
+  {
+    id: 'satin-painted-roof-trim',
+    category: 'roof_trim',
+    label: 'Satin Painted Metal Trim',
+    description: 'Smooth satin metal trim without corrugation',
+    swatchColor: '#7c8794',
+    texturePaths: packPaths('/textures/steel/metal-037/', 'Metal037_1K-JPG', [
+      'roughness',
+      'metalness',
+    ]),
+    projection: 'uv',
+    uvRepeat: 1,
+    roughness: 0.36,
+    metalness: 0.72,
+    supportsTint: true,
+  },
+  {
     id: 'metal-021',
     category: 'structural_steel',
     label: 'Metal 021',
@@ -598,6 +664,13 @@ export const MORTAR_TINT_PRESETS: readonly DesignMaterialTintPreset[] = [
   { id: 'light-gray', label: 'Light Gray', hex: '#d8d4ce' },
   { id: 'warm-gray', label: 'Warm Gray', hex: '#cfc8bf' },
   { id: 'medium-gray', label: 'Medium Gray', hex: '#b8b2a8' },
+];
+
+export const PLASTER_TINT_PRESETS: readonly DesignMaterialTintPreset[] = [
+  { id: 'natural-lime', label: 'Natural Lime', hex: '#ded8cf' },
+  { id: 'warm-sand', label: 'Warm Sand', hex: '#d1c2aa' },
+  { id: 'cool-gray', label: 'Cool Gray', hex: '#bfc3c2' },
+  { id: 'white', label: 'White', hex: '#f1eee8' },
 ];
 
 export const ROOF_SHEET_TINT_PRESETS: readonly DesignMaterialTintPreset[] = [

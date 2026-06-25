@@ -6,6 +6,7 @@ import {
 
 const MIN_SOFFIT_PANEL_WIDTH_METERS = 0.02;
 const DEFAULT_SOFFIT_DROP_BELOW_BEARING_METERS = 0.0254;
+const SIDE_EAVE_FASCIA_OVERLAP_METERS = 0.03;
 
 function segmentLength(start: RoofVec3, end: RoofVec3): number {
   return Math.hypot(end.x - start.x, end.y - start.y, end.z - start.z);
@@ -315,6 +316,7 @@ function pushSlopedSideEavePlacement(params: {
   structuralRidgeEnd?: RoofVec3;
   fallbackY: number;
   undersideDropMeters: number;
+  fasciaOverlapMeters: number;
 }): boolean {
   if (
     !params.structuralRidgeStart ||
@@ -330,6 +332,32 @@ function pushSlopedSideEavePlacement(params: {
     ridgeEnd: params.structuralRidgeEnd,
     referencePoint: params.edgeMidpoint,
   });
+  const startOffset = {
+    x: params.outerStartSource.x - params.innerStartSource.x,
+    z: params.outerStartSource.z - params.innerStartSource.z,
+  };
+  const endOffset = {
+    x: params.outerEndSource.x - params.innerEndSource.x,
+    z: params.outerEndSource.z - params.innerEndSource.z,
+  };
+  const startOffsetLength = Math.hypot(startOffset.x, startOffset.z);
+  const endOffsetLength = Math.hypot(endOffset.x, endOffset.z);
+  const outerStartSource =
+    startOffsetLength > 1e-8 && params.fasciaOverlapMeters > 0
+      ? {
+          ...params.outerStartSource,
+          x: params.outerStartSource.x + (startOffset.x / startOffsetLength) * params.fasciaOverlapMeters,
+          z: params.outerStartSource.z + (startOffset.z / startOffsetLength) * params.fasciaOverlapMeters,
+        }
+      : params.outerStartSource;
+  const outerEndSource =
+    endOffsetLength > 1e-8 && params.fasciaOverlapMeters > 0
+      ? {
+          ...params.outerEndSource,
+          x: params.outerEndSource.x + (endOffset.x / endOffsetLength) * params.fasciaOverlapMeters,
+          z: params.outerEndSource.z + (endOffset.z / endOffsetLength) * params.fasciaOverlapMeters,
+        }
+      : params.outerEndSource;
   pushPlacement(params.placements, {
     edgeRole: 'side_eave',
     innerStart: slopedSoffitPoint({
@@ -345,13 +373,13 @@ function pushSlopedSideEavePlacement(params: {
       undersideDropMeters: params.undersideDropMeters,
     }),
     outerEnd: slopedSoffitPoint({
-      source: params.outerEndSource,
+      source: outerEndSource,
       claddingDisplayPlanes: sidePlanes,
       fallbackY: params.fallbackY,
       undersideDropMeters: params.undersideDropMeters,
     }),
     outerStart: slopedSoffitPoint({
-      source: params.outerStartSource,
+      source: outerStartSource,
       claddingDisplayPlanes: sidePlanes,
       fallbackY: params.fallbackY,
       undersideDropMeters: params.undersideDropMeters,
@@ -422,7 +450,7 @@ export function resolveRoofSoffitPlacements(params: {
       edgeRole === 'gable_return' &&
       pushSlopedGableReturnPlacements({
         placements,
-        innerStartSource,
+    innerStartSource,
         innerEndSource,
         outerStartSource,
         outerEndSource,
@@ -450,6 +478,7 @@ export function resolveRoofSoffitPlacements(params: {
         structuralRidgeEnd: params.structuralRidgeEnd,
         fallbackY: y,
         undersideDropMeters: slopedUndersideDropMeters,
+        fasciaOverlapMeters: params.fasciaPlacements.length > 0 ? SIDE_EAVE_FASCIA_OVERLAP_METERS : 0,
       })
     ) {
       continue;

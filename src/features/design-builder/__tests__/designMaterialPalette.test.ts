@@ -52,19 +52,19 @@ describe('designMaterialRegistry', () => {
 
 describe('designMaterialSelections', () => {
   it('uses stronger roof paint strength for finish colors other than galvanized gray', () => {
-    expect(resolveRoofTintStrength(DEFAULT_DESIGN_MATERIAL_SELECTION)).toBe(0.15);
+    expect(resolveRoofTintStrength(DEFAULT_DESIGN_MATERIAL_SELECTION)).toBe(0.38);
     expect(
       resolveRoofTintStrength({
         ...DEFAULT_DESIGN_MATERIAL_SELECTION,
         roofSheetTintId: 'charcoal',
       }),
-    ).toBe(0.78);
+    ).toBe(0.94);
     expect(
       resolveRoofTintStrength({
         ...DEFAULT_DESIGN_MATERIAL_SELECTION,
         roofSheetTintId: 'red-oxide',
       }),
-    ).toBe(0.78);
+    ).toBe(0.94);
   });
 
   it('normalizes invalid ids back to category defaults', () => {

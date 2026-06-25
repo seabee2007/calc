@@ -3,6 +3,7 @@ import { createBlankCmuBuildingPreset } from './designBuilderPreset';
 import { normalizeOpeningsHeadAlignment } from './openingDefaults';
 import { normalizeRcFrameFoundationSettings } from './rcFrameFoundationMigration';
 import { normalizeRoofSystemSettings, createDefaultRoofSystemSettings } from './roofSystemDefaults';
+import { normalizeCmuInfillSystem } from './infillPlaster';
 import type {
   BuildingSystemMode,
   DesignModel,
@@ -38,17 +39,23 @@ export type PersistedDesignBuilderState = {
     roofDisplayMode?: string;
     foundationViewMode?: string;
     visualStyle?: string;
-    materialSelections?: {
+      materialSelections?: {
       cmuMaterialId?: string;
       mortarMaterialId?: string;
       castConcreteMaterialId?: string;
       roofSheetMaterialId?: string;
-      structuralSteelMaterialId?: string;
-      siteGroundMaterialId?: string;
+      fasciaMaterialId?: string;
+        soffitMaterialId?: string;
+        plasterMaterialId?: string;
+        structuralSteelMaterialId?: string;
+        siteGroundMaterialId?: string;
       mortarTintId?: string;
       roofSheetTintId?: string;
-      structuralSteelTintId?: string;
-    };
+      fasciaTintId?: string;
+        soffitTintId?: string;
+        plasterTintId?: string;
+        structuralSteelTintId?: string;
+      };
   };
   updatedAt: string;
 };
@@ -156,7 +163,7 @@ export function presetFromStoredDesign(params: {
     truss: truss ?? base.truss,
     frameSystem: frameSystem ?? base.frameSystem,
     foundationSettings: persisted?.rcFrameFoundation ?? normalizeRcFrameFoundationSettings(base.foundationSettings),
-    infillSystem: infillSystem ?? base.infillSystem,
+    infillSystem: normalizeCmuInfillSystem(infillSystem ?? base.infillSystem),
     gableEndSystem: gableEndSystem ?? base.gableEndSystem,
     roofSystem: persisted?.roofSystem ?? normalizeRoofSystemSettings(base.roofSystem),
   };
