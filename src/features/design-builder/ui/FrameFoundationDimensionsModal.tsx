@@ -21,6 +21,7 @@ import {
   totalGableEndRoofingClosureAreaSquareMeters,
 } from '../domain/gableEndRoofingClosureSolver';
 import { totalRoofFasciaLengthMeters } from '../domain/roofFasciaSolver';
+import { totalRoofSoffitAreaSquareMeters } from '../domain/roofSoffitSolver';
 import { resolveRoofSystem } from '../domain/roofSystemResolver';
 import { resolveOuterRoofBeamBearingLoop } from '../domain/roofFootprintSupport';
 import { reconcileStructuralFrameWithFoundation } from '../domain/structuralFrameLayout';
@@ -415,6 +416,10 @@ export default function FrameFoundationDimensionsModal({
 
   function patchFascia(patch: Partial<RoofSystemSettings['fascia']>) {
     setRoofDraft((current) => ({ ...current, fascia: { ...current.fascia, ...patch } }));
+  }
+
+  function patchSoffit(patch: Partial<RoofSystemSettings['soffit']>) {
+    setRoofDraft((current) => ({ ...current, soffit: { ...current.soffit, ...patch } }));
   }
 
   function patchGable(patch: Partial<RoofSystemSettings['gable']>) {
@@ -947,6 +952,18 @@ export default function FrameFoundationDimensionsModal({
                   Preview: {resolvedRoof.fasciaPlacements.length} fascia trim
                   {resolvedRoof.fasciaPlacements.length === 1 ? '' : 's'},{' '}
                   {totalRoofFasciaLengthMeters(resolvedRoof.fasciaPlacements).toFixed(2)} m.
+                </p>
+              ) : null}
+              <ToggleRow
+                label="Soffit Panels Enabled"
+                checked={roofDraft.soffit.enabled}
+                onChange={(checked) => patchSoffit({ enabled: checked })}
+              />
+              {roofDraft.soffit.enabled ? (
+                <p className={`text-xs ${TEXT_MUTED}`}>
+                  Preview: {resolvedRoof.soffitPlacements.length} soffit panel
+                  {resolvedRoof.soffitPlacements.length === 1 ? '' : 's'},{' '}
+                  {totalRoofSoffitAreaSquareMeters(resolvedRoof.soffitPlacements).toFixed(2)} sq m.
                 </p>
               ) : null}
             </CollapsibleSection>

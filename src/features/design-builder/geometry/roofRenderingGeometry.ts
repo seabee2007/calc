@@ -3,12 +3,12 @@ import type {
   FasciaPlacement,
   RakedCapPlacement,
   RoofSystemSettings,
+  SoffitPlacement,
   SteelMemberKind,
   SteelMemberSegment,
   TrussPlacement,
 } from '../types';
 import {
-  DEFAULT_RIDGE_CAP_THICKNESS_METERS,
   DEFAULT_RIDGE_CAP_WIDTH_METERS,
   PURLIN_PROFILE_DEPTH_METERS,
   PURLIN_PROFILE_WIDTH_METERS,
@@ -205,7 +205,7 @@ export function buildPurlinMesh(params: {
   }
 
   const runAxis = direction.clone().normalize();
-  let outwardNormal = params.planeNormal.clone();
+  const outwardNormal = params.planeNormal.clone();
   if (outwardNormal.lengthSq() <= 1e-8) {
     outwardNormal.set(0, 1, 0);
   } else {
@@ -217,7 +217,7 @@ export function buildPurlinMesh(params: {
 
   const yAxis = runAxis;
   const zAxis = outwardNormal;
-  let xAxis = new THREE.Vector3().crossVectors(yAxis, zAxis);
+  const xAxis = new THREE.Vector3().crossVectors(yAxis, zAxis);
   if (xAxis.lengthSq() <= 1e-8) {
     xAxis.set(1, 0, 0);
   } else {
@@ -240,7 +240,7 @@ function buildVerticalEavePurlinMesh(params: {
   planeNormal: THREE.Vector3;
   material: THREE.Material;
 }): THREE.Mesh {
-  let normal = params.planeNormal.clone();
+  const normal = params.planeNormal.clone();
   if (normal.lengthSq() <= 1e-8) {
     normal.set(0, 1, 0);
   } else {
@@ -261,7 +261,7 @@ function buildVerticalEavePurlinMesh(params: {
     runAxis.normalize();
   }
 
-  let outboardAxis = new THREE.Vector3().crossVectors(runAxis, normal);
+  const outboardAxis = new THREE.Vector3().crossVectors(runAxis, normal);
   outboardAxis.y = 0;
   if (outboardAxis.lengthSq() <= 1e-8) {
     outboardAxis.set(-runAxis.z, 0, runAxis.x);
@@ -395,6 +395,37 @@ export function createFasciaTrimGeometry(params: {
     x: vertex.x + placement.faceOutwardNormal.x * renderOutboardBiasMeters,
     y: vertex.y,
     z: vertex.z + placement.faceOutwardNormal.z * renderOutboardBiasMeters,
+  }));
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute(
+    'position',
+    new THREE.Float32BufferAttribute(
+      vertices.flatMap((vertex) => [vertex.x, slabTopMeters + vertex.y, vertex.z]),
+      3,
+    ),
+  );
+  geometry.setIndex([0, 1, 2, 0, 2, 3]);
+  geometry.computeVertexNormals();
+  geometry.computeBoundingBox();
+  geometry.computeBoundingSphere();
+  return geometry;
+}
+
+export function createSoffitPanelGeometry(params: {
+  placement: SoffitPlacement;
+  slabTopMeters: number;
+}): THREE.BufferGeometry {
+  const { placement, slabTopMeters } = params;
+  const renderDownBiasMeters = 0.002;
+  const vertices = [
+    placement.innerStart,
+    placement.innerEnd,
+    placement.outerEnd,
+    placement.outerStart,
+  ].map((vertex) => ({
+    x: vertex.x,
+    y: vertex.y - renderDownBiasMeters,
+    z: vertex.z,
   }));
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute(

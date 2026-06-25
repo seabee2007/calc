@@ -583,6 +583,10 @@ export interface RoofSystemSettings {
     profileLabel: string;
     bottomExtensionBelowFrameMeters: number;
   };
+  soffit: {
+    enabled: boolean;
+    profileLabel: string;
+  };
   gable: {
     enabled: boolean;
     /** Minimum concrete depth between highest CMU corner and roof underside. */
@@ -694,10 +698,21 @@ export type FasciaPlacement = {
   faceDepthMeters: number;
 };
 
+export type SoffitPlacement = {
+  id: string;
+  edgeRole: 'side_eave' | 'gable_return' | 'hip_eave' | 'roof_perimeter';
+  innerStart: RoofVec3;
+  innerEnd: RoofVec3;
+  outerEnd: RoofVec3;
+  outerStart: RoofVec3;
+  areaSquareMeters: number;
+};
+
 export type RoofLayerVisibility = {
   roofCladding: boolean;
   ridgeCap: boolean;
   fascia: boolean;
+  soffit: boolean;
   steelTrusses: boolean;
   purlins: boolean;
   gableEndCmu: boolean;
@@ -837,6 +852,7 @@ export type ResolvedRoofSystem = {
   gableEnds: ResolvedGableEnd[];
   gableEndRoofingClosures: GableEndRoofingClosure[];
   fasciaPlacements: FasciaPlacement[];
+  soffitPlacements: SoffitPlacement[];
   warnings: DesignWarning[];
 };
 

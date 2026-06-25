@@ -35,15 +35,21 @@ import {
   DEFAULT_RIDGE_CAP_THICKNESS_METERS,
   DEFAULT_RIDGE_CAP_WIDTH_METERS,
   HIP_SHEET_SEAM_WELD_ALLOWANCE_METERS,
+  PURLIN_PROFILE_DEPTH_METERS,
+  PURLIN_PROFILE_WIDTH_METERS,
+  PURLIN_TO_CHORD_CLEARANCE_METERS,
   ROOF_SHEET_EAVE_OVERHANG_METERS,
   resolveRoofFraming,
   resolveRidgeCapPlacement,
+  TRUSS_CHORD_PROFILE_METERS,
 } from './roofFramingResolver';
 import type { SegmentFrame } from '../geometry/designGeometry';
 import { resolveGableEndRoofingClosures } from './gableEndRoofingClosureSolver';
 import { resolveRoofFasciaPlacements } from './roofFasciaSolver';
+import { resolveRoofSoffitPlacements } from './roofSoffitSolver';
 
 const ROOF_RENDER_EPSILON_METERS = 0.001;
+const SHEET_TO_FASCIA_FACE_OVERLAP_METERS = 0.006;
 
 function vec3(x: number, y: number, z: number): RoofVec3 {
   return { x, y, z };
@@ -727,6 +733,7 @@ export function resolveRoofSystem(params: {
     gableEnds: [],
     gableEndRoofingClosures: [],
     fasciaPlacements: [],
+    soffitPlacements: [],
     warnings: [],
   };
 
@@ -877,8 +884,14 @@ export function resolveRoofSystem(params: {
     ridgeLengthMeters: ridgeLengthMetersValue,
   });
 
+  const sheetEaveLipOverhangMeters = sheetLipOverhangForEavePurlinFace({
+    baseOverhangMeters: ROOF_SHEET_EAVE_OVERHANG_METERS,
+    purlinsEnabled: settings.purlins.enabled && settings.fascia.enabled,
+    purlinRowsPerSlope: framing.purlinRowsPerSlope,
+    roofTopPlanes: topPlanes,
+  });
   const gableSheetEaveOverhangMeters =
-    settings.eaveOverhangMeters + ROOF_SHEET_EAVE_OVERHANG_METERS;
+    settings.eaveOverhangMeters + sheetEaveLipOverhangMeters;
   const gableSheetEndOverhangMeters =
     settings.gableEndOverhangMeters + ROOF_SHEET_EAVE_OVERHANG_METERS;
   const gableSheetLoop =
@@ -908,7 +921,7 @@ export function resolveRoofSystem(params: {
 
   const hipSheetEaveOverhangMeters =
     settings.eaveOverhangMeters +
-    ROOF_SHEET_EAVE_OVERHANG_METERS +
+    sheetEaveLipOverhangMeters +
     (settings.roofType === 'hip' ? HIP_SHEET_SEAM_WELD_ALLOWANCE_METERS : 0);
   const hipSheetLoop =
     settings.roofType === 'hip' && settings.purlins.enabled && framing.purlinPlacements.length > 0
@@ -1011,6 +1024,19 @@ export function resolveRoofSystem(params: {
     roofSystem: settings,
     claddingDisplayPlanes,
     supportRoofTopPlanes: topPlanes,
+    purlinPlacements: framing.purlinPlacements,
+  });
+  const soffitPlacements = resolveRoofSoffitPlacements({
+    roofSystem: settings,
+    roofType: settings.roofType,
+    structuralBearingPerimeter,
+    claddingPerimeter,
+    roofSheetPerimeter,
+    claddingDisplayPlanes,
+    fasciaPlacements,
+    roofBeamTopY,
+    structuralRidgeStart: structuralRidgeStart ?? ridgeStart,
+    structuralRidgeEnd: structuralRidgeEnd ?? ridgeEnd,
   });
 
   return {
@@ -1060,8 +1086,43 @@ export function resolveRoofSystem(params: {
     gableEnds: [],
     gableEndRoofingClosures,
     fasciaPlacements,
+    soffitPlacements,
     warnings,
   };
+}
+
+function normalizedPlaneComponents(normal: RoofVec3): { y: number; planLength: number } {
+  const length = Math.hypot(normal.x, normal.y, normal.z) || 1;
+  const y = Math.abs(normal.y / length);
+  const planLength = Math.hypot(normal.x / length, normal.z / length);
+  return { y, planLength };
+}
+
+function sheetLipOverhangForEavePurlinFace(params: {
+  baseOverhangMeters: number;
+  purlinsEnabled: boolean;
+  purlinRowsPerSlope: number;
+  roofTopPlanes: readonly RoofPlane[];
+}): number {
+  if (!params.purlinsEnabled || params.purlinRowsPerSlope <= 0) {
+    return params.baseOverhangMeters;
+  }
+
+  const purlinCenterOffsetAlongNormal =
+    TRUSS_CHORD_PROFILE_METERS / 2 +
+    PURLIN_TO_CHORD_CLEARANCE_METERS +
+    PURLIN_PROFILE_DEPTH_METERS / 2;
+  const halfPurlinWidth = PURLIN_PROFILE_WIDTH_METERS / 2;
+  const requiredOverhang = params.roofTopPlanes.reduce((maxOverhang, plane) => {
+    const { y, planLength } = normalizedPlaneComponents(plane.normal);
+    const purlinFaceBeyondEave =
+      halfPurlinWidth +
+      purlinCenterOffsetAlongNormal * planLength -
+      halfPurlinWidth * y;
+    return Math.max(maxOverhang, purlinFaceBeyondEave + SHEET_TO_FASCIA_FACE_OVERLAP_METERS);
+  }, params.baseOverhangMeters);
+
+  return Math.max(params.baseOverhangMeters, requiredOverhang);
 }
 
 export { ROOF_RENDER_EPSILON_METERS };

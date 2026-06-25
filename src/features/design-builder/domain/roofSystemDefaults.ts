@@ -5,6 +5,7 @@ export const DEFAULT_ROOF_LAYER_VISIBILITY: RoofLayerVisibility = {
   roofCladding: true,
   ridgeCap: true,
   fascia: true,
+  soffit: true,
   steelTrusses: true,
   purlins: true,
   gableEndCmu: true,
@@ -50,6 +51,10 @@ export function createDefaultRoofSystemSettings(): RoofSystemSettings {
       profileLabel: 'Metal fascia trim',
       bottomExtensionBelowFrameMeters: 0.0254,
     },
+    soffit: {
+      enabled: true,
+      profileLabel: 'Boxed metal soffit panel',
+    },
     gable: {
       enabled: true,
       rakeClearanceMeters: DEFAULT_ROOF_TO_MASONRY_CLEARANCE_METERS,
@@ -82,7 +87,7 @@ export function normalizeRoofSystemSettings(
     input.gableEndOverhangMeters ?? eaveOverhangMeters,
   );
 
-  const gableInput = input.gable ?? {};
+  const gableInput: Partial<RoofSystemSettings['gable']> = input.gable ?? {};
   const rakedConcreteCapEnabled =
     gableInput.rakedConcreteCapEnabled ?? gableInput.capEnabled ?? defaults.gable.rakedConcreteCapEnabled;
   const rakedConcreteCapWallDepthMeters =
@@ -91,13 +96,13 @@ export function normalizeRoofSystemSettings(
     gableInput.capDepthMeters ??
     defaults.gable.rakedConcreteCapDepthMeters;
   const rakedConcreteCapDepthMeters = rakedConcreteCapWallDepthMeters;
-  const steelTrussesInput = input.steelTrusses ?? {};
+  const steelTrussesInput: Partial<RoofSystemSettings['steelTrusses']> = input.steelTrusses ?? {};
   const rawHipInteriorTrussCount =
     steelTrussesInput.hipInteriorTrussCount ?? defaults.steelTrusses.hipInteriorTrussCount;
   const hipInteriorTrussCount = Number.isFinite(rawHipInteriorTrussCount)
     ? Math.max(0, Math.round(rawHipInteriorTrussCount))
     : defaults.steelTrusses.hipInteriorTrussCount;
-  const fasciaInput = input.fascia ?? {};
+  const fasciaInput: Partial<RoofSystemSettings['fascia']> = input.fascia ?? {};
   const rawFasciaBottomExtension =
     fasciaInput.bottomExtensionBelowFrameMeters ?? defaults.fascia.bottomExtensionBelowFrameMeters;
   const fasciaBottomExtension = Number.isFinite(rawFasciaBottomExtension)
@@ -118,6 +123,7 @@ export function normalizeRoofSystemSettings(
       ...fasciaInput,
       bottomExtensionBelowFrameMeters: fasciaBottomExtension,
     },
+    soffit: { ...defaults.soffit, ...input.soffit },
     gable: {
       ...defaults.gable,
       ...gableInput,

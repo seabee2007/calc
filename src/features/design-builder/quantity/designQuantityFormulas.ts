@@ -13,9 +13,10 @@ import {
   collectLintelClosureCutBlockMetadata,
   countLintelClosureCutBlocks,
 } from '../domain/lintelCourseClosureSolver';
-import { createDefaultRoofSystemSettings, normalizeRoofSystemSettings } from '../domain/roofSystemDefaults';
+import { normalizeRoofSystemSettings } from '../domain/roofSystemDefaults';
 import { totalGableEndRoofingClosureAreaSquareMeters } from '../domain/gableEndRoofingClosureSolver';
 import { totalRoofFasciaLengthMeters } from '../domain/roofFasciaSolver';
+import { totalRoofSoffitAreaSquareMeters } from '../domain/roofSoffitSolver';
 import {
   OPENING_GROUT_CONCEPTUAL_WARNING,
   calculateCmuOpeningGroutSummary,
@@ -770,6 +771,7 @@ export function buildFrameInfillEstimatePreview(input: FrameInfillQuantityInput)
   const hipFramingSummary = summarizeHipFramingMembers(resolvedRoof?.hipFramingMembers ?? []);
   const purlinLinearMeters = sumPurlinLengthMeters(resolvedRoof?.purlinPlacements ?? []);
   const fasciaLinearMeters = totalRoofFasciaLengthMeters(resolvedRoof?.fasciaPlacements ?? []);
+  const soffitAreaSquareMeters = totalRoofSoffitAreaSquareMeters(resolvedRoof?.soffitPlacements ?? []);
   const gableEndRoofingClosureAreaSquareMeters = totalGableEndRoofingClosureAreaSquareMeters(
     resolvedRoof?.gableEndRoofingClosures ?? [],
   );
@@ -1270,6 +1272,29 @@ export function buildFrameInfillEstimatePreview(input: FrameInfillQuantityInput)
                         divisionCode: '07',
                         divisionName: 'Thermal & Moisture Protection',
                       },
+                    ]
+                  : []),
+                ...(roofSettings.soffit.enabled && soffitAreaSquareMeters > 0
+                  ? [
+                      {
+                        id: 'roof-soffit-panels',
+                        designModelId: input.designModelId,
+                        designObjectId: input.roofObjectId,
+                        quantityType: 'roof_soffit_panel_area',
+                        description: 'Roof Soffit Panels',
+                        quantity: roundQuantity(squareMetersToSquareFeet(soffitAreaSquareMeters), 2),
+                        unit: 'SF',
+                        formula: 'sum(resolved_soffit_panel_areas)',
+                        parameterSnapshot: {
+                          soffitAreaSquareMeters,
+                          soffitPlacementCount: resolvedRoof.soffitPlacements.length,
+                          ...metaBase,
+                        },
+                        source: 'parametric_design_builder',
+                        confidence: 'calculated_from_parameters',
+                        divisionCode: '07',
+                        divisionName: 'Thermal & Moisture Protection',
+                      } satisfies DesignEstimatePreviewLine,
                     ]
                   : []),
               ]

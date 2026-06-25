@@ -5,7 +5,6 @@ import { DEFAULT_ROOF_LAYER_VISIBILITY } from '../domain/roofSystemDefaults';
 import {
   logOpeningCoursePlacementsTableForDev,
   type CmuBlockType,
-  type DesignGeometryBlockInstance,
   type DesignGeometryResult,
 } from '../geometry/designGeometry';
 import { resolveCmuModuleConfig } from '../domain/cmuModuleRules';
@@ -14,14 +13,11 @@ import {
   CORRUGATED_SHEET_DISPLAY_THICKNESS_METERS,
   distanceAlongRoofNormal,
   elevationOnRoofPlaneAtPoint,
-  insetPointBelowRoofSurface,
   normalizeOutwardRoofNormal,
   offsetPointAlongRoofNormal,
   PURLIN_PROFILE_DEPTH_METERS,
-  PURLIN_TO_CHORD_CLEARANCE_METERS,
   PURLIN_TO_SHEET_CLEARANCE_METERS,
   resolveTrussTopChordUpperPoint,
-  TRUSS_CHORD_PROFILE_METERS,
 } from '../domain/roofFramingResolver';
 import {
   fitPerspectiveCameraToBounds,
@@ -66,6 +62,7 @@ import {
   createRakedCapStripGeometry,
   createRakedConcreteCapMaterial,
   createRidgeCapMaterial,
+  createSoffitPanelGeometry,
   buildSteelTrussMemberMeshes,
   buildTrussAnchorBoltMeshes,
   buildTrussBasePlateMesh,
@@ -832,7 +829,6 @@ export default function DesignBuilderViewer({
         wall: currentWall,
         slab: currentSlab,
         roof: currentRoof,
-        truss: currentTruss,
         geometryResult: currentGeometry,
         layoutBounds: currentLayoutBounds,
         selectedObjectType: currentSelectedObjectType,
@@ -1135,6 +1131,11 @@ export default function DesignBuilderViewer({
             currentRoofDisplayMode === 'roof_cladding_only' ||
             currentRoofDisplayMode === 'foundation_frame_roof') &&
           currentRoofLayerVisibility.fascia;
+        const showSoffit =
+          (currentRoofDisplayMode === 'full_roof' ||
+            currentRoofDisplayMode === 'roof_cladding_only' ||
+            currentRoofDisplayMode === 'foundation_frame_roof') &&
+          (currentRoofLayerVisibility.soffit ?? DEFAULT_ROOF_LAYER_VISIBILITY.soffit);
         const showGableMasonry =
           (currentRoofDisplayMode === 'full_roof' ||
             currentRoofDisplayMode === 'gable_masonry_only' ||
@@ -1163,10 +1164,11 @@ export default function DesignBuilderViewer({
           ridgeCapGroup.name = 'ridgeCapGroup';
           const fasciaGroup = new THREE.Group();
           fasciaGroup.name = 'fasciaGroup';
+          const soffitGroup = new THREE.Group();
+          soffitGroup.name = 'soffitGroup';
           const framingGuideGroup = new THREE.Group();
           framingGuideGroup.name = 'framingGuideGroup';
 
-          const roofThickness = resolvedRoof.roofAssemblyThicknessMeters ?? 0.15;
           const corrugatedEnabled = currentRoofSystem.corrugatedMetal.enabled;
           const rawCladdingPlanes =
             resolvedRoof.claddingDisplayPlanes.length > 0
@@ -1247,23 +1249,21 @@ export default function DesignBuilderViewer({
                     })(),
                   );
               roofCladdingGroup.add(new THREE.Mesh(topGeometry, roofMaterial));
-              if (resolvedRoof.roofType === 'hip') {
-                const eaveIndices = visibleCorners
-                  .map((corner, index) => (cornerMatchesPlanPoint(corner, sheetReferencePerimeter) ? index : -1))
-                  .filter((index) => index >= 0);
-                const eavePair = adjacentEavePair(eaveIndices, visibleCorners.length);
-                if (eavePair) {
-                  const lipGeometry = trackGeometry(
-                    createRoofSheetEaveLipGeometry({
-                      corners: visibleCorners,
-                      eavePair,
-                      planeNormal,
-                      slabTopMeters: currentSlab.slabThicknessMeters,
-                      thicknessMeters: Math.max(CORRUGATED_SHEET_DISPLAY_THICKNESS_METERS, 0.012),
-                    }),
-                  );
-                  roofCladdingGroup.add(new THREE.Mesh(lipGeometry, roofMaterial));
-                }
+              const eaveIndices = visibleCorners
+                .map((corner, index) => (cornerMatchesPlanPoint(corner, sheetReferencePerimeter) ? index : -1))
+                .filter((index) => index >= 0);
+              const eavePair = adjacentEavePair(eaveIndices, visibleCorners.length);
+              if (eavePair) {
+                const lipGeometry = trackGeometry(
+                  createRoofSheetEaveLipGeometry({
+                    corners: visibleCorners,
+                    eavePair,
+                    planeNormal,
+                    slabTopMeters: currentSlab.slabThicknessMeters,
+                    thicknessMeters: Math.max(CORRUGATED_SHEET_DISPLAY_THICKNESS_METERS, 0.012),
+                  }),
+                );
+                roofCladdingGroup.add(new THREE.Mesh(lipGeometry, roofMaterial));
               }
             }
 
@@ -1631,6 +1631,38 @@ export default function DesignBuilderViewer({
           }
 
           if (
+            showSoffit &&
+            currentRoofSystem.soffit.enabled &&
+            resolvedRoof.soffitPlacements.length > 0
+          ) {
+            const debugGuides = import.meta.env.DEV && currentShowRoofFramingGuides;
+            const soffitMaterial = debugGuides
+              ? new THREE.MeshStandardMaterial({ color: 0x38bdf8, metalness: 0.45, roughness: 0.5 })
+              : usePreviewMaterials
+                ? resolveRoofMetalMaterial(
+                    { visualStyle: currentVisualStyle, selected: roofSelected },
+                    trackMat,
+                  )
+                : createRidgeCapMaterial();
+            soffitMaterial.side = THREE.DoubleSide;
+            soffitMaterial.needsUpdate = true;
+            if (debugGuides || !usePreviewMaterials) {
+              materialsToDispose.push(soffitMaterial);
+            }
+            for (const placement of resolvedRoof.soffitPlacements) {
+              const mesh = new THREE.Mesh(
+                trackGeometry(createSoffitPanelGeometry({
+                  placement,
+                  slabTopMeters: currentSlab.slabThicknessMeters,
+                })),
+                soffitMaterial,
+              );
+              mesh.userData.soffitEdgeRole = placement.edgeRole;
+              soffitGroup.add(mesh);
+            }
+          }
+
+          if (
             import.meta.env.DEV &&
             currentShowRoofFramingGuides &&
             resolvedRoof.roofType === 'gable' &&
@@ -1740,6 +1772,7 @@ export default function DesignBuilderViewer({
             roofCladdingGroup,
             ridgeCapGroup,
             fasciaGroup,
+            soffitGroup,
             trussChordGroup,
             trussWebGroup,
             purlinGroup,

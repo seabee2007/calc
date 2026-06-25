@@ -1,9 +1,9 @@
-import type { FasciaPlacement, RoofPlane, RoofSystemSettings, RoofVec3 } from '../types';
+import type { FasciaPlacement, PurlinPlacement, RoofPlane, RoofSystemSettings, RoofVec3 } from '../types';
 import {
   CORRUGATED_SHEET_DISPLAY_THICKNESS_METERS,
   normalizeOutwardRoofNormal,
-  offsetPointAlongRoofNormal,
   PURLIN_PROFILE_DEPTH_METERS,
+  PURLIN_PROFILE_WIDTH_METERS,
   PURLIN_TO_CHORD_CLEARANCE_METERS,
   PURLIN_TO_SHEET_CLEARANCE_METERS,
   TRUSS_CHORD_PROFILE_METERS,
@@ -12,6 +12,7 @@ import {
 
 const EDGE_KEY_PRECISION = 3;
 const MIN_FASCIA_EDGE_LENGTH_METERS = 0.05;
+const FASCIA_SOFFIT_LAP_METERS = 0.05;
 
 function pointKey(point: RoofVec3): string {
   return `${point.x.toFixed(EDGE_KEY_PRECISION)}:${point.z.toFixed(EDGE_KEY_PRECISION)}`;
@@ -69,6 +70,73 @@ function displayPlaneForSupportPlane(
   );
 }
 
+function horizontalUnitFromSegment(start: RoofVec3, end: RoofVec3): RoofVec3 {
+  const x = end.x - start.x;
+  const z = end.z - start.z;
+  const length = Math.hypot(x, z);
+  if (length <= 1e-8) {
+    return { x: 1, y: 0, z: 0 };
+  }
+  return { x: x / length, y: 0, z: z / length };
+}
+
+function verticalEavePurlinOutboardAxis(purlin: PurlinPlacement): RoofVec3 {
+  const normal = normalizeOutwardRoofNormal(purlin.planeNormal);
+  const runAxis = horizontalUnitFromSegment(purlin.start, purlin.end);
+  let outboardAxis = {
+    x: runAxis.z * normal.y,
+    y: 0,
+    z: -runAxis.x * normal.y,
+  };
+  let outboardLength = Math.hypot(outboardAxis.x, outboardAxis.z);
+  if (outboardLength <= 1e-8) {
+    outboardAxis = { x: -runAxis.z, y: 0, z: runAxis.x };
+    outboardLength = Math.hypot(outboardAxis.x, outboardAxis.z);
+  }
+  if (outboardLength <= 1e-8) {
+    outboardAxis = { x: 1, y: 0, z: 0 };
+    outboardLength = 1;
+  }
+  outboardAxis = {
+    x: outboardAxis.x / outboardLength,
+    y: 0,
+    z: outboardAxis.z / outboardLength,
+  };
+
+  const roofSlopeAlongOutboard =
+    normal.y === 0 ? 0 : -(normal.x * outboardAxis.x + normal.z * outboardAxis.z) / normal.y;
+  return roofSlopeAlongOutboard > 0
+    ? { x: -outboardAxis.x, y: 0, z: -outboardAxis.z }
+    : outboardAxis;
+}
+
+function eavePurlinForPlane(
+  purlins: readonly PurlinPlacement[] | undefined,
+  planeId: string,
+): PurlinPlacement | null {
+  return purlins?.find((purlin) => purlin.slopePlaneId === planeId && purlin.rowIndex === 0) ?? null;
+}
+
+function movePointToPurlinOutboardFace(point: RoofVec3, purlin: PurlinPlacement): RoofVec3 {
+  const runAxis = horizontalUnitFromSegment(purlin.start, purlin.end);
+  const spanLength =
+    Math.hypot(purlin.end.x - purlin.start.x, purlin.end.z - purlin.start.z) || 1;
+  const stationMeters =
+    (point.x - purlin.start.x) * runAxis.x + (point.z - purlin.start.z) * runAxis.z;
+  const t = Math.max(0, Math.min(1, stationMeters / spanLength));
+  const center = {
+    x: purlin.start.x + (purlin.end.x - purlin.start.x) * t,
+    y: purlin.start.y + (purlin.end.y - purlin.start.y) * t,
+    z: purlin.start.z + (purlin.end.z - purlin.start.z) * t,
+  };
+  const outboardAxis = verticalEavePurlinOutboardAxis(purlin);
+  return {
+    x: center.x + outboardAxis.x * (PURLIN_PROFILE_WIDTH_METERS / 2),
+    y: point.y,
+    z: center.z + outboardAxis.z * (PURLIN_PROFILE_WIDTH_METERS / 2),
+  };
+}
+
 function pointOnSheetUndersideAtSupportEdge(params: {
   supportPoint: RoofVec3;
   displayPlane: RoofPlane;
@@ -77,20 +145,18 @@ function pointOnSheetUndersideAtSupportEdge(params: {
   const sheetTopY =
     elevationOnRoofPlaneAtPoint(params.displayPlane, params.supportPoint.x, params.supportPoint.z) ??
     params.supportPoint.y;
-  return offsetPointAlongRoofNormal(
-    {
-      x: params.supportPoint.x,
-      y: sheetTopY,
-      z: params.supportPoint.z,
-    },
-    params.normal,
-    -CORRUGATED_SHEET_DISPLAY_THICKNESS_METERS,
-  );
+  const normalized = normalizeOutwardRoofNormal(params.normal);
+  return {
+    x: params.supportPoint.x,
+    y: sheetTopY - CORRUGATED_SHEET_DISPLAY_THICKNESS_METERS / Math.max(0.001, normalized.y),
+    z: params.supportPoint.z,
+  };
 }
 
 function fasciaFaceDepthMeters(params: {
   planeNormal: RoofVec3;
   purlinsEnabled: boolean;
+  soffitEnabled: boolean;
   bottomExtensionBelowFrameMeters: number;
 }): number {
   const normal = normalizeOutwardRoofNormal(params.planeNormal);
@@ -100,7 +166,11 @@ function fasciaFaceDepthMeters(params: {
       ? PURLIN_TO_CHORD_CLEARANCE_METERS + PURLIN_PROFILE_DEPTH_METERS + PURLIN_TO_SHEET_CLEARANCE_METERS
       : 0);
   const framingStackVerticalDepth = framingStackAlongRoofNormal * Math.max(0, normal.y);
-  return Math.max(0.0254, framingStackVerticalDepth + Math.max(0, params.bottomExtensionBelowFrameMeters));
+  const soffitLap = params.soffitEnabled ? FASCIA_SOFFIT_LAP_METERS : 0;
+  return Math.max(
+    0.0254,
+    framingStackVerticalDepth + Math.max(0, params.bottomExtensionBelowFrameMeters) + soffitLap,
+  );
 }
 
 function edgeRole(params: {
@@ -119,10 +189,16 @@ function edgeRole(params: {
   return bothAtEave ? 'hip_eave' : 'roof_perimeter';
 }
 
+function endpointIsAtEave(point: RoofVec3, plane: RoofPlane): boolean {
+  const lowestY = Math.min(...plane.corners.map((corner) => corner.y));
+  return Math.abs(point.y - lowestY) <= 0.04;
+}
+
 export function resolveRoofFasciaPlacements(params: {
   roofSystem: RoofSystemSettings;
   claddingDisplayPlanes: readonly RoofPlane[];
   supportRoofTopPlanes: readonly RoofPlane[];
+  purlinPlacements?: readonly PurlinPlacement[];
 }): FasciaPlacement[] {
   if (!params.roofSystem.fascia.enabled) {
     return [];
@@ -153,29 +229,37 @@ export function resolveRoofFasciaPlacements(params: {
     const ref = refs[0]!;
     const displayPlane = displayPlaneForSupportPlane(ref.plane, params.claddingDisplayPlanes);
     const normal = normalizeOutwardRoofNormal(displayPlane.normal);
-    const topStart = pointOnSheetUndersideAtSupportEdge({
-      supportPoint: ref.start,
-      displayPlane,
-      normal,
-    });
-    const topEnd = pointOnSheetUndersideAtSupportEdge({
-      supportPoint: ref.end,
-      displayPlane,
-      normal,
-    });
-    const faceDepthMeters = fasciaFaceDepthMeters({
-      planeNormal: normal,
-      purlinsEnabled: params.roofSystem.purlins.enabled,
-      bottomExtensionBelowFrameMeters: params.roofSystem.fascia.bottomExtensionBelowFrameMeters,
-    });
-    const bottomStart = { ...topStart, y: topStart.y - faceDepthMeters };
-    const bottomEnd = { ...topEnd, y: topEnd.y - faceDepthMeters };
     const role = edgeRole({
       roofType: params.roofSystem.roofType,
       plane: ref.plane,
       start: ref.start,
       end: ref.end,
     });
+    const eavePurlin = eavePurlinForPlane(params.purlinPlacements, ref.plane.id);
+    const supportStart = eavePurlin && endpointIsAtEave(ref.start, ref.plane)
+      ? movePointToPurlinOutboardFace(ref.start, eavePurlin)
+      : ref.start;
+    const supportEnd = eavePurlin && endpointIsAtEave(ref.end, ref.plane)
+      ? movePointToPurlinOutboardFace(ref.end, eavePurlin)
+      : ref.end;
+    const topStart = pointOnSheetUndersideAtSupportEdge({
+      supportPoint: supportStart,
+      displayPlane,
+      normal,
+    });
+    const topEnd = pointOnSheetUndersideAtSupportEdge({
+      supportPoint: supportEnd,
+      displayPlane,
+      normal,
+    });
+    const faceDepthMeters = fasciaFaceDepthMeters({
+      planeNormal: normal,
+      purlinsEnabled: params.roofSystem.purlins.enabled,
+      soffitEnabled: params.roofSystem.soffit.enabled,
+      bottomExtensionBelowFrameMeters: params.roofSystem.fascia.bottomExtensionBelowFrameMeters,
+    });
+    const bottomStart = { ...topStart, y: topStart.y - faceDepthMeters };
+    const bottomEnd = { ...topEnd, y: topEnd.y - faceDepthMeters };
     const faceOutwardNormal = faceOutwardNormalForEdge({
       plane: ref.plane,
       start: ref.start,

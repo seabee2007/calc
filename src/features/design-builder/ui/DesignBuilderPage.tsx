@@ -3747,6 +3747,7 @@ export default function DesignBuilderPage({
                             ['roofCladding', 'Roof Cladding'],
                             ['ridgeCap', 'Ridge Cap'],
                             ['fascia', 'Fascia'],
+                            ['soffit', 'Soffit'],
                             ['steelTrusses', 'Steel Trusses'],
                             ['purlins', 'Purlins'],
                             ['gableEndCmu', 'Gable-End CMU'],
@@ -3756,7 +3757,7 @@ export default function DesignBuilderPage({
                           <label key={key} className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 hover:bg-slate-50 dark:hover:bg-slate-800">
                             <input
                               type="checkbox"
-                              checked={roofLayerVisibility[key]}
+                              checked={roofLayerVisibility[key] ?? DEFAULT_ROOF_LAYER_VISIBILITY[key]}
                               onChange={(event) =>
                                 setRoofLayerVisibility((current) => ({
                                   ...current,

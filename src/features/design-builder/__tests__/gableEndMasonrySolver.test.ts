@@ -192,6 +192,26 @@ describe('gable CMU viewer regression', () => {
     expect(viewerSource.includes('0xd97706')).toBe(false);
   });
 
+  it('renders roof sheet eave lips for gable roofs too', () => {
+    const viewerSource = readFileSync(
+      join(__dirname, '..', 'ui', 'DesignBuilderViewer.tsx'),
+      'utf8',
+    );
+    expect(viewerSource).toContain('createRoofSheetEaveLipGeometry');
+    expect(viewerSource).not.toMatch(/if \(resolvedRoof\.roofType === 'hip'\)\s*{\s*const eaveIndices/);
+  });
+
+  it('renders soffit as an independent roof layer', () => {
+    const viewerSource = readFileSync(
+      join(__dirname, '..', 'ui', 'DesignBuilderViewer.tsx'),
+      'utf8',
+    );
+    expect(viewerSource).toContain('soffitGroup');
+    expect(viewerSource).toContain('currentRoofLayerVisibility.soffit');
+    expect(viewerSource).toContain('createSoffitPanelGeometry');
+    expect(viewerSource).not.toMatch(/resolvedRoof\.roofType === 'hip'[\s\S]{0,160}soffit/i);
+  });
+
   it('routes roof gable CMU through blockInstances', () => {
     const preset = applyAutoFrameLayout(createFiveBySixCmuBuildingPreset());
     const foundation = normalizeRcFrameFoundationSettings(preset.foundationSettings);
