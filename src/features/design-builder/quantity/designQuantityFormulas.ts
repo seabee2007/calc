@@ -756,6 +756,7 @@ export interface FrameInfillQuantityInput extends CmuBuildingQuantityInput {
 
 function buildInfillPlasterPreviewLines(params: {
   input: FrameInfillQuantityInput;
+  side: 'exterior' | 'interior';
   plasterAreaSquareMeters: number;
   placementCount: number;
   finish: import('../types').CmuInfillPlasterFinish;
@@ -766,13 +767,20 @@ function buildInfillPlasterPreviewLines(params: {
   const snapshot = {
     plasterAreaSquareMeters: params.plasterAreaSquareMeters,
     plasterPlacementCount: params.placementCount,
+    plasterSide: params.side,
     plasterFinish: params.finish,
     plasterProfileLabel: params.profileLabel,
     coatCount: 3,
-    plasterSides: 'exterior_with_panel_edge_returns',
+    plasterSides:
+      params.side === 'exterior'
+        ? 'exterior_with_panel_edge_returns'
+        : 'interior_field_faces',
     infillObjectId: params.input.infillObjectId,
     ...params.metaBase,
   };
+  const idPrefix = params.side === 'exterior' ? 'infill-plaster' : 'infill-plaster-interior';
+  const sideLabel = params.side === 'exterior' ? 'Exterior' : 'Interior';
+  const formula = params.side === 'exterior' ? 'net_exterior_infill_plaster_area' : 'net_interior_infill_plaster_area';
   const baseLine = {
     designModelId: params.input.designModelId,
     designObjectId: params.input.infillObjectId,
@@ -786,26 +794,28 @@ function buildInfillPlasterPreviewLines(params: {
   return [
     {
       ...baseLine,
-      id: 'infill-plaster-scratch-coat',
+      id: `${idPrefix}-scratch-coat`,
       quantityType: 'infill_plaster_scratch_coat_area',
-      description: 'CMU Infill Plaster - Scratch Coat',
-      formula: 'net_exterior_infill_plaster_area',
+      description: `CMU Infill ${sideLabel} Plaster - Scratch Coat`,
+      formula,
       parameterSnapshot: { ...snapshot, coat: 'scratch' },
     },
     {
       ...baseLine,
-      id: 'infill-plaster-base-coat',
+      id: `${idPrefix}-base-coat`,
       quantityType: 'infill_plaster_base_coat_area',
-      description: 'CMU Infill Plaster - Base Coat',
-      formula: 'net_exterior_infill_plaster_area',
+      description: `CMU Infill ${sideLabel} Plaster - Base Coat`,
+      formula,
       parameterSnapshot: { ...snapshot, coat: 'base' },
     },
     {
       ...baseLine,
-      id: 'infill-plaster-finish-coat',
+      id: `${idPrefix}-finish-coat`,
       quantityType: 'infill_plaster_finish_coat_area',
-      description: `CMU Infill Plaster - ${params.finish === 'smooth' ? 'Smooth' : 'Textured'} Finish Coat`,
-      formula: 'net_exterior_infill_plaster_area',
+      description: `CMU Infill ${sideLabel} Plaster - ${
+        params.finish === 'smooth' ? 'Smooth' : 'Textured'
+      } Finish Coat`,
+      formula,
       parameterSnapshot: { ...snapshot, coat: 'finish' },
     },
   ];
@@ -841,7 +851,10 @@ export function buildFrameInfillEstimatePreview(input: FrameInfillQuantityInput)
     openings: input.geometryResult.wallCmuLayout.roughOpenings as PlasterOpening[],
     wallThicknessMeters: input.wall.wallThicknessMeters,
   });
-  const plasterAreaSquareMeters = totalInfillPlasterAreaSquareMeters(plasterPlacements);
+  const exteriorPlasterPlacements = plasterPlacements.filter((placement) => placement.side === 'exterior');
+  const interiorPlasterPlacements = plasterPlacements.filter((placement) => placement.side === 'interior');
+  const exteriorPlasterAreaSquareMeters = totalInfillPlasterAreaSquareMeters(exteriorPlasterPlacements);
+  const interiorPlasterAreaSquareMeters = totalInfillPlasterAreaSquareMeters(interiorPlasterPlacements);
   const plasterSettings = normalizeCmuInfillSystem(input.geometryResult.infillSystem ?? input.infillSystem).plaster;
   const gableEndRoofingClosureAreaSquareMeters = totalGableEndRoofingClosureAreaSquareMeters(
     resolvedRoof?.gableEndRoofingClosures ?? [],
@@ -1052,13 +1065,25 @@ export function buildFrameInfillEstimatePreview(input: FrameInfillQuantityInput)
       input,
       input.geometryResult.blockCount ?? input.geometryResult.wallCmuLayout.totalBlocks,
     ),
-    ...(plasterSettings?.enabled && plasterAreaSquareMeters > 0
+    ...(plasterSettings?.enabled && exteriorPlasterAreaSquareMeters > 0
       ? buildInfillPlasterPreviewLines({
           input,
-          plasterAreaSquareMeters,
-          placementCount: plasterPlacements.length,
+          side: 'exterior',
+          plasterAreaSquareMeters: exteriorPlasterAreaSquareMeters,
+          placementCount: exteriorPlasterPlacements.length,
           finish: plasterSettings.finish,
           profileLabel: plasterSettings.profileLabel,
+          metaBase,
+        })
+      : []),
+    ...(plasterSettings?.interiorEnabled && interiorPlasterAreaSquareMeters > 0
+      ? buildInfillPlasterPreviewLines({
+          input,
+          side: 'interior',
+          plasterAreaSquareMeters: interiorPlasterAreaSquareMeters,
+          placementCount: interiorPlasterPlacements.length,
+          finish: plasterSettings.interiorFinish,
+          profileLabel: plasterSettings.interiorProfileLabel,
           metaBase,
         })
       : []),

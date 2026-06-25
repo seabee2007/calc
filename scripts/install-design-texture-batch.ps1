@@ -25,7 +25,12 @@ $packs = @(
   @{ zip = 'Wood066_1K-JPG.zip'; dest = 'public\textures\wood\wood-066'; prefix = 'Wood066_1K-JPG' },
   @{ zip = 'Wood067_1K-JPG.zip'; dest = 'public\textures\wood\wood-067'; prefix = 'Wood067_1K-JPG' },
   @{ zip = 'PavingStones150_1K-JPG.zip'; dest = 'public\textures\terrain\paving-stones-150'; prefix = 'PavingStones150_1K-JPG' },
-  @{ zip = 'Rock064_1K-JPG.zip'; dest = 'public\textures\terrain\rock-064'; prefix = 'Rock064_1K-JPG' }
+  @{ zip = 'Rock064_1K-JPG.zip'; dest = 'public\textures\terrain\rock-064'; prefix = 'Rock064_1K-JPG' },
+  @{ zip = 'Granite001A_1K-JPG.zip'; dest = 'public\textures\floor\granite-001a'; prefix = 'Granite001A_1K-JPG' },
+  @{ zip = 'Granite005A_1K-JPG.zip'; dest = 'public\textures\floor\granite-005a'; prefix = 'Granite005A_1K-JPG' },
+  @{ zip = 'Chipboard004_1K-JPG.zip'; dest = 'public\textures\ceiling\chipboard-004'; prefix = 'Chipboard004_1K-JPG' },
+  @{ zip = 'Chipboard008_1K-JPG.zip'; dest = 'public\textures\ceiling\chipboard-008'; prefix = 'Chipboard008_1K-JPG' },
+  @{ zip = 'Paint004_1K-JPG.zip'; dest = 'public\textures\ceiling\paint-004'; prefix = 'Paint004_1K-JPG' }
 )
 
 $installed = 0

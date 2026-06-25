@@ -456,9 +456,13 @@ export interface CmuInfillPanel {
 export type CmuInfillPlasterFinish = 'smooth' | 'textured';
 
 export interface CmuInfillPlasterSettings {
+  /** Exterior face plaster; legacy enabled/finish/profile fields map to this side. */
   enabled: boolean;
   finish: CmuInfillPlasterFinish;
   profileLabel: string;
+  interiorEnabled: boolean;
+  interiorFinish: CmuInfillPlasterFinish;
+  interiorProfileLabel: string;
 }
 
 export interface GableEndSettings {

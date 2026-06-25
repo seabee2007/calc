@@ -47,7 +47,7 @@ vi.mock('../ui/DesignBuilderViewer', () => ({
 vi.mock('../ui/FrameFoundationDimensionsModal', () => ({
   default: ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) =>
     isOpen ? (
-      <div role="dialog" aria-label="Frame, Foundation & Roof Dimensions">
+      <div role="dialog" aria-label="RC Settings">
         <button type="button" onClick={onClose}>
           Cancel
         </button>
@@ -87,11 +87,9 @@ function commandMenus() {
 }
 
 function openStructureMenu() {
-  const menu = commandMenus().find((element) =>
-    within(element as HTMLElement).queryByRole('button', { name: /structure:/i }) != null,
-  );
+  const menu = document.querySelector('[data-menu-kind="structure"]');
   if (!menu) throw new Error('Structure menu not found');
-  fireEvent.click(within(menu as HTMLElement).getByRole('button', { name: /structure:/i }));
+  fireEvent.click(within(menu as HTMLElement).getByRole('button'));
 }
 
 function structureMenuItems() {
@@ -110,7 +108,7 @@ function renderLoadedDesignBuilder() {
 
 async function selectRcFrameMode() {
   openStructureMenu();
-  fireEvent.click(screen.getByRole('menuitem', { name: 'RC Frame + CMU Infill' }));
+  fireEvent.click(screen.getByRole('menuitem', { name: 'RC Structure' }));
   await waitFor(() => {
     expect(
       useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']?.preset?.buildingSystemMode,
@@ -158,47 +156,41 @@ describe('Structure dropdown — unified frame modal', () => {
     openStructureMenu();
     const items = structureMenuItems();
     expect(items).toContain('CMU Bearing Wall');
-    expect(items).toContain('RC Frame + CMU Infill');
+    expect(items).toContain('RC Structure');
     expect(items).not.toContain('Add Corner Columns');
     expect(items).not.toContain('Auto Frame Layout');
     expect(items).not.toContain('Add Plinth / Roof / Tie Beams');
     expect(items).not.toContain('Add / Edit Gable End');
-    expect(items).not.toContain('Frame, Foundation & Roof Dimensions');
+    expect(items).not.toContain('RC Settings');
   });
 
-  it('opens unified modal when RC Frame + CMU Infill is selected', async () => {
+  it('selects RC Structure without opening dimensions modal', async () => {
     renderLoadedDesignBuilder();
     await waitForLoadedDesignBuilderTemplate();
     await selectRcFrameMode();
-    await waitFor(() => {
-      expect(
-        screen.getByRole('dialog', { name: /frame, foundation & roof dimensions/i }),
-      ).toBeInTheDocument();
-    });
+    expect(screen.queryByRole('dialog', { name: /rc settings/i })).not.toBeInTheDocument();
   });
 
-  it('opens unified modal when Frame, Foundation & Roof Dimensions is clicked', async () => {
+  it('opens unified modal when RC Settings is clicked', async () => {
     renderLoadedDesignBuilder();
     await waitForLoadedDesignBuilderTemplate();
     await selectRcFrameMode();
-    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
-    await waitFor(() => {
-      expect(screen.queryByRole('dialog', { name: /frame, foundation & roof dimensions/i })).not.toBeInTheDocument();
-    });
     openStructureMenu();
-    fireEvent.click(screen.getByRole('menuitem', { name: 'Frame, Foundation & Roof Dimensions' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'RC Settings' }));
     await waitFor(() => {
-      expect(screen.getByRole('dialog', { name: /frame, foundation & roof dimensions/i })).toBeInTheDocument();
+      expect(screen.getByRole('dialog', { name: /rc settings/i })).toBeInTheDocument();
     });
   });
 
-  it('shows Frame, Foundation & Roof Dimensions when RC mode is active', async () => {
+  it('shows RC Settings when RC mode is active', async () => {
     renderLoadedDesignBuilder();
     await waitForLoadedDesignBuilderTemplate();
     await selectRcFrameMode();
     openStructureMenu();
     const items = structureMenuItems();
-    expect(items).toContain('Frame, Foundation & Roof Dimensions');
+    expect(items).toContain('RC Settings');
+    expect(items).not.toContain('Interior Finishes');
+    expect(items).not.toContain('Exterior Finishes');
     expect(items).not.toContain('Add Corner Columns');
   });
 
@@ -209,7 +201,7 @@ describe('Structure dropdown — unified frame modal', () => {
     openStructureMenu();
     fireEvent.click(screen.getByRole('menuitem', { name: 'CMU Bearing Wall' }));
     await waitFor(() => {
-      expect(screen.queryByRole('dialog', { name: /frame, foundation & roof dimensions/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('dialog', { name: /rc settings/i })).not.toBeInTheDocument();
     });
   });
 });

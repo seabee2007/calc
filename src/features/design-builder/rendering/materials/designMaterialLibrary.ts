@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import type { CmuInfillPlasterFinish } from '../../types';
 import type { CastConcreteMaterialRole } from './designCastConcreteRoles';
 import {
   CAST_CONCRETE_TEXTURE_TILE_METERS,
@@ -58,6 +59,8 @@ export type DesignMaterialLibrary = {
   mortarPreview: THREE.MeshStandardMaterial;
   plasterFinishTechnical: THREE.MeshStandardMaterial;
   plasterFinishPreview: THREE.MeshStandardMaterial;
+  plasterFinishTexturedPreview: THREE.MeshStandardMaterial;
+  plasterFinishSmoothPreview: THREE.MeshStandardMaterial;
   castConcreteStructuralTechnical: THREE.MeshStandardMaterial;
   castConcreteStructuralPreview: THREE.MeshStandardMaterial;
   castConcreteBeamTechnical: THREE.MeshStandardMaterial;
@@ -170,6 +173,10 @@ function resolvePlasterTint(selection: DesignMaterialSelection): number {
   return hexToNumber(preset?.hex ?? PLASTER_TINT_PRESETS[0].hex);
 }
 
+function plasterMaterialIdForFinish(finish: CmuInfillPlasterFinish): string {
+  return finish === 'smooth' ? 'smooth-3-coat-plaster' : 'textured-3-coat-plaster';
+}
+
 function resolveRoofTint(selection: DesignMaterialSelection): number {
   const preset = getTintPresetById(ROOF_SHEET_TINT_PRESETS, selection.roofSheetTintId);
   return hexToNumber(preset?.hex ?? ROOF_SHEET_TINT_PRESETS[0].hex);
@@ -232,6 +239,16 @@ function ensureLibrary(): DesignMaterialLibrary {
     }),
     plasterFinishPreview: createPreviewBaseMaterial(PREVIEW_FALLBACK_TINTS.plasterFinish, {
       roughness: 0.95,
+      metalness: 0.01,
+      side: THREE.DoubleSide,
+    }),
+    plasterFinishTexturedPreview: createPreviewBaseMaterial(PREVIEW_FALLBACK_TINTS.plasterFinish, {
+      roughness: 0.94,
+      metalness: 0.01,
+      side: THREE.DoubleSide,
+    }),
+    plasterFinishSmoothPreview: createPreviewBaseMaterial(PREVIEW_FALLBACK_TINTS.plasterFinish, {
+      roughness: 0.96,
       metalness: 0.01,
       side: THREE.DoubleSide,
     }),
@@ -706,6 +723,27 @@ function applyPreviewMaps(): void {
     library.plasterFinishPreview.side = THREE.DoubleSide;
   }
 
+  (['textured', 'smooth'] as const).forEach((finish) => {
+    const materialId = plasterMaterialIdForFinish(finish);
+    const option = getMaterialOptionById(materialId);
+    if (!option) return;
+    const material = buildTriplanarPreviewMaterial(
+      getCachedMaps(materialId, 'textured-3-coat-plaster'),
+      option.tileSizeMeters ?? 0.85,
+      PREVIEW_FALLBACK_TINTS.plasterFinish,
+      resolvePlasterTint(selection),
+      0.86,
+      option.roughness,
+      option.metalness,
+    );
+    material.side = THREE.DoubleSide;
+    if (finish === 'smooth') {
+      library.plasterFinishSmoothPreview = material;
+    } else {
+      library.plasterFinishTexturedPreview = material;
+    }
+  });
+
   if (concreteOption) {
     const concreteMaps = getCachedMaps(concreteOption.id, 'concrete-042a');
     library.castConcreteStructuralPreview = buildTriplanarPreviewMaterial(
@@ -758,15 +796,28 @@ function applyPreviewMaps(): void {
   }
 
   if (soffitOption) {
-    applySmoothPaintedMetalToMaterial(
-      library.soffitTrimPreview,
-      resolveRoofTrimTint(selection.soffitTintId),
-      resolveRoofTrimTintStrength(selection.soffitTintId),
-      {
-        roughness: soffitOption.roughness,
-        metalness: soffitOption.metalness,
-      },
-    );
+    if (soffitOption.projection === 'triplanar') {
+      library.soffitTrimPreview = buildTriplanarPreviewMaterial(
+        getCachedMaps(soffitOption.id, 'chipboard-004'),
+        soffitOption.tileSizeMeters ?? 1.2,
+        PREVIEW_FALLBACK_TINTS.soffitTrim,
+        optionSwatchColor(soffitOption, PREVIEW_FALLBACK_TINTS.soffitTrim),
+        0.7,
+        soffitOption.roughness,
+        soffitOption.metalness,
+      );
+      library.soffitTrimPreview.side = THREE.DoubleSide;
+    } else {
+      applySmoothPaintedMetalToMaterial(
+        library.soffitTrimPreview,
+        resolveRoofTrimTint(selection.soffitTintId),
+        resolveRoofTrimTintStrength(selection.soffitTintId),
+        {
+          roughness: soffitOption.roughness,
+          metalness: soffitOption.metalness,
+        },
+      );
+    }
   }
 
   if (steelOption) {
@@ -809,6 +860,8 @@ function uniqueMaterialIdsForSelections(selection: DesignMaterialSelection): str
     selection.cmuMaterialId,
     selection.mortarMaterialId,
     selection.plasterMaterialId,
+    'textured-3-coat-plaster',
+    'smooth-3-coat-plaster',
     selection.castConcreteMaterialId,
     selection.roofSheetMaterialId,
     selection.fasciaMaterialId,
@@ -966,6 +1019,10 @@ export type ResolveDesignMaterialOptions = {
   transparent?: boolean;
 };
 
+export type ResolvePlasterFinishMaterialOptions = ResolveDesignMaterialOptions & {
+  plasterFinish?: CmuInfillPlasterFinish;
+};
+
 export function resolveCmuMaterial(
   options: ResolveDesignMaterialOptions,
   trackDisposable: (material: THREE.Material) => void,
@@ -991,13 +1048,17 @@ export function resolveMortarMaterial(
 }
 
 export function resolvePlasterFinishMaterial(
-  options: ResolveDesignMaterialOptions,
+  options: ResolvePlasterFinishMaterialOptions,
   trackDisposable: (material: THREE.Material) => void,
 ): THREE.MeshStandardMaterial {
   const library = ensureLibrary();
   const base =
     options.visualStyle === 'material_preview' && state.previewLoaded
-      ? library.plasterFinishPreview
+      ? options.plasterFinish === 'smooth'
+        ? library.plasterFinishSmoothPreview
+        : options.plasterFinish === 'textured'
+          ? library.plasterFinishTexturedPreview
+          : library.plasterFinishPreview
       : library.plasterFinishTechnical;
   return finalizeMaterial(base, options, trackDisposable);
 }

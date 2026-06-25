@@ -1882,18 +1882,23 @@ export default function DesignBuilderViewer({
           if (plasterPlacements.length > 0) {
             const plasterGroup = new THREE.Group();
             plasterGroup.name = 'plasterGroup';
-            const plasterMaterial = usePreviewMaterials
-              ? resolvePlasterFinishMaterial(
-                  {
-                    visualStyle: currentVisualStyle,
-                    selected: currentSelectedObjectType === 'cmu_infill_system',
-                  },
-                  trackMat,
-                )
-              : makeMaterial(0xded8cf, currentSelectedObjectType === 'cmu_infill_system', {
-                  side: THREE.DoubleSide,
-                });
             plasterPlacements.forEach((placement) => {
+              const plasterMaterial = usePreviewMaterials
+                ? resolvePlasterFinishMaterial(
+                    {
+                      visualStyle: currentVisualStyle,
+                      selected: currentSelectedObjectType === 'cmu_infill_system',
+                      plasterFinish: placement.finish,
+                    },
+                    trackMat,
+                  )
+                : makeMaterial(
+                    placement.finish === 'smooth' ? 0xded8cf : 0xd8d1c5,
+                    currentSelectedObjectType === 'cmu_infill_system',
+                    {
+                      side: THREE.DoubleSide,
+                    },
+                  );
               const mesh = new THREE.Mesh(
                 trackGeometry(
                   new THREE.BoxGeometry(

@@ -3,6 +3,8 @@ export type DesignMaterialCategory =
   | 'mortar'
   | 'plaster_finish'
   | 'cast_concrete'
+  | 'floor_tile'
+  | 'ceiling'
   | 'roof_sheet'
   | 'roof_trim'
   | 'structural_steel'
@@ -302,6 +304,53 @@ export const DESIGN_MATERIAL_REGISTRY: readonly DesignMaterialOption[] = [
     supportsTint: false,
   },
   {
+    id: 'granite-001a',
+    category: 'floor_tile',
+    label: 'Granite 001A',
+    description: 'Polished granite floor tile',
+    swatchColor: '#8f8a84',
+    texturePaths: packPaths('/textures/floor/granite-001a/', 'Granite001A_1K-JPG', [
+      'normal',
+      'roughness',
+    ]),
+    projection: 'triplanar',
+    tileSizeMeters: 0.6,
+    roughness: 0.38,
+    metalness: 0.04,
+    supportsTint: false,
+  },
+  {
+    id: 'granite-005a',
+    category: 'floor_tile',
+    label: 'Granite 005A',
+    description: 'Dark speckled granite floor tile',
+    swatchColor: '#6b6560',
+    texturePaths: packPaths('/textures/floor/granite-005a/', 'Granite005A_1K-JPG', [
+      'normal',
+      'roughness',
+    ]),
+    projection: 'triplanar',
+    tileSizeMeters: 0.6,
+    roughness: 0.4,
+    metalness: 0.04,
+    supportsTint: false,
+  },
+  {
+    id: 'paint-004',
+    category: 'ceiling',
+    label: 'Paint 004',
+    description: 'Smooth painted ceiling finish',
+    swatchColor: '#e8e4df',
+    texturePaths: packPaths('/textures/ceiling/paint-004/', 'Paint004_1K-JPG', [
+      'roughness',
+    ]),
+    projection: 'triplanar',
+    tileSizeMeters: 2,
+    roughness: 0.92,
+    metalness: 0.01,
+    supportsTint: true,
+  },
+  {
     id: 'corrugated-steel-009',
     category: 'roof_sheet',
     label: 'Corrugated Steel 009',
@@ -504,6 +553,38 @@ export const DESIGN_MATERIAL_REGISTRY: readonly DesignMaterialOption[] = [
     roughness: 0.36,
     metalness: 0.72,
     supportsTint: true,
+  },
+  {
+    id: 'chipboard-004',
+    category: 'roof_trim',
+    label: 'Chipboard 004',
+    description: 'OSB plywood soffit panel',
+    swatchColor: '#c4a574',
+    texturePaths: packPaths('/textures/ceiling/chipboard-004/', 'Chipboard004_1K-JPG', [
+      'normal',
+      'roughness',
+    ]),
+    projection: 'triplanar',
+    tileSizeMeters: 1.2,
+    roughness: 0.88,
+    metalness: 0.01,
+    supportsTint: false,
+  },
+  {
+    id: 'chipboard-008',
+    category: 'roof_trim',
+    label: 'Chipboard 008',
+    description: 'Light plywood soffit panel',
+    swatchColor: '#d4c4a8',
+    texturePaths: packPaths('/textures/ceiling/chipboard-008/', 'Chipboard008_1K-JPG', [
+      'normal',
+      'roughness',
+    ]),
+    projection: 'triplanar',
+    tileSizeMeters: 1.2,
+    roughness: 0.86,
+    metalness: 0.01,
+    supportsTint: false,
   },
   {
     id: 'metal-021',

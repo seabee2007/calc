@@ -192,7 +192,6 @@ import type {
   WallOpeningParameters,
 } from '../types';
 import {
-  BUILDING_SYSTEM_MODE_LABELS,
   builderViewModeFromStored,
   storedViewModeFromBuilder,
 } from '../types';
@@ -218,7 +217,7 @@ import {
   setActiveMaterialSelections,
   type DesignMaterialSelection,
 } from '../rendering/materials/designMaterialLibrary';
-import MaterialsColorsModal from './MaterialsColorsModal';
+import MaterialsColorsModal, { type MaterialsFinishesScope } from './MaterialsColorsModal';
 import DesignBuilderPlanCanvas from './DesignBuilderPlanCanvas';
 import {
   closeDesignBuilderCommandMenus,
@@ -414,7 +413,10 @@ export default function DesignBuilderPage({
     normalizeDesignMaterialSelection(),
   );
   const [materialRevision, setMaterialRevision] = useState(0);
-  const [materialsColorsModalOpen, setMaterialsColorsModalOpen] = useState(false);
+  const [materialsModal, setMaterialsModal] = useState<{
+    open: boolean;
+    scope: MaterialsFinishesScope;
+  }>({ open: false, scope: 'all' });
   const [foundationViewMode, setFoundationViewMode] = useState<FoundationViewMode>('full_model');
   const [roofDisplayMode, setRoofDisplayMode] = useState<RoofDisplayMode>('full_roof');
   const [roofLayerVisibility, setRoofLayerVisibility] = useState<RoofLayerVisibility>(
@@ -1377,9 +1379,7 @@ export default function DesignBuilderPage({
 
   function handleSetBuildingSystemMode(mode: BuildingSystemMode) {
     applyPresetPatch((current) => setBuildingSystemMode(current, mode), 'Change building system mode', 'structure_update');
-    if (mode === 'reinforced_concrete_frame_with_cmu_infill') {
-      setFrameFoundationModalOpen(true);
-    } else {
+    if (mode !== 'reinforced_concrete_frame_with_cmu_infill') {
       setFrameFoundationModalOpen(false);
     }
   }
@@ -1405,7 +1405,7 @@ export default function DesignBuilderPage({
         });
         setStatus({
           tone: 'success',
-          message: 'Frame, foundation, and roof dimensions applied.',
+          message: 'RC settings applied.',
         });
       },
     });
@@ -2612,7 +2612,7 @@ export default function DesignBuilderPage({
     void setActiveMaterialSelections(normalized).then(() => {
       setMaterialRevision((revision) => revision + 1);
     });
-    setMaterialsColorsModalOpen(false);
+    setMaterialsModal((current) => ({ ...current, open: false }));
     if (persistenceContext.canPersist) {
       setSaveState('unsaved');
     }
@@ -3189,8 +3189,8 @@ export default function DesignBuilderPage({
 
   const activeToolLabel = TOOL_MODE_OPTIONS.find((option) => option.mode === toolMode)?.label ?? 'Select';
   const activeBuildingSystemMode = resolvedPreset.buildingSystemMode;
-  const activeStructureLabel = BUILDING_SYSTEM_MODE_LABELS[activeBuildingSystemMode];
   const isFrameStructureMode = activeBuildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill';
+  const structureMenuLabel = 'Structure';
   const drawWallInstruction = DESIGN_BUILDER_COPY.hints.drawWall;
   const drawWallSnapFeedback = formatDrawWallSnapTargetFeedback({
     snapTarget: draftSnapTarget,
@@ -3517,7 +3517,7 @@ export default function DesignBuilderPage({
 
               <DesignBuilderCommandMenu
                 menuKind="structure"
-                label={<>Structure: {activeStructureLabel} <span aria-hidden>▾</span></>}
+                label={<>{structureMenuLabel} <span aria-hidden>▾</span></>}
                 panelClassName="w-56"
                 summaryClassName="flex h-9 items-center gap-1 rounded-lg border border-cyan-400 bg-cyan-50 px-3 text-xs font-semibold text-cyan-800 focus:outline-none focus:ring-2 focus:ring-cyan-400/40 dark:border-cyan-600 dark:bg-cyan-950/50 dark:text-cyan-100"
               >
@@ -3542,7 +3542,7 @@ export default function DesignBuilderPage({
                       : 'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800'
                   }`}
                 >
-                  RC Frame + CMU Infill
+                  RC Structure
                 </CommandMenuAction>
                 {isFrameStructureMode ? (
                   <>
@@ -3552,7 +3552,7 @@ export default function DesignBuilderPage({
                       disabled={!modelLoaded || !footprintClosed}
                       className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-50 text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
                     >
-                      Frame, Foundation & Roof Dimensions
+                      RC Settings
                     </CommandMenuAction>
                   </>
                 ) : null}
@@ -3733,7 +3733,7 @@ export default function DesignBuilderPage({
                       </label>
                     ))}
                     <CommandMenuAction
-                      onClick={() => setMaterialsColorsModalOpen(true)}
+                      onClick={() => setMaterialsModal({ open: true, scope: 'all' })}
                       className="mt-1 block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
                     >
                       Materials &amp; Colors
@@ -4463,11 +4463,13 @@ export default function DesignBuilderPage({
       }}
       onApply={handleApplyFrameFoundationDimensions}
       onRoofDraftChange={setStructureModalRoofDraft}
+      onOpenFinishes={(scope) => setMaterialsModal({ open: true, scope })}
     />
     <MaterialsColorsModal
-      isOpen={materialsColorsModalOpen}
+      isOpen={materialsModal.open}
+      scope={materialsModal.scope}
       appliedSelections={materialSelections}
-      onClose={() => setMaterialsColorsModalOpen(false)}
+      onClose={() => setMaterialsModal((current) => ({ ...current, open: false }))}
       onApply={handleApplyMaterialSelections}
     />
     </>
@@ -4847,7 +4849,7 @@ function EditableControls({
         />
         {preset.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill' ? (
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            Use Structure → Frame, Foundation & Roof Dimensions to edit columns, beams, footings, and roof settings.
+            Use Structure → RC Settings to edit columns, beams, footings, and roof settings.
           </p>
         ) : null}
         <p className="text-sm text-slate-600 dark:text-slate-300">
@@ -4865,7 +4867,7 @@ function EditableControls({
           Infill panels: {preset.infillSystem.panels.length}
         </p>
         <label className="flex items-center justify-between rounded-lg bg-slate-100 px-3 py-2 text-sm dark:bg-slate-800">
-          <span>Plaster Applied</span>
+          <span>Exterior Plaster Applied</span>
           <input
             type="checkbox"
             checked={plaster.enabled}
@@ -4874,7 +4876,7 @@ function EditableControls({
           />
         </label>
         <SelectField
-          label="Finish"
+          label="Exterior Finish"
           value={plaster.finish}
           onChange={(value) =>
             onInfillPlasterChange({ finish: value === 'smooth' ? 'smooth' : 'textured' })
@@ -4882,6 +4884,26 @@ function EditableControls({
           options={[
             { value: 'textured', label: 'Textured' },
             { value: 'smooth', label: 'Smooth' },
+          ]}
+        />
+        <label className="flex items-center justify-between rounded-lg bg-slate-100 px-3 py-2 text-sm dark:bg-slate-800">
+          <span>Interior Plaster Applied</span>
+          <input
+            type="checkbox"
+            checked={plaster.interiorEnabled}
+            onChange={(event) => onInfillPlasterChange({ interiorEnabled: event.currentTarget.checked })}
+            className="h-4 w-4"
+          />
+        </label>
+        <SelectField
+          label="Interior Finish"
+          value={plaster.interiorFinish}
+          onChange={(value) =>
+            onInfillPlasterChange({ interiorFinish: value === 'textured' ? 'textured' : 'smooth' })
+          }
+          options={[
+            { value: 'smooth', label: 'Smooth' },
+            { value: 'textured', label: 'Textured' },
           ]}
         />
         {designGeometryResult.wallCmuLayout.counts ? (
@@ -4929,7 +4951,7 @@ function EditableControls({
           </>
         ) : (
           <p className="text-sm text-slate-500">
-            Configure gable-end CMU and raked cap through Structure → Frame, Foundation & Roof Dimensions when using a Gable Roof.
+            Configure gable-end CMU and raked cap through Structure → RC Settings when using a Gable Roof.
           </p>
         )}
       </div>

@@ -31,6 +31,7 @@ import {
   type FrameFoundationDimensionsApplyPayload,
 } from '../domain/structureActions';
 import type { CmuBuildingPreset } from '../domain/designBuilderPreset';
+import type { MaterialsFinishesScope } from './MaterialsColorsModal';
 import { formatInputNumber, parseDecimalInput } from '../ui/designBuilderNumberInput';
 import {
   BORDER_DEFAULT,
@@ -71,6 +72,7 @@ export type FrameFoundationDimensionsModalProps = {
   onClose: () => void;
   onApply: (payload: FrameFoundationDimensionsApplyPayload) => boolean;
   onRoofDraftChange?: (roofSystem: RoofSystemSettings) => void;
+  onOpenFinishes?: (scope: Exclude<MaterialsFinishesScope, 'all'>) => void;
 };
 
 type FoundationSection =
@@ -214,6 +216,7 @@ export default function FrameFoundationDimensionsModal({
   onClose,
   onApply,
   onRoofDraftChange,
+  onOpenFinishes,
 }: FrameFoundationDimensionsModalProps) {
   const confirm = useConfirm();
   const [foundationDraft, setFoundationDraft] = useState<RcFrameFoundationSettings>(() =>
@@ -458,7 +461,7 @@ export default function FrameFoundationDimensionsModal({
     <ModalShell
       isOpen={isOpen}
       onClose={onClose}
-      title="Frame, Foundation & Roof Dimensions"
+      title="RC Settings"
       subtitle="Configure conceptual RC frame, beams, footings, roof framing, cladding, and gable-end settings for this design."
       size="2xl"
       footer={
@@ -1032,6 +1035,23 @@ export default function FrameFoundationDimensionsModal({
                     ) : null}
                   </>
                 ) : null}
+              </CollapsibleSection>
+            ) : null}
+
+            {onOpenFinishes ? (
+              <CollapsibleSection
+                id="finishes"
+                title="Finishes"
+                helper="Choose interior and exterior material appearances for Material Preview mode."
+              >
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <Button variant="secondary" onClick={() => onOpenFinishes('interior')}>
+                    Interior Finishes
+                  </Button>
+                  <Button variant="secondary" onClick={() => onOpenFinishes('exterior')}>
+                    Exterior Finishes
+                  </Button>
+                </div>
               </CollapsibleSection>
             ) : null}
           </div>

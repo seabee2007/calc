@@ -15,17 +15,23 @@ import {
   type DesignMaterialTintPreset,
 } from '../rendering/materials/designMaterialLibrary';
 
+export type MaterialsFinishesScope = 'all' | 'interior' | 'exterior';
+
 export type MaterialsColorsModalProps = {
   isOpen: boolean;
+  scope?: MaterialsFinishesScope;
   appliedSelections: DesignMaterialSelection;
   onClose: () => void;
   onApply: (selections: DesignMaterialSelection) => void;
 };
 
 type CategoryConfig = {
+  id: string;
+  scope: 'interior' | 'exterior';
   category: DesignMaterialCategory;
   title: string;
   materialField?: MaterialSelectionField;
+  materialFilter?: (option: DesignMaterialOption) => boolean;
   tintPresets?: readonly DesignMaterialTintPreset[];
   tintField?: keyof Pick<
     DesignMaterialSelection,
@@ -52,34 +58,45 @@ type MaterialSelectionField = keyof Pick<
 >;
 
 const CATEGORY_CONFIG: readonly CategoryConfig[] = [
-  { category: 'cmu', title: 'CMU Blocks' },
+  { id: 'cmu', scope: 'exterior', category: 'cmu', title: 'CMU Blocks' },
   {
+    id: 'mortar',
+    scope: 'exterior',
     category: 'mortar',
     title: 'Mortar Joints',
     tintPresets: MORTAR_TINT_PRESETS,
     tintField: 'mortarTintId',
   },
   {
+    id: 'plaster',
+    scope: 'interior',
     category: 'plaster_finish',
     title: 'Plaster Finish',
     tintPresets: PLASTER_TINT_PRESETS,
     tintField: 'plasterTintId',
   },
-  { category: 'cast_concrete', title: 'Cast Concrete' },
+  { id: 'cast-concrete', scope: 'interior', category: 'cast_concrete', title: 'Cast Concrete' },
   {
+    id: 'roof-sheet',
+    scope: 'exterior',
     category: 'roof_sheet',
     title: 'Roof Sheets',
     tintPresets: ROOF_SHEET_TINT_PRESETS,
     tintField: 'roofSheetTintId',
   },
   {
+    id: 'fascia',
+    scope: 'exterior',
     category: 'roof_trim',
     title: 'Fascia Trim',
     materialField: 'fasciaMaterialId',
+    materialFilter: (option) => option.projection === 'uv',
     tintPresets: ROOF_SHEET_TINT_PRESETS,
     tintField: 'fasciaTintId',
   },
   {
+    id: 'soffit',
+    scope: 'exterior',
     category: 'roof_trim',
     title: 'Soffit Panels',
     materialField: 'soffitMaterialId',
@@ -87,18 +104,40 @@ const CATEGORY_CONFIG: readonly CategoryConfig[] = [
     tintField: 'soffitTintId',
   },
   {
+    id: 'structural-steel',
+    scope: 'exterior',
     category: 'structural_steel',
     title: 'Structural Steel',
     tintPresets: STRUCTURAL_STEEL_TINT_PRESETS,
     tintField: 'structuralSteelTintId',
   },
-  { category: 'site_ground', title: 'Site Ground' },
+  { id: 'site-ground', scope: 'exterior', category: 'site_ground', title: 'Site Ground' },
 ];
 
-const MATERIAL_FIELD: Record<
-  DesignMaterialCategory,
-  MaterialSelectionField
+const MODAL_COPY: Record<
+  MaterialsFinishesScope,
+  { title: string; subtitle: string }
 > = {
+  all: {
+    title: 'Materials & Colors',
+    subtitle: 'Choose the appearance of building components in Material Preview mode.',
+  },
+  interior: {
+    title: 'Interior Finishes',
+    subtitle: 'Choose interior wall plaster and floor slab materials for Material Preview mode.',
+  },
+  exterior: {
+    title: 'Exterior Finishes',
+    subtitle: 'Choose exterior wall, roof, trim, steel, and site materials for Material Preview mode.',
+  },
+};
+
+function categoryConfigsForScope(scope: MaterialsFinishesScope): readonly CategoryConfig[] {
+  if (scope === 'all') return CATEGORY_CONFIG;
+  return CATEGORY_CONFIG.filter((config) => config.scope === scope);
+}
+
+const MATERIAL_FIELD: Partial<Record<DesignMaterialCategory, MaterialSelectionField>> = {
   cmu: 'cmuMaterialId',
   mortar: 'mortarMaterialId',
   plaster_finish: 'plasterMaterialId',
@@ -192,8 +231,11 @@ function CategorySection({
   onChangeMaterial: (field: MaterialSelectionField, materialId: string) => void;
   onChangeTint: (field: CategoryConfig['tintField'], tintId: string) => void;
 }) {
-  const options = getMaterialOptionsForCategory(config.category);
+  const options = getMaterialOptionsForCategory(config.category).filter(
+    (option) => config.materialFilter?.(option) ?? true,
+  );
   const field = config.materialField ?? MATERIAL_FIELD[config.category];
+  if (!field) return null;
   const selectedMaterialId = selections[field];
   const selectedOption = options.find((option) => option.id === selectedMaterialId) ?? options[0];
 
@@ -233,6 +275,7 @@ function CategorySection({
 
 export default function MaterialsColorsModal({
   isOpen,
+  scope = 'all',
   appliedSelections,
   onClose,
   onApply,
@@ -240,6 +283,8 @@ export default function MaterialsColorsModal({
   const [draft, setDraft] = useState<DesignMaterialSelection>(() =>
     normalizeDesignMaterialSelection(appliedSelections),
   );
+  const visibleCategories = useMemo(() => categoryConfigsForScope(scope), [scope]);
+  const modalCopy = MODAL_COPY[scope];
 
   useEffect(() => {
     if (!isOpen) return;
@@ -264,8 +309,8 @@ export default function MaterialsColorsModal({
     <ModalShell
       isOpen={isOpen}
       onClose={onClose}
-      title="Materials & Colors"
-      subtitle="Choose the appearance of building components in Material Preview mode."
+      title={modalCopy.title}
+      subtitle={modalCopy.subtitle}
       size="lg"
       footer={
         <div className="flex flex-wrap items-center justify-end gap-2">
@@ -295,9 +340,9 @@ export default function MaterialsColorsModal({
       }
     >
       <div className="grid gap-6 md:grid-cols-2">
-        {CATEGORY_CONFIG.map((config) => (
+        {visibleCategories.map((config) => (
           <CategorySection
-            key={config.category}
+            key={config.id}
             config={config}
             selections={draft}
             onChangeMaterial={updateMaterial}

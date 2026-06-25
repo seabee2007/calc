@@ -42,8 +42,8 @@ export type PersistedDesignBuilderState = {
       materialSelections?: {
       cmuMaterialId?: string;
       mortarMaterialId?: string;
-      castConcreteMaterialId?: string;
-      roofSheetMaterialId?: string;
+        castConcreteMaterialId?: string;
+        roofSheetMaterialId?: string;
       fasciaMaterialId?: string;
         soffitMaterialId?: string;
         plasterMaterialId?: string;

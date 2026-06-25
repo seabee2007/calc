@@ -6,10 +6,14 @@ export const DEFAULT_CMU_INFILL_PLASTER: CmuInfillPlasterSettings = {
   enabled: true,
   finish: 'textured',
   profileLabel: '3-coat plaster',
+  interiorEnabled: true,
+  interiorFinish: 'smooth',
+  interiorProfileLabel: '3-coat plaster',
 };
 
 const PLASTER_RENDER_THICKNESS_METERS = 0.008;
 const PLASTER_RENDER_BIAS_METERS = 0.002;
+const OPENING_FRAME_TRIM_COVERAGE_METERS = 0.055;
 
 export type PlasterOpening = ResolvedCmuOpening & {
   wallSegmentId?: string;
@@ -19,7 +23,15 @@ export type InfillPlasterPanelPlacement = {
   id: string;
   panelId: string;
   hostSegmentId: string;
-  surfaceKind: 'field' | 'left_return' | 'right_return';
+  side: 'exterior' | 'interior';
+  surfaceKind:
+    | 'field'
+    | 'left_return'
+    | 'right_return'
+    | 'opening_left_jamb'
+    | 'opening_right_jamb'
+    | 'opening_head'
+    | 'opening_sill';
   finish: CmuInfillPlasterSettings['finish'];
   profileLabel: string;
   center: { x: number; y: number; z: number };
@@ -37,6 +49,13 @@ export function normalizeCmuInfillPlasterSettings(
     enabled: partial?.enabled ?? DEFAULT_CMU_INFILL_PLASTER.enabled,
     finish: partial?.finish === 'smooth' ? 'smooth' : DEFAULT_CMU_INFILL_PLASTER.finish,
     profileLabel: partial?.profileLabel?.trim() || DEFAULT_CMU_INFILL_PLASTER.profileLabel,
+    interiorEnabled: partial?.interiorEnabled ?? partial?.enabled ?? DEFAULT_CMU_INFILL_PLASTER.interiorEnabled,
+    interiorFinish:
+      partial?.interiorFinish === 'textured' || partial?.interiorFinish === 'smooth'
+        ? partial.interiorFinish
+        : DEFAULT_CMU_INFILL_PLASTER.interiorFinish,
+    interiorProfileLabel:
+      partial?.interiorProfileLabel?.trim() || DEFAULT_CMU_INFILL_PLASTER.interiorProfileLabel,
   };
 }
 
@@ -66,7 +85,7 @@ export function resolveInfillPlasterPanelPlacements(params: {
 }): InfillPlasterPanelPlacement[] {
   const infillSystem = normalizeCmuInfillSystem(params.infillSystem);
   const plaster = infillSystem.plaster;
-  if (!plaster.enabled) return [];
+  if (!plaster.enabled && !plaster.interiorEnabled) return [];
 
   const panelById = new Map(infillSystem.panels.map((panel) => [panel.id, panel]));
   const openings = params.openings ?? [];
@@ -78,41 +97,64 @@ export function resolveInfillPlasterPanelPlacements(params: {
   return (params.panelBounds ?? []).flatMap((bounds) => {
     const panel = panelById.get(bounds.panelId);
     if (!panel || !isPlasterEligiblePanel(panel)) return [];
-    const fieldPlacements = subtractOpeningsFromPanel(bounds, openings, panelEdgeFaceOverlapMeters).map((rect, index) => {
-      const centerStation = (rect.startStationMeters + rect.endStationMeters) / 2;
-      const centerY = (rect.bottomElevationMeters + rect.topElevationMeters) / 2;
-      const centerline = pointAlongBounds(bounds, centerStation);
-      const outwardOffset = wallThicknessMeters / 2 + thicknessMeters / 2 + renderBiasMeters;
-      const widthMeters = rect.endStationMeters - rect.startStationMeters;
-      const heightMeters = rect.topElevationMeters - rect.bottomElevationMeters;
-      return {
-        id: `${bounds.panelId}-plaster-${index}`,
-        panelId: bounds.panelId,
-        hostSegmentId: bounds.hostSegmentId,
-        surfaceKind: 'field' as const,
-        finish: plaster.finish,
-        profileLabel: plaster.profileLabel,
-        center: {
-          x: centerline.x + bounds.outwardNormal.x * outwardOffset,
-          y: centerY,
-          z: centerline.z + bounds.outwardNormal.z * outwardOffset,
-        },
-        widthMeters,
-        heightMeters,
-        thicknessMeters,
-        rotationY: -Math.atan2(bounds.tangent.z, bounds.tangent.x),
-        areaSquareMeters: widthMeters * heightMeters,
-      };
-    });
     return [
-      ...fieldPlacements,
-      ...createPanelEdgeReturnPlacements({
-        bounds,
-        plaster,
-        wallThicknessMeters,
-        thicknessMeters,
-        renderBiasMeters,
-      }),
+      ...(plaster.enabled
+        ? [
+            ...createPanelFacePlacements({
+              bounds,
+              openings,
+              side: 'exterior',
+              finish: plaster.finish,
+              profileLabel: plaster.profileLabel,
+              wallThicknessMeters,
+              thicknessMeters,
+              renderBiasMeters,
+              panelEdgeFaceOverlapMeters,
+            }),
+            ...createPanelEdgeReturnPlacements({
+              bounds,
+              plaster,
+              wallThicknessMeters,
+              thicknessMeters,
+              renderBiasMeters,
+            }),
+            ...createOpeningReturnPlacements({
+              bounds,
+              openings,
+              side: 'exterior',
+              finish: plaster.finish,
+              profileLabel: plaster.profileLabel,
+              wallThicknessMeters,
+              thicknessMeters,
+              renderBiasMeters,
+            }),
+          ]
+        : []),
+      ...(plaster.interiorEnabled
+        ? [
+            ...createPanelFacePlacements({
+              bounds,
+              openings,
+              side: 'interior',
+              finish: plaster.interiorFinish,
+              profileLabel: plaster.interiorProfileLabel,
+              wallThicknessMeters,
+              thicknessMeters,
+              renderBiasMeters,
+              panelEdgeFaceOverlapMeters,
+            }),
+            ...createOpeningReturnPlacements({
+              bounds,
+              openings,
+              side: 'interior',
+              finish: plaster.interiorFinish,
+              profileLabel: plaster.interiorProfileLabel,
+              wallThicknessMeters,
+              thicknessMeters,
+              renderBiasMeters,
+            }),
+          ]
+        : []),
     ];
   });
 }
@@ -126,6 +168,51 @@ function pointAlongBounds(bounds: ResolvedInfillPanelBounds, stationMeters: numb
     x: bounds.hostWallCenterlineStart.x + bounds.tangent.x * stationMeters,
     z: bounds.hostWallCenterlineStart.z + bounds.tangent.z * stationMeters,
   };
+}
+
+function createPanelFacePlacements(params: {
+  bounds: ResolvedInfillPanelBounds;
+  openings: readonly PlasterOpening[];
+  side: InfillPlasterPanelPlacement['side'];
+  finish: CmuInfillPlasterSettings['finish'];
+  profileLabel: string;
+  wallThicknessMeters: number;
+  thicknessMeters: number;
+  renderBiasMeters: number;
+  panelEdgeFaceOverlapMeters: number;
+}): InfillPlasterPanelPlacement[] {
+  const sideMultiplier = params.side === 'exterior' ? 1 : -1;
+  return subtractOpeningsFromPanel(params.bounds, params.openings, params.panelEdgeFaceOverlapMeters).map(
+    (rect, index) => {
+      const centerStation = (rect.startStationMeters + rect.endStationMeters) / 2;
+      const centerY = (rect.bottomElevationMeters + rect.topElevationMeters) / 2;
+      const centerline = pointAlongBounds(params.bounds, centerStation);
+      const faceOffset =
+        sideMultiplier *
+        (params.wallThicknessMeters / 2 + params.thicknessMeters / 2 + params.renderBiasMeters);
+      const widthMeters = rect.endStationMeters - rect.startStationMeters;
+      const heightMeters = rect.topElevationMeters - rect.bottomElevationMeters;
+      return {
+        id: `${params.bounds.panelId}-plaster-${params.side}-${index}`,
+        panelId: params.bounds.panelId,
+        hostSegmentId: params.bounds.hostSegmentId,
+        side: params.side,
+        surfaceKind: 'field' as const,
+        finish: params.finish,
+        profileLabel: params.profileLabel,
+        center: {
+          x: centerline.x + params.bounds.outwardNormal.x * faceOffset,
+          y: centerY,
+          z: centerline.z + params.bounds.outwardNormal.z * faceOffset,
+        },
+        widthMeters,
+        heightMeters,
+        thicknessMeters: params.thicknessMeters,
+        rotationY: -Math.atan2(params.bounds.tangent.z, params.bounds.tangent.x),
+        areaSquareMeters: widthMeters * heightMeters,
+      };
+    },
+  );
 }
 
 function createPanelEdgeReturnPlacements(params: {
@@ -167,6 +254,7 @@ function createPanelEdgeReturnPlacements(params: {
       id: `${params.bounds.panelId}-plaster-${edge.edge}`,
       panelId: params.bounds.panelId,
       hostSegmentId: params.bounds.hostSegmentId,
+      side: 'exterior',
       surfaceKind: edge.edge,
       finish: params.plaster.finish,
       profileLabel: params.plaster.profileLabel,
@@ -188,6 +276,199 @@ function createPanelEdgeReturnPlacements(params: {
       areaSquareMeters: returnDepthMeters * heightMeters,
     };
   });
+}
+
+function createOpeningReturnPlacements(params: {
+  bounds: ResolvedInfillPanelBounds;
+  openings: readonly PlasterOpening[];
+  side: InfillPlasterPanelPlacement['side'];
+  finish: CmuInfillPlasterSettings['finish'];
+  profileLabel: string;
+  wallThicknessMeters: number;
+  thicknessMeters: number;
+  renderBiasMeters: number;
+}): InfillPlasterPanelPlacement[] {
+  if (params.wallThicknessMeters <= 0) return [];
+  const baseRotationY = -Math.atan2(params.bounds.tangent.z, params.bounds.tangent.x);
+  const returnDepthMeters = Math.max(
+    0.001,
+    params.wallThicknessMeters + params.thicknessMeters + params.renderBiasMeters,
+  );
+  const depthCenterOffsetMeters = 0;
+  const edgeInsetMeters = 0;
+  const cornerOverlapMeters = Math.max(params.thicknessMeters + params.renderBiasMeters * 2, 0.012);
+
+  return params.openings
+    .filter((opening) => opening.wallSegmentId === params.bounds.hostSegmentId)
+    .flatMap((opening) => {
+      const startStationMeters = Math.max(params.bounds.startStationMeters, opening.roughStartAlongMeters);
+      const endStationMeters = Math.min(params.bounds.endStationMeters, opening.roughEndAlongMeters);
+      const bottomElevationMeters = Math.max(params.bounds.bottomElevationMeters, opening.roughBottomMeters);
+      const topElevationMeters = Math.min(params.bounds.topElevationMeters, opening.roughTopMeters);
+      const actualStartStationMeters = Math.max(
+        startStationMeters,
+        Math.min(endStationMeters, opening.actualStartAlongMeters),
+      );
+      const actualEndStationMeters = Math.max(
+        startStationMeters,
+        Math.min(endStationMeters, opening.actualEndAlongMeters),
+      );
+      const actualBottomElevationMeters = Math.max(
+        bottomElevationMeters,
+        Math.min(topElevationMeters, opening.actualBottomMeters),
+      );
+      const actualTopElevationMeters = Math.max(
+        bottomElevationMeters,
+        Math.min(topElevationMeters, opening.actualTopMeters),
+      );
+      const leftRevealStationMeters = Math.max(
+        startStationMeters,
+        actualStartStationMeters - OPENING_FRAME_TRIM_COVERAGE_METERS,
+      );
+      const rightRevealStationMeters = Math.min(
+        endStationMeters,
+        actualEndStationMeters + OPENING_FRAME_TRIM_COVERAGE_METERS,
+      );
+      const openingWidthMeters = rightRevealStationMeters - leftRevealStationMeters;
+      const openingHeightMeters = actualTopElevationMeters - actualBottomElevationMeters;
+      if (openingWidthMeters <= 0.001 || openingHeightMeters <= 0.001) return [];
+
+      const returnStartStationMeters = Math.max(
+        params.bounds.startStationMeters,
+        startStationMeters - cornerOverlapMeters,
+      );
+      const returnEndStationMeters = Math.min(
+        params.bounds.endStationMeters,
+        endStationMeters + cornerOverlapMeters,
+      );
+      const returnCenterStationMeters = (returnStartStationMeters + returnEndStationMeters) / 2;
+      const returnWidthMeters = returnEndStationMeters - returnStartStationMeters;
+      const returnCenterline = pointAlongBounds(params.bounds, returnCenterStationMeters);
+      const leftJambStartStationMeters = Math.min(startStationMeters, leftRevealStationMeters);
+      const leftJambEndStationMeters = Math.max(startStationMeters, leftRevealStationMeters);
+      const rightJambStartStationMeters = Math.min(rightRevealStationMeters, endStationMeters);
+      const rightJambEndStationMeters = Math.max(rightRevealStationMeters, endStationMeters);
+      const leftJambCenterStationMeters = (leftJambStartStationMeters + leftJambEndStationMeters) / 2;
+      const rightJambCenterStationMeters = (rightJambStartStationMeters + rightJambEndStationMeters) / 2;
+      const leftJambThicknessMeters = Math.max(
+        params.thicknessMeters,
+        leftJambEndStationMeters - leftJambStartStationMeters + cornerOverlapMeters,
+      );
+      const rightJambThicknessMeters = Math.max(
+        params.thicknessMeters,
+        rightJambEndStationMeters - rightJambStartStationMeters + cornerOverlapMeters,
+      );
+      const jambBottomElevationMeters = Math.max(
+        params.bounds.bottomElevationMeters,
+        actualBottomElevationMeters - cornerOverlapMeters,
+      );
+      const jambTopElevationMeters = Math.min(
+        params.bounds.topElevationMeters,
+        actualTopElevationMeters + cornerOverlapMeters,
+      );
+      const jambHeightMeters = jambTopElevationMeters - jambBottomElevationMeters;
+      if (returnWidthMeters <= 0.001 || jambHeightMeters <= 0.001) return [];
+      const jambCenterY = (jambBottomElevationMeters + jambTopElevationMeters) / 2;
+      const centerAtStation = (stationMeters: number, stationOffsetMeters: number, y: number) => {
+        const centerline = pointAlongBounds(params.bounds, stationMeters);
+        return {
+          x:
+            centerline.x +
+            params.bounds.tangent.x * stationOffsetMeters +
+            params.bounds.outwardNormal.x * depthCenterOffsetMeters,
+          y,
+          z:
+            centerline.z +
+            params.bounds.tangent.z * stationOffsetMeters +
+            params.bounds.outwardNormal.z * depthCenterOffsetMeters,
+        };
+      };
+      const centerAtReturnSpan = (y: number) => ({
+        x: returnCenterline.x + params.bounds.outwardNormal.x * depthCenterOffsetMeters,
+        y,
+        z: returnCenterline.z + params.bounds.outwardNormal.z * depthCenterOffsetMeters,
+      });
+      const headRevealElevationMeters = Math.min(
+        topElevationMeters,
+        actualTopElevationMeters + OPENING_FRAME_TRIM_COVERAGE_METERS,
+      );
+      const headStartElevationMeters = Math.min(headRevealElevationMeters, topElevationMeters);
+      const headEndElevationMeters = Math.max(headRevealElevationMeters, topElevationMeters);
+      const headHeightMeters = Math.max(
+        params.thicknessMeters,
+        headEndElevationMeters - headStartElevationMeters + cornerOverlapMeters,
+      );
+      const headCenterElevationMeters = (headStartElevationMeters + headEndElevationMeters) / 2;
+      const common = {
+        panelId: params.bounds.panelId,
+        hostSegmentId: params.bounds.hostSegmentId,
+        side: params.side,
+        finish: params.finish,
+        profileLabel: params.profileLabel,
+      };
+      const placements: InfillPlasterPanelPlacement[] = [
+        {
+          ...common,
+          id: `${params.bounds.panelId}-plaster-${params.side}-${opening.id}-left-jamb`,
+          surfaceKind: 'opening_left_jamb',
+          center: centerAtStation(leftJambCenterStationMeters, edgeInsetMeters, jambCenterY),
+          widthMeters: returnDepthMeters,
+          heightMeters: jambHeightMeters,
+          thicknessMeters: leftJambThicknessMeters,
+          rotationY: baseRotationY + Math.PI / 2,
+          areaSquareMeters: returnDepthMeters * jambHeightMeters,
+        },
+        {
+          ...common,
+          id: `${params.bounds.panelId}-plaster-${params.side}-${opening.id}-right-jamb`,
+          surfaceKind: 'opening_right_jamb',
+          center: centerAtStation(rightJambCenterStationMeters, -edgeInsetMeters, jambCenterY),
+          widthMeters: returnDepthMeters,
+          heightMeters: jambHeightMeters,
+          thicknessMeters: rightJambThicknessMeters,
+          rotationY: baseRotationY - Math.PI / 2,
+          areaSquareMeters: returnDepthMeters * jambHeightMeters,
+        },
+        {
+          ...common,
+          id: `${params.bounds.panelId}-plaster-${params.side}-${opening.id}-head`,
+          surfaceKind: 'opening_head',
+          center: centerAtReturnSpan(headCenterElevationMeters - edgeInsetMeters),
+          widthMeters: returnWidthMeters,
+          heightMeters: headHeightMeters,
+          thicknessMeters: returnDepthMeters,
+          rotationY: baseRotationY,
+          areaSquareMeters: returnDepthMeters * returnWidthMeters,
+        },
+      ];
+
+      if (opening.type !== 'door' && actualBottomElevationMeters > params.bounds.bottomElevationMeters + 0.001) {
+        const sillRevealElevationMeters = Math.max(
+          bottomElevationMeters,
+          actualBottomElevationMeters - OPENING_FRAME_TRIM_COVERAGE_METERS,
+        );
+        const sillStartElevationMeters = Math.min(bottomElevationMeters, sillRevealElevationMeters);
+        const sillEndElevationMeters = Math.max(bottomElevationMeters, sillRevealElevationMeters);
+        const sillHeightMeters = Math.max(
+          params.thicknessMeters,
+          sillEndElevationMeters - sillStartElevationMeters + cornerOverlapMeters,
+        );
+        const sillCenterElevationMeters = (sillStartElevationMeters + sillEndElevationMeters) / 2;
+        placements.push({
+          ...common,
+          id: `${params.bounds.panelId}-plaster-${params.side}-${opening.id}-sill`,
+          surfaceKind: 'opening_sill',
+          center: centerAtReturnSpan(sillCenterElevationMeters + edgeInsetMeters),
+          widthMeters: returnWidthMeters,
+          heightMeters: sillHeightMeters,
+          thicknessMeters: returnDepthMeters,
+          rotationY: baseRotationY,
+          areaSquareMeters: returnDepthMeters * returnWidthMeters,
+        });
+      }
+
+      return placements;
+    });
 }
 
 type PlasterRect = {
@@ -214,11 +495,12 @@ function subtractOpeningsFromPanel(
   openings
     .filter((opening) => opening.wallSegmentId === bounds.hostSegmentId)
     .forEach((opening) => {
+      const frameOutside = openingFrameOutsideRect(bounds, opening);
       const cut: PlasterRect = {
-        startStationMeters: Math.max(bounds.startStationMeters, opening.roughStartAlongMeters),
-        endStationMeters: Math.min(bounds.endStationMeters, opening.roughEndAlongMeters),
-        bottomElevationMeters: Math.max(bounds.bottomElevationMeters, opening.roughBottomMeters),
-        topElevationMeters: Math.min(bounds.topElevationMeters, opening.roughTopMeters),
+        startStationMeters: frameOutside.startStationMeters,
+        endStationMeters: frameOutside.endStationMeters,
+        bottomElevationMeters: frameOutside.bottomElevationMeters,
+        topElevationMeters: frameOutside.topElevationMeters,
       };
       if (cut.endStationMeters <= cut.startStationMeters || cut.topElevationMeters <= cut.bottomElevationMeters) {
         return;
@@ -231,6 +513,24 @@ function subtractOpeningsFromPanel(
       rect.endStationMeters - rect.startStationMeters > 0.001 &&
       rect.topElevationMeters - rect.bottomElevationMeters > 0.001,
   );
+}
+
+function openingFrameOutsideRect(bounds: ResolvedInfillPanelBounds, opening: PlasterOpening): PlasterRect {
+  const roughStart = Math.max(bounds.startStationMeters, opening.roughStartAlongMeters);
+  const roughEnd = Math.min(bounds.endStationMeters, opening.roughEndAlongMeters);
+  const roughBottom = Math.max(bounds.bottomElevationMeters, opening.roughBottomMeters);
+  const roughTop = Math.min(bounds.topElevationMeters, opening.roughTopMeters);
+  const actualStart = Math.max(roughStart, Math.min(roughEnd, opening.actualStartAlongMeters));
+  const actualEnd = Math.max(roughStart, Math.min(roughEnd, opening.actualEndAlongMeters));
+  const actualBottom = Math.max(roughBottom, Math.min(roughTop, opening.actualBottomMeters));
+  const actualTop = Math.max(roughBottom, Math.min(roughTop, opening.actualTopMeters));
+
+  return {
+    startStationMeters: Math.max(roughStart, actualStart - OPENING_FRAME_TRIM_COVERAGE_METERS),
+    endStationMeters: Math.min(roughEnd, actualEnd + OPENING_FRAME_TRIM_COVERAGE_METERS),
+    bottomElevationMeters: Math.max(roughBottom, actualBottom - OPENING_FRAME_TRIM_COVERAGE_METERS),
+    topElevationMeters: Math.min(roughTop, actualTop + OPENING_FRAME_TRIM_COVERAGE_METERS),
+  };
 }
 
 function splitRectAroundOpening(rect: PlasterRect, cut: PlasterRect): PlasterRect[] {

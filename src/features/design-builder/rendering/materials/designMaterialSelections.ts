@@ -44,20 +44,8 @@ export const DEFAULT_DESIGN_MATERIAL_SELECTION: DesignMaterialSelection = {
   structuralSteelTintId: 'dark-structural',
 };
 
-const CATEGORY_FIELD: Record<
-  DesignMaterialCategory,
-  keyof Pick<
-    DesignMaterialSelection,
-    | 'cmuMaterialId'
-    | 'mortarMaterialId'
-    | 'plasterMaterialId'
-    | 'castConcreteMaterialId'
-    | 'roofSheetMaterialId'
-    | 'fasciaMaterialId'
-    | 'soffitMaterialId'
-    | 'structuralSteelMaterialId'
-    | 'siteGroundMaterialId'
-  >
+const CATEGORY_FIELD: Partial<
+  Record<DesignMaterialCategory, keyof DesignMaterialSelection>
 > = {
   cmu: 'cmuMaterialId',
   mortar: 'mortarMaterialId',
@@ -130,7 +118,11 @@ export function normalizeDesignMaterialSelection(
 export function materialSelectionFieldForCategory(
   category: DesignMaterialCategory,
 ): keyof DesignMaterialSelection {
-  return CATEGORY_FIELD[category];
+  const field = CATEGORY_FIELD[category];
+  if (!field) {
+    throw new Error(`Unsupported material category: ${category}`);
+  }
+  return field;
 }
 
 export function designMaterialSelectionsEqual(
