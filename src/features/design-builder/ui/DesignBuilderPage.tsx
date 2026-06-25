@@ -413,6 +413,7 @@ export default function DesignBuilderPage({
   const [materialSelections, setMaterialSelections] = useState<DesignMaterialSelection>(() =>
     normalizeDesignMaterialSelection(),
   );
+  const [materialRevision, setMaterialRevision] = useState(0);
   const [materialsColorsModalOpen, setMaterialsColorsModalOpen] = useState(false);
   const [foundationViewMode, setFoundationViewMode] = useState<FoundationViewMode>('full_model');
   const [roofDisplayMode, setRoofDisplayMode] = useState<RoofDisplayMode>('full_roof');
@@ -2609,7 +2610,7 @@ export default function DesignBuilderPage({
       );
     }
     void setActiveMaterialSelections(normalized).then(() => {
-      setTextureProjectionRevision((revision) => revision + 1);
+      setMaterialRevision((revision) => revision + 1);
     });
     setMaterialsColorsModalOpen(false);
     if (persistenceContext.canPersist) {
@@ -2823,7 +2824,7 @@ export default function DesignBuilderPage({
       });
       setMaterialSelections(nextSelections);
       void setActiveMaterialSelections(nextSelections).then(() => {
-        setTextureProjectionRevision((revision) => revision + 1);
+        setMaterialRevision((revision) => revision + 1);
       });
     }
   }
@@ -3811,12 +3812,13 @@ export default function DesignBuilderPage({
                             <input
                               type="checkbox"
                               checked={roofLayerVisibility[key] ?? DEFAULT_ROOF_LAYER_VISIBILITY[key]}
-                              onChange={(event) =>
+                              onChange={(event) => {
+                                const checked = event.currentTarget.checked;
                                 setRoofLayerVisibility((current) => ({
                                   ...current,
-                                  [key]: event.currentTarget.checked,
-                                }))
-                              }
+                                  [key]: checked,
+                                }));
+                              }}
                             />
                             <span>{label}</span>
                           </label>
@@ -4107,6 +4109,7 @@ export default function DesignBuilderPage({
                 roofSystem={activeRoofSystem}
                 roofDisplayMode={roofDisplayMode}
                 roofLayerVisibility={roofLayerVisibility}
+                materialRevision={materialRevision}
               />
             )}
             {viewMode === 'plan' && toolMode === 'draw_wall' ? (

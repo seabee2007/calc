@@ -142,6 +142,7 @@ interface DesignBuilderViewerProps {
   roofSystem?: RoofSystemSettings | null;
   roofDisplayMode?: RoofDisplayMode;
   roofLayerVisibility?: RoofLayerVisibility;
+  materialRevision?: number;
   manualMasonryEnabled?: boolean;
   onManualMasonryPointer?: (event: {
     kind: 'preview' | 'start' | 'commit' | 'cancel_preview' | 'undo';
@@ -423,6 +424,7 @@ export default function DesignBuilderViewer({
   roofSystem = null,
   roofDisplayMode = 'full_roof',
   roofLayerVisibility = DEFAULT_ROOF_LAYER_VISIBILITY,
+  materialRevision = 0,
   manualMasonryEnabled = false,
   onManualMasonryPointer,
 }: DesignBuilderViewerProps) {
@@ -2383,7 +2385,7 @@ export default function DesignBuilderViewer({
 
   useEffect(() => {
     if (modelLoaded) rebuildModelRef.current?.();
-  }, [geometryResult, layoutBounds, modelLoaded, roof, roofDisplayMode, roofLayerVisibility, roofSystem, selectedObjectType, selectedOpeningId, showClosureWarnings, showRoofReferencePerimeters, showRoofFramingGuides, foundationViewMode, showGroutCells, showOpeningLayout, slab, truss, wall, visualStyle]);
+  }, [geometryResult, layoutBounds, materialRevision, modelLoaded, roof, roofDisplayMode, roofLayerVisibility, roofSystem, selectedObjectType, selectedOpeningId, showClosureWarnings, showRoofReferencePerimeters, showRoofFramingGuides, foundationViewMode, showGroutCells, showOpeningLayout, slab, truss, wall, visualStyle]);
 
   useEffect(() => {
     if (visualStyle === 'material_preview') {
