@@ -29,6 +29,8 @@ export type ResolvedInfillPanelBounds = {
   bottomElevationMeters: number;
   topElevationMeters: number;
   clearHeightMeters: number;
+  /** CMU/infill centerline offset used to align block faces to the roof-beam inside face. */
+  infillCenterlineInwardOffsetMeters?: number;
   hostWallCenterlineStart: Vec3;
   hostWallCenterlineEnd: Vec3;
   tangent: Vec3;
@@ -96,6 +98,100 @@ function segmentBeamElevations(
   };
 }
 
+function exteriorSegmentAndNodeIds(layout: DesignWallLayoutParameters): {
+  segmentIds: Set<string>;
+  nodeIds: Set<string>;
+} {
+  const first = layout.segments[0];
+  if (!first) {
+    return {
+      segmentIds: new Set(layout.segments.map((segment) => segment.id)),
+      nodeIds: new Set(layout.nodes.map((node) => node.id)),
+    };
+  }
+
+  const segmentIds = new Set<string>();
+  const nodeIds = new Set<string>();
+  const startNodeId = first.startNodeId;
+  let currentNodeId = startNodeId;
+  const used = new Set<string>();
+
+  while (used.size < layout.segments.length) {
+    const next = layout.segments.find(
+      (segment) => !used.has(segment.id) && segment.startNodeId === currentNodeId,
+    );
+    if (!next) break;
+    segmentIds.add(next.id);
+    nodeIds.add(next.startNodeId);
+    nodeIds.add(next.endNodeId);
+    used.add(next.id);
+    currentNodeId = next.endNodeId;
+    if (currentNodeId === startNodeId) break;
+  }
+
+  if (segmentIds.size === 0) {
+    return {
+      segmentIds: new Set(layout.segments.map((segment) => segment.id)),
+      nodeIds: new Set(layout.nodes.map((node) => node.id)),
+    };
+  }
+
+  return { segmentIds, nodeIds };
+}
+
+function pointOnFrameAtStation(frame: SegmentFrame, stationMeters: number, y: number): Vec3 {
+  return {
+    x: frame.centerlineStart.x + frame.tangent.x * stationMeters,
+    y,
+    z: frame.centerlineStart.z + frame.tangent.z * stationMeters,
+  };
+}
+
+function trimInteriorPartitionInfillAtExteriorShell(params: {
+  bounds: ResolvedInfillPanelBounds;
+  segment: DesignWallSegment;
+  frame: SegmentFrame;
+  exteriorSegmentIds: ReadonlySet<string>;
+  exteriorNodeIds: ReadonlySet<string>;
+}): ResolvedInfillPanelBounds | null {
+  if (params.exteriorSegmentIds.has(params.segment.id)) {
+    return params.bounds;
+  }
+
+  const trimMeters = params.frame.wallThicknessMeters / 2;
+  let startStationMeters = params.bounds.startStationMeters;
+  let endStationMeters = params.bounds.endStationMeters;
+
+  if (params.exteriorNodeIds.has(params.segment.startNodeId)) {
+    startStationMeters = Math.max(startStationMeters, trimMeters);
+  }
+  if (params.exteriorNodeIds.has(params.segment.endNodeId)) {
+    endStationMeters = Math.min(endStationMeters, params.frame.lengthMeters - trimMeters);
+  }
+
+  const clearWidthMeters = endStationMeters - startStationMeters;
+  if (clearWidthMeters <= 0.05) return null;
+
+  return {
+    ...params.bounds,
+    startStationMeters,
+    endStationMeters,
+    clearWidthMeters,
+    leftSupportInsideFaceStation: startStationMeters,
+    rightSupportInsideFaceStation: endStationMeters,
+    leftSupportInsideFaceWorld: pointOnFrameAtStation(
+      params.frame,
+      startStationMeters,
+      params.bounds.bottomElevationMeters,
+    ),
+    rightSupportInsideFaceWorld: pointOnFrameAtStation(
+      params.frame,
+      endStationMeters,
+      params.bounds.bottomElevationMeters,
+    ),
+  };
+}
+
 export function resolveInfillPanelBoundsForSegment(params: {
   panelId: string;
   segmentId: string;
@@ -127,6 +223,14 @@ export function resolveInfillPanelBoundsForSegment(params: {
       : params.gradeBeamTopMeters != null && params.ringBeamBaseMeters != null
         ? { plinthBeamTopMeters: params.gradeBeamTopMeters, roofBeamBottomMeters: params.ringBeamBaseMeters }
         : segmentBeamElevations(params.beams, params.segmentId, params.segment.wallHeightMeters);
+  const roofBeam = params.beams.find(
+    (beam) =>
+      (beam.kind === 'roof_beam' || beam.kind === 'ring_beam') &&
+      beam.hostSegmentId === params.segmentId,
+  );
+  const infillCenterlineInwardOffsetMeters = roofBeam
+    ? roofBeam.widthMeters / 2 - params.frame.wallThicknessMeters
+    : 0;
 
   const leftSupportInsideFaceWorld = startCol
     ? { ...columnInsideFaceWorldPoint(startCol, params.frame, 'start'), y: elevations.plinthBeamTopMeters }
@@ -154,6 +258,7 @@ export function resolveInfillPanelBoundsForSegment(params: {
     bottomElevationMeters: elevations.plinthBeamTopMeters,
     topElevationMeters: elevations.roofBeamBottomMeters,
     clearHeightMeters: elevations.roofBeamBottomMeters - elevations.plinthBeamTopMeters,
+    infillCenterlineInwardOffsetMeters,
     hostWallCenterlineStart: {
       x: params.frame.centerlineStart.x,
       y: elevations.plinthBeamTopMeters,
@@ -181,6 +286,7 @@ export function resolveInfillPanelBoundsForLayout(params: {
   beams: StructuralBeam[];
 }): ResolvedInfillPanelBounds[] {
   const bounds: ResolvedInfillPanelBounds[] = [];
+  const exterior = exteriorSegmentAndNodeIds(params.layout);
   params.layout.segments.forEach((segment, index) => {
     const frame = params.segmentFrames.find((candidate) => candidate.segmentId === segment.id);
     if (!frame) return;
@@ -192,7 +298,16 @@ export function resolveInfillPanelBoundsForLayout(params: {
       columns: params.columns,
       beams: params.beams,
     });
-    if (resolved) bounds.push(resolved);
+    if (resolved) {
+      const trimmed = trimInteriorPartitionInfillAtExteriorShell({
+        bounds: resolved,
+        segment,
+        frame,
+        exteriorSegmentIds: exterior.segmentIds,
+        exteriorNodeIds: exterior.nodeIds,
+      });
+      if (trimmed) bounds.push(trimmed);
+    }
   });
   return bounds;
 }
@@ -260,6 +375,7 @@ export function resolveBelowGradeInfillPanelBoundsForSegment(params: {
   return {
     ...aboveGrade,
     panelId: params.panelId,
+    infillCenterlineInwardOffsetMeters: 0,
     bottomElevationMeters: tieBeamTopMeters,
     topElevationMeters: plinthBeamBottomMeters,
     clearHeightMeters: plinthBeamBottomMeters - tieBeamTopMeters,
@@ -405,6 +521,7 @@ export function boundsSnapshotFromPanel(
     bottomElevationMeters: panel.bottomElevationMeters,
     topElevationMeters: panel.topElevationMeters,
     clearHeightMeters: panel.topElevationMeters - panel.bottomElevationMeters,
+    infillCenterlineInwardOffsetMeters: 0,
     hostWallCenterlineStart: {
       x: frame.centerlineStart.x,
       y: panel.bottomElevationMeters,

@@ -117,6 +117,7 @@ export interface DesignGeometryWallSegment {
   y: number;
   z: number;
   rotationY: number;
+  infillCenterlineInwardOffsetMeters?: number;
 }
 
 export type SegmentFrame = {
@@ -336,6 +337,7 @@ export interface DesignGeometryResult {
   resolvedInfillPanelBounds?: import('../domain/infillPanelBoundsResolver').ResolvedInfillPanelBounds[];
   interiorFloorSlab?: import('../domain/interiorFloorSlab').ResolvedInteriorFloorSlab;
   floorTileLayout?: import('../types').ResolvedFloorTileLayout;
+  plywoodCeilingLayout?: import('../types').ResolvedPlywoodCeilingLayout;
 }
 
 export interface CmuBlockInstance {
@@ -930,7 +932,7 @@ export function generateCmuLayoutFromWallLayout(
             actualLengthMeters,
             heightMeters: actualHeight,
             depthMeters: frame.wallThicknessMeters,
-            wallStart: frame.exteriorStart,
+            wallStart: resolveSegmentWallLayoutStart(frame),
             tangent: frame.tangent,
             inwardNormal: frame.inwardNormal,
             moduleHeightMeters: moduleHeight,
@@ -1342,6 +1344,87 @@ export function resolvedBuildingFootprintFromWallLayout(
   };
 }
 
+export function getExteriorPerimeterSegmentIds(
+  layout: DesignWallLayoutParameters,
+  wall: Pick<CmuWallSystemParameters, 'wallThicknessMeters'> = {
+    wallThicknessMeters: layout.defaultWallThicknessMeters,
+  },
+): Set<string> {
+  const warnings: string[] = [];
+  const resolved = resolveWallLayoutGeometry(layout, wall, warnings);
+  return new Set(resolved.orderedPerimeter.map((item) => item.segmentId));
+}
+
+/** Exterior-face run origin; block centers sit at origin + tangent×station + inward×(depth/2). */
+export function resolveSegmentWallLayoutStart(frame: SegmentFrame): { x: number; z: number } {
+  const halfThickness = frame.wallThicknessMeters / 2;
+  return {
+    x: frame.centerlineStart.x - frame.inwardNormal.x * halfThickness,
+    z: frame.centerlineStart.z - frame.inwardNormal.z * halfThickness,
+  };
+}
+
+export function hasResolvableExteriorShell(
+  layout: DesignWallLayoutParameters,
+  wall: Pick<CmuWallSystemParameters, 'wallThicknessMeters'> = {
+    wallThicknessMeters: layout.defaultWallThicknessMeters,
+  },
+): boolean {
+  const warnings: string[] = [];
+  const resolved = resolveWallLayoutGeometry(layout, wall, warnings);
+  return resolved.exteriorFacePolygon.length >= 3;
+}
+
+export function getStructuralColumnNodeIds(
+  layout: DesignWallLayoutParameters,
+  exteriorSegmentIds: Set<string>,
+): string[] {
+  const warnings: string[] = [];
+  const resolved = resolveWallLayoutGeometry(
+    layout,
+    { wallThicknessMeters: layout.defaultWallThicknessMeters },
+    warnings,
+  );
+  const perimeterNodeIds = new Set(resolved.orderedPerimeter.map((item) => item.startNodeId));
+  const nodeById = new Map(layout.nodes.map((node) => [node.id, node]));
+  const exteriorSegmentsByNode = new Map<string, DesignWallLayoutParameters['segments']>();
+  for (const segment of layout.segments) {
+    if (!exteriorSegmentIds.has(segment.id)) continue;
+    for (const nodeId of [segment.startNodeId, segment.endNodeId]) {
+      exteriorSegmentsByNode.set(nodeId, [...(exteriorSegmentsByNode.get(nodeId) ?? []), segment]);
+    }
+  }
+
+  return [...perimeterNodeIds].filter((nodeId) => {
+    const exteriorSegments = exteriorSegmentsByNode.get(nodeId) ?? [];
+    if (exteriorSegments.length < 2) return true;
+
+    const outwardDirections = exteriorSegments
+      .map((segment) => {
+        const start = nodeById.get(segment.startNodeId);
+        const end = nodeById.get(segment.endNodeId);
+        if (!start || !end) return null;
+        const dx = end.x - start.x;
+        const dz = end.z - start.z;
+        const length = Math.hypot(dx, dz);
+        if (length <= 0) return null;
+        return segment.startNodeId === nodeId
+          ? { x: dx / length, z: dz / length }
+          : { x: -dx / length, z: -dz / length };
+      })
+      .filter((direction): direction is { x: number; z: number } => direction != null);
+
+    if (outwardDirections.length === 2) {
+      const dot =
+        outwardDirections[0]!.x * outwardDirections[1]!.x +
+        outwardDirections[0]!.z * outwardDirections[1]!.z;
+      // Straight-through T-junction on a wall run: skip column; keep true corners.
+      if (dot < -0.95) return false;
+    }
+    return true;
+  });
+}
+
 export function getSegmentFramesForWallLayout(
   layout: DesignWallLayoutParameters,
   wall: CmuWallSystemParameters,
@@ -1383,8 +1466,11 @@ function buildSegmentFrames(
     const centerlineStart = centerlineByNodeId.get(startNodeId) ?? exteriorStart;
     const centerlineEnd = centerlineByNodeId.get(endNodeId) ?? exteriorEnd;
     if (!exteriorStart || !exteriorEnd || !interiorStart || !interiorEnd || !centerlineStart || !centerlineEnd) return null;
-    const dx = exteriorEnd.x - exteriorStart.x;
-    const dz = exteriorEnd.z - exteriorStart.z;
+    const isPerimeterSegment = orderedIds.has(segment.id);
+    const runStart = isPerimeterSegment ? exteriorStart : centerlineStart;
+    const runEnd = isPerimeterSegment ? exteriorEnd : centerlineEnd;
+    const dx = runEnd.x - runStart.x;
+    const dz = runEnd.z - runStart.z;
     const lengthMeters = Math.hypot(dx, dz);
     if (lengthMeters <= 0) return null;
     const tangent = { x: dx / lengthMeters, z: dz / lengthMeters };
@@ -1394,8 +1480,8 @@ function buildSegmentFrames(
       : { x: 0, z: 0 };
     return {
       segmentId: segment.id,
-      start: { x: exteriorStart.x, z: exteriorStart.z },
-      end: { x: exteriorEnd.x, z: exteriorEnd.z },
+      start: { x: runStart.x, z: runStart.z },
+      end: { x: runEnd.x, z: runEnd.z },
       exteriorStart: { x: exteriorStart.x, z: exteriorStart.z },
       exteriorEnd: { x: exteriorEnd.x, z: exteriorEnd.z },
       interiorStart: { x: interiorStart.x, z: interiorStart.z },
@@ -1476,62 +1562,106 @@ function buildOrderedPerimeter(
   layout: DesignWallLayoutParameters,
   warnings: string[],
 ): OrderedPerimeterSegment[] {
-  if (!layout.isFootprintClosed || layout.segments.length < 3) {
+  if (layout.segments.length < 3) {
     warnings.push('Wall layout is not a closed perimeter; corner assemblies use open-wall fallback.');
     return [];
   }
-  const first = layout.segments[0];
-  const ordered: OrderedPerimeterSegment[] = [];
-  const visited = new Set<string>();
-  const firstStartNode = layout.nodes.find((node) => node.id === first.startNodeId);
-  const firstEndNode = layout.nodes.find((node) => node.id === first.endNodeId);
-  if (!firstStartNode || !firstEndNode) return [];
-  const firstLength = Math.hypot(firstEndNode.x - firstStartNode.x, firstEndNode.z - firstStartNode.z);
-  if (firstLength <= 0) return [];
-  ordered.push({
-    segmentId: first.id,
-    startNodeId: first.startNodeId,
-    endNodeId: first.endNodeId,
-    index: 0,
-    tangent: { x: (firstEndNode.x - firstStartNode.x) / firstLength, z: (firstEndNode.z - firstStartNode.z) / firstLength },
-    startPoint: { x: firstStartNode.x, z: firstStartNode.z },
-    endPoint: { x: firstEndNode.x, z: firstEndNode.z },
-  });
-  visited.add(first.id);
-  let currentNodeId = first.endNodeId;
-  for (let index = 1; index < layout.segments.length; index += 1) {
-    const touching = layout.segments.filter(
-      (segment) => !visited.has(segment.id) && (segment.startNodeId === currentNodeId || segment.endNodeId === currentNodeId),
-    );
-    if (touching.length !== 1) {
-      warnings.push('Wall layout perimeter is non-manifold or branched; using safe flush corner fallback.');
-      return [];
-    }
-    const segment = touching[0];
-    const startNode = layout.nodes.find((node) => node.id === currentNodeId);
-    const nextNodeId = segment.startNodeId === currentNodeId ? segment.endNodeId : segment.startNodeId;
-    const endNode = layout.nodes.find((node) => node.id === nextNodeId);
-    if (!startNode || !endNode) return [];
-    const length = Math.hypot(endNode.x - startNode.x, endNode.z - startNode.z);
-    if (length <= 0) return [];
+
+  const walkExteriorLoop = (first: DesignWallSegment): OrderedPerimeterSegment[] | null => {
+    const ordered: OrderedPerimeterSegment[] = [];
+    const visited = new Set<string>();
+    const firstStartNode = layout.nodes.find((node) => node.id === first.startNodeId);
+    const firstEndNode = layout.nodes.find((node) => node.id === first.endNodeId);
+    if (!firstStartNode || !firstEndNode) return null;
+    const firstLength = Math.hypot(firstEndNode.x - firstStartNode.x, firstEndNode.z - firstStartNode.z);
+    if (firstLength <= 0) return null;
     ordered.push({
-      segmentId: segment.id,
-      startNodeId: currentNodeId,
-      endNodeId: nextNodeId,
-      index,
-      tangent: { x: (endNode.x - startNode.x) / length, z: (endNode.z - startNode.z) / length },
-      startPoint: { x: startNode.x, z: startNode.z },
-      endPoint: { x: endNode.x, z: endNode.z },
+      segmentId: first.id,
+      startNodeId: first.startNodeId,
+      endNodeId: first.endNodeId,
+      index: 0,
+      tangent: { x: (firstEndNode.x - firstStartNode.x) / firstLength, z: (firstEndNode.z - firstStartNode.z) / firstLength },
+      startPoint: { x: firstStartNode.x, z: firstStartNode.z },
+      endPoint: { x: firstEndNode.x, z: firstEndNode.z },
     });
-    visited.add(segment.id);
-    currentNodeId = nextNodeId;
-    if (currentNodeId === first.startNodeId) break;
+    visited.add(first.id);
+    let currentNodeId = first.endNodeId;
+    let incomingTangent = ordered[0]!.tangent;
+    for (let index = 1; index <= layout.segments.length; index += 1) {
+      if (currentNodeId === first.startNodeId && ordered.length >= 3) break;
+
+      const touching = layout.segments.filter(
+        (segment) => !visited.has(segment.id) && (segment.startNodeId === currentNodeId || segment.endNodeId === currentNodeId),
+      );
+      if (touching.length === 0) {
+        if (currentNodeId === first.startNodeId && ordered.length >= 3) break;
+        return null;
+      }
+
+      let segment = touching[0]!;
+      if (touching.length > 1) {
+        let bestDot = -Infinity;
+        for (const candidate of touching) {
+          const candidateNextNodeId =
+            candidate.startNodeId === currentNodeId ? candidate.endNodeId : candidate.startNodeId;
+          const startNode = layout.nodes.find((node) => node.id === currentNodeId);
+          const nextNode = layout.nodes.find((node) => node.id === candidateNextNodeId);
+          if (!startNode || !nextNode) continue;
+          const candidateLength = Math.hypot(nextNode.x - startNode.x, nextNode.z - startNode.z);
+          if (candidateLength <= 0) continue;
+          const outTangent = {
+            x: (nextNode.x - startNode.x) / candidateLength,
+            z: (nextNode.z - startNode.z) / candidateLength,
+          };
+          const dot = incomingTangent.x * outTangent.x + incomingTangent.z * outTangent.z;
+          if (dot > bestDot) {
+            bestDot = dot;
+            segment = candidate;
+          }
+        }
+      }
+
+      const startNode = layout.nodes.find((node) => node.id === currentNodeId);
+      const nextNodeId = segment.startNodeId === currentNodeId ? segment.endNodeId : segment.startNodeId;
+      const endNode = layout.nodes.find((node) => node.id === nextNodeId);
+      if (!startNode || !endNode) return null;
+      const length = Math.hypot(endNode.x - startNode.x, endNode.z - startNode.z);
+      if (length <= 0) return null;
+      const tangent = { x: (endNode.x - startNode.x) / length, z: (endNode.z - startNode.z) / length };
+      ordered.push({
+        segmentId: segment.id,
+        startNodeId: currentNodeId,
+        endNodeId: nextNodeId,
+        index,
+        tangent,
+        startPoint: { x: startNode.x, z: startNode.z },
+        endPoint: { x: endNode.x, z: endNode.z },
+      });
+      visited.add(segment.id);
+      incomingTangent = tangent;
+      currentNodeId = nextNodeId;
+    }
+    if (currentNodeId !== first.startNodeId || ordered.length < 3) return null;
+    return ordered;
+  };
+
+  let bestLoop: OrderedPerimeterSegment[] | null = null;
+  let bestArea = 0;
+  for (const candidateStart of layout.segments) {
+    const loop = walkExteriorLoop(candidateStart);
+    if (!loop) continue;
+    const area = Math.abs(signedPolygonArea(loop.map((item) => item.startPoint)));
+    if (area > bestArea) {
+      bestArea = area;
+      bestLoop = loop;
+    }
   }
-  if (visited.size !== layout.segments.length || currentNodeId !== first.startNodeId) {
-    warnings.push('Wall layout is disconnected or has multiple loops; using safe flush corner fallback.');
+
+  if (!bestLoop) {
+    warnings.push('Wall layout perimeter could not be closed; using safe flush corner fallback.');
     return [];
   }
-  return ordered;
+  return bestLoop;
 }
 
 function offsetClosedPolyline(
@@ -1727,9 +1857,17 @@ export function getLayoutOpeningSegmentId(opening: ResolvedCmuOpening): string |
 }
 
 function pointOnSegmentFrame(frame: SegmentFrame, alongMeters: number, inwardOffsetMeters: number): DesignGeometryPoint {
+  const halfThickness = frame.wallThicknessMeters / 2;
+  if (Math.abs(inwardOffsetMeters - halfThickness) <= 0.001) {
+    return {
+      x: frame.centerlineStart.x + frame.tangent.x * alongMeters,
+      z: frame.centerlineStart.z + frame.tangent.z * alongMeters,
+    };
+  }
+  const layoutStart = resolveSegmentWallLayoutStart(frame);
   return {
-    x: frame.exteriorStart.x + frame.tangent.x * alongMeters + frame.inwardNormal.x * inwardOffsetMeters,
-    z: frame.exteriorStart.z + frame.tangent.z * alongMeters + frame.inwardNormal.z * inwardOffsetMeters,
+    x: layoutStart.x + frame.tangent.x * alongMeters + frame.inwardNormal.x * inwardOffsetMeters,
+    z: layoutStart.z + frame.tangent.z * alongMeters + frame.inwardNormal.z * inwardOffsetMeters,
   };
 }
 

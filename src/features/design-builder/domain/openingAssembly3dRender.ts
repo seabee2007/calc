@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { CmuLayoutResult, CmuLintelInstance } from '../geometry/designGeometry';
+import type { CmuLayoutResult, CmuLintelInstance, SegmentFrame } from '../geometry/designGeometry';
 import type { CmuWallSystemParameters } from '../types';
 import type { ResolvedCmuOpening } from './cmuOpeningRules';
 import { resolveCmuCoreGeometry } from './cmuCoreGeometry';
@@ -35,6 +35,14 @@ export type BuildOpeningAssemblyRenderGroupsParams = {
     options?: THREE.MeshStandardMaterialParameters,
   ) => THREE.MeshStandardMaterial;
   resolveLintelMaterial?: () => THREE.MeshStandardMaterial;
+  infillCenterlineOffsetBySegmentId?: ReadonlyMap<string, number>;
+};
+
+type OpeningHostFrame = Pick<
+  SegmentFrame,
+  'segmentId' | 'centerlineStart' | 'tangent' | 'inwardNormal' | 'rotationY'
+> & {
+  infillCenterlineInwardOffsetMeters?: number;
 };
 
 export function createOpeningRenderGroups(): OpeningRenderGroups {
@@ -90,6 +98,31 @@ export function buildGroutCellMesh(
   return mesh;
 }
 
+function withInfillCenterlineOffset(
+  frame: SegmentFrame | undefined,
+  offsetMeters: number,
+): OpeningHostFrame | undefined {
+  if (!frame) return undefined;
+  return {
+    segmentId: frame.segmentId,
+    centerlineStart: frame.centerlineStart,
+    tangent: frame.tangent,
+    inwardNormal: frame.inwardNormal,
+    rotationY: frame.rotationY,
+    infillCenterlineInwardOffsetMeters: offsetMeters,
+  };
+}
+
+function offsetMeshToInfillPlane(
+  mesh: THREE.Object3D,
+  frame: SegmentFrame | undefined,
+  offsetMeters: number,
+): void {
+  if (!frame || Math.abs(offsetMeters) <= 1e-9) return;
+  mesh.position.x += frame.inwardNormal.x * offsetMeters;
+  mesh.position.z += frame.inwardNormal.z * offsetMeters;
+}
+
 export function populateOpeningAssemblyRenderGroups(
   groups: OpeningRenderGroups,
   params: BuildOpeningAssemblyRenderGroupsParams,
@@ -102,15 +135,25 @@ export function populateOpeningAssemblyRenderGroups(
   const lintelMaterial =
     params.resolveLintelMaterial?.() ??
     params.makeMaterial(LINTEL_RENDER_COLOR, false, { roughness: 0.82, metalness: 0.04 });
+  const segmentFrameById = new Map(
+    (params.cmuLayout.segmentFrames ?? []).map((frame) => [frame.segmentId, frame]),
+  );
+  const infillOffsetForSegment = (segmentId?: string) =>
+    segmentId ? params.infillCenterlineOffsetBySegmentId?.get(segmentId) ?? 0 : 0;
   params.cmuLayout.lintels.forEach((lintel) => {
-    groups.lintelGroup.add(buildLintelSolidMesh(lintel, params.slabTopMeters, lintelMaterial, params.trackGeometry));
+    const mesh = buildLintelSolidMesh(lintel, params.slabTopMeters, lintelMaterial, params.trackGeometry);
+    const segmentId = lintel.hostSegmentId ?? lintel.segmentId;
+    offsetMeshToInfillPlane(mesh, segmentFrameById.get(segmentId ?? ''), infillOffsetForSegment(segmentId));
+    groups.lintelGroup.add(mesh);
   });
 
   params.cmuLayout.roughOpenings.forEach((opening) => {
     const isSelected = opening.id === params.selectedOpeningId;
     const isHovered = opening.id === params.hoveredOpeningId;
-    const hostSegmentFrame = params.cmuLayout.segmentFrames?.find(
-      (frame) => frame.segmentId === (opening as ResolvedCmuOpening & { wallSegmentId?: string }).wallSegmentId,
+    const segmentId = (opening as ResolvedCmuOpening & { wallSegmentId?: string }).wallSegmentId;
+    const hostSegmentFrame = withInfillCenterlineOffset(
+      segmentFrameById.get(segmentId ?? ''),
+      infillOffsetForSegment(segmentId),
     );
     const frame = createOpeningFrame3dGroup(opening, params.wall, params.slabTopMeters, {
       selected: isSelected,
@@ -126,7 +169,7 @@ export function populateOpeningAssemblyRenderGroups(
 
     if (params.showOpeningLayout && (isSelected || isHovered)) {
       groups.roughOpeningGuideGroup.add(
-        createOpeningRoughOpeningGuideGroup(opening, params.wall, params.slabTopMeters),
+        createOpeningRoughOpeningGuideGroup(opening, params.wall, params.slabTopMeters, hostSegmentFrame),
       );
     }
   });
@@ -139,9 +182,13 @@ export function populateOpeningAssemblyRenderGroups(
       roughness: 0.9,
     });
     params.cmuLayout.groutFillPlacements.forEach((fill) => {
-      groups.groutCellGroup.add(
-        buildGroutCellMesh(fill, params.slabTopMeters, core, groutMaterial, params.trackGeometry),
+      const mesh = buildGroutCellMesh(fill, params.slabTopMeters, core, groutMaterial, params.trackGeometry);
+      offsetMeshToInfillPlane(
+        mesh,
+        segmentFrameById.get(fill.hostSegmentId ?? ''),
+        infillOffsetForSegment(fill.hostSegmentId),
       );
+      groups.groutCellGroup.add(mesh);
     });
   }
 }

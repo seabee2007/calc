@@ -1,4 +1,12 @@
 export {
+  clampCameraClipPlanes,
+  DESIGN_CAMERA_FAR_METERS,
+  DESIGN_CAMERA_NEAR_METERS,
+  DESIGN_ORBIT_MIN_DISTANCE_METERS,
+  DESIGN_ORBIT_ZOOM_SPEED,
+  resolveOrbitMaxDistanceMeters,
+} from './designCameraControls';
+export {
   buildLayoutFramingKey,
   deriveDesignLayoutBounds,
   deriveDesignSceneBounds,

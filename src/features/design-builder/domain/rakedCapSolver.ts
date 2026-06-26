@@ -16,8 +16,12 @@ import {
   GABLE_HEIGHT_TOLERANCE_METERS,
   rakedCapTopYAtStation,
 } from './roofGableSolver';
+import { resolveGableRidgeStationMeters } from './gableEndMasonrySolver';
 
 const RIDGE_MEET_TOLERANCE_METERS = 0.002;
+const RIDGE_SNAP_TOLERANCE_METERS = 0.05;
+// If the remaining ridge wedge is smaller than one CMU module, fill it with the raked cap.
+const RIDGE_CONCRETE_FILL_TOLERANCE_METERS = 0.45;
 const CAP_SEAM_TOLERANCE_METERS = 0.0005;
 const CAP_TO_CMU_CONTACT_OVERLAP_METERS = 0.001;
 const MIN_INTERVAL_SPAN_METERS = 0.001;
@@ -312,6 +316,7 @@ function synchronizeRidge(params: {
   placements: RakedCapPlacement[];
   ridgeStationMeters: number;
   ridgeTopY: number;
+  masonryTopAtRidge?: number;
 }): void {
   const left = params.placements
     .filter((placement) => placement.slope === 'left')
@@ -321,22 +326,47 @@ function synchronizeRidge(params: {
     .filter((placement) => placement.slope === 'right')
     .sort((a, b) => a.startStationMeters - b.startStationMeters)[0];
 
-  if (
-    left &&
-    Math.abs(left.endStationMeters - params.ridgeStationMeters) <=
-      RIDGE_MEET_TOLERANCE_METERS
-  ) {
-    left.endTopY = params.ridgeTopY;
-    left.concreteVolumeCubicMeters = segmentVolumeCubicMeters(left);
+  const ridgeBottomY =
+    params.masonryTopAtRidge != null
+      ? params.masonryTopAtRidge - CAP_TO_CMU_CONTACT_OVERLAP_METERS
+      : null;
+
+  if (left) {
+    const endGapMeters = params.ridgeStationMeters - left.endStationMeters;
+    if (
+      endGapMeters > CAP_SEAM_TOLERANCE_METERS &&
+      (endGapMeters <= RIDGE_SNAP_TOLERANCE_METERS ||
+        (ridgeBottomY != null && endGapMeters <= RIDGE_CONCRETE_FILL_TOLERANCE_METERS))
+    ) {
+      left.endStationMeters = params.ridgeStationMeters;
+      left.endTopY = params.ridgeTopY;
+      if (ridgeBottomY != null) {
+        left.endBottomY = ridgeBottomY;
+      }
+      left.concreteVolumeCubicMeters = segmentVolumeCubicMeters(left);
+    } else if (Math.abs(endGapMeters) <= RIDGE_MEET_TOLERANCE_METERS) {
+      left.endTopY = params.ridgeTopY;
+      left.concreteVolumeCubicMeters = segmentVolumeCubicMeters(left);
+    }
   }
 
-  if (
-    right &&
-    Math.abs(right.startStationMeters - params.ridgeStationMeters) <=
-      RIDGE_MEET_TOLERANCE_METERS
-  ) {
-    right.startTopY = params.ridgeTopY;
-    right.concreteVolumeCubicMeters = segmentVolumeCubicMeters(right);
+  if (right) {
+    const startGapMeters = right.startStationMeters - params.ridgeStationMeters;
+    if (
+      startGapMeters > CAP_SEAM_TOLERANCE_METERS &&
+      (startGapMeters <= RIDGE_SNAP_TOLERANCE_METERS ||
+        (ridgeBottomY != null && startGapMeters <= RIDGE_CONCRETE_FILL_TOLERANCE_METERS))
+    ) {
+      right.startStationMeters = params.ridgeStationMeters;
+      right.startTopY = params.ridgeTopY;
+      if (ridgeBottomY != null) {
+        right.startBottomY = ridgeBottomY;
+      }
+      right.concreteVolumeCubicMeters = segmentVolumeCubicMeters(right);
+    } else if (Math.abs(startGapMeters) <= RIDGE_MEET_TOLERANCE_METERS) {
+      right.startTopY = params.ridgeTopY;
+      right.concreteVolumeCubicMeters = segmentVolumeCubicMeters(right);
+    }
   }
 }
 
@@ -430,6 +460,7 @@ export function solveRakedCapPlacements(params: {
   resolvedRoof: ResolvedRoofSystem;
   wallDepthMeters: number;
   moduleHeightMeters: number;
+  infillCenterlineInwardOffsetMeters?: number;
 }): RakedCapPlacement[] {
   return solveRakedCapPlacementsWithWarnings(params).placements;
 }
@@ -446,6 +477,7 @@ export function solveRakedCapPlacementsWithWarnings(params: {
   resolvedRoof: ResolvedRoofSystem;
   wallDepthMeters: number;
   moduleHeightMeters: number;
+  infillCenterlineInwardOffsetMeters?: number;
 }): RakedCapSolveResult {
   if (
     !params.roofSystem.gable.rakedConcreteCapEnabled ||
@@ -471,8 +503,10 @@ export function solveRakedCapPlacementsWithWarnings(params: {
     wallThicknessMeters: params.wallDepthMeters,
   });
 
-  const ridgeStationMeters =
-    (params.panelStartStation + params.panelEndStation) / 2;
+  const ridgeStationMeters = resolveGableRidgeStationMeters({
+    frame: params.frame,
+    resolvedRoof: params.resolvedRoof,
+  });
 
   const roofCapTop = (stationMeters: number) =>
     capTopAtStation({
@@ -514,17 +548,86 @@ export function solveRakedCapPlacementsWithWarnings(params: {
       continue;
     }
 
+    const sampleStartStationMeters =
+      startStationMeters + Math.min(spanMeters / 2, MIN_INTERVAL_SPAN_METERS);
+    const sampleEndStationMeters =
+      endStationMeters - Math.min(spanMeters / 2, MIN_INTERVAL_SPAN_METERS);
+    const envelopeStartY = masonryTopEnvelopeYAtStation({
+      blocks,
+      stationMeters: sampleStartStationMeters,
+    });
+    const envelopeEndY = masonryTopEnvelopeYAtStation({
+      blocks,
+      stationMeters: sampleEndStationMeters,
+    });
+
+    if (!Number.isFinite(envelopeStartY) || !Number.isFinite(envelopeEndY)) {
+      continue;
+    }
+
+    if (
+      Math.abs(envelopeStartY - envelopeEndY) >
+      CAP_SEAM_TOLERANCE_METERS + 0.001
+    ) {
+      continue;
+    }
+
     /**
      * Critical correction:
      * A cap interval sits on one flat CMU step. It must not interpolate its
      * underside from one block elevation to another.
      */
     const flatBottomY =
-      Math.max(...intervalBlocks.map(blockTopY)) -
+      Math.max(envelopeStartY, envelopeEndY) -
       CAP_TO_CMU_CONTACT_OVERLAP_METERS;
 
-    const startTopY = roofCapTop(startStationMeters);
-    const endTopY = roofCapTop(endStationMeters);
+    const supportingBlocks = blocks.filter(
+      (block) =>
+        Math.abs(
+          blockTopY(block) - flatBottomY - CAP_TO_CMU_CONTACT_OVERLAP_METERS,
+        ) <= CAP_SEAM_TOLERANCE_METERS + 0.001,
+    );
+
+    if (supportingBlocks.length === 0) {
+      continue;
+    }
+
+    const touchesPanelStart =
+      startStationMeters <= params.panelStartStation + CAP_SEAM_TOLERANCE_METERS;
+    const touchesPanelEnd =
+      endStationMeters >= params.panelEndStation - CAP_SEAM_TOLERANCE_METERS;
+    const coverageStart = Math.min(
+      ...supportingBlocks.map(
+        (block) => blockStationSpan(block).startStationMeters,
+      ),
+    );
+    const coverageEnd = Math.max(
+      ...supportingBlocks.map(
+        (block) => blockStationSpan(block).endStationMeters,
+      ),
+    );
+
+    let clipStartStationMeters = startStationMeters;
+    let clipEndStationMeters = endStationMeters;
+
+    if (!touchesPanelStart) {
+      clipStartStationMeters = Math.max(clipStartStationMeters, coverageStart);
+    } else if (flatBottomY > params.resolvedRoof.roofBeamTopElevationMeters + 0.01) {
+      clipStartStationMeters = Math.max(clipStartStationMeters, coverageStart);
+    }
+
+    if (!touchesPanelEnd) {
+      clipEndStationMeters = Math.min(clipEndStationMeters, coverageEnd);
+    } else if (flatBottomY > params.resolvedRoof.roofBeamTopElevationMeters + 0.01) {
+      clipEndStationMeters = Math.min(clipEndStationMeters, coverageEnd);
+    }
+
+    if (clipEndStationMeters - clipStartStationMeters < MIN_INTERVAL_SPAN_METERS) {
+      continue;
+    }
+
+    const startTopY = roofCapTop(clipStartStationMeters);
+    const endTopY = roofCapTop(clipEndStationMeters);
 
     if (
       !isFiniteNumber(flatBottomY) ||
@@ -547,12 +650,12 @@ export function solveRakedCapPlacementsWithWarnings(params: {
     }
 
     const terminalStartBottomY =
-      startStationMeters <=
+      clipStartStationMeters <=
       params.panelStartStation + CAP_SEAM_TOLERANCE_METERS
         ? Math.min(flatBottomY, params.resolvedRoof.roofBeamTopElevationMeters)
         : flatBottomY;
     const terminalEndBottomY =
-      endStationMeters >=
+      clipEndStationMeters >=
       params.panelEndStation - CAP_SEAM_TOLERANCE_METERS
         ? Math.min(flatBottomY, params.resolvedRoof.roofBeamTopElevationMeters)
         : flatBottomY;
@@ -580,13 +683,13 @@ export function solveRakedCapPlacementsWithWarnings(params: {
     }
 
     const slope: RakedCapPlacement['slope'] =
-      (startStationMeters + endStationMeters) / 2 <= ridgeStationMeters
+      (clipStartStationMeters + clipEndStationMeters) / 2 <= ridgeStationMeters
         ? 'left'
         : 'right';
 
     const concreteVolumeCubicMeters = segmentVolumeCubicMeters({
-      startStationMeters,
-      endStationMeters,
+      startStationMeters: clipStartStationMeters,
+      endStationMeters: clipEndStationMeters,
       startTopY,
       endTopY,
       startBottomY: terminalStartBottomY,
@@ -602,13 +705,14 @@ export function solveRakedCapPlacementsWithWarnings(params: {
       id: `${params.panelId}-rake-cap-${slope}-${index}`,
       gableEndSegmentId: params.gableEndSegmentId,
       slope,
-      startStationMeters,
-      endStationMeters,
+      startStationMeters: clipStartStationMeters,
+      endStationMeters: clipEndStationMeters,
       startBottomY: terminalStartBottomY,
       endBottomY: terminalEndBottomY,
       startTopY,
       endTopY,
       wallDepthMeters: capWallDepthMeters,
+      centerlineInwardOffsetMeters: params.infillCenterlineInwardOffsetMeters ?? 0,
       concreteVolumeCubicMeters,
       source: 'gable_raked_concrete_cap',
     });
@@ -630,6 +734,10 @@ export function solveRakedCapPlacementsWithWarnings(params: {
     placements,
     ridgeStationMeters,
     ridgeTopY: roofCapTop(ridgeStationMeters),
+    masonryTopAtRidge: masonryTopEnvelopeYAtStation({
+      blocks,
+      stationMeters: ridgeStationMeters,
+    }),
   });
 
   return {

@@ -199,6 +199,64 @@ describe('Structure dimensions pipeline', () => {
     expect(deep.wall.heightMeters).toBeLessThan(shallow.wall.heightMeters);
   });
 
+  it('positions only above-plinth CMU infill flush with the roof beam inside face', () => {
+    const geometry = geometryForPreset(preset);
+    const bounds = (geometry.resolvedInfillPanelBounds ?? []).find(
+      (candidate) => !candidate.panelId.includes('-below-'),
+    )!;
+    const belowGradeBounds = (geometry.resolvedInfillPanelBounds ?? []).find(
+      (candidate) => candidate.panelId.includes('-below-'),
+    )!;
+    const frame = geometry.wallCmuLayout.segmentFrames?.find(
+      (candidate) => candidate.segmentId === bounds.hostSegmentId,
+    )!;
+    const roofBeam = geometry.frameSystem.beams.find(
+      (beam) => beam.kind === 'roof_beam' && beam.hostSegmentId === bounds.hostSegmentId,
+    )!;
+    const block = geometry.blockInstances.find(
+      (candidate) =>
+        candidate.segmentId === bounds.hostSegmentId &&
+        candidate.source === 'rc_frame_infill',
+    )!;
+    const belowGradeBlock = geometry.blockInstances.find(
+      (candidate) =>
+        candidate.segmentId === belowGradeBounds.hostSegmentId &&
+        candidate.source === 'below_grade_rc_infill',
+    )!;
+
+    const centerOffsetFromFrame = (candidate: typeof block) => {
+      const start = candidate.startAlongMeters ?? candidate.stationMeters ?? 0;
+      const end =
+        candidate.endAlongMeters ??
+        start + (candidate.actualLengthMeters ?? candidate.lengthMeters);
+      const centerStation = (start + end) / 2;
+      const centerlinePoint = {
+        x: frame.centerlineStart.x + frame.tangent.x * centerStation,
+        z: frame.centerlineStart.z + frame.tangent.z * centerStation,
+      };
+      return (
+        (candidate.x - centerlinePoint.x) * frame.inwardNormal.x +
+        (candidate.z - centerlinePoint.z) * frame.inwardNormal.z
+      );
+    };
+    const blockCenterOffset = centerOffsetFromFrame(block);
+    const blockDepthMeters = block.depthMeters ?? preset.wall.wallThicknessMeters;
+    const roofBeamInsideFaceOffsetFromWallCenterline =
+      roofBeam.widthMeters / 2 - frame.wallThicknessMeters / 2;
+
+    expect(bounds.infillCenterlineInwardOffsetMeters).toBeCloseTo(
+      roofBeam.widthMeters / 2 - blockDepthMeters,
+      6,
+    );
+    expect(blockCenterOffset).toBeCloseTo(bounds.infillCenterlineInwardOffsetMeters, 6);
+    expect(blockCenterOffset + blockDepthMeters / 2).toBeCloseTo(
+      roofBeamInsideFaceOffsetFromWallCenterline,
+      6,
+    );
+    expect(belowGradeBounds.infillCenterlineInwardOffsetMeters).toBe(0);
+    expect(centerOffsetFromFrame(belowGradeBlock)).toBeCloseTo(0, 6);
+  });
+
   it('changing roof peak height changes roof apex and truss apex', () => {
     const low = applyDimensions(preset, {}, { peakHeightAboveRoofBeamMeters: 1.2 });
     const high = applyDimensions(preset, {}, { peakHeightAboveRoofBeamMeters: 2.4 });
@@ -241,6 +299,26 @@ describe('Structure dimensions pipeline', () => {
     const denseGeometry = geometryForPreset(dense);
     expect(denseGeometry.resolvedRoofSystem?.purlinPlacements.length).toBeGreaterThan(
       sparseGeometry.resolvedRoofSystem?.purlinPlacements.length ?? 0,
+    );
+  });
+
+  it('changing truss spacing changes truss count and syncs the legacy truss object', () => {
+    const sparse = applyDimensions(
+      preset,
+      {},
+      { steelTrusses: { ...createDefaultRoofSystemSettings().steelTrusses, maxSpacingMeters: 1.5 } },
+    );
+    const dense = applyDimensions(
+      preset,
+      {},
+      { steelTrusses: { ...createDefaultRoofSystemSettings().steelTrusses, maxSpacingMeters: 0.6 } },
+    );
+    const sparseGeometry = geometryForPreset(sparse);
+    const denseGeometry = geometryForPreset(dense);
+    expect(sparse.truss.spacingMeters).toBeCloseTo(1.5, 6);
+    expect(dense.truss.spacingMeters).toBeCloseTo(0.6, 6);
+    expect(denseGeometry.resolvedRoofSystem?.trussPlacements.length).toBeGreaterThan(
+      sparseGeometry.resolvedRoofSystem?.trussPlacements.length ?? 0,
     );
   });
 

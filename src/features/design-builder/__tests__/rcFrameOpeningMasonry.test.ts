@@ -11,6 +11,7 @@ import {
   resolveOpeningBlockVoidBounds,
 } from '../domain/openingAssemblySolver';
 import {
+  openingsForFrameFitMasonry,
   panelAdjustedOpeningsForElevation,
   solveOpeningAwareMasonryPanel,
 } from '../domain/openingAwareMasonryPanelSolver';
@@ -123,7 +124,7 @@ describe('RC frame opening masonry', () => {
     expect(door.actualBottomMeters).toBe(DOOR_BOTTOM);
     expect(door.actualTopMeters).toBe(2.1);
 
-    const adjustedOpenings = panelAdjustedOpeningsForElevation([door], panelBottom);
+    const adjustedOpenings = openingsForFrameFitMasonry(panelAdjustedOpeningsForElevation([door], panelBottom));
     const voidBounds = resolveOpeningBlockVoidBounds(adjustedOpenings[0]!);
     const expectedLintelCourseIndex = Math.max(
       0,

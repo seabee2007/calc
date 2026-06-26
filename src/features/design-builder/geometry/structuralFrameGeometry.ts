@@ -25,6 +25,7 @@ import {
   emptyCmuLayout,
   findExteriorFootprintBoundaryViolations,
   generateCmuLayoutFromWallLayout,
+  getExteriorPerimeterSegmentIds,
   getSegmentFramesForWallLayout,
   resolveLayoutRoughOpeningsFromWall,
   resolveWallLayoutGeometry,
@@ -35,12 +36,14 @@ import {
 } from '../domain/structuralFrameLayout';
 import {
   createDefaultFoundationSettings,
+  normalizeRcFrameFoundationSettings,
   resolveFoundationElevations,
   resolveStructuralConcreteVolumes,
   resolveStructuralWallHeightMeters,
 } from '../domain/foundationElevations';
 import { resolveInteriorFloorSlab } from '../domain/interiorFloorSlab';
 import { resolveFloorTileLayout } from '../domain/floorTileLayout';
+import { resolvePlywoodCeilingLayout } from '../domain/plywoodCeilingLayout';
 import {
   countPanelVerticalCourses,
   isAboveGradeInfillPanel,
@@ -117,8 +120,11 @@ export function generateFrameInfillGeometry(
   const resolvedWallGeometry = resolveWallLayoutGeometry(input.wallLayout, wall);
   const resolvedFootprint = resolvedBuildingFootprintFromWallLayout(resolvedWallGeometry);
   const segmentFrames = getSegmentFramesForWallLayout(input.wallLayout, wall);
+  const exteriorSegmentIds = getExteriorPerimeterSegmentIds(input.wallLayout);
 
-  const foundationSettings = input.foundationSettings ?? createDefaultFoundationSettings();
+  const foundationSettings = normalizeRcFrameFoundationSettings(
+    input.foundationSettings ?? createDefaultFoundationSettings(),
+  );
   const layoutWallHeight = input.wallLayout.defaultWallHeightMeters;
   const wallHeightMeters = resolveStructuralWallHeightMeters({
     foundation: foundationSettings,
@@ -229,6 +235,7 @@ export function generateFrameInfillGeometry(
 
       const isRoofGableEnd =
         resolvedRoofSystem.supported &&
+        exteriorSegmentIds.has(panel.hostSegmentId) &&
         resolvedRoofSystem.gableEndSegmentIds.includes(panel.hostSegmentId);
 
       if (isRoofGableEnd) {
@@ -239,6 +246,7 @@ export function generateFrameInfillGeometry(
           roofSystem,
           resolvedRoof: resolvedRoofSystem,
           roofBeamTopElevationMeters,
+          infillCenterlineInwardOffsetMeters: bounds.infillCenterlineInwardOffsetMeters,
         });
         allBlocks.push(...gableResult.blocks);
         totalFull += gableResult.fullBlockCount;
@@ -258,6 +266,7 @@ export function generateFrameInfillGeometry(
           resolvedRoof: resolvedRoofSystem,
           wallDepthMeters: frame.wallThicknessMeters ?? module.blockDepthMeters,
           moduleHeightMeters: module.nominalModuleHeightMeters,
+          infillCenterlineInwardOffsetMeters: bounds.infillCenterlineInwardOffsetMeters,
         });
         rakedCapPlacements.push(...capResult.placements);
         layoutWarnings.push(...capResult.warnings);
@@ -339,15 +348,22 @@ export function generateFrameInfillGeometry(
     const panelBounds = boundsBySegment.get(frame.segmentId);
     const clearHeightMeters = panelBounds?.clearHeightMeters ?? frame.wallHeightMeters;
     const baseElevationMeters = panelBounds?.bottomElevationMeters ?? 0;
+    const infillCenterlineInwardOffsetMeters =
+      panelBounds?.infillCenterlineInwardOffsetMeters ?? 0;
     return {
       segmentId: frame.segmentId,
       lengthMeters: frame.lengthMeters,
       heightMeters: clearHeightMeters,
       thicknessMeters: frame.wallThicknessMeters,
-      x: (frame.start.x + frame.end.x) / 2 + frame.inwardNormal.x * (frame.wallThicknessMeters / 2),
+      x:
+        (frame.centerlineStart.x + frame.centerlineEnd.x) / 2 +
+        frame.inwardNormal.x * infillCenterlineInwardOffsetMeters,
       y: baseElevationMeters + clearHeightMeters / 2,
-      z: (frame.start.z + frame.end.z) / 2 + frame.inwardNormal.z * (frame.wallThicknessMeters / 2),
+      z:
+        (frame.centerlineStart.z + frame.centerlineEnd.z) / 2 +
+        frame.inwardNormal.z * infillCenterlineInwardOffsetMeters,
       rotationY: frame.rotationY,
+      infillCenterlineInwardOffsetMeters,
     };
   });
 
@@ -396,14 +412,24 @@ export function generateFrameInfillGeometry(
     footings: isolatedFootings,
     elevations,
   });
+  const interiorFacePolygon = resolvedFootprint?.interiorFacePolygon ?? [];
   const interiorFloorSlab = resolveInteriorFloorSlab({
     foundation: foundationSettings,
-    interiorFacePolygon: resolvedFootprint.interiorFacePolygon,
+    interiorFacePolygon,
   });
   const floorTileLayout = resolveFloorTileLayout({
-    interiorFacePolygon: resolvedFootprint.interiorFacePolygon,
+    interiorFacePolygon,
     floorTileFinish: foundationSettings.floorTileFinish,
     interiorFloorSlabEnabled: interiorFloorSlab.enabled,
+  });
+  const maxCeilingHeightMeters = Math.max(
+    0,
+    elevations.roofBeamBottomY - foundationSettings.plywoodCeiling.tubeSizeMeters,
+  );
+  const plywoodCeilingLayout = resolvePlywoodCeilingLayout({
+    interiorFacePolygon,
+    plywoodCeiling: foundationSettings.plywoodCeiling,
+    maxCeilingHeightMeters,
   });
   const structuralConcreteVolumeBreakdown: StructuralConcreteVolumeBreakdown = {
     ...volumeResult,
@@ -441,6 +467,7 @@ export function generateFrameInfillGeometry(
     resolvedInfillPanelBounds,
     interiorFloorSlab,
     floorTileLayout,
+    plywoodCeilingLayout,
   };
 }
 

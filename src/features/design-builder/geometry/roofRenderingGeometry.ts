@@ -146,10 +146,35 @@ export function buildSteelTrussMemberMeshes(params: {
   return { chordMeshes, webMeshes };
 }
 
+function basePlateAxes(spanDirection?: THREE.Vector3): {
+  widthAxis: THREE.Vector3;
+  upAxis: THREE.Vector3;
+  spanAxis: THREE.Vector3;
+} {
+  const spanAxis = spanDirection?.clone() ?? new THREE.Vector3(0, 0, 1);
+  spanAxis.y = 0;
+  if (spanAxis.lengthSq() <= 1e-8) {
+    spanAxis.set(0, 0, 1);
+  } else {
+    spanAxis.normalize();
+  }
+
+  const upAxis = new THREE.Vector3(0, 1, 0);
+  const widthAxis = new THREE.Vector3().crossVectors(upAxis, spanAxis);
+  if (widthAxis.lengthSq() <= 1e-8) {
+    widthAxis.set(1, 0, 0);
+  } else {
+    widthAxis.normalize();
+  }
+
+  return { widthAxis, upAxis, spanAxis };
+}
+
 export function buildTrussBasePlateMesh(params: {
   bearing: THREE.Vector3;
   settings: RoofSystemSettings;
   material: THREE.Material;
+  spanDirection?: THREE.Vector3;
 }): THREE.Mesh {
   const plate = new THREE.Mesh(
     new THREE.BoxGeometry(
@@ -159,11 +184,13 @@ export function buildTrussBasePlateMesh(params: {
     ),
     params.material,
   );
+  const { widthAxis, upAxis, spanAxis } = basePlateAxes(params.spanDirection);
   plate.position.set(
     params.bearing.x,
     params.bearing.y - params.settings.steelTrusses.basePlateThicknessMeters / 2,
     params.bearing.z,
   );
+  plate.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(widthAxis, upAxis, spanAxis));
   return plate;
 }
 
@@ -171,15 +198,21 @@ export function buildTrussAnchorBoltMeshes(params: {
   bearing: THREE.Vector3;
   settings: RoofSystemSettings;
   material: THREE.Material;
+  spanDirection?: THREE.Vector3;
 }): THREE.Mesh[] {
   const bolts: THREE.Mesh[] = [];
   const boltGeometry = new THREE.CylinderGeometry(0.008, 0.008, 0.04, 6);
   const boltCount = Math.min(params.settings.steelTrusses.anchorBoltsPerBearing, 4);
+  const { widthAxis, spanAxis } = basePlateAxes(params.spanDirection);
   for (let index = 0; index < boltCount; index += 1) {
     const bolt = new THREE.Mesh(boltGeometry, params.material);
-    const offsetX = (index % 2 === 0 ? -1 : 1) * (params.settings.steelTrusses.basePlateWidthMeters * 0.25);
-    const offsetZ = (index < 2 ? -1 : 1) * (params.settings.steelTrusses.basePlateLengthMeters * 0.25);
-    bolt.position.set(params.bearing.x + offsetX, params.bearing.y + 0.02, params.bearing.z + offsetZ);
+    const widthOffset = (index % 2 === 0 ? -1 : 1) * (params.settings.steelTrusses.basePlateWidthMeters * 0.25);
+    const spanOffset = (index < 2 ? -1 : 1) * (params.settings.steelTrusses.basePlateLengthMeters * 0.25);
+    bolt.position
+      .copy(params.bearing)
+      .add(widthAxis.clone().multiplyScalar(widthOffset))
+      .add(spanAxis.clone().multiplyScalar(spanOffset));
+    bolt.position.y = params.bearing.y + 0.02;
     bolts.push(bolt);
   }
   return bolts;

@@ -398,6 +398,66 @@ export interface ResolvedFloorTileLayout {
   placements: FloorTilePlacement[];
 }
 
+export interface PlywoodCeilingSettings {
+  enabled: boolean;
+  /** Bottom elevation of the metal tube frame (meters above plinth top). */
+  ceilingHeightMeters: number;
+  plywoodColor: string;
+  sheetWidthMeters: number;
+  sheetLengthMeters: number;
+  sheetThicknessMeters: number;
+  braceSpacingMeters: number;
+  tubeSizeMeters: number;
+  staggerOffsetMeters: number;
+  panelGapMeters: number;
+  wasteFactor: number;
+}
+
+export type PlywoodCeilingMemberKind = 'perimeter' | 'cross_brace';
+
+export interface PlywoodCeilingMemberPlacement {
+  id: string;
+  kind: PlywoodCeilingMemberKind;
+  start: { x: number; y: number; z: number };
+  end: { x: number; y: number; z: number };
+  widthMeters: number;
+  heightMeters: number;
+}
+
+export type PlywoodCeilingPanelKind = 'full' | 'cut';
+
+export interface PlywoodCeilingPanelPlacement {
+  id: string;
+  kind: PlywoodCeilingPanelKind;
+  center: { x: number; y: number; z: number };
+  widthMeters: number;
+  lengthMeters: number;
+  thicknessMeters: number;
+}
+
+export interface ResolvedPlywoodCeilingLayout {
+  enabled: boolean;
+  ceilingHeightMeters: number;
+  frameBottomElevationMeters: number;
+  plywoodColor: string;
+  sheetWidthMeters: number;
+  sheetLengthMeters: number;
+  sheetThicknessMeters: number;
+  braceSpacingMeters: number;
+  tubeSizeMeters: number;
+  ceilingAreaSquareMeters: number;
+  fullPanelCount: number;
+  cutPanelCount: number;
+  totalPanelCount: number;
+  orderPanelCount: number;
+  longAxis: 'x' | 'z';
+  shortSpanMeters: number;
+  longSpanMeters: number;
+  warnings: string[];
+  frameMembers: PlywoodCeilingMemberPlacement[];
+  panelPlacements: PlywoodCeilingPanelPlacement[];
+}
+
 export type ColumnPlacementMode = 'corners_only' | 'corners_and_junctions' | 'manual';
 
 /** @deprecated Legacy persisted shape — migrate via rcFrameFoundationMigration */
@@ -436,6 +496,8 @@ export interface RcFrameFoundationSettings {
   interiorFloorSlab: InteriorFloorSlabSettings;
   /** Interior floor tile finish (thinset + tile + grout) over the cast slab. */
   floorTileFinish: InteriorFloorTileSettings;
+  /** Plywood ceiling with metal tube frame and staggered panels. */
+  plywoodCeiling: PlywoodCeilingSettings;
   roofBeam: StructuralBeamSettings;
   tieBeam: StructuralBeamSettings;
   columns: {
@@ -716,8 +778,12 @@ export type SteelMemberSegment = {
 export type TrussPlacement = {
   id: string;
   stationMeters: number;
+  /** Full structural bearing points on the roof-beam outer-face datum. */
   bearingLeft: RoofVec3;
   bearingRight: RoofVec3;
+  /** Inboard plate centers; these do not shrink the structural truss span. */
+  basePlateCenterLeft?: RoofVec3;
+  basePlateCenterRight?: RoofVec3;
   apex: RoofVec3;
   /** World-axis classification of the ridge direction for this truss plane. */
   ridgeAxis: 'x' | 'z';
@@ -834,6 +900,7 @@ export type RakedCapPlacement = {
   startTopY: number;
   endTopY: number;
   wallDepthMeters: number;
+  centerlineInwardOffsetMeters?: number;
   concreteVolumeCubicMeters: number;
   source: 'gable_raked_concrete_cap';
 };

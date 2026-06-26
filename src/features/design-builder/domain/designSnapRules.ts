@@ -1,4 +1,6 @@
+import type { SegmentFrame } from '../geometry/designGeometry';
 import type { DesignBuilderSnapMode, DesignWallLayoutParameters } from '../types';
+import { buildPlanDisplayNodeById, type PlanPoint } from './planOpeningGraphics';
 import {
   GUIDE_CAPTURE_RADIUS_PX,
   NODE_CAPTURE_RADIUS_PX,
@@ -26,6 +28,7 @@ export function resolveDesignSnapPoint(params: {
   moduleLengthMeters?: number;
   pixelsPerMeter?: number;
   altHeld?: boolean;
+  segmentFrames?: readonly SegmentFrame[];
   drawContext?: {
     activeNodeId?: string | null;
     drawStartNodeId?: string | null;
@@ -49,7 +52,7 @@ export function resolveDesignSnapPoint(params: {
   const pixelsPerMeter = Math.max(1, params.pixelsPerMeter ?? 48);
   const captureMeters = NODE_CAPTURE_RADIUS_PX / pixelsPerMeter;
   const guideCaptureMeters = GUIDE_CAPTURE_RADIUS_PX / pixelsPerMeter;
-  const releaseMeters = SNAP_RELEASE_RADIUS_PX / pixelsPerMeter;
+  const snapNodeById = buildSnapNodeById(params.layout, params.segmentFrames);
   const candidates: DesignSnapTarget[] = [];
 
   if (
@@ -65,11 +68,12 @@ export function resolveDesignSnapPoint(params: {
   }
 
   params.layout.nodes.forEach((node) => {
-    const distanceMeters = distance(params.point, node);
+    const snapPoint = snapPointForNode(node, snapNodeById);
+    const distanceMeters = distance(params.point, snapPoint);
     if (distanceMeters > captureMeters) return;
     candidates.push({
       type: 'node',
-      point: { x: node.x, z: node.z },
+      point: snapPoint,
       distancePx: distanceMeters * pixelsPerMeter,
       priority: 1,
       sourceId: node.id,
@@ -79,7 +83,7 @@ export function resolveDesignSnapPoint(params: {
     });
   });
 
-  const endpointSnap = findNearestEndpointSnap(params.layout, params.point, captureMeters, pixelsPerMeter);
+  const endpointSnap = findNearestEndpointSnap(params.layout, params.point, captureMeters, pixelsPerMeter, snapNodeById);
   if (endpointSnap) candidates.push(endpointSnap);
 
   if (params.drawContext?.shiftHeld && params.drawContext.closureCornerCandidate) {
@@ -114,7 +118,7 @@ export function resolveDesignSnapPoint(params: {
     });
   }
 
-  const lineSnap = findNearestLineSnap(params.layout, params.point, captureMeters, pixelsPerMeter);
+  const lineSnap = findNearestLineSnap(params.layout, params.point, captureMeters, pixelsPerMeter, snapNodeById);
   if (lineSnap) candidates.push(lineSnap);
 
   if (params.snapMode === 'cmu_module' && params.moduleLengthMeters && params.moduleLengthMeters > 0) {
@@ -157,7 +161,8 @@ export function resolveDesignSnapPoint(params: {
 
   if (candidates.length > 0) {
     candidates.sort((a, b) => (a.priority !== b.priority ? a.priority - b.priority : a.distancePx - b.distancePx));
-    return candidates[0];
+    const winner = candidates[0]!;
+    return winner;
   }
 
   return {
@@ -171,11 +176,30 @@ export function resolveDesignSnapPoint(params: {
   };
 }
 
+function buildSnapNodeById(
+  layout: DesignWallLayoutParameters,
+  segmentFrames?: readonly SegmentFrame[],
+): Map<string, PlanPoint> | null {
+  if (!segmentFrames || segmentFrames.length === 0) return null;
+  return buildPlanDisplayNodeById({
+    layout,
+    framesBySegmentId: new Map(segmentFrames.map((frame) => [frame.segmentId, frame])),
+  });
+}
+
+function snapPointForNode(
+  node: { id: string; x: number; z: number },
+  snapNodeById: Map<string, PlanPoint> | null,
+): PlanPoint {
+  return snapNodeById?.get(node.id) ?? { x: node.x, z: node.z };
+}
+
 function findNearestEndpointSnap(
   layout: DesignWallLayoutParameters,
   point: { x: number; z: number },
   toleranceMeters: number,
   pixelsPerMeter: number,
+  snapNodeById: Map<string, PlanPoint> | null,
 ): DesignSnapTarget | null {
   let best: DesignSnapTarget | null = null;
   layout.segments.forEach((segment) => {
@@ -183,12 +207,13 @@ function findNearestEndpointSnap(
     const end = layout.nodes.find((node) => node.id === segment.endNodeId);
     [start, end].forEach((node) => {
       if (!node) return;
-      const distanceMeters = distance(point, node);
+      const snapPoint = snapPointForNode(node, snapNodeById);
+      const distanceMeters = distance(point, snapPoint);
       if (distanceMeters > toleranceMeters) return;
       if (best && distanceMeters * pixelsPerMeter >= best.distancePx) return;
       best = {
         type: 'endpoint',
-        point: { x: node.x, z: node.z },
+        point: snapPoint,
         distancePx: distanceMeters * pixelsPerMeter,
         priority: 3,
         sourceId: node.id,
@@ -206,13 +231,16 @@ function findNearestLineSnap(
   point: { x: number; z: number },
   toleranceMeters: number,
   pixelsPerMeter: number,
+  snapNodeById: Map<string, PlanPoint> | null,
 ): DesignSnapTarget | null {
   let best: DesignSnapTarget | null = null;
   layout.segments.forEach((segment) => {
     const start = layout.nodes.find((node) => node.id === segment.startNodeId);
     const end = layout.nodes.find((node) => node.id === segment.endNodeId);
     if (!start || !end) return;
-    const projected = projectPointToSegment(point, start, end);
+    const displayStart = snapPointForNode(start, snapNodeById);
+    const displayEnd = snapPointForNode(end, snapNodeById);
+    const projected = projectPointToSegment(point, displayStart, displayEnd);
     if (projected.isEndpoint) return;
     const distanceMeters = distance(point, projected.point);
     if (distanceMeters > toleranceMeters) return;

@@ -259,6 +259,14 @@ function buildTrussPlaneNormal(left: RoofVec3, right: RoofVec3, apex: RoofVec3):
   return normalize3(normal);
 }
 
+function insetPlanPointToward(point: PlanVec2, target: PlanVec2, insetMeters: number): PlanVec2 {
+  if (insetMeters <= 0) {
+    return { ...point };
+  }
+  const inward = normalize2(sub2(target, point));
+  return add2(point, scale2(inward, insetMeters));
+}
+
 function buildFinkWebMembers(
   trussId: string,
   leftBearing: RoofVec3,
@@ -629,7 +637,7 @@ function resolveGableTrussPlacements(params: {
   stations: number[];
   structuralHalfRunMeters: number;
   sideEaveOverhangMeters: number;
-  trussBearingOutsetMeters: number;
+  basePlateCenterInsetMeters: number;
   fixedRoofSlope: number;
 }): TrussPlacement[] {
   const {
@@ -642,7 +650,7 @@ function resolveGableTrussPlacements(params: {
     stations,
     structuralHalfRunMeters,
     sideEaveOverhangMeters,
-    trussBearingOutsetMeters,
+    basePlateCenterInsetMeters,
     fixedRoofSlope,
   } = params;
   const bearingY = roofBeamTopY + basePlateThicknessMeters;
@@ -677,41 +685,15 @@ function resolveGableTrussPlacements(params: {
 
     const bearingLeft = toVec3(bearingLeft2, bearingY);
     const bearingRight = toVec3(bearingRight2, bearingY);
-    const supportOutsetMeters = Math.max(TRUSS_CHORD_PROFILE_METERS / 2, trussBearingOutsetMeters);
-    const leftTrussBearingPoint = projectCladdingEaveFromStructuralBearing({
-      ridgePoint2,
-      structuralBearing2: bearingLeft2,
-      structuralHalfRunMeters,
-      sideEaveOverhangMeters: supportOutsetMeters,
-      structuralEaveY: bearingY,
-      fixedSlope: 0,
-    });
-    const rightTrussBearingPoint = projectCladdingEaveFromStructuralBearing({
-      ridgePoint2,
-      structuralBearing2: bearingRight2,
-      structuralHalfRunMeters,
-      sideEaveOverhangMeters: supportOutsetMeters,
-      structuralEaveY: bearingY,
-      fixedSlope: 0,
-    });
-    const leftTrussBearing = vec3(leftTrussBearingPoint.x, bearingCenterY, leftTrussBearingPoint.z);
-    const rightTrussBearing = vec3(rightTrussBearingPoint.x, bearingCenterY, rightTrussBearingPoint.z);
-    const leftTopChordBearingCenter = projectCladdingEaveFromStructuralBearing({
-      ridgePoint2,
-      structuralBearing2: bearingLeft2,
-      structuralHalfRunMeters,
-      sideEaveOverhangMeters: supportOutsetMeters,
-      structuralEaveY: bearingCenterY,
-      fixedSlope: 0,
-    });
-    const rightTopChordBearingCenter = projectCladdingEaveFromStructuralBearing({
-      ridgePoint2,
-      structuralBearing2: bearingRight2,
-      structuralHalfRunMeters,
-      sideEaveOverhangMeters: supportOutsetMeters,
-      structuralEaveY: bearingCenterY,
-      fixedSlope: 0,
-    });
+    const plateInsetMeters = Math.max(0, basePlateCenterInsetMeters);
+    const basePlateCenterLeft2 = insetPlanPointToward(bearingLeft2, ridgePoint2, plateInsetMeters);
+    const basePlateCenterRight2 = insetPlanPointToward(bearingRight2, ridgePoint2, plateInsetMeters);
+    const basePlateCenterLeft = toVec3(basePlateCenterLeft2, bearingY);
+    const basePlateCenterRight = toVec3(basePlateCenterRight2, bearingY);
+    const leftTrussBearing = vec3(bearingLeft2.x, bearingCenterY, bearingLeft2.z);
+    const rightTrussBearing = vec3(bearingRight2.x, bearingCenterY, bearingRight2.z);
+    const leftTopChordBearingCenter = leftTrussBearing;
+    const rightTopChordBearingCenter = rightTrussBearing;
     const topChordApexY = Math.max(
       peakY,
       leftTopChordBearingCenter.y +
@@ -781,6 +763,8 @@ function resolveGableTrussPlacements(params: {
       stationMeters: station,
       bearingLeft,
       bearingRight,
+      basePlateCenterLeft,
+      basePlateCenterRight,
       apex,
       ridgeAxis: worldRidgeAxis,
       planeNormal,
@@ -1869,7 +1853,9 @@ export function resolveRoofFraming(params: {
       stations: trussStations,
       structuralHalfRunMeters: params.structuralHalfRunMeters,
       sideEaveOverhangMeters: params.sideEaveOverhangMeters,
-      trussBearingOutsetMeters: params.settings.steelTrusses.basePlateLengthMeters / 2,
+      basePlateCenterInsetMeters: params.settings.steelTrusses.basePlateEnabled
+        ? params.settings.steelTrusses.basePlateLengthMeters / 2
+        : 0,
       fixedRoofSlope: params.fixedRoofSlope,
     });
   } else if (params.settings.roofType === 'hip') {

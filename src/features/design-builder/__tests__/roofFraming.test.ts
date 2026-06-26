@@ -30,7 +30,15 @@ import {
   generateDesignGeometry,
 } from '../geometry/designGeometry';
 import { buildFrameInfillEstimatePreview, metersToFeet } from '../quantity/designQuantityFormulas';
-import { buildPurlinMesh, createMemberBetween, createFoldedRidgeCapGroup, memberWorldEndpoints } from '../geometry/roofRenderingGeometry';
+import {
+  buildPurlinMesh,
+  buildSteelTrussMemberMeshes,
+  buildTrussAnchorBoltMeshes,
+  buildTrussBasePlateMesh,
+  createMemberBetween,
+  createFoldedRidgeCapGroup,
+  memberWorldEndpoints,
+} from '../geometry/roofRenderingGeometry';
 import type { RoofSystemSettings, SteelMemberSegment, TrussPlacement } from '../types';
 import * as THREE from 'three';
 
@@ -295,6 +303,83 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
     }
   });
 
+  it('orients truss base plates and anchor bolts along the truss span for both ridge axes', () => {
+    const settings = createDefaultRoofSystemSettings();
+    const material = new THREE.MeshBasicMaterial();
+    const bearing = new THREE.Vector3(1, 3, 2);
+    const upAxis = new THREE.Vector3(0, 1, 0);
+
+    for (const spanDirection of [new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, 1)]) {
+      const spanAxis = spanDirection.clone().normalize();
+      const widthAxis = new THREE.Vector3().crossVectors(upAxis, spanAxis).normalize();
+      const plate = buildTrussBasePlateMesh({
+        bearing,
+        settings,
+        material,
+        spanDirection,
+      });
+      const plateSpanAxis = new THREE.Vector3(0, 0, 1).applyQuaternion(plate.quaternion);
+      expect(Math.abs(plateSpanAxis.dot(spanAxis))).toBeCloseTo(1, 6);
+
+      const bolts = buildTrussAnchorBoltMeshes({
+        bearing,
+        settings,
+        material,
+        spanDirection,
+      });
+      expect(bolts).toHaveLength(Math.min(settings.steelTrusses.anchorBoltsPerBearing, 4));
+      for (const bolt of bolts) {
+        const offset = bolt.position.clone().sub(bearing);
+        offset.y = 0;
+        expect(Math.abs(offset.dot(spanAxis))).toBeCloseTo(
+          settings.steelTrusses.basePlateLengthMeters * 0.25,
+          6,
+        );
+        expect(Math.abs(offset.dot(widthAxis))).toBeCloseTo(
+          settings.steelTrusses.basePlateWidthMeters * 0.25,
+          6,
+        );
+        bolt.geometry.dispose();
+      }
+      plate.geometry.dispose();
+    }
+
+    material.dispose();
+  });
+
+  it('renders eave-extension tails as steel truss chord members', () => {
+    const settings = { ...createDefaultRoofSystemSettings(), eaveOverhangMeters: 0.3 };
+    const roof = roofFromGeometry(frameInfillGeometry(settings));
+    const chordMaterial = new THREE.MeshBasicMaterial();
+    const webMaterial = new THREE.MeshBasicMaterial();
+
+    for (const truss of roof.trussPlacements) {
+      expect(truss.members.some((member) => member.memberKind === 'top_chord_left_eave_extension')).toBe(true);
+      expect(truss.members.some((member) => member.memberKind === 'top_chord_right_eave_extension')).toBe(true);
+
+      const meshes = buildSteelTrussMemberMeshes({
+        placement: truss,
+        slabOffsetY: 0,
+        materials: { chord: chordMaterial, web: webMaterial },
+      });
+      const renderedKinds = [...meshes.chordMeshes, ...meshes.webMeshes].map(
+        (mesh) => mesh.userData.trussMemberKind,
+      );
+
+      expect(renderedKinds).toContain('top_chord_left_eave_extension');
+      expect(renderedKinds).toContain('top_chord_right_eave_extension');
+      expect(meshes.chordMeshes.map((mesh) => mesh.userData.trussMemberKind)).toEqual(
+        expect.arrayContaining(['top_chord_left_eave_extension', 'top_chord_right_eave_extension']),
+      );
+      for (const mesh of [...meshes.chordMeshes, ...meshes.webMeshes]) {
+        mesh.geometry.dispose();
+      }
+    }
+
+    chordMaterial.dispose();
+    webMaterial.dispose();
+  });
+
   it('no truss member extends below Roof Beam top elevation', () => {
     const roof = roofFromGeometry(frameInfillGeometry(createDefaultRoofSystemSettings()));
     for (const truss of roof.trussPlacements) {
@@ -324,7 +409,7 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
     const overhangSettings = { ...createDefaultRoofSystemSettings(), eaveOverhangMeters: 0.3 };
     const roof = roofFromGeometry(frameInfillGeometry(overhangSettings));
     const comparison = roofFromGeometry(frameInfillGeometry(noOverhangSettings));
-    const supportOutset = overhangSettings.steelTrusses.basePlateLengthMeters / 2;
+    const plateInsetMeters = overhangSettings.steelTrusses.basePlateLengthMeters / 2;
     expect(roof.roofPitchRadians).toBeCloseTo(comparison.roofPitchRadians, 6);
     expect(roof.structuralRidgeStart).toEqual(comparison.structuralRidgeStart);
     expect(roof.structuralRidgeEnd).toEqual(comparison.structuralRidgeEnd);
@@ -347,20 +432,30 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
 
       const leftBearingStation = planStationFromSpanCenter(truss.bearingLeft, truss.bearingLeft, truss.bearingRight);
       const rightBearingStation = planStationFromSpanCenter(truss.bearingRight, truss.bearingRight, truss.bearingLeft);
+      expect(truss.basePlateCenterLeft).toBeDefined();
+      expect(truss.basePlateCenterRight).toBeDefined();
+      expect(
+        leftBearingStation -
+          planStationFromSpanCenter(truss.basePlateCenterLeft!, truss.bearingLeft, truss.bearingRight),
+      ).toBeCloseTo(plateInsetMeters, 3);
+      expect(
+        rightBearingStation -
+          planStationFromSpanCenter(truss.basePlateCenterRight!, truss.bearingRight, truss.bearingLeft),
+      ).toBeCloseTo(plateInsetMeters, 3);
       expect(
         planStationFromSpanCenter(leftPrimary.start, truss.bearingLeft, truss.bearingRight) - leftBearingStation,
-      ).toBeCloseTo(supportOutset, 3);
+      ).toBeCloseTo(0, 3);
       expect(
         planStationFromSpanCenter(rightPrimary.start, truss.bearingRight, truss.bearingLeft) - rightBearingStation,
-      ).toBeCloseTo(supportOutset, 3);
+      ).toBeCloseTo(0, 3);
 
       const bottomChord = truss.members.find((member) => member.memberKind === 'bottom_chord')!;
       expect(bottomChord.start.y).toBeCloseTo(leftBearingTop.y, 3);
       expect(bottomChord.end.y).toBeCloseTo(rightBearingTop.y, 3);
       expect(planStationFromSpanCenter(bottomChord.start, truss.bearingLeft, truss.bearingRight) - leftBearingStation)
-        .toBeCloseTo(supportOutset, 3);
+        .toBeCloseTo(0, 3);
       expect(planStationFromSpanCenter(bottomChord.end, truss.bearingRight, truss.bearingLeft) - rightBearingStation)
-        .toBeCloseTo(supportOutset, 3);
+        .toBeCloseTo(0, 3);
 
       const leftExtensions = truss.members.filter(
         (member) => member.memberKind === 'top_chord_left_eave_extension',

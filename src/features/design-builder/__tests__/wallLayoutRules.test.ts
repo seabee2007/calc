@@ -20,6 +20,7 @@ import {
   detectClosedFootprint,
   removeLastSegment,
   deleteWallSegment,
+  resolveActiveDrawNodeId,
   resolveDrawWallGuidance,
   segmentLength,
   summarizeSegmentModuleFit,
@@ -187,6 +188,29 @@ describe('layoutWallAdapter', () => {
     expect(canGenerateSlabAndRoof(layout)).toBe(false);
     const closed = createOutsideFaceRectangleLayout({ lengthMeters: 6, widthMeters: 5 });
     expect(canGenerateSlabAndRoof(closed)).toBe(true);
+  });
+
+  it('keeps slab/roof generation when an interior partition branches off the exterior shell', () => {
+    const closed = createOutsideFaceRectangleLayout({ lengthMeters: 6, widthMeters: 5 });
+    const withPartition = addWallSegment(closed, closed.segments[3]!.startNodeId, 0, 0);
+    expect(withPartition.isFootprintClosed).toBe(false);
+    expect(canGenerateSlabAndRoof(withPartition)).toBe(true);
+  });
+
+  it('returns null active draw node when footprint is closed so partition starts require an explicit snap', () => {
+    const closed = createOutsideFaceRectangleLayout({ lengthMeters: 6, widthMeters: 5 });
+    expect(closed.isFootprintClosed).toBe(true);
+    expect(resolveActiveDrawNodeId(closed)).toBeNull();
+  });
+
+  it('chains active draw node from the last open segment while footprint is still open', () => {
+    let layout = createEmptyWallLayout();
+    const a = { id: 'a', x: 0, z: 0 };
+    layout = { ...layout, nodes: [a] };
+    layout = addWallSegment(layout, a.id, 6, 0);
+    layout = addWallSegment(layout, layout.segments[0]!.endNodeId, 6, 5);
+    expect(layout.isFootprintClosed).toBe(false);
+    expect(resolveActiveDrawNodeId(layout)).toBe(layout.segments.at(-1)!.endNodeId);
   });
 
   it('calculates module fit from drawn wall segments', () => {

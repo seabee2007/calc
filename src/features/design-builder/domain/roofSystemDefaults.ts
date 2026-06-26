@@ -136,6 +136,27 @@ export function normalizeRoofSystemSettings(
   };
 }
 
+export function syncRoofSystemTrussSpacing(
+  roofSystem: RoofSystemSettings,
+  spacingMeters: number | null | undefined,
+): RoofSystemSettings {
+  if (spacingMeters == null || !Number.isFinite(spacingMeters) || spacingMeters <= 0) {
+    return roofSystem;
+  }
+
+  if (Math.abs(roofSystem.steelTrusses.maxSpacingMeters - spacingMeters) <= 0.0001) {
+    return roofSystem;
+  }
+
+  return {
+    ...roofSystem,
+    steelTrusses: {
+      ...roofSystem.steelTrusses,
+      maxSpacingMeters: spacingMeters,
+    },
+  };
+}
+
 export function roofSystemFromLegacyGableRoof(params: {
   pitchRisePerRun: number;
   overhangMeters: number;

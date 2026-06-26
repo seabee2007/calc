@@ -67,10 +67,12 @@ import {
   createBlankWallLayout,
   createWallLayoutId,
   deleteWallSegment,
+  detectClosedFootprint,
   deriveExteriorBounds,
   moveWallNode,
   projectExactSegmentLength,
   removeLastSegment,
+  resolveActiveDrawNodeId,
   resolveDrawWallGuidance,
   resolveOrthogonalClosureAssist,
   resolveOrthogonalCornerPoint,
@@ -141,8 +143,13 @@ import {
   setBuildingSystemMode,
   type FrameFoundationDimensionsApplyPayload,
 } from '../domain/structureActions';
-import { createDefaultFoundationSettings, normalizeRcFrameFoundationSettings, syncColumnHeightAbovePlinthForWallHeight } from '../domain/foundationElevations';
-import { createDefaultRoofSystemSettings, DEFAULT_ROOF_LAYER_VISIBILITY, normalizeRoofSystemSettings } from '../domain/roofSystemDefaults';
+import { createDefaultFoundationSettings, normalizeRcFrameFoundationSettings, resolveFoundationElevations, syncColumnHeightAbovePlinthForWallHeight } from '../domain/foundationElevations';
+import {
+  createDefaultRoofSystemSettings,
+  DEFAULT_ROOF_LAYER_VISIBILITY,
+  normalizeRoofSystemSettings,
+  syncRoofSystemTrussSpacing,
+} from '../domain/roofSystemDefaults';
 import { normalizeCmuInfillSystem, normalizeCmuInfillPlasterSettings } from '../domain/infillPlaster';
 import FrameFoundationDimensionsModal from './FrameFoundationDimensionsModal';
 import { DoorConfigurationControls } from './DoorConfigurationControls';
@@ -749,6 +756,10 @@ export default function DesignBuilderPage({
 
   const resolvedPreset = useMemo(() => {
     const base = preset ?? createBlankCmuBuildingPreset();
+    const normalizedRoofSystem = syncRoofSystemTrussSpacing(
+      normalizeRoofSystemSettings(base.roofSystem ?? createDefaultRoofSystemSettings()),
+      base.truss.spacingMeters,
+    );
     return {
       ...base,
       wall: {
@@ -756,7 +767,7 @@ export default function DesignBuilderPage({
         openings: normalizeOpeningsHeadAlignment(base.wall.openings),
       },
       foundationSettings: normalizeRcFrameFoundationSettings(base.foundationSettings),
-      roofSystem: normalizeRoofSystemSettings(base.roofSystem ?? createDefaultRoofSystemSettings()),
+      roofSystem: normalizedRoofSystem,
     };
   }, [preset]);
   const wallLayout = resolvedPreset.wallLayout;
@@ -833,6 +844,14 @@ export default function DesignBuilderPage({
     () => generateDesignGeometry(designGeometryInput),
     [designGeometryInput],
   );
+  const maxPlywoodCeilingHeightMeters = useMemo(() => {
+    const foundation = normalizeRcFrameFoundationSettings(resolvedPreset.foundationSettings);
+    const elevations = resolveFoundationElevations({
+      foundation,
+      wallHeightMeters: effectiveWall.heightMeters,
+    });
+    return Math.max(0, elevations.roofBeamBottomY - foundation.plywoodCeiling.tubeSizeMeters);
+  }, [effectiveWall.heightMeters, resolvedPreset.foundationSettings]);
   const designLayoutBounds = useMemo(
     () =>
       deriveDesignLayoutBounds({
@@ -1633,18 +1652,13 @@ export default function DesignBuilderPage({
     finishUndoRedo(command, 'redo');
   }
 
-  function resolveActiveDrawNodeId(layout: DesignWallLayoutParameters): string | null {
-    if (layout.segments.length === 0) return layout.nodes[0]?.id ?? null;
-    return layout.segments[layout.segments.length - 1]?.endNodeId ?? null;
-  }
-
   function undoLastDrawSegment() {
     if (wallLayout.segments.length === 0) return;
     const next = removeLastSegment(wallLayout);
     mutateWallLayoutSilent(next);
     const nextActiveNodeId = resolveActiveDrawNodeId(next);
     setActiveDrawNodeId(nextActiveNodeId);
-    setDrawStartNodeId(next.segments.length > 0 ? drawStartNodeId : next.nodes[0]?.id ?? null);
+    setDrawStartNodeId(next.segments.length > 0 ? drawStartNodeId : null);
     setDraftPlanEnd(null);
     setDraftSnapTarget(null);
     setDrawWallConstraintLabel(null);
@@ -1670,6 +1684,9 @@ export default function DesignBuilderPage({
         });
     if (!confirmed) return;
     commitWallLayout(closeFootprint(wallLayout), 'Close footprint', 'close_footprint');
+    setActiveDrawNodeId(null);
+    setDrawStartNodeId(null);
+    setDraftPlanEnd(null);
     if (!hasUserAdjustedPlanViewRef.current) issueViewCommand('fit');
     pending3dFitRef.current = true;
   }
@@ -1830,6 +1847,7 @@ export default function DesignBuilderPage({
       moduleLengthMeters: moduleLength,
       pixelsPerMeter: planViewport.zoom,
       altHeld: options?.altHeld,
+      segmentFrames: planSegmentFrames,
       drawContext: options?.includeDrawContext
         ? {
             activeNodeId: activeDrawNodeId,
@@ -2039,7 +2057,7 @@ export default function DesignBuilderPage({
         issueViewCommand('fit');
         pending3dFitRef.current = true;
       }
-      setActiveDrawNodeId(next.segments.at(-1)?.endNodeId ?? null);
+      setActiveDrawNodeId(resolveActiveDrawNodeId(next));
       if (snapTarget.type === 'line') {
         setStatus({ tone: 'info', message: 'Line snap selected. Segment split coming later.' });
       }
@@ -2625,6 +2643,19 @@ export default function DesignBuilderPage({
         'masonry_settings_update',
       );
     }
+    if (payload.plywoodCeiling) {
+      applyPresetPatch(
+        (current) => ({
+          ...current,
+          foundationSettings: {
+            ...normalizeRcFrameFoundationSettings(current.foundationSettings),
+            plywoodCeiling: payload.plywoodCeiling!,
+          },
+        }),
+        'Edit plywood ceiling',
+        'masonry_settings_update',
+      );
+    }
     void setActiveMaterialSelections(normalized).then(() => {
       setMaterialRevision((revision) => revision + 1);
     });
@@ -2888,10 +2919,24 @@ export default function DesignBuilderPage({
 
   function updateTrussSpacing(value: number) {
     applyPresetPatch(
-      (current) => ({
-        ...current,
-        truss: { ...current.truss, spacingMeters: positiveOrFallback(value, current.truss.spacingMeters) },
-      }),
+      (current) => {
+        const roofSystem = normalizeRoofSystemSettings(current.roofSystem ?? createDefaultRoofSystemSettings());
+        const spacingMeters = positiveOrFallback(
+          value,
+          roofSystem.steelTrusses.maxSpacingMeters || current.truss.spacingMeters,
+        );
+        return {
+          ...current,
+          truss: { ...current.truss, spacingMeters },
+          roofSystem: {
+            ...roofSystem,
+            steelTrusses: {
+              ...roofSystem.steelTrusses,
+              maxSpacingMeters: spacingMeters,
+            },
+          },
+        };
+      },
       'Edit structure settings',
       'structure_update',
     );
@@ -3000,6 +3045,20 @@ export default function DesignBuilderPage({
   function activateDrawWallTool() {
     closeDesignBuilderCommandMenus();
     ensureDrawWallOrthogonalDefault();
+    const shellComplete =
+      wallLayout.isFootprintClosed || detectClosedFootprint(wallLayout);
+    if (shellComplete && wallLayout.segments.length > 0) {
+      setActiveDrawNodeId(null);
+      setDrawStartNodeId(null);
+      setDraftPlanEnd(null);
+      setDraftSnapTarget(null);
+      setDrawWallConstraintLabel(null);
+      setDrawWallPreviewMetrics(null);
+      setOrthogonalClosureAssist(null);
+      setClosureCornerSnap(null);
+      lastSnapTargetRef.current = null;
+      setSegmentLengthInput('');
+    }
     setToolMode('draw_wall');
     setViewMode('plan');
   }
@@ -4488,11 +4547,16 @@ export default function DesignBuilderPage({
       appliedFloorTileFinish={
         normalizeRcFrameFoundationSettings(resolvedPreset.foundationSettings).floorTileFinish
       }
+      appliedPlywoodCeiling={
+        normalizeRcFrameFoundationSettings(resolvedPreset.foundationSettings).plywoodCeiling
+      }
       interiorFloorSlabEnabled={
         normalizeRcFrameFoundationSettings(resolvedPreset.foundationSettings).interiorFloorSlab.enabled
       }
       interiorFacePolygon={designGeometryResult.resolvedFootprint?.interiorFacePolygon ?? []}
       floorTileLayoutPreview={designGeometryResult.floorTileLayout ?? null}
+      plywoodCeilingLayoutPreview={designGeometryResult.plywoodCeilingLayout ?? null}
+      maxCeilingHeightMeters={maxPlywoodCeilingHeightMeters}
       onClose={() => setMaterialsModal((current) => ({ ...current, open: false }))}
       onApply={handleApplyMaterialSelections}
     />
@@ -4985,7 +5049,12 @@ function EditableControls({
   if (selectedObjectType === 'steel_truss_system') {
     return (
       <div className="space-y-3">
-        <NumberField label="Spacing" value={preset.truss.spacingMeters} suffix="m" onChange={onTrussSpacingChange} />
+        <NumberField
+          label="Spacing"
+          value={preset.roofSystem.steelTrusses.maxSpacingMeters}
+          suffix="m"
+          onChange={onTrussSpacingChange}
+        />
         <SelectField label="Type" value="steel_preview" onChange={() => undefined} options={[{ value: 'steel_preview', label: 'Steel truss preview' }]} />
       </div>
     );

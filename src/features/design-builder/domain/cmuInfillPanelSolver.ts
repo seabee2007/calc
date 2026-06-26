@@ -233,6 +233,7 @@ export function solveInfillPanelBlocks(params: {
     wall: params.wall,
     bondPattern,
     courseIndexOffset,
+    infillCenterlineInwardOffsetMeters: params.bounds.infillCenterlineInwardOffsetMeters,
   });
 
   const blocks = solved.blocks;

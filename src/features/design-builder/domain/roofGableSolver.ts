@@ -171,8 +171,8 @@ function stationWorldPoint(params: {
   stationMeters: number;
 }): { x: number; z: number } {
   return {
-    x: params.frame.start.x + params.frame.tangent.x * params.stationMeters,
-    z: params.frame.start.z + params.frame.tangent.z * params.stationMeters,
+    x: params.frame.centerlineStart.x + params.frame.tangent.x * params.stationMeters,
+    z: params.frame.centerlineStart.z + params.frame.tangent.z * params.stationMeters,
   };
 }
 

@@ -55,8 +55,8 @@ export function projectPointToSegmentStation(
   point: Pick<PlacementHitPoint, 'x' | 'z'>,
   frame: SegmentFrame,
 ): number {
-  const toHitX = point.x - frame.exteriorStart.x;
-  const toHitZ = point.z - frame.exteriorStart.z;
+  const toHitX = point.x - frame.centerlineStart.x;
+  const toHitZ = point.z - frame.centerlineStart.z;
   return toHitX * frame.tangent.x + toHitZ * frame.tangent.z;
 }
 
@@ -67,15 +67,9 @@ export function pointOnExteriorFace(
   verticalMeters = 0,
 ): { x: number; y: number; z: number } {
   return {
-    x:
-      frame.exteriorStart.x +
-      frame.tangent.x * alongMeters +
-      frame.outwardNormal.x * WALL_FACE_EPSILON_METERS,
+    x: frame.centerlineStart.x + frame.tangent.x * alongMeters,
     y: slabTopMeters + verticalMeters,
-    z:
-      frame.exteriorStart.z +
-      frame.tangent.z * alongMeters +
-      frame.outwardNormal.z * WALL_FACE_EPSILON_METERS,
+    z: frame.centerlineStart.z + frame.tangent.z * alongMeters,
   };
 }
 

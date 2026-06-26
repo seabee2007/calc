@@ -7,6 +7,7 @@ import {
   groupHasRoughOpeningGuide,
   groupHasSelectionOutline,
   readOpeningFrameOutlineDimensionsFromGroup,
+  resolveOpeningFrameCenterWorld,
   resolveOpeningFrame3dVisibility,
   resolveOpeningFrameOutlineDimensions,
   resolveRoughOpeningGuideDimensions,
@@ -102,6 +103,19 @@ describe('openingFrame3dGraphics', () => {
     expect(frameOutline.widthMeters).not.toBeCloseTo(roughGuide.widthMeters, 2);
     expect(frameOutline.heightMeters).not.toBeCloseTo(roughGuide.heightMeters, 2);
     expect(roughGuide.widthMeters).toBeGreaterThan(opening.actualWidthMeters);
+  });
+
+  it('applies host infill centerline offset to frame world center', () => {
+    const opening = sampleDoorOpening();
+    const center = resolveOpeningFrameCenterWorld(opening, {
+      centerlineStart: { x: 0, z: 0 },
+      tangent: { x: 1, z: 0 },
+      inwardNormal: { x: 0, z: 1 },
+      infillCenterlineInwardOffsetMeters: -0.015,
+    });
+
+    expect(center.x).toBeCloseTo((opening.actualStartAlongMeters + opening.actualEndAlongMeters) / 2, 6);
+    expect(center.z).toBeCloseTo(-0.015, 6);
   });
 
   it('deselecting removes the teal outline', () => {

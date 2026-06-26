@@ -155,6 +155,44 @@ describe('designBuilderPersistence', () => {
     expect(restored.foundationSettings.isolatedFootings.widthMeters).toBe(1.4);
   });
 
+  it('uses stored legacy truss spacing as canonical roof-system truss spacing on reload', () => {
+    const preset = rcPreset();
+    const staleMetadata = serializePersistedDesignBuilderState({
+      ...preset,
+      roofSystem: {
+        ...preset.roofSystem,
+        steelTrusses: {
+          ...preset.roofSystem.steelTrusses,
+          maxSpacingMeters: 2.4,
+        },
+      },
+    });
+    const objects: DesignModelObject[] = [
+      {
+        id: 'truss-1',
+        designModelId: 'model-1',
+        projectId: 'project-1',
+        objectType: 'steel_truss_system',
+        name: 'Steel Truss System',
+        parentObjectId: null,
+        parameters: { ...preset.truss, spacingMeters: 0.6 },
+        quantitySummary: {},
+        estimateMapping: {},
+        geometryCache: null,
+        createdAt: '',
+        updatedAt: '',
+      },
+    ];
+
+    const restored = presetFromStoredDesign({
+      objects,
+      persistedState: staleMetadata,
+    });
+
+    expect(restored.truss.spacingMeters).toBeCloseTo(0.6, 6);
+    expect(restored.roofSystem.steelTrusses.maxSpacingMeters).toBeCloseTo(0.6, 6);
+  });
+
   it('reports save state labels for dirty and saved flows', () => {
     expect(saveStateLabel('unsaved')).toBe('Unsaved changes');
     expect(saveStateLabel('saved')).toBe('Saved');

@@ -9,6 +9,7 @@ import type {
 import {
   analyzeRectangularFootprint,
   distancePointToLine2D,
+  filterExteriorGableEndSegmentIds,
   gableEndSegmentIdsForRidgeAxis,
   longEdgesAreEven,
   midpoint2,
@@ -785,7 +786,9 @@ export function resolveRoofSystem(params: {
     claddingRidgeEnd = gable.claddingRidgeEnd;
     ridgeStart = gable.claddingRidgeStart;
     ridgeEnd = gable.claddingRidgeEnd;
-    gableEndSegmentIds = settings.gable.enabled ? gable.gableEndSegmentIds : [];
+    gableEndSegmentIds = settings.gable.enabled
+      ? filterExteriorGableEndSegmentIds(params.layout, gable.gableEndSegmentIds)
+      : [];
   } else {
     const hip = buildHipRoofPlanes({
       ridgeAxis: hipRidgeAxis,

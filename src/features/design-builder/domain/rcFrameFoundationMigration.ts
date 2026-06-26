@@ -9,6 +9,11 @@ import type {
 } from '../types';
 import { defaultInteriorFloorSlabSettings } from './interiorFloorSlab';
 import { defaultInteriorFloorTileSettings } from './floorTileCatalog';
+import { defaultPlywoodCeilingSettings } from './plywoodCeilingCatalog';
+import {
+  DEFAULT_RC_COLUMN_DEPTH_METERS,
+  DEFAULT_RC_COLUMN_WIDTH_METERS,
+} from './structuralFrameDefaults';
 
 /** @deprecated Intermediate persisted shape — tie beam drop lived on tieBeam + footings.dropBelowTieBeamMeters */
 type IntermediateRcFrameFoundationSettings = RcFrameFoundationSettings & {
@@ -43,6 +48,7 @@ function migrateIntermediateFoundationSettings(
     },
     interiorFloorSlab: defaultInteriorFloorSlabSettings(),
     floorTileFinish: defaultInteriorFloorTileSettings(),
+    plywoodCeiling: defaultPlywoodCeilingSettings(),
     roofBeam: settings.roofBeam,
     tieBeam: {
       enabled: settings.tieBeam.enabled,
@@ -77,10 +83,11 @@ export function migrateLegacyFoundationSettings(
     },
     interiorFloorSlab: defaultInteriorFloorSlabSettings(),
     floorTileFinish: defaultInteriorFloorTileSettings(),
+    plywoodCeiling: defaultPlywoodCeilingSettings(),
     roofBeam: {
       enabled: ringBeam?.enabled ?? true,
-      widthMeters: ringBeam?.widthMeters ?? 0.25,
-      depthMeters: ringBeam?.depthMeters ?? 0.3,
+      widthMeters: ringBeam?.widthMeters ?? DEFAULT_RC_COLUMN_WIDTH_METERS,
+      depthMeters: ringBeam?.depthMeters ?? DEFAULT_RC_COLUMN_DEPTH_METERS,
     },
     tieBeam: {
       enabled: true,
@@ -88,8 +95,9 @@ export function migrateLegacyFoundationSettings(
       depthMeters: 0.3,
     },
     columns: {
-      widthMeters: 0.35,
-      depthMeters: 0.35,
+      widthMeters: DEFAULT_RC_COLUMN_WIDTH_METERS,
+      depthMeters: DEFAULT_RC_COLUMN_DEPTH_METERS,
+      heightAbovePlinthMeters: 2.8 + (ringBeam?.depthMeters ?? DEFAULT_RC_COLUMN_DEPTH_METERS),
       placementMode: 'corners_only',
     },
     isolatedFootings: {
@@ -148,6 +156,10 @@ function ensurePlinthBeamFollowFlags(settings: RcFrameFoundationSettings): RcFra
       ...defaultInteriorFloorTileSettings(),
       ...settings.floorTileFinish,
     },
+    plywoodCeiling: {
+      ...defaultPlywoodCeilingSettings(),
+      ...settings.plywoodCeiling,
+    },
     columns: {
       ...settings.columns,
       heightAbovePlinthMeters:
@@ -169,10 +181,11 @@ export function createDefaultRcFrameFoundationSettings(): RcFrameFoundationSetti
     },
     interiorFloorSlab: defaultInteriorFloorSlabSettings(),
     floorTileFinish: defaultInteriorFloorTileSettings(),
+    plywoodCeiling: defaultPlywoodCeilingSettings(),
     roofBeam: {
       enabled: true,
-      widthMeters: 0.25,
-      depthMeters: 0.3,
+      widthMeters: DEFAULT_RC_COLUMN_WIDTH_METERS,
+      depthMeters: DEFAULT_RC_COLUMN_DEPTH_METERS,
     },
     tieBeam: {
       enabled: true,
@@ -180,9 +193,9 @@ export function createDefaultRcFrameFoundationSettings(): RcFrameFoundationSetti
       depthMeters: 0.3,
     },
     columns: {
-      widthMeters: 0.35,
-      depthMeters: 0.35,
-      heightAbovePlinthMeters: 3.1,
+      widthMeters: DEFAULT_RC_COLUMN_WIDTH_METERS,
+      depthMeters: DEFAULT_RC_COLUMN_DEPTH_METERS,
+      heightAbovePlinthMeters: 2.8 + DEFAULT_RC_COLUMN_DEPTH_METERS,
       placementMode: 'corners_only',
     },
     isolatedFootings: {

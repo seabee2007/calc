@@ -181,6 +181,7 @@ export function applyFrameFoundationDimensions(
   payload: FrameFoundationDimensionsApplyPayload,
 ): CmuBuildingPreset {
   const foundation = normalizeRcFrameFoundationSettings(payload.foundation);
+  const roofSystem = normalizeRoofSystemSettings(payload.roofSystem);
   const layoutWallHeight =
     preset.wallLayout.defaultWallHeightMeters || preset.wall.heightMeters;
   const effectiveWallHeight = resolveEffectiveWallHeightMeters({
@@ -195,7 +196,11 @@ export function applyFrameFoundationDimensions(
       ...preset,
       buildingSystemMode: 'reinforced_concrete_frame_with_cmu_infill',
       foundationSettings: foundation,
-      roofSystem: normalizeRoofSystemSettings(payload.roofSystem),
+      roofSystem,
+      truss: {
+        ...preset.truss,
+        spacingMeters: roofSystem.steelTrusses.maxSpacingMeters,
+      },
       wallLayout: syncedLayout,
       wall: { ...preset.wall, heightMeters: effectiveWallHeight },
       frameSystem: {

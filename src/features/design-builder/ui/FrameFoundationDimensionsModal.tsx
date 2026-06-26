@@ -828,7 +828,11 @@ export default function FrameFoundationDimensionsModal({
                     value={roofDraft.steelTrusses.maxSpacingMeters}
                     suffix="m"
                     error={fieldErrors.trussSpacing}
-                    onChange={(value) => patchSteelTrusses({ maxSpacingMeters: positiveOrFallback(value, 2.4) })}
+                    onChange={(value) =>
+                      patchSteelTrusses({
+                        maxSpacingMeters: positiveOrFallback(value, roofDraft.steelTrusses.maxSpacingMeters || 0.6),
+                      })
+                    }
                   />
                   <label className="block text-sm">
                     <span className={FORM_LABEL}>Steel Truss Profile / Description</span>

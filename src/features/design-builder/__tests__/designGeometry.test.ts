@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createBlankCmuBuildingPreset, createFiveBySixCmuBuildingPreset } from '../domain/designBuilderPreset';
+import { applyAutoFrameLayout } from '../domain/structureActions';
+import { normalizeRcFrameFoundationSettings } from '../domain/rcFrameFoundationMigration';
 import {
   buildClockwisePerimeter,
   buildCmuCoursePlans,
@@ -766,6 +768,53 @@ describe('Design Builder generated geometry', () => {
           expect(nextCourse?.ownerSegmentId).not.toBe(assembly.ownerSegmentId);
         });
     });
+  });
+
+  it('resolves exterior footprint when an interior partition creates a T-junction', () => {
+    const preset = applyAutoFrameLayout(createFiveBySixCmuBuildingPreset());
+    const foundation = normalizeRcFrameFoundationSettings(preset.foundationSettings);
+    const baseLayout = createOutsideFaceRectangleLayout({
+      lengthMeters: 6,
+      widthMeters: 5,
+      wallHeightMeters: preset.wall.heightMeters,
+      wallThicknessMeters: preset.wall.wallThicknessMeters,
+    });
+    const layoutWithPartition = addWallSegment(baseLayout, baseLayout.segments[3]!.startNodeId, 0, 0);
+    expect(layoutWithPartition.segments.length).toBe(5);
+
+    const framedPreset = applyAutoFrameLayout({ ...preset, wallLayout: layoutWithPartition });
+    const geometry = generateDesignGeometry(
+      buildDesignGeometryInputFromLayout({
+        wallLayout: framedPreset.wallLayout,
+        cmuSettings: { ...preset.wall, openings: [], lengthMeters: 6, widthMeters: 5, bondPattern: 'running_bond' },
+        openings: [],
+        slabSettings: preset.slab,
+        roofSettings: preset.roof,
+        trussSettings: preset.truss,
+        buildingSystemMode: 'reinforced_concrete_frame_with_cmu_infill',
+        frameSystem: framedPreset.frameSystem,
+        foundationSettings: foundation,
+        infillSystem: framedPreset.infillSystem,
+        gableEndSystem: framedPreset.gableEndSystem,
+        roofSystem: framedPreset.roofSystem,
+      }),
+    );
+
+    expect(geometry.resolvedFootprint).not.toBeNull();
+    expect(geometry.resolvedFootprint?.interiorFacePolygon.length).toBeGreaterThanOrEqual(3);
+    expect(geometry.exteriorFootprint.length).toBeGreaterThanOrEqual(3);
+    expect(geometry.wallCmuLayout.segmentFrames?.length).toBe(5);
+    expect(framedPreset.frameSystem.columns.length).toBe(4);
+    expect(geometry.resolvedRoofSystem?.gableEndSegmentIds.every((id) =>
+      layoutWithPartition.segments.some((segment) => segment.id === id),
+    )).toBe(true);
+    const interiorSegmentId = layoutWithPartition.segments.at(-1)!.id;
+    expect(geometry.resolvedRoofSystem?.gableEndSegmentIds).not.toContain(interiorSegmentId);
+    expect(
+      geometry.blockInstances.some(
+        (block) => block.segmentId === interiorSegmentId && block.source === 'gable_end_solver',
+      ),
+    ).toBe(false);
   });
 
   it('stair-steps wall-run cuts near the middle without using terminal closures', () => {

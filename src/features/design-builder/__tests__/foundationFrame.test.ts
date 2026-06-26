@@ -69,6 +69,8 @@ describe('RC frame foundation — plinth / roof / tie beams', () => {
     const migrated = migrateLegacyFoundationSettings(legacy);
     expect(migrated.plinthBeam.widthMeters).toBe(0.4);
     expect(migrated.plinthBeam.depthMeters).toBe(0.5);
+    expect(migrated.roofBeam.widthMeters).toBe(migrated.columns.widthMeters);
+    expect(migrated.roofBeam.depthMeters).toBe(migrated.columns.depthMeters);
     expect(migrated.isolatedFootings.dropBelowPlinthBeamMeters).toBeGreaterThan(0);
   });
 

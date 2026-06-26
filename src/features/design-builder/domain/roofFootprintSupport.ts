@@ -377,12 +377,12 @@ function outerFaceLineForBeam(frame: SegmentFrame, beam: StructuralBeam): { star
   const outward = frame.outwardNormal;
   return {
     start: {
-      x: frame.centerlineStart.x + outward.x * half,
-      z: frame.centerlineStart.z + outward.z * half,
+      x: beam.startPoint.x + outward.x * half,
+      z: beam.startPoint.z + outward.z * half,
     },
     end: {
-      x: frame.centerlineEnd.x + outward.x * half,
-      z: frame.centerlineEnd.z + outward.z * half,
+      x: beam.endPoint.x + outward.x * half,
+      z: beam.endPoint.z + outward.z * half,
     },
   };
 }
@@ -642,6 +642,39 @@ export function gableEndSegmentIdsForRidgeAxis(
   const ridgeParallelToLocalX =
     (ridgeAxis === 'localX' && evenLong) || (ridgeAxis === 'localZ' && !evenLong);
   return ridgeParallelToLocalX ? analysis.localZSegmentIds : analysis.localXSegmentIds;
+}
+
+function exteriorSegmentIdSet(layout: DesignWallLayoutParameters): Set<string> {
+  const exteriorIds = new Set<string>();
+  const first = layout.segments[0];
+  if (!first) {
+    return new Set(layout.segments.map((segment) => segment.id));
+  }
+
+  const startNodeId = first.startNodeId;
+  let currentNodeId = startNodeId;
+  const used = new Set<string>();
+
+  while (used.size < layout.segments.length) {
+    const next = layout.segments.find(
+      (segment) => !used.has(segment.id) && segment.startNodeId === currentNodeId,
+    );
+    if (!next) break;
+    exteriorIds.add(next.id);
+    used.add(next.id);
+    currentNodeId = next.endNodeId;
+    if (currentNodeId === startNodeId) break;
+  }
+
+  return exteriorIds.size > 0 ? exteriorIds : new Set(layout.segments.map((segment) => segment.id));
+}
+
+export function filterExteriorGableEndSegmentIds(
+  layout: DesignWallLayoutParameters,
+  segmentIds: readonly string[],
+): string[] {
+  const exteriorIds = exteriorSegmentIdSet(layout);
+  return segmentIds.filter((segmentId) => exteriorIds.has(segmentId));
 }
 
 export function projectToLocal(point: PlanVec2, origin: PlanVec2, localX: PlanVec2, localZ: PlanVec2): PlanVec2 {

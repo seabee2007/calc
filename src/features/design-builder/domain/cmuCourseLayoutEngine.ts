@@ -134,8 +134,18 @@ export function blockFromPanelUnit(params: {
   blockType: CmuBlockInstance['blockType'];
   kind?: CmuUnitPlacement['kind'];
   source?: CmuUnitPlacement['source'];
+  infillCenterlineInwardOffsetMeters?: number;
 }): CmuBlockInstance {
   const centerStation = params.stationMeters + params.nominalLengthMeters / 2;
+  const infillCenterlineInwardOffsetMeters = params.infillCenterlineInwardOffsetMeters ?? 0;
+  const blockX =
+    params.frame.centerlineStart.x +
+    params.frame.tangent.x * centerStation +
+    params.frame.inwardNormal.x * infillCenterlineInwardOffsetMeters;
+  const blockZ =
+    params.frame.centerlineStart.z +
+    params.frame.tangent.z * centerStation +
+    params.frame.inwardNormal.z * infillCenterlineInwardOffsetMeters;
   const y = params.courseBottomElevationMeters + params.physicalHeightMeters / 2;
   const unitType =
     params.kind === 'cut_height_block'
@@ -169,15 +179,9 @@ export function blockFromPanelUnit(params: {
         : params.panel.infillZone === 'above_grade'
           ? 'above_grade'
           : 'main',
-    x:
-      params.frame.exteriorStart.x +
-      params.frame.tangent.x * centerStation +
-      params.frame.inwardNormal.x * (params.frame.wallThicknessMeters / 2),
+    x: blockX,
     y,
-    z:
-      params.frame.exteriorStart.z +
-      params.frame.tangent.z * centerStation +
-      params.frame.inwardNormal.z * (params.frame.wallThicknessMeters / 2),
+    z: blockZ,
     rotationY: params.frame.rotationY,
     lengthMeters: params.actualLengthMeters,
     startAlongMeters: params.stationMeters,
@@ -200,6 +204,7 @@ export function layoutHorizontalCourseUnits(params: {
   bondDatumStationMeters?: number;
   counters: CourseLayoutCounters;
   source?: CmuUnitPlacement['source'];
+  infillCenterlineInwardOffsetMeters?: number;
 }): CmuBlockInstance[] {
   const bondDatum = params.bondDatumStationMeters ?? params.panel.startStationMeters;
   const cells = buildRunningBondModuleGrid({
@@ -237,6 +242,7 @@ export function layoutHorizontalCourseUnits(params: {
         blockType: clippedBlock.blockType,
         kind: params.isTopClosure ? 'cut_height_block' : clippedBlock.kind,
         source: params.isTopClosure ? 'panel_top_closure' : params.source,
+        infillCenterlineInwardOffsetMeters: params.infillCenterlineInwardOffsetMeters,
       }),
     );
     moduleIndex += 1;
@@ -271,6 +277,8 @@ export function layoutHorizontalCourseUnitsForInterval(params: {
   counters: CourseLayoutCounters;
   source: CmuUnitPlacement['source'];
   warnings: string[];
+  isTopClosure?: boolean;
+  infillCenterlineInwardOffsetMeters?: number;
 }): CmuBlockInstance[] {
   const cells = buildRunningBondModuleGrid({
     bondDatumStationMeters: params.bondDatumStationMeters,
@@ -310,12 +318,15 @@ export function layoutHorizontalCourseUnitsForInterval(params: {
         courseBottomElevationMeters: params.courseBottomElevationMeters,
         physicalHeightMeters: params.physicalHeightMeters,
         blockType: clippedBlock.blockType,
-        kind: clippedBlock.kind,
+        kind: params.isTopClosure ? 'cut_height_block' : clippedBlock.kind,
         source: params.source,
+        infillCenterlineInwardOffsetMeters: params.infillCenterlineInwardOffsetMeters,
       }),
     );
     moduleIndex += 1;
-    if (clippedBlock.blockType === 'full') {
+    if (params.isTopClosure) {
+      params.counters.topClosure += 1;
+    } else if (clippedBlock.blockType === 'full') {
       params.counters.full += 1;
     } else if (clippedBlock.blockType === 'half') {
       params.counters.half += 1;

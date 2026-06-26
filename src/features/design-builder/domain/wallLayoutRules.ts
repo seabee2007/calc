@@ -586,6 +586,13 @@ export function detectClosedFootprint(layout: DesignWallLayoutParameters): boole
   return values.every((count) => count === 2);
 }
 
+/** Next draw anchor when resuming an open chain; null when the user must pick a start on existing geometry. */
+export function resolveActiveDrawNodeId(layout: DesignWallLayoutParameters): string | null {
+  if (layout.segments.length === 0) return null;
+  if (layout.isFootprintClosed || detectClosedFootprint(layout)) return null;
+  return layout.segments.at(-1)?.endNodeId ?? null;
+}
+
 function segmentIntersection(
   aStart: { x: number; z: number },
   aEnd: { x: number; z: number },

@@ -6,7 +6,17 @@ import {
   resolveInteriorFloorTileSettings,
 } from '../domain/floorTileCatalog';
 import { resolveFloorTileLayout } from '../domain/floorTileLayout';
-import type { InteriorFloorTileSettings, ResolvedFloorTileLayout } from '../types';
+import {
+  DEFAULT_PLYWOOD_CEILING_COLOR,
+  resolvePlywoodCeilingSettings,
+} from '../domain/plywoodCeilingCatalog';
+import { resolvePlywoodCeilingLayout } from '../domain/plywoodCeilingLayout';
+import type {
+  InteriorFloorTileSettings,
+  PlywoodCeilingSettings,
+  ResolvedFloorTileLayout,
+  ResolvedPlywoodCeilingLayout,
+} from '../types';
 import {
   DEFAULT_DESIGN_MATERIAL_SELECTION,
   designMaterialSelectionsEqual,
@@ -27,6 +37,7 @@ export type MaterialsFinishesScope = 'all' | 'interior' | 'exterior';
 export type MaterialsColorsApplyPayload = {
   selections: DesignMaterialSelection;
   floorTileFinish?: InteriorFloorTileSettings;
+  plywoodCeiling?: PlywoodCeilingSettings;
 };
 
 export type MaterialsColorsModalProps = {
@@ -34,9 +45,12 @@ export type MaterialsColorsModalProps = {
   scope?: MaterialsFinishesScope;
   appliedSelections: DesignMaterialSelection;
   appliedFloorTileFinish?: InteriorFloorTileSettings;
+  appliedPlywoodCeiling?: PlywoodCeilingSettings;
   interiorFloorSlabEnabled?: boolean;
   interiorFacePolygon?: readonly { x: number; z: number }[];
   floorTileLayoutPreview?: ResolvedFloorTileLayout | null;
+  plywoodCeilingLayoutPreview?: ResolvedPlywoodCeilingLayout | null;
+  maxCeilingHeightMeters?: number;
   onClose: () => void;
   onApply: (payload: MaterialsColorsApplyPayload) => void;
 };
@@ -180,6 +194,25 @@ function floorTileSettingsEqual(
   );
 }
 
+function plywoodCeilingSettingsEqual(
+  left: PlywoodCeilingSettings,
+  right: PlywoodCeilingSettings,
+): boolean {
+  return (
+    left.enabled === right.enabled &&
+    left.ceilingHeightMeters === right.ceilingHeightMeters &&
+    left.plywoodColor === right.plywoodColor &&
+    left.sheetWidthMeters === right.sheetWidthMeters &&
+    left.sheetLengthMeters === right.sheetLengthMeters &&
+    left.sheetThicknessMeters === right.sheetThicknessMeters &&
+    left.braceSpacingMeters === right.braceSpacingMeters &&
+    left.tubeSizeMeters === right.tubeSizeMeters &&
+    left.staggerOffsetMeters === right.staggerOffsetMeters &&
+    left.panelGapMeters === right.panelGapMeters &&
+    left.wasteFactor === right.wasteFactor
+  );
+}
+
 function MaterialOptionRow({
   option,
   selected,
@@ -300,6 +333,137 @@ function CategorySection({
             onSelect={(tintId) => onChangeTint(config.tintField, tintId)}
           />
         </div>
+      ) : null}
+    </section>
+  );
+}
+
+function PlywoodCeilingSection({
+  plywoodCeilingDraft,
+  interiorFacePolygon,
+  plywoodCeilingLayoutPreview,
+  maxCeilingHeightMeters,
+  onChangePlywoodCeiling,
+}: {
+  plywoodCeilingDraft: PlywoodCeilingSettings;
+  interiorFacePolygon: readonly { x: number; z: number }[];
+  plywoodCeilingLayoutPreview: ResolvedPlywoodCeilingLayout | null;
+  maxCeilingHeightMeters?: number;
+  onChangePlywoodCeiling: (patch: Partial<PlywoodCeilingSettings>) => void;
+}) {
+  const layoutPreview = useMemo(() => {
+    if (interiorFacePolygon.length >= 3) {
+      return resolvePlywoodCeilingLayout({
+        interiorFacePolygon,
+        plywoodCeiling: plywoodCeilingDraft,
+        maxCeilingHeightMeters,
+      });
+    }
+    return plywoodCeilingLayoutPreview;
+  }, [
+    interiorFacePolygon,
+    maxCeilingHeightMeters,
+    plywoodCeilingDraft,
+    plywoodCeilingLayoutPreview,
+  ]);
+
+  return (
+    <section className="space-y-4 md:col-span-2">
+      <div>
+        <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Plywood Ceiling</h3>
+        <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+          Metal tube frame with 2&apos; OC cross bracing and staggered 4&apos; × 8&apos; plywood panels on the
+          underside.
+        </p>
+      </div>
+
+      <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
+        <input
+          type="checkbox"
+          checked={plywoodCeilingDraft.enabled}
+          onChange={(event) => onChangePlywoodCeiling({ enabled: event.target.checked })}
+        />
+        Enable plywood ceiling
+      </label>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className="block space-y-1 text-sm">
+          <span className="font-medium text-slate-700 dark:text-slate-200">Ceiling height</span>
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+              value={plywoodCeilingDraft.ceilingHeightMeters}
+              min={0.5}
+              max={maxCeilingHeightMeters ?? 10}
+              step={0.05}
+              disabled={!plywoodCeilingDraft.enabled}
+              onChange={(event) =>
+                onChangePlywoodCeiling({
+                  ceilingHeightMeters: Number.parseFloat(event.target.value) || 0.5,
+                })
+              }
+            />
+            <span className="text-xs text-slate-500">m</span>
+          </div>
+          {maxCeilingHeightMeters != null ? (
+            <span className="text-xs text-slate-500 dark:text-slate-400">
+              Max clear height: {maxCeilingHeightMeters.toFixed(2)} m
+            </span>
+          ) : null}
+        </label>
+
+        <label className="block space-y-1 text-sm">
+          <span className="font-medium text-slate-700 dark:text-slate-200">Plywood finish color</span>
+          <div className="flex items-center gap-2">
+            <input
+              type="color"
+              className="h-10 w-12 cursor-pointer rounded border border-slate-200 dark:border-slate-700"
+              value={plywoodCeilingDraft.plywoodColor}
+              disabled={!plywoodCeilingDraft.enabled}
+              onChange={(event) => onChangePlywoodCeiling({ plywoodColor: event.target.value })}
+            />
+            <input
+              type="text"
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 font-mono text-sm dark:border-slate-700 dark:bg-slate-900"
+              value={plywoodCeilingDraft.plywoodColor}
+              disabled={!plywoodCeilingDraft.enabled}
+              onChange={(event) => onChangePlywoodCeiling({ plywoodColor: event.target.value })}
+            />
+          </div>
+          <button
+            type="button"
+            className="text-xs text-cyan-700 hover:underline dark:text-cyan-300"
+            disabled={!plywoodCeilingDraft.enabled}
+            onClick={() => onChangePlywoodCeiling({ plywoodColor: DEFAULT_PLYWOOD_CEILING_COLOR })}
+          >
+            Reset to default plywood
+          </button>
+        </label>
+      </div>
+
+      {plywoodCeilingDraft.enabled && layoutPreview?.enabled ? (
+        <dl className="grid gap-1 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-300">
+          <div className="flex justify-between gap-2">
+            <dt>Panels (full / cut)</dt>
+            <dd className="font-mono">
+              {layoutPreview.fullPanelCount} / {layoutPreview.cutPanelCount}
+            </dd>
+          </div>
+          <div className="flex justify-between gap-2">
+            <dt>Cross braces</dt>
+            <dd className="font-mono">
+              {layoutPreview.frameMembers.filter((member) => member.kind === 'cross_brace').length}
+            </dd>
+          </div>
+          <div className="flex justify-between gap-2">
+            <dt>Order qty (waste)</dt>
+            <dd className="font-mono">{layoutPreview.orderPanelCount}</dd>
+          </div>
+          {layoutPreview.warnings.length ? (
+            <div className="pt-1 text-amber-700 dark:text-amber-300">{layoutPreview.warnings.join(' ')}</div>
+          ) : null}
+        </dl>
       ) : null}
     </section>
   );
@@ -450,9 +614,12 @@ export default function MaterialsColorsModal({
   scope = 'all',
   appliedSelections,
   appliedFloorTileFinish,
+  appliedPlywoodCeiling,
   interiorFloorSlabEnabled = true,
   interiorFacePolygon = [],
   floorTileLayoutPreview = null,
+  plywoodCeilingLayoutPreview = null,
+  maxCeilingHeightMeters,
   onClose,
   onApply,
 }: MaterialsColorsModalProps) {
@@ -462,15 +629,20 @@ export default function MaterialsColorsModal({
   const [floorTileDraft, setFloorTileDraft] = useState<InteriorFloorTileSettings>(() =>
     resolveInteriorFloorTileSettings(appliedFloorTileFinish),
   );
+  const [plywoodCeilingDraft, setPlywoodCeilingDraft] = useState<PlywoodCeilingSettings>(() =>
+    resolvePlywoodCeilingSettings(appliedPlywoodCeiling),
+  );
   const visibleCategories = useMemo(() => categoryConfigsForScope(scope), [scope]);
   const modalCopy = MODAL_COPY[scope];
   const showFloorTileSection = scope === 'interior' || scope === 'all';
+  const showPlywoodCeilingSection = scope === 'interior' || scope === 'all';
 
   useEffect(() => {
     if (!isOpen) return;
     setDraft(normalizeDesignMaterialSelection(appliedSelections));
     setFloorTileDraft(resolveInteriorFloorTileSettings(appliedFloorTileFinish));
-  }, [appliedFloorTileFinish, appliedSelections, isOpen]);
+    setPlywoodCeilingDraft(resolvePlywoodCeilingSettings(appliedPlywoodCeiling));
+  }, [appliedFloorTileFinish, appliedPlywoodCeiling, appliedSelections, isOpen]);
 
   const hasChanges = useMemo(() => {
     const selectionChanged = !designMaterialSelectionsEqual(draft, appliedSelections);
@@ -480,13 +652,22 @@ export default function MaterialsColorsModal({
         floorTileDraft,
         resolveInteriorFloorTileSettings(appliedFloorTileFinish),
       );
-    return selectionChanged || floorTileChanged;
+    const plywoodCeilingChanged =
+      showPlywoodCeilingSection &&
+      !plywoodCeilingSettingsEqual(
+        plywoodCeilingDraft,
+        resolvePlywoodCeilingSettings(appliedPlywoodCeiling),
+      );
+    return selectionChanged || floorTileChanged || plywoodCeilingChanged;
   }, [
     appliedFloorTileFinish,
+    appliedPlywoodCeiling,
     appliedSelections,
     draft,
     floorTileDraft,
+    plywoodCeilingDraft,
     showFloorTileSection,
+    showPlywoodCeilingSection,
   ]);
 
   function updateMaterial(field: MaterialSelectionField, materialId: string) {
@@ -500,6 +681,10 @@ export default function MaterialsColorsModal({
 
   function updateFloorTile(patch: Partial<InteriorFloorTileSettings>) {
     setFloorTileDraft((current) => resolveInteriorFloorTileSettings({ ...current, ...patch }));
+  }
+
+  function updatePlywoodCeiling(patch: Partial<PlywoodCeilingSettings>) {
+    setPlywoodCeilingDraft((current) => resolvePlywoodCeilingSettings({ ...current, ...patch }));
   }
 
   return (
@@ -523,6 +708,7 @@ export default function MaterialsColorsModal({
             onClick={() => {
               setDraft(normalizeDesignMaterialSelection(DEFAULT_DESIGN_MATERIAL_SELECTION));
               setFloorTileDraft(resolveInteriorFloorTileSettings(undefined));
+              setPlywoodCeilingDraft(resolvePlywoodCeilingSettings(undefined));
             }}
             className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
           >
@@ -537,6 +723,9 @@ export default function MaterialsColorsModal({
                 floorTileFinish: showFloorTileSection
                   ? resolveInteriorFloorTileSettings(floorTileDraft)
                   : undefined,
+                plywoodCeiling: showPlywoodCeilingSection
+                  ? resolvePlywoodCeilingSettings(plywoodCeilingDraft)
+                  : undefined,
               })
             }
             className="rounded-lg bg-cyan-600 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-50"
@@ -547,6 +736,15 @@ export default function MaterialsColorsModal({
       }
     >
       <div className="grid gap-6 md:grid-cols-2">
+        {showPlywoodCeilingSection ? (
+          <PlywoodCeilingSection
+            plywoodCeilingDraft={plywoodCeilingDraft}
+            interiorFacePolygon={interiorFacePolygon}
+            plywoodCeilingLayoutPreview={plywoodCeilingLayoutPreview}
+            maxCeilingHeightMeters={maxCeilingHeightMeters}
+            onChangePlywoodCeiling={updatePlywoodCeiling}
+          />
+        ) : null}
         {showFloorTileSection ? (
           <FloorTileSection
             selections={draft}

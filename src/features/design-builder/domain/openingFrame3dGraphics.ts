@@ -97,12 +97,21 @@ export function resolveOpeningFrame3dVisibility(params: {
 
 export function resolveOpeningFrameCenterWorld(
   opening: Pick<ResolvedCmuOpening, 'actualStartAlongMeters' | 'actualEndAlongMeters'>,
-  hostSegmentFrame: Pick<SegmentFrame, 'centerlineStart' | 'tangent'>,
+  hostSegmentFrame: Pick<SegmentFrame, 'centerlineStart' | 'tangent' | 'inwardNormal'> & {
+    infillCenterlineInwardOffsetMeters?: number;
+  },
 ): { x: number; z: number } {
   const actualCenterStation = (opening.actualStartAlongMeters + opening.actualEndAlongMeters) / 2;
+  const infillCenterlineOffset = hostSegmentFrame.infillCenterlineInwardOffsetMeters ?? 0;
   return {
-    x: hostSegmentFrame.centerlineStart.x + hostSegmentFrame.tangent.x * actualCenterStation,
-    z: hostSegmentFrame.centerlineStart.z + hostSegmentFrame.tangent.z * actualCenterStation,
+    x:
+      hostSegmentFrame.centerlineStart.x +
+      hostSegmentFrame.tangent.x * actualCenterStation +
+      hostSegmentFrame.inwardNormal.x * infillCenterlineOffset,
+    z:
+      hostSegmentFrame.centerlineStart.z +
+      hostSegmentFrame.tangent.z * actualCenterStation +
+      hostSegmentFrame.inwardNormal.z * infillCenterlineOffset,
   };
 }
 
@@ -116,7 +125,9 @@ export function createOpeningFrame3dGroup(
     selected?: boolean;
     hovered?: boolean;
     showOpeningLayout?: boolean;
-    hostSegmentFrame?: Pick<SegmentFrame, 'centerlineStart' | 'tangent' | 'rotationY'>;
+    hostSegmentFrame?: Pick<SegmentFrame, 'centerlineStart' | 'tangent' | 'inwardNormal' | 'rotationY'> & {
+      infillCenterlineInwardOffsetMeters?: number;
+    };
   },
 ): THREE.Group {
   const preview = options?.preview ?? false;
@@ -232,12 +243,15 @@ export function createOpeningRoughOpeningGuideGroup(
   opening: ResolvedCmuOpening,
   wall: CmuWallSystemParameters,
   slabTop: number,
+  hostSegmentFrame?: Pick<SegmentFrame, 'centerlineStart' | 'tangent' | 'inwardNormal' | 'rotationY'> & {
+    infillCenterlineInwardOffsetMeters?: number;
+  },
 ): THREE.Group {
   const group = new THREE.Group();
   group.userData.openingRoughOpeningGuideGroup = true;
   const centerY = slabTop + opening.actualBottomMeters + opening.actualHeightMeters / 2;
   addRoughOpeningGuideChildren(group, opening, wall.wallThicknessMeters);
-  positionOpeningFrameGroup(group, opening, wall, centerY, undefined);
+  positionOpeningFrameGroup(group, opening, wall, centerY, hostSegmentFrame);
   return group;
 }
 
@@ -282,7 +296,9 @@ function positionOpeningFrameGroup(
   opening: ResolvedCmuOpening,
   wall: CmuWallSystemParameters,
   centerY: number,
-  hostSegmentFrame?: Pick<SegmentFrame, 'centerlineStart' | 'tangent' | 'rotationY'>,
+  hostSegmentFrame?: Pick<SegmentFrame, 'centerlineStart' | 'tangent' | 'inwardNormal' | 'rotationY'> & {
+    infillCenterlineInwardOffsetMeters?: number;
+  },
 ): void {
   const actualCenterStation = (opening.actualStartAlongMeters + opening.actualEndAlongMeters) / 2;
   const roughCenterStation = (opening.roughStartAlongMeters + opening.roughEndAlongMeters) / 2;

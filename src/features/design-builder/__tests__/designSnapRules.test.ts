@@ -4,6 +4,9 @@ import {
   resolveDesignSnapPoint,
 } from '../domain/designSnapRules';
 import { createOutsideFaceRectangleLayout, createBlankWallLayout, createEmptyWallLayout } from '../domain/wallLayoutRules';
+import { createFiveBySixCmuBuildingPreset } from '../domain/designBuilderPreset';
+import { getSegmentFramesForWallLayout } from '../geometry/designGeometry';
+import { buildPlanDisplayNodeById } from '../domain/planOpeningGraphics';
 
 describe('designSnapRules', () => {
   it('chooses an existing node over grid snap when both are nearby', () => {
@@ -40,18 +43,50 @@ describe('designSnapRules', () => {
 
   it('projects to the nearest wall segment line within capture distance', () => {
     const layout = createOutsideFaceRectangleLayout({ lengthMeters: 6, widthMeters: 5 });
+    const preset = createFiveBySixCmuBuildingPreset();
+    const frames = getSegmentFramesForWallLayout(layout, preset.wall);
     const southSegment = layout.segments[0];
     const target = resolveDesignSnapPoint({
       layout,
+      segmentFrames: frames,
       point: { x: 0.7, z: -2.38 },
+      snapMode: 'off',
+      pixelsPerMeter: 48,
+    });
+    const southFrame = frames.find((frame) => frame.segmentId === southSegment.id)!;
+    const expectedZ = southFrame.centerlineStart.z;
+
+    expect(target.type).toBe('line');
+    expect(target.sourceId).toBe(southSegment.id);
+    expect(target.point.x).toBeCloseTo(0.7, 6);
+    expect(target.point.z).toBeCloseTo(expectedZ, 6);
+    expect(target.point.z).not.toBeCloseTo(layout.nodes[0].z, 6);
+  });
+
+  it('matches wall line snap to the same centerline shown in plan view', () => {
+    const layout = createOutsideFaceRectangleLayout({ lengthMeters: 6, widthMeters: 5 });
+    const preset = createFiveBySixCmuBuildingPreset();
+    const frames = getSegmentFramesForWallLayout(layout, preset.wall);
+    const planDisplayNodeById = buildPlanDisplayNodeById({
+      layout,
+      framesBySegmentId: new Map(frames.map((frame) => [frame.segmentId, frame])),
+    });
+    const westSegment = layout.segments[3]!;
+    const displayStart = planDisplayNodeById.get(westSegment.startNodeId)!;
+    const displayEnd = planDisplayNodeById.get(westSegment.endNodeId)!;
+    const target = resolveDesignSnapPoint({
+      layout,
+      segmentFrames: frames,
+      point: { x: displayStart.x, z: 0 },
       snapMode: 'off',
       pixelsPerMeter: 48,
     });
 
     expect(target.type).toBe('line');
-    expect(target.sourceId).toBe(southSegment.id);
-    expect(target.point.x).toBeCloseTo(0.7, 6);
-    expect(target.point.z).toBeCloseTo(-2.5, 6);
+    expect(target.sourceId).toBe(westSegment.id);
+    expect(target.point.x).toBeCloseTo(displayStart.x, 6);
+    expect(Math.abs(target.point.z)).toBeLessThan(Math.abs(displayStart.z));
+    expect(Math.abs(target.point.z)).toBeLessThan(Math.abs(displayEnd.z));
   });
 
   it('uses CMU module snap only when CMU snap is enabled and pointer is within capture radius', () => {

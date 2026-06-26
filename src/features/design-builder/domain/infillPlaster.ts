@@ -81,6 +81,7 @@ export function resolveInfillPlasterPanelPlacements(params: {
   wallThicknessMeters?: number;
   plasterThicknessMeters?: number;
   renderBiasMeters?: number;
+  exteriorSegmentIds?: ReadonlySet<string>;
 }): InfillPlasterPanelPlacement[] {
   const infillSystem = normalizeCmuInfillSystem(params.infillSystem);
   const plaster = infillSystem.plaster;
@@ -92,10 +93,29 @@ export function resolveInfillPlasterPanelPlacements(params: {
   const thicknessMeters = Math.max(0.001, params.plasterThicknessMeters ?? PLASTER_RENDER_THICKNESS_METERS);
   const renderBiasMeters = Math.max(0, params.renderBiasMeters ?? PLASTER_RENDER_BIAS_METERS);
   const panelEdgeFaceOverlapMeters = wallThicknessMeters > 0 ? wallThicknessMeters / 2 : 0;
+  const isExteriorHost = (hostSegmentId: string) =>
+    !params.exteriorSegmentIds || params.exteriorSegmentIds.has(hostSegmentId);
 
   return (params.panelBounds ?? []).flatMap((bounds) => {
     const panel = panelById.get(bounds.panelId);
     if (!panel || !isPlasterEligiblePanel(panel)) return [];
+    if (!isExteriorHost(bounds.hostSegmentId)) {
+      if (!plaster.interiorEnabled) return [];
+      const partitionFaceParams = {
+        bounds,
+        openings,
+        finish: plaster.interiorFinish,
+        profileLabel: plaster.interiorProfileLabel,
+        wallThicknessMeters,
+        thicknessMeters,
+        renderBiasMeters,
+        panelEdgeFaceOverlapMeters,
+      };
+      return [
+        ...createPanelFacePlacements({ ...partitionFaceParams, side: 'interior' }),
+        ...createPanelFacePlacements({ ...partitionFaceParams, side: 'exterior' }),
+      ];
+    }
     return [
       ...(plaster.enabled
         ? [
@@ -143,9 +163,16 @@ function isPlasterEligiblePanel(panel: CmuInfillPanel): boolean {
 }
 
 function pointAlongBounds(bounds: ResolvedInfillPanelBounds, stationMeters: number): { x: number; z: number } {
+  const infillCenterlineOffset = bounds.infillCenterlineInwardOffsetMeters ?? 0;
   return {
-    x: bounds.hostWallCenterlineStart.x + bounds.tangent.x * stationMeters,
-    z: bounds.hostWallCenterlineStart.z + bounds.tangent.z * stationMeters,
+    x:
+      bounds.hostWallCenterlineStart.x +
+      bounds.tangent.x * stationMeters +
+      bounds.inwardNormal.x * infillCenterlineOffset,
+    z:
+      bounds.hostWallCenterlineStart.z +
+      bounds.tangent.z * stationMeters +
+      bounds.inwardNormal.z * infillCenterlineOffset,
   };
 }
 
@@ -313,12 +340,18 @@ function openingPlasterCutRect(bounds: ResolvedInfillPanelBounds, opening: Plast
   };
 }
 
-function openingRoughRect(bounds: Pick<ResolvedInfillPanelBounds, 'startStationMeters' | 'endStationMeters' | 'bottomElevationMeters' | 'topElevationMeters'>, opening: PlasterOpening): PlasterRect {
+function openingFrameCutRect(
+  bounds: Pick<
+    ResolvedInfillPanelBounds,
+    'startStationMeters' | 'endStationMeters' | 'bottomElevationMeters' | 'topElevationMeters'
+  >,
+  opening: PlasterOpening,
+): PlasterRect {
   return {
-    startStationMeters: Math.max(bounds.startStationMeters, opening.roughStartAlongMeters),
-    endStationMeters: Math.min(bounds.endStationMeters, opening.roughEndAlongMeters),
-    bottomElevationMeters: Math.max(bounds.bottomElevationMeters, opening.roughBottomMeters),
-    topElevationMeters: Math.min(bounds.topElevationMeters, opening.roughTopMeters),
+    startStationMeters: Math.max(bounds.startStationMeters, opening.actualStartAlongMeters),
+    endStationMeters: Math.min(bounds.endStationMeters, opening.actualEndAlongMeters),
+    bottomElevationMeters: Math.max(bounds.bottomElevationMeters, opening.actualBottomMeters),
+    topElevationMeters: Math.min(bounds.topElevationMeters, opening.actualTopMeters),
   };
 }
 
@@ -369,14 +402,18 @@ export function buildInfillWallProxyPieces(params: {
   wallThicknessMeters: number;
   hostSegmentId: string;
   openings: readonly PlasterOpening[];
+  trimStartMeters?: number;
+  trimEndMeters?: number;
 }): InfillWallProxyPiece[] {
+  const trimStartMeters = Math.max(0, params.trimStartMeters ?? 0);
+  const trimEndMeters = Math.max(0, params.trimEndMeters ?? 0);
   const segmentBounds: Pick<
     ResolvedInfillPanelBounds,
     'startStationMeters' | 'endStationMeters' | 'bottomElevationMeters' | 'topElevationMeters' | 'hostSegmentId'
   > = {
     hostSegmentId: params.hostSegmentId,
-    startStationMeters: 0,
-    endStationMeters: params.segmentLengthMeters,
+    startStationMeters: trimStartMeters,
+    endStationMeters: Math.max(trimStartMeters, params.segmentLengthMeters - trimEndMeters),
     bottomElevationMeters: 0,
     topElevationMeters: params.wallHeightMeters,
   };
@@ -393,7 +430,7 @@ export function buildInfillWallProxyPieces(params: {
   params.openings
     .filter((opening) => opening.wallSegmentId === params.hostSegmentId)
     .forEach((opening) => {
-      const cut = openingRoughRect(segmentBounds, opening);
+      const cut = openingFrameCutRect(segmentBounds, opening);
       if (cut.endStationMeters <= cut.startStationMeters || cut.topElevationMeters <= cut.bottomElevationMeters) {
         return;
       }

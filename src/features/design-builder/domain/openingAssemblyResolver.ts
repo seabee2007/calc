@@ -3,6 +3,7 @@ import type { ResolvedCmuOpening } from './cmuOpeningRules';
 import type { GroutFillPlacement } from './openingAssemblySolver';
 import { resolveLintelCourseIndex } from './openingAssemblySolver';
 import type { SegmentFrame } from '../geometry/designGeometry';
+import { resolveSegmentWallLayoutStart } from '../geometry/designGeometry';
 import type { CmuWallSystemParameters, DesignWallLayoutParameters, WallOpeningParameters } from '../types';
 import { wallFaceForSegment } from './layoutWallAdapter';
 
@@ -47,6 +48,8 @@ export type ResolvedOpeningAssembly = {
     segmentId: string;
     outsideFaceStart: Vec3;
     outsideFaceEnd: Vec3;
+    centerlineStart: Vec3;
+    centerlineEnd: Vec3;
     tangent: Vec3;
     outwardNormal: Vec3;
     inwardNormal: Vec3;
@@ -127,16 +130,11 @@ export function stationToWorldOnExteriorFace(
   sillHeightMeters: number,
   verticalMeters = 0,
 ): Vec3 {
+  const layoutStart = resolveSegmentWallLayoutStart(frame);
   return {
-    x:
-      frame.exteriorStart.x +
-      frame.tangent.x * centerStationMeters +
-      frame.outwardNormal.x * WALL_FACE_RENDER_EPSILON_METERS,
+    x: layoutStart.x + frame.tangent.x * centerStationMeters + frame.outwardNormal.x * WALL_FACE_RENDER_EPSILON_METERS,
     y: sillHeightMeters + verticalMeters,
-    z:
-      frame.exteriorStart.z +
-      frame.tangent.z * centerStationMeters +
-      frame.outwardNormal.z * WALL_FACE_RENDER_EPSILON_METERS,
+    z: layoutStart.z + frame.tangent.z * centerStationMeters + frame.outwardNormal.z * WALL_FACE_RENDER_EPSILON_METERS,
   };
 }
 
@@ -145,11 +143,10 @@ export function stationToWorldOnMidPlane(
   centerStationMeters: number,
   yMeters: number,
 ): Vec3 {
-  const inwardOffset = frame.wallThicknessMeters / 2;
   return {
-    x: frame.exteriorStart.x + frame.tangent.x * centerStationMeters + frame.inwardNormal.x * inwardOffset,
+    x: frame.centerlineStart.x + frame.tangent.x * centerStationMeters,
     y: yMeters,
-    z: frame.exteriorStart.z + frame.tangent.z * centerStationMeters + frame.inwardNormal.z * inwardOffset,
+    z: frame.centerlineStart.z + frame.tangent.z * centerStationMeters,
   };
 }
 
@@ -260,7 +257,11 @@ export function resolveOpeningAssembly(params: {
     : Math.max(0, sill - (params.anchor.roughHeightMeters - params.anchor.actualHeightMeters) / 2);
   const roughTop = roughBottom + params.anchor.roughHeightMeters;
 
-  const actualCenterWorld = stationToWorldOnExteriorFace(frame, actualCenterStation, slabTop, frameVertical);
+  const actualCenterWorld = stationToWorldOnMidPlane(
+    frame,
+    actualCenterStation,
+    slabTop + frameVertical,
+  );
   const roughCenterWorld = stationToWorldOnMidPlane(frame, roughCenterStation, slabTop + roughBottom + params.anchor.roughHeightMeters / 2);
 
   const moduleConfig = resolveCmuModuleConfig(params.masonrySettings);
@@ -275,6 +276,8 @@ export function resolveOpeningAssembly(params: {
       segmentId: frame.segmentId,
       outsideFaceStart: { x: frame.exteriorStart.x, y: 0, z: frame.exteriorStart.z },
       outsideFaceEnd: { x: frame.exteriorEnd.x, y: 0, z: frame.exteriorEnd.z },
+      centerlineStart: { x: frame.centerlineStart.x, y: 0, z: frame.centerlineStart.z },
+      centerlineEnd: { x: frame.centerlineEnd.x, y: 0, z: frame.centerlineEnd.z },
       tangent: { x: frame.tangent.x, y: 0, z: frame.tangent.z },
       outwardNormal: { x: frame.outwardNormal.x, y: 0, z: frame.outwardNormal.z },
       inwardNormal: { x: frame.inwardNormal.x, y: 0, z: frame.inwardNormal.z },
@@ -421,11 +424,11 @@ export function openingDraftFromAnchor(
 }
 
 export function stationAlongSegmentAxis(
-  frame: Pick<SegmentFrame, 'exteriorStart' | 'tangent'>,
+  frame: Pick<SegmentFrame, 'centerlineStart' | 'tangent'>,
   world: Pick<Vec3, 'x' | 'z'>,
 ): number {
-  const dx = world.x - frame.exteriorStart.x;
-  const dz = world.z - frame.exteriorStart.z;
+  const dx = world.x - frame.centerlineStart.x;
+  const dz = world.z - frame.centerlineStart.z;
   return dx * frame.tangent.x + dz * frame.tangent.z;
 }
 
@@ -439,11 +442,11 @@ export function assertOpeningHorizontalAlignment(assembly: ResolvedOpeningAssemb
   if (!import.meta.env.DEV) return;
   const frame = assembly.segmentFrame;
   const frameStation = stationAlongSegmentAxis(
-    { exteriorStart: frame.outsideFaceStart, tangent: frame.tangent },
+    { centerlineStart: frame.centerlineStart, tangent: frame.tangent },
     assembly.framePlacement.centerWorld,
   );
   const roughStation = stationAlongSegmentAxis(
-    { exteriorStart: frame.outsideFaceStart, tangent: frame.tangent },
+    { centerlineStart: frame.centerlineStart, tangent: frame.tangent },
     assembly.roughOpening.centerWorld,
   );
   const delta = Math.abs(frameStation - roughStation);

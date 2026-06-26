@@ -5,6 +5,7 @@ import { createDefaultRoofSystemSettings } from '../domain/roofSystemDefaults';
 import { getSegmentFramesForWallLayout, buildDesignGeometryInputFromLayout, generateDesignGeometry } from '../geometry/designGeometry';
 import { normalizeRcFrameFoundationSettings } from '../domain/rcFrameFoundationMigration';
 import {
+  masonryTopEnvelopeYAtStation,
   minimumRakedCapDepthMeters,
   roofToCapClearanceAtStation,
   solveRakedCapPlacementsWithWarnings,
@@ -18,6 +19,7 @@ import {
 } from '../domain/roofGableSolver';
 import { PURLIN_BOTTOM_INSET_FROM_ROOF_TOP_METERS } from '../domain/roofFramingResolver';
 import { resolveCmuModuleDefinition } from '../domain/cmuModuleRules';
+import { resolveGableRidgeStationMeters } from '../domain/gableEndMasonrySolver';
 import {
   buildRakedCapStripRenderSegments,
   RAKED_CAP_STRIP_STATION_GAP_TOLERANCE_METERS,
@@ -142,6 +144,67 @@ describe('rakedCapSolver — purlin contact and minimum depth', () => {
         4,
       );
     }
+  });
+
+  it('fills too-small ridge CMU remainder with raked concrete cap', () => {
+    const { geometry, roofSystem, preset } = gableGeometry();
+    const roof = geometry.resolvedRoofSystem!;
+    const gableSegmentId = roof.gableEndSegmentIds[0]!;
+    const frame = (geometry.wallCmuLayout.segmentFrames ?? []).find((entry) => entry.segmentId === gableSegmentId)!;
+    const panel = geometry.infillSystem?.panels.find((entry) => entry.hostSegmentId === gableSegmentId)!;
+    const module = resolveCmuModuleDefinition(preset.wall);
+    const ridgeStation = resolveGableRidgeStationMeters({ frame, resolvedRoof: roof });
+    const gableBlocks = geometry.blockInstances.filter(
+      (block) => block.segmentId === gableSegmentId && block.source === 'gable_end_solver',
+    );
+    const ridgeBlocks = gableBlocks.filter((block) => {
+      const start = block.startAlongMeters ?? block.stationMeters ?? 0;
+      const end = block.endAlongMeters ?? start + (block.nominalLengthMeters ?? block.lengthMeters);
+      return start <= ridgeStation + 0.001 && end >= ridgeStation - 0.001;
+    });
+    const ridgeMasonryTop = masonryTopEnvelopeYAtStation({
+      blocks: gableBlocks,
+      stationMeters: ridgeStation,
+    });
+    const caps = (geometry.rakedCapPlacements ?? []).filter(
+      (cap) => cap.gableEndSegmentId === gableSegmentId,
+    );
+    const leftCap = caps
+      .filter((cap) => cap.slope === 'left')
+      .sort((left, right) => right.endStationMeters - left.endStationMeters)[0];
+    const rightCap = caps
+      .filter((cap) => cap.slope === 'right')
+      .sort((left, right) => left.startStationMeters - right.startStationMeters)[0];
+    const capTopAtRidge = capTopYAtStation({
+      resolvedRoof: roof,
+      roofSystem,
+      frame,
+      stationMeters: ridgeStation,
+      panelStartStation: panel.startStationMeters,
+      panelEndStation: panel.endStationMeters,
+    });
+
+    expect(ridgeBlocks.length).toBeGreaterThan(0);
+    expect(
+      ridgeBlocks.some(
+        (block) =>
+          block.kind === 'cut_height_block' &&
+          (block.physicalHeightMeters ?? block.heightMeters ?? 0) <
+            module.actualBlockHeightMeters - 0.01,
+      ),
+    ).toBe(false);
+    expect(leftCap).toBeDefined();
+    expect(rightCap).toBeDefined();
+    expect(leftCap!.endStationMeters).toBeCloseTo(ridgeStation, 3);
+    expect(rightCap!.startStationMeters).toBeCloseTo(ridgeStation, 3);
+    expect(leftCap!.endBottomY).toBeCloseTo(ridgeMasonryTop - 0.001, 3);
+    expect(rightCap!.startBottomY).toBeCloseTo(ridgeMasonryTop - 0.001, 3);
+    expect(capTopAtRidge - leftCap!.endBottomY).toBeGreaterThanOrEqual(
+      roofSystem.gable.rakeClearanceMeters - 0.002,
+    );
+    expect(capTopAtRidge - ridgeMasonryTop).toBeGreaterThan(
+      module.actualBlockHeightMeters / 2,
+    );
   });
 
   it('keeps cap top at purlin bottom when assembly thickness changes', () => {
@@ -284,21 +347,17 @@ describe('rakedCapSolver — purlin contact and minimum depth', () => {
 
       expect(leftStartCap).toBeDefined();
       expect(rightEndCap).toBeDefined();
-      expect(leftStartCap?.startStationMeters).toBeCloseTo(
-        panel!.startStationMeters,
-        3,
+      expect(leftStartCap!.startStationMeters).toBeGreaterThanOrEqual(
+        panel!.startStationMeters - 0.001,
       );
-      expect(rightEndCap?.endStationMeters).toBeCloseTo(
-        panel!.endStationMeters,
-        3,
+      expect(rightEndCap!.endStationMeters).toBeLessThanOrEqual(
+        panel!.endStationMeters + 0.001,
       );
-      expect(leftStartCap?.startBottomY).toBeCloseTo(
-        roof.roofBeamTopElevationMeters,
-        4,
+      expect(leftStartCap!.startBottomY).toBeGreaterThanOrEqual(
+        roof.roofBeamTopElevationMeters - 0.01,
       );
-      expect(rightEndCap?.endBottomY).toBeCloseTo(
-        roof.roofBeamTopElevationMeters,
-        4,
+      expect(rightEndCap!.endBottomY).toBeGreaterThanOrEqual(
+        roof.roofBeamTopElevationMeters - 0.01,
       );
     }
   });

@@ -7,7 +7,10 @@ import {
 } from '../domain/structureActions';
 import { createDefaultRcFrameFoundationSettings } from '../domain/rcFrameFoundationMigration';
 import { createDefaultRoofSystemSettings } from '../domain/roofSystemDefaults';
-import { normalizeRcFrameFoundationSettings } from '../domain/foundationElevations';
+import {
+  normalizeRcFrameFoundationSettings,
+  resolveFoundationElevations,
+} from '../domain/foundationElevations';
 
 describe('Frame & Foundation Dimensions apply flow', () => {
   const preset = applyAutoFrameLayout(createFiveBySixCmuBuildingPreset());
@@ -61,5 +64,28 @@ describe('Frame & Foundation Dimensions apply flow', () => {
     const defaults = createDefaultRcFrameFoundationSettings();
     expect(defaults.plinthBeam.followsExteriorSegments).toBe(true);
     expect(defaults.plinthBeam.followsInteriorSegments).toBe(false);
+  });
+
+  it('defaults roof beam cross-section to match column dimensions', () => {
+    const defaults = createDefaultRcFrameFoundationSettings();
+    expect(defaults.roofBeam.widthMeters).toBe(defaults.columns.widthMeters);
+    expect(defaults.roofBeam.depthMeters).toBe(defaults.columns.depthMeters);
+
+    const elevations = resolveFoundationElevations({
+      foundation: defaults,
+      wallHeightMeters: 2.8,
+    });
+    expect(elevations.cmuClearHeightMeters).toBeCloseTo(2.8, 6);
+  });
+
+  it('generates default roof beams with the same cross-section as columns', () => {
+    const next = applyAutoFrameLayout(createFiveBySixCmuBuildingPreset());
+    const column = next.frameSystem.columns[0];
+    const roofBeam = next.frameSystem.beams.find((beam) => beam.kind === 'roof_beam');
+
+    expect(column).toBeDefined();
+    expect(roofBeam).toBeDefined();
+    expect(roofBeam?.widthMeters).toBeCloseTo(column?.widthMeters ?? 0, 6);
+    expect(roofBeam?.depthMeters).toBeCloseTo(column?.depthMeters ?? 0, 6);
   });
 });

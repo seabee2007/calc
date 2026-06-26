@@ -140,14 +140,8 @@ describe('structural frame + CMU infill milestone', () => {
     )!;
     const centerStation =
       ((roughDoor!.actualStartAlongMeters ?? 0) + (roughDoor!.actualEndAlongMeters ?? 0)) / 2;
-    const expectedX =
-      frame.exteriorStart.x +
-      frame.tangent.x * centerStation +
-      frame.inwardNormal.x * (frame.wallThicknessMeters / 2);
-    const expectedZ =
-      frame.exteriorStart.z +
-      frame.tangent.z * centerStation +
-      frame.inwardNormal.z * (frame.wallThicknessMeters / 2);
+    const expectedX = frame.centerlineStart.x + frame.tangent.x * centerStation;
+    const expectedZ = frame.centerlineStart.z + frame.tangent.z * centerStation;
     expect(roughDoor!.worldX).toBeCloseTo(expectedX, 3);
     expect(roughDoor!.worldZ).toBeCloseTo(expectedZ, 3);
   });

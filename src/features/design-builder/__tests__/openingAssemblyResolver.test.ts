@@ -33,8 +33,8 @@ describe('openingAssemblyResolver regression', () => {
     const { preset, frame } = createStraightWallLayout();
     const previewStation = frame.lengthMeters * 0.25;
     const hitPoint = {
-      x: frame.exteriorStart.x + frame.tangent.x * previewStation,
-      z: frame.exteriorStart.z + frame.tangent.z * previewStation,
+      x: frame.centerlineStart.x + frame.tangent.x * previewStation,
+      z: frame.centerlineStart.z + frame.tangent.z * previewStation,
     };
     const openingDefinition = {
       type: 'door' as const,

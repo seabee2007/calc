@@ -15,6 +15,7 @@ import {
   segmentAngleRadians,
   segmentLength,
 } from './wallLayoutRules';
+import { hasResolvableExteriorShell } from '../geometry/designGeometry';
 
 export function layoutFromPreset(preset: CmuBuildingPreset): DesignWallLayoutParameters {
   return createOutsideFaceRectangleLayout({
@@ -156,7 +157,9 @@ export function layoutCornerWarnings(layout: DesignWallLayoutParameters): string
 }
 
 export function canGenerateSlabAndRoof(layout: DesignWallLayoutParameters): boolean {
-  return layout.isFootprintClosed && layout.segments.length >= 3;
+  if (layout.segments.length < 3) return false;
+  const result = layout.isFootprintClosed || hasResolvableExteriorShell(layout);
+  return result;
 }
 
 export function slabParamsFromLayout(

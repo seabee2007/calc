@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { createFiveBySixCmuBuildingPreset } from '../domain/designBuilderPreset';
+import {
+  addWallSegment,
+  createOutsideFaceRectangleLayout,
+} from '../domain/wallLayoutRules';
 import { applyAutoFrameLayout } from '../domain/structureActions';
 import {
   beamSpanLengthMeters,
@@ -59,8 +63,8 @@ describe('infill panel bounds resolver', () => {
     const projectedHalf = columnProjectedHalfExtentAlongTangent(rectangularColumn, frame.tangent);
     const station = resolveInsideFaceStation({ column: rectangularColumn, frame, side: 'start' });
     const centerStation =
-      (column.position.x - frame.exteriorStart.x) * frame.tangent.x +
-      (column.position.z - frame.exteriorStart.z) * frame.tangent.z;
+      (column.position.x - frame.centerlineStart.x) * frame.tangent.x +
+      (column.position.z - frame.centerlineStart.z) * frame.tangent.z;
     expect(station).toBeCloseTo(centerStation + projectedHalf, 3);
   });
 
@@ -171,5 +175,29 @@ describe('infill panel bounds resolver', () => {
     );
     expect(geometry.blockCount).toBeGreaterThan(0);
     expect(geometry.resolvedInfillPanelBounds ?? []).toHaveLength(0);
+  });
+
+  it('insets interior partition infill from the exterior shell at a T-junction', () => {
+    const preset = applyAutoFrameLayout(createFiveBySixCmuBuildingPreset());
+    const baseLayout = createOutsideFaceRectangleLayout({
+      lengthMeters: 6,
+      widthMeters: 5,
+      wallHeightMeters: preset.wall.heightMeters,
+      wallThicknessMeters: preset.wall.wallThicknessMeters,
+    });
+    const layoutWithPartition = addWallSegment(baseLayout, baseLayout.segments[3]!.startNodeId, 0, 0);
+    const frames = getSegmentFramesForWallLayout(layoutWithPartition, preset.wall);
+    const interiorSegment = layoutWithPartition.segments.at(-1)!;
+    const expectedTrim = preset.wall.wallThicknessMeters / 2;
+
+    const bounds = resolveInfillPanelBoundsForLayout({
+      layout: layoutWithPartition,
+      segmentFrames: frames,
+      columns: preset.frameSystem.columns,
+      beams: preset.frameSystem.beams,
+    }).find((candidate) => candidate.hostSegmentId === interiorSegment.id)!;
+
+    expect(bounds.startStationMeters).toBeCloseTo(expectedTrim, 3);
+    expect(bounds.clearWidthMeters).toBeCloseTo(frames.find((frame) => frame.segmentId === interiorSegment.id)!.lengthMeters - expectedTrim, 3);
   });
 });

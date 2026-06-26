@@ -1,0 +1,422 @@
+﻿node.exe : npm warn Unknown env config "devdir". This will stop working in the next major version of npm. See `npm 
+help npmrc` for supported config options.
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Users\terre\AppData\Roaming\ ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (npm warn Unknow...config options.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+ RUN  v4.1.9 C:/dev/calc
+
+stdout | src/features/design-builder/__tests__/openingPartitionAlignment.test.ts > opening alignment on interior partitions > centers CMU blocks and door frame on the partition wall centerline
+ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ
+Γöé (index)                       Γöé Values                                                        Γöé
+Γö£ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöñ
+Γöé panelId                       Γöé 'infill-below-segment-b607ffd9-c88b-4def-8d7a-a4b959c60e10-0' Γöé
+Γöé hostSegmentId                 Γöé 'segment-b607ffd9-c88b-4def-8d7a-a4b959c60e10'                Γöé
+Γöé leftColumnId                  Γöé undefined                                                     Γöé
+Γöé rightColumnId                 Γöé undefined                                                     Γöé
+Γöé leftSupportInsideFaceStation  Γöé 0                                                             Γöé
+Γöé rightSupportInsideFaceStation Γöé 6                                                             Γöé
+Γöé panelStartStationMeters       Γöé 0                                                             Γöé
+Γöé panelEndStationMeters         Γöé 6                                                             Γöé
+Γöé clearWidthMeters              Γöé 6                                                             Γöé
+Γöé firstCmuStartStation          Γöé 0                                                             Γöé
+Γöé lastCmuEndStation             Γöé 6.000000000000001                                             Γöé
+Γöé bottomElevationMeters         Γöé -1.65                                                         Γöé
+Γöé topElevationMeters            Γöé -0.45                                                         Γöé
+ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö┤ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ
+ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ
+Γöé (index)                       Γöé Values                                                  Γöé
+Γö£ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöñ
+Γöé panelId                       Γöé 'infill-segment-b607ffd9-c88b-4def-8d7a-a4b959c60e10-0' Γöé
+Γöé hostSegmentId                 Γöé 'segment-b607ffd9-c88b-4def-8d7a-a4b959c60e10'          Γöé
+Γöé leftColumnId                  Γöé undefined                                               Γöé
+Γöé rightColumnId                 Γöé undefined                                               Γöé
+Γöé leftSupportInsideFaceStation  Γöé 0                                                       Γöé
+Γöé rightSupportInsideFaceStation Γöé 6                                                       Γöé
+Γöé panelStartStationMeters       Γöé 0                                                       Γöé
+Γöé panelEndStationMeters         Γöé 6                                                       Γöé
+Γöé clearWidthMeters              Γöé 6                                                       Γöé
+Γöé firstCmuStartStation          Γöé 0                                                       Γöé
+Γöé lastCmuEndStation             Γöé 6.000000000000001                                       Γöé
+Γöé bottomElevationMeters         Γöé 0                                                       Γöé
+Γöé topElevationMeters            Γöé 2.8                                                     Γöé
+ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö┤ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ
+ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ
+Γöé (index)                       Γöé Values                                                        Γöé
+Γö£ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöñ
+Γöé panelId                       Γöé 'infill-below-segment-5bcdcca6-a644-4b7c-a0e4-42b268e8bbac-1' Γöé
+Γöé hostSegmentId                 Γöé 'segment-5bcdcca6-a644-4b7c-a0e4-42b268e8bbac'                Γöé
+Γöé leftColumnId                  Γöé undefined                                                     Γöé
+Γöé rightColumnId                 Γöé undefined                                                     Γöé
+Γöé leftSupportInsideFaceStation  Γöé 0                                                             Γöé
+Γöé rightSupportInsideFaceStation Γöé 5                                                             Γöé
+Γöé panelStartStationMeters       Γöé 0                                                             Γöé
+Γöé panelEndStationMeters         Γöé 5                                                             Γöé
+Γöé clearWidthMeters              Γöé 5                                                             Γöé
+Γöé firstCmuStartStation          Γöé 0                                                             Γöé
+Γöé lastCmuEndStation             Γöé 5                                                             Γöé
+Γöé bottomElevationMeters         Γöé -1.65                                                         Γöé
+Γöé topElevationMeters            Γöé -0.45                                                         Γöé
+ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö┤ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ
+ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ
+Γöé (index)                       Γöé Values                                                  Γöé
+Γö£ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöñ
+Γöé panelId                       Γöé 'infill-segment-5bcdcca6-a644-4b7c-a0e4-42b268e8bbac-1' Γöé
+Γöé hostSegmentId                 Γöé 'segment-5bcdcca6-a644-4b7c-a0e4-42b268e8bbac'          Γöé
+Γöé leftColumnId                  Γöé undefined                                               Γöé
+Γöé rightColumnId                 Γöé undefined                                               Γöé
+Γöé leftSupportInsideFaceStation  Γöé 0                                                       Γöé
+Γöé rightSupportInsideFaceStation Γöé 5                                                       Γöé
+Γöé panelStartStationMeters       Γöé 0                                                       Γöé
+Γöé panelEndStationMeters         Γöé 5                                                       Γöé
+Γöé clearWidthMeters              Γöé 5                                                       Γöé
+Γöé firstCmuStartStation          Γöé 0                                                       Γöé
+Γöé lastCmuEndStation             Γöé 5                                                       Γöé
+Γöé bottomElevationMeters         Γöé 0                                                       Γöé
+Γöé topElevationMeters            Γöé 2.8                                                     Γöé
+ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö┤ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ
+ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ
+Γöé (index)                       Γöé Values                                                        Γöé
+Γö£ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöñ
+Γöé panelId                       Γöé 'infill-below-segment-7000fd5e-3d3a-47c1-987a-88e7800d61e2-2' Γöé
+Γöé hostSegmentId                 Γöé 'segment-7000fd5e-3d3a-47c1-987a-88e7800d61e2'                Γöé
+Γöé leftColumnId                  Γöé undefined                                                     Γöé
+Γöé rightColumnId                 Γöé undefined                                                     Γöé
+Γöé leftSupportInsideFaceStation  Γöé 0                                                             Γöé
+Γöé rightSupportInsideFaceStation Γöé 6                                                             Γöé
+Γöé panelStartStationMeters       Γöé 0                                                             Γöé
+Γöé panelEndStationMeters         Γöé 6                                                             Γöé
+Γöé clearWidthMeters              Γöé 6                                                             Γöé
+Γöé firstCmuStartStation          Γöé 0                                                             Γöé
+Γöé lastCmuEndStation             Γöé 6.000000000000001                                             Γöé
+Γöé bottomElevationMeters         Γöé -1.65                                                         Γöé
+Γöé topElevationMeters            Γöé -0.45                                                         Γöé
+ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö┤ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ
+ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ
+Γöé (index)                       Γöé Values                                                  Γöé
+Γö£ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöñ
+Γöé panelId                       Γöé 'infill-segment-7000fd5e-3d3a-47c1-987a-88e7800d61e2-2' Γöé
+Γöé hostSegmentId                 Γöé 'segment-7000fd5e-3d3a-47c1-987a-88e7800d61e2'          Γöé
+Γöé leftColumnId                  Γöé undefined                                               Γöé
+Γöé rightColumnId                 Γöé undefined                                               Γöé
+Γöé leftSupportInsideFaceStation  Γöé 0                                                       Γöé
+Γöé rightSupportInsideFaceStation Γöé 6                                                       Γöé
+Γöé panelStartStationMeters       Γöé 0                                                       Γöé
+Γöé panelEndStationMeters         Γöé 6                                                       Γöé
+Γöé clearWidthMeters              Γöé 6                                                       Γöé
+Γöé firstCmuStartStation          Γöé 0                                                       Γöé
+Γöé lastCmuEndStation             Γöé 6.000000000000001                                       Γöé
+Γöé bottomElevationMeters         Γöé 0                                                       Γöé
+Γöé topElevationMeters            Γöé 2.8                                                     Γöé
+ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö┤ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ
+ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ
+Γöé (index)                       Γöé Values                                                        Γöé
+Γö£ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöñ
+Γöé panelId                       Γöé 'infill-below-segment-63f17b24-b919-4e15-9179-0b538a83c241-3' Γöé
+Γöé hostSegmentId                 Γöé 'segment-63f17b24-b919-4e15-9179-0b538a83c241'                Γöé
+Γöé leftColumnId                  Γöé undefined                                                     Γöé
+Γöé rightColumnId                 Γöé undefined                                                     Γöé
+Γöé leftSupportInsideFaceStation  Γöé 0                                                             Γöé
+Γöé rightSupportInsideFaceStation Γöé 5                                                             Γöé
+Γöé panelStartStationMeters       Γöé 0                                                             Γöé
+Γöé panelEndStationMeters         Γöé 5                                                             Γöé
+Γöé clearWidthMeters              Γöé 5                                                             Γöé
+Γöé firstCmuStartStation          Γöé 0                                                             Γöé
+Γöé lastCmuEndStation             Γöé 5                                                             Γöé
+Γöé bottomElevationMeters         Γöé -1.65                                                         Γöé
+Γöé topElevationMeters            Γöé -0.45                                                         Γöé
+ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö┤ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ
+ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ
+Γöé (index)                       Γöé Values                                                  Γöé
+Γö£ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöñ
+Γöé panelId                       Γöé 'infill-segment-63f17b24-b919-4e15-9179-0b538a83c241-3' Γöé
+Γöé hostSegmentId                 Γöé 'segment-63f17b24-b919-4e15-9179-0b538a83c241'          Γöé
+Γöé leftColumnId                  Γöé undefined                                               Γöé
+Γöé rightColumnId                 Γöé undefined                                               Γöé
+Γöé leftSupportInsideFaceStation  Γöé 0                                                       Γöé
+Γöé rightSupportInsideFaceStation Γöé 5                                                       Γöé
+Γöé panelStartStationMeters       Γöé 0                                                       Γöé
+Γöé panelEndStationMeters         Γöé 5                                                       Γöé
+Γöé clearWidthMeters              Γöé 5                                                       Γöé
+Γöé firstCmuStartStation          Γöé 0                                                       Γöé
+Γöé lastCmuEndStation             Γöé 5                                                       Γöé
+Γöé bottomElevationMeters         Γöé 0                                                       Γöé
+Γöé topElevationMeters            Γöé 2.8                                                     Γöé
+ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö┤ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ
+ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ
+Γöé (index)                       Γöé Values                                                        Γöé
+Γö£ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöñ
+Γöé panelId                       Γöé 'infill-below-segment-cf795552-1143-4012-84c2-615dd8c8de38-4' Γöé
+Γöé hostSegmentId                 Γöé 'segment-cf795552-1143-4012-84c2-615dd8c8de38'                Γöé
+Γöé leftColumnId                  Γöé undefined                                                     Γöé
+Γöé rightColumnId                 Γöé undefined                                                     Γöé
+Γöé leftSupportInsideFaceStation  Γöé 0.095                                                         Γöé
+Γöé rightSupportInsideFaceStation Γöé 3.771345913596364                                             Γöé
+Γöé panelStartStationMeters       Γöé 0.095                                                         Γöé
+Γöé panelEndStationMeters         Γöé 3.771345913596364                                             Γöé
+Γöé clearWidthMeters              Γöé 3.676345913596364                                             Γöé
+Γöé firstCmuStartStation          Γöé 0.095                                                         Γöé
+Γöé lastCmuEndStation             Γöé 3.771345913596364                                             Γöé
+Γöé bottomElevationMeters         Γöé -1.65                                                         Γöé
+Γöé topElevationMeters            Γöé -0.45                                                         Γöé
+ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö┤ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ
+ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ
+Γöé (index)                       Γöé Values                                                  Γöé
+Γö£ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöñ
+Γöé panelId                       Γöé 'infill-segment-cf795552-1143-4012-84c2-615dd8c8de38-4' Γöé
+Γöé hostSegmentId                 Γöé 'segment-cf795552-1143-4012-84c2-615dd8c8de38'          Γöé
+Γöé leftColumnId                  Γöé undefined                                               Γöé
+Γöé rightColumnId                 Γöé undefined                                               Γöé
+Γöé leftSupportInsideFaceStation  Γöé 0.095                                                   Γöé
+Γöé rightSupportInsideFaceStation Γöé 3.771345913596364                                       Γöé
+Γöé panelStartStationMeters       Γöé 0.095                                                   Γöé
+Γöé panelEndStationMeters         Γöé 3.771345913596364                                       Γöé
+Γöé clearWidthMeters              Γöé 3.676345913596364                                       Γöé
+Γöé firstCmuStartStation          Γöé 0.095                                                   Γöé
+Γöé lastCmuEndStation             Γöé 3.771345913596364                                       Γöé
+Γöé bottomElevationMeters         Γöé 0                                                       Γöé
+Γöé topElevationMeters            Γöé 2.8                                                     Γöé
+ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö┤ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ
+voidBounds {
+  startAlongMeters: 1.2,
+  endAlongMeters: 2.4,
+  bottomMeters: 0,
+  topMeters: 2.1
+}
+overlapping [
+  {
+    id: 'infill-below-segment-cf795552-1143-4012-84c2-615dd8c8de38-4-c0-m2',
+    courseIndex: 0,
+    startAlong: 0.895,
+    endAlong: 1.295,
+    source: 'below_grade_rc_infill',
+    y: -1.555
+  },
+  {
+    id: 'infill-below-segment-cf795552-1143-4012-84c2-615dd8c8de38-4-c0-m3',
+    courseIndex: 0,
+    startAlong: 1.295,
+    endAlong: 1.6949999999999998,
+    source: 'below_grade_rc_infill',
+    y: -1.555
+  },
+  {
+    id: 'infill-below-segment-cf795552-1143-4012-84c2-615dd8c8de38-4-c0-m4',
+    courseIndex: 0,
+    startAlong: 1.6949999999999998,
+    endAlong: 2.0949999999999998,
+    source: 'below_grade_rc_infill',
+    y: -1.555
+  },
+  {
+    id: 'infill-below-segment-cf795552-1143-4012-84c2-615dd8c8de38-4-c0-m5',
+    courseIndex: 0,
+    startAlong: 2.0949999999999998,
+    endAlong: 2.4949999999999997,
+    source: 'below_grade_rc_infill',
+    y: -1.555
+  },
+  {
+    id: 'infill-below-segment-cf795552-1143-4012-84c2-615dd8c8de38-4-c1-m3',
+    courseIndex: 1,
+    startAlong: 1.0950000000000002,
+    endAlong: 1.495,
+    source: 'below_grade_rc_infill',
+    y: -1.355
+  },
+  {
+    id: 'infill-below-segment-cf795552-1143-4012-84c2-615dd8c8de38-4-c1-m4',
+    courseIndex: 1,
+    startAlong: 1.495,
+    endAlong: 1.895,
+    source: 'below_grade_rc_infill',
+    y: -1.355
+  },
+  {
+    id: 'infill-below-segment-cf795552-1143-4012-84c2-615dd8c8de38-4-c1-m5',
+    courseIndex: 1,
+    startAlong: 1.895,
+    endAlong: 2.295,
+    source: 'below_grade_rc_infill',
+    y: -1.355
+  },
+  {
+    id: 'infill-below-segment-cf795552-1143-4012-84c2-615dd8c8de38-4-c1-m6',
+    courseIndex: 1,
+    startAlong: 2.295,
+    endAlong: 2.695,
+    source: 'below_grade_rc_infill',
+    y: -1.355
+  },
+  {
+    id: 'infill-below-segment-cf795552-1143-4012-84c2-615dd8c8de38-4-c2-m2',
+    courseIndex: 2,
+    startAlong: 0.895,
+    endAlong: 1.295,
+    source: 'below_grade_rc_infill',
+    y: -1.155
+  },
+  {
+    id: 'infill-below-segment-cf795552-1143-4012-84c2-615dd8c8de38-4-c2-m3',
+    courseIndex: 2,
+    startAlong: 1.295,
+    endAlong: 1.6949999999999998,
+    source: 'below_grade_rc_infill',
+    y: -1.155
+  },
+  {
+    id: 'infill-below-segment-cf795552-1143-4012-84c2-615dd8c8de38-4-c2-m4',
+    courseIndex: 2,
+    startAlong: 1.6949999999999998,
+    endAlong: 2.0949999999999998,
+    source: 'below_grade_rc_infill',
+    y: -1.155
+  },
+  {
+    id: 'infill-below-segment-cf795552-1143-4012-84c2-615dd8c8de38-4-c2-m5',
+    courseIndex: 2,
+    startAlong: 2.0949999999999998,
+    endAlong: 2.4949999999999997,
+    source: 'below_grade_rc_infill',
+    y: -1.155
+  },
+  {
+    id: 'infill-below-segment-cf795552-1143-4012-84c2-615dd8c8de38-4-c3-m3',
+    courseIndex: 3,
+    startAlong: 1.0950000000000002,
+    endAlong: 1.495,
+    source: 'below_grade_rc_infill',
+    y: -0.9549999999999998
+  },
+  {
+    id: 'infill-below-segment-cf795552-1143-4012-84c2-615dd8c8de38-4-c3-m4',
+    courseIndex: 3,
+    startAlong: 1.495,
+    endAlong: 1.895,
+    source: 'below_grade_rc_infill',
+    y: -0.9549999999999998
+  },
+  {
+    id: 'infill-below-segment-cf795552-1143-4012-84c2-615dd8c8de38-4-c3-m5',
+    courseIndex: 3,
+    startAlong: 1.895,
+    endAlong: 2.295,
+    source: 'below_grade_rc_infill',
+    y: -0.9549999999999998
+  },
+  {
+    id: 'infill-below-segment-cf795552-1143-4012-84c2-615dd8c8de38-4-c3-m6',
+    courseIndex: 3,
+    startAlong: 2.295,
+    endAlong: 2.695,
+    source: 'below_grade_rc_infill',
+    y: -0.9549999999999998
+  },
+  {
+    id: 'infill-below-segment-cf795552-1143-4012-84c2-615dd8c8de38-4-c4-m2',
+    courseIndex: 4,
+    startAlong: 0.895,
+    endAlong: 1.295,
+    source: 'below_grade_rc_infill',
+    y: -0.7549999999999999
+  },
+  {
+    id: 'infill-below-segment-cf795552-1143-4012-84c2-615dd8c8de38-4-c4-m3',
+    courseIndex: 4,
+    startAlong: 1.295,
+    endAlong: 1.6949999999999998,
+    source: 'below_grade_rc_infill',
+    y: -0.7549999999999999
+  },
+  {
+    id: 'infill-below-segment-cf795552-1143-4012-84c2-615dd8c8de38-4-c4-m4',
+    courseIndex: 4,
+    startAlong: 1.6949999999999998,
+    endAlong: 2.0949999999999998,
+    source: 'below_grade_rc_infill',
+    y: -0.7549999999999999
+  },
+  {
+    id: 'infill-below-segment-cf795552-1143-4012-84c2-615dd8c8de38-4-c4-m5',
+    courseIndex: 4,
+    startAlong: 2.0949999999999998,
+    endAlong: 2.4949999999999997,
+    source: 'below_grade_rc_infill',
+    y: -0.7549999999999999
+  },
+  {
+    id: 'infill-below-segment-cf795552-1143-4012-84c2-615dd8c8de38-4-c5-m3',
+    courseIndex: 5,
+    startAlong: 1.0950000000000002,
+    endAlong: 1.495,
+    source: 'panel_top_closure',
+    y: -0.5499999999999999
+  },
+  {
+    id: 'infill-below-segment-cf795552-1143-4012-84c2-615dd8c8de38-4-c5-m4',
+    courseIndex: 5,
+    startAlong: 1.495,
+    endAlong: 1.895,
+    source: 'panel_top_closure',
+    y: -0.5499999999999999
+  },
+  {
+    id: 'infill-below-segment-cf795552-1143-4012-84c2-615dd8c8de38-4-c5-m5',
+    courseIndex: 5,
+    startAlong: 1.895,
+    endAlong: 2.295,
+    source: 'panel_top_closure',
+    y: -0.5499999999999999
+  },
+  {
+    id: 'infill-below-segment-cf795552-1143-4012-84c2-615dd8c8de38-4-c5-m6',
+    courseIndex: 5,
+    startAlong: 2.295,
+    endAlong: 2.695,
+    source: 'panel_top_closure',
+    y: -0.5499999999999999
+  },
+  {
+    id: 'infill-segment-cf795552-1143-4012-84c2-615dd8c8de38-4-c11-m4',
+    courseIndex: 11,
+    startAlong: 2.4,
+    endAlong: 2.695,
+    source: 'opening_jamb_closure',
+    y: 1.095
+  }
+]
+
+ Γ¥» src/features/design-builder/__tests__/openingPartitionAlignment.test.ts (1 test | 1 failed) 154ms
+     ├ù centers CMU blocks and door frame on the partition wall centerline 154ms
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 1 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/features/design-builder/__tests__/openingPartitionAlignment.test.ts > opening alignment on interior 
+partitions > centers CMU blocks and door frame on the partition wall centerline
+AssertionError: expected [ { ΓÇª(26) }, { ΓÇª(26) }, ΓÇª(23) ] to have a length of +0 but got 25
+
+- Expected
++ Received
+
+- 0
++ 25
+
+ Γ¥» src/features/design-builder/__tests__/openingPartitionAlignment.test.ts:148:31
+    146|       })));
+    147|     }
+    148|     expect(overlappingBlocks).toHaveLength(0);
+       |                               ^
+    149|
+    150|     const plasterPlacements = resolveInfillPlasterPanelPlacements({
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/1]ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  05:55:47
+   Duration  1.90s (transform 517ms, setup 73ms, import 593ms, tests 154ms, environment 541ms)
+

@@ -1477,13 +1477,26 @@ export function summarizeGroutFillPlacements(params: {
 }
 
 export function pointOnSegmentFrame(
-  frame: SegmentFrameLike,
+  frame: SegmentFrameLike & { centerlineStart?: { x: number; z: number } },
   alongMeters: number,
   inwardOffsetMeters: number,
 ): { x: number; z: number } {
+  const halfThickness = frame.wallThicknessMeters / 2;
+  if (frame.centerlineStart && Math.abs(inwardOffsetMeters - halfThickness) <= 0.001) {
+    return {
+      x: frame.centerlineStart.x + frame.tangent.x * alongMeters,
+      z: frame.centerlineStart.z + frame.tangent.z * alongMeters,
+    };
+  }
+  const layoutStart = frame.centerlineStart
+    ? {
+        x: frame.centerlineStart.x - frame.inwardNormal.x * halfThickness,
+        z: frame.centerlineStart.z - frame.inwardNormal.z * halfThickness,
+      }
+    : frame.start;
   return {
-    x: frame.start.x + frame.tangent.x * alongMeters + frame.inwardNormal.x * inwardOffsetMeters,
-    z: frame.start.z + frame.tangent.z * alongMeters + frame.inwardNormal.z * inwardOffsetMeters,
+    x: layoutStart.x + frame.tangent.x * alongMeters + frame.inwardNormal.x * inwardOffsetMeters,
+    z: layoutStart.z + frame.tangent.z * alongMeters + frame.inwardNormal.z * inwardOffsetMeters,
   };
 }
 

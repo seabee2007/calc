@@ -6,8 +6,10 @@ import { createFiveBySixCmuBuildingPreset } from '../domain/designBuilderPreset'
 import { applyAutoFrameLayout } from '../domain/structureActions';
 import { createDefaultRoofSystemSettings } from '../domain/roofSystemDefaults';
 import { buildRunningBondModuleGrid, clipGridCellsToInterval, UNDERSIZED_CUT_WARNING_CODE } from '../domain/cmuCourseLayoutEngine';
+import { resolveInfillPanelsWithBounds } from '../domain/cmuInfillPanelSolver';
 import {
   resolveGableCourseInterval,
+  resolveGableRidgeStationMeters,
   solveGableEndMasonryBlocks,
 } from '../domain/gableEndMasonrySolver';
 import { resolveRoofSystem } from '../domain/roofSystemResolver';
@@ -77,10 +79,11 @@ describe('gableEndMasonrySolver', () => {
 
     const verticalBelowBeam = resolvePanelVerticalCourses({
       panelBottomElevationMeters: panel!.bottomElevationMeters,
-      panelTopElevationMeters: roofBeamTop,
+      panelTopElevationMeters: panel!.topElevationMeters,
       nominalCourseHeightMeters: module.nominalModuleHeightMeters,
     });
-    const firstGableCourseIndex = verticalBelowBeam.fullCourseCount;
+    const firstGableCourseIndex =
+      verticalBelowBeam.fullCourseCount + (verticalBelowBeam.hasTopClosureCourse ? 1 : 0);
 
     const roofSystem = {
       ...createDefaultRoofSystemSettings(),
@@ -131,7 +134,7 @@ describe('gableEndMasonrySolver', () => {
     }
   });
 
-  it('tiles from wall bond datum rather than centering under the ridge', () => {
+  it('centers the top gable course under the roof ridge with running bond continuity', () => {
     const preset = applyAutoFrameLayout(createFiveBySixCmuBuildingPreset());
     const segmentFrames = getSegmentFramesForWallLayout(preset.wallLayout, preset.wall);
     const module = resolveCmuModuleDefinition(preset.wall);
@@ -157,7 +160,19 @@ describe('gableEndMasonrySolver', () => {
       roofBeamTopElevationMeters: roofBeamTop,
     });
     const gableSegmentId = resolvedRoof.gableEndSegmentIds[0]!;
-    const gablePanel = preset.infillSystem.panels.find((entry) => entry.hostSegmentId === gableSegmentId)!;
+    const panelEntries = resolveInfillPanelsWithBounds({
+      layout: preset.wallLayout,
+      segmentFrames,
+      columns: preset.frameSystem.columns,
+      beams: preset.frameSystem.beams,
+      wall: preset.wall,
+      foundation: normalizeRcFrameFoundationSettings(preset.foundationSettings),
+      existingPanels: preset.infillSystem.panels,
+    });
+    const gablePanel = panelEntries.find(
+      (entry) =>
+        entry.panel.hostSegmentId === gableSegmentId && entry.panel.infillZone === 'above_grade',
+    )!.panel;
     const frame = segmentFrames.find((entry) => entry.segmentId === gableSegmentId)!;
     const result = solveGableEndMasonryBlocks({
       panel: gablePanel,
@@ -167,18 +182,79 @@ describe('gableEndMasonrySolver', () => {
       resolvedRoof,
       roofBeamTopElevationMeters: roofBeamTop,
     });
-    const firstCourse = result.blocks.filter(
-      (block) => block.courseIndex === result.layoutDebug[0]?.courseIndex,
-    );
-    const fullOrHalf = firstCourse.filter((block) => block.blockType === 'full' || block.blockType === 'half');
-    expect(fullOrHalf.length).toBeGreaterThan(0);
+    const ridge = resolveGableRidgeStationMeters({ frame, resolvedRoof });
     const nominal = module.nominalModuleLengthMeters;
-    for (const block of fullOrHalf) {
-      const station = block.stationMeters ?? block.startAlongMeters ?? 0;
-      const offsetFromDatum = (station - gablePanel.startStationMeters) % nominal;
-      expect(offsetFromDatum === 0 || Math.abs(offsetFromDatum - nominal / 2) < 0.01).toBe(true);
+    const topCourseIndex = Math.max(...result.blocks.map((block) => block.courseIndex ?? 0));
+    const topBlocks = result.blocks.filter((block) => (block.courseIndex ?? 0) === topCourseIndex);
+    const topSpanStart = Math.min(...topBlocks.map((b) => b.stationMeters ?? 0));
+    const topSpanEnd = Math.max(
+      ...topBlocks.map(
+        (b) => (b.stationMeters ?? 0) + (b.nominalLengthMeters ?? b.lengthMeters),
+      ),
+    );
+    const topSpanCenter = (topSpanStart + topSpanEnd) / 2;
+    expect(Math.abs(topSpanCenter - ridge)).toBeLessThan(nominal / 2);
+    expect(result.layoutDebug[0]?.bondOffsetMeters).toBeCloseTo(
+      (result.layoutDebug[0]!.courseIndex % 2 === 1 ? nominal / 2 : 0),
+      3,
+    );
+    expect(result.layoutDebug.length).toBeGreaterThan(1);
+    if (result.layoutDebug[1]!.courseIndex % 2 === 1) {
+      expect(result.layoutDebug[1]?.bondOffsetMeters).toBeCloseTo(nominal / 2, 3);
     }
   });
+
+  it('adds a cut-height top closure row on both exterior gable ends from roof-beam top', () => {
+    const preset = applyAutoFrameLayout(createFiveBySixCmuBuildingPreset());
+    const foundation = normalizeRcFrameFoundationSettings(preset.foundationSettings);
+    const module = resolveCmuModuleDefinition(preset.wall);
+    const roofSystem = {
+      ...createDefaultRoofSystemSettings(),
+      roofType: 'gable' as const,
+      gable: { ...createDefaultRoofSystemSettings().gable, enabled: true, rakedConcreteCapEnabled: true },
+    };
+    const geometry = generateDesignGeometry(
+      buildDesignGeometryInputFromLayout({
+        wallLayout: preset.wallLayout,
+        cmuSettings: preset.wall,
+        slabSettings: preset.slab,
+        roofSettings: preset.roof,
+        trussSettings: preset.truss,
+        buildingSystemMode: 'reinforced_concrete_frame_with_cmu_infill',
+        frameSystem: preset.frameSystem,
+        foundationSettings: foundation,
+        infillSystem: preset.infillSystem,
+        gableEndSystem: preset.gableEndSystem,
+        roofSystem,
+      }),
+    );
+    const roof = geometry.resolvedRoofSystem;
+    expect(roof?.gableEndSegmentIds).toHaveLength(2);
+    const roofBeamTop = geometry.frameSystem.beams.find((beam) => beam.kind === 'roof_beam')?.topElevationMeters;
+    expect(roofBeamTop).toBeDefined();
+
+    for (const segmentId of roof!.gableEndSegmentIds) {
+      const segmentBlocks = geometry.blockInstances.filter(
+        (block) => block.segmentId === segmentId && block.source === 'gable_end_solver',
+      );
+      expect(segmentBlocks.length).toBeGreaterThan(0);
+      const firstBottom = Math.min(
+        ...segmentBlocks.map((block) => block.y - (block.physicalHeightMeters ?? block.heightMeters ?? 0) / 2),
+      );
+      expect(firstBottom).toBeCloseTo(roofBeamTop!, 3);
+
+      const topCourseIndex = Math.max(...segmentBlocks.map((block) => block.courseIndex ?? 0));
+      const topCourseBlocks = segmentBlocks.filter((block) => (block.courseIndex ?? 0) === topCourseIndex);
+      expect(topCourseBlocks.length).toBeGreaterThan(0);
+      expect(topCourseBlocks.every((block) => block.kind === 'cut_height_block')).toBe(true);
+      expect(
+        topCourseBlocks.every(
+          (block) => (block.physicalHeightMeters ?? block.heightMeters ?? 0) < module.actualBlockHeightMeters,
+        ),
+      ).toBe(true);
+    }
+  });
+
 });
 
 describe('gable CMU viewer regression', () => {
@@ -212,6 +288,25 @@ describe('gable CMU viewer regression', () => {
     expect(viewerSource).not.toMatch(/resolvedRoof\.roofType === 'hip'[\s\S]{0,160}soffit/i);
   });
 
+  it('keeps gable CMU visible when smooth wall proxy is active', () => {
+    const viewerSource = readFileSync(
+      join(__dirname, '..', 'ui', 'DesignBuilderViewer.tsx'),
+      'utf8',
+    );
+    expect(viewerSource).toContain('resolveVisibleCmuBlockInstances');
+    expect(viewerSource).toContain('if (!params.showCmuInfill) return gableEndBlocks');
+    expect(viewerSource).toContain('params.blockInstances.filter(isGableEndCmuBlock)');
+    expect(viewerSource).toContain('if (showCmuInfill && !currentWall.showIndividualBlocks)');
+  });
+
+  it('renders the raked cap as a two-sided interior-visible concrete fill', () => {
+    const viewerSource = readFileSync(
+      join(__dirname, '..', 'ui', 'DesignBuilderViewer.tsx'),
+      'utf8',
+    );
+    expect(viewerSource).toContain('capMaterial.side = THREE.DoubleSide');
+  });
+
   it('routes roof gable CMU through blockInstances', () => {
     const preset = applyAutoFrameLayout(createFiveBySixCmuBuildingPreset());
     const foundation = normalizeRcFrameFoundationSettings(preset.foundationSettings);
@@ -223,7 +318,7 @@ describe('gable CMU viewer regression', () => {
     const geometry = generateDesignGeometry(
       buildDesignGeometryInputFromLayout({
         wallLayout: preset.wallLayout,
-        cmuSettings: preset.wall,
+        cmuSettings: { ...preset.wall, showIndividualBlocks: false },
         slabSettings: preset.slab,
         roofSettings: preset.roof,
         trussSettings: preset.truss,
@@ -270,7 +365,7 @@ describe('resolveGableCourseInterval', () => {
     const gableSegmentId = resolvedRoof.gableEndSegmentIds[0]!;
     const gablePanel = preset.infillSystem.panels.find((entry) => entry.hostSegmentId === gableSegmentId)!;
     const frame = segmentFrames.find((entry) => entry.segmentId === gableSegmentId)!;
-    const ridge = (gablePanel.startStationMeters + gablePanel.endStationMeters) / 2;
+    const ridge = resolveGableRidgeStationMeters({ frame, resolvedRoof });
     const interval = resolveGableCourseInterval({
       courseTopY: roofBeamTop + 0.19,
       panelStartStation: gablePanel.startStationMeters,
@@ -282,5 +377,6 @@ describe('resolveGableCourseInterval', () => {
     });
     expect(interval).not.toBeNull();
     expect(interval!.endMeters - ridge).toBeCloseTo(ridge - interval!.startMeters, 3);
+    expect((interval!.startMeters + interval!.endMeters) / 2).toBeCloseTo(ridge, 3);
   });
 });

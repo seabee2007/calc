@@ -6,6 +6,7 @@ import {
   logOpeningCoursePlacementsTableForDev,
   type CmuBlockType,
   type DesignGeometryResult,
+  resolveSegmentWallLayoutStart,
 } from '../geometry/designGeometry';
 import { resolveCmuModuleConfig } from '../domain/cmuModuleRules';
 import { TOP_COURSE_RENDER_EPSILON_METERS } from '../domain/cmuInfillPanelSolver';
@@ -26,6 +27,13 @@ import {
   resolveSceneGridLayout,
   type DesignLayoutBounds,
 } from '../domain/designLayoutBounds';
+import {
+  DESIGN_CAMERA_FAR_METERS,
+  DESIGN_CAMERA_NEAR_METERS,
+  DESIGN_ORBIT_MIN_DISTANCE_METERS,
+  DESIGN_ORBIT_ZOOM_SPEED,
+  resolveOrbitMaxDistanceMeters,
+} from '../domain/designCameraControls';
 import {
   createOpeningRenderGroups,
   populateOpeningAssemblyRenderGroups,
@@ -306,6 +314,43 @@ function cloneLiftedRoofPlanes(planes: readonly RoofPlane[], clearanceMeters: nu
   }));
 }
 
+function roofDisplayModeShowsGableMasonry(roofDisplayMode: RoofDisplayMode): boolean {
+  return (
+    roofDisplayMode === 'full_roof' ||
+    roofDisplayMode === 'gable_masonry_only' ||
+    roofDisplayMode === 'foundation_frame_roof'
+  );
+}
+
+function isGableEndCmuBlock(block: Pick<CmuBlockInstance, 'source'>): boolean {
+  return block.source === 'gable_end_solver';
+}
+
+function resolveVisibleCmuBlockInstances(params: {
+  showCmuInfill: boolean;
+  showIndividualBlocks: boolean;
+  roofDisplayMode: RoofDisplayMode;
+  roofLayerVisibility: RoofLayerVisibility;
+  blockInstances: CmuBlockInstance[];
+}): CmuBlockInstance[] {
+  const showGableEndCmu =
+    roofDisplayModeShowsGableMasonry(params.roofDisplayMode) &&
+    (params.roofLayerVisibility.gableEndCmu ?? DEFAULT_ROOF_LAYER_VISIBILITY.gableEndCmu);
+  const gableEndBlocks = showGableEndCmu
+    ? params.blockInstances.filter(isGableEndCmuBlock)
+    : [];
+
+  if (!params.showCmuInfill) return gableEndBlocks;
+
+  if (params.showIndividualBlocks) {
+    return showGableEndCmu
+      ? params.blockInstances
+      : params.blockInstances.filter((block) => !isGableEndCmuBlock(block));
+  }
+
+  return gableEndBlocks;
+}
+
 function createRoofSheetEaveLipGeometry(params: {
   corners: readonly RoofVec3[];
   eavePair: [number, number];
@@ -513,7 +558,7 @@ export default function DesignBuilderViewer({
     if (!host) return undefined;
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
+    const camera = new THREE.PerspectiveCamera(45, 1, DESIGN_CAMERA_NEAR_METERS, DESIGN_CAMERA_FAR_METERS);
     camera.position.set(7.4, 5.2, 8.2);
     cameraRef.current = camera;
 
@@ -530,6 +575,10 @@ export default function DesignBuilderViewer({
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
+    controls.zoomToCursor = true;
+    controls.zoomSpeed = DESIGN_ORBIT_ZOOM_SPEED;
+    controls.minDistance = DESIGN_ORBIT_MIN_DISTANCE_METERS;
+    controls.maxDistance = resolveOrbitMaxDistanceMeters(modelParamsRef.current.layoutBounds);
     controls.target.set(0, 1.6, 0);
     if (initialCameraSnapshotRef.current) {
       camera.position.fromArray(initialCameraSnapshotRef.current.position);
@@ -777,6 +826,17 @@ export default function DesignBuilderViewer({
       const hostSegmentFrame = preview.wallSegmentId
         ? segmentFrames.find((segment) => segment.segmentId === preview.wallSegmentId)
         : undefined;
+      const previewInfillOffset =
+        modelParamsRef.current.geometryResult?.resolvedInfillPanelBounds
+          ?.filter((bounds) => !bounds.panelId.includes('-below-'))
+          .find((bounds) => bounds.hostSegmentId === preview.wallSegmentId)
+          ?.infillCenterlineInwardOffsetMeters ?? 0;
+      const previewHostSegmentFrame = hostSegmentFrame
+        ? {
+            ...hostSegmentFrame,
+            infillCenterlineInwardOffsetMeters: previewInfillOffset,
+          }
+        : undefined;
       const resolvedLike: ResolvedCmuOpening & {
         worldX?: number;
         worldZ?: number;
@@ -829,7 +889,7 @@ export default function DesignBuilderViewer({
         valid: preview.isValid,
         selected: Boolean(preview.openingId && preview.openingId === selectedOpeningIdRef.current),
         showOpeningLayout: modelParamsRef.current.showOpeningLayout,
-        hostSegmentFrame,
+        hostSegmentFrame: previewHostSegmentFrame,
       });
       frame.traverse((child) => {
         if (child instanceof THREE.Mesh || child instanceof THREE.LineSegments) {
@@ -1241,6 +1301,83 @@ export default function DesignBuilderViewer({
               root.add(tileMesh);
             });
           }
+
+          const plywoodCeilingLayout = currentGeometry.plywoodCeilingLayout;
+          if (showCmuInfill && plywoodCeilingLayout?.enabled) {
+            const parsePlywoodColor = (hex: string): number => {
+              const normalized = hex.trim().replace('#', '');
+              if (/^[0-9a-fA-F]{6}$/.test(normalized)) {
+                return Number.parseInt(normalized, 16);
+              }
+              return 0xd4b896;
+            };
+            const frameMaterial = usePreviewMaterials
+              ? resolveStructuralSteelMaterial(
+                  { visualStyle: currentVisualStyle, selected: frameSelected },
+                  trackMat,
+                )
+              : makeMaterial(0x374151, frameSelected, {
+                  roughness: 0.55,
+                  metalness: 0.35,
+                });
+            plywoodCeilingLayout.frameMembers.forEach((member) => {
+              const dx = member.end.x - member.start.x;
+              const dz = member.end.z - member.start.z;
+              const length = Math.hypot(dx, dz);
+              if (length <= 0.001) return;
+              const mesh = new THREE.Mesh(
+                trackGeometry(
+                  new THREE.BoxGeometry(length, member.heightMeters, member.widthMeters),
+                ),
+                frameMaterial,
+              );
+              mesh.position.set(
+                (member.start.x + member.end.x) / 2,
+                currentSlab.slabThicknessMeters + member.start.y,
+                (member.start.z + member.end.z) / 2,
+              );
+              mesh.rotation.y = -Math.atan2(dz, dx);
+              mesh.renderOrder = 4;
+              root.add(mesh);
+            });
+
+            const plywoodColor = parsePlywoodColor(plywoodCeilingLayout.plywoodColor);
+            const plywoodMaterial = usePreviewMaterials
+              ? resolveSoffitTrimMaterial(
+                  { visualStyle: currentVisualStyle, selected: frameSelected },
+                  trackMat,
+                )
+              : makeMaterial(plywoodColor, frameSelected, {
+                  roughness: 0.72,
+                  metalness: 0.02,
+                });
+            if (usePreviewMaterials) {
+              plywoodMaterial.color.setHex(plywoodColor);
+            }
+            plywoodMaterial.polygonOffset = true;
+            plywoodMaterial.polygonOffsetFactor = -1;
+            plywoodMaterial.polygonOffsetUnits = -2;
+            plywoodCeilingLayout.panelPlacements.forEach((panel) => {
+              if (panel.widthMeters <= 0.001 || panel.lengthMeters <= 0.001) return;
+              const mesh = new THREE.Mesh(
+                trackGeometry(
+                  new THREE.BoxGeometry(
+                    panel.widthMeters,
+                    panel.thicknessMeters,
+                    panel.lengthMeters,
+                  ),
+                ),
+                plywoodMaterial,
+              );
+              mesh.position.set(
+                panel.center.x,
+                currentSlab.slabThicknessMeters + panel.center.y,
+                panel.center.z,
+              );
+              mesh.renderOrder = 5;
+              root.add(mesh);
+            });
+          }
         }
         if (currentGeometry.isolatedFootings?.length) {
           const footingMaterial = usePreviewMaterials
@@ -1527,15 +1664,33 @@ export default function DesignBuilderViewer({
                 trussWebGroup.add(mesh);
               }
               if (currentRoofSystem.steelTrusses.basePlateEnabled) {
-                for (const bearing of [placement.bearingLeft, placement.bearingRight]) {
+                const plateBearings = [
+                  {
+                    structuralBearing: placement.bearingLeft,
+                    plateCenter: placement.basePlateCenterLeft ?? placement.bearingLeft,
+                    oppositeBearing: placement.bearingRight,
+                  },
+                  {
+                    structuralBearing: placement.bearingRight,
+                    plateCenter: placement.basePlateCenterRight ?? placement.bearingRight,
+                    oppositeBearing: placement.bearingLeft,
+                  },
+                ];
+                for (const { structuralBearing, plateCenter, oppositeBearing } of plateBearings) {
+                  const spanDirection = new THREE.Vector3(
+                    oppositeBearing.x - structuralBearing.x,
+                    0,
+                    oppositeBearing.z - structuralBearing.z,
+                  );
                   const bearingWorld = new THREE.Vector3(
-                    bearing.x,
-                    currentSlab.slabThicknessMeters + bearing.y,
-                    bearing.z,
+                    plateCenter.x,
+                    currentSlab.slabThicknessMeters + plateCenter.y,
+                    plateCenter.z,
                   );
                   const plate = buildTrussBasePlateMesh({
                     bearing: bearingWorld,
                     settings: currentRoofSystem,
+                    spanDirection,
                     material: debugGuides
                       ? new THREE.MeshStandardMaterial({ color: 0x22c55e, metalness: 0.5, roughness: 0.45 })
                       : steelMaterials.plate,
@@ -1546,6 +1701,7 @@ export default function DesignBuilderViewer({
                     const bolts = buildTrussAnchorBoltMeshes({
                       bearing: bearingWorld,
                       settings: currentRoofSystem,
+                      spanDirection,
                       material: steelMaterials.bolt,
                     });
                     for (const bolt of bolts) {
@@ -1921,6 +2077,8 @@ export default function DesignBuilderViewer({
                   trackMat,
                 )
               : createRakedConcreteCapMaterial(gableSelected);
+            capMaterial.side = THREE.DoubleSide;
+            capMaterial.needsUpdate = true;
             if (!usePreviewMaterials) {
               materialsToDispose.push(capMaterial);
             }
@@ -1944,16 +2102,21 @@ export default function DesignBuilderViewer({
               if (!strip || strip.segments.length === 0) continue;
 
               const firstCap = sortedCaps[0]!;
-              const startX = frame.start.x + frame.tangent.x * strip.startStationMeters;
-              const startZ = frame.start.z + frame.tangent.z * strip.startStationMeters;
+              const layoutStart = resolveSegmentWallLayoutStart(frame);
+              const startX =
+                layoutStart.x + frame.tangent.x * strip.startStationMeters;
+              const startZ =
+                layoutStart.z + frame.tangent.z * strip.startStationMeters;
+              const capCenterOffsetMeters =
+                firstCap.wallDepthMeters / 2 + (firstCap.centerlineInwardOffsetMeters ?? 0);
               const mesh = new THREE.Mesh(
                 trackGeometry(createRakedCapStripGeometry(strip.segments)),
                 capMaterial,
               );
               mesh.position.set(
-                startX + frame.inwardNormal.x * (firstCap.wallDepthMeters / 2),
+                startX + frame.inwardNormal.x * capCenterOffsetMeters,
                 currentSlab.slabThicknessMeters,
-                startZ + frame.inwardNormal.z * (firstCap.wallDepthMeters / 2),
+                startZ + frame.inwardNormal.z * capCenterOffsetMeters,
               );
               mesh.rotation.y = frame.rotationY;
               rakedCapGroup.add(mesh);
@@ -1989,8 +2152,14 @@ export default function DesignBuilderViewer({
           }
         }
 
-        const cmuBlocksForMortar =
-          showCmuInfill && currentWall.showIndividualBlocks ? cmuLayout.blocks : [];
+        const blockInstances = resolveVisibleCmuBlockInstances({
+          showCmuInfill,
+          showIndividualBlocks: currentWall.showIndividualBlocks,
+          roofDisplayMode: currentRoofDisplayMode,
+          roofLayerVisibility: currentRoofLayerVisibility,
+          blockInstances: currentGeometry.blockInstances,
+        });
+        const cmuBlocksForMortar = blockInstances;
         if (cmuBlocksForMortar.length > 0) {
           addCmuMortarJointMeshes({
             blocks: cmuBlocksForMortar,
@@ -2006,8 +2175,6 @@ export default function DesignBuilderViewer({
           });
         }
 
-        const blockInstances =
-          showCmuInfill && currentWall.showIndividualBlocks ? currentGeometry.blockInstances : [];
         if (blockInstances.length > 0) {
           const blockHeightMeters = resolveCmuModuleConfig(currentWall).actualHeightMeters;
           const blocksByType = groupBlocksByType(blockInstances);
@@ -2040,7 +2207,9 @@ export default function DesignBuilderViewer({
             blocks.instanceMatrix.needsUpdate = true;
             addSelectable(blocks, 'cmu_wall_system');
           });
-        } else if (showCmuInfill) {
+        }
+
+        if (showCmuInfill && !currentWall.showIndividualBlocks) {
           const wallMaterial = makeMaterial(0xd1d5db, currentSelectedObjectType === 'cmu_wall_system', {
             transparent: true,
             opacity: cmuOpacity,
@@ -2048,21 +2217,50 @@ export default function DesignBuilderViewer({
           const segmentFrameById = new Map(
             (cmuLayout.segmentFrames ?? []).map((frame) => [frame.segmentId, frame]),
           );
+          const panelBoundsBySegment = new Map<string, NonNullable<typeof currentGeometry.resolvedInfillPanelBounds>[number]>();
+          (currentGeometry.resolvedInfillPanelBounds ?? []).forEach((bounds) => {
+            const existing = panelBoundsBySegment.get(bounds.hostSegmentId);
+            if (!existing || bounds.bottomElevationMeters > existing.bottomElevationMeters) {
+              panelBoundsBySegment.set(bounds.hostSegmentId, bounds);
+            }
+          });
+          const exteriorSegmentIds = new Set(
+            (currentGeometry.resolvedFootprint?.orderedPerimeterSegments ?? []).map(
+              (perimeterSegment) => perimeterSegment.segmentId,
+            ),
+          );
           const roughOpenings = cmuLayout.roughOpenings as PlasterOpening[];
           currentGeometry.wallSegments.forEach((segment) => {
             const frame = segmentFrameById.get(segment.segmentId);
+            const panelBounds = panelBoundsBySegment.get(segment.segmentId);
+            const trimStartMeters = panelBounds?.startStationMeters ?? 0;
+            const trimEndMeters = panelBounds
+              ? Math.max(0, segment.lengthMeters - panelBounds.endStationMeters)
+              : 0;
             const wallPieces = buildInfillWallProxyPieces({
               segmentLengthMeters: segment.lengthMeters,
-              wallHeightMeters: segment.heightMeters,
+              wallHeightMeters: panelBounds?.clearHeightMeters ?? segment.heightMeters,
               wallThicknessMeters: segment.thicknessMeters,
               hostSegmentId: segment.segmentId,
               openings: roughOpenings,
+              trimStartMeters,
+              trimEndMeters,
             });
             wallPieces.forEach((piece) => {
+              const infillCenterlineInwardOffsetMeters =
+                panelBounds?.infillCenterlineInwardOffsetMeters ??
+                segment.infillCenterlineInwardOffsetMeters ??
+                0;
               const centerlinePoint = frame
                 ? {
-                    x: frame.centerlineStart.x + frame.tangent.x * piece.centerStationMeters,
-                    z: frame.centerlineStart.z + frame.tangent.z * piece.centerStationMeters,
+                    x:
+                      frame.centerlineStart.x +
+                      frame.tangent.x * piece.centerStationMeters +
+                      frame.inwardNormal.x * infillCenterlineInwardOffsetMeters,
+                    z:
+                      frame.centerlineStart.z +
+                      frame.tangent.z * piece.centerStationMeters +
+                      frame.inwardNormal.z * infillCenterlineInwardOffsetMeters,
                   }
                 : { x: segment.x, z: segment.z };
               const wallMesh = new THREE.Mesh(
@@ -2073,7 +2271,9 @@ export default function DesignBuilderViewer({
               );
               wallMesh.position.set(
                 centerlinePoint.x,
-                currentSlab.slabThicknessMeters + piece.centerElevationMeters,
+                currentSlab.slabThicknessMeters +
+                  (panelBounds?.bottomElevationMeters ?? 0) +
+                  piece.centerElevationMeters,
                 centerlinePoint.z,
               );
               wallMesh.rotation.y = segment.rotationY;
@@ -2084,11 +2284,17 @@ export default function DesignBuilderViewer({
         }
 
         if (showCmuInfill) {
+          const exteriorSegmentIds = new Set(
+            (currentGeometry.resolvedFootprint?.orderedPerimeterSegments ?? []).map(
+              (segment) => segment.segmentId,
+            ),
+          );
           const plasterPlacements = resolveInfillPlasterPanelPlacements({
             infillSystem: currentGeometry.infillSystem,
             panelBounds: currentGeometry.resolvedInfillPanelBounds ?? [],
             openings: cmuLayout.roughOpenings as PlasterOpening[],
             wallThicknessMeters: currentWall.wallThicknessMeters,
+            exteriorSegmentIds,
           });
           if (plasterPlacements.length > 0) {
             const plasterGroup = new THREE.Group();
@@ -2273,6 +2479,26 @@ export default function DesignBuilderViewer({
       }
 
       const openingRenderGroups = createOpeningRenderGroups();
+      const openingInfillBoundsBySegmentId = new Map<
+        string,
+        {
+          hostSegmentId: string;
+          bottomElevationMeters: number;
+          infillCenterlineInwardOffsetMeters: number;
+        }
+      >();
+      (currentGeometry?.resolvedInfillPanelBounds ?? []).forEach((bounds) => {
+        const existing = openingInfillBoundsBySegmentId.get(bounds.hostSegmentId);
+        if (!existing || bounds.bottomElevationMeters > existing.bottomElevationMeters) {
+          openingInfillBoundsBySegmentId.set(bounds.hostSegmentId, bounds);
+        }
+      });
+      const openingInfillOffsetBySegmentId = new Map(
+        [...openingInfillBoundsBySegmentId].map(([segmentId, bounds]) => [
+          segmentId,
+          bounds.infillCenterlineInwardOffsetMeters,
+        ]),
+      );
       populateOpeningAssemblyRenderGroups(openingRenderGroups, {
         cmuLayout,
         wall: currentWall,
@@ -2283,6 +2509,7 @@ export default function DesignBuilderViewer({
         hoveredOpeningId: hoveredOpeningIdRef.current,
         trackGeometry,
         makeMaterial,
+        infillCenterlineOffsetBySegmentId: openingInfillOffsetBySegmentId,
         resolveLintelMaterial: usePreviewMaterials
           ? () =>
               resolveCastConcreteMaterial(
@@ -2599,6 +2826,12 @@ export default function DesignBuilderViewer({
       updateGhostRef.current = null;
     };
   }, []);
+
+  useEffect(() => {
+    const controls = controlsRef.current;
+    if (!controls) return;
+    controls.maxDistance = resolveOrbitMaxDistanceMeters(layoutBounds);
+  }, [layoutBounds]);
 
   useEffect(() => {
     if (modelLoaded) rebuildModelRef.current?.();

@@ -16,8 +16,8 @@ describe('openingPlacementResolver', () => {
     frames.forEach((frame) => {
       const centerStation = frame.lengthMeters / 2;
       const hitPoint = {
-        x: frame.exteriorStart.x + frame.tangent.x * centerStation,
-        z: frame.exteriorStart.z + frame.tangent.z * centerStation,
+        x: frame.centerlineStart.x + frame.tangent.x * centerStation,
+        z: frame.centerlineStart.z + frame.tangent.z * centerStation,
       };
       const resolved = resolveOpeningPlacementFromWallHit({
         hitPoint,
@@ -75,8 +75,8 @@ describe('openingPlacementResolver', () => {
     const eastFrame = frames.find((frame) => frame.lengthMeters === preset.footprint.widthMeters)!;
     const station = eastFrame.lengthMeters * 0.6;
     const hitPoint = {
-      x: eastFrame.exteriorStart.x + eastFrame.tangent.x * station,
-      z: eastFrame.exteriorStart.z + eastFrame.tangent.z * station,
+      x: eastFrame.centerlineStart.x + eastFrame.tangent.x * station,
+      z: eastFrame.centerlineStart.z + eastFrame.tangent.z * station,
     };
     const projected = projectPointToSegmentStation(hitPoint, eastFrame);
     expect(projected).toBeCloseTo(station, 3);

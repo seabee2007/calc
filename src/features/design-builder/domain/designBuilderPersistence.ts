@@ -2,7 +2,11 @@ import type { CmuBuildingPreset } from './designBuilderPreset';
 import { createBlankCmuBuildingPreset } from './designBuilderPreset';
 import { normalizeOpeningsHeadAlignment } from './openingDefaults';
 import { normalizeRcFrameFoundationSettings } from './rcFrameFoundationMigration';
-import { normalizeRoofSystemSettings, createDefaultRoofSystemSettings } from './roofSystemDefaults';
+import {
+  normalizeRoofSystemSettings,
+  createDefaultRoofSystemSettings,
+  syncRoofSystemTrussSpacing,
+} from './roofSystemDefaults';
 import { normalizeCmuInfillSystem } from './infillPlaster';
 import type {
   BuildingSystemMode,
@@ -151,6 +155,13 @@ export function presetFromStoredDesign(params: {
   const resolvedWallLayout = wallLayout ?? persisted?.wallLayout ?? base.wallLayout;
   const resolvedWall = wall ?? base.wall;
   const resolvedOpenings = normalizeOpeningsHeadAlignment(persisted?.openings ?? resolvedWall.openings);
+  const resolvedTruss = truss ?? base.truss;
+  const resolvedRoofSystem = truss
+    ? syncRoofSystemTrussSpacing(
+        normalizeRoofSystemSettings(persisted?.roofSystem ?? base.roofSystem),
+        truss.spacingMeters,
+      )
+    : (persisted?.roofSystem ?? normalizeRoofSystemSettings(base.roofSystem));
 
   return {
     name: params.fallbackName ?? base.name,
@@ -160,12 +171,12 @@ export function presetFromStoredDesign(params: {
     slab: slab ?? base.slab,
     wall: { ...resolvedWall, openings: resolvedOpenings },
     roof: roof ?? base.roof,
-    truss: truss ?? base.truss,
+    truss: resolvedTruss,
     frameSystem: frameSystem ?? base.frameSystem,
     foundationSettings: persisted?.rcFrameFoundation ?? normalizeRcFrameFoundationSettings(base.foundationSettings),
     infillSystem: normalizeCmuInfillSystem(infillSystem ?? base.infillSystem),
     gableEndSystem: gableEndSystem ?? base.gableEndSystem,
-    roofSystem: persisted?.roofSystem ?? normalizeRoofSystemSettings(base.roofSystem),
+    roofSystem: resolvedRoofSystem,
   };
 }
 

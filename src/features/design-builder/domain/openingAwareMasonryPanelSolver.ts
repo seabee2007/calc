@@ -83,6 +83,21 @@ export function panelAdjustedOpeningsForElevation(
   }));
 }
 
+/** RC infill masonry trims to the door/window frame, not the module-snapped rough opening. */
+export function openingsForFrameFitMasonry(
+  openings: readonly ResolvedCmuOpening[],
+): ResolvedCmuOpening[] {
+  return openings.map((opening) => ({
+    ...opening,
+    roughStartAlongMeters: opening.actualStartAlongMeters,
+    roughEndAlongMeters: opening.actualEndAlongMeters,
+    roughOpeningWidthMeters: opening.actualWidthMeters,
+    roughBottomMeters: opening.actualBottomMeters,
+    roughTopMeters: opening.actualTopMeters,
+    roughOpeningHeightMeters: opening.actualHeightMeters,
+  }));
+}
+
 function blockTypeForOpeningSegment(
   segment: OpeningUnitSplitSegment,
   moduleLengthMeters: number,
@@ -171,6 +186,7 @@ function buildLintelCourseClosureBlocks(params: {
   openings: readonly ResolvedCmuOpening[];
   lintelSolids: ReturnType<typeof buildLayoutLintelSolidPlacements>;
   placedBlocks: readonly CmuBlockInstance[];
+  infillCenterlineInwardOffsetMeters?: number;
 }): CmuBlockInstance[] {
   const lintelSolidsByOpeningId = new Map(
     params.lintelSolids.map((lintel) => [lintel.openingId, lintel]),
@@ -240,6 +256,7 @@ function buildLintelCourseClosureBlocks(params: {
         blockType,
         kind: kind === 'full_block' ? 'stretcher' : kind,
         source: 'lintel_closure',
+        infillCenterlineInwardOffsetMeters: params.infillCenterlineInwardOffsetMeters,
       });
 
       return {
@@ -308,6 +325,7 @@ export function solveOpeningAwareMasonryPanel(params: {
   bondPattern?: 'running_bond' | 'stack_bond';
   courseIndexOffset?: number;
   bondDatumStationMeters?: number;
+  infillCenterlineInwardOffsetMeters?: number;
 }): OpeningAwareMasonryPanelResult {
   if (params.panelKind !== 'rc_frame_infill') {
     return {
@@ -330,9 +348,8 @@ export function solveOpeningAwareMasonryPanel(params: {
   const blocks: CmuBlockInstance[] = [];
   const warnings: string[] = [];
 
-  const panelAdjustedOpenings = panelAdjustedOpeningsForElevation(
-    params.openings,
-    params.panelBottomElevationMeters,
+  const panelAdjustedOpenings = openingsForFrameFitMasonry(
+    panelAdjustedOpeningsForElevation(params.openings, params.panelBottomElevationMeters),
   );
   const resolvedLintelSpans = buildResolvedLintelSpanMap(
     params.openings,
@@ -441,6 +458,7 @@ export function solveOpeningAwareMasonryPanel(params: {
             : isJambClosure
               ? 'opening_jamb_closure'
               : blockSource,
+          infillCenterlineInwardOffsetMeters: params.infillCenterlineInwardOffsetMeters,
         });
 
         blocks.push({
@@ -513,6 +531,7 @@ export function solveOpeningAwareMasonryPanel(params: {
     openings: panelAdjustedOpenings,
     lintelSolids,
     placedBlocks: filteredBlocks,
+    infillCenterlineInwardOffsetMeters: params.infillCenterlineInwardOffsetMeters,
   });
   const finalBlocks = [...filteredBlocks, ...lintelClosureBlocks];
 

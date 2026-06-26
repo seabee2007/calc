@@ -1,4 +1,9 @@
 import * as THREE from 'three';
+import {
+  clampCameraClipPlanes,
+  DESIGN_CAMERA_FAR_METERS,
+  DESIGN_CAMERA_NEAR_METERS,
+} from './designCameraControls';
 import type { DesignGeometryResult } from '../geometry/designGeometry';
 import type { ResolvedCmuOpening } from '../domain/cmuOpeningRules';
 import type {
@@ -293,6 +298,10 @@ export function fitPerspectiveCameraToBounds(params: {
     z: center.z,
   };
   const viewDirection = new THREE.Vector3(0.65, 0.48, 0.72).normalize();
+  const clip = clampCameraClipPlanes({
+    near: Math.max(DESIGN_CAMERA_NEAR_METERS, radius / 1000),
+    far: distance * 20 + radius * 4,
+  });
   return {
     target,
     position: {
@@ -300,8 +309,8 @@ export function fitPerspectiveCameraToBounds(params: {
       y: target.y + viewDirection.y * distance,
       z: target.z + viewDirection.z * distance,
     },
-    near: Math.max(0.01, radius / 1000),
-    far: Math.max(1000, distance * 20 + radius * 4),
+    near: clip.near,
+    far: clip.far,
   };
 }
 
@@ -321,8 +330,8 @@ export function reset3dView(): CameraFit3d {
   return {
     target: { x: 0, y: 1.6, z: 0 },
     position: { x: 7.4, y: 5.2, z: 8.2 },
-    near: 0.1,
-    far: 1000,
+    near: DESIGN_CAMERA_NEAR_METERS,
+    far: DESIGN_CAMERA_FAR_METERS,
   };
 }
 

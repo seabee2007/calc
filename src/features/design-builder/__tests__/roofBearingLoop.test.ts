@@ -69,6 +69,19 @@ function framePreset() {
   return { preset, segmentFrames, wallFootprint };
 }
 
+function distanceToBearingLoop(point: { x: number; z: number }, bearingLoop: readonly PlanVec2[]): number {
+  return Math.min(
+    ...bearingLoop.map((loopPoint, index) => {
+      const next = bearingLoop[(index + 1) % bearingLoop.length]!;
+      return distancePointToLine2D(point, loopPoint, next);
+    }),
+  );
+}
+
+function planDistance(a: { x: number; z: number }, b: { x: number; z: number }): number {
+  return Math.hypot(b.x - a.x, b.z - a.z);
+}
+
 describe('Roof bearing loop geometry', () => {
   it('offsetClosedPolygonOutward uses true miter intersections at 90-degree corners', () => {
     const square = [
@@ -221,29 +234,29 @@ describe('Roof bearing loop geometry', () => {
     expect(ridgeMid.z).toBeCloseTo(bearingBounds.centerZ, 2);
   });
 
-  it('truss bearing points sit on the roof beam outer-bearing geometry', () => {
+  it('keeps truss bearings on roof-beam outer faces while base plates seat inboard', () => {
     const { preset, segmentFrames, wallFootprint } = framePreset();
+    const roofSystem = {
+      ...createDefaultRoofSystemSettings(),
+      steelTrusses: { ...createDefaultRoofSystemSettings().steelTrusses, maxSpacingMeters: 2.4 },
+    };
     const { bearingLoop, roof } = resolveRoofWithFrame({
       layout: preset.wallLayout,
       wallFootprint,
       roofBeams: preset.frameSystem.beams,
       segmentFrames,
-      roofSystem: {
-        ...createDefaultRoofSystemSettings(),
-        steelTrusses: { ...createDefaultRoofSystemSettings().steelTrusses, maxSpacingMeters: 2.4 },
-      },
+      roofSystem,
     });
+    const plateInsetMeters = roofSystem.steelTrusses.basePlateLengthMeters / 2;
     expect(roof.trussPlacements.length).toBeGreaterThan(1);
     for (const truss of roof.trussPlacements) {
       for (const bearing of [truss.bearingLeft, truss.bearingRight]) {
-        const minDist = Math.min(
-          ...bearingLoop.points.map((point, index) => {
-            const next = bearingLoop.points[(index + 1) % bearingLoop.points.length]!;
-            return distancePointToLine2D({ x: bearing.x, z: bearing.z }, point, next);
-          }),
-        );
-        expect(minDist).toBeLessThan(0.05);
+        expect(distanceToBearingLoop({ x: bearing.x, z: bearing.z }, bearingLoop.points)).toBeCloseTo(0, 3);
       }
+      expect(truss.basePlateCenterLeft).toBeDefined();
+      expect(truss.basePlateCenterRight).toBeDefined();
+      expect(planDistance(truss.bearingLeft, truss.basePlateCenterLeft!)).toBeCloseTo(plateInsetMeters, 3);
+      expect(planDistance(truss.bearingRight, truss.basePlateCenterRight!)).toBeCloseTo(plateInsetMeters, 3);
     }
   });
 

@@ -7,6 +7,10 @@ import type {
   StructuralFrameSystemParameters,
 } from '../types';
 import type { SegmentFrame } from '../geometry/designGeometry';
+import {
+  getExteriorPerimeterSegmentIds,
+  getStructuralColumnNodeIds,
+} from '../geometry/designGeometry';
 import { resolveInsideFaceStation } from './infillPanelBoundsResolver';
 import {
   normalizeRcFrameFoundationSettings,
@@ -107,11 +111,8 @@ export function createCornerColumnsForLayout(params: {
     width: resolveColumnDimensions(foundation, params.frameSystem).widthMeters,
     depth: resolveColumnDimensions(foundation, params.frameSystem).depthMeters,
   };
-  const nodeIds = new Set<string>();
-  for (const seg of params.layout.segments) {
-    nodeIds.add(seg.startNodeId);
-    nodeIds.add(seg.endNodeId);
-  }
+  const exteriorSegmentIds = getExteriorPerimeterSegmentIds(params.layout);
+  const nodeIds = new Set(getStructuralColumnNodeIds(params.layout, exteriorSegmentIds));
   const nodeById = new Map(params.layout.nodes.map((n) => [n.id, n]));
   const columns: StructuralColumn[] = [];
   for (const nodeId of nodeIds) {
@@ -198,6 +199,7 @@ export function createPerimeterBeamsForLayout(params: {
   const plinthElevations = plinthBeamElevations(foundation);
   const roofElevations = roofBeamElevations(params.wallHeightMeters, foundation);
   const tieElevations = tieBeamElevations(foundation, params.wallHeightMeters);
+  const exteriorSegmentIds = getExteriorPerimeterSegmentIds(params.layout);
 
   const beams: StructuralBeam[] = [];
   for (const seg of params.layout.segments) {
@@ -205,9 +207,12 @@ export function createPerimeterBeamsForLayout(params: {
     const endCol = colByNode.get(seg.endNodeId);
     if (!startCol || !endCol) continue;
 
+    const isExterior = exteriorSegmentIds.has(seg.id);
     const includePlinthBeam =
       foundation.plinthBeam.enabled &&
-      (foundation.plinthBeam.followsExteriorSegments || foundation.plinthBeam.followsInteriorSegments);
+      (isExterior
+        ? foundation.plinthBeam.followsExteriorSegments
+        : foundation.plinthBeam.followsInteriorSegments);
 
     if (includePlinthBeam) {
       beams.push(
@@ -224,7 +229,7 @@ export function createPerimeterBeamsForLayout(params: {
       );
     }
 
-    if (foundation.roofBeam.enabled) {
+    if (foundation.roofBeam.enabled && isExterior) {
       beams.push(
         beamBetweenColumns({
           kind: 'roof_beam',
@@ -239,7 +244,7 @@ export function createPerimeterBeamsForLayout(params: {
       );
     }
 
-    if (foundation.tieBeam.enabled) {
+    if (foundation.tieBeam.enabled && isExterior) {
       beams.push(
         beamBetweenColumns({
           kind: 'tie_beam',
