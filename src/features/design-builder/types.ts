@@ -341,6 +341,63 @@ export interface InteriorFloorSlabSettings {
   thicknessMeters: number;
 }
 
+export type FloorTileSizeKey =
+  | '300x300'
+  | '400x400'
+  | '500x500'
+  | '600x600'
+  | '800x800'
+  | '300x600'
+  | '600x1200';
+
+export type FloorGroutJointWidth = 'none' | '1/16' | '1/8' | '3/16' | '1/4';
+
+export interface InteriorFloorTileSettings {
+  enabled: boolean;
+  tileSizeKey: FloorTileSizeKey;
+  groutJointWidth: FloorGroutJointWidth;
+  thinsetThicknessMeters: number;
+  wasteFactor: number;
+}
+
+export type FloorTilePlacementKind = 'full' | 'cut';
+
+export interface FloorTilePlacement {
+  id: string;
+  kind: FloorTilePlacementKind;
+  /** Grid center for the nominal tile module (includes grout pitch spacing). */
+  center: { x: number; z: number };
+  widthMeters: number;
+  depthMeters: number;
+  /** Clipped render bounds after floor polygon intersection (perimeter cuts). */
+  renderCenter: { x: number; z: number };
+  renderWidthMeters: number;
+  renderDepthMeters: number;
+  installedAreaSquareMeters: number;
+  rotationY: number;
+}
+
+export interface ResolvedFloorTileLayout {
+  enabled: boolean;
+  tileSizeKey: FloorTileSizeKey;
+  tileWidthMeters: number;
+  tileDepthMeters: number;
+  groutJointMeters: number;
+  thinsetThicknessMeters: number;
+  wasteFactor: number;
+  floorAreaSquareMeters: number;
+  installedAreaSquareMeters: number;
+  fullTileCount: number;
+  cutTileCount: number;
+  totalTileCount: number;
+  orderTileCount: number;
+  thinsetVolumeCubicMeters: number;
+  thinsetBags: number;
+  groutVolumeCubicMeters: number;
+  groutBags: number;
+  placements: FloorTilePlacement[];
+}
+
 export type ColumnPlacementMode = 'corners_only' | 'corners_and_junctions' | 'manual';
 
 /** @deprecated Legacy persisted shape — migrate via rcFrameFoundationMigration */
@@ -377,6 +434,8 @@ export interface RcFrameFoundationSettings {
   plinthBeam: PlinthBeamSettings;
   /** Cast-in-place floor slab between plinth beams; top flush with plinth top, thickness measured downward. */
   interiorFloorSlab: InteriorFloorSlabSettings;
+  /** Interior floor tile finish (thinset + tile + grout) over the cast slab. */
+  floorTileFinish: InteriorFloorTileSettings;
   roofBeam: StructuralBeamSettings;
   tieBeam: StructuralBeamSettings;
   columns: {

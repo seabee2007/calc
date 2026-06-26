@@ -40,6 +40,7 @@ import {
   resolveStructuralWallHeightMeters,
 } from '../domain/foundationElevations';
 import { resolveInteriorFloorSlab } from '../domain/interiorFloorSlab';
+import { resolveFloorTileLayout } from '../domain/floorTileLayout';
 import {
   countPanelVerticalCourses,
   isAboveGradeInfillPanel,
@@ -399,6 +400,11 @@ export function generateFrameInfillGeometry(
     foundation: foundationSettings,
     interiorFacePolygon: resolvedFootprint.interiorFacePolygon,
   });
+  const floorTileLayout = resolveFloorTileLayout({
+    interiorFacePolygon: resolvedFootprint.interiorFacePolygon,
+    floorTileFinish: foundationSettings.floorTileFinish,
+    interiorFloorSlabEnabled: interiorFloorSlab.enabled,
+  });
   const structuralConcreteVolumeBreakdown: StructuralConcreteVolumeBreakdown = {
     ...volumeResult,
     interiorFloorSlabVolumeCubicMeters: interiorFloorSlab.volumeCubicMeters,
@@ -434,6 +440,7 @@ export function generateFrameInfillGeometry(
     resolvedRoofSystem,
     resolvedInfillPanelBounds,
     interiorFloorSlab,
+    floorTileLayout,
   };
 }
 

@@ -1,6 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import ModalShell from '../../../components/ui/ModalShell';
 import {
+  FLOOR_GROUT_JOINT_OPTIONS,
+  FLOOR_TILE_SIZE_PRESETS,
+  resolveInteriorFloorTileSettings,
+} from '../domain/floorTileCatalog';
+import { resolveFloorTileLayout } from '../domain/floorTileLayout';
+import type { InteriorFloorTileSettings, ResolvedFloorTileLayout } from '../types';
+import {
   DEFAULT_DESIGN_MATERIAL_SELECTION,
   designMaterialSelectionsEqual,
   getMaterialOptionsForCategory,
@@ -17,12 +24,21 @@ import {
 
 export type MaterialsFinishesScope = 'all' | 'interior' | 'exterior';
 
+export type MaterialsColorsApplyPayload = {
+  selections: DesignMaterialSelection;
+  floorTileFinish?: InteriorFloorTileSettings;
+};
+
 export type MaterialsColorsModalProps = {
   isOpen: boolean;
   scope?: MaterialsFinishesScope;
   appliedSelections: DesignMaterialSelection;
+  appliedFloorTileFinish?: InteriorFloorTileSettings;
+  interiorFloorSlabEnabled?: boolean;
+  interiorFacePolygon?: readonly { x: number; z: number }[];
+  floorTileLayoutPreview?: ResolvedFloorTileLayout | null;
   onClose: () => void;
-  onApply: (selections: DesignMaterialSelection) => void;
+  onApply: (payload: MaterialsColorsApplyPayload) => void;
 };
 
 type CategoryConfig = {
@@ -50,6 +66,7 @@ type MaterialSelectionField = keyof Pick<
   | 'mortarMaterialId'
   | 'plasterMaterialId'
   | 'castConcreteMaterialId'
+  | 'floorTileMaterialId'
   | 'roofSheetMaterialId'
   | 'fasciaMaterialId'
   | 'soffitMaterialId'
@@ -124,7 +141,8 @@ const MODAL_COPY: Record<
   },
   interior: {
     title: 'Interior Finishes',
-    subtitle: 'Choose interior wall plaster and floor slab materials for Material Preview mode.',
+    subtitle:
+      'Configure interior plaster, floor tile (thinset + grout), and slab materials for preview and estimating.',
   },
   exterior: {
     title: 'Exterior Finishes',
@@ -142,11 +160,25 @@ const MATERIAL_FIELD: Partial<Record<DesignMaterialCategory, MaterialSelectionFi
   mortar: 'mortarMaterialId',
   plaster_finish: 'plasterMaterialId',
   cast_concrete: 'castConcreteMaterialId',
+  floor_tile: 'floorTileMaterialId',
   roof_sheet: 'roofSheetMaterialId',
   roof_trim: 'fasciaMaterialId',
   structural_steel: 'structuralSteelMaterialId',
   site_ground: 'siteGroundMaterialId',
 };
+
+function floorTileSettingsEqual(
+  left: InteriorFloorTileSettings,
+  right: InteriorFloorTileSettings,
+): boolean {
+  return (
+    left.enabled === right.enabled &&
+    left.tileSizeKey === right.tileSizeKey &&
+    left.groutJointWidth === right.groutJointWidth &&
+    left.thinsetThicknessMeters === right.thinsetThicknessMeters &&
+    left.wasteFactor === right.wasteFactor
+  );
+}
 
 function MaterialOptionRow({
   option,
@@ -273,28 +305,189 @@ function CategorySection({
   );
 }
 
+function FloorTileSection({
+  selections,
+  floorTileDraft,
+  interiorFloorSlabEnabled,
+  interiorFacePolygon,
+  floorTileLayoutPreview,
+  onChangeMaterial,
+  onChangeFloorTile,
+}: {
+  selections: DesignMaterialSelection;
+  floorTileDraft: InteriorFloorTileSettings;
+  interiorFloorSlabEnabled: boolean;
+  interiorFacePolygon: readonly { x: number; z: number }[];
+  floorTileLayoutPreview: ResolvedFloorTileLayout | null;
+  onChangeMaterial: (field: MaterialSelectionField, materialId: string) => void;
+  onChangeFloorTile: (patch: Partial<InteriorFloorTileSettings>) => void;
+}) {
+  const tileOptions = getMaterialOptionsForCategory('floor_tile');
+  const selectedMaterialId = selections.floorTileMaterialId;
+  const layoutPreview = useMemo(() => {
+    if (interiorFacePolygon.length >= 3) {
+      return resolveFloorTileLayout({
+        interiorFacePolygon,
+        floorTileFinish: floorTileDraft,
+        interiorFloorSlabEnabled,
+      });
+    }
+    return floorTileLayoutPreview;
+  }, [floorTileDraft, floorTileLayoutPreview, interiorFacePolygon, interiorFloorSlabEnabled]);
+
+  return (
+    <section className="space-y-4 md:col-span-2">
+      <div>
+        <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Floor Tile</h3>
+        <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+          Center layout with cut tiles at walls. Thinset bed is 1/2&quot; (12.7 mm). Division 09 30 00.
+        </p>
+      </div>
+
+      <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
+        <input
+          type="checkbox"
+          checked={floorTileDraft.enabled}
+          disabled={!interiorFloorSlabEnabled}
+          onChange={(event) => onChangeFloorTile({ enabled: event.target.checked })}
+        />
+        Enable floor tile finish
+      </label>
+      {!interiorFloorSlabEnabled ? (
+        <p className="text-xs text-amber-700 dark:text-amber-300">
+          Enable the interior floor slab in Structure Dimensions before applying tile.
+        </p>
+      ) : null}
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className="block space-y-1 text-sm">
+          <span className="font-medium text-slate-700 dark:text-slate-200">Tile size</span>
+          <select
+            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+            value={floorTileDraft.tileSizeKey}
+            disabled={!floorTileDraft.enabled}
+            onChange={(event) =>
+              onChangeFloorTile({ tileSizeKey: event.target.value as InteriorFloorTileSettings['tileSizeKey'] })
+            }
+          >
+            {FLOOR_TILE_SIZE_PRESETS.map((preset) => (
+              <option key={preset.key} value={preset.key}>
+                {preset.label} — {preset.description}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="block space-y-1 text-sm">
+          <span className="font-medium text-slate-700 dark:text-slate-200">Grout joint</span>
+          <select
+            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+            value={floorTileDraft.groutJointWidth}
+            disabled={!floorTileDraft.enabled}
+            onChange={(event) =>
+              onChangeFloorTile({
+                groutJointWidth: event.target.value as InteriorFloorTileSettings['groutJointWidth'],
+              })
+            }
+          >
+            {FLOOR_GROUT_JOINT_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+
+      <div className="space-y-2">
+        <div className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+          Tile material
+        </div>
+        {tileOptions.map((option) => (
+          <MaterialOptionRow
+            key={option.id}
+            option={option}
+            selected={option.id === selectedMaterialId}
+            onSelect={() => onChangeMaterial('floorTileMaterialId', option.id)}
+          />
+        ))}
+      </div>
+
+      {floorTileDraft.enabled && layoutPreview?.enabled ? (
+        <dl className="grid gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-700 dark:bg-slate-800/60 sm:grid-cols-2">
+          <div className="flex justify-between gap-2">
+            <dt>Floor area</dt>
+            <dd className="font-mono">{layoutPreview.floorAreaSquareMeters.toFixed(2)} m²</dd>
+          </div>
+          <div className="flex justify-between gap-2">
+            <dt>Full tiles</dt>
+            <dd className="font-mono">{layoutPreview.fullTileCount}</dd>
+          </div>
+          <div className="flex justify-between gap-2">
+            <dt>Cut tiles</dt>
+            <dd className="font-mono">{layoutPreview.cutTileCount}</dd>
+          </div>
+          <div className="flex justify-between gap-2">
+            <dt>Order qty (waste)</dt>
+            <dd className="font-mono">{layoutPreview.orderTileCount}</dd>
+          </div>
+          <div className="flex justify-between gap-2">
+            <dt>Thinset bags</dt>
+            <dd className="font-mono">{layoutPreview.thinsetBags}</dd>
+          </div>
+          <div className="flex justify-between gap-2">
+            <dt>Grout bags</dt>
+            <dd className="font-mono">{layoutPreview.groutBags}</dd>
+          </div>
+        </dl>
+      ) : null}
+    </section>
+  );
+}
+
 export default function MaterialsColorsModal({
   isOpen,
   scope = 'all',
   appliedSelections,
+  appliedFloorTileFinish,
+  interiorFloorSlabEnabled = true,
+  interiorFacePolygon = [],
+  floorTileLayoutPreview = null,
   onClose,
   onApply,
 }: MaterialsColorsModalProps) {
   const [draft, setDraft] = useState<DesignMaterialSelection>(() =>
     normalizeDesignMaterialSelection(appliedSelections),
   );
+  const [floorTileDraft, setFloorTileDraft] = useState<InteriorFloorTileSettings>(() =>
+    resolveInteriorFloorTileSettings(appliedFloorTileFinish),
+  );
   const visibleCategories = useMemo(() => categoryConfigsForScope(scope), [scope]);
   const modalCopy = MODAL_COPY[scope];
+  const showFloorTileSection = scope === 'interior' || scope === 'all';
 
   useEffect(() => {
     if (!isOpen) return;
     setDraft(normalizeDesignMaterialSelection(appliedSelections));
-  }, [appliedSelections, isOpen]);
+    setFloorTileDraft(resolveInteriorFloorTileSettings(appliedFloorTileFinish));
+  }, [appliedFloorTileFinish, appliedSelections, isOpen]);
 
-  const hasChanges = useMemo(
-    () => !designMaterialSelectionsEqual(draft, appliedSelections),
-    [appliedSelections, draft],
-  );
+  const hasChanges = useMemo(() => {
+    const selectionChanged = !designMaterialSelectionsEqual(draft, appliedSelections);
+    const floorTileChanged =
+      showFloorTileSection &&
+      !floorTileSettingsEqual(
+        floorTileDraft,
+        resolveInteriorFloorTileSettings(appliedFloorTileFinish),
+      );
+    return selectionChanged || floorTileChanged;
+  }, [
+    appliedFloorTileFinish,
+    appliedSelections,
+    draft,
+    floorTileDraft,
+    showFloorTileSection,
+  ]);
 
   function updateMaterial(field: MaterialSelectionField, materialId: string) {
     setDraft((current) => normalizeDesignMaterialSelection({ ...current, [field]: materialId }));
@@ -303,6 +496,10 @@ export default function MaterialsColorsModal({
   function updateTint(field: CategoryConfig['tintField'], tintId: string) {
     if (!field) return;
     setDraft((current) => normalizeDesignMaterialSelection({ ...current, [field]: tintId }));
+  }
+
+  function updateFloorTile(patch: Partial<InteriorFloorTileSettings>) {
+    setFloorTileDraft((current) => resolveInteriorFloorTileSettings({ ...current, ...patch }));
   }
 
   return (
@@ -323,7 +520,10 @@ export default function MaterialsColorsModal({
           </button>
           <button
             type="button"
-            onClick={() => setDraft(normalizeDesignMaterialSelection(DEFAULT_DESIGN_MATERIAL_SELECTION))}
+            onClick={() => {
+              setDraft(normalizeDesignMaterialSelection(DEFAULT_DESIGN_MATERIAL_SELECTION));
+              setFloorTileDraft(resolveInteriorFloorTileSettings(undefined));
+            }}
             className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
           >
             Reset Defaults
@@ -331,7 +531,14 @@ export default function MaterialsColorsModal({
           <button
             type="button"
             disabled={!hasChanges}
-            onClick={() => onApply(normalizeDesignMaterialSelection(draft))}
+            onClick={() =>
+              onApply({
+                selections: normalizeDesignMaterialSelection(draft),
+                floorTileFinish: showFloorTileSection
+                  ? resolveInteriorFloorTileSettings(floorTileDraft)
+                  : undefined,
+              })
+            }
             className="rounded-lg bg-cyan-600 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Apply Materials
@@ -340,6 +547,17 @@ export default function MaterialsColorsModal({
       }
     >
       <div className="grid gap-6 md:grid-cols-2">
+        {showFloorTileSection ? (
+          <FloorTileSection
+            selections={draft}
+            floorTileDraft={floorTileDraft}
+            interiorFloorSlabEnabled={interiorFloorSlabEnabled}
+            interiorFacePolygon={interiorFacePolygon}
+            floorTileLayoutPreview={floorTileLayoutPreview}
+            onChangeMaterial={updateMaterial}
+            onChangeFloorTile={updateFloorTile}
+          />
+        ) : null}
         {visibleCategories.map((config) => (
           <CategorySection
             key={config.id}

@@ -13,6 +13,7 @@ export type DesignMaterialSelection = {
   mortarMaterialId: string;
   plasterMaterialId: string;
   castConcreteMaterialId: string;
+  floorTileMaterialId: string;
   roofSheetMaterialId: string;
   fasciaMaterialId: string;
   soffitMaterialId: string;
@@ -31,6 +32,7 @@ export const DEFAULT_DESIGN_MATERIAL_SELECTION: DesignMaterialSelection = {
   mortarMaterialId: 'concrete-032',
   plasterMaterialId: 'textured-3-coat-plaster',
   castConcreteMaterialId: 'concrete-042a',
+  floorTileMaterialId: 'granite-001a',
   roofSheetMaterialId: 'corrugated-steel-009',
   fasciaMaterialId: 'smooth-painted-roof-trim',
   soffitMaterialId: 'smooth-painted-roof-trim',
@@ -51,6 +53,7 @@ const CATEGORY_FIELD: Partial<
   mortar: 'mortarMaterialId',
   plaster_finish: 'plasterMaterialId',
   cast_concrete: 'castConcreteMaterialId',
+  floor_tile: 'floorTileMaterialId',
   roof_sheet: 'roofSheetMaterialId',
   roof_trim: 'fasciaMaterialId',
   structural_steel: 'structuralSteelMaterialId',
@@ -81,6 +84,7 @@ export function normalizeDesignMaterialSelection(
     mortarMaterialId: resolveMaterialId('mortar', base.mortarMaterialId),
     plasterMaterialId: resolveMaterialId('plaster_finish', base.plasterMaterialId),
     castConcreteMaterialId: resolveMaterialId('cast_concrete', base.castConcreteMaterialId),
+    floorTileMaterialId: resolveMaterialId('floor_tile', base.floorTileMaterialId),
     roofSheetMaterialId: resolveMaterialId('roof_sheet', base.roofSheetMaterialId),
     fasciaMaterialId: resolveMaterialId('roof_trim', base.fasciaMaterialId),
     soffitMaterialId: resolveMaterialId('roof_trim', base.soffitMaterialId),
@@ -134,6 +138,7 @@ export function designMaterialSelectionsEqual(
     left.mortarMaterialId === right.mortarMaterialId &&
     left.plasterMaterialId === right.plasterMaterialId &&
     left.castConcreteMaterialId === right.castConcreteMaterialId &&
+    left.floorTileMaterialId === right.floorTileMaterialId &&
     left.roofSheetMaterialId === right.roofSheetMaterialId &&
     left.fasciaMaterialId === right.fasciaMaterialId &&
     left.soffitMaterialId === right.soffitMaterialId &&

@@ -33,6 +33,10 @@ import {
 import { createOpeningFrame3dGroup } from '../domain/openingFrame3dGraphics';
 import type { ResolvedCmuOpening } from '../domain/cmuOpeningRules';
 import { buildInfillWallProxyPieces, resolveInfillPlasterPanelPlacements, type PlasterOpening } from '../domain/infillPlaster';
+import {
+  FOUNDATION_CONTACT_EPSILON_METERS,
+  TOP_OF_PLINTH_BEAM_Y,
+} from '../domain/foundationElevations';
 import { getNormalizedPointerFromClient } from '../domain/pointerPlanMapping';
 import { buildSegmentFrameMap, projectPointToSegmentStation } from '../domain/openingPlacementResolver';
 import type {
@@ -76,6 +80,9 @@ import {
   resolveCastConcreteMaterial,
   resolveCmuMaterial,
   resolveFasciaTrimMaterial,
+  resolveFloorGroutMaterial,
+  resolveFloorThinsetMaterial,
+  resolveFloorTileMaterial,
   resolvePlasterFinishMaterial,
   resolveRoofMetalMaterial,
   resolveRoofCladdingUvOptions,
@@ -940,6 +947,7 @@ export default function DesignBuilderViewer({
           );
         }
       }
+      const showCmuInfill = currentFoundationViewMode !== 'structural_frame_only';
       if (layoutGraphActive) {
         currentGeometry.wallSegments.forEach((segment) => {
           const pickMesh = new THREE.Mesh(
@@ -952,21 +960,80 @@ export default function DesignBuilderViewer({
         });
 
         const frameSystem = currentGeometry.frameSystem;
-        if (frameSystem?.columns.length) {
-          const columnMaterial = usePreviewMaterials
-            ? resolveCastConcreteMaterial(
-                { visualStyle: currentVisualStyle, selected: frameSelected, role: 'structural' },
+        const infillPlaster = currentGeometry.infillSystem?.plaster;
+        const useFramePlasterFinish = showCmuInfill && Boolean(infillPlaster?.enabled);
+        const plasterFinish = infillPlaster?.finish ?? 'textured';
+        const plinthTopElevationMeters =
+          frameSystem?.beams.find((beam) => beam.kind === 'plinth_beam')?.topElevationMeters ??
+          TOP_OF_PLINTH_BEAM_Y;
+        const resolveFramePlasterMaterial = (selected: boolean) =>
+          usePreviewMaterials
+            ? resolvePlasterFinishMaterial(
+                { visualStyle: currentVisualStyle, selected, plasterFinish },
                 trackMat,
               )
-            : makeMaterial(0x9ca3af, frameSelected, {
-                roughness: 0.85,
+            : makeMaterial(plasterFinish === 'smooth' ? 0xded8cf : 0xd8d1c5, selected, {
+                side: THREE.DoubleSide,
               });
+        const isPlasterFinishedBeamKind = (kind: string, baseElevationMeters: number) =>
+          baseElevationMeters >= plinthTopElevationMeters - FOUNDATION_CONTACT_EPSILON_METERS &&
+          (kind === 'ring_beam' || kind === 'roof_beam' || kind === 'lintel_beam');
+        const columnConcreteMaterial = usePreviewMaterials
+          ? resolveCastConcreteMaterial(
+              { visualStyle: currentVisualStyle, selected: frameSelected, role: 'structural' },
+              trackMat,
+            )
+          : makeMaterial(0x9ca3af, frameSelected, {
+              roughness: 0.85,
+            });
+        if (frameSystem?.columns.length) {
           frameSystem.columns.forEach((column) => {
+            if (useFramePlasterFinish) {
+              const belowPlinthHeight = Math.max(
+                0,
+                plinthTopElevationMeters - column.baseElevationMeters,
+              );
+              const abovePlinthHeight = Math.max(
+                0,
+                column.topElevationMeters - plinthTopElevationMeters,
+              );
+              if (belowPlinthHeight > FOUNDATION_CONTACT_EPSILON_METERS) {
+                const belowMesh = new THREE.Mesh(
+                  trackGeometry(
+                    new THREE.BoxGeometry(column.widthMeters, belowPlinthHeight, column.depthMeters),
+                  ),
+                  columnConcreteMaterial,
+                );
+                belowMesh.position.set(
+                  column.position.x,
+                  currentSlab.slabThicknessMeters +
+                    column.baseElevationMeters +
+                    belowPlinthHeight / 2,
+                  column.position.z,
+                );
+                addSelectable(belowMesh, 'structural_frame_system');
+              }
+              if (abovePlinthHeight > FOUNDATION_CONTACT_EPSILON_METERS) {
+                const aboveMesh = new THREE.Mesh(
+                  trackGeometry(
+                    new THREE.BoxGeometry(column.widthMeters, abovePlinthHeight, column.depthMeters),
+                  ),
+                  resolveFramePlasterMaterial(frameSelected),
+                );
+                aboveMesh.position.set(
+                  column.position.x,
+                  currentSlab.slabThicknessMeters + plinthTopElevationMeters + abovePlinthHeight / 2,
+                  column.position.z,
+                );
+                addSelectable(aboveMesh, 'structural_frame_system');
+              }
+              return;
+            }
             const mesh = new THREE.Mesh(
               trackGeometry(
                 new THREE.BoxGeometry(column.widthMeters, column.heightMeters, column.depthMeters),
               ),
-              columnMaterial,
+              columnConcreteMaterial,
             );
             mesh.position.set(
               column.position.x,
@@ -1015,13 +1082,15 @@ export default function DesignBuilderViewer({
             const length = Math.hypot(dx, dz);
             if (length <= 0) return;
             const material =
-              beam.kind === 'plinth_beam' || beam.kind === 'grade_beam'
-                ? plinthBeamMaterial
-                : beam.kind === 'tie_beam'
-                  ? tieBeamMaterial
-                  : beam.kind === 'roof_beam' || beam.kind === 'ring_beam'
-                    ? roofBeamMaterial
-                    : beamMaterial;
+              useFramePlasterFinish && isPlasterFinishedBeamKind(beam.kind, beam.baseElevationMeters)
+                ? resolveFramePlasterMaterial(frameSelected)
+                : beam.kind === 'plinth_beam' || beam.kind === 'grade_beam'
+                  ? plinthBeamMaterial
+                  : beam.kind === 'tie_beam'
+                    ? tieBeamMaterial
+                    : beam.kind === 'roof_beam' || beam.kind === 'ring_beam'
+                      ? roofBeamMaterial
+                      : beamMaterial;
             const mesh = new THREE.Mesh(
               trackGeometry(new THREE.BoxGeometry(length, beam.depthMeters, beam.widthMeters)),
               material,
@@ -1062,6 +1131,116 @@ export default function DesignBuilderViewer({
             currentSlab.slabThicknessMeters + interiorFloorSlab.topElevationMeters;
           addSelectable(interiorSlabMesh, 'structural_frame_system');
           root.add(interiorSlabMesh);
+
+          const floorTileLayout = currentGeometry.floorTileLayout;
+          if (showCmuInfill && floorTileLayout?.enabled) {
+            const thinsetMaterial = usePreviewMaterials
+              ? resolveFloorThinsetMaterial(
+                  { visualStyle: currentVisualStyle, selected: frameSelected },
+                  trackMat,
+                )
+              : makeMaterial(0xc9b896, frameSelected, {
+                  roughness: 0.92,
+                });
+            const thinsetMesh = new THREE.Mesh(
+              trackGeometry(
+                createFootprintSlabGeometry(
+                  currentGeometry.resolvedFootprint.interiorFacePolygon,
+                  floorTileLayout.thinsetThicknessMeters,
+                ),
+              ),
+              thinsetMaterial,
+            );
+            thinsetMesh.position.y =
+              currentSlab.slabThicknessMeters +
+              interiorFloorSlab.topElevationMeters +
+              floorTileLayout.thinsetThicknessMeters;
+            root.add(thinsetMesh);
+
+            const tileSurfaceThicknessMeters = 0.008;
+            const tileGroutTopBiasMeters = 0.00025;
+            const tileLayerBaseY =
+              currentSlab.slabThicknessMeters +
+              interiorFloorSlab.topElevationMeters +
+              floorTileLayout.thinsetThicknessMeters;
+            const tileSurfaceTopY = tileLayerBaseY + tileSurfaceThicknessMeters;
+            const tileSurfaceY = tileLayerBaseY + tileSurfaceThicknessMeters / 2;
+            const applyFloorTileLayerDepthBias = (
+              material: THREE.MeshStandardMaterial,
+              layer: 'grout' | 'tile',
+            ) => {
+              material.polygonOffset = true;
+              if (layer === 'grout') {
+                material.polygonOffsetFactor = 2;
+                material.polygonOffsetUnits = 2;
+              } else {
+                material.polygonOffsetFactor = -2;
+                material.polygonOffsetUnits = -4;
+              }
+            };
+
+            if (floorTileLayout.groutJointMeters > 0.0005) {
+              const groutMaterial = usePreviewMaterials
+                ? resolveFloorGroutMaterial(
+                    { visualStyle: currentVisualStyle, selected: frameSelected },
+                    trackMat,
+                  )
+                : makeMaterial(0xf5f5f0, frameSelected, {
+                    roughness: 0.88,
+                  });
+              applyFloorTileLayerDepthBias(groutMaterial, 'grout');
+              const groutMesh = new THREE.Mesh(
+                trackGeometry(
+                  createFootprintSlabGeometry(
+                    currentGeometry.resolvedFootprint.interiorFacePolygon,
+                    tileSurfaceThicknessMeters,
+                  ),
+                ),
+                groutMaterial,
+              );
+              // Keep grout visually flush while biasing slightly below tiles to avoid z-fighting.
+              groutMesh.position.y = tileSurfaceTopY - tileGroutTopBiasMeters;
+              groutMesh.renderOrder = 2;
+              root.add(groutMesh);
+            }
+
+            const tileMaterial = usePreviewMaterials
+              ? resolveFloorTileMaterial(
+                  {
+                    visualStyle: currentVisualStyle,
+                    selected: frameSelected,
+                    tileWidthMeters: floorTileLayout.tileWidthMeters,
+                    tileDepthMeters: floorTileLayout.tileDepthMeters,
+                  },
+                  trackMat,
+                )
+              : makeMaterial(0x9a9590, frameSelected, {
+                  roughness: 0.45,
+                });
+            applyFloorTileLayerDepthBias(tileMaterial, 'tile');
+            floorTileLayout.placements.forEach((placement) => {
+              const tileWidthMeters = placement.renderWidthMeters;
+              const tileDepthMeters = placement.renderDepthMeters;
+              const tileCenter = placement.renderCenter;
+              if (tileWidthMeters <= 0.001 || tileDepthMeters <= 0.001) {
+                return;
+              }
+              const tileMesh = new THREE.Mesh(
+                trackGeometry(
+                  new THREE.BoxGeometry(
+                    tileWidthMeters,
+                    tileSurfaceThicknessMeters,
+                    tileDepthMeters,
+                  ),
+                ),
+                tileMaterial,
+              );
+              tileMesh.position.set(tileCenter.x, tileSurfaceY, tileCenter.z);
+              tileMesh.rotation.y = placement.rotationY;
+              tileMesh.renderOrder = 3;
+              root.add(tileMesh);
+            });
+          }
         }
         if (currentGeometry.isolatedFootings?.length) {
           const footingMaterial = usePreviewMaterials
@@ -1809,8 +1988,6 @@ export default function DesignBuilderViewer({
             root.add(group);
           }
         }
-
-        const showCmuInfill = currentFoundationViewMode !== 'structural_frame_only';
 
         const cmuBlocksForMortar =
           showCmuInfill && currentWall.showIndividualBlocks ? cmuLayout.blocks : [];

@@ -335,6 +335,7 @@ export interface DesignGeometryResult {
   resolvedRoofSystem?: import('../types').ResolvedRoofSystem | null;
   resolvedInfillPanelBounds?: import('../domain/infillPanelBoundsResolver').ResolvedInfillPanelBounds[];
   interiorFloorSlab?: import('../domain/interiorFloorSlab').ResolvedInteriorFloorSlab;
+  floorTileLayout?: import('../types').ResolvedFloorTileLayout;
 }
 
 export interface CmuBlockInstance {

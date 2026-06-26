@@ -36,6 +36,8 @@ import {
   applyMeasurementSystemToPreviewLines,
   type DesignMeasurementSystem,
 } from './designQuantityUnits';
+import { cubicMetersToCubicFeet } from '../domain/floorTileQuantities';
+import type { ResolvedFloorTileLayout } from '../types';
 
 const SQUARE_METERS_PER_SQUARE_FOOT = 0.09290304;
 
@@ -821,6 +823,102 @@ function buildInfillPlasterPreviewLines(params: {
   ];
 }
 
+function buildFloorTilePreviewLines(params: {
+  input: FrameInfillQuantityInput;
+  layout: ResolvedFloorTileLayout;
+  metaBase: Record<string, unknown>;
+}): DesignEstimatePreviewLine[] {
+  const { layout, input, metaBase } = params;
+  const snapshot = {
+    floorTileLayout: layout,
+    structuralObjectId: input.frameObjectId,
+    starterMaterialThinsetId: 'material-drywall-finishes-tile-tile-thinset-modified-50-lb-bag',
+    starterMaterialGroutId: 'material-drywall-finishes-tile-tile-grout-sanded-25-lb-bag',
+    csiSection: '09 30 00',
+    ...metaBase,
+  };
+  const baseLine = {
+    designModelId: input.designModelId,
+    designObjectId: input.frameObjectId,
+    source: 'parametric_design_builder' as const,
+    confidence: 'calculated_from_parameters' as const,
+    divisionCode: '09',
+    divisionName: 'Finishes',
+  };
+  return [
+    {
+      ...baseLine,
+      id: 'interior-floor-tile-full',
+      quantityType: 'interior_floor_tile_full_count',
+      description: 'Interior Floor Tile - Full Units',
+      quantity: layout.fullTileCount,
+      unit: 'EA',
+      formula: 'center_layout_full_tiles',
+      parameterSnapshot: snapshot,
+    },
+    {
+      ...baseLine,
+      id: 'interior-floor-tile-cut',
+      quantityType: 'interior_floor_tile_cut_count',
+      description: 'Interior Floor Tile - Cut Units',
+      quantity: layout.cutTileCount,
+      unit: 'EA',
+      formula: 'center_layout_cut_tiles_at_walls',
+      parameterSnapshot: snapshot,
+    },
+    {
+      ...baseLine,
+      id: 'interior-floor-tile-area',
+      quantityType: 'interior_floor_tile_installed_area',
+      description: 'Interior Floor Tile - Installed Area',
+      quantity: roundQuantity(squareMetersToSquareFeet(layout.installedAreaSquareMeters), 2),
+      unit: 'SF',
+      formula: 'interior_footprint_area',
+      parameterSnapshot: snapshot,
+    },
+    {
+      ...baseLine,
+      id: 'interior-floor-thinset',
+      quantityType: 'interior_floor_thinset_volume',
+      description: 'Interior Floor Tile Thinset',
+      quantity: roundQuantity(cubicMetersToCubicFeet(layout.thinsetVolumeCubicMeters), 2),
+      unit: 'CF',
+      formula: 'interior_footprint_area * thinset_thickness * (1 + waste)',
+      parameterSnapshot: snapshot,
+    },
+    {
+      ...baseLine,
+      id: 'interior-floor-thinset-bags',
+      quantityType: 'interior_floor_thinset_bags',
+      description: 'Interior Floor Tile Thinset Allowance',
+      quantity: layout.thinsetBags,
+      unit: 'BAG',
+      formula: 'ceil(thinset_volume / bag_coverage)',
+      parameterSnapshot: snapshot,
+    },
+    {
+      ...baseLine,
+      id: 'interior-floor-grout',
+      quantityType: 'interior_floor_grout_volume',
+      description: 'Interior Floor Tile Grout',
+      quantity: roundQuantity(cubicMetersToCubicFeet(layout.groutVolumeCubicMeters), 2),
+      unit: 'CF',
+      formula: 'installed_area * grout_joint * (1/tile_width + 1/tile_depth)',
+      parameterSnapshot: snapshot,
+    },
+    {
+      ...baseLine,
+      id: 'interior-floor-grout-bags',
+      quantityType: 'interior_floor_grout_bags',
+      description: 'Interior Floor Tile Grout Allowance',
+      quantity: layout.groutBags,
+      unit: 'BAG',
+      formula: 'ceil(grout_volume * (1 + waste) / bag_coverage)',
+      parameterSnapshot: snapshot,
+    },
+  ];
+}
+
 export function buildFrameInfillEstimatePreview(input: FrameInfillQuantityInput): DesignEstimatePreviewLine[] {
   const resolvedRoof = input.geometryResult.resolvedRoofSystem;
   const hiddenLegacyLineIds = new Set<DesignEstimatePreviewLine['id']>([
@@ -1084,6 +1182,13 @@ export function buildFrameInfillEstimatePreview(input: FrameInfillQuantityInput)
           placementCount: interiorPlasterPlacements.length,
           finish: plasterSettings.interiorFinish,
           profileLabel: plasterSettings.interiorProfileLabel,
+          metaBase,
+        })
+      : []),
+    ...(input.geometryResult.floorTileLayout?.enabled
+      ? buildFloorTilePreviewLines({
+          input,
+          layout: input.geometryResult.floorTileLayout,
           metaBase,
         })
       : []),

@@ -8,6 +8,7 @@ import type {
   StructuralFoundationSettings,
 } from '../types';
 import { defaultInteriorFloorSlabSettings } from './interiorFloorSlab';
+import { defaultInteriorFloorTileSettings } from './floorTileCatalog';
 
 /** @deprecated Intermediate persisted shape — tie beam drop lived on tieBeam + footings.dropBelowTieBeamMeters */
 type IntermediateRcFrameFoundationSettings = RcFrameFoundationSettings & {
@@ -41,6 +42,7 @@ function migrateIntermediateFoundationSettings(
       followsInteriorSegments: settings.plinthBeam.followsInteriorSegments ?? false,
     },
     interiorFloorSlab: defaultInteriorFloorSlabSettings(),
+    floorTileFinish: defaultInteriorFloorTileSettings(),
     roofBeam: settings.roofBeam,
     tieBeam: {
       enabled: settings.tieBeam.enabled,
@@ -74,6 +76,7 @@ export function migrateLegacyFoundationSettings(
       followsInteriorSegments: gradeBeam.followsInteriorSegments,
     },
     interiorFloorSlab: defaultInteriorFloorSlabSettings(),
+    floorTileFinish: defaultInteriorFloorTileSettings(),
     roofBeam: {
       enabled: ringBeam?.enabled ?? true,
       widthMeters: ringBeam?.widthMeters ?? 0.25,
@@ -141,6 +144,10 @@ function ensurePlinthBeamFollowFlags(settings: RcFrameFoundationSettings): RcFra
       ...defaultInteriorFloorSlabSettings(),
       ...settings.interiorFloorSlab,
     },
+    floorTileFinish: {
+      ...defaultInteriorFloorTileSettings(),
+      ...settings.floorTileFinish,
+    },
     columns: {
       ...settings.columns,
       heightAbovePlinthMeters:
@@ -161,6 +168,7 @@ export function createDefaultRcFrameFoundationSettings(): RcFrameFoundationSetti
       followsInteriorSegments: false,
     },
     interiorFloorSlab: defaultInteriorFloorSlabSettings(),
+    floorTileFinish: defaultInteriorFloorTileSettings(),
     roofBeam: {
       enabled: true,
       widthMeters: 0.25,

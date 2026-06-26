@@ -76,6 +76,12 @@ export type DesignMaterialLibrary = {
 
   siteGroundTechnical: THREE.MeshBasicMaterial;
   siteGroundPreview: THREE.MeshStandardMaterial;
+  floorTileTechnical: THREE.MeshStandardMaterial;
+  floorTilePreview: THREE.MeshStandardMaterial;
+  floorThinsetTechnical: THREE.MeshStandardMaterial;
+  floorThinsetPreview: THREE.MeshStandardMaterial;
+  floorGroutTechnical: THREE.MeshStandardMaterial;
+  floorGroutPreview: THREE.MeshStandardMaterial;
 };
 
 export type MaterialPackStatus = 'technical_only' | 'loading' | 'loaded' | 'partial' | 'failed';
@@ -140,6 +146,9 @@ const TECHNICAL_COLORS = {
   soffitTrim: 0x64748b,
   structuralSteel: 0x546e7a,
   siteGround: 0xe2e8f0,
+  floorTile: 0x9a9590,
+  floorThinset: 0xc9b896,
+  floorGrout: 0xf5f5f0,
 } as const;
 
 const PREVIEW_FALLBACK_TINTS = {
@@ -153,6 +162,9 @@ const PREVIEW_FALLBACK_TINTS = {
   soffitTrim: 0x94a3b8,
   structuralSteel: 0x3d4852,
   siteGround: 0xffffff,
+  floorTile: 0x9a9590,
+  floorThinset: 0xc9b896,
+  floorGrout: 0xf5f5f0,
 } as const;
 
 function hexToNumber(hex: string): number {
@@ -317,6 +329,30 @@ function ensureLibrary(): DesignMaterialLibrary {
       roughness: 0.92,
       metalness: 0.01,
       side: THREE.DoubleSide,
+    }),
+    floorTileTechnical: createTechnicalMaterial(TECHNICAL_COLORS.floorTile, {
+      roughness: 0.42,
+      metalness: 0.03,
+    }),
+    floorTilePreview: createPreviewBaseMaterial(PREVIEW_FALLBACK_TINTS.floorTile, {
+      roughness: 0.4,
+      metalness: 0.04,
+    }),
+    floorThinsetTechnical: createTechnicalMaterial(TECHNICAL_COLORS.floorThinset, {
+      roughness: 0.9,
+      metalness: 0.01,
+    }),
+    floorThinsetPreview: createPreviewBaseMaterial(PREVIEW_FALLBACK_TINTS.floorThinset, {
+      roughness: 0.92,
+      metalness: 0.01,
+    }),
+    floorGroutTechnical: createTechnicalMaterial(TECHNICAL_COLORS.floorGrout, {
+      roughness: 0.88,
+      metalness: 0.02,
+    }),
+    floorGroutPreview: createPreviewBaseMaterial(PREVIEW_FALLBACK_TINTS.floorGrout, {
+      roughness: 0.86,
+      metalness: 0.02,
     }),
   };
 
@@ -685,6 +721,7 @@ function applyPreviewMaps(): void {
   const soffitOption = getMaterialOptionById(selection.soffitMaterialId);
   const steelOption = getMaterialOptionById(selection.structuralSteelMaterialId);
   const siteGroundOption = getMaterialOptionById(selection.siteGroundMaterialId);
+  const floorTileOption = getMaterialOptionById(selection.floorTileMaterialId);
 
   if (cmuOption) {
     library.cmuPreview = buildTriplanarPreviewMaterial(
@@ -847,6 +884,18 @@ function applyPreviewMaps(): void {
       },
     );
   }
+
+  if (floorTileOption) {
+    library.floorTilePreview = buildTriplanarPreviewMaterial(
+      getCachedMaps(floorTileOption.id, 'granite-001a'),
+      floorTileOption.tileSizeMeters ?? 0.6,
+      PREVIEW_FALLBACK_TINTS.floorTile,
+      optionSwatchColor(floorTileOption, PREVIEW_FALLBACK_TINTS.floorTile),
+      0.72,
+      floorTileOption.roughness,
+      floorTileOption.metalness,
+    );
+  }
 }
 
 function siteGroundUvRepeat(gridSizeMeters: number, materialId: string): number {
@@ -863,6 +912,7 @@ function uniqueMaterialIdsForSelections(selection: DesignMaterialSelection): str
     'textured-3-coat-plaster',
     'smooth-3-coat-plaster',
     selection.castConcreteMaterialId,
+    selection.floorTileMaterialId,
     selection.roofSheetMaterialId,
     selection.fasciaMaterialId,
     selection.soffitMaterialId,
@@ -1060,6 +1110,60 @@ export function resolvePlasterFinishMaterial(
           ? library.plasterFinishTexturedPreview
           : library.plasterFinishPreview
       : library.plasterFinishTechnical;
+  return finalizeMaterial(base, options, trackDisposable);
+}
+
+export type ResolveFloorTileMaterialOptions = ResolveDesignMaterialOptions & {
+  tileWidthMeters: number;
+  tileDepthMeters: number;
+};
+
+export function resolveFloorTileMaterial(
+  options: ResolveFloorTileMaterialOptions,
+  trackDisposable: (material: THREE.Material) => void,
+): THREE.MeshStandardMaterial {
+  const library = ensureLibrary();
+  const usePreview = options.visualStyle === 'material_preview' && state.previewLoaded;
+  if (usePreview) {
+    const option = getMaterialOptionById(state.activeSelections.floorTileMaterialId);
+    if (option) {
+      const tileSizeMeters = Math.max(options.tileWidthMeters, options.tileDepthMeters);
+      const material = buildTriplanarPreviewMaterial(
+        getCachedMaps(option.id, 'granite-001a'),
+        tileSizeMeters,
+        PREVIEW_FALLBACK_TINTS.floorTile,
+        optionSwatchColor(option, PREVIEW_FALLBACK_TINTS.floorTile),
+        0.72,
+        option.roughness,
+        option.metalness,
+      );
+      return finalizeMaterial(material, options, trackDisposable);
+    }
+  }
+  return finalizeMaterial(library.floorTileTechnical, options, trackDisposable);
+}
+
+export function resolveFloorThinsetMaterial(
+  options: ResolveDesignMaterialOptions,
+  trackDisposable: (material: THREE.Material) => void,
+): THREE.MeshStandardMaterial {
+  const library = ensureLibrary();
+  const base =
+    options.visualStyle === 'material_preview' && state.previewLoaded
+      ? library.floorThinsetPreview
+      : library.floorThinsetTechnical;
+  return finalizeMaterial(base, options, trackDisposable);
+}
+
+export function resolveFloorGroutMaterial(
+  options: ResolveDesignMaterialOptions,
+  trackDisposable: (material: THREE.Material) => void,
+): THREE.MeshStandardMaterial {
+  const library = ensureLibrary();
+  const base =
+    options.visualStyle === 'material_preview' && state.previewLoaded
+      ? library.floorGroutPreview
+      : library.floorGroutTechnical;
   return finalizeMaterial(base, options, trackDisposable);
 }
 

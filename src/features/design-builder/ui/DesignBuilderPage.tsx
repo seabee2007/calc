@@ -217,7 +217,10 @@ import {
   setActiveMaterialSelections,
   type DesignMaterialSelection,
 } from '../rendering/materials/designMaterialLibrary';
-import MaterialsColorsModal, { type MaterialsFinishesScope } from './MaterialsColorsModal';
+import MaterialsColorsModal, {
+  type MaterialsColorsApplyPayload,
+  type MaterialsFinishesScope,
+} from './MaterialsColorsModal';
 import DesignBuilderPlanCanvas from './DesignBuilderPlanCanvas';
 import {
   closeDesignBuilderCommandMenus,
@@ -2582,8 +2585,8 @@ export default function DesignBuilderPage({
     }
   }
 
-  function handleApplyMaterialSelections(nextSelections: DesignMaterialSelection) {
-    const normalized = normalizeDesignMaterialSelection(nextSelections);
+  function handleApplyMaterialSelections(payload: MaterialsColorsApplyPayload) {
+    const normalized = normalizeDesignMaterialSelection(payload.selections);
     setMaterialSelections(normalized);
     const nextPlasterFinish = finishForPlasterMaterialId(normalized.plasterMaterialId);
     if (
@@ -2606,6 +2609,19 @@ export default function DesignBuilderPage({
           };
         },
         'Edit plaster finish',
+        'masonry_settings_update',
+      );
+    }
+    if (payload.floorTileFinish) {
+      applyPresetPatch(
+        (current) => ({
+          ...current,
+          foundationSettings: {
+            ...normalizeRcFrameFoundationSettings(current.foundationSettings),
+            floorTileFinish: payload.floorTileFinish!,
+          },
+        }),
+        'Edit floor tile finish',
         'masonry_settings_update',
       );
     }
@@ -4469,6 +4485,14 @@ export default function DesignBuilderPage({
       isOpen={materialsModal.open}
       scope={materialsModal.scope}
       appliedSelections={materialSelections}
+      appliedFloorTileFinish={
+        normalizeRcFrameFoundationSettings(resolvedPreset.foundationSettings).floorTileFinish
+      }
+      interiorFloorSlabEnabled={
+        normalizeRcFrameFoundationSettings(resolvedPreset.foundationSettings).interiorFloorSlab.enabled
+      }
+      interiorFacePolygon={designGeometryResult.resolvedFootprint?.interiorFacePolygon ?? []}
+      floorTileLayoutPreview={designGeometryResult.floorTileLayout ?? null}
       onClose={() => setMaterialsModal((current) => ({ ...current, open: false }))}
       onApply={handleApplyMaterialSelections}
     />
