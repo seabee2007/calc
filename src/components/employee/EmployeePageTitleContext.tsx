@@ -14,6 +14,7 @@ const ROUTE_TITLES: Record<string, string> = {
   '/employee/projects': 'Projects',
   '/employee/messages': 'Messages',
   '/employee/profile': 'Profile',
+  '/employee/profile/edit': 'Edit profile',
   '/employee/more': 'More',
   '/employee/calculator': 'Calculator',
   '/employee/safety-meeting': 'Safety Meeting',

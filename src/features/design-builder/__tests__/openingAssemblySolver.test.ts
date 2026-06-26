@@ -194,8 +194,8 @@ describe('opening assembly solver', () => {
 
     const leftTrim = resolveOpeningUnitDisposition({
       opening,
-      startAlongMeters: opening.actualStartAlongMeters - 0.195,
-      endAlongMeters: opening.actualStartAlongMeters + 0.195,
+      startAlongMeters: opening.roughStartAlongMeters - 0.195,
+      endAlongMeters: opening.roughStartAlongMeters + 0.195,
       courseIndex: 0,
       courseBottomMeters,
       courseTopMeters,
@@ -203,8 +203,8 @@ describe('opening assembly solver', () => {
     });
     const fullyInside = resolveOpeningUnitDisposition({
       opening,
-      startAlongMeters: opening.actualStartAlongMeters + 0.1,
-      endAlongMeters: opening.actualEndAlongMeters - 0.1,
+      startAlongMeters: opening.roughStartAlongMeters + 0.1,
+      endAlongMeters: opening.roughEndAlongMeters - 0.1,
       courseIndex: 0,
       courseBottomMeters,
       courseTopMeters,
@@ -214,7 +214,7 @@ describe('opening assembly solver', () => {
     expect(leftTrim.action).toBe('trim');
     if (leftTrim.action === 'trim') {
       expect(leftTrim.side).toBe('left');
-      expect(leftTrim.endAlongMeters).toBeCloseTo(opening.actualStartAlongMeters, 3);
+      expect(leftTrim.endAlongMeters).toBeCloseTo(opening.roughStartAlongMeters, 3);
       expect(leftTrim.lengthMeters).toBeGreaterThanOrEqual(0.02);
     }
     expect(fullyInside.action).toBe('skip');

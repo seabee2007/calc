@@ -314,6 +314,7 @@ export function layoutResolvedOpeningFromAssembly(
   assembly: ResolvedOpeningAssembly,
   masonrySettings: CmuWallSystemParameters,
   openingSettings: OpeningAssemblySettings,
+  hostSegment?: SegmentFrame,
 ): ResolvedCmuOpening & {
   wallSegmentId: string;
   worldX: number;
@@ -374,8 +375,14 @@ export function layoutResolvedOpeningFromAssembly(
     groutCellsAboveOpening: Math.max(0, openingSettings.groutCellsAboveOpening ?? 0),
     groutCellsBelowWindow: openingSettings.type === 'window' ? Math.max(0, openingSettings.groutCellsBelowWindow ?? 0) : 0,
     openingFrameMaterial: openingSettings.openingFrameMaterial ?? 'none',
-    worldX: assembly.roughOpening.centerWorld.x,
-    worldZ: assembly.roughOpening.centerWorld.z,
+    worldX: hostSegment
+      ? hostSegment.centerlineStart.x +
+        hostSegment.tangent.x * assembly.actualOpening.centerStationMeters
+      : assembly.roughOpening.centerWorld.x,
+    worldZ: hostSegment
+      ? hostSegment.centerlineStart.z +
+        hostSegment.tangent.z * assembly.actualOpening.centerStationMeters
+      : assembly.roughOpening.centerWorld.z,
     rotationY: assembly.framePlacement.rotationY,
     wallThicknessMeters: assembly.segmentFrame.wallThicknessMeters,
   };

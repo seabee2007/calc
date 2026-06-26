@@ -19,6 +19,7 @@ function mapProfile(row: Record<string, unknown>): Profile {
     displayName,
     firstName,
     lastName,
+    jobTitle: (row.job_title as string) ?? null,
     phone: (row.phone as string) ?? null,
     businessAddressStreet: (row.business_address_street as string) ?? null,
     businessAddressStreet2: (row.business_address_street2 as string) ?? null,
@@ -103,6 +104,7 @@ export async function updateProfile(
     lastName: string;
     displayName: string;
     phone: string | null;
+    jobTitle: string | null;
     businessAddress: {
       street?: string;
       street2?: string;
@@ -128,6 +130,7 @@ export async function updateProfile(
     payload.display_name = patch.displayName;
   }
   if (patch.phone !== undefined) payload.phone = patch.phone;
+  if (patch.jobTitle !== undefined) payload.job_title = patch.jobTitle?.trim() || null;
   if (patch.businessAddress !== undefined) {
     const addr = patch.businessAddress;
     payload.business_address_street = addr?.street?.trim() ?? null;

@@ -82,7 +82,6 @@ import {
 } from './structuralFrameGeometry';
 import { createDefaultFoundationSettings } from '../domain/foundationElevations';
 import { createDefaultRoofSystemSettings, normalizeRoofSystemSettings } from '../domain/roofSystemDefaults';
-import { normalizeCmuInfillSystem } from '../domain/infillPlaster';
 
 export type DesignGeometrySourcePath = 'blank' | 'layout_graph' | 'legacy_preset' | 'manual_masonry';
 
@@ -671,7 +670,7 @@ export function generateDesignGeometry(input: DesignGeometryInput): DesignGeomet
       frameSystem: input.frameSystem ?? defaults.frameSystem,
       foundationSettings: input.foundationSettings ?? createDefaultFoundationSettings(),
       roofSystem: normalizeRoofSystemSettings(input.roofSystem ?? createDefaultRoofSystemSettings()),
-      infillSystem: normalizeCmuInfillSystem(input.infillSystem ?? defaults.infillSystem),
+      infillSystem: input.infillSystem ?? defaults.infillSystem,
       gableEndSystem: input.gableEndSystem ?? defaults.gableEndSystem,
     });
   }
@@ -1659,7 +1658,10 @@ function resolveLayoutOpeningGeometry(params: {
   const lintelType = params.opening.lintelType ?? params.wallSettings.lintelType ?? 'bond_beam';
   const lintelBearingMeters = Math.max(moduleLength / 2, params.opening.lintelBearingMeters ?? params.wallSettings.lintelBearingMeters ?? 0.2);
   const lintelCourseCount = Math.max(1, params.opening.lintelCourseCount ?? params.wallSettings.lintelCourseCount ?? 1);
-  const centerWorld = pointOnSegmentFrame(frame, actualCenterStation, frame.wallThicknessMeters / 2);
+  const centerWorld = {
+    x: frame.centerlineStart.x + frame.tangent.x * actualCenterStation,
+    z: frame.centerlineStart.z + frame.tangent.z * actualCenterStation,
+  };
 
   return {
     id: params.opening.id,
@@ -1719,7 +1721,7 @@ export function resolveLayoutRoughOpeningsFromWall(params: {
     .filter((opening): opening is ResolvedCmuOpening => opening != null);
 }
 
-function getLayoutOpeningSegmentId(opening: ResolvedCmuOpening): string | undefined {
+export function getLayoutOpeningSegmentId(opening: ResolvedCmuOpening): string | undefined {
   return (opening as LayoutResolvedOpening).wallSegmentId;
 }
 

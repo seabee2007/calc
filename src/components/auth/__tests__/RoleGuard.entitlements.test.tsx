@@ -12,11 +12,15 @@ const mocks = vi.hoisted(() => ({
       id: 'user-1',
       role: 'employee',
       employerId: 'owner-1',
+      firstName: 'Pat',
+      lastName: 'Lee',
       onboardingCompletedAt: '2026-01-01T00:00:00.000Z',
     } as {
       id: string;
       role: 'owner' | 'admin' | 'employee';
       employerId: string | null;
+      firstName?: string | null;
+      lastName?: string | null;
       onboardingCompletedAt?: string | null;
     } | null,
     loading: false,
@@ -76,6 +80,8 @@ describe('EmployeeGuard entitlements', () => {
       id: 'user-1',
       role: 'employee',
       employerId: 'owner-1',
+      firstName: 'Pat',
+      lastName: 'Lee',
       onboardingCompletedAt: '2026-01-01T00:00:00.000Z',
     };
     mocks.authState.loading = false;

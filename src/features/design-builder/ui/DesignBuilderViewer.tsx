@@ -32,7 +32,7 @@ import {
 } from '../domain/openingAssembly3dRender';
 import { createOpeningFrame3dGroup } from '../domain/openingFrame3dGraphics';
 import type { ResolvedCmuOpening } from '../domain/cmuOpeningRules';
-import { resolveInfillPlasterPanelPlacements, type PlasterOpening } from '../domain/infillPlaster';
+import { buildInfillWallProxyPieces, resolveInfillPlasterPanelPlacements, type PlasterOpening } from '../domain/infillPlaster';
 import { getNormalizedPointerFromClient } from '../domain/pointerPlanMapping';
 import { buildSegmentFrameMap, projectPointToSegmentStation } from '../domain/openingPlacementResolver';
 import type {
@@ -766,6 +766,10 @@ export default function DesignBuilderViewer({
       const roughHeight = preview.openingDraft?.roughOpeningHeightMeters ?? preview.heightMeters + roughAllowance * 2;
       const centerStation = preview.positionAlongSegment ?? preview.offsetMeters + preview.widthMeters / 2;
       const sillHeight = preview.openingType === 'door' ? 0 : preview.sillHeightMeters ?? 0;
+      const segmentFrames = modelParamsRef.current.geometryResult?.wallCmuLayout?.segmentFrames ?? [];
+      const hostSegmentFrame = preview.wallSegmentId
+        ? segmentFrames.find((segment) => segment.segmentId === preview.wallSegmentId)
+        : undefined;
       const resolvedLike: ResolvedCmuOpening & {
         worldX?: number;
         worldZ?: number;
@@ -818,12 +822,15 @@ export default function DesignBuilderViewer({
         valid: preview.isValid,
         selected: Boolean(preview.openingId && preview.openingId === selectedOpeningIdRef.current),
         showOpeningLayout: modelParamsRef.current.showOpeningLayout,
+        hostSegmentFrame,
       });
       frame.traverse((child) => {
         if (child instanceof THREE.Mesh || child instanceof THREE.LineSegments) {
           ghostMaterials.push(...(Array.isArray(child.material) ? child.material : [child.material]));
         }
       });
+      frame.renderOrder = 10;
+      ghostRoot.renderOrder = 10;
       ghostRoot.add(frame);
     }
     updateGhostRef.current = updateGhost;
@@ -1861,14 +1868,41 @@ export default function DesignBuilderViewer({
             transparent: true,
             opacity: cmuOpacity,
           });
+          const segmentFrameById = new Map(
+            (cmuLayout.segmentFrames ?? []).map((frame) => [frame.segmentId, frame]),
+          );
+          const roughOpenings = cmuLayout.roughOpenings as PlasterOpening[];
           currentGeometry.wallSegments.forEach((segment) => {
-            const wallMesh = new THREE.Mesh(
-              trackGeometry(new THREE.BoxGeometry(segment.lengthMeters, segment.heightMeters, segment.thicknessMeters)),
-              wallMaterial,
-            );
-            wallMesh.position.set(segment.x, currentSlab.slabThicknessMeters + segment.y, segment.z);
-            wallMesh.rotation.y = segment.rotationY;
-            addSelectable(wallMesh, 'cmu_wall_system');
+            const frame = segmentFrameById.get(segment.segmentId);
+            const wallPieces = buildInfillWallProxyPieces({
+              segmentLengthMeters: segment.lengthMeters,
+              wallHeightMeters: segment.heightMeters,
+              wallThicknessMeters: segment.thicknessMeters,
+              hostSegmentId: segment.segmentId,
+              openings: roughOpenings,
+            });
+            wallPieces.forEach((piece) => {
+              const centerlinePoint = frame
+                ? {
+                    x: frame.centerlineStart.x + frame.tangent.x * piece.centerStationMeters,
+                    z: frame.centerlineStart.z + frame.tangent.z * piece.centerStationMeters,
+                  }
+                : { x: segment.x, z: segment.z };
+              const wallMesh = new THREE.Mesh(
+                trackGeometry(
+                  new THREE.BoxGeometry(piece.lengthMeters, piece.heightMeters, piece.thicknessMeters),
+                ),
+                wallMaterial,
+              );
+              wallMesh.position.set(
+                centerlinePoint.x,
+                currentSlab.slabThicknessMeters + piece.centerElevationMeters,
+                centerlinePoint.z,
+              );
+              wallMesh.rotation.y = segment.rotationY;
+              wallMesh.renderOrder = 0;
+              addSelectable(wallMesh, 'cmu_wall_system');
+            });
           });
         }
 
@@ -1915,6 +1949,7 @@ export default function DesignBuilderViewer({
                 placement.center.z,
               );
               mesh.rotation.y = placement.rotationY;
+              mesh.renderOrder = 1;
               plasterGroup.add(mesh);
             });
             plasterGroup.traverse((child) => {

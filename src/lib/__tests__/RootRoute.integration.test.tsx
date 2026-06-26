@@ -12,6 +12,8 @@ const authState = vi.hoisted(() => ({
   profile: null as {
     role: 'owner' | 'admin' | 'employee';
     employerId: string | null;
+    firstName?: string | null;
+    lastName?: string | null;
     onboardingCompletedAt?: string | null;
   } | null,
 }));
@@ -96,6 +98,8 @@ describe('RootRoute', () => {
     authState.profile = {
       role: 'employee',
       employerId: 'owner-1',
+      firstName: 'Pat',
+      lastName: 'Lee',
       onboardingCompletedAt: '2026-01-01T00:00:00.000Z',
     };
     accessState.access = {
@@ -172,7 +176,12 @@ describe('OnboardingRoute', () => {
 
   it('never renders employee portal subscription errors', async () => {
     authState.user = { id: 'employee-1' };
-    authState.profile = { role: 'employee', employerId: 'owner-1' };
+    authState.profile = {
+      role: 'employee',
+      employerId: 'owner-1',
+      firstName: 'Pat',
+      lastName: 'Lee',
+    };
     accessState.access = {
       userId: 'employee-1',
       isOwner: false,

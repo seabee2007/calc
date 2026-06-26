@@ -80,7 +80,7 @@ describe('rootRouteResolver', () => {
     ).toMatchObject({ type: 'redirect', to: '/dashboard' });
   });
 
-  it('accepted employee routes to /employee/dashboard', () => {
+  it('accepted employee routes to /employee/dashboard when names are complete', () => {
     expect(
       resolveRootRouteTarget({
         authLoading: false,
@@ -103,12 +103,13 @@ describe('rootRouteResolver', () => {
         }),
         profileRole: 'employee',
         profileEmployerId: 'owner-1',
-        profileOnboardingCompletedAt: '2026-01-01T00:00:00.000Z',
+        profileFirstName: 'Pat',
+        profileLastName: 'Lee',
       }),
     ).toMatchObject({ type: 'redirect', to: '/employee/dashboard' });
   });
 
-  it('accepted employee with incomplete onboarding routes to /employee/onboarding', () => {
+  it('accepted employee with missing names routes to /employee/onboarding', () => {
     expect(
       resolveRootRouteTarget({
         authLoading: false,
@@ -131,7 +132,8 @@ describe('rootRouteResolver', () => {
         }),
         profileRole: 'employee',
         profileEmployerId: 'owner-1',
-        profileOnboardingCompletedAt: null,
+        profileFirstName: null,
+        profileLastName: null,
       }),
     ).toMatchObject({ type: 'redirect', to: '/employee/onboarding' });
   });

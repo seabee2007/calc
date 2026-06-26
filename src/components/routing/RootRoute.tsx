@@ -95,6 +95,8 @@ export default function RootRoute() {
     access,
     profileRole: profile?.role,
     profileEmployerId: profile?.employerId ?? null,
+    profileFirstName: profile?.firstName ?? null,
+    profileLastName: profile?.lastName ?? null,
     profileOnboardingCompletedAt: profile?.onboardingCompletedAt ?? null,
   });
 

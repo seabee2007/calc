@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createFiveBySixCmuBuildingPreset, type CmuBuildingPreset } from '../domain/designBuilderPreset';
-import { normalizeCmuInfillSystem, resolveInfillPlasterPanelPlacements, totalInfillPlasterAreaSquareMeters } from '../domain/infillPlaster';
+import { buildInfillWallProxyPieces, normalizeCmuInfillSystem, resolveInfillPlasterPanelPlacements, totalInfillPlasterAreaSquareMeters } from '../domain/infillPlaster';
 import { applyAutoFrameLayout } from '../domain/structureActions';
 import {
   buildDesignGeometryInputFromLayout,
@@ -136,17 +136,13 @@ describe('infill plaster', () => {
     expect(returnPlacements.every((placement) => placement.widthMeters > preset.wall.wallThicknessMeters)).toBe(true);
   });
 
-  it('wraps plaster into rough opening jambs and covers the finished opening allowance', () => {
+  it('covers rough opening reveal with field plaster up to the door frame edge', () => {
     const preset = applyAutoFrameLayout(createFiveBySixCmuBuildingPreset());
     const geometry = frameGeometryForPreset(preset);
     const opening = geometry.wallCmuLayout.roughOpenings.find(
       (candidate) => candidate.actualStartAlongMeters > candidate.roughStartAlongMeters,
     );
     expect(opening).toBeDefined();
-    const bounds = (geometry.resolvedInfillPanelBounds ?? []).find(
-      (candidate) => candidate.hostSegmentId === opening!.wallSegmentId,
-    );
-    expect(bounds).toBeDefined();
     const placements = resolveInfillPlasterPanelPlacements({
       infillSystem: geometry.infillSystem,
       panelBounds: geometry.resolvedInfillPanelBounds ?? [],
@@ -156,81 +152,236 @@ describe('infill plaster', () => {
     const openingReturnPlacements = placements.filter((placement) =>
       placement.surfaceKind.startsWith('opening_'),
     );
-    const exteriorOpeningReturns = openingReturnPlacements.filter((placement) => placement.side === 'exterior');
-    const interiorOpeningReturns = openingReturnPlacements.filter((placement) => placement.side === 'interior');
-
-    expect(exteriorOpeningReturns.length).toBeGreaterThan(0);
-    expect(interiorOpeningReturns.length).toBeGreaterThan(0);
-    expect(exteriorOpeningReturns.some((placement) => placement.surfaceKind === 'opening_left_jamb')).toBe(true);
-    expect(exteriorOpeningReturns.some((placement) => placement.surfaceKind === 'opening_right_jamb')).toBe(true);
-    expect(exteriorOpeningReturns.some((placement) => placement.surfaceKind === 'opening_head')).toBe(true);
-    expect(openingReturnPlacements.every((placement) => placement.areaSquareMeters > 0)).toBe(true);
-    expect(exteriorOpeningReturns.every((placement) => placement.finish === 'textured')).toBe(true);
-    expect(interiorOpeningReturns.every((placement) => placement.finish === 'smooth')).toBe(true);
-
-    const openingExteriorReturns = exteriorOpeningReturns.filter((placement) =>
-      placement.id.includes(opening!.id),
+    const exteriorFieldPlacements = placements.filter(
+      (placement) => placement.side === 'exterior' && placement.surfaceKind === 'field',
     );
-    const leftJamb = openingExteriorReturns.find((placement) => placement.surfaceKind === 'opening_left_jamb');
-    const rightJamb = openingExteriorReturns.find((placement) => placement.surfaceKind === 'opening_right_jamb');
-    const head = openingExteriorReturns.find((placement) => placement.surfaceKind === 'opening_head');
-    const sill = openingExteriorReturns.find((placement) => placement.surfaceKind === 'opening_sill');
-    const openingInteriorReturns = interiorOpeningReturns.filter((placement) =>
-      placement.id.includes(opening!.id),
+    const interiorFieldPlacements = placements.filter(
+      (placement) => placement.side === 'interior' && placement.surfaceKind === 'field',
     );
-    const interiorLeftJamb = openingInteriorReturns.find((placement) => placement.surfaceKind === 'opening_left_jamb');
-    const interiorRightJamb = openingInteriorReturns.find((placement) => placement.surfaceKind === 'opening_right_jamb');
-    const interiorHead = openingInteriorReturns.find((placement) => placement.surfaceKind === 'opening_head');
-    expect(leftJamb).toBeDefined();
-    expect(rightJamb).toBeDefined();
-    expect(head).toBeDefined();
-    expect(interiorLeftJamb).toBeDefined();
-    expect(interiorRightJamb).toBeDefined();
-    expect(interiorHead).toBeDefined();
 
-    const centerStation = (placement: typeof openingExteriorReturns[number]) =>
-      (placement.center.x - bounds!.hostWallCenterlineStart.x) * bounds!.tangent.x +
-      (placement.center.z - bounds!.hostWallCenterlineStart.z) * bounds!.tangent.z;
-    const leftCenter = centerStation(leftJamb!);
-    const rightCenter = centerStation(rightJamb!);
-    const interiorLeftCenter = centerStation(interiorLeftJamb!);
-    const interiorRightCenter = centerStation(interiorRightJamb!);
-    const frameTrimCoverageMeters = 0.055;
-    const expectedLeftRevealStation = opening!.actualStartAlongMeters - frameTrimCoverageMeters;
-    const expectedRightRevealStation = opening!.actualEndAlongMeters + frameTrimCoverageMeters;
+    expect(openingReturnPlacements).toHaveLength(0);
+    expect(exteriorFieldPlacements.length).toBeGreaterThan(0);
+    expect(interiorFieldPlacements.length).toBeGreaterThan(0);
 
-    expect(leftCenter - leftJamb!.thicknessMeters / 2).toBeLessThanOrEqual(opening!.roughStartAlongMeters);
-    expect(leftCenter + leftJamb!.thicknessMeters / 2).toBeGreaterThanOrEqual(expectedLeftRevealStation);
-    expect(leftCenter - leftJamb!.thicknessMeters / 2).toBeGreaterThanOrEqual(opening!.roughStartAlongMeters - 0.02);
-    expect(rightCenter - rightJamb!.thicknessMeters / 2).toBeLessThanOrEqual(expectedRightRevealStation);
-    expect(rightCenter + rightJamb!.thicknessMeters / 2).toBeGreaterThanOrEqual(opening!.roughEndAlongMeters);
-    expect(rightCenter + rightJamb!.thicknessMeters / 2).toBeLessThanOrEqual(opening!.roughEndAlongMeters + 0.02);
-    expect(head!.center.y - head!.heightMeters / 2).toBeLessThanOrEqual(
-      opening!.actualTopMeters + frameTrimCoverageMeters,
+    const bounds = (geometry.resolvedInfillPanelBounds ?? []).find(
+      (candidate) => candidate.hostSegmentId === opening!.wallSegmentId,
     );
-    expect(head!.center.y + head!.heightMeters / 2).toBeGreaterThanOrEqual(opening!.roughTopMeters);
-    expect(head!.center.y + head!.heightMeters / 2).toBeLessThanOrEqual(opening!.roughTopMeters + 0.02);
-    expect(head!.widthMeters).toBeGreaterThanOrEqual(opening!.roughOpeningWidthMeters);
-    expect(interiorLeftCenter - interiorLeftJamb!.thicknessMeters / 2).toBeLessThanOrEqual(opening!.roughStartAlongMeters);
-    expect(interiorLeftCenter + interiorLeftJamb!.thicknessMeters / 2).toBeGreaterThanOrEqual(expectedLeftRevealStation);
-    expect(interiorLeftCenter - interiorLeftJamb!.thicknessMeters / 2).toBeGreaterThanOrEqual(opening!.roughStartAlongMeters - 0.02);
-    expect(interiorRightCenter - interiorRightJamb!.thicknessMeters / 2).toBeLessThanOrEqual(expectedRightRevealStation);
-    expect(interiorRightCenter + interiorRightJamb!.thicknessMeters / 2).toBeGreaterThanOrEqual(opening!.roughEndAlongMeters);
-    expect(interiorRightCenter + interiorRightJamb!.thicknessMeters / 2).toBeLessThanOrEqual(opening!.roughEndAlongMeters + 0.02);
-    expect(interiorHead!.center.y - interiorHead!.heightMeters / 2).toBeLessThanOrEqual(
-      opening!.actualTopMeters + frameTrimCoverageMeters,
-    );
-    expect(interiorHead!.center.y + interiorHead!.heightMeters / 2).toBeGreaterThanOrEqual(opening!.roughTopMeters);
-    expect(interiorHead!.center.y + interiorHead!.heightMeters / 2).toBeLessThanOrEqual(opening!.roughTopMeters + 0.02);
-    if (opening!.type !== 'door') {
-      expect(sill).toBeDefined();
-      expect(sill!.center.y - sill!.heightMeters / 2).toBeLessThanOrEqual(opening!.actualBottomMeters);
-      expect(sill!.center.y + sill!.heightMeters / 2).toBeGreaterThanOrEqual(opening!.actualBottomMeters);
-      expect(sill!.center.y - sill!.heightMeters / 2).toBeGreaterThanOrEqual(opening!.actualBottomMeters - 0.01);
-    }
+    expect(bounds).toBeDefined();
+
+    const fieldEdgeNearOpening = (
+      side: 'exterior' | 'interior',
+      edge: 'left' | 'right',
+    ) =>
+      placements
+        .filter(
+          (placement) =>
+            placement.hostSegmentId === opening!.wallSegmentId &&
+            placement.side === side &&
+            placement.surfaceKind === 'field',
+        )
+        .map((placement) => {
+          const centerStation =
+            (placement.center.x - bounds!.hostWallCenterlineStart.x) * bounds!.tangent.x +
+            (placement.center.z - bounds!.hostWallCenterlineStart.z) * bounds!.tangent.z;
+          const start = centerStation - placement.widthMeters / 2;
+          const end = centerStation + placement.widthMeters / 2;
+          const bottom = placement.center.y - placement.heightMeters / 2;
+          const top = placement.center.y + placement.heightMeters / 2;
+          if (bottom >= opening!.actualTopMeters || top <= opening!.actualBottomMeters) return null;
+          if (edge === 'left' && end <= opening!.actualStartAlongMeters + 0.001) return end;
+          if (edge === 'right' && start >= opening!.actualEndAlongMeters - 0.001) return start;
+          return null;
+        })
+        .filter((station): station is number => station != null)
+        .sort((left, right) => (edge === 'left' ? right - left : left - right))[0];
+
+    expect(fieldEdgeNearOpening('exterior', 'left')).toBeCloseTo(opening!.actualStartAlongMeters, 3);
+    expect(fieldEdgeNearOpening('exterior', 'right')).toBeCloseTo(opening!.actualEndAlongMeters, 3);
+    expect(fieldEdgeNearOpening('interior', 'left')).toBeCloseTo(opening!.actualStartAlongMeters, 3);
+    expect(fieldEdgeNearOpening('interior', 'right')).toBeCloseTo(opening!.actualEndAlongMeters, 3);
+    expect(fieldEdgeNearOpening('exterior', 'left')).toBeGreaterThan(opening!.roughStartAlongMeters + 0.01);
   });
 
-  it('cuts the main plaster field to the outside edge of the opening frame', () => {
+  it('keeps field plaster on both sides when actual door edge is near the rough opening end', () => {
+    const hostSegmentId = 'segment-test';
+    const bounds = {
+      panelId: 'infill-segment-test-0',
+      hostSegmentId,
+      startStationMeters: 0,
+      endStationMeters: 5,
+      clearWidthMeters: 5,
+      bottomElevationMeters: 0,
+      topElevationMeters: 2.8,
+      clearHeightMeters: 2.8,
+      hostWallCenterlineStart: { x: 0, y: 0, z: 0 },
+      hostWallCenterlineEnd: { x: 5, y: 0, z: 0 },
+      tangent: { x: 1, y: 0, z: 0 },
+      outwardNormal: { x: 0, y: 0, z: 1 },
+      inwardNormal: { x: 0, y: 0, z: -1 },
+      leftSupportInsideFaceWorld: { x: 0, y: 0, z: 0 },
+      rightSupportInsideFaceWorld: { x: 5, y: 0, z: 0 },
+      leftSupportInsideFaceStation: 0,
+      rightSupportInsideFaceStation: 5,
+    };
+    const opening = {
+      id: 'door-test',
+      type: 'door' as const,
+      wallSegmentId: hostSegmentId,
+      roughStartAlongMeters: 1.56,
+      roughEndAlongMeters: 2.73,
+      actualStartAlongMeters: 1.713,
+      actualEndAlongMeters: 2.688,
+      roughBottomMeters: 0,
+      roughTopMeters: 2.1,
+      actualBottomMeters: 0,
+      actualTopMeters: 2.1,
+      roughOpeningWidthMeters: 1.17,
+      roughOpeningHeightMeters: 2.1,
+      actualWidthMeters: 0.975,
+      actualHeightMeters: 2.1,
+    };
+    const placements = resolveInfillPlasterPanelPlacements({
+      infillSystem: normalizeCmuInfillSystem({
+        kind: 'cmu_infill_system',
+        panels: [{ id: bounds.panelId, hostSegmentId, infillZone: 'above_grade' as const }],
+      }),
+      panelBounds: [bounds],
+      openings: [opening],
+      wallThicknessMeters: 0.19,
+    });
+    const rightFieldEdge = placements
+      .filter(
+        (placement) =>
+          placement.side === 'exterior' &&
+          placement.surfaceKind === 'field' &&
+          placement.hostSegmentId === hostSegmentId,
+      )
+      .map((placement) => {
+        const centerStation =
+          (placement.center.x - bounds.hostWallCenterlineStart.x) * bounds.tangent.x +
+          (placement.center.z - bounds.hostWallCenterlineStart.z) * bounds.tangent.z;
+        const start = centerStation - placement.widthMeters / 2;
+        const bottom = placement.center.y - placement.heightMeters / 2;
+        const top = placement.center.y + placement.heightMeters / 2;
+        if (
+          bottom < opening.actualTopMeters &&
+          top > opening.actualBottomMeters &&
+          start >= opening.actualEndAlongMeters - 0.001
+        ) {
+          return start;
+        }
+        return null;
+      })
+      .filter((edge): edge is number => edge != null)
+      .sort((left, right) => left - right)[0];
+    const leftFieldEdge = placements
+      .filter(
+        (placement) =>
+          placement.side === 'exterior' &&
+          placement.surfaceKind === 'field' &&
+          placement.hostSegmentId === hostSegmentId,
+      )
+      .map((placement) => {
+        const centerStation =
+          (placement.center.x - bounds.hostWallCenterlineStart.x) * bounds.tangent.x +
+          (placement.center.z - bounds.hostWallCenterlineStart.z) * bounds.tangent.z;
+        const end = centerStation + placement.widthMeters / 2;
+        const bottom = placement.center.y - placement.heightMeters / 2;
+        const top = placement.center.y + placement.heightMeters / 2;
+        if (
+          bottom < opening.actualTopMeters &&
+          top > opening.actualBottomMeters &&
+          end <= opening.actualStartAlongMeters + 0.001
+        ) {
+          return end;
+        }
+        return null;
+      })
+      .filter((edge): edge is number => edge != null)
+      .sort((left, right) => right - left)[0];
+
+    expect(rightFieldEdge).toBeCloseTo(opening.actualEndAlongMeters, 3);
+    expect(leftFieldEdge).toBeCloseTo(opening.actualStartAlongMeters, 3);
+  });
+
+  it('extends field plaster through reveal when actual start is near rough start', () => {
+    const hostSegmentId = 'segment-test';
+    const bounds = {
+      panelId: 'infill-segment-test-0',
+      hostSegmentId,
+      startStationMeters: 0,
+      endStationMeters: 6,
+      clearWidthMeters: 6,
+      bottomElevationMeters: 0,
+      topElevationMeters: 2.8,
+      clearHeightMeters: 2.8,
+      hostWallCenterlineStart: { x: 0, y: 0, z: 0 },
+      hostWallCenterlineEnd: { x: 6, y: 0, z: 0 },
+      tangent: { x: 1, y: 0, z: 0 },
+      outwardNormal: { x: 0, y: 0, z: 1 },
+      inwardNormal: { x: 0, y: 0, z: -1 },
+      leftSupportInsideFaceWorld: { x: 0, y: 0, z: 0 },
+      rightSupportInsideFaceWorld: { x: 6, y: 0, z: 0 },
+      leftSupportInsideFaceStation: 0,
+      rightSupportInsideFaceStation: 6,
+    };
+    const opening = {
+      id: 'door-left-trim',
+      type: 'door' as const,
+      wallSegmentId: hostSegmentId,
+      roughStartAlongMeters: 3.51,
+      roughEndAlongMeters: 4.68,
+      actualStartAlongMeters: 3.513,
+      actualEndAlongMeters: 4.488,
+      roughBottomMeters: 0,
+      roughTopMeters: 2.1,
+      actualBottomMeters: 0,
+      actualTopMeters: 2.1,
+      roughOpeningWidthMeters: 1.17,
+      roughOpeningHeightMeters: 2.1,
+      actualWidthMeters: 0.975,
+      actualHeightMeters: 2.1,
+    };
+    const placements = resolveInfillPlasterPanelPlacements({
+      infillSystem: normalizeCmuInfillSystem({
+        kind: 'cmu_infill_system',
+        panels: [{ id: bounds.panelId, hostSegmentId, infillZone: 'above_grade' as const }],
+      }),
+      panelBounds: [bounds],
+      openings: [opening],
+      wallThicknessMeters: 0.19,
+    });
+    const leftFieldEdge = placements
+      .filter(
+        (placement) =>
+          placement.side === 'exterior' &&
+          placement.surfaceKind === 'field' &&
+          placement.hostSegmentId === hostSegmentId,
+      )
+      .map((placement) => {
+        const centerStation =
+          (placement.center.x - bounds.hostWallCenterlineStart.x) * bounds.tangent.x +
+          (placement.center.z - bounds.hostWallCenterlineStart.z) * bounds.tangent.z;
+        const end = centerStation + placement.widthMeters / 2;
+        const bottom = placement.center.y - placement.heightMeters / 2;
+        const top = placement.center.y + placement.heightMeters / 2;
+        if (
+          bottom < opening.actualTopMeters &&
+          top > opening.actualBottomMeters &&
+          end <= opening.actualStartAlongMeters + 0.001
+        ) {
+          return end;
+        }
+        return null;
+      })
+      .filter((edge): edge is number => edge != null)
+      .sort((left, right) => right - left)[0];
+
+    expect(leftFieldEdge).toBeCloseTo(opening.actualStartAlongMeters, 3);
+    expect(leftFieldEdge).toBeGreaterThanOrEqual(opening.roughStartAlongMeters - 0.001);
+  });
+
+  it('cuts the main plaster field at the door frame edge', () => {
     const preset = applyAutoFrameLayout(createFiveBySixCmuBuildingPreset());
     const geometry = frameGeometryForPreset(preset);
     const opening = geometry.wallCmuLayout.roughOpenings.find(
@@ -253,11 +404,10 @@ describe('infill plaster', () => {
       (candidate) => candidate.hostSegmentId === opening!.wallSegmentId,
     );
     expect(bounds).toBeDefined();
-    const frameTrimCoverageMeters = 0.055;
-    const frameStart = Math.max(opening!.roughStartAlongMeters, opening!.actualStartAlongMeters - frameTrimCoverageMeters);
-    const frameEnd = Math.min(opening!.roughEndAlongMeters, opening!.actualEndAlongMeters + frameTrimCoverageMeters);
-    const frameBottom = Math.max(opening!.roughBottomMeters, opening!.actualBottomMeters - frameTrimCoverageMeters);
-    const frameTop = Math.min(opening!.roughTopMeters, opening!.actualTopMeters + frameTrimCoverageMeters);
+    const frameStart = opening!.actualStartAlongMeters;
+    const frameEnd = opening!.actualEndAlongMeters;
+    const frameBottom = opening!.actualBottomMeters;
+    const frameTop = opening!.actualTopMeters;
     const overlapToleranceMeters = 0.001;
     const fieldCrossesFrameOpening = hostFieldPlacements.some((placement) => {
       const centerStation =
@@ -357,5 +507,37 @@ describe('infill plaster', () => {
       openings: geometry.wallCmuLayout.roughOpenings,
     })).toHaveLength(0);
     expect(lines.some((line) => line.id.startsWith('infill-plaster-'))).toBe(false);
+  });
+
+  it('splits infill wall proxy solids around opening frame cutouts', () => {
+    const preset = applyAutoFrameLayout(createFiveBySixCmuBuildingPreset());
+    const geometry = frameGeometryForPreset(preset);
+    const opening = geometry.wallCmuLayout.roughOpenings.find(
+      (candidate) => candidate.actualStartAlongMeters > candidate.roughStartAlongMeters,
+    );
+    expect(opening).toBeDefined();
+    const segment = geometry.wallSegments.find((candidate) => candidate.segmentId === opening!.wallSegmentId);
+    expect(segment).toBeDefined();
+
+    const solidWall = buildInfillWallProxyPieces({
+      segmentLengthMeters: segment!.lengthMeters,
+      wallHeightMeters: segment!.heightMeters,
+      wallThicknessMeters: segment!.thicknessMeters,
+      hostSegmentId: segment!.segmentId,
+      openings: [],
+    });
+    const pieces = buildInfillWallProxyPieces({
+      segmentLengthMeters: segment!.lengthMeters,
+      wallHeightMeters: segment!.heightMeters,
+      wallThicknessMeters: segment!.thicknessMeters,
+      hostSegmentId: segment!.segmentId,
+      openings: geometry.wallCmuLayout.roughOpenings,
+    });
+
+    expect(solidWall).toHaveLength(1);
+    expect(pieces.length).toBeGreaterThan(1);
+    const solidArea = solidWall.reduce((sum, piece) => sum + piece.lengthMeters * piece.heightMeters, 0);
+    const pieceArea = pieces.reduce((sum, piece) => sum + piece.lengthMeters * piece.heightMeters, 0);
+    expect(pieceArea).toBeLessThan(solidArea);
   });
 });

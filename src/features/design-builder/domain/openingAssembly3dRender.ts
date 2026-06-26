@@ -21,7 +21,7 @@ export type OpeningRenderGroups = {
 };
 
 export type BuildOpeningAssemblyRenderGroupsParams = {
-  cmuLayout: Pick<CmuLayoutResult, 'roughOpenings' | 'lintels' | 'groutFillPlacements'>;
+  cmuLayout: Pick<CmuLayoutResult, 'roughOpenings' | 'lintels' | 'groutFillPlacements' | 'segmentFrames'>;
   wall: CmuWallSystemParameters;
   slabTopMeters: number;
   showGroutCells: boolean;
@@ -109,10 +109,14 @@ export function populateOpeningAssemblyRenderGroups(
   params.cmuLayout.roughOpenings.forEach((opening) => {
     const isSelected = opening.id === params.selectedOpeningId;
     const isHovered = opening.id === params.hoveredOpeningId;
+    const hostSegmentFrame = params.cmuLayout.segmentFrames?.find(
+      (frame) => frame.segmentId === (opening as ResolvedCmuOpening & { wallSegmentId?: string }).wallSegmentId,
+    );
     const frame = createOpeningFrame3dGroup(opening, params.wall, params.slabTopMeters, {
       selected: isSelected,
       hovered: isHovered,
       showOpeningLayout: false,
+      hostSegmentFrame,
     });
     frame.userData.openingId = opening.id;
     for (const child of frame.children) {

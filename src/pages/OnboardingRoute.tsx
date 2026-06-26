@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useAppAccess } from '../contexts/AppAccessContext';
 import AccessLoadingSurface from '../components/routing/AccessLoadingSurface';
 import { isOwnerAppAccess } from '../lib/appAccessRouting';
+import { employeeNeedsOnboarding } from '../lib/employeeOnboarding';
 import { ownerNeedsOnboarding } from '../lib/rootRouteResolver';
 import { isEmployeeRole } from '../types/fieldPlanner';
 
@@ -33,11 +34,17 @@ export default function OnboardingRoute() {
   }
 
   if (access.acceptedEmployeeMemberships.length > 0 && !isOwnerAppAccess(access)) {
-    return <Navigate to="/employee/dashboard" replace />;
+    const target = employeeNeedsOnboarding(profile)
+      ? '/employee/onboarding'
+      : '/employee/dashboard';
+    return <Navigate to={target} replace />;
   }
 
   if (profile?.role && isEmployeeRole(profile.role)) {
-    return <Navigate to="/employee/dashboard" replace />;
+    const target = employeeNeedsOnboarding(profile)
+      ? '/employee/onboarding'
+      : '/employee/dashboard';
+    return <Navigate to={target} replace />;
   }
 
   if (isOwnerAppAccess(access) && !ownerNeedsOnboarding({

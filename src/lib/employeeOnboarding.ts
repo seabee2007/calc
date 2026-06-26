@@ -1,6 +1,30 @@
 import type { Profile, UserRole } from '../types/fieldPlanner';
 import { isEmployeeRole } from '../types/fieldPlanner';
 
+export function employeeProfileNamesIncomplete(
+  profileOrFields:
+    | Profile
+    | null
+    | undefined
+    | {
+        firstName?: string | null;
+        lastName?: string | null;
+      },
+): boolean {
+  if (!profileOrFields) return true;
+
+  const firstName =
+    'firstName' in profileOrFields && profileOrFields.firstName !== undefined
+      ? profileOrFields.firstName
+      : (profileOrFields as Profile).firstName;
+  const lastName =
+    'lastName' in profileOrFields && profileOrFields.lastName !== undefined
+      ? profileOrFields.lastName
+      : (profileOrFields as Profile).lastName;
+
+  return !firstName?.trim() || !lastName?.trim();
+}
+
 export function employeeNeedsOnboarding(
   profileOrFields:
     | Profile
@@ -9,7 +33,8 @@ export function employeeNeedsOnboarding(
     | {
         role?: UserRole;
         employerId?: string | null;
-        onboardingCompletedAt?: string | null;
+        firstName?: string | null;
+        lastName?: string | null;
       },
 ): boolean {
   if (!profileOrFields) return false;
@@ -22,17 +47,24 @@ export function employeeNeedsOnboarding(
     'employerId' in profileOrFields && profileOrFields.employerId !== undefined
       ? profileOrFields.employerId
       : (profileOrFields as Profile).employerId;
-  const onboardingCompletedAt =
-    'onboardingCompletedAt' in profileOrFields &&
-    profileOrFields.onboardingCompletedAt !== undefined
-      ? profileOrFields.onboardingCompletedAt
-      : (profileOrFields as Profile).onboardingCompletedAt;
 
   return Boolean(
     role &&
       isEmployeeRole(role) &&
       employerId &&
-      !onboardingCompletedAt,
+      employeeProfileNamesIncomplete(profileOrFields),
+  );
+}
+
+export function shouldAutoCompleteEmployeeOnboarding(
+  profile: Profile | null | undefined,
+): boolean {
+  if (!profile) return false;
+  return Boolean(
+    isEmployeeRole(profile.role) &&
+      profile.employerId &&
+      !employeeProfileNamesIncomplete(profile) &&
+      !profile.onboardingCompletedAt,
   );
 }
 

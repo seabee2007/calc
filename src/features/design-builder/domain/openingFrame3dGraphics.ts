@@ -1,10 +1,12 @@
 import * as THREE from 'three';
 import type { ResolvedCmuOpening } from './cmuOpeningRules';
 import type { CmuWallSystemParameters } from '../types';
+import type { SegmentFrame } from '../geometry/designGeometry';
 
 export const SELECTION_OUTLINE_EPSILON_METERS = 0.002;
 export const FRAME_TRIM_METERS = 0.055;
 export const RENDER_EPSILON_METERS = 0.001;
+export const PREVIEW_FACE_BIAS_METERS = 0.012;
 export const SELECTION_OUTLINE_COLOR = 0x22d3ee;
 export const HOVER_OUTLINE_COLOR = 0x67e8f9;
 export const ROUGH_OPENING_GUIDE_COLOR = 0xf59e0b;
@@ -80,9 +82,9 @@ export function resolveOpeningFrame3dVisibility(params: {
   if (params.preview) {
     return {
       showFrameMeshes: true,
-      showSelectionOutline: params.selected,
+      showSelectionOutline: true,
       showHoverOutline: false,
-      showRoughOpeningGuide: params.showOpeningLayout && params.selected,
+      showRoughOpeningGuide: params.showOpeningLayout,
     };
   }
   return {
@@ -90,6 +92,17 @@ export function resolveOpeningFrame3dVisibility(params: {
     showSelectionOutline: params.selected,
     showHoverOutline: params.hovered && !params.selected,
     showRoughOpeningGuide: params.showOpeningLayout && (params.selected || params.hovered),
+  };
+}
+
+export function resolveOpeningFrameCenterWorld(
+  opening: Pick<ResolvedCmuOpening, 'actualStartAlongMeters' | 'actualEndAlongMeters'>,
+  hostSegmentFrame: Pick<SegmentFrame, 'centerlineStart' | 'tangent'>,
+): { x: number; z: number } {
+  const actualCenterStation = (opening.actualStartAlongMeters + opening.actualEndAlongMeters) / 2;
+  return {
+    x: hostSegmentFrame.centerlineStart.x + hostSegmentFrame.tangent.x * actualCenterStation,
+    z: hostSegmentFrame.centerlineStart.z + hostSegmentFrame.tangent.z * actualCenterStation,
   };
 }
 
@@ -103,6 +116,7 @@ export function createOpeningFrame3dGroup(
     selected?: boolean;
     hovered?: boolean;
     showOpeningLayout?: boolean;
+    hostSegmentFrame?: Pick<SegmentFrame, 'centerlineStart' | 'tangent' | 'rotationY'>;
   },
 ): THREE.Group {
   const preview = options?.preview ?? false;
@@ -126,12 +140,16 @@ export function createOpeningFrame3dGroup(
     metalness: 0.05,
     transparent: preview,
     opacity: preview ? 0.72 : 1,
+    depthTest: !preview,
+    depthWrite: !preview,
   });
   const unitMaterial = new THREE.MeshStandardMaterial({
     color: opening.type === 'door' ? 0x78350f : 0x60a5fa,
     roughness: 0.6,
     transparent: true,
     opacity: preview ? 0.28 : 0.42,
+    depthTest: !preview,
+    depthWrite: !preview,
   });
 
   const centerY = slabTop + opening.actualBottomMeters + opening.actualHeightMeters / 2;
@@ -142,6 +160,9 @@ export function createOpeningFrame3dGroup(
 
   const frameGroup = new THREE.Group();
   frameGroup.userData.openingVisualFrame = true;
+  if (preview) {
+    frameGroup.position.z = PREVIEW_FACE_BIAS_METERS;
+  }
 
   const horizontalGeom = new THREE.BoxGeometry(actualWidth + frame * 2, frame, depth + RENDER_EPSILON_METERS);
   const verticalGeom = new THREE.BoxGeometry(frame, actualHeight + frame * 2, depth + RENDER_EPSILON_METERS);
@@ -185,9 +206,14 @@ export function createOpeningFrame3dGroup(
       color: visibility.showSelectionOutline ? (preview ? previewColor : SELECTION_OUTLINE_COLOR) : HOVER_OUTLINE_COLOR,
       transparent: preview,
       opacity: preview ? 0.95 : 1,
+      depthTest: !preview,
+      depthWrite: !preview,
     });
     const outline = new THREE.LineSegments(outlineGeom, outlineMaterial);
     outline.userData.openingSelectionOutline = true;
+    if (preview) {
+      outline.position.z = PREVIEW_FACE_BIAS_METERS;
+    }
     group.add(outline);
   }
 
@@ -195,7 +221,10 @@ export function createOpeningFrame3dGroup(
     addRoughOpeningGuideChildren(group, opening, depth);
   }
 
-  positionOpeningFrameGroup(group, opening, wall, centerY);
+  positionOpeningFrameGroup(group, opening, wall, centerY, options?.hostSegmentFrame);
+  if (preview) {
+    group.renderOrder = 10;
+  }
   return group;
 }
 
@@ -208,7 +237,7 @@ export function createOpeningRoughOpeningGuideGroup(
   group.userData.openingRoughOpeningGuideGroup = true;
   const centerY = slabTop + opening.actualBottomMeters + opening.actualHeightMeters / 2;
   addRoughOpeningGuideChildren(group, opening, wall.wallThicknessMeters);
-  positionOpeningFrameGroup(group, opening, wall, centerY);
+  positionOpeningFrameGroup(group, opening, wall, centerY, undefined);
   return group;
 }
 
@@ -253,13 +282,26 @@ function positionOpeningFrameGroup(
   opening: ResolvedCmuOpening,
   wall: CmuWallSystemParameters,
   centerY: number,
+  hostSegmentFrame?: Pick<SegmentFrame, 'centerlineStart' | 'tangent' | 'rotationY'>,
 ): void {
-  const along = (opening.actualStartAlongMeters + opening.actualEndAlongMeters) / 2;
+  const actualCenterStation = (opening.actualStartAlongMeters + opening.actualEndAlongMeters) / 2;
+  const roughCenterStation = (opening.roughStartAlongMeters + opening.roughEndAlongMeters) / 2;
   const layoutOpening = opening as ResolvedCmuOpening & {
     worldX?: number;
     worldZ?: number;
     rotationY?: number;
+    wallSegmentId?: string;
+    id?: string;
   };
+
+  if (hostSegmentFrame) {
+    const centerWorld = resolveOpeningFrameCenterWorld(opening, hostSegmentFrame);
+    group.position.set(centerWorld.x, centerY, centerWorld.z);
+    group.rotation.y = hostSegmentFrame.rotationY;
+    return;
+  }
+
+  const along = actualCenterStation;
 
   if (typeof layoutOpening.worldX === 'number' && typeof layoutOpening.worldZ === 'number') {
     group.position.set(layoutOpening.worldX, centerY, layoutOpening.worldZ);

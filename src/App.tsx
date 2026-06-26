@@ -109,6 +109,7 @@ import {
   LazyEmployeeUploadsPage,
   LazyEmployeeDraftChangeOrderPage,
   LazyEmployeeProfilePage,
+  LazyEmployeeProfileEditPage,
   LazyEmployeeCalculatorPage,
   LazyEmployeeSchedulePage,
   LazyEmployeeRfiPage,
@@ -825,6 +826,7 @@ function App() {
               element={<LazyRoute Page={LazyEmployeeDraftChangeOrderPage} />}
             />
             <Route path="profile" element={<LazyRoute Page={LazyEmployeeProfilePage} />} />
+            <Route path="profile/edit" element={<LazyRoute Page={LazyEmployeeProfileEditPage} />} />
             <Route path="calculator" element={<LazyRoute Page={LazyEmployeeCalculatorPage} />} />
             <Route path="safety-meeting" element={<LazyRoute Page={LazySafetyMeetingToolPage} />} />
           </Route>

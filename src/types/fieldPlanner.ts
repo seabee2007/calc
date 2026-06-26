@@ -36,6 +36,7 @@ export interface Profile {
   displayName: string | null;
   firstName: string | null;
   lastName: string | null;
+  jobTitle: string | null;
   phone: string | null;
   businessAddressStreet: string | null;
   businessAddressStreet2: string | null;

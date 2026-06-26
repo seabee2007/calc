@@ -13,7 +13,12 @@ import {
 } from '../lib/authSession';
 import type { User } from '@supabase/supabase-js';
 import type { Profile } from '../types/fieldPlanner';
-import { createOwnerProfile, fetchProfile } from '../services/profileService';
+import {
+  createOwnerProfile,
+  fetchProfile,
+  markOnboardingCompleted,
+} from '../services/profileService';
+import { shouldAutoCompleteEmployeeOnboarding } from '../lib/employeeOnboarding';
 import { clearLegalAcceptanceSessionCache } from '../services/legalAcceptanceService';
 import { clearPersistedAppAccessState } from '../lib/appAccessPersistence';
 import { clearResolvedAppAccess } from '../lib/appAccessReset';
@@ -65,7 +70,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     setProfileLoading(true);
     try {
-      const p = await fetchProfile(sessionUser.id);
+      let p = await fetchProfile(sessionUser.id);
+      if (p && shouldAutoCompleteEmployeeOnboarding(p)) {
+        try {
+          p = await markOnboardingCompleted(sessionUser.id);
+        } catch {
+          // Keep profile usable even if auto-complete fails.
+        }
+      }
       setProfile(p ?? null);
     } catch {
       setProfile(null);

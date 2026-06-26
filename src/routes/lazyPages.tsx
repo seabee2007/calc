@@ -181,6 +181,9 @@ export const LazyEmployeeDraftChangeOrderPage = lazyPage(
 export const LazyEmployeeProfilePage = lazyPage(
   () => import('../pages/employee/EmployeeProfilePage'),
 );
+export const LazyEmployeeProfileEditPage = lazyPage(
+  () => import('../pages/employee/EmployeeProfileEditPage'),
+);
 
 export const LazyEmployeeCalculatorPage = lazyPage(
   () => import('../pages/employee/EmployeeCalculatorPage'),

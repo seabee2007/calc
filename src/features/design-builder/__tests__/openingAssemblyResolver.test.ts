@@ -8,6 +8,7 @@ import {
   resolveOpeningAssembly,
   stationAlongSegmentAxis,
 } from '../domain/openingAssemblyResolver';
+import { resolveOpeningFrameCenterWorld } from '../domain/openingFrame3dGraphics';
 import { blockOverlapsOpeningAssembly } from '../domain/openingAssemblySolver';
 import {
   openingDraftFromResolvedPlacement,
@@ -66,7 +67,7 @@ describe('openingAssemblyResolver regression', () => {
       masonrySettings: preset.wall,
       openingSettings: openingDefinition,
     });
-    const layoutOpening = layoutResolvedOpeningFromAssembly(assembly, preset.wall, openingDefinition);
+    const layoutOpening = layoutResolvedOpeningFromAssembly(assembly, preset.wall, openingDefinition, frame);
     const layout = generateCmuLayoutFromWallLayout(
       preset.wallLayout,
       { ...preset.wall, openings: [committedDraft], snapToModule: false },
@@ -79,14 +80,16 @@ describe('openingAssemblyResolver regression', () => {
     expect(lintel).toBeTruthy();
 
     const roughCenterStation = (rough!.roughStartAlongMeters + rough!.roughEndAlongMeters) / 2;
-    const frameStation = stationAlongSegmentAxis(frame, {
-      x: layoutOpening.worldX,
-      z: layoutOpening.worldZ,
-    });
     const lintelStation = stationAlongSegmentAxis(frame, { x: lintel!.x, z: lintel!.z });
+    const centerlineFrameStation =
+      (layoutOpening.worldX - frame.centerlineStart.x) * frame.tangent.x +
+      (layoutOpening.worldZ - frame.centerlineStart.z) * frame.tangent.z;
 
     expect(roughCenterStation).toBeCloseTo(resolved.positionAlongSegmentMeters, 3);
-    expect(frameStation).toBeCloseTo(resolved.positionAlongSegmentMeters, 3);
+    expect(centerlineFrameStation).toBeCloseTo(
+      (layoutOpening.actualStartAlongMeters + layoutOpening.actualEndAlongMeters) / 2,
+      3,
+    );
     expect(lintelStation).toBeCloseTo(resolved.positionAlongSegmentMeters, 3);
     expect(assembly.roughOpening.centerStationMeters).toBeCloseTo(resolved.positionAlongSegmentMeters, 3);
 
@@ -197,11 +200,14 @@ describe('openingAssemblyResolver regression', () => {
       const roughCenter = (rough!.roughStartAlongMeters + rough!.roughEndAlongMeters) / 2;
       expect(roughCenter).toBeCloseTo(resolved.positionAlongSegmentMeters, 3);
       if ('worldX' in rough! && 'worldZ' in rough!) {
-        const frameStation = stationAlongSegmentAxis(segmentFrame, {
-          x: (rough as { worldX: number }).worldX,
-          z: (rough as { worldZ: number }).worldZ,
-        });
-        expect(frameStation).toBeCloseTo(resolved.positionAlongSegmentMeters, 3);
+        const centerWorld = resolveOpeningFrameCenterWorld(rough!, segmentFrame);
+        const frameStation =
+          (centerWorld.x - segmentFrame.centerlineStart.x) * segmentFrame.tangent.x +
+          (centerWorld.z - segmentFrame.centerlineStart.z) * segmentFrame.tangent.z;
+        expect(frameStation).toBeCloseTo(
+          (rough!.actualStartAlongMeters + rough!.actualEndAlongMeters) / 2,
+          3,
+        );
       }
     });
   });

@@ -64,6 +64,8 @@ export function resolveRootRouteTarget(params: {
   access: ResolvedAppAccess | null;
   profileRole?: UserRole;
   profileEmployerId?: string | null;
+  profileFirstName?: string | null;
+  profileLastName?: string | null;
   profileOnboardingCompletedAt?: string | null;
 }): RootRouteDecision {
   const accessKind = resolveRootAccessKind(params);
@@ -110,7 +112,8 @@ export function resolveRootRouteTarget(params: {
       employeeNeedsOnboarding({
         role: params.profileRole,
         employerId: params.profileEmployerId ?? null,
-        onboardingCompletedAt: params.profileOnboardingCompletedAt ?? null,
+        firstName: params.profileFirstName ?? null,
+        lastName: params.profileLastName ?? null,
       });
 
     return {

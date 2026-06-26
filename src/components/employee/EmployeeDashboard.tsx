@@ -24,11 +24,7 @@ function getGreeting(): string {
   return 'Good evening';
 }
 
-function getFirstName(displayName?: string | null, email?: string | null): string {
-  if (displayName?.trim()) return displayName.trim().split(/\s+/)[0] ?? 'there';
-  if (email) return email.split('@')[0] ?? 'there';
-  return 'there';
-}
+import { resolveFieldGreetingName } from '../../lib/fieldDisplayName';
 
 export default function EmployeeDashboard() {
   const { user, profile } = useAuth();
@@ -102,7 +98,16 @@ export default function EmployeeDashboard() {
       <div className="rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900/90 to-slate-950 p-4">
         <p className="text-sm text-slate-400">{todayLabel}</p>
         <h1 className="mt-1 text-xl font-bold text-white">
-          {getGreeting()}, {getFirstName(profile?.displayName ?? profile?.firstName, user.email)}
+          {getGreeting()},{' '}
+          {resolveFieldGreetingName({
+            displayName: profile?.displayName,
+            firstName: profile?.firstName,
+            authFullName:
+              typeof user.user_metadata?.full_name === 'string'
+                ? user.user_metadata.full_name
+                : null,
+            email: user.email,
+          })}
         </h1>
       </div>
 

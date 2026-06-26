@@ -99,8 +99,8 @@ export function resolveOpeningBlockVoidBounds(opening: ResolvedCmuOpening): {
   topMeters: number;
 } {
   return {
-    startAlongMeters: opening.actualStartAlongMeters,
-    endAlongMeters: opening.actualEndAlongMeters,
+    startAlongMeters: opening.roughStartAlongMeters,
+    endAlongMeters: opening.roughEndAlongMeters,
     bottomMeters: opening.actualBottomMeters,
     topMeters: opening.actualTopMeters,
   };

@@ -186,4 +186,36 @@ describe('openingFrame3dGraphics', () => {
       showRoughOpeningGuide: false,
     });
   });
+
+  it('preview ghost always shows frame meshes and selection outline on top', () => {
+    const opening = sampleDoorOpening();
+    const group = createOpeningFrame3dGroup(opening, wall, 0.1, {
+      preview: true,
+      valid: true,
+      showOpeningLayout: false,
+    });
+
+    expect(
+      resolveOpeningFrame3dVisibility({
+        selected: false,
+        hovered: false,
+        preview: true,
+        showOpeningLayout: false,
+      }),
+    ).toEqual({
+      showFrameMeshes: true,
+      showSelectionOutline: true,
+      showHoverOutline: false,
+      showRoughOpeningGuide: false,
+    });
+    expect(group.renderOrder).toBe(10);
+    expect(groupHasSelectionOutline(group)).toBe(true);
+
+    const frameMesh = group.children
+      .flatMap((child) => (child instanceof THREE.Group ? child.children : [child]))
+      .find((child) => child instanceof THREE.Mesh) as THREE.Mesh | undefined;
+    expect(frameMesh).toBeTruthy();
+    expect((frameMesh!.material as THREE.MeshStandardMaterial).depthTest).toBe(false);
+    expect((frameMesh!.material as THREE.MeshStandardMaterial).depthWrite).toBe(false);
+  });
 });

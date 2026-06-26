@@ -1262,12 +1262,23 @@ describe('Design Builder generated geometry', () => {
         block.source === 'opening_jamb_closure' &&
         typeof block.startAlongMeters === 'number' &&
         typeof block.endAlongMeters === 'number' &&
-        (Math.abs(block.endAlongMeters! - door!.actualStartAlongMeters) < 0.02 ||
-          Math.abs(block.startAlongMeters! - door!.actualEndAlongMeters) < 0.02),
+        (Math.abs(block.endAlongMeters! - door!.roughStartAlongMeters) < 0.02 ||
+          Math.abs(block.startAlongMeters! - door!.roughEndAlongMeters) < 0.02),
     );
 
     expect(trimmedJambs.length).toBeGreaterThan(0);
     expect(new Set(trimmedJambs.map((block) => block.courseIndex)).size).toBeGreaterThan(1);
+    trimmedJambs.forEach((block) => {
+      const end = block.endAlongMeters ?? 0;
+      const start = block.startAlongMeters ?? 0;
+      const touchesLeftRough =
+        Math.abs(end - door!.roughStartAlongMeters) < 0.02 ||
+        Math.abs(end - door!.actualStartAlongMeters) < 0.02;
+      const touchesRightRough =
+        Math.abs(start - door!.roughEndAlongMeters) < 0.02 ||
+        Math.abs(start - door!.actualEndAlongMeters) < 0.02;
+      expect(touchesLeftRough || touchesRightRough).toBe(true);
+    });
   });
 
   it('running bond trims jamb blocks on alternating courses without leaving closure gaps', () => {
@@ -1281,8 +1292,8 @@ describe('Design Builder generated geometry', () => {
           block.source === 'opening_jamb_closure' &&
           typeof block.startAlongMeters === 'number' &&
           typeof block.endAlongMeters === 'number' &&
-          (Math.abs(block.endAlongMeters! - door!.actualStartAlongMeters) < 0.02 ||
-            Math.abs(block.startAlongMeters! - door!.actualEndAlongMeters) < 0.02),
+          (Math.abs(block.endAlongMeters! - door!.roughStartAlongMeters) < 0.02 ||
+            Math.abs(block.startAlongMeters! - door!.roughEndAlongMeters) < 0.02),
       )
       .slice(0, 4);
 
