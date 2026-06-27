@@ -1,8 +1,13 @@
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
+import { resolveDesignBuilderGeometryPipeline } from '../application/designBuilderGeometryPipeline';
+import { createDesignBuilderRcFrameDebugSnapshot } from '../domain/designBuilderRcFrameDebugSnapshot';
 import { DEFAULT_ROOF_LAYER_VISIBILITY } from '../domain/roofSystemDefaults';
 import { createFiveBySixCmuBuildingPreset } from '../domain/designBuilderPreset';
 import type { ResolvedInfillPanelBounds } from '../domain/infillPanelBoundsResolver';
+import { syncPresetFromLayout } from '../domain/layoutWallAdapter';
+import { applyAutoFrameLayout } from '../domain/structureActions';
+import { createOutsideFaceRectangleLayout } from '../domain/wallLayoutRules';
 import type {
   CmuBlockInstance,
   CmuLayoutResult,
@@ -13,6 +18,7 @@ import {
   buildDesignBuilderViewerCmuMortarScene,
   type DesignBuilderViewerCmuInfillState,
 } from '../ui/DesignBuilderViewerCmuInfillScene';
+import { createDesignBuilderViewerCmuInfillRenderDebugSnapshot } from '../ui/DesignBuilderViewerCmuInfillRenderDebugSnapshot';
 import { createDesignBuilderViewerResources } from '../ui/DesignBuilderViewerResources';
 
 function cmuBlock(partial: Partial<CmuBlockInstance>): CmuBlockInstance {
@@ -123,6 +129,69 @@ function instancedMeshCount(object: THREE.Object3D): number {
     if (child instanceof THREE.InstancedMesh) count += child.count;
   });
   return count;
+}
+
+function rcFrameGeometry(params: {
+  lengthMeters: number;
+  widthMeters: number;
+}): {
+  geometry: DesignGeometryResult;
+  state: DesignBuilderViewerCmuInfillState;
+} {
+  const template = createFiveBySixCmuBuildingPreset();
+  const layout = createOutsideFaceRectangleLayout({
+    lengthMeters: params.lengthMeters,
+    widthMeters: params.widthMeters,
+    wallHeightMeters: 2.8,
+    wallThicknessMeters: 0.2,
+  });
+  const synced = syncPresetFromLayout(
+    {
+      ...template,
+      wall: {
+        ...template.wall,
+        openings: [],
+        showIndividualBlocks: false,
+      },
+      wallLayout: layout,
+    },
+    layout,
+  );
+  const preset = applyAutoFrameLayout(synced);
+  const geometry = resolveDesignBuilderGeometryPipeline({
+    wallLayout: preset.wallLayout,
+    effectiveWall: preset.wall,
+    resolvedPreset: {
+      ...preset,
+      buildingSystemMode: 'reinforced_concrete_frame_with_cmu_infill',
+    },
+    footprintClosed: true,
+    activeRoofSystem: preset.roofSystem,
+  }).designGeometryResult;
+
+  return {
+    geometry,
+    state: {
+      currentGeometry: geometry,
+      currentWall: {
+        ...preset.wall,
+        showIndividualBlocks: false,
+      },
+      currentSlab: preset.slab,
+      currentSelectedObjectType: null,
+      currentVisualStyle: 'material_preview',
+      currentRoofDisplayMode: 'full_roof',
+      currentRoofLayerVisibility: DEFAULT_ROOF_LAYER_VISIBILITY,
+      usePreviewMaterials: true,
+      cmuSelected: false,
+      cmuCutawayActive: false,
+      cmuOpacity: 1,
+      cmuMaterialOptions: {
+        visualStyle: 'material_preview',
+        selected: false,
+      },
+    },
+  };
 }
 
 describe('DesignBuilderViewerCmuInfillScene', () => {
@@ -243,5 +312,81 @@ describe('DesignBuilderViewerCmuInfillScene', () => {
     expect(mortar.diagnostics).not.toBeNull();
 
     resources.disposeTrackedResources();
+  });
+
+  it.each([
+    { label: '15m x 6m', lengthMeters: 15, widthMeters: 6 },
+    { label: '35m x 6m', lengthMeters: 35, widthMeters: 6 },
+  ])(
+    'renders solver-driven CMU infill wall and plaster proxy meshes for $label',
+    ({ lengthMeters, widthMeters }) => {
+      const resources = createDesignBuilderViewerResources();
+      const { geometry, state } = rcFrameGeometry({ lengthMeters, widthMeters });
+      const scene = buildDesignBuilderViewerCmuInfillScene({
+        state,
+        cmuLayout: geometry.wallCmuLayout,
+        showCmuInfill: true,
+        trackGeometry: resources.trackGeometry,
+        trackMaterial: resources.trackMaterial,
+        makeMaterial: resources.makeMaterial,
+      });
+      const rcFrameSnapshot = createDesignBuilderRcFrameDebugSnapshot({
+        geometryResult: geometry,
+        visualStyle: 'material_preview',
+        usePreviewMaterials: true,
+      });
+
+      const renderSnapshot = createDesignBuilderViewerCmuInfillRenderDebugSnapshot({
+        cmuInfillScene: scene,
+        rcFrameSnapshot,
+        showCmuInfill: true,
+        showIndividualBlocks: false,
+      });
+
+      expect(rcFrameSnapshot.issues).toEqual([]);
+      expect(renderSnapshot.issues).toEqual([]);
+      expect(renderSnapshot.components.wallProxy.rendered).toBe(true);
+      expect(renderSnapshot.components.wallProxy.meshCount).toBeGreaterThanOrEqual(
+        rcFrameSnapshot.infillHealth.aboveGradePanelCount,
+      );
+      expect(renderSnapshot.components.plaster.rendered).toBe(true);
+      expect(renderSnapshot.components.plaster.meshCount).toBeGreaterThanOrEqual(
+        rcFrameSnapshot.infillHealth.aboveGradePanelsWithPlaster,
+      );
+      expect(renderSnapshot.selectableCount).toBeGreaterThan(0);
+
+      resources.disposeTrackedResources();
+    },
+  );
+
+  it('reports when solver-driven CMU infill wall proxies are missing from the viewer', () => {
+    const { geometry } = rcFrameGeometry({ lengthMeters: 15, widthMeters: 6 });
+    const rcFrameSnapshot = createDesignBuilderRcFrameDebugSnapshot({
+      geometryResult: geometry,
+    });
+
+    const renderSnapshot = createDesignBuilderViewerCmuInfillRenderDebugSnapshot({
+      cmuInfillScene: {
+        groups: [],
+        selectableObjects: [],
+        mortarDiagnostics: null,
+      },
+      rcFrameSnapshot,
+      showCmuInfill: true,
+      showIndividualBlocks: false,
+    });
+
+    expect(renderSnapshot.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          component: 'wallProxy',
+          code: 'expected_component_not_rendered',
+        }),
+        expect.objectContaining({
+          component: 'plaster',
+          code: 'expected_component_not_rendered',
+        }),
+      ]),
+    );
   });
 });

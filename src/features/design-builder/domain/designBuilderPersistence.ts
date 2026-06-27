@@ -189,7 +189,7 @@ export function migratePersistedDesignBuilderState(
           elevationView: normalizeElevationView(raw.displayPreferences.elevationView),
         }
       : {
-          activeView: '2d',
+          activeView: '3d',
           active2DView: 'foundation-plan',
           elevationView: { face: 'north' },
         },

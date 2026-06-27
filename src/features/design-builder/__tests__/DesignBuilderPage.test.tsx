@@ -169,22 +169,10 @@ function commandBar() {
   return screen.getByRole('toolbar', { name: /design builder command bar/i });
 }
 
-function commandMenus() {
-  return Array.from(commandBar().querySelectorAll('[data-design-builder-command-menu]')) as HTMLElement[];
-}
-
 function openMenuByKind(kind: string) {
   const menu = commandBar().querySelector(`[data-menu-kind="${kind}"]`);
   if (!menu) throw new Error(`Command menu kind ${kind} not found`);
   fireEvent.click(within(menu as HTMLElement).getByRole('button'));
-}
-
-function openCommandMenu(triggerName: RegExp | string) {
-  const menu = commandMenus().find((element) =>
-    within(element).queryByRole('button', { name: triggerName }) != null,
-  );
-  if (!menu) throw new Error(`Command menu trigger ${String(triggerName)} not found`);
-  fireEvent.click(within(menu).getByRole('button', { name: triggerName }));
 }
 
 function chooseCommandMenuItem(name: RegExp | string) {
@@ -216,8 +204,8 @@ function selectViewMode(mode: 'plan' | '3d') {
     fireEvent.click(screen.getByRole('button', { name: /switch to 3d view/i }));
     return;
   }
-  fireEvent.click(screen.getByRole('button', { name: /2d drawing views/i }));
-  const foundationPlan = screen.queryByRole('menuitem', { name: /foundation plan/i });
+  fireEvent.click(screen.getByRole('button', { name: /switch to 2d view/i }));
+  const foundationPlan = screen.queryByRole('button', { name: /switch to foundation drawing/i });
   if (foundationPlan) fireEvent.click(foundationPlan);
 }
 
@@ -231,11 +219,6 @@ function openSnapMenu() {
 
 function openDisplayMenu() {
   openMenuByKind('display');
-}
-
-function openViewMenuItems() {
-  openCommandMenu(/^view\b/i);
-  return screen.getAllByRole('menuitem');
 }
 
 describe('DesignBuilderPage', () => {

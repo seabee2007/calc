@@ -140,7 +140,7 @@ export const useDesignBuilderSessionStore = create<DesignBuilderSessionStore>((s
         previewLines: [],
         persistedQuantityItems: [],
         changedAfterCommit: false,
-        viewMode: '2d',
+        viewMode: '3d',
         active2DView: 'foundation-plan',
         elevationView: { face: 'north' },
         snapMode: 'grid',

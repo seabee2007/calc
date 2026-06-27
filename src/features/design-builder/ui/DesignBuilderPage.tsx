@@ -5,10 +5,7 @@ import {
   useReducer,
   useRef,
   useState,
-  type KeyboardEvent as ReactKeyboardEvent,
-  type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
-  type ReactNode,
 } from 'react';
 import { useAuth } from '../../../hooks/useAuth';
 import {
@@ -29,10 +26,7 @@ import { DESIGN_BUILDER_COPY } from '../domain/designBuilderCopy';
 import { resolveDesignSnapPoint, type DesignSnapTarget } from '../domain/designSnapRules';
 import { useConfirm } from '../../../contexts/ConfirmContext';
 import {
-  applyOpeningPlacementPatch,
   applyOpeningSegmentPatch,
-  createOpeningDraft,
-  createOpeningDraftForSegment,
   DEFAULT_DOOR_DIMENSIONS,
   DEFAULT_WINDOW_DIMENSIONS,
   openingDraftFromPlacementResolution,
@@ -50,13 +44,10 @@ import {
 } from '../domain/openingPlacementResolver';
 import { pickOpeningAtPlanPoint } from '../domain/planOpeningGraphics';
 import {
-  generateCmuLayout,
   getSegmentFramesForWallLayout,
-  type DesignGeometryResult,
 } from '../geometry/designGeometry';
 import {
   canGenerateSlabAndRoof,
-  layoutFromPreset,
   syncPresetFromLayout,
   wallParamsWithLegacyOpenings,
 } from '../domain/layoutWallAdapter';
@@ -112,27 +103,18 @@ import {
 } from '../domain/designBuilderHistory';
 import {
   resolveCmuModuleConfig,
-  resolveClosedFootprintToCmuModules,
   snapLengthToCmuHalfModule,
   snapLengthToCmuModule,
   snapOpeningToCmuModule,
-  summarizeWallModuleFits,
   validateCmuOpenings,
 } from '../domain/cmuModuleRules';
 import {
   buildModuleFitCandidateTable,
-  evaluateRequestedDimensionModuleFit,
   nearestModularCandidate,
 } from '../domain/moduleFitEngine';
-import { resolveCmuOpening } from '../domain/cmuOpeningRules';
-import {
-  lintelCourseAssemblyRequiresCutWarning,
-  summarizeLintelCourseClosureSide,
-} from '../domain/lintelCourseClosureSolver';
 import { useEstimateWorkspaceHeaderCollapse } from '../../estimating/ui/EstimateWorkspaceHeaderCollapseContext';
 import {
   buildDesignEstimatePreview,
-  cubicMetersToCubicYards,
   resolveCmuOrderBlockQuantity,
 } from '../quantity/designQuantityFormulas';
 import {
@@ -141,13 +123,12 @@ import {
 } from '../quantity/designQuantityUnits';
 import { usePreferencesStore } from '../../../store';
 import {
-  applyAutoFrameLayout,
   applyFrameFoundationDimensions,
   objectSaveKey,
   setBuildingSystemMode,
   type FrameFoundationDimensionsApplyPayload,
 } from '../domain/structureActions';
-import { createDefaultFoundationSettings, normalizeRcFrameFoundationSettings, resolveFoundationElevations, syncColumnHeightAbovePlinthForWallHeight } from '../domain/foundationElevations';
+import { normalizeRcFrameFoundationSettings, resolveFoundationElevations, syncColumnHeightAbovePlinthForWallHeight } from '../domain/foundationElevations';
 import {
   createDefaultRoofSystemSettings,
   DEFAULT_ROOF_LAYER_VISIBILITY,
@@ -156,7 +137,6 @@ import {
 } from '../domain/roofSystemDefaults';
 import { normalizeCmuInfillSystem, normalizeCmuInfillPlasterSettings } from '../domain/infillPlaster';
 import FrameFoundationDimensionsModal from './FrameFoundationDimensionsModal';
-import { DoorConfigurationControls } from './DoorConfigurationControls';
 import {
   designModelMetadataWithPersistedState,
   persistenceStatusMessage,
@@ -193,7 +173,6 @@ import type {
   FoundationViewMode,
   RoofDisplayMode,
   RoofLayerVisibility,
-  RcFrameFoundationSettings,
   RoofSystemSettings,
   DesignModel,
   DesignModelObject,
@@ -220,15 +199,52 @@ import {
 } from '../state/designBuilderStore';
 import {
   DEFAULT_PLAN_VIEWPORT,
-  PLAN_GRID_SCALE_PRESETS,
   type PlanViewportState,
 } from '../domain/pointerPlanMapping';
-import { buildLayoutFramingKey, logDesignFramingDiagnostics } from '../domain/designLayoutBounds';
+import { buildLayoutFramingKey } from '../domain/designLayoutBounds';
 import { formatDrawWallSnapTargetFeedback } from '../domain/designDrawWallFeedback';
 import DesignBuilderViewer from './DesignBuilderViewer';
 import type { DesignBuilderPlacementPreview } from './DesignBuilderOpeningPreviewScene';
-import { DraggableDebugOverlay } from './DraggableDebugOverlay';
 import { DebugOverlayLayoutProvider } from './DebugOverlayLayoutContext';
+import { DesignBuilderRcDebugOverlays } from './DesignBuilderRcDebugOverlays';
+import { DesignBuilderComponentParameterPanel } from './DesignBuilderComponentParameterPanel';
+import { DesignBuilderCommandBar } from './DesignBuilderCommandBar';
+import { DesignBuilderToolInstructionStrip } from './DesignBuilderToolInstructionStrip';
+import type { DesignBuilderViewerHeightPreset } from './DesignBuilderViewMenu';
+import { DesignBuilderEditableControls } from './DesignBuilderEditableControls';
+import {
+  DesignBuilderEstimatePanel,
+  DesignBuilderLinkedQuantitiesPanel,
+} from './DesignBuilderEstimatePanel';
+import { positiveOrFallback } from './designBuilderFormFieldMath';
+import {
+  clampNumber,
+  leftPanelCollapsedKey,
+  maxViewerHeight,
+  readBooleanStorage,
+  readViewerSize,
+  resolveViewerHeightPreset,
+  rightPanelCollapsedKey,
+  RIGHT_PANEL_MAX_WIDTH,
+  RIGHT_PANEL_MIN_WIDTH,
+  VIEWER_MIN_HEIGHT,
+  writeBooleanStorage,
+  writeViewerSize,
+} from './DesignBuilderLayoutStorage';
+import {
+  finishForPlasterMaterialId,
+  moduleFitStatusTone,
+  OBJECT_TREE_ITEMS,
+  objectIdForType,
+  plasterMaterialIdForFinish,
+  TOOL_MODE_OPTIONS,
+} from './DesignBuilderPageMappings';
+import { Panel } from './DesignBuilderPageShell';
+import {
+  statusClassName,
+  type DesignBuilderPageStatus,
+} from './DesignBuilderStatus';
+import { DesignBuilderObjectTreePanel } from './DesignBuilderObjectTreePanel';
 import {
   initializeMaterialSelectionsFromPersistence,
   normalizeDesignMaterialSelection,
@@ -243,8 +259,6 @@ import DesignBuilderPlanCanvas from './DesignBuilderPlanCanvas';
 import DesignBuilderElevationCanvas from './DesignBuilderElevationCanvas';
 import {
   closeDesignBuilderCommandMenus,
-  CommandMenuAction,
-  DesignBuilderCommandMenu,
   DesignBuilderCommandMenuProvider,
 } from './DesignBuilderCommandMenu';
 import {
@@ -266,92 +280,7 @@ interface DesignBuilderPageProps {
   onEstimateCommitted?: () => void;
 }
 
-type StatusTone = 'info' | 'success' | 'error';
-type ViewerHeightPreset = 'fit' | '60' | '80' | 'full';
-
-interface PageStatus {
-  tone: StatusTone;
-  message: string;
-}
-
-const VIEWER_MIN_HEIGHT = 360;
-const VIEWER_DEFAULT_HEIGHT = 560;
-const RIGHT_PANEL_DEFAULT_WIDTH = 360;
-const RIGHT_PANEL_MIN_WIDTH = 320;
-const RIGHT_PANEL_MAX_WIDTH = 520;
-
-function leftPanelCollapsedKey(projectId: string, estimateId: string | null): string {
-  return `arden:designBuilder:leftPanelCollapsed:${projectId}:${estimateId ?? 'project'}`;
-}
-
-function rightPanelCollapsedKey(projectId: string, estimateId: string | null): string {
-  return `arden:designBuilder:rightPanelCollapsed:${projectId}:${estimateId ?? 'project'}`;
-}
-
-function viewerSizeKey(projectId: string, estimateId: string | null, focusMode: boolean): string {
-  return `arden:designBuilder:viewerSize:${projectId}:${estimateId ?? 'project'}:${focusMode ? 'focus' : 'normal'}`;
-}
-
-function readBooleanStorage(key: string, fallback: boolean): boolean {
-  try {
-    const stored = localStorage.getItem(key);
-    return stored == null ? fallback : stored === 'true';
-  } catch {
-    return fallback;
-  }
-}
-
-function writeBooleanStorage(key: string, value: boolean) {
-  try {
-    localStorage.setItem(key, String(value));
-  } catch {
-    // Ignore storage failures.
-  }
-}
-
-function maxViewerHeight(focusMode: boolean): number {
-  const viewport = typeof window === 'undefined' ? 900 : window.innerHeight;
-  return Math.max(VIEWER_MIN_HEIGHT, viewport - (focusMode ? 172 : 280));
-}
-
-function resolveViewerHeightPreset(preset: ViewerHeightPreset, focusMode: boolean): number {
-  const viewport = typeof window === 'undefined' ? 900 : window.innerHeight;
-  const max = maxViewerHeight(focusMode);
-  if (preset === '60') return clampNumber(Math.round(viewport * 0.6), VIEWER_MIN_HEIGHT, max);
-  if (preset === '80') return clampNumber(Math.round(viewport * 0.8), VIEWER_MIN_HEIGHT, max);
-  if (preset === 'full') return max;
-  return clampNumber(VIEWER_DEFAULT_HEIGHT, VIEWER_MIN_HEIGHT, max);
-}
-
-function readViewerSize(projectId: string, estimateId: string | null, focusMode: boolean) {
-  const fallback = {
-    height: resolveViewerHeightPreset(focusMode ? 'full' : 'fit', focusMode),
-    rightPanelWidth: RIGHT_PANEL_DEFAULT_WIDTH,
-  };
-  try {
-    const raw = localStorage.getItem(viewerSizeKey(projectId, estimateId, focusMode));
-    if (!raw) return fallback;
-    const parsed = JSON.parse(raw) as Partial<typeof fallback>;
-    return {
-      height: clampNumber(Number(parsed.height) || fallback.height, VIEWER_MIN_HEIGHT, maxViewerHeight(focusMode)),
-      rightPanelWidth: clampNumber(Number(parsed.rightPanelWidth) || fallback.rightPanelWidth, RIGHT_PANEL_MIN_WIDTH, RIGHT_PANEL_MAX_WIDTH),
-    };
-  } catch {
-    return fallback;
-  }
-}
-
-function writeViewerSize(projectId: string, estimateId: string | null, focusMode: boolean, size: { height: number; rightPanelWidth: number }) {
-  try {
-    localStorage.setItem(viewerSizeKey(projectId, estimateId, focusMode), JSON.stringify(size));
-  } catch {
-    // Ignore storage failures.
-  }
-}
-
-function clampNumber(value: number, min: number, max: number): number {
-  return Math.min(max, Math.max(min, value));
-}
+type ViewerHeightPreset = DesignBuilderViewerHeightPreset;
 
 export default function DesignBuilderPage({
   projectId,
@@ -426,13 +355,13 @@ export default function DesignBuilderPage({
   const [persistedQuantityItems, setPersistedQuantityItems] = useState<DesignQuantityItem[]>(
     () => storedSession?.persistedQuantityItems ?? [],
   );
-  const [status, setStatus] = useState<PageStatus>(() => ({
+  const [status, setStatus] = useState<DesignBuilderPageStatus>(() => ({
     tone: 'info',
     message: persistenceStatusMessage(persistenceContext.mode),
   }));
-  const [saveState, setSaveState] = useState<DesignBuilderSaveState>('unsaved');
-  const [lastSaveTime, setLastSaveTime] = useState<string | null>(null);
-  const [lastSaveError, setLastSaveError] = useState<string | null>(null);
+  const [, setSaveState] = useState<DesignBuilderSaveState>('unsaved');
+  const [, setLastSaveTime] = useState<string | null>(null);
+  const [, setLastSaveError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(() =>
     storedSession?.leftPanelCollapsed ?? readBooleanStorage(leftPanelCollapsedKey(projectId, estimateId), false),
@@ -1013,7 +942,6 @@ export default function DesignBuilderPage({
   }, [designGeometryResult, designModel?.id, effectiveWall, footprintClosed, measurementSystem, objectIds, resolvedPreset]);
   const visiblePreviewLines = modelLoaded ? (previewLines.length > 0 ? previewLines : generatedPreview) : [];
   const cmuModule = useMemo(() => resolveCmuModuleConfig(effectiveWall), [effectiveWall]);
-  const wallModuleFits = useMemo(() => summarizeWallModuleFits(effectiveWall), [effectiveWall]);
   const planSegmentFrames = useMemo(
     () => designGeometryResult.wallCmuLayout.segmentFrames ?? getSegmentFramesForWallLayout(wallLayout, effectiveWall),
     [designGeometryResult.wallCmuLayout.segmentFrames, effectiveWall, wallLayout],
@@ -1493,24 +1421,41 @@ export default function DesignBuilderPage({
         ? { kind: 'opening', id: selectedOpeningId }
         : { kind: 'none' };
 
-  function issueViewCommand(action: 'fit' | 'reset' | 'grid_scale', spacingMeters?: number) {
-    setViewCommand({ id: Date.now() + Math.random(), action, spacingMeters });
+  function toggleObjectTreeGroup(groupId: string) {
+    setObjectTreeExpanded((current) => ({
+      ...current,
+      [groupId]: !(current[groupId as keyof ObjectTreeExpansionState] ?? false),
+    }));
   }
 
-  function resetDesignViewFraming(options?: { blank?: boolean }) {
-    hasUserAdjustedPlanViewRef.current = false;
-    hasUserAdjusted3dViewRef.current = false;
-    autoFitPlanForLayoutKeyRef.current = null;
-    autoFit3dForLayoutKeyRef.current = null;
-    sessionFramingValidatedRef.current = false;
-    pending3dFitRef.current = true;
-    if (options?.blank) {
-      setPlanViewport(DEFAULT_PLAN_VIEWPORT);
-      setCameraSnapshot(null);
-      issueViewCommand('reset');
-      return;
+  function selectObjectTreeObjectType(objectType: DesignObjectType) {
+    setSelectedObjectType(objectType);
+    setSelectedSegmentId(null);
+    setSelectedNodeId(null);
+    setPlacementPreview(null);
+    if (objectType !== 'door_opening' && objectType !== 'window_opening') {
+      setSelectedOpeningId(null);
     }
-    issueViewCommand('fit');
+  }
+
+  function selectObjectTreeSegment(segmentId: string) {
+    setSelectedSegmentId(segmentId);
+    setSelectedObjectType(null);
+    setSelectedOpeningId(null);
+    setSelectedNodeId(null);
+    setPlacementPreview(null);
+  }
+
+  function selectObjectTreeOpening(openingId: string, objectType: 'door_opening' | 'window_opening') {
+    setSelectedOpeningId(openingId);
+    setSelectedObjectType(objectType);
+    setSelectedSegmentId(null);
+    setSelectedNodeId(null);
+    setPlacementPreview(null);
+  }
+
+  function issueViewCommand(action: 'fit' | 'reset' | 'grid_scale', spacingMeters?: number) {
+    setViewCommand({ id: Date.now() + Math.random(), action, spacingMeters });
   }
 
   function resolvePresetName(): string {
@@ -2204,11 +2149,10 @@ export default function DesignBuilderPage({
     options?: { includeDrawContext?: boolean; shiftHeld?: boolean; altHeld?: boolean },
   ): DesignSnapTarget {
     const moduleLength = cmuModule.moduleLengthMeters;
-    const effectiveSnapMode = moduleFitMode === 'snap_during_draw' && snapMode === 'cmu_module' ? 'grid' : snapMode;
     const snapTarget = resolveDesignSnapPoint({
       layout: wallLayout,
       point: rawPoint,
-      snapMode: effectiveSnapMode,
+      snapMode,
       moduleLengthMeters: moduleLength,
       pixelsPerMeter: planViewport.zoom,
       altHeld: options?.altHeld,
@@ -2290,7 +2234,6 @@ export default function DesignBuilderPage({
     }
 
     const moduleLength = cmuModule.moduleLengthMeters;
-    const effectiveSnapMode = moduleFitMode === 'snap_during_draw' && snapMode === 'cmu_module' ? 'grid' : snapMode;
     const layout = wallLayout;
     const snapLayout = {
       ...layout,
@@ -2442,7 +2385,7 @@ export default function DesignBuilderPage({
     }
 
     if (event.kind === 'move_node' && event.nodeId && event.planX != null && event.planZ != null) {
-      let point = snapPlanPoint(event.planX, event.planZ, snapLayout, moduleLength);
+      const point = snapPlanPoint(event.planX, event.planZ, snapLayout, moduleLength);
       if (event.phase === 'preview') {
         setDraftPlanEnd(point);
         return;
@@ -3426,31 +3369,6 @@ export default function DesignBuilderPage({
     );
   }
 
-  type FoundationSettingsSection = 'plinthBeam' | 'roofBeam' | 'tieBeam' | 'columns' | 'isolatedFootings';
-
-  function updateFoundationField(
-    patch: Partial<RcFrameFoundationSettings[FoundationSettingsSection]>,
-    section: FoundationSettingsSection,
-  ) {
-    applyPresetPatch(
-      (current) => {
-        const currentFoundation = normalizeRcFrameFoundationSettings(current.foundationSettings);
-        return applyAutoFrameLayout({
-          ...current,
-          foundationSettings: {
-            ...currentFoundation,
-            [section]: {
-              ...currentFoundation[section],
-              ...patch,
-            },
-          },
-        });
-      },
-      'Edit foundation settings',
-      'structure_update',
-    );
-  }
-
   function updateGableField(gableId: string, patch: Partial<import('../types').GableEndSettings>) {
     applyPresetPatch(
       (current) => ({
@@ -3810,118 +3728,21 @@ export default function DesignBuilderPage({
             leftPanelCollapsed ? 'pointer-events-none opacity-0' : 'opacity-100'
           } ${focusMode ? 'min-h-0 overflow-y-auto pr-1' : ''}`}
         >
-          <Panel title="Object Tree">
-            {OBJECT_TREE_GROUPS.map((group) => {
-              const expanded = objectTreeExpanded[group.id as keyof ObjectTreeExpansionState] ?? false;
-              return (
-                <div key={group.id} className="mb-2">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setObjectTreeExpanded((current) => ({
-                        ...current,
-                        [group.id]: !expanded,
-                      }))
-                    }
-                    className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800"
-                  >
-                    <span>{group.label}</span>
-                    <span>{expanded ? '−' : '+'}</span>
-                  </button>
-                  {expanded ? (
-                    <div className="mt-1 space-y-1">
-                      {group.items.map((item) => (
-                        <button
-                          key={item.id}
-                          type="button"
-                          onClick={() => {
-                            setSelectedObjectType(item.objectType);
-                            setSelectedSegmentId(null);
-                            setSelectedNodeId(null);
-                            setPlacementPreview(null);
-                            if (item.objectType !== 'door_opening' && item.objectType !== 'window_opening') {
-                              setSelectedOpeningId(null);
-                            }
-                          }}
-                          className={`w-full rounded-lg border px-3 py-2 text-left text-sm transition ${
-                            selectedObjectType === item.objectType && !selectedOpeningId
-                              ? 'border-cyan-400 bg-cyan-50 text-cyan-900 dark:border-cyan-600 dark:bg-cyan-950/50 dark:text-cyan-100'
-                              : 'border-slate-200 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800'
-                          }`}
-                        >
-                          <span className="font-medium">{item.label}</span>
-                          {item.description ? (
-                            <span className="mt-0.5 block text-xs text-slate-500 dark:text-slate-400">{item.description}</span>
-                          ) : null}
-                        </button>
-                      ))}
-                    </div>
-                  ) : null}
-                </div>
-              );
-            })}
-            {modelLoaded && wallLayout.segments.length > 0 ? (
-              <div className="mt-2 space-y-1 border-t border-slate-200 pt-2 dark:border-slate-700">
-                <div className="px-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Wall segments</div>
-                {wallLayout.segments.map((segment, index) => (
-                  <button
-                    key={segment.id}
-                    type="button"
-                    onClick={() => {
-                      setSelectedSegmentId(segment.id);
-                      setSelectedObjectType(null);
-                      setSelectedOpeningId(null);
-                      setSelectedNodeId(null);
-                      setPlacementPreview(null);
-                    }}
-                    className={`w-full rounded-lg border px-3 py-2 text-left text-sm transition ${
-                      selectedSegmentId === segment.id
-                        ? 'border-cyan-400 bg-cyan-50 text-cyan-900 dark:border-cyan-600 dark:bg-cyan-950/50 dark:text-cyan-100'
-                        : 'border-slate-200 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    Segment {index + 1}
-                  </button>
-                ))}
-              </div>
-            ) : null}
-            {modelLoaded && resolvedPreset.wall.openings.length > 0 ? (
-              <div className="mt-2 space-y-1 border-t border-slate-200 pt-2 dark:border-slate-700">
-                <div className="px-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                  Placed openings
-                </div>
-                {resolvedPreset.wall.openings.map((opening) => (
-                  <button
-                    key={opening.id}
-                    type="button"
-                    onClick={() => {
-                      setSelectedOpeningId(opening.id);
-                      setSelectedObjectType(opening.type === 'door' ? 'door_opening' : 'window_opening');
-                      setSelectedSegmentId(null);
-                      setSelectedNodeId(null);
-                      setPlacementPreview(null);
-                    }}
-                    className={`w-full rounded-lg border px-3 py-2 text-left text-sm transition ${
-                      selectedOpeningId === opening.id
-                        ? 'border-cyan-400 bg-cyan-50 text-cyan-900 dark:border-cyan-600 dark:bg-cyan-950/50 dark:text-cyan-100'
-                        : 'border-slate-200 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    <span className="font-medium capitalize">
-                      {opening.type}
-                      {opening.wallSegmentId ? ` - segment` : opening.wallFace ? ` - ${opening.wallFace}` : ''}
-                    </span>
-                    <span className="mt-0.5 block text-xs text-slate-500 dark:text-slate-400">
-                      Offset {(opening.positionAlongSegment ?? opening.offsetMeters ?? 0).toFixed(2)}m
-                    </span>
-                  </button>
-                ))}
-              </div>
-            ) : null}
-          </Panel>
-
+          <DesignBuilderObjectTreePanel
+            objectTreeExpanded={objectTreeExpanded}
+            modelLoaded={modelLoaded}
+            wallSegments={wallLayout.segments}
+            openings={resolvedPreset.wall.openings}
+            selectedObjectType={selectedObjectType}
+            selectedOpeningId={selectedOpeningId}
+            selectedSegmentId={selectedSegmentId}
+            onToggleGroup={toggleObjectTreeGroup}
+            onSelectObjectType={selectObjectTreeObjectType}
+            onSelectSegment={selectObjectTreeSegment}
+            onSelectOpening={selectObjectTreeOpening}
+          />
           <Panel title={selectedObjectType || selectedSegmentId ? `Edit ${selectedObjectLabel}` : selectedObjectLabel}>
-            <EditableControls
+            <DesignBuilderEditableControls
               selectedObjectType={selectedObjectType}
               preset={resolvedPreset}
               designGeometryResult={designGeometryResult}
@@ -3933,7 +3754,6 @@ export default function DesignBuilderPage({
               onWallOptionChange={updateWallOption}
               onBlockModuleChange={updateBlockModuleField}
               cmuModule={cmuModule}
-              wallModuleFits={wallModuleFits}
               moduleWarnings={moduleWarnings}
               cmuLayout={cmuLayout}
               selectedWallSegment={selectedWallSegment}
@@ -3942,722 +3762,127 @@ export default function DesignBuilderPage({
               onTrussSpacingChange={updateTrussSpacing}
               onStructureFieldChange={updateStructureField}
               onInfillPlasterChange={updateInfillPlaster}
-              onFoundationFieldChange={updateFoundationField}
               onGableFieldChange={updateGableField}
               onOpeningChange={updateSelectedOpening}
               selectedOpeningId={selectedOpeningId}
             />
           </Panel>
 
-          <Panel title="Linked Quantities">
-            {linkedPreviewLines.length > 0 ? (
-              <div className="space-y-2">
-                {linkedPreviewLines.map((line) => (
-                  <div key={line.id} className="rounded-lg bg-slate-100 p-2 text-sm dark:bg-slate-800">
-                    <div className="font-medium">{line.description}</div>
-                    <div className="text-xs text-slate-500 dark:text-slate-400">
-                      {line.quantity} {line.unit}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-slate-500 dark:text-slate-400">
-                Select a quantity card or estimate line to see linked quantities for this object.
-              </p>
-            )}
-          </Panel>
+          <DesignBuilderLinkedQuantitiesPanel linkedPreviewLines={linkedPreviewLines} />
         </aside>
 
         <main className={`min-h-0 ${focusMode ? 'flex flex-col overflow-hidden' : 'space-y-4'}`}>
-          <div
-            role="toolbar"
-            aria-label="Design Builder command bar"
-            className="mb-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm dark:border-slate-700 dark:bg-slate-900"
-          >
-            <div className="flex flex-wrap items-center gap-2">
-              <DesignBuilderCommandMenu
-                menuKind="tools"
-                label={<>{activeToolLabel}</>}
-                isActive={toolMode === 'select'}
-                summaryClassName={`flex h-9 items-center gap-1 rounded-lg border px-3 text-xs font-semibold transition focus:outline-none focus:ring-2 focus:ring-cyan-400/40 ${
-                  toolMode === 'select'
-                    ? 'border-cyan-400 bg-cyan-50 text-cyan-800 dark:border-cyan-600 dark:bg-cyan-950/50 dark:text-cyan-100'
-                    : 'border-slate-200 text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800'
-                }`}
-              >
-                {TOOL_MODE_OPTIONS.map((option) => (
-                  <CommandMenuAction
-                    key={option.mode}
-                    aria-label={
-                      option.mode === 'place_door' || option.mode === 'place_window'
-                        ? 'Activate opening placement tool'
-                        : undefined
-                    }
-                    onClick={() => activateToolMode(option.mode)}
-                    disabled={!modelLoaded}
-                    aria-pressed={toolMode === option.mode}
-                    className={`block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
-                      toolMode === option.mode
-                        ? 'bg-cyan-600 text-white'
-                        : 'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    {option.label}
-                  </CommandMenuAction>
-                ))}
-              </DesignBuilderCommandMenu>
-
-              <DesignBuilderCommandMenu
-                menuKind="components"
-                label={<>Components</>}
-                isActive={toolMode === 'place_component' || toolMode === 'place_door' || toolMode === 'place_window'}
-                panelClassName="w-56 p-2"
-                summaryClassName={`flex h-9 items-center gap-1 rounded-lg border px-3 text-xs font-semibold transition focus:outline-none focus:ring-2 focus:ring-cyan-400/40 ${
-                  toolMode === 'place_component' || toolMode === 'place_door' || toolMode === 'place_window'
-                    ? 'border-cyan-400 bg-cyan-50 text-cyan-800 dark:border-cyan-600 dark:bg-cyan-950/50 dark:text-cyan-100'
-                    : 'border-slate-200 text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800'
-                }`}
-              >
-                {componentDefinitionGroups.map((group) => (
-                  <div key={group.division} className="py-1">
-                    <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-                      {group.division}
-                    </div>
-                    {group.definitions.map((definition) => (
-                      <CommandMenuAction
-                        key={definition.type}
-                        onClick={() => activateDesignComponent(definition.type)}
-                        disabled={!modelLoaded}
-                        className={`block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-50 ${
-                          componentPlacement.activeComponentType === definition.type ||
-                          (definition.type === 'door' && toolMode === 'place_door') ||
-                          (definition.type === 'window' && toolMode === 'place_window')
-                            ? 'bg-cyan-600 text-white'
-                            : 'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800'
-                        }`}
-                      >
-                        {definition.displayName}
-                      </CommandMenuAction>
-                    ))}
-                  </div>
-                ))}
-              </DesignBuilderCommandMenu>
-
-              <div
-                role="group"
-                aria-label="Switch Design Builder view"
-                className="inline-flex h-9 overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700"
-              >
-                {([
-                  ['2d', '2D'],
-                  ['3d', '3D'],
-                ] as Array<[DesignBuilderViewMode, string]>).map(([mode, label], index) => (
-                  <button
-                    key={mode}
-                    type="button"
-                    aria-label={`Switch to ${label} view`}
-                    aria-pressed={viewMode === mode}
-                    onClick={() => setDesignBuilderViewMode(mode)}
-                    className={`${index === 0 ? '' : 'border-l border-slate-200 dark:border-slate-700'} px-3 text-xs font-semibold transition ${
-                      viewMode === mode
-                        ? 'bg-cyan-600 text-white'
-                        : 'text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-              {viewMode === '2d' ? (
-                <div
-                  role="group"
-                  aria-label="Switch 2D drawing view"
-                  className="inline-flex h-9 overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700"
-                >
-                  {([
-                    ['foundation-plan', 'Foundation'],
-                    ['roof-plan', 'Roof'],
-                    ['electrical-plan', 'Electrical'],
-                    ['plumbing-plan', 'Plumbing'],
-                    ['elevation-view', 'Elevation'],
-                  ] as Array<[Design2DViewType, string]>).map(([drawingView, label], index) => (
-                    <button
-                      key={drawingView}
-                      type="button"
-                      aria-label={`Switch to ${label} drawing`}
-                      aria-pressed={active2DView === drawingView}
-                      onClick={() => setActive2DDrawingView(drawingView)}
-                      className={`${index === 0 ? '' : 'border-l border-slate-200 dark:border-slate-700'} px-3 text-xs font-semibold transition ${
-                        active2DView === drawingView
-                          ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950'
-                          : 'text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800'
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              ) : null}
-              <DesignBuilderCommandMenu
-                menuKind="structure"
-                label={<>{structureMenuLabel}</>}
-                panelClassName="w-56"
-                summaryClassName="flex h-9 items-center gap-1 rounded-lg border border-cyan-400 bg-cyan-50 px-3 text-xs font-semibold text-cyan-800 focus:outline-none focus:ring-2 focus:ring-cyan-400/40 dark:border-cyan-600 dark:bg-cyan-950/50 dark:text-cyan-100"
-              >
-                <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400">System</div>
-                <CommandMenuAction
-                  onClick={() => handleSetBuildingSystemMode('reinforced_concrete_frame_with_cmu_infill')}
-                  aria-pressed={activeBuildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill'}
-                  className={`block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold ${
-                    activeBuildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill'
-                      ? 'bg-cyan-600 text-white'
-                      : 'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800'
-                  }`}
-                >
-                  RC Structure
-                </CommandMenuAction>
-                <details className="px-1 py-1">
-                  <summary className="cursor-pointer rounded-lg px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
-                    Advanced
-                  </summary>
-                  <CommandMenuAction
-                    onClick={() => handleSetBuildingSystemMode('cmu_bearing_wall')}
-                    aria-pressed={activeBuildingSystemMode === 'cmu_bearing_wall'}
-                    className={`mt-1 block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold ${
-                      activeBuildingSystemMode === 'cmu_bearing_wall'
-                        ? 'bg-cyan-600 text-white'
-                        : 'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    CMU Bearing Wall
-                  </CommandMenuAction>
-                </details>
-                {isFrameStructureMode ? (
-                  <>
-                    <div className="my-1 border-t border-slate-200 dark:border-slate-700" />
-                    <CommandMenuAction
-                      onClick={() => setFrameFoundationModalOpen(true)}
-                      disabled={!modelLoaded || !footprintClosed}
-                      className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-50 text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
-                    >
-                      RC Settings
-                    </CommandMenuAction>
-                  </>
-                ) : null}
-              </DesignBuilderCommandMenu>
-
-              <DesignBuilderCommandMenu
-                menuKind="snap"
-                label={<>Snap: {snapMode === 'cmu_module' ? 'CMU' : snapMode === 'grid' ? 'Grid' : 'Off'}</>}
-                closeOnSelect={false}
-                panelClassName="w-64 p-2"
-                summaryClassName="flex h-9 items-center gap-1 rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-cyan-400/40 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
-              >
-                  <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400">Snap mode</div>
-                  {(['grid', 'cmu_module', 'off'] as DesignBuilderSnapMode[]).map((mode) => (
-                    <button
-                      key={mode}
-                      type="button"
-                      onClick={() => setSnapMode(mode)}
-                      className={`block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold ${
-                        snapMode === mode
-                          ? 'bg-cyan-600 text-white'
-                          : 'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800'
-                      }`}
-                    >
-                      {mode === 'cmu_module' ? 'CMU' : mode === 'grid' ? 'Grid' : 'Off'}
-                    </button>
-                  ))}
-                  <p className="px-3 py-1 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
-                    Grid snaps wall endpoints to selected grid spacing. CMU snaps to CMU module stations.
-                  </p>
-                  <div className="my-1 border-t border-slate-200 dark:border-slate-700" />
-                  <button
-                    type="button"
-                    onClick={toggleOrthogonalGuides}
-                    className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800"
-                  >
-                    <span className="text-slate-700 dark:text-slate-200">Orthogonal guides</span>
-                    <span className={wallLayout.orthogonalLock ? 'font-bold text-cyan-600 dark:text-cyan-300' : 'text-slate-400'}>
-                      {wallLayout.orthogonalLock ? 'On' : 'Off'}
-                    </span>
-                  </button>
-                  <div className={`${snapMode === 'grid' ? '' : 'opacity-50'}`}>
-                  <div className="my-1 border-t border-slate-200 dark:border-slate-700" />
-                  <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-                    Snap spacing
-                  </div>
-                  <div className="grid grid-cols-2 gap-1 px-1">
-                    {PLAN_GRID_SCALE_PRESETS.map((preset) => (
-                      <button
-                        key={preset.spacingMeters}
-                        type="button"
-                        onClick={() => applyGridScalePreset(preset.spacingMeters)}
-                        disabled={snapMode !== 'grid'}
-                        className={`rounded-lg px-2 py-1.5 text-left text-xs font-semibold disabled:cursor-not-allowed ${
-                          Math.abs(wallLayout.gridSpacingMeters - preset.spacingMeters) < 0.0001
-                            ? 'bg-cyan-600 text-white'
-                            : 'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800'
-                        }`}
-                      >
-                        {preset.spacingMeters < 1 ? preset.spacingMeters.toFixed(1) : preset.spacingMeters} m
-                      </button>
-                    ))}
-                  </div>
-                  <div className="px-3 py-1 text-[11px] font-medium text-slate-500 dark:text-slate-400">
-                    {snapMode === 'grid'
-                      ? `Active grid spacing: ${wallLayout.gridSpacingMeters < 1 ? wallLayout.gridSpacingMeters.toFixed(1) : wallLayout.gridSpacingMeters} m`
-                      : 'Snap spacing applies in Grid mode only.'}
-                  </div>
-                  </div>
-                  <div className="my-1 border-t border-slate-200 dark:border-slate-700" />
-                  <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-                    Module Fit
-                  </div>
-                  {([
-                    ['exact', 'Exact'],
-                    ['snap_during_draw', 'Snap During Draw'],
-                    ['resolve_after_draw', 'Resolve After Draw'],
-                  ] as Array<[ModuleFitMode, string]>).map(([mode, label]) => (
-                    <button
-                      key={mode}
-                      type="button"
-                      onClick={() => setModuleFitMode(mode)}
-                      className={`block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold ${
-                        moduleFitMode === mode
-                          ? 'bg-cyan-600 text-white'
-                          : 'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800'
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                  <p className="px-3 py-1 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
-                    Exact preserves requested dimensions. Snap During Draw snaps endpoints to compatible CMU modules.
-                    Resolve After Draw keeps requested dimensions until you apply a module-fit proposal.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => resolveCurrentFootprintModuleFit(false)}
-                    className="mt-1 block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
-                  >
-                    Preview Module Fit
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => resolveCurrentFootprintModuleFit(true)}
-                    disabled={moduleFitMode === 'exact'}
-                    className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 dark:text-slate-200 dark:hover:bg-slate-800"
-                  >
-                    Apply Module Fit
-                  </button>
-              </DesignBuilderCommandMenu>
-
-              <DesignBuilderCommandMenu
-                menuKind="view"
-                label={<>View</>}
-                panelClassName="w-56 p-2"
-                summaryClassName="flex h-9 items-center gap-1 rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-cyan-400/40 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
-              >
-                  <CommandMenuAction onClick={() => setViewCommand({ id: Date.now(), action: 'fit' })} className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800">Fit</CommandMenuAction>
-                  <CommandMenuAction onClick={() => setViewCommand({ id: Date.now(), action: 'reset' })} className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800">Reset view</CommandMenuAction>
-                  {(['fit', '60', '80', 'full'] as ViewerHeightPreset[]).map((preset) => (
-                    <CommandMenuAction
-                      key={preset}
-                      onClick={() => applyViewerHeightPreset(preset)}
-                      className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
-                    >
-                      {preset === 'fit' ? 'Fit height' : preset === 'full' ? 'Full height' : `${preset}%`}
-                    </CommandMenuAction>
-                  ))}
-                  <div className="my-1 border-t border-slate-200 dark:border-slate-700" />
-                  <CommandMenuAction
-                    onClick={() => void handleCloseFootprint()}
-                    disabled={!closeFootprintEnabled}
-                    className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 dark:text-slate-200 dark:hover:bg-slate-800"
-                  >
-                    Close Footprint
-                  </CommandMenuAction>
-                  <CommandMenuAction
-                    onClick={() => setStatus({ tone: 'info', message: DESIGN_BUILDER_COPY.hints.help })}
-                    className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
-                  >
-                    Help
-                  </CommandMenuAction>
-              </DesignBuilderCommandMenu>
-
-              <DesignBuilderCommandMenu
-                menuKind="display"
-                label={<>Display</>}
-                closeOnSelect={false}
-                panelClassName="w-64 max-h-[min(70vh,520px)] space-y-1 overflow-y-auto p-3 text-xs"
-                summaryClassName="flex h-9 items-center gap-1 rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-cyan-400/40 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
-              >
-                  <DisplayMenuCollapsibleSection id="display-wall-overlays" title="Wall Overlays">
-                    <ToggleField label="Show opening layout" checked={showOpeningLayout} onChange={setShowOpeningLayout} />
-                    <ToggleField
-                      label="Show Grout / Reinforced Cells"
-                      title="Shows only calculated CMU core fills, bond-beam cells, and valid closure voids. Does not represent the rough opening itself."
-                      checked={showGroutCells}
-                      onChange={setShowGroutCells}
-                    />
-                    <ToggleField label="Show Cut-Block Conditions" checked={showClosureWarnings} onChange={setShowClosureWarnings} />
-                  </DisplayMenuCollapsibleSection>
-                  <DisplayMenuCollapsibleSection id="display-visual-style" title="Visual Style">
-                    {(
-                      [
-                        ['technical', 'Technical'],
-                        ['material_preview', 'Material Preview'],
-                      ] as const
-                    ).map(([mode, label]) => (
-                      <label key={mode} className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 hover:bg-slate-50 dark:hover:bg-slate-800">
-                        <input
-                          type="radio"
-                          name="design-visual-style"
-                          checked={visualStyle === mode}
-                          onChange={() => setVisualStyle(mode)}
-                        />
-                        <span>{label}</span>
-                      </label>
-                    ))}
-                    <CommandMenuAction
-                      onClick={() => setMaterialsModal({ open: true, scope: 'all' })}
-                      className="mt-1 block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
-                    >
-                      Materials &amp; Colors
-                    </CommandMenuAction>
-                  </DisplayMenuCollapsibleSection>
-                  <DisplayMenuCollapsibleSection id="display-2d-drawing" title="2D Drawing">
-                    {(
-                      [
-                        ['architectural', 'Architectural'],
-                        ['builder', 'Builder'],
-                      ] as const
-                    ).map(([mode, label]) => (
-                      <label key={mode} className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 hover:bg-slate-50 dark:hover:bg-slate-800">
-                        <input
-                          type="radio"
-                          name="design-2d-drawing-style"
-                          checked={twoDDrawingStyle === mode}
-                          onChange={() => setTwoDDrawingStyle(mode)}
-                        />
-                        <span>{label}</span>
-                      </label>
-                    ))}
-                  </DisplayMenuCollapsibleSection>
-                  {import.meta.env.DEV && resolvedPreset.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill' ? (
-                    <DisplayMenuCollapsibleSection id="display-debug" title="Debug">
-                      <ToggleField
-                        label="Show Roof Reference Perimeters"
-                        checked={showRoofReferencePerimeters}
-                        onChange={setShowRoofReferencePerimeters}
-                      />
-                      <ToggleField
-                        label="Show Roof Layer Contacts"
-                        checked={showRoofFramingGuides}
-                        onChange={setShowRoofFramingGuides}
-                      />
-                    </DisplayMenuCollapsibleSection>
-                  ) : null}
-                  {resolvedPreset.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill' ? (
-                    <>
-                      <DisplayMenuCollapsibleSection id="display-roof-plan" title="Roof Plan">
-                        <ToggleField label="Show Roof Hatch" checked={showRoofPlanHatch} onChange={setShowRoofPlanHatch} />
-                        <ToggleField label="Show Roof Slope Arrows" checked={showRoofPlanSlopeArrows} onChange={setShowRoofPlanSlopeArrows} />
-                        <ToggleField label="Show Roof Dimensions" checked={showRoofPlanDimensions} onChange={setShowRoofPlanDimensions} />
-                        <ToggleField label="Show Roof Reference Lines" checked={showRoofPlanReferenceLines} onChange={setShowRoofPlanReferenceLines} />
-                      </DisplayMenuCollapsibleSection>
-                      <DisplayMenuCollapsibleSection id="display-foundation-view" title="Foundation View">
-                        {(
-                          [
-                            ['full_model', 'Full Model'],
-                            ['cutaway_below_grade', 'Cutaway / Below Grade'],
-                            ['structural_frame_only', 'Structural Frame Only'],
-                          ] as const
-                        ).map(([mode, label]) => (
-                          <label key={mode} className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 hover:bg-slate-50 dark:hover:bg-slate-800">
-                            <input
-                              type="radio"
-                              name="foundation-view-mode"
-                              checked={foundationViewMode === mode}
-                              onChange={() => setFoundationViewMode(mode)}
-                            />
-                            <span>{label}</span>
-                          </label>
-                        ))}
-                      </DisplayMenuCollapsibleSection>
-                      <DisplayMenuCollapsibleSection id="display-roof-display" title="Roof Display">
-                        {(
-                          [
-                            ['full_roof', 'Full Roof'],
-                            ['roof_cladding_only', 'Roof Cladding Only'],
-                            ['steel_framing_only', 'Steel Framing Only'],
-                            ['gable_masonry_only', 'Gable Masonry Only'],
-                            ['foundation_frame_roof', 'Foundation + Frame + Roof'],
-                          ] as const
-                        ).map(([mode, label]) => (
-                          <label key={mode} className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 hover:bg-slate-50 dark:hover:bg-slate-800">
-                            <input
-                              type="radio"
-                              name="roof-display-mode"
-                              checked={roofDisplayMode === mode}
-                              onChange={() => setRoofDisplayMode(mode)}
-                            />
-                            <span>{label}</span>
-                          </label>
-                        ))}
-                      </DisplayMenuCollapsibleSection>
-                      <DisplayMenuCollapsibleSection id="display-roof-layers" title="Roof Layers">
-                        {(
-                          [
-                            ['roofCladding', 'Roof Cladding'],
-                            ['ridgeCap', 'Ridge Cap'],
-                            ['fascia', 'Fascia'],
-                            ['soffit', 'Soffit'],
-                            ['steelTrusses', 'Steel Trusses'],
-                            ['purlins', 'Purlins'],
-                            ['gableEndCmu', 'Gable-End CMU'],
-                            ['rakedConcreteCap', 'Raked Concrete Cap'],
-                          ] as const
-                        ).map(([key, label]) => (
-                          <label key={key} className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 hover:bg-slate-50 dark:hover:bg-slate-800">
-                            <input
-                              type="checkbox"
-                              checked={roofLayerVisibility[key] ?? DEFAULT_ROOF_LAYER_VISIBILITY[key]}
-                              onChange={(event) => {
-                                const checked = event.currentTarget.checked;
-                                setRoofLayerVisibility((current) => ({
-                                  ...current,
-                                  [key]: checked,
-                                }));
-                              }}
-                            />
-                            <span>{label}</span>
-                          </label>
-                        ))}
-                      </DisplayMenuCollapsibleSection>
-                    </>
-                  ) : null}
-              </DesignBuilderCommandMenu>
-
-              <button
-                type="button"
-                onClick={handleUndoDesign}
-                disabled={!canUndoDesignHistory(designHistory)}
-                aria-label={nextUndoCommand ? `Undo ${nextUndoCommand.label}` : 'Undo'}
-                title={nextUndoCommand ? `Undo ${nextUndoCommand.label}` : 'Undo'}
-                className="h-9 rounded-lg px-3 text-xs font-semibold text-slate-600 hover:bg-slate-100 disabled:opacity-40 dark:text-slate-300 dark:hover:bg-slate-800"
-              >
-                Undo
-              </button>
-              <button
-                type="button"
-                onClick={handleRedoDesign}
-                disabled={!canRedoDesignHistory(designHistory)}
-                aria-label={nextRedoCommand ? `Redo ${nextRedoCommand.label}` : 'Redo'}
-                title={nextRedoCommand ? `Redo ${nextRedoCommand.label}` : 'Redo'}
-                className="h-9 rounded-lg px-3 text-xs font-semibold text-slate-600 hover:bg-slate-100 disabled:opacity-40 dark:text-slate-300 dark:hover:bg-slate-800"
-              >
-                Redo
-              </button>
-
-              <div className="ml-auto flex items-center gap-2">
-                <DesignBuilderCommandMenu
-                  menuKind="workspace-actions"
-                  label={<>Actions</>}
-                  panelClassName="w-48"
-                  summaryClassName="flex h-9 items-center gap-1 rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-cyan-400/40 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
-                >
-                  <CommandMenuAction
-                    onClick={toggleLeftPanel}
-                    className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
-                  >
-                    {DESIGN_BUILDER_COPY.actions.tools}
-                  </CommandMenuAction>
-                  <CommandMenuAction
-                    onClick={toggleRightPanel}
-                    className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
-                  >
-                    {DESIGN_BUILDER_COPY.actions.estimate}
-                  </CommandMenuAction>
-                  <div className="my-1 border-t border-slate-200 dark:border-slate-700" />
-                  <CommandMenuAction
-                    onClick={() => void handleStartBlankLayout()}
-                    disabled={busy}
-                    className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-300 dark:hover:bg-red-950/40"
-                  >
-                    {DESIGN_BUILDER_COPY.actions.newLayout}
-                  </CommandMenuAction>
-                </DesignBuilderCommandMenu>
-
-                <button
-                  type="button"
-                  onClick={() => setViewCommand({ id: Date.now(), action: 'fit' })}
-                  className="hidden h-9 rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800 lg:inline-flex lg:items-center"
-                >
-                  Fit
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void handleSaveDesign()}
-                  disabled={busy || !persistenceContext.canPersist}
-                  className="h-9 rounded-lg bg-slate-900 px-3 text-xs font-semibold text-white shadow-sm hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-cyan-500 dark:text-slate-950 dark:hover:bg-cyan-400"
-                >
-                  {DESIGN_BUILDER_COPY.actions.saveDesign}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {(toolInstruction || toolMode === 'delete' || toolMode === 'draw_wall') ? (
-            <div className="mb-2 flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-xs shadow-sm dark:border-slate-700 dark:bg-slate-900/90">
-              {toolInstruction ? (
-                <span className="rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 font-semibold text-cyan-800 dark:border-cyan-800 dark:bg-cyan-950/40 dark:text-cyan-100">
-                  {toolInstruction}
-                </span>
-              ) : null}
-              {toolMode === 'draw_wall' ? (
-                <>
-                  <label className="flex items-center gap-2 font-medium text-slate-600 dark:text-slate-300">
-                    Length
-                    <input
-                      value={segmentLengthInput}
-                      onChange={(event) => setSegmentLengthInput(event.target.value)}
-                      className="h-8 w-20 rounded border border-slate-300 bg-white px-2 dark:border-slate-700 dark:bg-slate-950"
-                      placeholder="m"
-                    />
-                  </label>
-                  <label className="flex items-center gap-2 font-medium text-slate-600 dark:text-slate-300">
-                    Wall height
-                    <input
-                      type="text"
-                      inputMode="decimal"
-                      value={wallLayout.defaultWallHeightMeters}
-                      onChange={(event) =>
-                        mutateWallLayoutSilent({
-                          ...wallLayout,
-                          defaultWallHeightMeters: Math.max(0.5, Number(event.target.value) || wallLayout.defaultWallHeightMeters),
-                        })
-                      }
-                      className="h-8 w-20 rounded border border-slate-300 bg-white px-2 dark:border-slate-700 dark:bg-slate-950"
-                    />
-                    m
-                  </label>
-                  <span className="rounded-full border border-slate-200 px-2.5 py-1 font-semibold text-slate-600 dark:border-slate-700 dark:text-slate-300">
-                    Unit: {unitSystem === 'metric' ? 'meters' : 'feet/inches'}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={toggleOrthogonalGuides}
-                    className="flex h-8 items-center gap-2 rounded-lg px-2.5 font-semibold hover:bg-slate-50 dark:hover:bg-slate-800"
-                  >
-                    <span className="text-slate-600 dark:text-slate-300">Orthogonal guides</span>
-                    <span className={wallLayout.orthogonalLock ? 'text-cyan-600 dark:text-cyan-300' : 'text-slate-400'}>
-                      {wallLayout.orthogonalLock ? 'On' : 'Off'}
-                    </span>
-                  </button>
-                </>
-              ) : null}
-              {activeOpeningTool && activeOpeningSettings ? (
-                <>
-                  <label className="flex items-center gap-2 font-medium text-slate-600 dark:text-slate-300">
-                    Width
-                    <input
-                      value={activeOpeningSettings.widthMeters}
-                      onChange={(event) =>
-                        setOpeningToolSettings((current) => ({
-                          ...current,
-                          [activeOpeningTool]: { ...current[activeOpeningTool], widthMeters: event.target.value },
-                        }))
-                      }
-                      className="h-8 w-20 rounded border border-slate-300 bg-white px-2 dark:border-slate-700 dark:bg-slate-950"
-                      placeholder="m"
-                    />
-                  </label>
-                  <label className="flex items-center gap-2 font-medium text-slate-600 dark:text-slate-300">
-                    Height
-                    <input
-                      value={activeOpeningSettings.heightMeters}
-                      onChange={(event) =>
-                        setOpeningToolSettings((current) => ({
-                          ...current,
-                          [activeOpeningTool]: { ...current[activeOpeningTool], heightMeters: event.target.value },
-                        }))
-                      }
-                      className="h-8 w-20 rounded border border-slate-300 bg-white px-2 dark:border-slate-700 dark:bg-slate-950"
-                      placeholder="m"
-                    />
-                  </label>
-                  <label className="flex items-center gap-2 font-medium text-slate-600 dark:text-slate-300">
-                    Rough allowance
-                    <input
-                      value={activeOpeningSettings.roughOpeningAllowanceMeters}
-                      onChange={(event) =>
-                        setOpeningToolSettings((current) => ({
-                          ...current,
-                          [activeOpeningTool]: { ...current[activeOpeningTool], roughOpeningAllowanceMeters: event.target.value },
-                        }))
-                      }
-                      className="h-8 w-20 rounded border border-slate-300 bg-white px-2 dark:border-slate-700 dark:bg-slate-950"
-                      placeholder="m"
-                    />
-                  </label>
-                  {activeOpeningTool === 'door' ? (
-                    <DoorConfigurationControls
-                      swingType={activeOpeningSettings.swingType ?? 'inswing'}
-                      swingDirection={activeOpeningSettings.swingDirection ?? 'left'}
-                      onSwingTypeChange={(swingType) =>
-                        setOpeningToolSettings((current) => ({
-                          ...current,
-                          door: { ...current.door, swingType },
-                        }))
-                      }
-                      onSwingDirectionChange={(swingDirection) =>
-                        setOpeningToolSettings((current) => ({
-                          ...current,
-                          door: { ...current.door, swingDirection },
-                        }))
-                      }
-                    />
-                  ) : null}
-                  <span className="rounded-full border border-slate-200 px-2.5 py-1 font-semibold text-slate-600 dark:border-slate-700 dark:text-slate-300">
-                    Snap to CMU: {snapMode === 'cmu_module' ? 'On' : 'Available'}
-                  </span>
-                </>
-              ) : null}
-              {toolMode === 'delete' ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={handleDeleteSelectedComponent}
-                    disabled={!selectedComponentId}
-                    title={selectedComponent ? `Delete selected ${getDesignComponentDefinition(selectedComponent.type).displayName}` : 'Select a component to delete.'}
-                    className="h-8 rounded-lg border border-red-300 px-2.5 font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-950/40"
-                  >
-                    Delete selected component
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleDeleteSelectedOpening}
-                    disabled={!selectedOpeningId}
-                    className="h-8 rounded-lg border border-red-300 px-2.5 font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-950/40"
-                  >
-                    Delete selected opening
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleDeleteSelectedSegment}
-                    disabled={activeSelection.kind !== 'wall_segment'}
-                    title={activeSelection.kind !== 'wall_segment' ? 'Select a wall segment to delete.' : 'Delete selected wall'}
-                    className="h-8 rounded-lg border border-red-300 px-2.5 font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-950/40"
-                  >
-                    Delete selected wall
-                  </button>
-                </>
-              ) : null}
-            </div>
-          ) : null}
+          <DesignBuilderCommandBar
+            activeToolLabel={activeToolLabel}
+            toolMode={toolMode}
+            toolOptions={TOOL_MODE_OPTIONS}
+            modelLoaded={modelLoaded}
+            onActivateToolMode={activateToolMode}
+            componentDefinitionGroups={componentDefinitionGroups}
+            activeComponentType={componentPlacement.activeComponentType}
+            onActivateDesignComponent={activateDesignComponent}
+            viewMode={viewMode}
+            onViewModeChange={setDesignBuilderViewMode}
+            active2DView={active2DView}
+            onActive2DViewChange={setActive2DDrawingView}
+            structureMenuLabel={structureMenuLabel}
+            activeBuildingSystemMode={activeBuildingSystemMode}
+            isFrameStructureMode={isFrameStructureMode}
+            onSetBuildingSystemMode={handleSetBuildingSystemMode}
+            onOpenFrameFoundationSettings={() => setFrameFoundationModalOpen(true)}
+            footprintClosed={footprintClosed}
+            snapMode={snapMode}
+            onSnapModeChange={setSnapMode}
+            orthogonalGuidesEnabled={wallLayout.orthogonalLock}
+            onToggleOrthogonalGuides={toggleOrthogonalGuides}
+            gridSpacingMeters={wallLayout.gridSpacingMeters}
+            onApplyGridScalePreset={applyGridScalePreset}
+            moduleFitMode={moduleFitMode}
+            onModuleFitModeChange={setModuleFitMode}
+            onResolveModuleFit={resolveCurrentFootprintModuleFit}
+            onFitView={() => setViewCommand({ id: Date.now(), action: 'fit' })}
+            onResetView={() => setViewCommand({ id: Date.now(), action: 'reset' })}
+            onApplyViewerHeightPreset={applyViewerHeightPreset}
+            onCloseFootprint={() => void handleCloseFootprint()}
+            closeFootprintEnabled={closeFootprintEnabled}
+            onHelp={() => setStatus({ tone: 'info', message: DESIGN_BUILDER_COPY.hints.help })}
+            buildingSystemMode={resolvedPreset.buildingSystemMode}
+            showOpeningLayout={showOpeningLayout}
+            onShowOpeningLayoutChange={setShowOpeningLayout}
+            showGroutCells={showGroutCells}
+            onShowGroutCellsChange={setShowGroutCells}
+            showClosureWarnings={showClosureWarnings}
+            onShowClosureWarningsChange={setShowClosureWarnings}
+            visualStyle={visualStyle}
+            onVisualStyleChange={setVisualStyle}
+            onOpenMaterials={() => setMaterialsModal({ open: true, scope: 'all' })}
+            twoDDrawingStyle={twoDDrawingStyle}
+            onTwoDDrawingStyleChange={setTwoDDrawingStyle}
+            showRoofReferencePerimeters={showRoofReferencePerimeters}
+            onShowRoofReferencePerimetersChange={setShowRoofReferencePerimeters}
+            showRoofFramingGuides={showRoofFramingGuides}
+            onShowRoofFramingGuidesChange={setShowRoofFramingGuides}
+            showRoofPlanHatch={showRoofPlanHatch}
+            onShowRoofPlanHatchChange={setShowRoofPlanHatch}
+            showRoofPlanSlopeArrows={showRoofPlanSlopeArrows}
+            onShowRoofPlanSlopeArrowsChange={setShowRoofPlanSlopeArrows}
+            showRoofPlanDimensions={showRoofPlanDimensions}
+            onShowRoofPlanDimensionsChange={setShowRoofPlanDimensions}
+            showRoofPlanReferenceLines={showRoofPlanReferenceLines}
+            onShowRoofPlanReferenceLinesChange={setShowRoofPlanReferenceLines}
+            foundationViewMode={foundationViewMode}
+            onFoundationViewModeChange={setFoundationViewMode}
+            roofDisplayMode={roofDisplayMode}
+            onRoofDisplayModeChange={setRoofDisplayMode}
+            roofLayerVisibility={roofLayerVisibility}
+            onRoofLayerVisibilityChange={setRoofLayerVisibility}
+            onUndo={handleUndoDesign}
+            onRedo={handleRedoDesign}
+            canUndo={canUndoDesignHistory(designHistory)}
+            canRedo={canRedoDesignHistory(designHistory)}
+            undoLabel={nextUndoCommand ? `Undo ${nextUndoCommand.label}` : 'Undo'}
+            undoTitle={nextUndoCommand ? `Undo ${nextUndoCommand.label}` : 'Undo'}
+            redoLabel={nextRedoCommand ? `Redo ${nextRedoCommand.label}` : 'Redo'}
+            redoTitle={nextRedoCommand ? `Redo ${nextRedoCommand.label}` : 'Redo'}
+            onToggleLeftPanel={toggleLeftPanel}
+            onToggleRightPanel={toggleRightPanel}
+            onStartBlankLayout={() => void handleStartBlankLayout()}
+            onSaveDesign={() => void handleSaveDesign()}
+            busy={busy}
+            canPersist={persistenceContext.canPersist}
+          />
+          <DesignBuilderToolInstructionStrip
+            toolInstruction={toolInstruction}
+            toolMode={toolMode}
+            segmentLengthInput={segmentLengthInput}
+            onSegmentLengthInputChange={setSegmentLengthInput}
+            wallHeightMeters={wallLayout.defaultWallHeightMeters}
+            onWallHeightChange={(defaultWallHeightMeters) =>
+              mutateWallLayoutSilent({
+                ...wallLayout,
+                defaultWallHeightMeters,
+              })
+            }
+            unitSystem={unitSystem}
+            orthogonalGuidesEnabled={wallLayout.orthogonalLock}
+            onToggleOrthogonalGuides={toggleOrthogonalGuides}
+            activeOpeningTool={activeOpeningTool}
+            activeOpeningSettings={activeOpeningSettings}
+            onOpeningToolSettingChange={(tool, patch) =>
+              setOpeningToolSettings((current) => ({
+                ...current,
+                [tool]: { ...current[tool], ...patch },
+              }))
+            }
+            snapMode={snapMode}
+            selectedComponentId={selectedComponentId}
+            selectedComponent={selectedComponent}
+            selectedOpeningId={selectedOpeningId}
+            activeSelection={activeSelection}
+            onDeleteSelectedComponent={handleDeleteSelectedComponent}
+            onDeleteSelectedOpening={handleDeleteSelectedOpening}
+            onDeleteSelectedSegment={handleDeleteSelectedSegment}
+          />
           <div
             ref={viewerOverlayContainerRef}
             className={focusMode ? 'relative min-h-0 flex-1 overflow-hidden' : 'relative overflow-hidden'}
@@ -4774,86 +3999,23 @@ export default function DesignBuilderPage({
                 materialRevision={materialRevision}
               />
             )}
-            {toolMode === 'place_component' && componentPlacement.activeComponentDefinition ? (
-              <div
-                className="absolute z-20 w-72 rounded-xl border border-slate-700 bg-slate-950/95 text-slate-100 shadow-2xl"
-                style={{ left: componentPanelPosition.x, top: componentPanelPosition.y }}
-                data-component-parameter-panel="true"
-              >
-                <div
-                  className="flex cursor-move items-center justify-between border-b border-slate-800 px-3 py-2"
-                  onPointerDown={handleComponentPanelDragStart}
-                >
-                  <div>
-                    <div className="text-xs font-bold text-cyan-200">
-                      {componentPlacement.activeComponentDefinition.displayName}
-                    </div>
-                    <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
-                      {componentPlacement.activeComponentDefinition.division}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => setComponentPanelCollapsed((current) => !current)}
-                      className="rounded-md px-2 py-1 text-xs font-bold text-slate-300 hover:bg-slate-800"
-                    >
-                      {componentPanelCollapsed ? 'Show' : 'Min'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={cancelComponentPlacement}
-                      className="rounded-md px-2 py-1 text-xs font-bold text-slate-300 hover:bg-slate-800"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-                {!componentPanelCollapsed ? (
-                  <div className="space-y-3 p-3">
-                    {componentPlacement.activeComponentDefinition.parameterSchema.map((field) => (
-                      <label key={field.key} className="block text-xs font-semibold text-slate-300">
-                        <span className="mb-1 flex items-center justify-between">
-                          <span>{field.label}</span>
-                          {field.unit ? <span className="text-[10px] text-slate-500">{field.unit}</span> : null}
-                        </span>
-                        {field.kind === 'select' ? (
-                          <select
-                            value={String(componentPlacement.draftComponentParameters[field.key] ?? '')}
-                            onChange={(event) => handleComponentParameterChange(field.key, event.target.value, field.kind)}
-                            className="h-8 w-full rounded-lg border border-slate-700 bg-slate-900 px-2 text-xs text-slate-100 outline-none focus:border-cyan-500"
-                          >
-                            {(field.options ?? []).map((option) => (
-                              <option key={option.value} value={option.value}>
-                                {option.label}
-                              </option>
-                            ))}
-                          </select>
-                        ) : (
-                          <input
-                            type={field.kind === 'number' ? 'number' : 'text'}
-                            step={field.kind === 'number' ? '0.01' : undefined}
-                            min={field.min}
-                            value={String(componentPlacement.draftComponentParameters[field.key] ?? '')}
-                            onChange={(event) => handleComponentParameterChange(field.key, event.target.value, field.kind)}
-                            className="h-8 w-full rounded-lg border border-slate-700 bg-slate-900 px-2 text-xs text-slate-100 outline-none focus:border-cyan-500"
-                          />
-                        )}
-                      </label>
-                    ))}
-                    {componentPlacement.placementStatus.errors.length > 0 ? (
-                      <div className="rounded-lg border border-red-900 bg-red-950/50 px-2 py-1.5 text-xs font-semibold text-red-200">
-                        {componentPlacement.placementStatus.errors[0]}
-                      </div>
-                    ) : null}
-                    <div className="rounded-lg border border-slate-800 bg-slate-900/80 px-2 py-1.5 text-[11px] font-medium text-slate-400">
-                      {activeCanvasView === 'elevation'
-                        ? `View: X / Z on ${elevationView.face.toUpperCase()} face`
-                        : 'View: X / Y plan placement'}
-                    </div>
-                  </div>
-                ) : null}
-              </div>
+            {toolMode === 'place_component' ? (
+              <DesignBuilderComponentParameterPanel
+                definition={componentPlacement.activeComponentDefinition}
+                draftParameters={componentPlacement.draftComponentParameters}
+                errors={componentPlacement.placementStatus.errors}
+                position={componentPanelPosition}
+                collapsed={componentPanelCollapsed}
+                viewLabel={
+                  activeCanvasView === 'elevation'
+                    ? `View: X / Z on ${elevationView.face.toUpperCase()} face`
+                    : 'View: X / Y plan placement'
+                }
+                onDragStart={handleComponentPanelDragStart}
+                onCollapsedChange={setComponentPanelCollapsed}
+                onCancel={cancelComponentPlacement}
+                onParameterChange={handleComponentParameterChange}
+              />
             ) : null}
             {viewMode === '2d' && active2DView === 'foundation-plan' && toolMode === 'draw_wall' ? (
               <div className="pointer-events-none absolute left-3 top-12 z-10 space-y-1 rounded-xl border border-amber-400/60 bg-slate-900/95 px-3 py-2 text-xs font-medium text-amber-100 shadow-lg">
@@ -4861,184 +4023,15 @@ export default function DesignBuilderPage({
                 {drawWallSnapFeedback ? <div className="font-semibold text-cyan-200">{drawWallSnapFeedback}</div> : null}
               </div>
             ) : null}
-            {import.meta.env.DEV &&
-            viewMode === '3d' &&
-            showRoofReferencePerimeters &&
-            resolvedPreset.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill' ? (
-              <DraggableDebugOverlay
-                id="roof-reference-perimeters"
-                title="Roof Reference Perimeters"
-                titleClassName="text-teal-300"
-                className="border-teal-400/60"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="inline-block h-0.5 w-4 bg-white" aria-hidden />
-                  <span>Wall exterior footprint</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="inline-block h-0.5 w-4 bg-teal-400" aria-hidden />
-                  <span>Roof Beam structural bearing</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="inline-block h-0.5 w-4 bg-yellow-400" aria-hidden />
-                  <span>Cladding / eave edge</span>
-                </div>
-                <div className="mt-2 space-y-0.5 border-t border-slate-700 pt-2 font-mono text-[11px]">
-                  <div>
-                    Roof Beam Outer Width:{' '}
-                    {resolvedPreset.foundationSettings.roofBeam.widthMeters.toFixed(3)} m
-                  </div>
-                  <div>
-                    Roof Beam Outer Depth:{' '}
-                    {resolvedPreset.foundationSettings.roofBeam.depthMeters.toFixed(3)} m
-                  </div>
-                  <div>
-                    Eave Overhang: {(resolvedPreset.roofSystem?.eaveOverhangMeters ?? 0).toFixed(3)} m
-                  </div>
-                  <div>
-                    Roof Bearing Source:{' '}
-                    {designGeometryResult.resolvedRoofSystem?.roofBearingSource ?? 'unknown'}
-                  </div>
-                </div>
-              </DraggableDebugOverlay>
-            ) : null}
-            {import.meta.env.DEV &&
-            viewMode === '3d' &&
-            showRoofFramingGuides &&
-            resolvedPreset.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill' ? (
-              <DraggableDebugOverlay
-                id="roof-framing-guides"
-                title="Roof Framing Guides"
-                titleClassName="text-slate-300"
-                className="border-slate-500/60"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="inline-block h-2 w-4 rounded-sm bg-teal-400" aria-hidden />
-                  <span>Structural gable wall boundary</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="inline-block h-2 w-4 rounded-sm bg-yellow-400" aria-hidden />
-                  <span>Gable-end cladding edge</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="inline-block h-2 w-4 rounded-sm bg-blue-500" aria-hidden />
-                  <span>Purlins</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="inline-block h-2 w-4 rounded-sm bg-slate-400" aria-hidden />
-                  <span>Roof sheets</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="inline-block h-2 w-4 rounded-sm bg-green-500" aria-hidden />
-                  <span>Structural supports</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="inline-block h-2 w-4 rounded-sm bg-orange-500" aria-hidden />
-                  <span>Truss top chords</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="inline-block h-2 w-4 rounded-sm bg-purple-500" aria-hidden />
-                  <span>Truss bottom chords</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="inline-block h-2 w-4 rounded-sm bg-yellow-400" aria-hidden />
-                  <span>Truss web members</span>
-                </div>
-              </DraggableDebugOverlay>
-            ) : null}
-            {import.meta.env.DEV &&
-            viewMode === '3d' &&
-            showRoofFramingGuides &&
-            resolvedPreset.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill' &&
-            designGeometryResult.resolvedRoofSystem?.supported &&
-            designGeometryResult.resolvedRoofSystem.roofType === 'gable' ? (
-              <DraggableDebugOverlay
-                id="gable-end-overhang"
-                title="Gable-End Overhang"
-                titleClassName="text-cyan-300"
-                className="border-cyan-400/60"
-              >
-                {(() => {
-                  const roof = designGeometryResult.resolvedRoofSystem!;
-                  const purlinLength =
-                    roof.purlinPlacements[0]
-                      ? Math.hypot(
-                          roof.purlinPlacements[0].end.x - roof.purlinPlacements[0].start.x,
-                          roof.purlinPlacements[0].end.z - roof.purlinPlacements[0].start.z,
-                        )
-                      : 0;
-                  return (
-                    <div className="space-y-0.5 border-t border-slate-700 pt-2 font-mono text-[11px]">
-                        <div>Structural Ridge Length: {roof.structuralRidgeLengthMeters.toFixed(3)} m</div>
-                        <div>Gable-End Overhang: {roof.gableEndOverhangMeters.toFixed(3)} m</div>
-                        <div>Purlin Full Length: {purlinLength.toFixed(3)} m</div>
-                        <div>Roof Cladding Length: {roof.claddingRidgeLengthMeters.toFixed(3)} m</div>
-                      </div>
-                  );
-                })()}
-              </DraggableDebugOverlay>
-            ) : null}
-            {import.meta.env.DEV &&
-            viewMode === '3d' &&
-            showRoofFramingGuides &&
-            resolvedPreset.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill' &&
-            designGeometryResult.resolvedRoofSystem?.trussPlacements.length ? (
-              <DraggableDebugOverlay
-                id="truss-inspector"
-                title="Truss Inspector"
-                titleClassName="text-orange-300"
-                className="border-orange-400/60"
-              >
-                {(() => {
-                  const truss = designGeometryResult.resolvedRoofSystem!.trussPlacements[0]!;
-                  const topLeft = truss.members.find((member) => member.memberKind === 'top_chord_left');
-                  const bottom = truss.members.find((member) => member.memberKind === 'bottom_chord');
-                  const webCount = truss.members.filter(
-                    (member) => member.memberKind === 'diagonal_web' || member.memberKind === 'vertical_web',
-                  ).length;
-                  return (
-                    <div className="space-y-0.5 border-t border-slate-700 pt-2 font-mono text-[11px]">
-                        <div>Truss ID: {truss.id}</div>
-                        <div>Station: {truss.stationMeters.toFixed(3)} m</div>
-                        <div>
-                          Left Bearing: ({truss.bearingLeft.x.toFixed(2)}, {truss.bearingLeft.y.toFixed(2)},{' '}
-                          {truss.bearingLeft.z.toFixed(2)})
-                        </div>
-                        <div>
-                          Right Bearing: ({truss.bearingRight.x.toFixed(2)}, {truss.bearingRight.y.toFixed(2)},{' '}
-                          {truss.bearingRight.z.toFixed(2)})
-                        </div>
-                        <div>
-                          Apex: ({truss.apex.x.toFixed(2)}, {truss.apex.y.toFixed(2)}, {truss.apex.z.toFixed(2)})
-                        </div>
-                        <div>
-                          Top-Chord Length:{' '}
-                          {topLeft
-                            ? Math.hypot(
-                                topLeft.end.x - topLeft.start.x,
-                                topLeft.end.y - topLeft.start.y,
-                                topLeft.end.z - topLeft.start.z,
-                              ).toFixed(3)
-                            : '—'}{' '}
-                          m
-                        </div>
-                        <div>
-                          Bottom-Chord Length:{' '}
-                          {bottom
-                            ? Math.hypot(
-                                bottom.end.x - bottom.start.x,
-                                bottom.end.y - bottom.start.y,
-                                bottom.end.z - bottom.start.z,
-                              ).toFixed(3)
-                            : '—'}{' '}
-                          m
-                        </div>
-                        <div>Web Member Count: {webCount}</div>
-                      </div>
-                  );
-                })()}
-              </DraggableDebugOverlay>
-            ) : null}
+            <DesignBuilderRcDebugOverlays
+              viewMode={viewMode}
+              designGeometryResult={designGeometryResult}
+              foundationSettings={resolvedPreset.foundationSettings}
+              roofSystem={resolvedPreset.roofSystem}
+              visualStyle={visualStyle}
+              showRoofReferencePerimeters={showRoofReferencePerimeters}
+              showRoofFramingGuides={showRoofFramingGuides}
+            />
             </DebugOverlayLayoutProvider>
           </div>
           {!focusMode ? (
@@ -5068,128 +4061,29 @@ export default function DesignBuilderPage({
           ) : null}
         </main>
 
-        <button
-          type="button"
-          onClick={toggleRightPanel}
-          className="absolute right-0 top-1/2 z-20 translate-x-1/2 rounded-full border border-slate-200 bg-white px-2 py-3 text-xs font-bold text-slate-700 shadow-lg hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
-          aria-label={rightPanelCollapsed ? 'Expand Design Builder estimate panel' : 'Collapse Design Builder estimate panel'}
-        >
-          {rightPanelCollapsed ? '‹' : '›'}
-        </button>
-
-        <aside
-          className={`relative space-y-4 overflow-hidden transition-opacity ${
-            rightPanelCollapsed ? 'pointer-events-none opacity-0' : 'opacity-100'
-          } ${focusMode ? 'min-h-0 overflow-y-auto pr-1' : ''}`}
-        >
-          {!rightPanelCollapsed ? (
-            <div
-              role="separator"
-              aria-label="Resize Design Builder estimate panel"
-              className="absolute -left-2 top-0 hidden h-full w-3 cursor-col-resize xl:block"
-              onPointerDown={beginRightPanelResize}
-            />
-          ) : null}
-          <Panel title="Quantity Summary">
-            <div className="grid grid-cols-2 gap-2">
-              {quantityCards.map((card) => (
-                <button
-                  key={card.label}
-                  type="button"
-                  onClick={() => {
-                    setSelectedObjectType(card.objectType);
-                    setSelectedOpeningId(null);
-                    setSelectedSegmentId(null);
-                    setSelectedNodeId(null);
-                    setPlacementPreview(null);
-                  }}
-                  className={`rounded-xl p-3 text-left transition ${
-                    selectedObjectType === card.objectType
-                      ? 'bg-cyan-100 ring-2 ring-cyan-400 dark:bg-cyan-950/60'
-                      : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/70 dark:hover:bg-slate-800'
-                  }`}
-                >
-                  <div className="text-xs text-slate-500 dark:text-slate-400">{card.label}</div>
-                  <div className="mt-1 font-semibold">
-                    {card.value} {card.unit}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </Panel>
-
-          <Panel title="Estimate Preview — not committed yet">
-            <div className="space-y-2">
-              {visiblePreviewLines.length === 0 ? (
-                <div className="rounded-xl border border-dashed border-slate-300 p-4 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
-                  {persistenceContext.canPersist
-                    ? 'Draw walls or load a template, then generate an estimate preview from the current design parameters.'
-                    : 'Open this tool from a saved Detailed Estimate to generate and commit estimate-ready quantities.'}
-                </div>
-              ) : null}
-              {visiblePreviewLines.map((line) => (
-                <button
-                  key={line.id}
-                  type="button"
-                  onClick={() => {
-                    setSelectedObjectType(objectTypeForPreviewLine(line));
-                    setSelectedOpeningId(null);
-                    setSelectedSegmentId(null);
-                    setSelectedNodeId(null);
-                    setPlacementPreview(null);
-                  }}
-                  className="w-full rounded-xl border border-slate-200 p-3 text-left text-sm transition hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="font-medium">{line.description}</div>
-                    <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200">
-                      Calculated from parameters
-                    </span>
-                  </div>
-                  <div className="mt-1 text-slate-600 dark:text-slate-300">
-                    {line.quantity} {line.unit} - Division {line.divisionCode} {line.divisionName}
-                  </div>
-                  <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                    Source object: {OBJECT_TREE_ITEMS.find((item) => item.objectType === objectTypeForPreviewLine(line))?.label}
-                  </div>
-                  <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">{line.formula}</div>
-                </button>
-              ))}
-            </div>
-            <div className="mt-4 grid gap-2">
-              <button
-                type="button"
-                onClick={() => void handleGeneratePreview()}
-                disabled={busy}
-                className="rounded-xl border border-cyan-300 px-4 py-2 text-sm font-semibold text-cyan-800 hover:bg-cyan-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-cyan-700 dark:text-cyan-200 dark:hover:bg-cyan-950/60"
-              >
-                {DESIGN_BUILDER_COPY.actions.generatePreview}
-              </button>
-              <button
-                type="button"
-                onClick={() => void handleCommitPreview()}
-                disabled={busy || previewLines.length === 0 || generatedPreview.length === 0}
-                className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-cyan-500 dark:text-slate-950 dark:hover:bg-cyan-400"
-              >
-                Commit to Estimate
-              </button>
-            </div>
-          </Panel>
-
-          <Panel title="Warnings">
-            <div className="space-y-2 text-sm text-slate-600 dark:text-slate-300">
-              <p>
-                CMU layout is conceptual for estimating. Verify block layout, lintels, reinforcement, bond beams, and structural requirements before pricing.
-              </p>
-              <p>This tool does not provide structural engineering or code compliance.</p>
-              {moduleWarnings.map((warning) => (
-                <div key={warning} className="rounded-lg border border-amber-200 bg-amber-50 p-2 text-xs text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
-                  {warning}
-                </div>
-              ))}
-            </div>
-          </Panel>
-        </aside>
+        <DesignBuilderEstimatePanel
+          rightPanelCollapsed={rightPanelCollapsed}
+          focusMode={focusMode}
+          quantityCards={quantityCards}
+          selectedObjectType={selectedObjectType}
+          visiblePreviewLines={visiblePreviewLines}
+          persistenceCanPersist={persistenceContext.canPersist}
+          busy={busy}
+          previewLineCount={previewLines.length}
+          generatedPreviewLineCount={generatedPreview.length}
+          moduleWarnings={moduleWarnings}
+          onToggleRightPanel={toggleRightPanel}
+          onBeginRightPanelResize={beginRightPanelResize}
+          onSelectObjectType={(objectType) => {
+            setSelectedObjectType(objectType);
+            setSelectedOpeningId(null);
+            setSelectedSegmentId(null);
+            setSelectedNodeId(null);
+            setPlacementPreview(null);
+          }}
+          onGeneratePreview={() => void handleGeneratePreview()}
+          onCommitPreview={() => void handleCommitPreview()}
+        />
       </div>
     </div>
     </DesignBuilderCommandMenuProvider>
@@ -5230,971 +4124,5 @@ export default function DesignBuilderPage({
     />
     </>
   );
-}
-
-function Panel({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-      <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-        {title}
-      </h3>
-      {children}
-    </section>
-  );
-}
-
-function statusClassName(tone: StatusTone): string {
-  const base = 'rounded-xl border px-4 py-3 text-sm';
-  if (tone === 'success') {
-    return `${base} border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200`;
-  }
-  if (tone === 'error') {
-    return `${base} border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-800 dark:bg-rose-950/50 dark:text-rose-200`;
-  }
-  return `${base} border-cyan-200 bg-cyan-50 text-cyan-800 dark:border-cyan-800 dark:bg-cyan-950/50 dark:text-cyan-200`;
-}
-
-const TOOL_MODE_OPTIONS: Array<{ mode: DesignBuilderToolMode; label: string }> = [
-  { mode: 'select', label: 'Select' },
-  { mode: 'place_dimension', label: 'Dimension' },
-  { mode: 'draw_wall', label: 'Draw Wall' },
-  { mode: 'move_wall_node', label: 'Move Node' },
-  { mode: 'move_opening', label: 'Move Opening' },
-  { mode: 'delete', label: 'Delete' },
-];
-
-function plasterMaterialIdForFinish(finish: CmuInfillPlasterSettings['finish']): string {
-  return finish === 'smooth' ? 'smooth-3-coat-plaster' : 'textured-3-coat-plaster';
-}
-
-function finishForPlasterMaterialId(
-  materialId: DesignMaterialSelection['plasterMaterialId'],
-): CmuInfillPlasterSettings['finish'] | null {
-  if (materialId === 'smooth-3-coat-plaster') return 'smooth';
-  if (materialId === 'textured-3-coat-plaster') return 'textured';
-  return null;
-}
-
-const OBJECT_TREE_ITEMS: Array<{ id: string; objectType: DesignObjectType; label: string; description: string }> = [
-  { id: 'footprint', objectType: 'building_footprint', label: 'Nodes', description: '' },
-  { id: 'segments', objectType: 'cmu_wall_system', label: 'Wall Segments', description: '' },
-  { id: 'corners', objectType: 'cmu_wall_system', label: 'Corners', description: '' },
-  { id: 'cmu', objectType: 'cmu_wall_system', label: 'CMU Walls', description: '' },
-  { id: 'openings', objectType: 'door_opening', label: 'Openings', description: '' },
-  { id: 'lintels', objectType: 'cmu_wall_system', label: 'Lintels', description: '' },
-  { id: 'bond-beams', objectType: 'cmu_wall_system', label: 'Bond Beams', description: '' },
-  { id: 'grout-rebar', objectType: 'cmu_wall_system', label: 'Grout/Rebar Cells', description: '' },
-  { id: 'manual-runs', objectType: 'cmu_wall_system', label: 'Manual Runs', description: '' },
-  { id: 'slab', objectType: 'thickened_edge_slab', label: 'Slab', description: '' },
-  { id: 'roof-beams', objectType: 'structural_frame_system', label: 'Roof Beams', description: '' },
-  { id: 'plinth-beams', objectType: 'structural_frame_system', label: 'Plinth Beams', description: '' },
-  { id: 'tie-beams', objectType: 'structural_frame_system', label: 'Tie Beams', description: '' },
-  { id: 'columns', objectType: 'structural_frame_system', label: 'Columns', description: '' },
-  { id: 'isolated-footings', objectType: 'structural_frame_system', label: 'Isolated Footings', description: '' },
-  { id: 'infill-panels', objectType: 'cmu_infill_system', label: 'CMU Infill Panels', description: '' },
-  { id: 'roof-system', objectType: 'gable_roof_system', label: 'Roof System', description: '' },
-  { id: 'ridge', objectType: 'gable_roof_system', label: 'Ridge', description: '' },
-  { id: 'raked-caps', objectType: 'gable_end_system', label: 'Raked Concrete Caps', description: '' },
-  { id: 'roof', objectType: 'gable_roof_system', label: 'Roof', description: '' },
-  { id: 'gable-ends', objectType: 'gable_end_system', label: 'Gable Ends', description: '' },
-  { id: 'trusses', objectType: 'steel_truss_system', label: 'Trusses', description: '' },
-  { id: 'quantity-summary', objectType: 'cmu_wall_system', label: 'Quantity Summary', description: '' },
-  { id: 'estimate-preview', objectType: 'cmu_wall_system', label: 'Estimate Preview', description: '' },
-  { id: 'warnings', objectType: 'cmu_wall_system', label: 'Warnings', description: '' },
-];
-
-const OBJECT_TREE_GROUPS: Array<{
-  id: string;
-  label: string;
-  items: Array<{ id: string; objectType: DesignObjectType; label: string; description: string }>;
-}> = [
-  {
-    id: 'layout',
-    label: 'Layout',
-    items: OBJECT_TREE_ITEMS.filter((item) => ['footprint', 'segments', 'corners', 'slab'].includes(item.id)),
-  },
-  {
-    id: 'masonry',
-    label: 'Masonry',
-    items: OBJECT_TREE_ITEMS.filter((item) =>
-      ['cmu', 'infill-panels', 'lintels', 'bond-beams', 'grout-rebar', 'manual-runs'].includes(item.id),
-    ),
-  },
-  {
-    id: 'structure',
-    label: 'Structure',
-    items: OBJECT_TREE_ITEMS.filter((item) =>
-      ['roof-beams', 'plinth-beams', 'tie-beams', 'columns'].includes(item.id),
-    ),
-  },
-  {
-    id: 'foundation',
-    label: 'Foundation',
-    items: OBJECT_TREE_ITEMS.filter((item) => ['isolated-footings'].includes(item.id)),
-  },
-  {
-    id: 'openings',
-    label: 'Openings',
-    items: OBJECT_TREE_ITEMS.filter((item) => ['openings'].includes(item.id)),
-  },
-  {
-    id: 'roofGable',
-    label: 'Roof',
-    items: OBJECT_TREE_ITEMS.filter((item) =>
-      ['roof-system', 'roof-beams', 'ridge', 'gable-ends', 'raked-caps', 'trusses'].includes(item.id),
-    ),
-  },
-  {
-    id: 'estimate',
-    label: 'Estimate',
-    items: OBJECT_TREE_ITEMS.filter((item) => ['quantity-summary', 'estimate-preview', 'warnings'].includes(item.id)),
-  },
-];
-
-function EditableControls({
-  selectedObjectType,
-  preset,
-  designGeometryResult,
-  unitSystem,
-  onUnitSystemChange,
-  onFootprintChange,
-  onWallChange,
-  onShowIndividualBlocksChange,
-  onWallOptionChange,
-  onBlockModuleChange,
-  cmuModule,
-  wallModuleFits,
-  moduleWarnings,
-  cmuLayout,
-  selectedWallSegment,
-  onSlabChange,
-  onRoofChange,
-  onTrussSpacingChange,
-  onStructureFieldChange,
-  onInfillPlasterChange,
-  onFoundationFieldChange,
-  onGableFieldChange,
-  onOpeningChange,
-  selectedOpeningId,
-}: {
-  selectedObjectType: DesignObjectType | null;
-  preset: CmuBuildingPreset;
-  designGeometryResult: DesignGeometryResult;
-  unitSystem: DesignUnitSystem;
-  onUnitSystemChange: (unitSystem: DesignUnitSystem) => void;
-  onFootprintChange: (field: 'lengthMeters' | 'widthMeters', value: number) => void;
-  onWallChange: (
-    field: 'heightMeters' | 'wallThicknessMeters' | 'blockLengthMeters' | 'blockHeightMeters' | 'blockDepthMeters' | 'wasteFactor',
-    value: number,
-  ) => void;
-  onShowIndividualBlocksChange: (showIndividualBlocks: boolean) => void;
-  onWallOptionChange: (patch: Partial<CmuBuildingPreset['wall']>) => void;
-  onBlockModuleChange: (field: keyof NonNullable<CmuBuildingPreset['wall']['blockModule']>, value: number | string) => void;
-  cmuModule: ReturnType<typeof resolveCmuModuleConfig>;
-  wallModuleFits: ReturnType<typeof summarizeWallModuleFits>;
-  moduleWarnings: string[];
-  cmuLayout: ReturnType<typeof generateCmuLayout>;
-  selectedWallSegment: DesignWallSegment | null;
-  onSlabChange: (field: 'slabThicknessMeters' | 'edgeWidthMeters' | 'edgeDepthMeters', value: number) => void;
-  onRoofChange: (field: 'pitchRisePerRun' | 'overhangMeters', value: number) => void;
-  onTrussSpacingChange: (value: number) => void;
-  onStructureFieldChange: (
-    patch: Partial<import('../types').StructuralFrameSystemParameters> & {
-      buildingSystemMode?: import('../types').BuildingSystemMode;
-    },
-  ) => void;
-  onInfillPlasterChange: (patch: Partial<CmuInfillPlasterSettings>) => void;
-  onFoundationFieldChange?: (
-    patch: Partial<
-      RcFrameFoundationSettings[
-        'plinthBeam' | 'roofBeam' | 'tieBeam' | 'columns' | 'isolatedFootings'
-      ]
-    >,
-    section: 'plinthBeam' | 'roofBeam' | 'tieBeam' | 'columns' | 'isolatedFootings',
-  ) => void;
-  onGableFieldChange: (gableId: string, patch: Partial<import('../types').GableEndSettings>) => void;
-  onOpeningChange: (openingId: string, patch: Partial<WallOpeningParameters>) => void;
-  selectedOpeningId: string | null;
-}) {
-  if (selectedObjectType === 'building_footprint') {
-    return (
-      <div className="space-y-3">
-        <SelectField
-          label="Unit system"
-          value={unitSystem}
-          onChange={(value) => onUnitSystemChange(value as DesignUnitSystem)}
-          options={[
-            { value: 'metric', label: 'Metric display' },
-            { value: 'imperial', label: 'Imperial display' },
-          ]}
-        />
-        <NumberField label="Length" value={preset.footprint.lengthMeters} suffix="m" onChange={(value) => onFootprintChange('lengthMeters', value)} />
-        <NumberField label="Width" value={preset.footprint.widthMeters} suffix="m" onChange={(value) => onFootprintChange('widthMeters', value)} />
-      </div>
-    );
-  }
-
-  if (selectedObjectType == null || selectedObjectType === 'cmu_wall_system') {
-    return (
-      <div className="space-y-3">
-        <div className="rounded-xl border border-cyan-200 bg-cyan-50 p-3 dark:border-cyan-800 dark:bg-cyan-950/40">
-          <div className="text-sm font-semibold text-cyan-900 dark:text-cyan-100">CMU Module Rules</div>
-          <div className="mt-3 space-y-3">
-            <TextField
-              label="Block family"
-              value={cmuModule.familyName}
-              onChange={(value) => onBlockModuleChange('familyName', value)}
-            />
-            <NumberField label="Module length" value={cmuModule.moduleLengthMeters} suffix="m" min={0.05} max={2} step={0.01} onChange={(value) => onBlockModuleChange('moduleLengthMeters', value)} />
-            <NumberField label="Module height" value={cmuModule.moduleHeightMeters} suffix="m" min={0.05} max={1} step={0.01} onChange={(value) => onBlockModuleChange('moduleHeightMeters', value)} />
-            <NumberField label="Nominal depth" value={cmuModule.nominalDepthMeters} suffix="m" min={0.05} max={1} step={0.01} onChange={(value) => onBlockModuleChange('nominalDepthMeters', value)} />
-            <NumberField label="Actual block length" value={cmuModule.actualLengthMeters ?? 0} suffix="m" min={0.05} max={2} step={0.01} onChange={(value) => onBlockModuleChange('actualLengthMeters', value)} />
-            <NumberField label="Actual block height" value={cmuModule.actualHeightMeters ?? 0} suffix="m" min={0.05} max={1} step={0.01} onChange={(value) => onBlockModuleChange('actualHeightMeters', value)} />
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">
-              Nominal module = actual block + mortar joint ({cmuModule.moduleLengthMeters.toFixed(2)} m × {cmuModule.moduleHeightMeters.toFixed(2)} m).
-            </p>
-            <label className="flex items-center justify-between rounded-lg bg-white px-3 py-2 text-sm dark:bg-slate-900">
-              <span>Snap building dimensions to CMU module</span>
-              <input
-                type="checkbox"
-                checked={preset.wall.snapToModule ?? false}
-                onChange={(event) => onWallOptionChange({ snapToModule: event.currentTarget.checked })}
-                className="h-4 w-4"
-              />
-            </label>
-            <NumberField label="Mortar joint" value={cmuModule.mortarJointMeters} suffix="m" min={0} max={0.05} step={0.001} onChange={(value) => onBlockModuleChange('mortarJointMeters', value)} />
-            <ModuleFitReportPanel report={cmuLayout.moduleFitReport} />
-            {moduleWarnings.length > 0 ? (
-              <div className="space-y-1 rounded-lg border border-amber-200 bg-amber-50 p-2 text-xs text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
-                {moduleWarnings.map((warning) => (
-                  <div key={warning}>{warning}</div>
-                ))}
-              </div>
-            ) : null}
-          </div>
-        </div>
-        <NumberField label="Wall height" value={selectedWallSegment?.wallHeightMeters ?? preset.wall.heightMeters} suffix="m" min={0.1} max={20} onChange={(value) => onWallChange('heightMeters', value)} />
-        <NumberField label="Wall thickness" value={selectedWallSegment?.wallThicknessMeters ?? preset.wall.wallThicknessMeters} suffix="m" min={0.05} max={1} onChange={(value) => onWallChange('wallThicknessMeters', value)} />
-        <NumberField label="Block length" value={preset.wall.blockLengthMeters} suffix="m" min={0.05} max={2} onChange={(value) => onWallChange('blockLengthMeters', value)} />
-        <NumberField label="Block height" value={preset.wall.blockHeightMeters} suffix="m" min={0.05} max={1} onChange={(value) => onWallChange('blockHeightMeters', value)} />
-        <NumberField label="Block depth" value={preset.wall.blockDepthMeters} suffix="m" min={0.05} max={1} onChange={(value) => onWallChange('blockDepthMeters', value)} />
-        <div>
-          <NumberField label="Waste" value={preset.wall.wasteFactor * 100} suffix="%" min={0} max={100} onChange={(value) => onWallChange('wasteFactor', value / 100)} />
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-            Estimate allowance — does not change model geometry.
-          </p>
-        </div>
-        <SelectField
-          label="Bond pattern"
-          value={preset.wall.bondPattern ?? 'running_bond'}
-          onChange={(value) => onWallOptionChange({ bondPattern: value as CmuBuildingPreset['wall']['bondPattern'] })}
-          options={[
-            { value: 'running_bond', label: 'Running bond' },
-            { value: 'stack_bond', label: 'Stack bond' },
-          ]}
-        />
-        <SelectField
-          label="Lintel type"
-          value={preset.wall.lintelType ?? 'bond_beam'}
-          onChange={(value) => onWallOptionChange({ lintelType: value as CmuBuildingPreset['wall']['lintelType'] })}
-          options={[
-            { value: 'bond_beam', label: 'Bond beam lintel' },
-            { value: 'precast_concrete', label: 'Precast concrete' },
-            { value: 'none', label: 'None' },
-          ]}
-        />
-        {preset.wall.openings.length === 0 ? (
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Applies when door or window openings are added.
-          </p>
-        ) : null}
-        <NumberField label="Lintel bearing" value={preset.wall.lintelBearingMeters ?? 0.2} suffix="m" min={0} max={2} onChange={(value) => onWallOptionChange({ lintelBearingMeters: Math.max(0, value) })} />
-        <NumberField label="Lintel courses" value={preset.wall.lintelCourseCount ?? 1} suffix="courses" step={1} onChange={(value) => onWallOptionChange({ lintelCourseCount: Math.max(1, Math.round(value)) })} />
-        <NumberField label="Core fill factor" value={preset.wall.coreFillFactor ?? 0.5} suffix="x" step={0.05} onChange={(value) => onWallOptionChange({ coreFillFactor: Math.max(0, Math.min(1, value)) })} />
-        <NumberField label="Grout waste" value={(preset.wall.groutWastePercent ?? 0.1) * 100} suffix="%" step={1} onChange={(value) => onWallOptionChange({ groutWastePercent: Math.max(0, value / 100) })} />
-        <NumberField label="Default jamb cells each side" value={preset.wall.jambCellsEachSide ?? 1} suffix="cells" step={1} onChange={(value) => onWallOptionChange({ jambCellsEachSide: Math.max(0, Math.round(value)) })} />
-        <NumberField label="Grouted cell spacing" value={preset.wall.groutedCellSpacingMeters ?? 1.2} suffix="m" onChange={(value) => onWallOptionChange({ groutedCellSpacingMeters: positiveOrFallback(value, 1.2) })} />
-        <NumberField label="Vertical reinforcement spacing" value={preset.wall.verticalReinforcementSpacingMeters ?? 1.2} suffix="m" onChange={(value) => onWallOptionChange({ verticalReinforcementSpacingMeters: positiveOrFallback(value, 1.2) })} />
-        <label className="flex items-center justify-between rounded-lg bg-slate-100 px-3 py-2 text-sm dark:bg-slate-800">
-          <span>Lintel bond beam enabled</span>
-          <input
-            type="checkbox"
-            checked={preset.wall.lintelBondBeamEnabled ?? true}
-            onChange={(event) => onWallOptionChange({ lintelBondBeamEnabled: event.currentTarget.checked })}
-            className="h-4 w-4"
-          />
-        </label>
-        <label className="flex items-center justify-between rounded-lg bg-slate-100 px-3 py-2 text-sm dark:bg-slate-800">
-          <span>Top course bond beam</span>
-          <input
-            type="checkbox"
-            checked={preset.wall.bondBeamEnabled ?? true}
-            onChange={(event) => onWallOptionChange({ bondBeamEnabled: event.currentTarget.checked })}
-            className="h-4 w-4"
-          />
-        </label>
-        <label className="flex items-center justify-between rounded-lg bg-slate-100 px-3 py-2 text-sm dark:bg-slate-800">
-          <span>Conceptual columns/pilasters</span>
-          <input
-            type="checkbox"
-            checked={preset.wall.pilasterEnabled ?? true}
-            onChange={(event) => onWallOptionChange({ pilasterEnabled: event.currentTarget.checked })}
-            className="h-4 w-4"
-          />
-        </label>
-        <label className="flex items-center justify-between rounded-lg bg-slate-100 px-3 py-2 text-sm dark:bg-slate-800">
-          <span>Show individual CMU blocks</span>
-          <input
-            type="checkbox"
-            checked={preset.wall.showIndividualBlocks}
-            onChange={(event) => onShowIndividualBlocksChange(event.currentTarget.checked)}
-            className="h-4 w-4"
-          />
-        </label>
-      </div>
-    );
-  }
-
-  if (selectedObjectType === 'thickened_edge_slab') {
-    return (
-      <div className="space-y-3">
-        <NumberField label="Slab thickness" value={preset.slab.slabThicknessMeters} suffix="m" onChange={(value) => onSlabChange('slabThicknessMeters', value)} />
-        <NumberField label="Edge width" value={preset.slab.edgeWidthMeters} suffix="m" onChange={(value) => onSlabChange('edgeWidthMeters', value)} />
-        <NumberField label="Edge depth" value={preset.slab.edgeDepthMeters} suffix="m" onChange={(value) => onSlabChange('edgeDepthMeters', value)} />
-      </div>
-    );
-  }
-
-  if (selectedObjectType === 'gable_roof_system') {
-    return (
-      <div className="space-y-3">
-        <NumberField label="Pitch rise/run" value={preset.roof.pitchRisePerRun} suffix=":1" step={0.05} onChange={(value) => onRoofChange('pitchRisePerRun', value)} />
-        <NumberField label="Overhang" value={preset.roof.overhangMeters} suffix="m" onChange={(value) => onRoofChange('overhangMeters', value)} />
-        <SelectField label="Ridge direction" value={preset.roof.ridgeDirection} onChange={() => undefined} options={[{ value: 'length', label: 'Along building length' }]} />
-      </div>
-    );
-  }
-
-  if (selectedObjectType === 'structural_frame_system') {
-    return (
-      <div className="space-y-3">
-        <p className="text-xs text-slate-500 dark:text-slate-400">
-          Conceptual structural frame for estimating only — not structural engineering or code compliance.
-        </p>
-        <SelectField
-          label="Building system mode"
-          value={preset.buildingSystemMode}
-          onChange={(value) => onStructureFieldChange({ buildingSystemMode: value as import('../types').BuildingSystemMode })}
-          options={[
-            { value: 'cmu_bearing_wall', label: 'CMU Bearing Wall (advanced)' },
-            { value: 'reinforced_concrete_frame_with_cmu_infill', label: 'RC Frame + CMU Infill' },
-          ]}
-        />
-        <NumberField
-          label="Default column width"
-          value={preset.frameSystem.defaultColumnWidthMeters}
-          suffix="m"
-          onChange={(value) => onStructureFieldChange({ defaultColumnWidthMeters: positiveOrFallback(value, 0.35) })}
-        />
-        <NumberField
-          label="Default column depth"
-          value={preset.frameSystem.defaultColumnDepthMeters}
-          suffix="m"
-          onChange={(value) => onStructureFieldChange({ defaultColumnDepthMeters: positiveOrFallback(value, 0.35) })}
-        />
-        {preset.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill' ? (
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Use Settings, then RC Settings to edit columns, beams, footings, and roof settings.
-          </p>
-        ) : null}
-        <p className="text-sm text-slate-600 dark:text-slate-300">
-          Columns: {preset.frameSystem.columns.length} - Beams: {preset.frameSystem.beams.length}
-        </p>
-      </div>
-    );
-  }
-
-  if (selectedObjectType === 'cmu_infill_system') {
-    const plaster = normalizeCmuInfillSystem(preset.infillSystem).plaster;
-    return (
-      <div className="space-y-3">
-        <p className="text-sm text-slate-600 dark:text-slate-300">
-          Infill panels: {preset.infillSystem.panels.length}
-        </p>
-        <label className="flex items-center justify-between rounded-lg bg-slate-100 px-3 py-2 text-sm dark:bg-slate-800">
-          <span>Exterior Plaster Applied</span>
-          <input
-            type="checkbox"
-            checked={plaster.enabled}
-            onChange={(event) => onInfillPlasterChange({ enabled: event.currentTarget.checked })}
-            className="h-4 w-4"
-          />
-        </label>
-        <SelectField
-          label="Exterior Finish"
-          value={plaster.finish}
-          onChange={(value) =>
-            onInfillPlasterChange({ finish: value === 'smooth' ? 'smooth' : 'textured' })
-          }
-          options={[
-            { value: 'textured', label: 'Textured' },
-            { value: 'smooth', label: 'Smooth' },
-          ]}
-        />
-        <label className="flex items-center justify-between rounded-lg bg-slate-100 px-3 py-2 text-sm dark:bg-slate-800">
-          <span>Interior Plaster Applied</span>
-          <input
-            type="checkbox"
-            checked={plaster.interiorEnabled}
-            onChange={(event) => onInfillPlasterChange({ interiorEnabled: event.currentTarget.checked })}
-            className="h-4 w-4"
-          />
-        </label>
-        <SelectField
-          label="Interior Finish"
-          value={plaster.interiorFinish}
-          onChange={(value) =>
-            onInfillPlasterChange({ interiorFinish: value === 'textured' ? 'textured' : 'smooth' })
-          }
-          options={[
-            { value: 'smooth', label: 'Smooth' },
-            { value: 'textured', label: 'Textured' },
-          ]}
-        />
-        {designGeometryResult.wallCmuLayout.counts ? (
-          <p className="text-xs text-slate-500">
-            Full {designGeometryResult.wallCmuLayout.counts.full} - Half {designGeometryResult.wallCmuLayout.counts.half} - Cut{' '}
-            {designGeometryResult.wallCmuLayout.counts.cut}
-          </p>
-        ) : null}
-      </div>
-    );
-  }
-
-  if (selectedObjectType === 'gable_end_system') {
-    const gable = preset.gableEndSystem.gableEnds[0];
-    const resolvedRoof = designGeometryResult.resolvedRoofSystem;
-    const rakedCapVolumeCubicMeters = resolvedRoof?.rakedCapVolumeCubicMeters ?? 0;
-    const rakedCapLinearLengthMeters = (resolvedRoof?.gableEnds ?? [])
-      .flatMap((gableEnd) => gableEnd.rakedCapPlacements)
-      .reduce((sum, cap) => sum + (cap.endStationMeters - cap.startStationMeters), 0);
-    const gableCmuBlockCount =
-      resolvedRoof?.gableEnds.flatMap((gableEnd) => gableEnd.cmuUnitPlacements).length ?? 0;
-    return (
-      <div className="space-y-3">
-        {resolvedRoof?.supported && resolvedRoof.roofType === 'gable' ? (
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm dark:border-slate-700 dark:bg-slate-800/60">
-            <div className="font-semibold text-slate-800 dark:text-slate-100">Estimate quantities</div>
-            <div className="mt-2 grid gap-1 text-xs text-slate-600 dark:text-slate-300">
-              <div>Gable-end CMU: {gableCmuBlockCount} EA</div>
-              <div>
-                Raked cap concrete: {rakedCapVolumeCubicMeters.toFixed(3)} m³ (
-                {cubicMetersToCubicYards(rakedCapVolumeCubicMeters).toFixed(2)} CY)
-              </div>
-              <div>Raked cap length: {rakedCapLinearLengthMeters.toFixed(2)} m</div>
-            </div>
-            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-              Volume is calculated from the resolved cap prism between the CMU envelope and the purlin bottom — not render-only geometry.
-            </p>
-          </div>
-        ) : null}
-        {gable ? (
-          <>
-            <NumberField label="Eave elevation" value={gable.eaveElevationMeters} suffix="m" onChange={(value) => onGableFieldChange(gable.id, { eaveElevationMeters: value })} />
-            <NumberField label="Peak rise above eave" value={gable.peakRiseMeters ?? 0} suffix="m" onChange={(value) => onGableFieldChange(gable.id, { peakRiseMeters: value, peakMode: 'rise_above_eave' })} />
-            <NumberField label="Roof-to-masonry clearance" value={gable.roofToMasonryClearanceMeters} suffix="m" onChange={(value) => onGableFieldChange(gable.id, { roofToMasonryClearanceMeters: positiveOrFallback(value, 0.1016) })} />
-          </>
-        ) : (
-          <p className="text-sm text-slate-500">
-              Configure gable-end CMU and raked cap through Settings, then RC Settings when using a Gable Roof.
-          </p>
-        )}
-      </div>
-    );
-  }
-
-  if (selectedObjectType === 'steel_truss_system') {
-    return (
-      <div className="space-y-3">
-        <NumberField
-          label="Spacing"
-          value={preset.roofSystem.steelTrusses.maxSpacingMeters}
-          suffix="m"
-          onChange={onTrussSpacingChange}
-        />
-        <SelectField label="Type" value="steel_preview" onChange={() => undefined} options={[{ value: 'steel_preview', label: 'Steel truss preview' }]} />
-      </div>
-    );
-  }
-
-  const opening =
-    (selectedOpeningId ? preset.wall.openings.find((item) => item.id === selectedOpeningId) : null) ??
-    preset.wall.openings.find((item) =>
-      selectedObjectType === 'door_opening' ? item.type === 'door' : item.type === 'window',
-    );
-  if (!opening) return <p className="text-sm text-slate-500 dark:text-slate-400">No opening selected.</p>;
-  const resolvedOpening = resolveCmuOpening(preset.wall, opening);
-  const openingClosures = cmuLayout.openingCourseClosures.filter((closure) => closure.openingId === opening.id);
-  const leftClosures = openingClosures.filter((closure) => closure.side === 'left');
-  const rightClosures = openingClosures.filter((closure) => closure.side === 'right');
-  const lintelCourseAssembly =
-    cmuLayout.lintelCourseAssemblies.find((assembly) => assembly.openingId === opening.id) ?? null;
-  const cutWarnings = openingClosures.filter((closure) => closure.closureType === 'cut_block').length;
-  const lintelCourseCutRequired = lintelCourseAssembly
-    ? lintelCourseAssemblyRequiresCutWarning(lintelCourseAssembly)
-    : false;
-  const closureGroutVolume = openingClosures.reduce(
-    (sum, closure) => sum + (closure.closureType === 'grout_fill' ? closure.groutVolume ?? 0 : 0),
-    0,
-  );
-
-  return (
-    <div className="space-y-3">
-      <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm dark:border-slate-700 dark:bg-slate-800/60">
-        <div className="font-semibold text-slate-800 dark:text-slate-100">
-          {opening.type === 'door' ? 'Door' : 'Window'} opening sizing
-        </div>
-        <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-slate-600 dark:text-slate-300">
-          <div>
-            Actual: {resolvedOpening.actualWidthMeters.toFixed(2)}m x {resolvedOpening.actualHeightMeters.toFixed(2)}m
-          </div>
-          <div>
-            Rough: {resolvedOpening.roughOpeningWidthMeters.toFixed(2)}m x {resolvedOpening.roughOpeningHeightMeters.toFixed(2)}m
-          </div>
-        </div>
-      </div>
-      <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm dark:border-amber-800 dark:bg-amber-950/40">
-        <div className="font-semibold text-amber-900 dark:text-amber-100">Opening Course Layout</div>
-        <div className="mt-2 grid gap-1 text-xs text-amber-800 dark:text-amber-200">
-          <div>Left jamb closures: {summarizeClosures(leftClosures)}</div>
-          <div>Right jamb closures: {summarizeClosures(rightClosures)}</div>
-          <div>Cut block warnings: {cutWarnings}</div>
-          <div>Jamb grout cells: {cmuLayout.jambGroutCells.filter((cell) => cell.openingId === opening.id).length}</div>
-          <div>Lintel length: {resolvedOpening.lintelLengthMeters.toFixed(2)}m</div>
-          <div>Estimated closure grout: {closureGroutVolume.toFixed(4)} m3</div>
-          <div>Jamb grout volume is based on selected grouted cells and course closure conditions, not the full rough opening area.</div>
-        </div>
-      </div>
-      {lintelCourseAssembly && resolvedOpening.lintelType !== 'none' ? (
-        <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm dark:border-slate-700 dark:bg-slate-800/60">
-          <div className="font-semibold text-slate-800 dark:text-slate-100">Lintel course closure</div>
-          <div className="mt-2 grid gap-1 text-xs text-slate-600 dark:text-slate-300">
-            <div>Left: {summarizeLintelCourseClosureSide(lintelCourseAssembly.leftPlacements)}</div>
-            <div>Right: {summarizeLintelCourseClosureSide(lintelCourseAssembly.rightPlacements)}</div>
-            {lintelCourseCutRequired ? (
-              <div className="text-amber-700 dark:text-amber-300">Custom CMU cut required beside lintel.</div>
-            ) : null}
-          </div>
-        </div>
-      ) : null}
-      <SelectField
-        label="Wall face"
-        value={opening.wallFace}
-        onChange={(value) => onOpeningChange(opening.id, { wallFace: value as WallOpeningParameters['wallFace'] })}
-        options={[
-          { value: 'north', label: 'North' },
-          { value: 'east', label: 'East' },
-          { value: 'south', label: 'South' },
-          { value: 'west', label: 'West' },
-        ]}
-      />
-      <NumberField label="Position along wall" value={opening.offsetMeters} suffix="m" onChange={(value) => onOpeningChange(opening.id, { offsetMeters: Math.max(0, value) })} />
-      <NumberField label="Actual width" value={opening.widthMeters} suffix="m" onChange={(value) => onOpeningChange(opening.id, { widthMeters: positiveOrFallback(value, opening.widthMeters) })} />
-      <NumberField label="Actual height" value={opening.heightMeters} suffix="m" onChange={(value) => onOpeningChange(opening.id, { heightMeters: positiveOrFallback(value, opening.heightMeters) })} />
-      <NumberField label="Rough opening allowance" value={opening.roughOpeningAllowanceMeters ?? 0.05} suffix="m" step={0.005} onChange={(value) => onOpeningChange(opening.id, { roughOpeningAllowanceMeters: Math.max(0, value), roughOpeningWidthMeters: undefined, roughOpeningHeightMeters: undefined })} />
-      <NumberField label="Rough opening width override" value={opening.roughOpeningWidthMeters ?? resolvedOpening.roughOpeningWidthMeters} suffix="m" onChange={(value) => onOpeningChange(opening.id, { roughOpeningWidthMeters: positiveOrFallback(value, resolvedOpening.roughOpeningWidthMeters) })} />
-      <NumberField label="Rough opening height override" value={opening.roughOpeningHeightMeters ?? resolvedOpening.roughOpeningHeightMeters} suffix="m" onChange={(value) => onOpeningChange(opening.id, { roughOpeningHeightMeters: positiveOrFallback(value, resolvedOpening.roughOpeningHeightMeters) })} />
-      {opening.type === 'window' ? (
-        <>
-          <NumberField label="Sill height" value={opening.sillHeightMeters ?? 0} suffix="m" onChange={(value) => onOpeningChange(opening.id, { sillHeightMeters: Math.max(0, value) })} />
-          <SelectField
-            label="Sill condition"
-            value={opening.sillCondition ?? 'none'}
-            onChange={(value) => onOpeningChange(opening.id, { sillCondition: value as WallOpeningParameters['sillCondition'] })}
-            options={[
-              { value: 'none', label: 'None' },
-              { value: 'reinforced_sill', label: 'Reinforced sill' },
-              { value: 'grouted_sill_course', label: 'Grouted sill course' },
-            ]}
-          />
-        </>
-      ) : (
-        <DoorConfigurationControls
-          swingType={opening.swingType ?? 'inswing'}
-          swingDirection={opening.swingDirection ?? 'left'}
-          onSwingTypeChange={(swingType) => onOpeningChange(opening.id, { swingType })}
-          onSwingDirectionChange={(swingDirection) => onOpeningChange(opening.id, { swingDirection })}
-        />
-      )}
-      <SelectField
-        label="Lintel type"
-        value={opening.lintelType ?? preset.wall.lintelType ?? 'bond_beam'}
-        onChange={(value) => onOpeningChange(opening.id, { lintelType: value as WallOpeningParameters['lintelType'] })}
-        options={[
-          { value: 'bond_beam', label: 'Bond beam lintel' },
-          { value: 'precast_concrete', label: 'Precast concrete' },
-          { value: 'steel_placeholder', label: 'Steel placeholder' },
-          { value: 'none', label: 'None' },
-        ]}
-      />
-      <NumberField label="Lintel bearing" value={opening.lintelBearingMeters ?? preset.wall.lintelBearingMeters ?? 0.2} suffix="m" onChange={(value) => onOpeningChange(opening.id, { lintelBearingMeters: Math.max(0, value) })} />
-      <NumberField label="Jamb cells each side" value={opening.groutCellsEachSide ?? preset.wall.jambCellsEachSide ?? 1} suffix="cells" step={1} onChange={(value) => onOpeningChange(opening.id, { groutCellsEachSide: Math.max(0, Math.round(value)) })} />
-      <label className="flex items-center justify-between rounded-lg bg-slate-100 px-3 py-2 text-sm dark:bg-slate-800">
-        <span>Jamb grout enabled</span>
-        <input
-          type="checkbox"
-          checked={opening.jambGroutEnabled ?? true}
-          onChange={(event) => onOpeningChange(opening.id, { jambGroutEnabled: event.currentTarget.checked })}
-          className="h-4 w-4"
-        />
-      </label>
-      <label className="flex items-center justify-between rounded-lg bg-slate-100 px-3 py-2 text-sm dark:bg-slate-800">
-        <span>Jamb rebar enabled</span>
-        <input
-          type="checkbox"
-          checked={opening.jambRebarEnabled ?? false}
-          onChange={(event) => onOpeningChange(opening.id, { jambRebarEnabled: event.currentTarget.checked })}
-          className="h-4 w-4"
-        />
-      </label>
-      {opening.type === 'window' ? (
-        <NumberField label="Grout cells below window" value={opening.groutCellsBelowWindow ?? 0} suffix="cells" step={1} onChange={(value) => onOpeningChange(opening.id, { groutCellsBelowWindow: Math.max(0, Math.round(value)) })} />
-      ) : null}
-      <TextField
-        label="Notes"
-        value={opening.notes ?? ''}
-        onChange={(value) => onOpeningChange(opening.id, { notes: value })}
-      />
-    </div>
-  );
-}
-
-function NumberField({
-  label,
-  value,
-  suffix,
-  min = 0,
-  max,
-  onChange,
-}: {
-  label: string;
-  value: number;
-  suffix: string;
-  step?: number;
-  min?: number;
-  max?: number;
-  onChange: (value: number) => void;
-}) {
-  const [draft, setDraft] = useState(() => formatInputNumber(value));
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (document.activeElement?.getAttribute('aria-label') === label) return;
-    setDraft(formatInputNumber(value));
-    setError(null);
-  }, [label, value]);
-
-  const commit = () => {
-    const parsed = parseDecimalInput(draft);
-    if (!Number.isFinite(parsed)) {
-      setError('Enter a valid decimal value.');
-      return;
-    }
-    if (typeof min === 'number' && parsed < min) {
-      setError(`Minimum ${formatInputNumber(min)} ${suffix}.`);
-      return;
-    }
-    if (typeof max === 'number' && parsed > max) {
-      setError(`Maximum ${formatInputNumber(max)} ${suffix}.`);
-      return;
-    }
-    setError(null);
-    onChange(parsed);
-    setDraft(formatInputNumber(parsed));
-  };
-
-  const handleKeyDown = (event: ReactKeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      event.currentTarget.blur();
-    }
-  };
-
-  return (
-    <label className="block text-sm">
-      <span className="mb-1 block text-slate-600 dark:text-slate-300">{label}</span>
-      <div
-        className={`flex h-10 overflow-hidden rounded-lg border bg-white transition focus-within:ring-2 focus-within:ring-cyan-400/30 dark:bg-slate-950 ${
-          error
-            ? 'border-red-300 dark:border-red-700'
-            : 'border-slate-200 dark:border-slate-700'
-        }`}
-      >
-        <input
-          type="text"
-          inputMode="decimal"
-          aria-label={label}
-          value={draft}
-          onChange={(event) => {
-            setDraft(event.currentTarget.value);
-            if (error) setError(null);
-          }}
-          onBlur={commit}
-          onKeyDown={handleKeyDown}
-          className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm outline-none"
-        />
-        <span className="flex min-w-12 items-center justify-center border-l border-slate-200 px-3 text-xs font-semibold text-slate-500 dark:border-slate-700 dark:text-slate-400">
-          {suffix}
-        </span>
-      </div>
-      {error ? <span className="mt-1 block text-xs text-red-600 dark:text-red-300">{error}</span> : null}
-    </label>
-  );
-}
-
-function TextField({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <label className="block text-sm">
-      <span className="mb-1 block text-slate-600 dark:text-slate-300">{label}</span>
-      <input
-        type="text"
-        value={value}
-        onChange={(event) => onChange(event.currentTarget.value)}
-        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none dark:border-slate-700 dark:bg-slate-950"
-      />
-    </label>
-  );
-}
-
-function DisplayMenuCollapsibleSection({
-  id,
-  title,
-  defaultOpen = false,
-  children,
-}: {
-  id: string;
-  title: string;
-  defaultOpen?: boolean;
-  children: ReactNode;
-}) {
-  const [open, setOpen] = useState(defaultOpen);
-
-  return (
-    <div className="border-t border-slate-200 pt-1 dark:border-slate-700">
-      <button
-        type="button"
-        id={`${id}-header`}
-        aria-expanded={open}
-        aria-controls={`${id}-panel`}
-        onClick={(event) => {
-          event.stopPropagation();
-          setOpen((current) => !current);
-        }}
-        className="flex w-full items-center justify-between rounded px-1 py-1.5 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800"
-      >
-        <span>{title}</span>
-        <span aria-hidden className="text-[10px]">
-          {open ? 'v' : '>'}
-        </span>
-      </button>
-      {open ? (
-        <div id={`${id}-panel`} className="space-y-1 pb-1">
-          {children}
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
-function ToggleField({
-  label,
-  checked,
-  onChange,
-  title,
-}: {
-  label: string;
-  checked: boolean;
-  onChange: (checked: boolean) => void;
-  title?: string;
-}) {
-  return (
-    <label
-      className="flex items-center gap-2 rounded-lg px-2 py-1 text-slate-600 dark:text-slate-300"
-      title={title}
-    >
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(event) => onChange(event.currentTarget.checked)}
-        className="h-4 w-4"
-      />
-      <span>{label}</span>
-    </label>
-  );
-}
-
-function ModuleFitReportPanel({ report }: { report: import('../domain/moduleFitReport').ModuleFitReport }) {
-  const toneClass =
-    report.status === 'fully_modular' || report.status === 'bond_modular'
-      ? 'border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-100'
-      : report.status === 'cut_required' || report.status === 'opening_conflict'
-        ? 'border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100'
-        : 'border-rose-200 bg-rose-50 text-rose-900 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-100';
-  return (
-    <div className={`rounded-lg border p-2 text-xs ${toneClass}`}>
-      <div className="mb-1 flex items-center justify-between gap-2">
-        <span className="font-semibold">Modular fit</span>
-        <ModuleFitStatusBadge status={report.status} />
-      </div>
-      {report.summaryLines.map((line) => (
-        <div key={line}>{line}</div>
-      ))}
-    </div>
-  );
-}
-
-function moduleFitStatusTone(status: import('../types').ModuleFitStatus): 'success' | 'warning' | 'error' | 'info' {
-  if (status === 'fully_modular' || status === 'bond_modular') return 'success';
-  if (status === 'cut_required' || status === 'opening_conflict') return 'warning';
-  if (status === 'unresolved') return 'error';
-  return 'info';
-}
-
-function ModuleFitStatusBadge({ status }: { status: import('../types').ModuleFitStatus }) {
-  const className =
-    status === 'fully_modular' || status === 'bond_modular'
-      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200'
-      : status === 'cut_required' || status === 'opening_conflict'
-        ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200'
-        : 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-200';
-  const label =
-    status === 'fully_modular'
-      ? 'Fully modular'
-      : status === 'bond_modular'
-        ? 'Bond modular'
-        : status === 'cut_required'
-          ? 'Cut required'
-          : status === 'opening_conflict'
-            ? 'Opening conflict'
-            : 'Unresolved';
-  return <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${className}`}>{label}</span>;
-}
-
-function ModuleFitBadge({ fit }: { fit: 'full' | 'half' | 'cut' }) {
-  const className =
-    fit === 'full'
-      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200'
-      : fit === 'half'
-        ? 'bg-cyan-100 text-cyan-800 dark:bg-cyan-950 dark:text-cyan-200'
-        : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200';
-  const label = fit === 'full' ? 'Full-module fit' : fit === 'half' ? 'Half-module fit' : 'Cut-Block Condition';
-  return <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${className}`}>{label}</span>;
-}
-
-function formatModuleCount(value: number): string {
-  return Number.isInteger(value) ? value.toFixed(0) : value.toFixed(2).replace(/\.?0+$/, '');
-}
-
-function summarizeClosures(closures: ReturnType<typeof generateCmuLayout>['openingCourseClosures']): string {
-  if (closures.length === 0) return 'none';
-  const counts = closures.reduce<Record<string, number>>((acc, closure) => {
-    acc[closure.closureType] = (acc[closure.closureType] ?? 0) + 1;
-    return acc;
-  }, {});
-  return Object.entries(counts)
-    .map(([type, count]) => `${type.replace(/_/g, ' ')} ${count}`)
-    .join(', ');
-}
-
-function SelectField({
-  label,
-  value,
-  options,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  options: Array<{ value: string; label: string }>;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <label className="block text-sm">
-      <span className="mb-1 block text-slate-600 dark:text-slate-300">{label}</span>
-      <select
-        value={value}
-        onChange={(event) => onChange(event.currentTarget.value)}
-        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none dark:border-slate-700 dark:bg-slate-950"
-      >
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
-}
-
-function formatInputNumber(value: number): string {
-  if (!Number.isFinite(value)) return '';
-  return Number(value.toFixed(4)).toString();
-}
-
-function parseDecimalInput(value: string): number {
-  const normalized = value.trim().replace(/,/g, '');
-  if (normalized === '') return Number.NaN;
-  return Number(normalized);
-}
-
-function positiveOrFallback(value: number, fallback: number): number {
-  return Number.isFinite(value) && value > 0 ? value : fallback;
-}
-
-function objectIdForType(
-  objectType: DesignObjectType,
-  objectIds: {
-    slabObjectId: string;
-    wallObjectId: string;
-    roofObjectId: string;
-    trussObjectId: string;
-    frameObjectId: string;
-    infillObjectId: string;
-    gableEndObjectId: string;
-  },
-): string {
-  if (objectType === 'thickened_edge_slab') return objectIds.slabObjectId;
-  if (objectType === 'gable_roof_system') return objectIds.roofObjectId;
-  if (objectType === 'steel_truss_system') return objectIds.trussObjectId;
-  if (objectType === 'structural_frame_system') return objectIds.frameObjectId;
-  if (objectType === 'cmu_infill_system') return objectIds.infillObjectId;
-  if (objectType === 'gable_end_system') return objectIds.gableEndObjectId;
-  return objectIds.wallObjectId;
-}
-
-function objectTypeForPreviewLine(line: DesignEstimatePreviewLine): DesignObjectType {
-  if (line.quantityType.includes('slab') || line.id.includes('slab')) return 'thickened_edge_slab';
-  if (line.quantityType.includes('raked_concrete_cap') || line.quantityType.includes('gable_end')) {
-    return 'gable_end_system';
-  }
-  if (line.quantityType.startsWith('rc_')) return 'structural_frame_system';
-  if (line.quantityType.includes('infill') || line.id.startsWith('infill-')) return 'cmu_infill_system';
-  if (line.quantityType.includes('truss') || line.id.includes('truss')) return 'steel_truss_system';
-  if (
-    line.quantityType.includes('roof') ||
-    line.quantityType.includes('ridge') ||
-    line.quantityType.includes('hip') ||
-    line.quantityType.includes('corrugated')
-  ) {
-    return 'gable_roof_system';
-  }
-  return 'cmu_wall_system';
 }
 
