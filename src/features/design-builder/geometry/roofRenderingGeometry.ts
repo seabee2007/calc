@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import type {
   FasciaPlacement,
   RakedCapPlacement,
+  RoofPlane,
   RoofSystemSettings,
   RoofVec3,
   SoffitPlacement,
@@ -17,6 +18,98 @@ import {
 } from '../domain/roofFramingResolver';
 
 export type PurlinMeshProfile = 'roof_normal' | 'vertical_eave';
+
+const ROOF_PLAN_POINT_MATCH_TOLERANCE_METERS = 0.06;
+
+function roofPlanDistanceSquared(a: Pick<RoofVec3, 'x' | 'z'>, b: Pick<RoofVec3, 'x' | 'z'>): number {
+  const dx = a.x - b.x;
+  const dz = a.z - b.z;
+  return dx * dx + dz * dz;
+}
+
+function cornerMatchesPlanPoint(
+  point: Pick<RoofVec3, 'x' | 'z'>,
+  candidates: readonly Pick<RoofVec3, 'x' | 'z'>[],
+  toleranceMeters: number,
+): boolean {
+  let nearestDistanceSquared = Number.POSITIVE_INFINITY;
+  for (const candidate of candidates) {
+    nearestDistanceSquared = Math.min(nearestDistanceSquared, roofPlanDistanceSquared(point, candidate));
+  }
+  return nearestDistanceSquared <= toleranceMeters ** 2;
+}
+
+function adjacentEavePair(indices: number[], cornerCount: number): [number, number] | null {
+  if (indices.length !== 2) return null;
+  const [first, second] = [...indices].sort((a, b) => a - b);
+  if (second === first + 1) {
+    return [first, second];
+  }
+  if (first === 0 && second === cornerCount - 1) {
+    return [second, first];
+  }
+  return null;
+}
+
+function adjacentCornerPairs(cornerCount: number): [number, number][] {
+  return Array.from({ length: cornerCount }, (_, index) => [index, (index + 1) % cornerCount] as [number, number]);
+}
+
+export function resolveRoofPlaneEavePair(params: {
+  corners: readonly RoofVec3[];
+  referencePerimeter?: readonly Pick<RoofVec3, 'x' | 'z'>[];
+  planPointToleranceMeters?: number;
+}): [number, number] | null {
+  if (params.corners.length < 3) {
+    return null;
+  }
+
+  const toleranceMeters = params.planPointToleranceMeters ?? ROOF_PLAN_POINT_MATCH_TOLERANCE_METERS;
+  if (params.referencePerimeter && params.referencePerimeter.length >= 2) {
+    const referenceMatches = params.corners
+      .map((corner, index) =>
+        cornerMatchesPlanPoint(corner, params.referencePerimeter!, toleranceMeters) ? index : -1,
+      )
+      .filter((index) => index >= 0);
+    const matchedPair = adjacentEavePair(referenceMatches, params.corners.length);
+    if (matchedPair) {
+      return matchedPair;
+    }
+  }
+
+  let bestPair: { pair: [number, number]; averageY: number; lengthSquared: number } | null = null;
+  for (const pair of adjacentCornerPairs(params.corners.length)) {
+    const first = params.corners[pair[0]]!;
+    const second = params.corners[pair[1]]!;
+    const lengthSquared = roofPlanDistanceSquared(first, second);
+    if (lengthSquared <= 1e-8) {
+      continue;
+    }
+    const averageY = (first.y + second.y) / 2;
+    if (
+      !bestPair ||
+      averageY < bestPair.averageY - 0.001 ||
+      (Math.abs(averageY - bestPair.averageY) <= 0.001 && lengthSquared > bestPair.lengthSquared)
+    ) {
+      bestPair = { pair, averageY, lengthSquared };
+    }
+  }
+
+  return bestPair?.pair ?? null;
+}
+
+export function buildRoofCladdingRenderPlanes(params: {
+  planes: readonly RoofPlane[];
+  clearanceMeters: number;
+}): RoofPlane[] {
+  return params.planes.map((plane) => ({
+    ...plane,
+    corners: plane.corners.map((corner) => ({
+      ...corner,
+      y: corner.y + params.clearanceMeters,
+    })),
+  }));
+}
 
 export function createMemberBetween(
   start: THREE.Vector3,

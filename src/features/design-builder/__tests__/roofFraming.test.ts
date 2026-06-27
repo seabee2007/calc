@@ -6,6 +6,7 @@ import { deriveDesignSceneBounds } from '../domain/designSceneBounds';
 import { createOutsideFaceRectangleLayout } from '../domain/wallLayoutRules';
 import {
   buildPurlinRowStationFractions,
+  CORRUGATED_SHEET_DISPLAY_THICKNESS_METERS,
   distanceAlongRoofNormal,
   elevationOnRoofPlaneAtPoint,
   normalizeOutwardRoofNormal,
@@ -33,6 +34,7 @@ import {
 import { buildFrameInfillEstimatePreview, metersToFeet } from '../quantity/designQuantityFormulas';
 import {
   buildPurlinMesh,
+  buildRoofCladdingRenderPlanes,
   buildSteelTrussMemberMeshes,
   buildTrussAnchorBoltMeshes,
   buildTrussBasePlateMesh,
@@ -40,6 +42,7 @@ import {
   createFasciaTrimGeometry,
   createFoldedRidgeCapGroup,
   memberWorldEndpoints,
+  resolveRoofPlaneEavePair,
 } from '../geometry/roofRenderingGeometry';
 import type { RoofSystemSettings, SteelMemberSegment, TrussPlacement } from '../types';
 import * as THREE from 'three';
@@ -1395,6 +1398,51 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
     expect(roof.claddingDisplayPlanes.filter((plane) => plane.corners.length === 3)).toHaveLength(2);
     for (const plane of roof.claddingDisplayPlanes) {
       expect(roofPlaneArea3d(plane)).toBeGreaterThan(1);
+    }
+  });
+
+  it('gable render cladding preserves the full sheet footprint and resolves the low eave edge', () => {
+    const roof = roofFromGeometry(frameInfillGeometry(
+      {
+        ...createDefaultRoofSystemSettings(),
+        roofType: 'gable',
+        ridgeDirection: 'along_longest_axis',
+        eaveOverhangMeters: 0.3,
+        gableEndOverhangMeters: 0.3,
+        peakHeightAboveRoofBeamMeters: 1.5,
+      },
+      rectangularLayout(6, 5),
+    ));
+
+    const renderPlanes = buildRoofCladdingRenderPlanes({
+      planes: roof.claddingDisplayPlanes,
+      clearanceMeters: CORRUGATED_SHEET_DISPLAY_THICKNESS_METERS,
+    });
+
+    expect(renderPlanes).toHaveLength(roof.claddingDisplayPlanes.length);
+    for (const [planeIndex, renderPlane] of renderPlanes.entries()) {
+      const sourcePlane = roof.claddingDisplayPlanes[planeIndex]!;
+      expect(renderPlane.corners).toHaveLength(sourcePlane.corners.length);
+      for (const [cornerIndex, renderCorner] of renderPlane.corners.entries()) {
+        const sourceCorner = sourcePlane.corners[cornerIndex]!;
+        expect(renderCorner.x).toBeCloseTo(sourceCorner.x, 6);
+        expect(renderCorner.z).toBeCloseTo(sourceCorner.z, 6);
+        expect(renderCorner.y).toBeCloseTo(sourceCorner.y + CORRUGATED_SHEET_DISPLAY_THICKNESS_METERS, 6);
+      }
+
+      const eavePair = resolveRoofPlaneEavePair({
+        corners: renderPlane.corners,
+        referencePerimeter: roof.roofSheetPerimeter,
+        planPointToleranceMeters: 0.001,
+      });
+      expect(eavePair).not.toBeNull();
+      const eaveY = Math.max(...eavePair!.map((index) => renderPlane.corners[index]!.y));
+      const highY = Math.min(
+        ...renderPlane.corners
+          .filter((_, index) => !eavePair!.includes(index))
+          .map((corner) => corner.y),
+      );
+      expect(eaveY).toBeLessThan(highY);
     }
   });
 
