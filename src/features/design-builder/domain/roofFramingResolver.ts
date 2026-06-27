@@ -579,6 +579,29 @@ export function resolveEvenStations(lengthMeters: number, maxSpacingMeters: numb
   return { count, actualSpacingMeters, stations };
 }
 
+function resolveInsetEndStations(
+  lengthMeters: number,
+  maxSpacingMeters: number,
+  endInsetMeters: number,
+): {
+  count: number;
+  actualSpacingMeters: number;
+  stations: number[];
+} {
+  const inset = Math.max(0, Math.min(endInsetMeters, Math.max(0, lengthMeters / 2 - 0.001)));
+  if (inset <= 0.001) {
+    return resolveEvenStations(lengthMeters, maxSpacingMeters);
+  }
+
+  const supportedLengthMeters = Math.max(0.001, lengthMeters - inset * 2);
+  const resolution = resolveEvenStations(supportedLengthMeters, maxSpacingMeters);
+  return {
+    count: resolution.count,
+    actualSpacingMeters: resolution.actualSpacingMeters,
+    stations: resolution.stations.map((station) => station + inset),
+  };
+}
+
 export function buildExteriorRoofBeamBounds(
   structuralBearingPerimeter: readonly PlanVec2[],
   roofBeamTopY: number,
@@ -1834,9 +1857,13 @@ export function resolveRoofFraming(params: {
     structuralRidgeStart &&
     structuralRidgeEnd
   ) {
-    const trussResolution = resolveEvenStations(
+    const trussEndInsetMeters = params.settings.steelTrusses.basePlateEnabled
+      ? params.settings.steelTrusses.basePlateWidthMeters / 2
+      : 0;
+    const trussResolution = resolveInsetEndStations(
       buildingLengthMeters,
       params.settings.steelTrusses.maxSpacingMeters,
+      trussEndInsetMeters,
     );
     trussCount = trussResolution.count;
     actualTrussSpacingMeters = trussResolution.actualSpacingMeters;

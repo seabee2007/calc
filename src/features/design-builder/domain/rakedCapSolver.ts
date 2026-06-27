@@ -152,6 +152,53 @@ function segmentVolumeCubicMeters(params: {
   return ((startDepth + endDepth) / 2) * span * params.wallDepthMeters;
 }
 
+function hasRenderableCapVolume(cap: RakedCapPlacement): boolean {
+  const startDepth = cap.startTopY - cap.startBottomY;
+  const endDepth = cap.endTopY - cap.endBottomY;
+
+  return (
+    (startDepth > GABLE_HEIGHT_TOLERANCE_METERS ||
+      endDepth > GABLE_HEIGHT_TOLERANCE_METERS) &&
+    startDepth >= -GABLE_HEIGHT_TOLERANCE_METERS &&
+    endDepth >= -GABLE_HEIGHT_TOLERANCE_METERS &&
+    cap.concreteVolumeCubicMeters > ROOF_CONTACT_EPSILON_METERS
+  );
+}
+
+function terminalSlopeForEmptyInterval(params: {
+  startStationMeters: number;
+  endStationMeters: number;
+  panelStartStation: number;
+  panelEndStation: number;
+  ridgeStationMeters: number;
+  leftTerminalEndStationMeters: number;
+  rightTerminalStartStationMeters: number;
+}): RakedCapPlacement['slope'] | null {
+  if (
+    params.startStationMeters >=
+      params.panelStartStation - CAP_SEAM_TOLERANCE_METERS &&
+    params.endStationMeters <=
+      params.ridgeStationMeters + CAP_SEAM_TOLERANCE_METERS &&
+    params.endStationMeters <=
+      params.leftTerminalEndStationMeters + CAP_SEAM_TOLERANCE_METERS
+  ) {
+    return 'left';
+  }
+
+  if (
+    params.endStationMeters <=
+      params.panelEndStation + CAP_SEAM_TOLERANCE_METERS &&
+    params.startStationMeters >=
+      params.ridgeStationMeters - CAP_SEAM_TOLERANCE_METERS &&
+    params.startStationMeters >=
+      params.rightTerminalStartStationMeters - CAP_SEAM_TOLERANCE_METERS
+  ) {
+    return 'right';
+  }
+
+  return null;
+}
+
 function findCrossing(params: {
   from: number;
   to: number;
@@ -525,6 +572,13 @@ export function solveRakedCapPlacementsWithWarnings(params: {
     ridge: ridgeStationMeters,
     capTop: roofCapTop,
   });
+  const blockSpans = blocks.map(blockStationSpan);
+  const leftTerminalEndStationMeters = Math.min(
+    ...blockSpans.map((span) => span.startStationMeters),
+  );
+  const rightTerminalStartStationMeters = Math.max(
+    ...blockSpans.map((span) => span.endStationMeters),
+  );
 
   const warnings: string[] = [];
   const rawCaps: RakedCapPlacement[] = [];
@@ -545,6 +599,80 @@ export function solveRakedCapPlacementsWithWarnings(params: {
     });
 
     if (intervalBlocks.length === 0) {
+      const terminalSlope = terminalSlopeForEmptyInterval({
+        startStationMeters,
+        endStationMeters,
+        panelStartStation: params.panelStartStation,
+        panelEndStation: params.panelEndStation,
+        ridgeStationMeters,
+        leftTerminalEndStationMeters,
+        rightTerminalStartStationMeters,
+      });
+
+      if (terminalSlope === null) {
+        continue;
+      }
+
+      const startTopY = roofCapTop(startStationMeters);
+      const endTopY = roofCapTop(endStationMeters);
+      const roofBeamTopY = params.resolvedRoof.roofBeamTopElevationMeters;
+
+      if (
+        !isFiniteNumber(startTopY) ||
+        !isFiniteNumber(endTopY) ||
+        !isFiniteNumber(roofBeamTopY)
+      ) {
+        continue;
+      }
+
+      const concreteVolumeCubicMeters = segmentVolumeCubicMeters({
+        startStationMeters,
+        endStationMeters,
+        startTopY,
+        endTopY,
+        startBottomY: roofBeamTopY,
+        endBottomY: roofBeamTopY,
+        wallDepthMeters: capWallDepthMeters,
+      });
+      const placement: RakedCapPlacement = {
+        id: `${params.panelId}-rake-cap-${terminalSlope}-${index}`,
+        gableEndSegmentId: params.gableEndSegmentId,
+        slope: terminalSlope,
+        startStationMeters,
+        endStationMeters,
+        startBottomY: roofBeamTopY,
+        endBottomY: roofBeamTopY,
+        startTopY,
+        endTopY,
+        wallDepthMeters: capWallDepthMeters,
+        centerlineInwardOffsetMeters:
+          params.infillCenterlineInwardOffsetMeters ?? 0,
+        concreteVolumeCubicMeters,
+        source: 'gable_raked_concrete_cap',
+      };
+
+      if (!hasRenderableCapVolume(placement)) {
+        continue;
+      }
+
+      const startDepth = startTopY - roofBeamTopY;
+      const endDepth = endTopY - roofBeamTopY;
+      if (
+        startDepth <
+          minRakeCapDepthMeters - GABLE_HEIGHT_TOLERANCE_METERS ||
+        endDepth <
+          minRakeCapDepthMeters - GABLE_HEIGHT_TOLERANCE_METERS
+      ) {
+        warnings.push(
+          `[Design review — visual fill only, not structurally compliant] ` +
+            `Insufficient raked-cap depth at terminal stations ` +
+            `${startStationMeters.toFixed(3)}–${endStationMeters.toFixed(3)} m ` +
+            `(actual ${Math.min(startDepth, endDepth).toFixed(3)} m, ` +
+            `required ${minRakeCapDepthMeters.toFixed(3)} m).`,
+        );
+      }
+
+      rawCaps.push(placement);
       continue;
     }
 
@@ -741,14 +869,7 @@ export function solveRakedCapPlacementsWithWarnings(params: {
   });
 
   return {
-    placements: placements.filter(
-      (cap) =>
-        cap.startTopY >
-          cap.startBottomY + GABLE_HEIGHT_TOLERANCE_METERS &&
-        cap.endTopY >
-          cap.endBottomY + GABLE_HEIGHT_TOLERANCE_METERS &&
-        cap.concreteVolumeCubicMeters > ROOF_CONTACT_EPSILON_METERS,
-    ),
+    placements: placements.filter(hasRenderableCapVolume),
     warnings,
   };
 }

@@ -744,12 +744,13 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
     expect(Math.max(spanDx, spanDz)).toBeGreaterThan(Math.min(spanDx, spanDz));
   });
 
-  it('end trusses land at both roof-bearing ends along the ridge', () => {
+  it('end truss base plates are inset onto concrete corner columns', () => {
     const roofSystem = {
       ...createDefaultRoofSystemSettings(),
       steelTrusses: { ...createDefaultRoofSystemSettings().steelTrusses, maxSpacingMeters: 2.4 },
     };
-    const roof = roofFromGeometry(frameInfillGeometry(roofSystem));
+    const geometry = frameInfillGeometry(roofSystem);
+    const roof = roofFromGeometry(geometry);
     expect(roof.ridgeStart).toBeDefined();
     expect(roof.ridgeEnd).toBeDefined();
     const ridgeStart = roof.structuralRidgeStart ?? roof.ridgeStart!;
@@ -760,8 +761,59 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
     const stationAlongRidge = (point: { x: number; z: number }) =>
       (point.x - ridgeStart.x) * ridgeUnitX + (point.z - ridgeStart.z) * ridgeUnitZ;
     const stations = roof.trussPlacements.map((truss) => stationAlongRidge(truss.bearingLeft));
-    expect(Math.min(...stations)).toBeCloseTo(0, 2);
-    expect(Math.max(...stations)).toBeCloseTo(ridgeLength, 2);
+    const endInsetMeters = roofSystem.steelTrusses.basePlateWidthMeters / 2;
+    expect(Math.min(...stations)).toBeCloseTo(endInsetMeters, 2);
+    expect(Math.max(...stations)).toBeCloseTo(ridgeLength - endInsetMeters, 2);
+
+    const columnBounds = geometry.frameSystem.columns.map((column) => ({
+      minX: column.position.x - column.widthMeters / 2,
+      maxX: column.position.x + column.widthMeters / 2,
+      minZ: column.position.z - column.depthMeters / 2,
+      maxZ: column.position.z + column.depthMeters / 2,
+    }));
+    const plateCorners = (
+      center: { x: number; z: number },
+      truss: TrussPlacement,
+    ): Array<{ x: number; z: number }> => {
+      const span = {
+        x: truss.bearingRight.x - truss.bearingLeft.x,
+        z: truss.bearingRight.z - truss.bearingLeft.z,
+      };
+      const spanLength = Math.hypot(span.x, span.z) || 1;
+      const spanAxis = { x: span.x / spanLength, z: span.z / spanLength };
+      const widthAxis = { x: spanAxis.z, z: -spanAxis.x };
+      const halfLength = roofSystem.steelTrusses.basePlateLengthMeters / 2;
+      const halfWidth = roofSystem.steelTrusses.basePlateWidthMeters / 2;
+      return [-1, 1].flatMap((spanSign) =>
+        [-1, 1].map((widthSign) => ({
+          x: center.x + spanAxis.x * halfLength * spanSign + widthAxis.x * halfWidth * widthSign,
+          z: center.z + spanAxis.z * halfLength * spanSign + widthAxis.z * halfWidth * widthSign,
+        })),
+      );
+    };
+    const nearestColumn = (center: { x: number; z: number }) =>
+      columnBounds
+        .map((bounds) => ({
+          bounds,
+          distance: Math.hypot(
+            center.x - (bounds.minX + bounds.maxX) / 2,
+            center.z - (bounds.minZ + bounds.maxZ) / 2,
+          ),
+        }))
+        .sort((a, b) => a.distance - b.distance)[0]!.bounds;
+
+    const endTrusses = [roof.trussPlacements[0]!, roof.trussPlacements[roof.trussPlacements.length - 1]!];
+    for (const truss of endTrusses) {
+      for (const center of [truss.basePlateCenterLeft!, truss.basePlateCenterRight!]) {
+        const support = nearestColumn(center);
+        for (const corner of plateCorners(center, truss)) {
+          expect(corner.x).toBeGreaterThanOrEqual(support.minX - 0.001);
+          expect(corner.x).toBeLessThanOrEqual(support.maxX + 0.001);
+          expect(corner.z).toBeGreaterThanOrEqual(support.minZ - 0.001);
+          expect(corner.z).toBeLessThanOrEqual(support.maxZ + 0.001);
+        }
+      }
+    }
   });
 
   it('corrugated sheet area uses resolved sloped surface area plus waste', () => {
