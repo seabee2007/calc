@@ -111,6 +111,22 @@ describe('DesignBuilderViewerRebuildState', () => {
     });
   });
 
+  it('keeps material preview active while texture packs are still loading', () => {
+    const state = createDesignBuilderViewerRebuildState({
+      modelParams: modelParams({
+        visualStyle: 'material_preview',
+      }),
+      previewMaterialsReady: false,
+    });
+
+    expect(state.usePreviewMaterials).toBe(true);
+    expect(state.cmuOpacity).toBeCloseTo(1, 6);
+    expect(state.cmuMaterialOptions).toEqual({
+      visualStyle: 'material_preview',
+      selected: false,
+    });
+  });
+
   it('marks blank geometry and uses blank scene size', () => {
     const state = createDesignBuilderViewerRebuildState({
       modelParams: modelParams({

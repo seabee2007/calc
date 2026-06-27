@@ -263,6 +263,7 @@ export type CmuCoursePlan = {
 
 export interface DesignGeometryBlockInstance {
   id: string;
+  panelId?: string;
   segmentId: string;
   course: number;
   courseIndex?: number;

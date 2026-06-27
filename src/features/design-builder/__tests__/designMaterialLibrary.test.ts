@@ -18,6 +18,10 @@ import {
   getMaterialDiagnostics,
   resetDesignMaterialLibraryForTests,
   resolveCastConcreteMaterial,
+  resolveCmuMaterial,
+  resolveFloorTileMaterial,
+  resolveRoofMetalMaterial,
+  resolveSiteGroundMaterial,
 } from '../rendering/materials/designMaterialLibrary';
 
 describe('designMaterialLibrary', () => {
@@ -47,6 +51,38 @@ describe('designMaterialLibrary', () => {
     expect(structural).toBe(library.castConcreteStructuralTechnical);
     expect(beam).toBe(library.castConcreteBeamTechnical);
     expect(structural).not.toBe(beam);
+  });
+
+  it('resolves preview fallback materials before preview textures load', () => {
+    const library = getDesignMaterialLibrary();
+    const track = () => undefined;
+
+    expect(resolveCmuMaterial({ visualStyle: 'material_preview', selected: false }, track)).toBe(
+      library.cmuPreview,
+    );
+    expect(
+      resolveCastConcreteMaterial(
+        { visualStyle: 'material_preview', selected: false, role: 'structural' },
+        track,
+      ),
+    ).toBe(library.castConcreteStructuralPreview);
+    expect(resolveRoofMetalMaterial({ visualStyle: 'material_preview', selected: false }, track)).toBe(
+      library.roofMetalPreview,
+    );
+    expect(
+      resolveFloorTileMaterial(
+        {
+          visualStyle: 'material_preview',
+          selected: false,
+          tileWidthMeters: 0.6,
+          tileDepthMeters: 0.6,
+        },
+        track,
+      ),
+    ).not.toBe(library.floorTileTechnical);
+    expect(resolveSiteGroundMaterial({ visualStyle: 'material_preview', selected: false }, track)).toBeInstanceOf(
+      THREE.MeshStandardMaterial,
+    );
   });
 
   it('reports technical diagnostics before preview textures load', () => {

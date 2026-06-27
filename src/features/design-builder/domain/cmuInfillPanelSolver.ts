@@ -90,15 +90,22 @@ function resolveAllInfillPanelBounds(params: {
   const belowGrade = resolveBelowGradeInfillPanelBoundsForLayout(params);
   const aboveGrade = resolveInfillPanelBoundsForLayout(params);
   const ordered: ResolvedInfillPanelBounds[] = [];
+  const byStartStation = (a: ResolvedInfillPanelBounds, b: ResolvedInfillPanelBounds) =>
+    a.startStationMeters - b.startStationMeters;
   for (const segment of params.layout.segments) {
-    const below = belowGrade.find(
-      (bounds) => bounds.hostSegmentId === segment.id,
-    );
-    const above = aboveGrade.find(
-      (bounds) => bounds.hostSegmentId === segment.id,
-    );
-    if (below) ordered.push(below);
-    if (above) ordered.push(above);
+    const belowForSegment = belowGrade
+      .filter((bounds) => bounds.hostSegmentId === segment.id)
+      .sort(byStartStation);
+    const aboveForSegment = aboveGrade
+      .filter((bounds) => bounds.hostSegmentId === segment.id)
+      .sort(byStartStation);
+    const bayCount = Math.max(belowForSegment.length, aboveForSegment.length);
+    for (let index = 0; index < bayCount; index += 1) {
+      const below = belowForSegment[index];
+      const above = aboveForSegment[index];
+      if (below) ordered.push(below);
+      if (above) ordered.push(above);
+    }
   }
   return ordered;
 }

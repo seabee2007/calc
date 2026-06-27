@@ -139,9 +139,16 @@ describe('infill plaster', () => {
   it('covers rough opening reveal with field plaster up to the door frame edge', () => {
     const preset = applyAutoFrameLayout(createFiveBySixCmuBuildingPreset());
     const geometry = frameGeometryForPreset(preset);
-    const opening = geometry.wallCmuLayout.roughOpenings.find(
-      (candidate) => candidate.actualStartAlongMeters > candidate.roughStartAlongMeters,
-    );
+    const opening = geometry.wallCmuLayout.roughOpenings.find((candidate) => {
+      const hostBounds = (geometry.resolvedInfillPanelBounds ?? []).find(
+        (bounds) =>
+          !bounds.panelId.includes('-below-') &&
+          bounds.hostSegmentId === candidate.wallSegmentId &&
+          bounds.startStationMeters < candidate.actualEndAlongMeters &&
+          bounds.endStationMeters > candidate.actualStartAlongMeters,
+      );
+      return candidate.actualStartAlongMeters > candidate.roughStartAlongMeters && hostBounds;
+    });
     expect(opening).toBeDefined();
     const placements = resolveInfillPlasterPanelPlacements({
       infillSystem: geometry.infillSystem,
@@ -394,16 +401,20 @@ describe('infill plaster', () => {
       openings: geometry.wallCmuLayout.roughOpenings,
       wallThicknessMeters: preset.wall.wallThicknessMeters,
     });
+    const bounds = (geometry.resolvedInfillPanelBounds ?? []).find(
+      (candidate) =>
+        !candidate.panelId.includes('-below-') &&
+        candidate.hostSegmentId === opening!.wallSegmentId &&
+        candidate.startStationMeters < opening!.actualEndAlongMeters &&
+        candidate.endStationMeters > opening!.actualStartAlongMeters,
+    );
+    expect(bounds).toBeDefined();
     const hostFieldPlacements = placements.filter(
       (placement) =>
-        placement.hostSegmentId === opening!.wallSegmentId &&
+        placement.panelId === bounds!.panelId &&
         placement.side === 'exterior' &&
         placement.surfaceKind === 'field',
     );
-    const bounds = (geometry.resolvedInfillPanelBounds ?? []).find(
-      (candidate) => candidate.hostSegmentId === opening!.wallSegmentId,
-    );
-    expect(bounds).toBeDefined();
     const frameStart = opening!.actualStartAlongMeters;
     const frameEnd = opening!.actualEndAlongMeters;
     const frameBottom = opening!.actualBottomMeters;
@@ -413,11 +424,12 @@ describe('infill plaster', () => {
       const centerStation =
         (placement.center.x - bounds!.hostWallCenterlineStart.x) * bounds!.tangent.x +
         (placement.center.z - bounds!.hostWallCenterlineStart.z) * bounds!.tangent.z;
-      const start = centerStation - placement.widthMeters / 2;
-      const end = centerStation + placement.widthMeters / 2;
+      const start = Math.max(bounds!.startStationMeters, centerStation - placement.widthMeters / 2);
+      const end = Math.min(bounds!.endStationMeters, centerStation + placement.widthMeters / 2);
       const bottom = placement.center.y - placement.heightMeters / 2;
       const top = placement.center.y + placement.heightMeters / 2;
       return (
+        end - start > overlapToleranceMeters &&
         start < frameEnd - overlapToleranceMeters &&
         end > frameStart + overlapToleranceMeters &&
         bottom < frameTop - overlapToleranceMeters &&
@@ -429,11 +441,16 @@ describe('infill plaster', () => {
         const centerStation =
           (placement.center.x - bounds!.hostWallCenterlineStart.x) * bounds!.tangent.x +
           (placement.center.z - bounds!.hostWallCenterlineStart.z) * bounds!.tangent.z;
-        const start = centerStation - placement.widthMeters / 2;
-        const end = centerStation + placement.widthMeters / 2;
+        const start = Math.max(bounds!.startStationMeters, centerStation - placement.widthMeters / 2);
+        const end = Math.min(bounds!.endStationMeters, centerStation + placement.widthMeters / 2);
         const bottom = placement.center.y - placement.heightMeters / 2;
         const top = placement.center.y + placement.heightMeters / 2;
-        return bottom < frameTop && top > frameBottom && end <= frameStart + 0.001 ? end : null;
+        return end - start > overlapToleranceMeters &&
+          bottom < frameTop &&
+          top > frameBottom &&
+          end <= frameStart + 0.001
+          ? end
+          : null;
       })
       .filter((edge): edge is number => edge != null)
       .sort((left, right) => right - left)[0];
@@ -442,17 +459,31 @@ describe('infill plaster', () => {
         const centerStation =
           (placement.center.x - bounds!.hostWallCenterlineStart.x) * bounds!.tangent.x +
           (placement.center.z - bounds!.hostWallCenterlineStart.z) * bounds!.tangent.z;
-        const start = centerStation - placement.widthMeters / 2;
+        const start = Math.max(bounds!.startStationMeters, centerStation - placement.widthMeters / 2);
+        const end = Math.min(bounds!.endStationMeters, centerStation + placement.widthMeters / 2);
         const bottom = placement.center.y - placement.heightMeters / 2;
         const top = placement.center.y + placement.heightMeters / 2;
-        return bottom < frameTop && top > frameBottom && start >= frameEnd - 0.001 ? start : null;
+        return end - start > overlapToleranceMeters &&
+          bottom < frameTop &&
+          top > frameBottom &&
+          start >= frameEnd - 0.001
+          ? start
+          : null;
       })
       .filter((edge): edge is number => edge != null)
       .sort((left, right) => left - right)[0];
 
     expect(fieldCrossesFrameOpening).toBe(false);
-    expect(leftFieldEdge).toBeCloseTo(frameStart, 6);
-    expect(rightFieldEdge).toBeCloseTo(frameEnd, 6);
+    if (frameStart > bounds!.startStationMeters + 0.001) {
+      expect(leftFieldEdge).toBeCloseTo(frameStart, 6);
+    } else {
+      expect(leftFieldEdge).toBeUndefined();
+    }
+    if (frameEnd < bounds!.endStationMeters - 0.001) {
+      expect(rightFieldEdge).toBeCloseTo(frameEnd, 6);
+    } else {
+      expect(rightFieldEdge).toBeUndefined();
+    }
   });
 
   it('adds three Division 09 plaster coat lines using matching net area', () => {

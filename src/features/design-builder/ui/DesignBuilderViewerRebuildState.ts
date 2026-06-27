@@ -102,8 +102,7 @@ export function createDesignBuilderViewerRebuildState(params: {
   previewMaterialsReady: boolean;
 }): DesignBuilderViewerRebuildState {
   const modelParams = params.modelParams;
-  const usePreviewMaterials =
-    modelParams.visualStyle === 'material_preview' && params.previewMaterialsReady;
+  const usePreviewMaterials = modelParams.visualStyle === 'material_preview';
   const frameSelected = modelParams.selectedObjectType === 'structural_frame_system';
   const cmuSelected = modelParams.selectedObjectType === 'cmu_wall_system';
   const roofSelected = modelParams.selectedObjectType === 'gable_roof_system';

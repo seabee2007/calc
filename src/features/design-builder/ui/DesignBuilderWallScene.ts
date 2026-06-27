@@ -190,64 +190,102 @@ export function buildInfillWallProxySceneGroup(params: {
   const segmentFrameById = new Map(
     (params.segmentFrames ?? []).map((frame) => [frame.segmentId, frame]),
   );
-  const panelBoundsBySegment = new Map<string, ResolvedInfillPanelBounds>();
-  (params.resolvedInfillPanelBounds ?? []).forEach((bounds) => {
-    const existing = panelBoundsBySegment.get(bounds.hostSegmentId);
-    if (!existing || bounds.bottomElevationMeters > existing.bottomElevationMeters) {
-      panelBoundsBySegment.set(bounds.hostSegmentId, bounds);
-    }
-  });
+  const segmentById = new Map(params.wallSegments.map((segment) => [segment.segmentId, segment]));
+  const panelLocalOpenings = (
+    openings: readonly PlasterOpening[],
+    panelBounds: ResolvedInfillPanelBounds,
+  ): PlasterOpening[] =>
+    openings.map((opening) =>
+      opening.wallSegmentId === panelBounds.hostSegmentId
+        ? {
+            ...opening,
+            actualBottomMeters: opening.actualBottomMeters - panelBounds.bottomElevationMeters,
+            actualTopMeters: opening.actualTopMeters - panelBounds.bottomElevationMeters,
+            roughBottomMeters: opening.roughBottomMeters - panelBounds.bottomElevationMeters,
+            roughTopMeters: opening.roughTopMeters - panelBounds.bottomElevationMeters,
+          }
+        : opening,
+    );
+
+  const addProxyMesh = (paramsForMesh: {
+    segment: DesignGeometryWallSegment;
+    frame?: SegmentFrame;
+    panelBounds?: ResolvedInfillPanelBounds;
+    piece: ReturnType<typeof buildInfillWallProxyPieces>[number];
+  }) => {
+    const { segment, frame, panelBounds, piece } = paramsForMesh;
+    const infillCenterlineInwardOffsetMeters =
+      panelBounds?.infillCenterlineInwardOffsetMeters ??
+      segment.infillCenterlineInwardOffsetMeters ??
+      0;
+    const centerlinePoint = frame
+      ? {
+          x:
+            frame.centerlineStart.x +
+            frame.tangent.x * piece.centerStationMeters +
+            frame.inwardNormal.x * infillCenterlineInwardOffsetMeters,
+          z:
+            frame.centerlineStart.z +
+            frame.tangent.z * piece.centerStationMeters +
+            frame.inwardNormal.z * infillCenterlineInwardOffsetMeters,
+        }
+      : { x: segment.x, z: segment.z };
+    const wallMesh = new THREE.Mesh(
+      params.trackGeometry(
+        new THREE.BoxGeometry(piece.lengthMeters, piece.heightMeters, piece.thicknessMeters),
+      ),
+      params.material,
+    );
+    wallMesh.name = `infillWallProxy:${segment.segmentId}:${piece.centerStationMeters}`;
+    wallMesh.position.set(
+      centerlinePoint.x,
+      params.slabTopMeters +
+        (panelBounds?.bottomElevationMeters ?? 0) +
+        piece.centerElevationMeters,
+      centerlinePoint.z,
+    );
+    wallMesh.rotation.y = segment.rotationY;
+    wallMesh.renderOrder = 0;
+    group.add(wallMesh);
+  };
+
+  const aboveGradePanelBounds = (params.resolvedInfillPanelBounds ?? []).filter(
+    (bounds) => bounds.topElevationMeters > 0.001 && bounds.bottomElevationMeters >= -0.001,
+  );
+
+  if (aboveGradePanelBounds.length > 0) {
+    aboveGradePanelBounds.forEach((panelBounds) => {
+      const segment = segmentById.get(panelBounds.hostSegmentId);
+      if (!segment) return;
+      const frame = segmentFrameById.get(segment.segmentId);
+      const wallPieces = buildInfillWallProxyPieces({
+        segmentLengthMeters: segment.lengthMeters,
+        wallHeightMeters: panelBounds.clearHeightMeters,
+        wallThicknessMeters: segment.thicknessMeters,
+        hostSegmentId: segment.segmentId,
+        openings: panelLocalOpenings(params.openings, panelBounds),
+        trimStartMeters: panelBounds.startStationMeters,
+        trimEndMeters: Math.max(0, segment.lengthMeters - panelBounds.endStationMeters),
+      });
+      wallPieces.forEach((piece) => {
+        addProxyMesh({ segment, frame, panelBounds, piece });
+      });
+    });
+
+    return group;
+  }
 
   params.wallSegments.forEach((segment) => {
     const frame = segmentFrameById.get(segment.segmentId);
-    const panelBounds = panelBoundsBySegment.get(segment.segmentId);
-    const trimStartMeters = panelBounds?.startStationMeters ?? 0;
-    const trimEndMeters = panelBounds
-      ? Math.max(0, segment.lengthMeters - panelBounds.endStationMeters)
-      : 0;
     const wallPieces = buildInfillWallProxyPieces({
       segmentLengthMeters: segment.lengthMeters,
-      wallHeightMeters: panelBounds?.clearHeightMeters ?? segment.heightMeters,
+      wallHeightMeters: segment.heightMeters,
       wallThicknessMeters: segment.thicknessMeters,
       hostSegmentId: segment.segmentId,
       openings: params.openings,
-      trimStartMeters,
-      trimEndMeters,
     });
     wallPieces.forEach((piece) => {
-      const infillCenterlineInwardOffsetMeters =
-        panelBounds?.infillCenterlineInwardOffsetMeters ??
-        segment.infillCenterlineInwardOffsetMeters ??
-        0;
-      const centerlinePoint = frame
-        ? {
-            x:
-              frame.centerlineStart.x +
-              frame.tangent.x * piece.centerStationMeters +
-              frame.inwardNormal.x * infillCenterlineInwardOffsetMeters,
-            z:
-              frame.centerlineStart.z +
-              frame.tangent.z * piece.centerStationMeters +
-              frame.inwardNormal.z * infillCenterlineInwardOffsetMeters,
-          }
-        : { x: segment.x, z: segment.z };
-      const wallMesh = new THREE.Mesh(
-        params.trackGeometry(
-          new THREE.BoxGeometry(piece.lengthMeters, piece.heightMeters, piece.thicknessMeters),
-        ),
-        params.material,
-      );
-      wallMesh.name = `infillWallProxy:${segment.segmentId}:${piece.centerStationMeters}`;
-      wallMesh.position.set(
-        centerlinePoint.x,
-        params.slabTopMeters +
-          (panelBounds?.bottomElevationMeters ?? 0) +
-          piece.centerElevationMeters,
-        centerlinePoint.z,
-      );
-      wallMesh.rotation.y = segment.rotationY;
-      wallMesh.renderOrder = 0;
-      group.add(wallMesh);
+      addProxyMesh({ segment, frame, piece });
     });
   });
 

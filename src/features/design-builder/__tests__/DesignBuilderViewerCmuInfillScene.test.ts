@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_ROOF_LAYER_VISIBILITY } from '../domain/roofSystemDefaults';
 import { createFiveBySixCmuBuildingPreset } from '../domain/designBuilderPreset';
+import type { ResolvedInfillPanelBounds } from '../domain/infillPanelBoundsResolver';
 import type {
   CmuBlockInstance,
   CmuLayoutResult,
@@ -58,6 +59,31 @@ function geometryResult(blocks: CmuBlockInstance[]): DesignGeometryResult {
     bondPattern: 'running_bond',
     wallCmuLayout: cmuLayout(blocks),
   } as DesignGeometryResult;
+}
+
+function infillPanelBounds(): ResolvedInfillPanelBounds {
+  return {
+    panelId: 'panel-1',
+    hostSegmentId: 'segment-1',
+    leftColumnId: 'column-left',
+    rightColumnId: 'column-right',
+    startStationMeters: 0,
+    endStationMeters: 2,
+    clearWidthMeters: 2,
+    bottomElevationMeters: 0,
+    topElevationMeters: 2.4,
+    clearHeightMeters: 2.4,
+    infillCenterlineInwardOffsetMeters: 0,
+    hostWallCenterlineStart: { x: 0, y: 0, z: 0 },
+    hostWallCenterlineEnd: { x: 2, y: 0, z: 0 },
+    tangent: { x: 1, y: 0, z: 0 },
+    outwardNormal: { x: 0, y: 0, z: -1 },
+    inwardNormal: { x: 0, y: 0, z: 1 },
+    leftSupportInsideFaceWorld: { x: 0, y: 0, z: 0 },
+    rightSupportInsideFaceWorld: { x: 2, y: 0, z: 0 },
+    leftSupportInsideFaceStation: 0,
+    rightSupportInsideFaceStation: 2,
+  };
 }
 
 function cmuInfillState(
@@ -144,6 +170,54 @@ describe('DesignBuilderViewerCmuInfillScene', () => {
     expect(scene.groups.find((group) => group.name === 'cmuBlockInstanceGroup')).toBeUndefined();
     expect(scene.selectableObjects).toHaveLength(0);
     expect(scene.mortarDiagnostics).toBeNull();
+  });
+
+  it('does not cover individual CMU blocks with material-preview plaster', () => {
+    const resources = createDesignBuilderViewerResources();
+    const bounds = infillPanelBounds();
+    const state = cmuInfillState({
+      currentGeometry: {
+        ...geometryResult([cmuBlock({ id: 'wall-block' })]),
+        infillSystem: {
+          kind: 'cmu_infill_system',
+          panels: [
+            {
+              id: bounds.panelId,
+              hostSegmentId: bounds.hostSegmentId,
+              infillZone: 'above_grade',
+            },
+          ],
+          plaster: {
+            enabled: true,
+            finish: 'textured',
+            profileLabel: '3-coat plaster',
+            interiorEnabled: true,
+            interiorFinish: 'smooth',
+            interiorProfileLabel: '3-coat plaster',
+          },
+        },
+        resolvedInfillPanelBounds: [bounds],
+        resolvedFootprint: {
+          orderedPerimeterSegments: [{ segmentId: bounds.hostSegmentId }],
+        },
+      } as DesignGeometryResult,
+      currentVisualStyle: 'material_preview',
+      usePreviewMaterials: true,
+    });
+
+    const scene = buildDesignBuilderViewerCmuInfillScene({
+      state,
+      cmuLayout: state.currentGeometry!.wallCmuLayout,
+      showCmuInfill: true,
+      trackGeometry: resources.trackGeometry,
+      trackMaterial: resources.trackMaterial,
+      makeMaterial: resources.makeMaterial,
+    });
+
+    expect(scene.groups.find((group) => group.name === 'cmuBlockInstanceGroup')).toBeDefined();
+    expect(scene.groups.find((group) => group.name === 'plasterGroup')).toBeUndefined();
+
+    resources.disposeTrackedResources();
   });
 
   it('builds mortar as a reusable scene group without mutating a root group', () => {

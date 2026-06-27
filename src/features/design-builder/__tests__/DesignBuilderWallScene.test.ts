@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_ROOF_LAYER_VISIBILITY } from '../domain/roofSystemDefaults';
 import { TOP_COURSE_RENDER_EPSILON_METERS } from '../domain/cmuInfillPanelSolver';
+import type { ResolvedInfillPanelBounds } from '../domain/infillPanelBoundsResolver';
 import type {
   CmuBlockInstance,
   DesignGeometryWallSegment,
@@ -78,7 +79,7 @@ function wallSegment(): DesignGeometryWallSegment {
   };
 }
 
-function panelBounds() {
+function panelBounds(partial: Partial<ResolvedInfillPanelBounds> = {}): ResolvedInfillPanelBounds {
   return {
     panelId: 'panel-1',
     hostSegmentId: 'segment-1',
@@ -98,6 +99,7 @@ function panelBounds() {
     rightSupportInsideFaceWorld: { x: 2, y: 0, z: 0 },
     leftSupportInsideFaceStation: 1,
     rightSupportInsideFaceStation: 5,
+    ...partial,
   };
 }
 
@@ -206,6 +208,38 @@ describe('DesignBuilderWallScene', () => {
     expect(mesh.position.y).toBeCloseTo(1.52, 6);
     expect(mesh.position.z).toBeCloseTo(0.1, 6);
     expect(mesh.renderOrder).toBe(0);
+  });
+
+  it('builds infill proxy meshes for every split RC frame bay on the same wall segment', () => {
+    const group = buildInfillWallProxySceneGroup({
+      wallSegments: [wallSegment()],
+      segmentFrames: [segmentFrame()],
+      resolvedInfillPanelBounds: [
+        panelBounds({
+          panelId: 'panel-left',
+          startStationMeters: 0.5,
+          endStationMeters: 2.5,
+          clearWidthMeters: 2,
+        }),
+        panelBounds({
+          panelId: 'panel-right',
+          startStationMeters: 3.5,
+          endStationMeters: 5.5,
+          clearWidthMeters: 2,
+        }),
+      ],
+      openings: [],
+      slabTopMeters: 0.12,
+      material: material('wall'),
+      trackGeometry: (geometry) => geometry,
+    });
+
+    expect(group.children).toHaveLength(2);
+    const [leftMesh, rightMesh] = group.children as THREE.Mesh[];
+    expect(leftMesh.position.x).toBeCloseTo(-1.5, 6);
+    expect(rightMesh.position.x).toBeCloseTo(1.5, 6);
+    expect(leftMesh.position.z).toBeCloseTo(0.1, 6);
+    expect(rightMesh.position.z).toBeCloseTo(0.1, 6);
   });
 
   it('builds plaster meshes and legacy wall proxy meshes', () => {

@@ -5,6 +5,8 @@ import {
   applyCornerColumns,
   objectSaveKey,
 } from "../domain/structureActions";
+import { syncPresetFromLayout } from "../domain/layoutWallAdapter";
+import { createOutsideFaceRectangleLayout } from "../domain/wallLayoutRules";
 import {
   autoFrameLayout,
   beamSpanLengthMeters,
@@ -118,6 +120,106 @@ describe("structural frame + CMU infill milestone", () => {
     const geometry = generateDesignGeometry(input);
     expect(geometry.cornerCourseLayouts).toHaveLength(0);
     expect(geometry.wallCmuLayout.cornerAssemblies ?? []).toHaveLength(0);
+  });
+
+  it("keeps every intermediate support bay as an RC CMU infill wall panel", () => {
+    const template = createFiveBySixCmuBuildingPreset();
+    const layout = createOutsideFaceRectangleLayout({
+      lengthMeters: 15,
+      widthMeters: 6,
+      wallHeightMeters: 2.8,
+      wallThicknessMeters: 0.2,
+    });
+    const preset = applyAutoFrameLayout(
+      syncPresetFromLayout(
+        {
+          ...template,
+          wall: { ...template.wall, openings: [] },
+          wallLayout: layout,
+        },
+        layout,
+      ),
+    );
+    const input = buildDesignGeometryInputFromLayout({
+      wallLayout: preset.wallLayout,
+      cmuSettings: preset.wall,
+      slabSettings: preset.slab,
+      roofSettings: preset.roof,
+      trussSettings: preset.truss,
+      buildingSystemMode: "reinforced_concrete_frame_with_cmu_infill",
+      frameSystem: preset.frameSystem,
+      infillSystem: preset.infillSystem,
+      gableEndSystem: preset.gableEndSystem,
+      roofSystem: preset.roofSystem,
+    });
+    const frames = getSegmentFramesForWallLayout(preset.wallLayout, preset.wall);
+    const expectedBayCountBySegment = new Map(
+      preset.wallLayout.segments.map((segment) => {
+        const supportCount = preset.frameSystem.columns.filter(
+          (column) =>
+            column.hostNodeId === segment.startNodeId ||
+            column.hostNodeId === segment.endNodeId ||
+            column.hostSegmentId === segment.id,
+        ).length;
+        return [segment.id, Math.max(1, supportCount - 1)];
+      }),
+    );
+
+    const panelEntries = resolveInfillPanelsWithBounds({
+      layout: preset.wallLayout,
+      segmentFrames: frames,
+      columns: preset.frameSystem.columns,
+      beams: preset.frameSystem.beams,
+      wall: preset.wall,
+      foundation: preset.foundationSettings,
+      existingPanels: preset.infillSystem.panels,
+    });
+
+    for (const segment of preset.wallLayout.segments) {
+      const expectedBayCount = expectedBayCountBySegment.get(segment.id)!;
+      expect(
+        panelEntries.filter(
+          (entry) =>
+            entry.panel.hostSegmentId === segment.id &&
+            entry.panel.infillZone === "above_grade",
+        ),
+      ).toHaveLength(expectedBayCount);
+      expect(
+        panelEntries.filter(
+          (entry) =>
+            entry.panel.hostSegmentId === segment.id &&
+            entry.panel.infillZone === "below_grade",
+        ),
+      ).toHaveLength(expectedBayCount);
+    }
+
+    const geometry = generateDesignGeometry(input);
+    const gableEndSegmentIds = new Set(
+      geometry.resolvedRoofSystem?.gableEndSegmentIds ?? [],
+    );
+    for (const segment of preset.wallLayout.segments) {
+      if (gableEndSegmentIds.has(segment.id)) continue;
+      const expectedBayCount = expectedBayCountBySegment.get(segment.id)!;
+      const aboveGradeBounds = (geometry.resolvedInfillPanelBounds ?? []).filter(
+        (bounds) =>
+          bounds.hostSegmentId === segment.id &&
+          !bounds.panelId.includes("-below-"),
+      );
+      const filledPanels = geometry.wallCmuLayout.blocks.filter(
+        (block) =>
+          block.segmentId === segment.id &&
+          block.source === "rc_frame_infill",
+      );
+      expect(aboveGradeBounds).toHaveLength(expectedBayCount);
+      expect(new Set(aboveGradeBounds.map((bounds) => bounds.panelId)).size).toBe(
+        expectedBayCount,
+      );
+      for (const bounds of aboveGradeBounds) {
+        expect(
+          filledPanels.some((block) => block.panelId === bounds.panelId),
+        ).toBe(true);
+      }
+    }
   });
 
   it("frame mode resolves door openings on layout-graph world coordinates", () => {

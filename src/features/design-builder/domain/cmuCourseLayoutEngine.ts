@@ -157,6 +157,7 @@ export function blockFromPanelUnit(params: {
           : 'full_block';
   return {
     id: `${params.panel.id}-c${params.courseIndex}-m${params.moduleIndex}`,
+    panelId: params.panel.id,
     face: 'north',
     segmentId: params.panel.hostSegmentId,
     wallFace: params.panel.hostSegmentId,

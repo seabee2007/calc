@@ -258,13 +258,31 @@ export function generateFrameInfillGeometry(
     const segmentEntries = panelEntries.filter(
       (entry) => entry.panel.hostSegmentId === segment.id,
     );
-    let courseIndexOffset = 0;
     const frame = segmentFrames.find(
       (candidate) => candidate.segmentId === segment.id,
     );
     if (!frame) continue;
 
     for (const { panel, bounds } of segmentEntries) {
+      const matchingBelowGradeEntry = isAboveGradeInfillPanel(panel)
+        ? segmentEntries.find(
+            (entry) =>
+              entry.panel.infillZone === "below_grade" &&
+              Math.abs(entry.bounds.startStationMeters - bounds.startStationMeters) <=
+                0.002 &&
+              Math.abs(entry.bounds.endStationMeters - bounds.endStationMeters) <=
+                0.002,
+          )
+        : undefined;
+      const courseIndexOffset = matchingBelowGradeEntry
+        ? countPanelVerticalCourses({
+            panelBottomElevationMeters:
+              matchingBelowGradeEntry.panel.bottomElevationMeters,
+            panelTopElevationMeters:
+              matchingBelowGradeEntry.panel.topElevationMeters,
+            nominalCourseHeightMeters: module.nominalModuleHeightMeters,
+          })
+        : 0;
       const segmentOpenings = isAboveGradeInfillPanel(panel)
         ? roughOpenings.filter(
             (opening) =>
@@ -281,13 +299,6 @@ export function generateFrameInfillGeometry(
         openings: segmentOpenings,
         logBoundsForDev: import.meta.env.DEV,
       });
-      if (panel.infillZone === "below_grade") {
-        courseIndexOffset += countPanelVerticalCourses({
-          panelBottomElevationMeters: panel.bottomElevationMeters,
-          panelTopElevationMeters: panel.topElevationMeters,
-          nominalCourseHeightMeters: module.nominalModuleHeightMeters,
-        });
-      }
       allBlocks.push(...solved.blocks);
       allLintels.push(...solved.lintels);
       totalFull += solved.fullBlockCount;
@@ -447,6 +458,7 @@ export function generateFrameInfillGeometry(
 
   const blockInstances = allBlocks.map((block) => ({
     id: block.id,
+    panelId: block.panelId,
     segmentId: block.segmentId ?? block.face,
     course: block.course,
     courseIndex: block.courseIndex,

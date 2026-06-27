@@ -1078,10 +1078,7 @@ export function resolveCmuMaterial(
   trackDisposable: (material: THREE.Material) => void,
 ): THREE.MeshStandardMaterial {
   const library = ensureLibrary();
-  const base =
-    options.visualStyle === 'material_preview' && state.previewLoaded
-      ? library.cmuPreview
-      : library.cmuTechnical;
+  const base = options.visualStyle === 'material_preview' ? library.cmuPreview : library.cmuTechnical;
   return finalizeMaterial(base, options, trackDisposable);
 }
 
@@ -1091,9 +1088,7 @@ export function resolveMortarMaterial(
 ): THREE.MeshStandardMaterial {
   const library = ensureLibrary();
   const base =
-    options.visualStyle === 'material_preview' && state.previewLoaded
-      ? library.mortarPreview
-      : library.mortarTechnical;
+    options.visualStyle === 'material_preview' ? library.mortarPreview : library.mortarTechnical;
   return finalizeMaterial(base, options, trackDisposable);
 }
 
@@ -1103,7 +1098,7 @@ export function resolvePlasterFinishMaterial(
 ): THREE.MeshStandardMaterial {
   const library = ensureLibrary();
   const base =
-    options.visualStyle === 'material_preview' && state.previewLoaded
+    options.visualStyle === 'material_preview'
       ? options.plasterFinish === 'smooth'
         ? library.plasterFinishSmoothPreview
         : options.plasterFinish === 'textured'
@@ -1123,7 +1118,7 @@ export function resolveFloorTileMaterial(
   trackDisposable: (material: THREE.Material) => void,
 ): THREE.MeshStandardMaterial {
   const library = ensureLibrary();
-  const usePreview = options.visualStyle === 'material_preview' && state.previewLoaded;
+  const usePreview = options.visualStyle === 'material_preview';
   if (usePreview) {
     const option = getMaterialOptionById(state.activeSelections.floorTileMaterialId);
     if (option) {
@@ -1139,6 +1134,7 @@ export function resolveFloorTileMaterial(
       );
       return finalizeMaterial(material, options, trackDisposable);
     }
+    return finalizeMaterial(library.floorTilePreview, options, trackDisposable);
   }
   return finalizeMaterial(library.floorTileTechnical, options, trackDisposable);
 }
@@ -1149,7 +1145,7 @@ export function resolveFloorThinsetMaterial(
 ): THREE.MeshStandardMaterial {
   const library = ensureLibrary();
   const base =
-    options.visualStyle === 'material_preview' && state.previewLoaded
+    options.visualStyle === 'material_preview'
       ? library.floorThinsetPreview
       : library.floorThinsetTechnical;
   return finalizeMaterial(base, options, trackDisposable);
@@ -1161,7 +1157,7 @@ export function resolveFloorGroutMaterial(
 ): THREE.MeshStandardMaterial {
   const library = ensureLibrary();
   const base =
-    options.visualStyle === 'material_preview' && state.previewLoaded
+    options.visualStyle === 'material_preview'
       ? library.floorGroutPreview
       : library.floorGroutTechnical;
   return finalizeMaterial(base, options, trackDisposable);
@@ -1177,7 +1173,7 @@ export function resolveCastConcreteMaterial(
 ): THREE.MeshStandardMaterial {
   const library = ensureLibrary();
   const role = options.role ?? 'structural';
-  const usePreview = options.visualStyle === 'material_preview' && state.previewLoaded;
+  const usePreview = options.visualStyle === 'material_preview';
   const base =
     role === 'beam'
       ? usePreview
@@ -1195,7 +1191,7 @@ export function resolveRoofMetalMaterial(
 ): THREE.MeshStandardMaterial {
   const library = ensureLibrary();
   const base =
-    options.visualStyle === 'material_preview' && state.previewLoaded
+    options.visualStyle === 'material_preview'
       ? library.roofMetalPreview
       : library.roofMetalTechnical;
   return finalizeMaterial(base, options, trackDisposable);
@@ -1207,7 +1203,7 @@ export function resolveFasciaTrimMaterial(
 ): THREE.MeshStandardMaterial {
   const library = ensureLibrary();
   const base =
-    options.visualStyle === 'material_preview' && state.previewLoaded
+    options.visualStyle === 'material_preview'
       ? library.fasciaTrimPreview
       : library.fasciaTrimTechnical;
   return finalizeMaterial(base, options, trackDisposable);
@@ -1219,7 +1215,7 @@ export function resolveSoffitTrimMaterial(
 ): THREE.MeshStandardMaterial {
   const library = ensureLibrary();
   const base =
-    options.visualStyle === 'material_preview' && state.previewLoaded
+    options.visualStyle === 'material_preview'
       ? library.soffitTrimPreview
       : library.soffitTrimTechnical;
   return finalizeMaterial(base, options, trackDisposable);
@@ -1231,7 +1227,7 @@ export function resolveStructuralSteelMaterial(
 ): THREE.MeshStandardMaterial {
   const library = ensureLibrary();
   const base =
-    options.visualStyle === 'material_preview' && state.previewLoaded
+    options.visualStyle === 'material_preview'
       ? library.structuralSteelPreview
       : library.structuralSteelTechnical;
   return finalizeMaterial(base, options, trackDisposable);
@@ -1246,7 +1242,7 @@ export function resolveSiteGroundMaterial(
   trackDisposable: (material: THREE.Material) => void,
 ): THREE.MeshStandardMaterial | THREE.MeshBasicMaterial {
   const library = ensureLibrary();
-  if (options.visualStyle !== 'material_preview' || !state.previewLoaded) {
+  if (options.visualStyle !== 'material_preview') {
     const material = library.siteGroundTechnical.clone();
     const dark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
     material.color.setHex(dark ? 0x1e293b : 0xe2e8f0);
