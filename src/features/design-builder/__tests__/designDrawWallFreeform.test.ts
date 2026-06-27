@@ -11,7 +11,7 @@ import {
 } from '../domain/wallLayoutRules';
 
 describe('designDrawWallFreeform', () => {
-  it('keeps free-angle preview points when orthogonal guides are on', () => {
+  it('projects preview points to exact orthogonal guides when orthogonal guides are on', () => {
     const layout = createEmptyWallLayout({ nodes: [{ id: 'a', x: 0, z: 0 }] });
     const rawPoint = { x: 3.2, z: 1.8 };
     const guidance = resolveDrawWallGuidance({
@@ -21,7 +21,8 @@ describe('designDrawWallFreeform', () => {
       orthogonalLock: true,
     });
 
-    expect(guidance.point).toEqual(rawPoint);
+    expect(guidance.point).toEqual({ x: 3.2, z: 0 });
+    expect(guidance.angleDegrees).toBeCloseTo(0, 6);
     expect(guidance.guideLine).toBeTruthy();
   });
 

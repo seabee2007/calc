@@ -2215,6 +2215,17 @@ export default function DesignBuilderPage({
       }
       return { point: constrained.point, constraintLabel: constrained.label };
     }
+    if (wallLayout.orthogonalLock) {
+      const guidance = resolveDrawWallGuidance({
+        layout: wallLayout,
+        activeNodeId,
+        rawPoint: snapTarget.point,
+        orthogonalLock: true,
+      });
+      if (guidance.kind !== 'free') {
+        return { point: guidance.point, constraintLabel: guidance.label ?? null };
+      }
+    }
     return { point: snapTarget.point, constraintLabel: null };
   }
 
@@ -2268,6 +2279,9 @@ export default function DesignBuilderPage({
         rawPoint: point,
         orthogonalLock: layout.orthogonalLock,
       });
+      if (layout.orthogonalLock && guidance.kind !== 'free') {
+        point = guidance.point;
+      }
       setDrawWallPreviewMetrics({
         lengthMeters: guidance.lengthMeters ?? Math.hypot(point.x - start.x, point.z - start.z),
         angleDegrees: guidance.angleDegrees ?? 0,
@@ -3456,7 +3470,7 @@ export default function DesignBuilderPage({
       return;
     }
     setToolMode(mode);
-    if (mode === 'place_dimension' && (viewMode !== '2d' || active2DView === 'elevation-view')) {
+    if ((mode === 'place_dimension' || mode === 'place_angle') && (viewMode !== '2d' || active2DView === 'elevation-view')) {
       setActive2DDrawingView('foundation-plan');
     }
     if (mode === 'move_wall_node') setActive2DDrawingView('foundation-plan');
@@ -3682,6 +3696,8 @@ export default function DesignBuilderPage({
       ? DESIGN_BUILDER_COPY.hints.opening
       : toolMode === 'place_component'
         ? `${componentPlacement.activeComponentDefinition?.displayName ?? 'Component'} placement - Click canvas to place - Esc cancels`
+        : toolMode === 'place_angle'
+          ? 'Pick ray point, vertex, then second ray point'
         : toolMode === 'move_wall_node'
         ? 'Drag node - Esc exits'
         : toolMode === 'move_opening'

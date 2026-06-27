@@ -699,6 +699,48 @@ describe('DesignBuilderPlanCanvas', () => {
     expect(Boolean(wall?.compareDocumentPosition(preview!) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true);
   });
 
+  it('renders partition walls as physical plan footprints instead of a single centerline', () => {
+    const preset = createFiveBySixCmuBuildingPreset();
+    const startNode = preset.wallLayout.nodes[0]!;
+    const partitionEnd = { id: 'partition-end', x: startNode.x + 2, z: startNode.z + 1.5 };
+    const layout = {
+      ...preset.wallLayout,
+      nodes: [...preset.wallLayout.nodes, partitionEnd],
+      segments: [
+        ...preset.wallLayout.segments,
+        {
+          id: 'partition-wall',
+          startNodeId: startNode.id,
+          endNodeId: partitionEnd.id,
+          wallHeightMeters: preset.wallLayout.defaultWallHeightMeters,
+          wallThicknessMeters: 0.15,
+          wallRole: 'partition' as const,
+        },
+      ],
+    };
+    const frames = getSegmentFramesForWallLayout(layout, preset.wall);
+
+    const { container } = render(
+      <DesignBuilderPlanCanvas
+        layout={layout}
+        toolMode="select"
+        segmentFrames={frames}
+        onInteraction={vi.fn()}
+      />,
+    );
+
+    const partitionFootprint = container.querySelector(
+      'polygon[data-plan-wall-footprint="true"][data-segment-id="partition-wall"]',
+    );
+    const partitionFaces = container.querySelectorAll(
+      'line[data-plan-wall-face="true"][data-segment-id="partition-wall"]',
+    );
+
+    expect(partitionFootprint).toBeTruthy();
+    expect(partitionFootprint?.getAttribute('points')?.trim().split(/\s+/)).toHaveLength(4);
+    expect(partitionFaces).toHaveLength(2);
+  });
+
   it('breaks wall lines at committed rough openings and renders opening symbols', () => {
     const preset = createFiveBySixCmuBuildingPreset();
     const frames = getSegmentFramesForWallLayout(preset.wallLayout, preset.wall);
@@ -1120,6 +1162,63 @@ describe('DesignBuilderPlanCanvas', () => {
     expect(permanentStrokes).toEqual(expect.arrayContaining(['#111827']));
     expect(permanentStrokes).not.toContain('#22d3ee');
     expect(permanentStrokes).not.toContain('#38bdf8');
+  });
+
+  it('creates and renders an angle annotation from the three-click workflow', () => {
+    const layout = createEmptyWallLayout({
+      nodes: [
+        { id: 'node-a', x: 0, z: 0 },
+        { id: 'node-b', x: 1, z: 0 },
+        { id: 'node-c', x: 0, z: 1 },
+      ],
+    });
+    const onAnnotationCreate = vi.fn();
+    const { container, rerender } = render(
+      <DesignBuilderPlanCanvas
+        layout={layout}
+        toolMode="place_angle"
+        viewport={{ centerX: 0, centerZ: 0, zoom: 100 }}
+        drawingStyleMode="architectural"
+        onAnnotationCreate={onAnnotationCreate}
+        onInteraction={vi.fn()}
+      />,
+    );
+
+    const svg = screen.getByLabelText(/design builder wall layout plan view/i) as SVGSVGElement;
+    mockPlanSurface(svg);
+
+    fireEvent.pointerDown(svg, { button: 0, clientX: 500, clientY: 200 });
+    fireEvent.pointerDown(svg, { button: 0, clientX: 400, clientY: 200 });
+    fireEvent.pointerMove(svg, { clientX: 400, clientY: 100 });
+    expect(container.querySelector('[data-canvas-layer="active-angle-preview"]')).toBeTruthy();
+    fireEvent.pointerDown(svg, { button: 0, clientX: 400, clientY: 100 });
+
+    expect(onAnnotationCreate).toHaveBeenCalledTimes(1);
+    const annotation = onAnnotationCreate.mock.calls[0][0];
+    expect(annotation).toMatchObject({
+      type: 'angle',
+      viewType: 'foundation-plan',
+      measuredValueDegrees: 90,
+      points: {
+        start: { x: 1, z: 0 },
+        vertex: { x: 0, z: 0 },
+        end: { x: 0, z: 1 },
+      },
+    });
+
+    rerender(
+      <DesignBuilderPlanCanvas
+        layout={layout}
+        toolMode="select"
+        viewport={{ centerX: 0, centerZ: 0, zoom: 100 }}
+        drawingStyleMode="architectural"
+        annotations={[annotation]}
+        onInteraction={vi.fn()}
+      />,
+    );
+
+    expect(container.querySelector('[data-angle-id]')).toBeTruthy();
+    expect(container.querySelector('[data-angle-id]')?.textContent).toContain('90°');
   });
 
   it('snaps dimensions to generated RC column corners with forgiving pointer travel', () => {

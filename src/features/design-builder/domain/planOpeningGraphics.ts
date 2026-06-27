@@ -11,6 +11,17 @@ export type PlanWallRun = {
   endAlongMeters: number;
 };
 
+export type PlanSnapPoint = {
+  point: PlanPoint;
+  type: string;
+};
+
+export type PlanWallFootprint = {
+  corners: [PlanPoint, PlanPoint, PlanPoint, PlanPoint];
+  faceA: { start: PlanPoint; end: PlanPoint };
+  faceB: { start: PlanPoint; end: PlanPoint };
+};
+
 export type PlanOpeningGeometry = {
   hostSegmentId: string;
   center: { x: number; z: number };
@@ -87,6 +98,126 @@ export function buildPlanDisplayNodeById(params: {
   });
 
   return points;
+}
+
+export function buildSegmentFaceSnapPoints(frame: SegmentFrame): PlanSnapPoint[] {
+  return [
+    { point: frame.exteriorStart, type: 'wall-exterior-corner' },
+    { point: frame.exteriorEnd, type: 'wall-exterior-corner' },
+    {
+      point: {
+        x: (frame.exteriorStart.x + frame.exteriorEnd.x) / 2,
+        z: (frame.exteriorStart.z + frame.exteriorEnd.z) / 2,
+      },
+      type: 'wall-exterior-midpoint',
+    },
+    { point: frame.interiorStart, type: 'wall-interior-corner' },
+    { point: frame.interiorEnd, type: 'wall-interior-corner' },
+    {
+      point: {
+        x: (frame.interiorStart.x + frame.interiorEnd.x) / 2,
+        z: (frame.interiorStart.z + frame.interiorEnd.z) / 2,
+      },
+      type: 'wall-interior-midpoint',
+    },
+  ];
+}
+
+export function buildSegmentPlanFootprint(frame: SegmentFrame): PlanWallFootprint | null {
+  const start = frame.centerlineStart;
+  const end = frame.centerlineEnd;
+  const length = Math.hypot(end.x - start.x, end.z - start.z);
+  if (length <= 0.001) return null;
+
+  const halfThickness = Math.max(0, frame.wallThicknessMeters / 2);
+  const normal = Math.hypot(frame.inwardNormal.x, frame.inwardNormal.z) > 0.001
+    ? frame.inwardNormal
+    : { x: -(end.z - start.z) / length, z: (end.x - start.x) / length };
+  const faceAStart = {
+    x: start.x + normal.x * halfThickness,
+    z: start.z + normal.z * halfThickness,
+  };
+  const faceAEnd = {
+    x: end.x + normal.x * halfThickness,
+    z: end.z + normal.z * halfThickness,
+  };
+  const faceBEnd = {
+    x: end.x - normal.x * halfThickness,
+    z: end.z - normal.z * halfThickness,
+  };
+  const faceBStart = {
+    x: start.x - normal.x * halfThickness,
+    z: start.z - normal.z * halfThickness,
+  };
+
+  return {
+    corners: [faceAStart, faceAEnd, faceBEnd, faceBStart],
+    faceA: { start: faceAStart, end: faceAEnd },
+    faceB: { start: faceBStart, end: faceBEnd },
+  };
+}
+
+export function buildPlanStripSnapPoints(params: {
+  start: PlanPoint;
+  end: PlanPoint;
+  widthMeters: number;
+  typePrefix: string;
+}): PlanSnapPoint[] {
+  const dx = params.end.x - params.start.x;
+  const dz = params.end.z - params.start.z;
+  const length = Math.hypot(dx, dz);
+  if (length <= 0.001) return [];
+
+  const half = Math.max(0, params.widthMeters / 2);
+  const normal = { x: -dz / length, z: dx / length };
+  const startA = {
+    x: params.start.x + normal.x * half,
+    z: params.start.z + normal.z * half,
+  };
+  const startB = {
+    x: params.start.x - normal.x * half,
+    z: params.start.z - normal.z * half,
+  };
+  const endA = {
+    x: params.end.x + normal.x * half,
+    z: params.end.z + normal.z * half,
+  };
+  const endB = {
+    x: params.end.x - normal.x * half,
+    z: params.end.z - normal.z * half,
+  };
+
+  return [
+    { point: params.start, type: `${params.typePrefix}-centerline-endpoint` },
+    { point: params.end, type: `${params.typePrefix}-centerline-endpoint` },
+    {
+      point: {
+        x: (params.start.x + params.end.x) / 2,
+        z: (params.start.z + params.end.z) / 2,
+      },
+      type: `${params.typePrefix}-centerline-midpoint`,
+    },
+    { point: startA, type: `${params.typePrefix}-corner` },
+    { point: endA, type: `${params.typePrefix}-corner` },
+    { point: endB, type: `${params.typePrefix}-corner` },
+    { point: startB, type: `${params.typePrefix}-corner` },
+    {
+      point: { x: (startA.x + endA.x) / 2, z: (startA.z + endA.z) / 2 },
+      type: `${params.typePrefix}-edge-midpoint`,
+    },
+    {
+      point: { x: (endA.x + endB.x) / 2, z: (endA.z + endB.z) / 2 },
+      type: `${params.typePrefix}-end-midpoint`,
+    },
+    {
+      point: { x: (startB.x + endB.x) / 2, z: (startB.z + endB.z) / 2 },
+      type: `${params.typePrefix}-edge-midpoint`,
+    },
+    {
+      point: { x: (startA.x + startB.x) / 2, z: (startA.z + startB.z) / 2 },
+      type: `${params.typePrefix}-end-midpoint`,
+    },
+  ];
 }
 
 export function resolveSegmentDisplayEndpoints(params: {

@@ -79,7 +79,7 @@ describe('wallLayoutRules', () => {
     expect(next.segments.some((segment) => segment.id === segmentId)).toBe(false);
   });
 
-  it('shows orthogonal guide metadata without moving the preview point', () => {
+  it('projects the preview point onto the nearest orthogonal guide', () => {
     const layout = createEmptyWallLayout({ nodes: [{ id: 'a', x: 0, z: 0 }] });
     const rawPoint = { x: 3, z: 1.25 };
     const guidance = resolveDrawWallGuidance({
@@ -91,10 +91,11 @@ describe('wallLayoutRules', () => {
 
     expect(guidance.kind).toBe('perpendicular');
     expect(guidance.label).toBe('90°');
-    expect(guidance.point).toEqual(rawPoint);
+    expect(guidance.point).toEqual({ x: 3, z: 0 });
+    expect(guidance.angleDegrees).toBeCloseTo(0, 6);
   });
 
-  it('shows nearest perpendicular guide metadata for the second segment without forcing the point', () => {
+  it('projects second-segment previews onto the nearest perpendicular guide', () => {
     let layout = createEmptyWallLayout({ nodes: [{ id: 'a', x: 0, z: 0 }] });
     layout = addWallSegment(layout, 'a', 5, 0);
     const activeNodeId = layout.segments[0].endNodeId;
@@ -108,7 +109,8 @@ describe('wallLayoutRules', () => {
 
     expect(guidance.kind).toBe('perpendicular');
     expect(guidance.label).toBe('90°');
-    expect(guidance.point).toEqual(rawPoint);
+    expect(guidance.point).toEqual({ x: 5, z: 3 });
+    expect(guidance.angleDegrees).toBeCloseTo(90, 6);
   });
 
   it('does not predict rectangle closure during free drawing', () => {
@@ -125,7 +127,8 @@ describe('wallLayoutRules', () => {
 
     expect(guidance.kind).not.toBe('rectangle_closure');
     expect(guidance.label).not.toBe('Close footprint');
-    expect(guidance.point).toEqual({ x: 0.1, z: 4.05 });
+    expect(guidance.point.x).toBeCloseTo(0.1, 6);
+    expect(guidance.point.z).toBeCloseTo(4, 6);
   });
 
   it('orthogonal off allows non-right-angle wall guidance', () => {

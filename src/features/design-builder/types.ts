@@ -131,7 +131,27 @@ export interface DesignDimensionAnnotation {
   updatedAt: string;
 }
 
-export type DesignAnnotation = DesignDimensionAnnotation;
+export interface DesignAngleAnnotation {
+  id: string;
+  type: "angle";
+  viewType: Design2DViewType;
+  points: {
+    start: DesignPoint2D;
+    vertex: DesignPoint2D;
+    end: DesignPoint2D;
+  };
+  measuredValueDegrees: number;
+  labelOverride?: string;
+  references?: {
+    startSnapType?: string;
+    vertexSnapType?: string;
+    endSnapType?: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type DesignAnnotation = DesignDimensionAnnotation | DesignAngleAnnotation;
 
 export interface DesignBuilderElevationViewState {
   face: ElevationFace;
@@ -1286,6 +1306,7 @@ export type DesignBuilderToolMode =
   | "place_window"
   | "place_component"
   | "place_dimension"
+  | "place_angle"
   | "move_opening"
   | "delete";
 

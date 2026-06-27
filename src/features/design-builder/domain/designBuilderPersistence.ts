@@ -157,7 +157,15 @@ function normalizeAnnotations(value: unknown): DesignAnnotation[] {
   return value.filter((item): item is DesignAnnotation => {
     if (!item || typeof item !== 'object') return false;
     const candidate = item as Partial<DesignAnnotation>;
-    return Boolean(candidate.id && candidate.type === 'dimension' && candidate.points && candidate.offsetPoint);
+    if (!candidate.id || !candidate.points) return false;
+    if (candidate.type === 'dimension') {
+      return Boolean((candidate as Partial<import('../types').DesignDimensionAnnotation>).offsetPoint);
+    }
+    if (candidate.type === 'angle') {
+      const points = (candidate as Partial<import('../types').DesignAngleAnnotation>).points;
+      return Boolean(points && 'start' in points && 'vertex' in points && 'end' in points);
+    }
+    return false;
   });
 }
 

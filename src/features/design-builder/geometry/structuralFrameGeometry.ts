@@ -84,6 +84,67 @@ export type StructuralFrameGeometryInput = {
   gableEndSystem: GableEndSystemParameters;
 };
 
+const OPENING_PANEL_STATION_TOLERANCE_METERS = 0.0001;
+
+function openingBelongsToInfillPanel(
+  opening: ResolvedCmuOpening,
+  bounds: ResolvedInfillPanelBounds,
+  candidateBounds: readonly ResolvedInfillPanelBounds[],
+): boolean {
+  const centerStation =
+    (opening.actualStartAlongMeters + opening.actualEndAlongMeters) / 2;
+  const centerOwner = candidateBounds.find(
+    (candidate) =>
+      centerStation >=
+        candidate.startStationMeters - OPENING_PANEL_STATION_TOLERANCE_METERS &&
+      centerStation <=
+        candidate.endStationMeters + OPENING_PANEL_STATION_TOLERANCE_METERS,
+  );
+  const ownedBounds =
+    centerOwner ??
+    candidateBounds.reduce<ResolvedInfillPanelBounds | null>((best, candidate) => {
+      const candidateOverlap = openingPanelOverlapMeters(opening, candidate);
+      if (candidateOverlap <= OPENING_PANEL_STATION_TOLERANCE_METERS) return best;
+      if (!best) return candidate;
+      const bestOverlap = openingPanelOverlapMeters(opening, best);
+      if (candidateOverlap > bestOverlap + OPENING_PANEL_STATION_TOLERANCE_METERS) {
+        return candidate;
+      }
+      return best;
+    }, null);
+
+  return Boolean(
+    ownedBounds &&
+      Math.abs(ownedBounds.startStationMeters - bounds.startStationMeters) <=
+        OPENING_PANEL_STATION_TOLERANCE_METERS &&
+      Math.abs(ownedBounds.endStationMeters - bounds.endStationMeters) <=
+        OPENING_PANEL_STATION_TOLERANCE_METERS,
+  );
+}
+
+function openingOverlapsInfillPanel(
+  opening: ResolvedCmuOpening,
+  bounds: ResolvedInfillPanelBounds,
+): boolean {
+  return (
+    openingPanelOverlapMeters(opening, bounds) >
+    OPENING_PANEL_STATION_TOLERANCE_METERS
+  );
+}
+
+function openingPanelOverlapMeters(
+  opening: ResolvedCmuOpening,
+  bounds: ResolvedInfillPanelBounds,
+): number {
+  const start = Math.min(opening.roughStartAlongMeters, opening.roughEndAlongMeters);
+  const end = Math.max(opening.roughStartAlongMeters, opening.roughEndAlongMeters);
+  return Math.max(
+    0,
+    Math.min(end, bounds.endStationMeters) -
+      Math.max(start, bounds.startStationMeters),
+  );
+}
+
 export type StructuralConcreteVolumeBreakdown = {
   plinthBeamVolumeCubicMeters: number;
   roofBeamVolumeCubicMeters: number;
@@ -251,7 +312,18 @@ export function generateFrameInfillGeometry(
           : [];
       },
     );
-    panelEntries = [...nonGableEntries, ...fullWidthGableEntries];
+    const fullWidthGableEntryBySegmentId = new Map(
+      fullWidthGableEntries.map((entry) => [entry.panel.hostSegmentId, entry]),
+    );
+    panelEntries = input.wallLayout.segments.flatMap((segment) => {
+      const entriesForSegment = nonGableEntries.filter(
+        (entry) => entry.panel.hostSegmentId === segment.id,
+      );
+      const fullWidthGableEntry = fullWidthGableEntryBySegmentId.get(segment.id);
+      return fullWidthGableEntry
+        ? [fullWidthGableEntry, ...entriesForSegment]
+        : entriesForSegment;
+    });
   }
 
   const panels = panelEntries.map((entry) => entry.panel);
@@ -268,6 +340,9 @@ export function generateFrameInfillGeometry(
       (candidate) => candidate.segmentId === segment.id,
     );
     if (!frame) continue;
+    const aboveGradeSegmentBounds = segmentEntries
+      .filter((entry) => isAboveGradeInfillPanel(entry.panel))
+      .map((entry) => entry.bounds);
 
     for (const { panel, bounds } of segmentEntries) {
       const matchingBelowGradeEntry = isAboveGradeInfillPanel(panel)
@@ -293,7 +368,8 @@ export function generateFrameInfillGeometry(
         ? roughOpenings.filter(
             (opening) =>
               (opening as ResolvedCmuOpening & { wallSegmentId?: string })
-                .wallSegmentId === segment.id,
+                .wallSegmentId === segment.id &&
+              openingOverlapsInfillPanel(opening, bounds),
           )
         : [];
       const solved = solveInfillPanelBlocks({
@@ -303,10 +379,23 @@ export function generateFrameInfillGeometry(
         wall,
         courseIndexOffset,
         openings: segmentOpenings,
-        logBoundsForDev: import.meta.env.DEV,
+        logBoundsForDev: import.meta.env?.DEV === true,
       });
       allBlocks.push(...solved.blocks);
-      allLintels.push(...solved.lintels);
+      allLintels.push(
+        ...solved.lintels.filter((lintel) => {
+          const opening = segmentOpenings.find(
+            (candidate) => candidate.id === lintel.openingId,
+          );
+          return opening
+            ? openingBelongsToInfillPanel(
+                opening,
+                bounds,
+                aboveGradeSegmentBounds,
+              )
+            : true;
+        }),
+      );
       totalFull += solved.fullBlockCount;
       totalHalf += solved.halfBlockCount;
       totalCut += solved.cutBlockCount;

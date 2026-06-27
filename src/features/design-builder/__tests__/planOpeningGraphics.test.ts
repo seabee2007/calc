@@ -4,6 +4,8 @@ import { createOutsideFaceRectangleLayout } from '../domain/wallLayoutRules';
 import {
   buildPlanDisplayNodeById,
   buildPlanOpeningGeometry,
+  buildPlanStripSnapPoints,
+  buildSegmentFaceSnapPoints,
   buildWallRunsExcludingRoughOpenings,
   openingColorState,
   pickOpeningAtPlanPoint,
@@ -368,6 +370,47 @@ describe('planOpeningGraphics', () => {
     it('keeps outside-face rectangle corners on one canonical centerline display point', () => {
       const layout = createOutsideFaceRectangleLayout({ lengthMeters: 6, widthMeters: 5 });
       assertSharedNodeDisplayContinuity(layout, preset.wall);
+    });
+
+    it('exposes CMU wall face corners separately from centerline display points', () => {
+      const layout = createOutsideFaceRectangleLayout({
+        lengthMeters: 6,
+        widthMeters: 5,
+        wallThicknessMeters: 0.2,
+      });
+      const [frame] = getSegmentFramesForWallLayout(layout, {
+        ...preset.wall,
+        wallThicknessMeters: 0.2,
+      });
+      const snaps = buildSegmentFaceSnapPoints(frame!);
+      const exteriorCorners = snaps.filter((snap) => snap.type === 'wall-exterior-corner');
+      const interiorCorners = snaps.filter((snap) => snap.type === 'wall-interior-corner');
+
+      expect(exteriorCorners).toHaveLength(2);
+      expect(interiorCorners).toHaveLength(2);
+      expect(exteriorCorners[0]!.point.x).toBeCloseTo(frame!.exteriorStart.x, 6);
+      expect(exteriorCorners[0]!.point.z).toBeCloseTo(frame!.exteriorStart.z, 6);
+      expect(interiorCorners[0]!.point.x).toBeCloseTo(frame!.interiorStart.x, 6);
+      expect(interiorCorners[0]!.point.z).toBeCloseTo(frame!.interiorStart.z, 6);
+      expect(interiorCorners[0]!.point.z).not.toBeCloseTo(exteriorCorners[0]!.point.z, 3);
+    });
+
+    it('exposes oriented strip footing outside corners for dimension snapping', () => {
+      const snaps = buildPlanStripSnapPoints({
+        start: { x: 2, z: 1 },
+        end: { x: 2, z: 3 },
+        widthMeters: 0.4,
+        typePrefix: 'wall-footing',
+      });
+      const corners = snaps.filter((snap) => snap.type === 'wall-footing-corner');
+      const xs = corners.map((snap) => snap.point.x).sort((a, b) => a - b);
+      const zs = corners.map((snap) => snap.point.z).sort((a, b) => a - b);
+
+      expect(corners).toHaveLength(4);
+      expect(xs[0]).toBeCloseTo(1.8, 6);
+      expect(xs[3]).toBeCloseTo(2.2, 6);
+      expect(zs[0]).toBeCloseTo(1, 6);
+      expect(zs[3]).toBeCloseTo(3, 6);
     });
 
     it('keeps centerline rectangle corners on one canonical centerline display point', () => {

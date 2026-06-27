@@ -620,7 +620,7 @@ export function generateDesignGeometry(input: DesignGeometryInput): DesignGeomet
     ...input.wall,
     bondPattern: normalizeBondPattern(input.wall.bondPattern),
   };
-  if (import.meta.env.DEV && !input.wall.bondPattern) {
+  if (import.meta.env?.DEV === true && !input.wall.bondPattern) {
     console.warn('[DesignBuilder] Missing bond pattern; defaulting to running_bond.');
   }
   if (input.sourcePath === 'blank' || input.sourcePath === 'manual_masonry') {
@@ -722,7 +722,7 @@ export function generateDesignGeometry(input: DesignGeometryInput): DesignGeomet
     exteriorFootprint,
     wall.wallThicknessMeters || input.wallLayout.defaultWallThicknessMeters,
   );
-  if (import.meta.env.DEV && boundaryViolations.length > 0) {
+  if (import.meta.env?.DEV === true && boundaryViolations.length > 0) {
     console.warn('[DesignBuilder] CMU unit outside exterior footprint', {
       boundaryViolations,
       exteriorFootprint,
@@ -797,7 +797,7 @@ export function generateCmuLayoutFromWallLayout(
       }
     });
   });
-  if (import.meta.env.DEV && globalThis.localStorage?.getItem('arden:designBuilder:showCmuCourseDiagnostics') === 'true' && coursePlans.length > 0) {
+  if (import.meta.env?.DEV === true && globalThis.localStorage?.getItem('arden:designBuilder:showCmuCourseDiagnostics') === 'true' && coursePlans.length > 0) {
     console.table(coursePlans.flatMap((plan) =>
       plan.segmentPlans.map((segmentPlan, clockwiseOrder) => {
         const terminalCut = segmentPlan.units.find((unit) => unit.terminalClosureReason);
@@ -1925,7 +1925,7 @@ export function logOpeningCoursePlacementsTableForDev(
   moduleHeightMeters: number,
   segmentId?: string,
 ): void {
-  if (!import.meta.env.DEV) return;
+  if (import.meta.env?.DEV !== true) return;
   const hostSegmentId = segmentId ?? opening.wallSegmentId ?? opening.wallFace ?? '';
   const lintelCourseIndex = resolveLintelCourseIndex(opening.roughTopMeters, moduleHeightMeters);
   const rows = unitPlacements

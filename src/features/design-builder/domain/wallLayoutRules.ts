@@ -252,11 +252,16 @@ export function resolveDrawWallGuidance(params: {
   const ranked = candidates
     .map((candidate) => {
       const projection = projectPointOnRay(activeNode, params.rawPoint, candidate.direction);
+      if (projection.distance <= 0) return null;
       return {
         candidate,
         projection,
       };
     })
+    .filter((candidate): candidate is {
+      candidate: GuideDirectionCandidate;
+      projection: ReturnType<typeof projectPointOnRay>;
+    } => candidate != null)
     .sort(
       (a, b) =>
         Math.hypot(params.rawPoint.x - a.projection.point.x, params.rawPoint.z - a.projection.point.z) -
@@ -267,9 +272,14 @@ export function resolveDrawWallGuidance(params: {
     return { point: params.rawPoint, kind: 'free', lengthMeters, angleDegrees };
   }
 
-  const rayLength = Math.max(1, lengthMeters);
+  const guidedLengthMeters = Math.hypot(
+    nearest.projection.point.x - activeNode.x,
+    nearest.projection.point.z - activeNode.z,
+  );
+  const guidedAngleDegrees = measureAngleDegrees(activeNode, nearest.projection.point);
+  const rayLength = Math.max(1, guidedLengthMeters);
   return {
-    point: params.rawPoint,
+    point: nearest.projection.point,
     kind: nearest.candidate.kind,
     label: nearest.candidate.label,
     guideLine: {
@@ -279,8 +289,8 @@ export function resolveDrawWallGuidance(params: {
         z: activeNode.z + nearest.candidate.direction.z * rayLength,
       },
     },
-    lengthMeters,
-    angleDegrees,
+    lengthMeters: guidedLengthMeters,
+    angleDegrees: guidedAngleDegrees,
   };
 }
 

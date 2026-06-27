@@ -157,17 +157,21 @@ export function resolveGableCourseInterval(params: {
     return null;
   }
 
-  const symmetricHalfSpanMeters =
-    Math.min(leftRunMeters, rightRunMeters) * progress;
+  const panelStraddlesRidge =
+    params.panelStartStation < params.ridgeStationMeters &&
+    params.panelEndStation > params.ridgeStationMeters;
+  const mirroredRunMeters = panelStraddlesRidge
+    ? Math.min(leftRunMeters, rightRunMeters)
+    : Math.max(leftRunMeters, rightRunMeters);
+  const leftHalfSpanMeters = mirroredRunMeters * progress;
+  const rightHalfSpanMeters = mirroredRunMeters * progress;
 
-  const intervalStart = Math.max(
-    params.panelStartStation,
-    params.ridgeStationMeters - symmetricHalfSpanMeters,
-  );
-  const intervalEnd = Math.min(
-    params.panelEndStation,
-    params.ridgeStationMeters + symmetricHalfSpanMeters,
-  );
+  const intervalStart = panelStraddlesRidge
+    ? Math.max(params.panelStartStation, params.ridgeStationMeters - leftHalfSpanMeters)
+    : params.ridgeStationMeters - leftHalfSpanMeters;
+  const intervalEnd = panelStraddlesRidge
+    ? Math.min(params.panelEndStation, params.ridgeStationMeters + rightHalfSpanMeters)
+    : params.ridgeStationMeters + rightHalfSpanMeters;
   if (intervalEnd - intervalStart <= 0.01) {
     return null;
   }

@@ -4,6 +4,7 @@ import type {
   DesignBuilderSnapMode,
   DesignBuilderToolMode,
   Design2DViewType,
+  DesignAngleAnnotation,
   DesignAnnotation,
   DesignDimensionAnnotation,
   Design2dDrawingStyleMode,
@@ -26,6 +27,9 @@ import type { ResolvedOpeningPlacement } from '../domain/openingPlacementResolve
 import {
   buildPlanDisplayNodeById,
   buildPlanOpeningGeometry,
+  buildPlanStripSnapPoints,
+  buildSegmentFaceSnapPoints,
+  buildSegmentPlanFootprint,
   buildWallRunsExcludingRoughOpenings,
   hitTestPlanOpeningGeometry,
   resolvePlanWallRunEndpoints,
@@ -150,6 +154,10 @@ type DimensionDraftState =
   | { step: 'start'; start: DimensionSnapPoint }
   | { step: 'offset'; start: DimensionSnapPoint; end: DimensionSnapPoint; offsetPoint: { x: number; z: number } };
 
+type AngleDraftState =
+  | { step: 'vertex'; start: DimensionSnapPoint }
+  | { step: 'end'; start: DimensionSnapPoint; vertex: DimensionSnapPoint; previewEnd?: DimensionSnapPoint };
+
 type RoofPlanDisplayOptions = {
   showHatch: boolean;
   showSlopeArrows: boolean;
@@ -243,7 +251,7 @@ interface DesignBuilderPlanCanvasProps {
   designRenderModel?: DesignRenderModel;
   helperMeasurements?: readonly HelperMeasurement[];
   onComponentPointer?: (event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number }) => void;
-  onAnnotationCreate?: (annotation: DesignDimensionAnnotation) => void;
+  onAnnotationCreate?: (annotation: DesignAnnotation) => void;
   onInteraction: (event: DesignBuilderInteractionEvent) => void;
 }
 
@@ -305,6 +313,7 @@ export default function DesignBuilderPlanCanvas({
   const [cursorPoint, setCursorPoint] = useState<{ x: number; z: number } | null>(null);
   const [columnDragState, setColumnDragStateSnapshot] = useState<ColumnDragState | null>(null);
   const [dimensionDraft, setDimensionDraft] = useState<DimensionDraftState | null>(null);
+  const [angleDraft, setAngleDraft] = useState<AngleDraftState | null>(null);
   const [dimensionSnap, setDimensionSnap] = useState<DimensionSnapPoint | null>(null);
   const roofClipReactId = useId();
   const roofClipId = `roof-plan-clip-${roofClipReactId.replace(/[^a-zA-Z0-9_-]/g, '')}`;
@@ -742,6 +751,12 @@ export default function DesignBuilderPlanCanvas({
         x: (endpoints.displayStart.x + endpoints.displayEnd.x) / 2,
         z: (endpoints.displayStart.z + endpoints.displayEnd.z) / 2,
       }, 'wall-midpoint');
+      const frame = framesBySegmentId.get(segment.id);
+      if (frame) {
+        buildSegmentFaceSnapPoints(frame).forEach((snap) => {
+          add(snap.point, snap.type, segment.id);
+        });
+      }
     });
     frameSystem?.columns.forEach((column) => {
       addRectSnapPoints(column.position, column.widthMeters, column.depthMeters, 'column', column.id);
@@ -752,6 +767,16 @@ export default function DesignBuilderPlanCanvas({
     });
     isolatedFootings.forEach((footing) => {
       addRectSnapPoints(footing.position, footing.widthMeters, footing.lengthMeters, 'footing', footing.id);
+    });
+    wallFootings.forEach((footing) => {
+      buildPlanStripSnapPoints({
+        start: footing.startPoint,
+        end: footing.endPoint,
+        widthMeters: footing.widthMeters,
+        typePrefix: 'wall-footing',
+      }).forEach((snap) => {
+        add(snap.point, snap.type, footing.id);
+      });
     });
     committedRenderModel.rcComponents.forEach((component) => {
       addRectSnapPoints(
@@ -776,6 +801,7 @@ export default function DesignBuilderPlanCanvas({
     committedRenderModel.rcComponents,
     frameSystem?.beams,
     frameSystem?.columns,
+    framesBySegmentId,
     isolatedFootings,
     isRoofPlanView,
     layout,
@@ -783,6 +809,7 @@ export default function DesignBuilderPlanCanvas({
     planDisplayNodeById,
     resolvedRoofSystem,
     roofPlanPerimeter,
+    wallFootings,
   ]);
 
   const resolveDimensionSnap = useCallback(
@@ -821,6 +848,22 @@ export default function DesignBuilderPlanCanvas({
     if (kind === 'horizontal') return Math.abs(end.x - start.x);
     if (kind === 'vertical') return Math.abs(end.z - start.z);
     return Math.hypot(end.x - start.x, end.z - start.z);
+  }, []);
+
+  const measuredAngleDegrees = useCallback((
+    start: { x: number; z: number },
+    vertex: { x: number; z: number },
+    end: { x: number; z: number },
+  ) => {
+    const ax = start.x - vertex.x;
+    const az = start.z - vertex.z;
+    const bx = end.x - vertex.x;
+    const bz = end.z - vertex.z;
+    const aLength = Math.hypot(ax, az);
+    const bLength = Math.hypot(bx, bz);
+    if (aLength <= 0.0001 || bLength <= 0.0001) return 0;
+    const dot = (ax * bx + az * bz) / (aLength * bLength);
+    return (Math.acos(Math.max(-1, Math.min(1, dot))) * 180) / Math.PI;
   }, []);
 
   const cancelColumnDrag = useCallback(() => {
@@ -960,11 +1003,14 @@ export default function DesignBuilderPlanCanvas({
       onComponentPointer?.({ phase: 'preview', xMeters: point.x, zMeters: point.z });
       return;
     }
-    if (toolMode === 'place_dimension') {
+    if (toolMode === 'place_dimension' || toolMode === 'place_angle') {
       const snapped = resolveDimensionSnap(point);
       setDimensionSnap(snapped);
       if (dimensionDraft?.step === 'offset') {
         setDimensionDraft({ ...dimensionDraft, offsetPoint: point });
+      }
+      if (toolMode === 'place_angle' && angleDraft?.step === 'end') {
+        setAngleDraft({ ...angleDraft, previewEnd: snapped });
       }
       return;
     }
@@ -1007,9 +1053,10 @@ export default function DesignBuilderPlanCanvas({
       onInteraction({ kind: 'cancel', toolMode });
       return;
     }
-    if (toolMode === 'place_dimension') {
+    if (toolMode === 'place_dimension' || toolMode === 'place_angle') {
       event.preventDefault();
       setDimensionDraft(null);
+      setAngleDraft(null);
       setDimensionSnap(null);
       return;
     }
@@ -1077,6 +1124,47 @@ export default function DesignBuilderPlanCanvas({
         updatedAt: now,
       });
       setDimensionDraft(null);
+      setDimensionSnap(null);
+      return;
+    }
+    if (toolMode === 'place_angle') {
+      event.preventDefault();
+      event.stopPropagation();
+      const snapped = resolveDimensionSnap(point);
+      setDimensionSnap(snapped);
+      if (!angleDraft) {
+        setAngleDraft({ step: 'vertex', start: snapped });
+        return;
+      }
+      if (angleDraft.step === 'vertex') {
+        setAngleDraft({ step: 'end', start: angleDraft.start, vertex: snapped });
+        return;
+      }
+      const now = new Date().toISOString();
+      const measuredValueDegrees = measuredAngleDegrees(
+        angleDraft.start.point,
+        angleDraft.vertex.point,
+        snapped.point,
+      );
+      onAnnotationCreate?.({
+        id: `angle-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+        type: 'angle',
+        viewType: active2DView,
+        points: {
+          start: angleDraft.start.point,
+          vertex: angleDraft.vertex.point,
+          end: snapped.point,
+        },
+        measuredValueDegrees,
+        references: {
+          startSnapType: angleDraft.start.type,
+          vertexSnapType: angleDraft.vertex.type,
+          endSnapType: snapped.type,
+        },
+        createdAt: now,
+        updatedAt: now,
+      });
+      setAngleDraft(null);
       setDimensionSnap(null);
       return;
     }
@@ -1471,6 +1559,96 @@ export default function DesignBuilderPlanCanvas({
         label: annotation.labelOverride,
       }),
     );
+
+  const renderAngleGraphic = (params: {
+    id: string;
+    start: { x: number; z: number };
+    vertex: { x: number; z: number };
+    end: { x: number; z: number };
+    label?: string;
+    preview?: boolean;
+  }) => {
+    const start = planToSurfacePoint(params.start);
+    const vertex = planToSurfacePoint(params.vertex);
+    const end = planToSurfacePoint(params.end);
+    const measured = measuredAngleDegrees(params.start, params.vertex, params.end);
+    const color = params.preview ? previewStroke : drawingStyle.lineStroke;
+    const radius = Math.max(18, Math.min(48, Math.hypot(start.sx - vertex.sx, start.sy - vertex.sy) * 0.35, Math.hypot(end.sx - vertex.sx, end.sy - vertex.sy) * 0.35));
+    const rawStartDegrees = (Math.atan2(start.sy - vertex.sy, start.sx - vertex.sx) * 180) / Math.PI;
+    const rawEndDegrees = (Math.atan2(end.sy - vertex.sy, end.sx - vertex.sx) * 180) / Math.PI;
+    let arcStartDegrees = rawStartDegrees;
+    let arcEndDegrees = rawEndDegrees;
+    let sweepDegrees = ((arcEndDegrees - arcStartDegrees) % 360 + 360) % 360;
+    if (sweepDegrees > 180) {
+      arcStartDegrees = rawEndDegrees;
+      arcEndDegrees = rawStartDegrees;
+      sweepDegrees = 360 - sweepDegrees;
+    }
+    const startRadians = (arcStartDegrees * Math.PI) / 180;
+    const endRadians = (arcEndDegrees * Math.PI) / 180;
+    const arcStart = {
+      x: vertex.sx + Math.cos(startRadians) * radius,
+      y: vertex.sy + Math.sin(startRadians) * radius,
+    };
+    const arcEnd = {
+      x: vertex.sx + Math.cos(endRadians) * radius,
+      y: vertex.sy + Math.sin(endRadians) * radius,
+    };
+    const midRadians = ((arcStartDegrees + sweepDegrees / 2) * Math.PI) / 180;
+    const labelPoint = {
+      x: vertex.sx + Math.cos(midRadians) * (radius + 16),
+      y: vertex.sy + Math.sin(midRadians) * (radius + 16),
+    };
+    const label = params.label ?? `${measured.toFixed(0)}°`;
+    return (
+      <g key={params.id} pointerEvents="none" data-canvas-layer={params.preview ? 'active-angle-preview' : 'permanent-angles'} data-angle-id={params.id}>
+        <line x1={vertex.sx} y1={vertex.sy} x2={start.sx} y2={start.sy} stroke={color} strokeWidth={params.preview ? 1.5 : 1} strokeDasharray={params.preview ? '4 3' : undefined} />
+        <line x1={vertex.sx} y1={vertex.sy} x2={end.sx} y2={end.sy} stroke={color} strokeWidth={params.preview ? 1.5 : 1} strokeDasharray={params.preview ? '4 3' : undefined} />
+        <path
+          d={`M ${arcStart.x} ${arcStart.y} A ${radius} ${radius} 0 0 1 ${arcEnd.x} ${arcEnd.y}`}
+          fill="none"
+          stroke={color}
+          strokeWidth={params.preview ? 1.8 : 1.2}
+        />
+        <text
+          x={labelPoint.x}
+          y={labelPoint.y}
+          textAnchor="middle"
+          fill={params.preview ? previewStroke : drawingStyle.textFill}
+          fontSize={10}
+          fontWeight={700}
+          paintOrder="stroke"
+          stroke={textBackerStroke}
+          strokeWidth={3}
+        >
+          {label}
+        </text>
+      </g>
+    );
+  };
+
+  const renderedAngleAnnotations = annotations
+    .filter((annotation): annotation is DesignAngleAnnotation => annotation.type === 'angle' && annotation.viewType === active2DView)
+    .map((annotation) =>
+      renderAngleGraphic({
+        id: annotation.id,
+        start: annotation.points.start,
+        vertex: annotation.points.vertex,
+        end: annotation.points.end,
+        label: annotation.labelOverride ?? `${annotation.measuredValueDegrees.toFixed(0)}°`,
+      }),
+    );
+
+  const renderedAnglePreview =
+    angleDraft?.step === 'end' && angleDraft.previewEnd
+      ? renderAngleGraphic({
+          id: 'angle-preview',
+          start: angleDraft.start.point,
+          vertex: angleDraft.vertex.point,
+          end: angleDraft.previewEnd.point,
+          preview: true,
+        })
+      : null;
 
   const renderedDimensionPreview =
     dimensionDraft?.step === 'offset'
@@ -2347,6 +2525,74 @@ export default function DesignBuilderPlanCanvas({
               </g>
             );
           }
+          const wallFootprint =
+            frame && segment.wallRole === 'partition'
+              ? buildSegmentPlanFootprint(frame)
+              : null;
+          if (wallFootprint) {
+            const footprintPoints = wallFootprint.corners
+              .map((point) => {
+                const screenPoint = planToSurfacePoint(point);
+                return `${screenPoint.sx},${screenPoint.sy}`;
+              })
+              .join(' ');
+            const faceAStart = planToSurfacePoint(wallFootprint.faceA.start);
+            const faceAEnd = planToSurfacePoint(wallFootprint.faceA.end);
+            const faceBStart = planToSurfacePoint(wallFootprint.faceB.start);
+            const faceBEnd = planToSurfacePoint(wallFootprint.faceB.end);
+            const centerStart = planToSurfacePoint(frame.centerlineStart);
+            const centerEnd = planToSurfacePoint(frame.centerlineEnd);
+            return (
+              <g key={segment.id}>
+                <line
+                  x1={centerStart.sx}
+                  y1={centerStart.sy}
+                  x2={centerEnd.sx}
+                  y2={centerEnd.sy}
+                  stroke="transparent"
+                  strokeWidth={18}
+                  strokeLinecap="round"
+                  pointerEvents="none"
+                  data-selectable="true"
+                  data-selectable-type="wall_segment"
+                  data-segment-id={segment.id}
+                />
+                <polygon
+                  points={footprintPoints}
+                  fill={structuralFill}
+                  fillOpacity={selected ? 0.3 : 0.16}
+                  stroke={stroke}
+                  strokeWidth={selected ? drawingStyle.weights.selection : drawingStyle.weights.normal}
+                  pointerEvents="none"
+                  data-plan-wall-visible="true"
+                  data-plan-wall-footprint="true"
+                  data-segment-id={segment.id}
+                />
+                <line
+                  x1={faceAStart.sx}
+                  y1={faceAStart.sy}
+                  x2={faceAEnd.sx}
+                  y2={faceAEnd.sy}
+                  stroke={stroke}
+                  strokeWidth={selected ? drawingStyle.weights.selection : drawingStyle.weights.normal}
+                  pointerEvents="none"
+                  data-plan-wall-face="true"
+                  data-segment-id={segment.id}
+                />
+                <line
+                  x1={faceBStart.sx}
+                  y1={faceBStart.sy}
+                  x2={faceBEnd.sx}
+                  y2={faceBEnd.sy}
+                  stroke={stroke}
+                  strokeWidth={selected ? drawingStyle.weights.selection : drawingStyle.weights.normal}
+                  pointerEvents="none"
+                  data-plan-wall-face="true"
+                  data-segment-id={segment.id}
+                />
+              </g>
+            );
+          }
           const a = planToSurfacePoint(displayStart);
           const b = planToSurfacePoint(displayEnd);
           return (
@@ -2735,6 +2981,7 @@ export default function DesignBuilderPlanCanvas({
         )) : null}
         <g data-canvas-layer="permanent-dimensions">
           {renderedDimensionAnnotations}
+          {renderedAngleAnnotations}
         </g>
         {showStructuralPlanGeometry ? previewRenderModel.rcComponents.map((component) => renderPlanRcComponent(component, true)) : null}
         {showStructuralPlanGeometry && previewRenderItem ? (
@@ -2760,7 +3007,35 @@ export default function DesignBuilderPlanCanvas({
           })()
         ) : null}
         {renderedDimensionPreview}
-        {toolMode === 'place_dimension' && dimensionSnap ? (
+        {angleDraft ? (
+          (() => {
+            const pendingPoints =
+              angleDraft.step === 'vertex'
+                ? [angleDraft.start.point]
+                : [angleDraft.start.point, angleDraft.vertex.point];
+            return (
+              <g pointerEvents="none" data-canvas-layer="active-angle-preview">
+                {pendingPoints.map((pendingPoint, index) => {
+                  const point = planToSurfacePoint(pendingPoint);
+                  return (
+                    <circle
+                      key={`angle-pending-${index}`}
+                      cx={point.sx}
+                      cy={point.sy}
+                      r={5}
+                      fill={previewStroke}
+                      stroke={textBackerStroke}
+                      strokeWidth={1.5}
+                      data-angle-pending-point="true"
+                    />
+                  );
+                })}
+              </g>
+            );
+          })()
+        ) : null}
+        {renderedAnglePreview}
+        {(toolMode === 'place_dimension' || toolMode === 'place_angle') && dimensionSnap ? (
           (() => {
             const point = planToSurfacePoint(dimensionSnap.point);
             return (
@@ -2774,6 +3049,7 @@ export default function DesignBuilderPlanCanvas({
                 pointerEvents="none"
                 data-canvas-layer="handles-control-points"
                 data-dimension-snap-marker={dimensionSnap.type}
+                data-angle-snap-marker={toolMode === 'place_angle' ? dimensionSnap.type : undefined}
               />
             );
           })()

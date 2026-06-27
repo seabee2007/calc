@@ -10,6 +10,7 @@ import type { DesignMaterialSelection } from '../rendering/materials/designMater
 export const TOOL_MODE_OPTIONS: Array<{ mode: DesignBuilderToolMode; label: string }> = [
   { mode: 'select', label: 'Select' },
   { mode: 'place_dimension', label: 'Dimension' },
+  { mode: 'place_angle', label: 'Angle' },
   { mode: 'draw_wall', label: 'Draw Wall' },
   { mode: 'move_wall_node', label: 'Move Node' },
   { mode: 'move_opening', label: 'Move Opening' },

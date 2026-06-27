@@ -275,56 +275,56 @@ describe('gable CMU viewer regression', () => {
   });
 
   it('renders roof sheet eave lips for gable roofs too', () => {
-    const viewerSource = readFileSync(
-      join(__dirname, '..', 'ui', 'DesignBuilderViewer.tsx'),
+    const roofAssemblySource = readFileSync(
+      join(__dirname, '..', 'ui', 'DesignBuilderViewerRoofAssemblyScene.ts'),
       'utf8',
     );
     const roofSceneSource = readFileSync(
       join(__dirname, '..', 'ui', 'DesignBuilderRoofScene.ts'),
       'utf8',
     );
-    expect(viewerSource).toContain('buildRoofCladdingSceneGroup');
+    expect(roofAssemblySource).toContain('buildRoofCladdingSceneGroup');
     expect(roofSceneSource).toContain('createRoofSheetEaveLipGeometry');
     expect(roofSceneSource).not.toMatch(/if \(resolvedRoof\.roofType === 'hip'\)\s*{\s*const eaveIndices/);
   });
 
   it('renders soffit as an independent roof layer', () => {
-    const viewerSource = readFileSync(
-      join(__dirname, '..', 'ui', 'DesignBuilderViewer.tsx'),
+    const roofAssemblySource = readFileSync(
+      join(__dirname, '..', 'ui', 'DesignBuilderViewerRoofAssemblyScene.ts'),
       'utf8',
     );
     const roofSceneSource = readFileSync(
       join(__dirname, '..', 'ui', 'DesignBuilderRoofScene.ts'),
       'utf8',
     );
-    expect(viewerSource).toContain('soffitGroup');
-    expect(viewerSource).toContain('currentRoofLayerVisibility.soffit');
-    expect(viewerSource).toContain('buildSoffitSceneGroup');
+    expect(roofAssemblySource).toContain('soffitGroup');
+    expect(roofAssemblySource).toContain('state.currentRoofLayerVisibility');
+    expect(roofAssemblySource).toContain('buildSoffitSceneGroup');
     expect(roofSceneSource).toContain('createSoffitPanelGeometry');
     expect(roofSceneSource).not.toMatch(/resolvedRoof\.roofType === 'hip'[\s\S]{0,160}soffit/i);
   });
 
   it('keeps gable CMU visible when smooth wall proxy is active', () => {
-    const viewerSource = readFileSync(
-      join(__dirname, '..', 'ui', 'DesignBuilderViewer.tsx'),
+    const cmuInfillSource = readFileSync(
+      join(__dirname, '..', 'ui', 'DesignBuilderViewerCmuInfillScene.ts'),
       'utf8',
     );
     const wallSceneSource = readFileSync(
       join(__dirname, '..', 'ui', 'DesignBuilderWallScene.ts'),
       'utf8',
     );
-    expect(viewerSource).toContain('resolveVisibleCmuBlockInstances');
+    expect(cmuInfillSource).toContain('resolveVisibleCmuBlockInstances');
     expect(wallSceneSource).toContain('if (!params.showCmuInfill) return gableEndBlocks');
     expect(wallSceneSource).toContain('params.blockInstances.filter(isGableEndCmuBlock)');
-    expect(viewerSource).toContain('if (showCmuInfill && !currentWall.showIndividualBlocks)');
+    expect(cmuInfillSource).toContain('if (params.showCmuInfill && !state.currentWall.showIndividualBlocks)');
   });
 
   it('renders the raked cap as a two-sided interior-visible concrete fill', () => {
-    const viewerSource = readFileSync(
-      join(__dirname, '..', 'ui', 'DesignBuilderViewer.tsx'),
+    const roofAssemblySource = readFileSync(
+      join(__dirname, '..', 'ui', 'DesignBuilderViewerRoofAssemblyScene.ts'),
       'utf8',
     );
-    expect(viewerSource).toContain('capMaterial.side = THREE.DoubleSide');
+    expect(roofAssemblySource).toContain('capMaterial.side = THREE.DoubleSide');
   });
 
   it('routes roof gable CMU through blockInstances', () => {

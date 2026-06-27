@@ -236,7 +236,7 @@ export function buildModuleFitReportFromPlacements(params: {
     hasLayoutError: params.hasLayoutError ?? false,
   });
 
-  if (import.meta.env.DEV && cutUnitCount === 0 && params.placements.some(isCutPlacement)) {
+  if (import.meta.env?.DEV === true && cutUnitCount === 0 && params.placements.some(isCutPlacement)) {
     console.warn(
       '[DesignBuilder] Module fit report claims 0 custom cuts but generated placements contain cut_block units.',
       { placementCount: params.placements.length },
