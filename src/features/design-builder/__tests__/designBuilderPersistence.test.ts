@@ -232,6 +232,39 @@ describe('designBuilderPersistence', () => {
     expect(migrated?.displayPreferences?.elevationView?.face).toBe('north');
   });
 
+  it('maps legacy plan and elevation views into the current 2D drawing state', () => {
+    const preset = rcPreset();
+    const legacyElevationPayload = {
+      rcFrameFoundation: preset.foundationSettings,
+      roofSystem: preset.roofSystem,
+      wallLayout: preset.wallLayout,
+      openings: [],
+      buildingSystemMode: preset.buildingSystemMode,
+      displayPreferences: {
+        activeView: 'elevation',
+        elevationView: { face: 'west' },
+      },
+    } as unknown as Parameters<typeof migratePersistedDesignBuilderState>[0];
+    const legacyPlanPayload = {
+      rcFrameFoundation: preset.foundationSettings,
+      roofSystem: preset.roofSystem,
+      wallLayout: preset.wallLayout,
+      openings: [],
+      buildingSystemMode: preset.buildingSystemMode,
+      displayPreferences: {
+        activeView: 'plan',
+      },
+    } as unknown as Parameters<typeof migratePersistedDesignBuilderState>[0];
+    const migratedElevation = migratePersistedDesignBuilderState(legacyElevationPayload);
+    const migratedPlan = migratePersistedDesignBuilderState(legacyPlanPayload);
+
+    expect(migratedElevation?.displayPreferences?.activeView).toBe('2d');
+    expect(migratedElevation?.displayPreferences?.active2DView).toBe('elevation-view');
+    expect(migratedElevation?.displayPreferences?.elevationView?.face).toBe('west');
+    expect(migratedPlan?.displayPreferences?.activeView).toBe('2d');
+    expect(migratedPlan?.displayPreferences?.active2DView).toBe('foundation-plan');
+  });
+
   it('writes persisted state into design model metadata', () => {
     const preset = rcPreset();
     const model: DesignModel = {
@@ -247,15 +280,34 @@ describe('designBuilderPersistence', () => {
       createdAt: '',
       updatedAt: '',
     };
+    const annotation = {
+      id: 'dimension-1',
+      type: 'dimension',
+      viewType: 'foundation-plan',
+      points: {
+        start: { x: 0, z: 0 },
+        end: { x: 4, z: 0 },
+      },
+      offsetPoint: { x: 2, z: -0.5 },
+      dimensionKind: 'horizontal',
+      measuredValue: 4,
+      unit: 'm',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    } as const;
     const metadata = designModelMetadataWithPersistedState(model, preset, {
-      activeView: 'elevation',
+      activeView: '2d',
+      active2DView: 'elevation-view',
       elevationView: { face: 'east' },
-    });
+    }, [], [annotation]);
     const nested = metadata.designBuilderState as ReturnType<typeof serializePersistedDesignBuilderState>;
     expect(nested.schemaVersion).toBe(2);
-    expect(nested.displayPreferences?.activeView).toBe('elevation');
+    expect(nested.displayPreferences?.activeView).toBe('2d');
+    expect(nested.displayPreferences?.active2DView).toBe('elevation-view');
     expect(nested.displayPreferences?.elevationView?.face).toBe('east');
     expect(nested.placedComponents).toEqual([]);
+    expect(nested.annotations).toEqual([annotation]);
+    expect(migratePersistedDesignBuilderState(nested)?.annotations).toEqual([annotation]);
     expect(nested.rcFrameFoundation).toBeDefined();
     expect(nested.roofSystem).toBeDefined();
   });

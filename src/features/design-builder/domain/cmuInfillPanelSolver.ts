@@ -5,7 +5,7 @@ import type {
   RcFrameFoundationSettings,
   StructuralBeam,
   StructuralColumn,
-} from '../types';
+} from "../types";
 import {
   belowGradeInfillPanelFromResolvedBounds,
   infillPanelFromResolvedBounds,
@@ -14,11 +14,14 @@ import {
   resolveInfillPanelBoundsForLayout,
   resolveInfillPanelBoundsForSegment,
   type ResolvedInfillPanelBounds,
-} from './infillPanelBoundsResolver';
-import type { CmuBlockInstance, SegmentFrame } from '../geometry/designGeometry';
-import type { ResolvedCmuOpening } from './cmuOpeningRules';
-import { solveOpeningAwareMasonryPanel } from './openingAwareMasonryPanelSolver';
-import { lintelSolidToInstance } from './openingAssemblySolver';
+} from "./infillPanelBoundsResolver";
+import type {
+  CmuBlockInstance,
+  SegmentFrame,
+} from "../geometry/designGeometry";
+import type { ResolvedCmuOpening } from "./cmuOpeningRules";
+import { solveOpeningAwareMasonryPanel } from "./openingAwareMasonryPanelSolver";
+import { lintelSolidToInstance } from "./openingAssemblySolver";
 
 export const FRAME_INFILL_HEIGHT_TOLERANCE_METERS = 0.002;
 export const TOP_COURSE_RENDER_EPSILON_METERS = 0.001;
@@ -52,21 +55,29 @@ export function countPanelVerticalCourses(params: {
 }
 
 export function isAboveGradeInfillPanel(panel: CmuInfillPanel): boolean {
-  return panel.infillZone !== 'below_grade';
+  return panel.infillZone !== "below_grade";
 }
 
 function findExistingPanelForBounds(
   existingPanels: readonly CmuInfillPanel[] | undefined,
   bounds: ResolvedInfillPanelBounds,
-  zone: 'above_grade' | 'below_grade',
+  zone: "above_grade" | "below_grade",
 ): CmuInfillPanel | undefined {
-  return existingPanels?.find(
-    (panel) =>
-      panel.hostSegmentId === bounds.hostSegmentId &&
-      (zone === 'below_grade'
-        ? panel.infillZone === 'below_grade'
-        : panel.infillZone !== 'below_grade'),
-  );
+  return existingPanels
+    ?.filter(
+      (panel) =>
+        panel.hostSegmentId === bounds.hostSegmentId &&
+        (zone === "below_grade"
+          ? panel.infillZone === "below_grade"
+          : panel.infillZone !== "below_grade"),
+    )
+    .find(
+      (panel) =>
+        Math.abs(panel.startStationMeters - bounds.startStationMeters) <=
+          FRAME_INFILL_HEIGHT_TOLERANCE_METERS &&
+        Math.abs(panel.endStationMeters - bounds.endStationMeters) <=
+          FRAME_INFILL_HEIGHT_TOLERANCE_METERS,
+    );
 }
 
 function resolveAllInfillPanelBounds(params: {
@@ -80,8 +91,12 @@ function resolveAllInfillPanelBounds(params: {
   const aboveGrade = resolveInfillPanelBoundsForLayout(params);
   const ordered: ResolvedInfillPanelBounds[] = [];
   for (const segment of params.layout.segments) {
-    const below = belowGrade.find((bounds) => bounds.hostSegmentId === segment.id);
-    const above = aboveGrade.find((bounds) => bounds.hostSegmentId === segment.id);
+    const below = belowGrade.find(
+      (bounds) => bounds.hostSegmentId === segment.id,
+    );
+    const above = aboveGrade.find(
+      (bounds) => bounds.hostSegmentId === segment.id,
+    );
     if (below) ordered.push(below);
     if (above) ordered.push(above);
   }
@@ -102,10 +117,13 @@ export function resolvePanelVerticalCourses(params: {
     0,
     params.panelTopElevationMeters - params.panelBottomElevationMeters,
   );
-  const fullCourseCount = Math.floor(clearPanelHeightMeters / params.nominalCourseHeightMeters);
+  const fullCourseCount = Math.floor(
+    clearPanelHeightMeters / params.nominalCourseHeightMeters,
+  );
   const topClosureHeightMeters =
     clearPanelHeightMeters - fullCourseCount * params.nominalCourseHeightMeters;
-  const hasTopClosureCourse = topClosureHeightMeters > FRAME_INFILL_HEIGHT_TOLERANCE_METERS;
+  const hasTopClosureCourse =
+    topClosureHeightMeters > FRAME_INFILL_HEIGHT_TOLERANCE_METERS;
   return {
     clearPanelHeightMeters,
     fullCourseCount,
@@ -157,9 +175,15 @@ export function deriveInfillPanelsForLayout(params: {
 }): CmuInfillPanel[] {
   const resolvedBounds = resolveAllInfillPanelBounds(params);
   return resolvedBounds.map((bounds) => {
-    const zone = bounds.panelId.includes('-below-') ? 'below_grade' : 'above_grade';
-    const existingPanel = findExistingPanelForBounds(params.existingPanels, bounds, zone);
-    return zone === 'below_grade'
+    const zone = bounds.panelId.includes("-below-")
+      ? "below_grade"
+      : "above_grade";
+    const existingPanel = findExistingPanelForBounds(
+      params.existingPanels,
+      bounds,
+      zone,
+    );
+    return zone === "below_grade"
       ? belowGradeInfillPanelFromResolvedBounds({
           bounds,
           wall: params.wall,
@@ -186,12 +210,18 @@ export function resolveInfillPanelsWithBounds(params: {
 }): Array<{ panel: CmuInfillPanel; bounds: ResolvedInfillPanelBounds }> {
   const resolvedBounds = resolveAllInfillPanelBounds(params);
   return resolvedBounds.map((bounds) => {
-    const zone = bounds.panelId.includes('-below-') ? 'below_grade' : 'above_grade';
-    const existingPanel = findExistingPanelForBounds(params.existingPanels, bounds, zone);
+    const zone = bounds.panelId.includes("-below-")
+      ? "below_grade"
+      : "above_grade";
+    const existingPanel = findExistingPanelForBounds(
+      params.existingPanels,
+      bounds,
+      zone,
+    );
     return {
       bounds,
       panel:
-        zone === 'below_grade'
+        zone === "below_grade"
           ? belowGradeInfillPanelFromResolvedBounds({
               bounds,
               wall: params.wall,
@@ -218,11 +248,14 @@ export function solveInfillPanelBlocks(params: {
   openings?: readonly ResolvedCmuOpening[];
 }): InfillPanelSolveResult {
   const courseIndexOffset = params.courseIndexOffset ?? 0;
-  const bondPattern = params.panel.masonrySettings.bondPattern ?? 'running_bond';
-  const panelOpenings = isAboveGradeInfillPanel(params.panel) ? params.openings ?? [] : [];
+  const bondPattern =
+    params.panel.masonrySettings.bondPattern ?? "running_bond";
+  const panelOpenings = isAboveGradeInfillPanel(params.panel)
+    ? (params.openings ?? [])
+    : [];
 
   const solved = solveOpeningAwareMasonryPanel({
-    panelKind: 'rc_frame_infill',
+    panelKind: "rc_frame_infill",
     panel: params.panel,
     frame: params.frame,
     panelStartStationMeters: params.panel.startStationMeters,
@@ -233,21 +266,34 @@ export function solveInfillPanelBlocks(params: {
     wall: params.wall,
     bondPattern,
     courseIndexOffset,
-    infillCenterlineInwardOffsetMeters: params.bounds.infillCenterlineInwardOffsetMeters,
+    infillCenterlineInwardOffsetMeters:
+      params.bounds.infillCenterlineInwardOffsetMeters,
   });
 
   const blocks = solved.blocks;
   const warnings = [...solved.warnings];
 
   const firstCmuStartStation =
-    blocks.length > 0 ? Math.min(...blocks.map((block) => block.stationMeters ?? 0)) : params.panel.startStationMeters;
+    blocks.length > 0
+      ? Math.min(...blocks.map((block) => block.stationMeters ?? 0))
+      : params.panel.startStationMeters;
   const lastCmuEndStation =
     blocks.length > 0
-      ? Math.max(...blocks.map((block) => block.endAlongMeters ?? (block.stationMeters ?? 0) + block.lengthMeters))
+      ? Math.max(
+          ...blocks.map(
+            (block) =>
+              block.endAlongMeters ??
+              (block.stationMeters ?? 0) + block.lengthMeters,
+          ),
+        )
       : params.panel.endStationMeters;
 
   if (params.logBoundsForDev) {
-    logInfillPanelBoundsTableForDev(params.bounds, firstCmuStartStation, lastCmuEndStation);
+    logInfillPanelBoundsTableForDev(
+      params.bounds,
+      firstCmuStartStation,
+      lastCmuEndStation,
+    );
   }
 
   return {
@@ -270,5 +316,8 @@ export function panelClearWidthMeters(panel: CmuInfillPanel): number {
 }
 
 export function panelClearAreaSquareMeters(panel: CmuInfillPanel): number {
-  return panelClearWidthMeters(panel) * Math.max(0, panel.topElevationMeters - panel.bottomElevationMeters);
+  return (
+    panelClearWidthMeters(panel) *
+    Math.max(0, panel.topElevationMeters - panel.bottomElevationMeters)
+  );
 }

@@ -1,4 +1,5 @@
 import type { SegmentFrame } from '../geometry/designGeometry';
+import type { Drawing2dStyle } from './design2dDrawingPrimitives';
 import type { ResolvedOpeningPlacement } from './openingPlacementResolver';
 import {
   buildDoorSwingArcScreenPath,
@@ -111,13 +112,17 @@ export function PlanOpeningSymbol({
   item,
   project,
   zoom,
+  drawingStyle,
 }: {
   item: PlanOpeningRenderItem;
   project: (point: { x: number; z: number }) => ScreenPoint;
   zoom: number;
+  drawingStyle?: Drawing2dStyle;
 }) {
-  const stroke = openingStrokeColor(item.colorState);
-  const fill = openingFillColor(item.colorState, item.placing ? 0.24 : item.selected ? 0.22 : 0.14);
+  const active = item.placing || item.selected || item.hovered || item.colorState === 'invalid';
+  const stroke = active ? openingStrokeColor(item.colorState) : drawingStyle?.openingStroke ?? openingStrokeColor(item.colorState);
+  const fill = active ? openingFillColor(item.colorState, item.placing ? 0.24 : item.selected ? 0.22 : 0.14) : 'transparent';
+  const textBacker = drawingStyle?.sheetFill ?? '#0f172a';
   const scale = openingMarkerScale(zoom);
   const roughA = project(item.geometry.roughStart);
   const roughB = project(item.geometry.roughEnd);
@@ -218,7 +223,7 @@ export function PlanOpeningSymbol({
           fontSize={11 * scale}
           fontWeight={700}
           paintOrder="stroke"
-          stroke="#0f172a"
+          stroke={textBacker}
           strokeWidth={3 * scale}
           pointerEvents="none"
         >
@@ -233,7 +238,7 @@ export function PlanOpeningSymbol({
           fontSize={10 * scale}
           fontWeight={600}
           paintOrder="stroke"
-          stroke="#0f172a"
+          stroke={textBacker}
           strokeWidth={3 * scale}
           pointerEvents="none"
         >
@@ -248,7 +253,7 @@ export function PlanOpeningSymbol({
           fontSize={10 * scale}
           fontWeight={600}
           paintOrder="stroke"
-          stroke="#0f172a"
+          stroke={textBacker}
           strokeWidth={3 * scale}
           pointerEvents="none"
         >

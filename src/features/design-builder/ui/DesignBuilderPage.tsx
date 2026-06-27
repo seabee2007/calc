@@ -16,6 +16,10 @@ import {
   persistDesignEstimatePreview,
 } from '../application/designBuilderToEstimate';
 import {
+  resolveDesignBuilderGeometryPipeline,
+  resolveDesignBuilderRenderModel,
+} from '../application/designBuilderGeometryPipeline';
+import {
   buildPresetObjects,
   createBlankCmuBuildingPreset,
   type CmuBuildingPreset,
@@ -45,7 +49,11 @@ import {
   type ResolvedOpeningPlacement,
 } from '../domain/openingPlacementResolver';
 import { pickOpeningAtPlanPoint } from '../domain/planOpeningGraphics';
-import { getSegmentFramesForWallLayout } from '../geometry/designGeometry';
+import {
+  generateCmuLayout,
+  getSegmentFramesForWallLayout,
+  type DesignGeometryResult,
+} from '../geometry/designGeometry';
 import {
   canGenerateSlabAndRoof,
   layoutFromPreset,
@@ -121,11 +129,6 @@ import {
   lintelCourseAssemblyRequiresCutWarning,
   summarizeLintelCourseClosureSide,
 } from '../domain/lintelCourseClosureSolver';
-import {
-  buildDesignGeometryInputFromLayout,
-  generateCmuLayout,
-  generateDesignGeometry,
-} from '../geometry/designGeometry';
 import { useEstimateWorkspaceHeaderCollapse } from '../../estimating/ui/EstimateWorkspaceHeaderCollapseContext';
 import {
   buildDesignEstimatePreview,
@@ -173,14 +176,18 @@ import {
 import type {
   BuilderViewMode,
   BuildingSystemMode,
+  Design2DViewType,
+  DesignAnnotation,
   DesignBuilderCameraSnapshot,
   DesignBuilderElevationViewState,
   DesignBuilderInteractionEvent,
   DesignBuilderLayoutMode,
   DesignBuilderSelection,
   DesignBuilderToolMode,
+  DesignBuilderViewMode,
   DesignBuilderSnapMode,
   DesignEstimatePreviewLine,
+  Design2dDrawingStyleMode,
   DesignVisualStyle,
   DesignComponentType,
   FoundationViewMode,
@@ -204,7 +211,6 @@ import type {
 } from '../types';
 import {
   builderViewModeFromStored,
-  storedViewModeFromBuilder,
 } from '../types';
 import {
   DEFAULT_OBJECT_TREE_EXPANSION,
@@ -217,9 +223,10 @@ import {
   PLAN_GRID_SCALE_PRESETS,
   type PlanViewportState,
 } from '../domain/pointerPlanMapping';
-import { buildLayoutFramingKey, deriveDesignLayoutBounds, logDesignFramingDiagnostics } from '../domain/designLayoutBounds';
+import { buildLayoutFramingKey, logDesignFramingDiagnostics } from '../domain/designLayoutBounds';
 import { formatDrawWallSnapTargetFeedback } from '../domain/designDrawWallFeedback';
-import DesignBuilderViewer, { type DesignBuilderPlacementPreview } from './DesignBuilderViewer';
+import DesignBuilderViewer from './DesignBuilderViewer';
+import type { DesignBuilderPlacementPreview } from './DesignBuilderOpeningPreviewScene';
 import { DraggableDebugOverlay } from './DraggableDebugOverlay';
 import { DebugOverlayLayoutProvider } from './DebugOverlayLayoutContext';
 import {
@@ -252,7 +259,6 @@ import {
   resolvePlanHelperMeasurements,
   snapComponentPlanPoint,
 } from '../domain/designComponentPlacement';
-import { buildDesignRenderModel } from '../domain/designRenderModel';
 
 interface DesignBuilderPageProps {
   projectId: string;
@@ -391,6 +397,9 @@ export default function DesignBuilderPage({
   const [placedComponents, setPlacedComponents] = useState<PlacedDesignComponent[]>(
     () => storedSession?.placedComponents ?? [],
   );
+  const [annotations, setAnnotations] = useState<DesignAnnotation[]>(
+    () => storedSession?.annotations ?? [],
+  );
   const [selectedComponentId, setSelectedComponentId] = useState<string | null>(null);
   const [unitSystem, setUnitSystem] = useState<DesignUnitSystem>(() => storedSession?.unitSystem ?? 'metric');
   const [selectedObjectType, setSelectedObjectType] = useState<DesignObjectType | null>(
@@ -440,7 +449,12 @@ export default function DesignBuilderPage({
   const [showClosureWarnings, setShowClosureWarnings] = useState(false);
   const [showRoofReferencePerimeters, setShowRoofReferencePerimeters] = useState(false);
   const [showRoofFramingGuides, setShowRoofFramingGuides] = useState(false);
+  const [showRoofPlanHatch, setShowRoofPlanHatch] = useState(true);
+  const [showRoofPlanSlopeArrows, setShowRoofPlanSlopeArrows] = useState(true);
+  const [showRoofPlanDimensions, setShowRoofPlanDimensions] = useState(true);
+  const [showRoofPlanReferenceLines, setShowRoofPlanReferenceLines] = useState(true);
   const [visualStyle, setVisualStyle] = useState<DesignVisualStyle>('technical');
+  const [twoDDrawingStyle, setTwoDDrawingStyle] = useState<Design2dDrawingStyleMode>('architectural');
   const [materialSelections, setMaterialSelections] = useState<DesignMaterialSelection>(() =>
     normalizeDesignMaterialSelection(),
   );
@@ -460,14 +474,15 @@ export default function DesignBuilderPage({
     revision: 0,
   });
   const [lastStructureApplyRevision, setLastStructureApplyRevision] = useState(0);
-  const [viewMode, setViewMode] = useState<BuilderViewMode>(() => builderViewModeFromStored(storedSession?.viewMode ?? '3d'));
-  const builderViewMode = builderViewModeFromStored(viewMode);
+  const [viewMode, setViewMode] = useState<DesignBuilderViewMode>(() => builderViewModeFromStored(storedSession?.viewMode ?? '3d'));
+  const [active2DView, setActive2DView] = useState<Design2DViewType>(() => storedSession?.active2DView ?? 'foundation-plan');
+  const activeCanvasView: BuilderViewMode = active2DView === 'elevation-view' ? 'elevation' : 'plan';
   const [elevationView, setElevationView] = useState<DesignBuilderElevationViewState>(
     () => storedSession?.elevationView ?? { face: 'north' },
   );
   const [componentPlacement, dispatchComponentPlacement] = useReducer(
     componentPlacementReducer,
-    viewMode,
+    activeCanvasView,
     createIdleComponentPlacementState,
   );
   const [componentPanelPosition, setComponentPanelPosition] = useState({ x: 18, y: 72 });
@@ -518,6 +533,7 @@ export default function DesignBuilderPage({
       setDesignModel(storedSession.designModel);
       setObjects(storedSession.objects);
       setPlacedComponents(storedSession.placedComponents ?? []);
+      setAnnotations(storedSession.annotations ?? []);
       setSelectedComponentId(null);
       setUnitSystem(storedSession.unitSystem);
       setSelectedObjectType(storedSession.selectedObjectType);
@@ -540,8 +556,9 @@ export default function DesignBuilderPage({
         setDesignHistory(createDesignHistoryState());
       }
       setViewMode(builderViewModeFromStored(storedSession.viewMode ?? '3d'));
+      setActive2DView(storedSession.active2DView ?? 'foundation-plan');
       setElevationView(storedSession.elevationView ?? { face: 'north' });
-      dispatchComponentPlacement({ type: 'reset', activeView: builderViewModeFromStored(storedSession.viewMode ?? '3d') });
+      dispatchComponentPlacement({ type: 'reset', activeView: (storedSession.active2DView ?? 'foundation-plan') === 'elevation-view' ? 'elevation' : 'plan' });
       setSnapMode(storedSession.snapMode ?? 'grid');
       setModuleFitMode(storedSession.moduleFitMode ?? 'exact');
       setObjectTreeExpanded(storedSession.objectTreeExpanded ?? DEFAULT_OBJECT_TREE_EXPANSION);
@@ -596,6 +613,7 @@ export default function DesignBuilderPage({
         setLayoutState(nextPreset.wallLayout.segments.length > 0 ? 'editing' : 'blank');
         setManualMasonryRuns(nextPreset.wall.manualMasonryCourseRuns ?? []);
         setPlacedComponents(persistedState?.placedComponents ?? []);
+        setAnnotations(persistedState?.annotations ?? []);
         setSelectedComponentId(null);
         setSaveState('saved');
         setLastSaveTime(persistedState?.updatedAt ?? modelResult.data.updatedAt);
@@ -607,6 +625,7 @@ export default function DesignBuilderPage({
         if (persistedState?.displayPreferences?.activeView) {
           setViewMode(builderViewModeFromStored(persistedState.displayPreferences.activeView));
         }
+        setActive2DView(persistedState?.displayPreferences?.active2DView ?? 'foundation-plan');
         if (persistedState?.displayPreferences?.elevationView) {
           setElevationView(persistedState.displayPreferences.elevationView);
         }
@@ -646,6 +665,7 @@ export default function DesignBuilderPage({
       designModel,
       objects,
       placedComponents,
+      annotations,
       unitSystem,
       selectedObjectType,
       selectedOpeningId,
@@ -653,6 +673,7 @@ export default function DesignBuilderPage({
       masonryToolMode,
       changedAfterCommit,
       viewMode,
+      active2DView,
       elevationView,
       snapMode,
       moduleFitMode,
@@ -670,6 +691,8 @@ export default function DesignBuilderPage({
       dirty: modelLoaded,
     });
   }, [
+    active2DView,
+    annotations,
     cameraSnapshot,
     designModel,
     leftPanelCollapsed,
@@ -853,41 +876,39 @@ export default function DesignBuilderPage({
       ),
     [frameFoundationModalOpen, resolvedPreset.roofSystem, structureModalRoofDraft],
   );
-  const designGeometryInput = useMemo(
-    () =>
-      buildDesignGeometryInputFromLayout({
+  const {
+    designGeometryResult,
+    designLayoutBounds,
+  } = useMemo(
+    () => {
+      // Keep the deep masonry key in the memo inputs for nested wall/course edits.
+      void masonryGeometryKey;
+      return resolveDesignBuilderGeometryPipeline({
         wallLayout,
-        cmuSettings: effectiveWall,
-        openings: effectiveWall.openings,
-        slabSettings: footprintClosed ? resolvedPreset.slab : { ...resolvedPreset.slab, lengthMeters: 0, widthMeters: 0 },
-        roofSettings: footprintClosed ? resolvedPreset.roof : { ...resolvedPreset.roof, lengthMeters: 0, widthMeters: 0 },
-        trussSettings: footprintClosed ? resolvedPreset.truss : { ...resolvedPreset.truss, buildingLengthMeters: 0 },
-        buildingSystemMode: resolvedPreset.buildingSystemMode,
-        frameSystem: resolvedPreset.frameSystem,
-        foundationSettings: resolvedPreset.foundationSettings,
-        infillSystem: resolvedPreset.infillSystem,
-        gableEndSystem: resolvedPreset.gableEndSystem,
-        roofSystem: activeRoofSystem,
-      }),
+        effectiveWall,
+        resolvedPreset,
+        footprintClosed,
+        activeRoofSystem,
+        manualMasonryRuns,
+      });
+    },
     [
       activeRoofSystem,
       effectiveWall,
       footprintClosed,
+      manualMasonryRuns,
       masonryGeometryKey,
-      resolvedPreset.buildingSystemMode,
-      resolvedPreset.frameSystem,
-      resolvedPreset.foundationSettings,
-      resolvedPreset.gableEndSystem,
-      resolvedPreset.infillSystem,
-      resolvedPreset.roof,
-      resolvedPreset.slab,
-      resolvedPreset.truss,
+      resolvedPreset,
       wallLayout,
     ],
   );
-  const designGeometryResult = useMemo(
-    () => generateDesignGeometry(designGeometryInput),
-    [designGeometryInput],
+  const designRenderModel = useMemo(
+    () =>
+      resolveDesignBuilderRenderModel({
+        placedComponents,
+        layoutBounds: designLayoutBounds,
+      }),
+    [designLayoutBounds, placedComponents],
   );
   const maxPlywoodCeilingHeightMeters = useMemo(() => {
     const foundation = normalizeRcFrameFoundationSettings(resolvedPreset.foundationSettings);
@@ -897,42 +918,29 @@ export default function DesignBuilderPage({
     });
     return Math.max(0, elevations.roofBeamBottomY - foundation.plywoodCeiling.tubeSizeMeters);
   }, [effectiveWall.heightMeters, resolvedPreset.foundationSettings]);
-  const designLayoutBounds = useMemo(
-    () =>
-      deriveDesignLayoutBounds({
-        geometryResult: designGeometryResult,
-        wallLayout,
-        slab: footprintClosed ? resolvedPreset.slab : null,
-        roof: footprintClosed ? resolvedPreset.roof : null,
-        truss: footprintClosed ? resolvedPreset.truss : null,
-        manualMasonryRuns,
-      }),
-    [designGeometryResult, footprintClosed, manualMasonryRuns, resolvedPreset.roof, resolvedPreset.slab, resolvedPreset.truss, wallLayout],
-  );
-  const designRenderModel = useMemo(
-    () => buildDesignRenderModel({ placedComponents, layoutBounds: designLayoutBounds }),
-    [designLayoutBounds, placedComponents],
-  );
   const layoutFramingKey = useMemo(
     () => buildLayoutFramingKey(layoutEpoch, designLayoutBounds),
     [designLayoutBounds, layoutEpoch],
   );
 
-  const setBuilderViewMode = useCallback((mode: BuilderViewMode) => {
-    const nextViewMode = storedViewModeFromBuilder(mode);
-    if (nextViewMode === '3d' && viewMode !== '3d' && designLayoutBounds && !hasUserAdjusted3dViewRef.current) {
+  const setDesignBuilderViewMode = useCallback((mode: DesignBuilderViewMode) => {
+    if (mode === '3d' && viewMode !== '3d' && designLayoutBounds && !hasUserAdjusted3dViewRef.current) {
       pending3dFitRef.current = true;
     }
-    setViewMode(nextViewMode);
-    if (toolMode === 'place_component') {
+    if (mode === '3d' && toolMode === 'place_component') {
       setToolMode('select');
-      dispatchComponentPlacement({ type: 'reset', activeView: nextViewMode });
-      if (nextViewMode === '3d') {
-        setComponentPanelCollapsed(true);
-        setStatus({ tone: 'info', message: '2D component placement cancelled for 3D view.' });
-      }
+      dispatchComponentPlacement({ type: 'reset', activeView: activeCanvasView });
+      setComponentPanelCollapsed(true);
+      setStatus({ tone: 'info', message: '2D component placement cancelled for 3D view.' });
     }
-  }, [designLayoutBounds, toolMode, viewMode]);
+    setViewMode(mode);
+  }, [activeCanvasView, designLayoutBounds, toolMode, viewMode]);
+
+  const setActive2DDrawingView = useCallback((nextView: Design2DViewType) => {
+    setViewMode('2d');
+    setActive2DView(nextView);
+    dispatchComponentPlacement({ type: 'reset', activeView: nextView === 'elevation-view' ? 'elevation' : 'plan' });
+  }, []);
 
   useEffect(() => {
     if (sessionFramingValidatedRef.current || !storedSession?.camera || !designLayoutBounds) return;
@@ -948,16 +956,16 @@ export default function DesignBuilderPage({
   }, [designLayoutBounds, storedSession?.camera, viewMode]);
   useEffect(() => {
     if (!modelLoaded) return;
-    if (footprintClosed && !prevFootprintClosedRef.current && viewMode === 'plan' && !hasUserAdjustedPlanViewRef.current) {
+    if (footprintClosed && !prevFootprintClosedRef.current && viewMode === '2d' && active2DView === 'foundation-plan' && !hasUserAdjustedPlanViewRef.current) {
       issueViewCommand('fit');
     }
     prevFootprintClosedRef.current = footprintClosed;
-  }, [footprintClosed, modelLoaded, viewMode]);
+  }, [active2DView, footprintClosed, modelLoaded, viewMode]);
 
   useEffect(() => {
     if (!modelLoaded || !designLayoutBounds) return;
     if (wallLayout.segments.length === 0 && !footprintClosed) return;
-    if (viewMode === 'plan' && !hasUserAdjustedPlanViewRef.current && autoFitPlanForLayoutKeyRef.current !== layoutFramingKey) {
+    if (viewMode === '2d' && active2DView === 'foundation-plan' && !hasUserAdjustedPlanViewRef.current && autoFitPlanForLayoutKeyRef.current !== layoutFramingKey) {
       autoFitPlanForLayoutKeyRef.current = layoutFramingKey;
       issueViewCommand('fit');
       return;
@@ -967,7 +975,7 @@ export default function DesignBuilderPage({
     autoFit3dForLayoutKeyRef.current = layoutFramingKey;
     pending3dFitRef.current = false;
     issueViewCommand('fit');
-  }, [designLayoutBounds, footprintClosed, layoutFramingKey, modelLoaded, viewMode, wallLayout.segments.length]);
+  }, [active2DView, designLayoutBounds, footprintClosed, layoutFramingKey, modelLoaded, viewMode, wallLayout.segments.length]);
   const objectIds = useMemo(() => {
     const byKey = new Map(
       objects.map((object) => [objectSaveKey(object.objectType, object.parameters as { kind?: string }), object.id]),
@@ -1138,16 +1146,16 @@ export default function DesignBuilderPage({
 
   function activateDesignComponent(componentType: DesignComponentType) {
     if (componentType === 'door' || componentType === 'window') {
-      dispatchComponentPlacement({ type: 'reset', activeView: viewMode });
+      dispatchComponentPlacement({ type: 'reset', activeView: activeCanvasView });
       setComponentPanelCollapsed(true);
       activateToolMode(componentType === 'door' ? 'place_door' : 'place_window');
       return;
     }
     const definition = getDesignComponentDefinition(componentType);
-    const nextView = definition.supportedViews.includes(viewMode)
-      ? viewMode
+    const nextView = definition.supportedViews.includes(activeCanvasView)
+      ? activeCanvasView
       : definition.supportedViews[0] ?? 'plan';
-    setViewMode(nextView);
+    setActive2DDrawingView(nextView === 'elevation' ? 'elevation-view' : 'foundation-plan');
     setToolMode('place_component');
     setPlacementPreview(null);
     dispatchComponentPlacement({ type: 'select_component', componentType, activeView: nextView });
@@ -1166,7 +1174,7 @@ export default function DesignBuilderPage({
   function handleComponentPointer(event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number }) {
     if (!componentPlacement.activeComponentType || !componentPlacement.activeComponentDefinition) return;
     const snapPosition =
-      viewMode === 'plan'
+      activeCanvasView === 'plan'
         ? snapComponentPlanPoint({
             point: { xMeters: event.xMeters, zMeters: event.zMeters },
             snapMode,
@@ -1178,7 +1186,7 @@ export default function DesignBuilderPage({
             snapSpacingMeters: 0.1,
           });
     const helperMeasurements =
-      viewMode === 'elevation'
+      activeCanvasView === 'elevation'
         ? resolveElevationHelperMeasurements({
             position: { xMeters: event.xMeters, zMeters: event.zMeters },
             snapPosition,
@@ -1194,7 +1202,7 @@ export default function DesignBuilderPage({
           });
     dispatchComponentPlacement({
       type: 'preview',
-      activeView: viewMode,
+      activeView: activeCanvasView,
       cursor: { xMeters: event.xMeters, zMeters: event.zMeters },
       snap: snapPosition,
       helperMeasurements,
@@ -1208,7 +1216,7 @@ export default function DesignBuilderPage({
     }
     const component = buildPlacedComponent({
       type: componentPlacement.activeComponentType,
-      activeView: viewMode,
+      activeView: activeCanvasView,
       parameters: componentPlacement.draftComponentParameters,
       position: snapPosition,
       elevationFace: elevationView.face,
@@ -1223,7 +1231,7 @@ export default function DesignBuilderPage({
     ) {
       const footer = buildPlacedComponent({
         type: 'footer',
-        activeView: viewMode,
+        activeView: activeCanvasView,
         parameters: rcComponentDefaults('footer'),
         position: snapPosition,
         elevationFace: elevationView.face,
@@ -1631,15 +1639,14 @@ export default function DesignBuilderPage({
       const base = preset ?? createBlankCmuBuildingPreset();
       const nextPreset = syncPresetFromLayout({ ...base, wallLayout: nextLayout }, nextLayout);
       const nextWall = wallParamsWithLegacyOpenings(nextPreset.wall, nextLayout);
-      const nextInput = buildDesignGeometryInputFromLayout({
+      const nextGeometry = resolveDesignBuilderGeometryPipeline({
         wallLayout: nextLayout,
-        cmuSettings: nextWall,
-        openings: nextWall.openings,
-        slabSettings: canGenerateSlabAndRoof(nextLayout) ? nextPreset.slab : { ...nextPreset.slab, lengthMeters: 0, widthMeters: 0 },
-        roofSettings: canGenerateSlabAndRoof(nextLayout) ? nextPreset.roof : { ...nextPreset.roof, lengthMeters: 0, widthMeters: 0 },
-        trussSettings: canGenerateSlabAndRoof(nextLayout) ? nextPreset.truss : { ...nextPreset.truss, buildingLengthMeters: 0 },
-      });
-      const nextGeometry = generateDesignGeometry(nextInput);
+        effectiveWall: nextWall,
+        resolvedPreset: nextPreset,
+        footprintClosed: canGenerateSlabAndRoof(nextLayout),
+        activeRoofSystem: normalizeRoofSystemSettings(nextPreset.roofSystem),
+        manualMasonryRuns: nextWall.manualMasonryCourseRuns ?? [],
+      }).designGeometryResult;
       console.table({
         action: label,
         nodes: nextLayout.nodes.length,
@@ -3007,12 +3014,13 @@ export default function DesignBuilderPage({
       const syncedPreset = syncPresetFromLayout(preset, preset.wallLayout);
       const metadata = designModelMetadataWithPersistedState(activeModel, syncedPreset, {
         activeView: viewMode,
+        active2DView,
         elevationView,
         roofDisplayMode,
         foundationViewMode,
         visualStyle,
         materialSelections,
-      }, placedComponents);
+      }, placedComponents, annotations);
       const metadataResult = await updateDesignModelMetadata(activeModel.id, metadata);
       if (metadataResult.error || !metadataResult.data) {
         throw new Error(metadataResult.error ?? 'Could not save design metadata.');
@@ -3206,24 +3214,28 @@ export default function DesignBuilderPage({
 
     if (import.meta.env.DEV && options?.changedSetting) {
       const nextWall = syncWallBlockModuleFromScalars({ ...previousWall, ...patch });
-      const nextInput = buildDesignGeometryInputFromLayout({
-        wallLayout:
-          Object.keys(layoutPatch).length > 0 && !selectedSegmentId
-            ? applyProjectMasonryDefaultsToLayout(wallLayout, layoutPatch)
-            : wallLayout,
-        cmuSettings: nextWall,
-        openings: nextWall.openings,
-        slabSettings: footprintClosed ? resolvedPreset.slab : { ...resolvedPreset.slab, lengthMeters: 0, widthMeters: 0 },
-        roofSettings: footprintClosed ? resolvedPreset.roof : { ...resolvedPreset.roof, lengthMeters: 0, widthMeters: 0 },
-        trussSettings: footprintClosed ? resolvedPreset.truss : { ...resolvedPreset.truss, buildingLengthMeters: 0 },
-      });
-      const nextGeometry = generateDesignGeometry(nextInput);
+      const nextLayoutForGeometry =
+        Object.keys(layoutPatch).length > 0 && !selectedSegmentId
+          ? applyProjectMasonryDefaultsToLayout(wallLayout, layoutPatch)
+          : wallLayout;
+      const nextGeometry = resolveDesignBuilderGeometryPipeline({
+        wallLayout: nextLayoutForGeometry,
+        effectiveWall: nextWall,
+        resolvedPreset: {
+          ...resolvedPreset,
+          wall: nextWall,
+          wallLayout: nextLayoutForGeometry,
+        },
+        footprintClosed: canGenerateSlabAndRoof(nextLayoutForGeometry),
+        activeRoofSystem,
+        manualMasonryRuns,
+      }).designGeometryResult;
       logMasonrySettingsCommit({
         changedSetting: options.changedSetting,
         previousValue: options.previousValue,
         nextValue: patch[options.changedSetting as keyof typeof patch],
         geometryKey: buildMasonryGeometryKey({
-          wallLayout: nextInput.wallLayout ?? wallLayout,
+          wallLayout: nextLayoutForGeometry,
           wall: nextWall,
           openings: nextWall.openings,
           moduleFitMode,
@@ -3513,7 +3525,7 @@ export default function DesignBuilderPage({
       setSegmentLengthInput('');
     }
     setToolMode('draw_wall');
-    setViewMode('plan');
+    setActive2DDrawingView('foundation-plan');
   }
 
   function activateToolMode(mode: DesignBuilderToolMode) {
@@ -3523,7 +3535,10 @@ export default function DesignBuilderPage({
       return;
     }
     setToolMode(mode);
-    if (mode === 'move_wall_node') setViewMode('plan');
+    if (mode === 'place_dimension' && (viewMode !== '2d' || active2DView === 'elevation-view')) {
+      setActive2DDrawingView('foundation-plan');
+    }
+    if (mode === 'move_wall_node') setActive2DDrawingView('foundation-plan');
     if (mode === 'select') setPlacementPreview(null);
   }
 
@@ -3567,16 +3582,14 @@ export default function DesignBuilderPage({
       truss: { ...resolvedPreset.truss, buildingLengthMeters: 0 },
     });
     const committedBlankPreset = { ...blankPreset, wallLayout: blankLayout };
-    const blankGeometry = generateDesignGeometry(
-      buildDesignGeometryInputFromLayout({
-        wallLayout: blankLayout,
-        cmuSettings: committedBlankPreset.wall,
-        openings: [],
-        slabSettings: committedBlankPreset.slab,
-        roofSettings: committedBlankPreset.roof,
-        trussSettings: committedBlankPreset.truss,
-      }),
-    );
+    const blankGeometry = resolveDesignBuilderGeometryPipeline({
+      wallLayout: blankLayout,
+      effectiveWall: { ...committedBlankPreset.wall, openings: [] },
+      resolvedPreset: committedBlankPreset,
+      footprintClosed: false,
+      activeRoofSystem: normalizeRoofSystemSettings(committedBlankPreset.roofSystem),
+      manualMasonryRuns: [],
+    }).designGeometryResult;
     const nextEpoch = layoutEpoch + 1;
     const after = createDesignSnapshot({
       preset: committedBlankPreset,
@@ -3597,6 +3610,7 @@ export default function DesignBuilderPage({
     setObjectTreeExpanded(DEFAULT_OBJECT_TREE_EXPANSION);
     setPreviewLines([]);
     setPlacedComponents([]);
+    setAnnotations([]);
     setSelectedComponentId(null);
     dispatchComponentPlacement({ type: 'reset', activeView: 'plan' });
     setPersistedQuantityItems([]);
@@ -3605,7 +3619,8 @@ export default function DesignBuilderPage({
     recordDesignHistoryCommand('New layout', 'layout_reset', before, after);
     finalizeMutationAfterCommand();
     setToolMode('select');
-    setViewMode('plan');
+    setViewMode('2d');
+    setActive2DView('foundation-plan');
     hasUserAdjustedPlanViewRef.current = false;
     hasUserAdjusted3dViewRef.current = false;
     orthogonalGuidesPreferenceTouchedRef.current = false;
@@ -3640,7 +3655,9 @@ export default function DesignBuilderPage({
       previewLines: [],
       persistedQuantityItems: [],
       toolMode: 'select',
-      viewMode: 'plan',
+      viewMode: '2d',
+      active2DView: 'foundation-plan',
+      elevationView: { face: 'north' },
       objectTreeExpanded: DEFAULT_OBJECT_TREE_EXPANSION,
       camera: null,
     });
@@ -4033,18 +4050,17 @@ export default function DesignBuilderPage({
                 className="inline-flex h-9 overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700"
               >
                 {([
-                  ['plan', '2D Plan'],
-                  ['elevation', '2D Elevation'],
+                  ['2d', '2D'],
                   ['3d', '3D'],
-                ] as Array<[BuilderViewMode, string]>).map(([mode, label], index) => (
+                ] as Array<[DesignBuilderViewMode, string]>).map(([mode, label], index) => (
                   <button
                     key={mode}
                     type="button"
                     aria-label={`Switch to ${label} view`}
-                    aria-pressed={builderViewMode === mode}
-                    onClick={() => setBuilderViewMode(mode)}
+                    aria-pressed={viewMode === mode}
+                    onClick={() => setDesignBuilderViewMode(mode)}
                     className={`${index === 0 ? '' : 'border-l border-slate-200 dark:border-slate-700'} px-3 text-xs font-semibold transition ${
-                      builderViewMode === mode
+                      viewMode === mode
                         ? 'bg-cyan-600 text-white'
                         : 'text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800'
                     }`}
@@ -4053,6 +4069,36 @@ export default function DesignBuilderPage({
                   </button>
                 ))}
               </div>
+              {viewMode === '2d' ? (
+                <div
+                  role="group"
+                  aria-label="Switch 2D drawing view"
+                  className="inline-flex h-9 overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700"
+                >
+                  {([
+                    ['foundation-plan', 'Foundation'],
+                    ['roof-plan', 'Roof'],
+                    ['electrical-plan', 'Electrical'],
+                    ['plumbing-plan', 'Plumbing'],
+                    ['elevation-view', 'Elevation'],
+                  ] as Array<[Design2DViewType, string]>).map(([drawingView, label], index) => (
+                    <button
+                      key={drawingView}
+                      type="button"
+                      aria-label={`Switch to ${label} drawing`}
+                      aria-pressed={active2DView === drawingView}
+                      onClick={() => setActive2DDrawingView(drawingView)}
+                      className={`${index === 0 ? '' : 'border-l border-slate-200 dark:border-slate-700'} px-3 text-xs font-semibold transition ${
+                        active2DView === drawingView
+                          ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950'
+                          : 'text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
               <DesignBuilderCommandMenu
                 menuKind="structure"
                 label={<>{structureMenuLabel}</>}
@@ -4282,6 +4328,24 @@ export default function DesignBuilderPage({
                       Materials &amp; Colors
                     </CommandMenuAction>
                   </DisplayMenuCollapsibleSection>
+                  <DisplayMenuCollapsibleSection id="display-2d-drawing" title="2D Drawing">
+                    {(
+                      [
+                        ['architectural', 'Architectural'],
+                        ['builder', 'Builder'],
+                      ] as const
+                    ).map(([mode, label]) => (
+                      <label key={mode} className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 hover:bg-slate-50 dark:hover:bg-slate-800">
+                        <input
+                          type="radio"
+                          name="design-2d-drawing-style"
+                          checked={twoDDrawingStyle === mode}
+                          onChange={() => setTwoDDrawingStyle(mode)}
+                        />
+                        <span>{label}</span>
+                      </label>
+                    ))}
+                  </DisplayMenuCollapsibleSection>
                   {import.meta.env.DEV && resolvedPreset.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill' ? (
                     <DisplayMenuCollapsibleSection id="display-debug" title="Debug">
                       <ToggleField
@@ -4298,6 +4362,12 @@ export default function DesignBuilderPage({
                   ) : null}
                   {resolvedPreset.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill' ? (
                     <>
+                      <DisplayMenuCollapsibleSection id="display-roof-plan" title="Roof Plan">
+                        <ToggleField label="Show Roof Hatch" checked={showRoofPlanHatch} onChange={setShowRoofPlanHatch} />
+                        <ToggleField label="Show Roof Slope Arrows" checked={showRoofPlanSlopeArrows} onChange={setShowRoofPlanSlopeArrows} />
+                        <ToggleField label="Show Roof Dimensions" checked={showRoofPlanDimensions} onChange={setShowRoofPlanDimensions} />
+                        <ToggleField label="Show Roof Reference Lines" checked={showRoofPlanReferenceLines} onChange={setShowRoofPlanReferenceLines} />
+                      </DisplayMenuCollapsibleSection>
                       <DisplayMenuCollapsibleSection id="display-foundation-view" title="Foundation View">
                         {(
                           [
@@ -4594,7 +4664,7 @@ export default function DesignBuilderPage({
             style={focusMode ? undefined : { height: viewerSize.height }}
           >
             <DebugOverlayLayoutProvider containerRef={viewerOverlayContainerRef}>
-            {viewMode === 'plan' ? (
+            {viewMode === '2d' && active2DView !== 'elevation-view' ? (
               <DesignBuilderPlanCanvas
                 layout={wallLayout}
                 toolMode={toolMode}
@@ -4626,15 +4696,25 @@ export default function DesignBuilderPage({
                 frameSystem={designGeometryResult.frameSystem}
                 isolatedFootings={designGeometryResult.isolatedFootings}
                 resolvedRoofSystem={designGeometryResult.resolvedRoofSystem ?? null}
+                roofPlanDisplay={{
+                  showHatch: showRoofPlanHatch,
+                  showSlopeArrows: showRoofPlanSlopeArrows,
+                  showDimensions: showRoofPlanDimensions,
+                  showReferenceLines: showRoofPlanReferenceLines,
+                }}
                 selectedObjectType={selectedObjectType}
+                drawingStyleMode={twoDDrawingStyle}
+                active2DView={active2DView}
+                annotations={annotations}
                 placedComponents={placedComponents}
                 designRenderModel={designRenderModel}
                 componentPreview={componentPlacement.activeView === 'plan' ? componentPlacement.placementPreview : null}
                 helperMeasurements={componentPlacement.activeView === 'plan' ? componentPlacement.helperMeasurements : []}
                 onComponentPointer={handleComponentPointer}
+                onAnnotationCreate={(annotation) => setAnnotations((current) => [...current, annotation])}
                 onInteraction={handlePlanInteraction}
               />
-            ) : viewMode === 'elevation' ? (
+            ) : viewMode === '2d' && active2DView === 'elevation-view' ? (
               <DesignBuilderElevationCanvas
                 toolMode={toolMode}
                 elevationView={elevationView}
@@ -4642,9 +4722,14 @@ export default function DesignBuilderPage({
                 viewCommand={viewCommand}
                 frameSystem={designGeometryResult.frameSystem}
                 isolatedFootings={designGeometryResult.isolatedFootings}
+                resolvedRoofSystem={designGeometryResult.resolvedRoofSystem ?? null}
+                interiorFloorSlab={designGeometryResult.interiorFloorSlab ?? null}
+                floorTileLayout={designGeometryResult.floorTileLayout ?? null}
+                plywoodCeilingLayout={designGeometryResult.plywoodCeilingLayout ?? null}
                 openings={effectiveWall.openings}
                 placedComponents={placedComponents}
                 designRenderModel={designRenderModel}
+                drawingStyleMode={twoDDrawingStyle}
                 componentPreview={componentPlacement.activeView === 'elevation' ? componentPlacement.placementPreview : null}
                 helperMeasurements={componentPlacement.activeView === 'elevation' ? componentPlacement.helperMeasurements : []}
                 onElevationViewChange={setElevationView}
@@ -4762,7 +4847,7 @@ export default function DesignBuilderPage({
                       </div>
                     ) : null}
                     <div className="rounded-lg border border-slate-800 bg-slate-900/80 px-2 py-1.5 text-[11px] font-medium text-slate-400">
-                      {viewMode === 'elevation'
+                      {activeCanvasView === 'elevation'
                         ? `View: X / Z on ${elevationView.face.toUpperCase()} face`
                         : 'View: X / Y plan placement'}
                     </div>
@@ -4770,7 +4855,7 @@ export default function DesignBuilderPage({
                 ) : null}
               </div>
             ) : null}
-            {viewMode === 'plan' && toolMode === 'draw_wall' ? (
+            {viewMode === '2d' && active2DView === 'foundation-plan' && toolMode === 'draw_wall' ? (
               <div className="pointer-events-none absolute left-3 top-12 z-10 space-y-1 rounded-xl border border-amber-400/60 bg-slate-900/95 px-3 py-2 text-xs font-medium text-amber-100 shadow-lg">
                 <div>{drawWallInstruction}</div>
                 {drawWallSnapFeedback ? <div className="font-semibold text-cyan-200">{drawWallSnapFeedback}</div> : null}
@@ -5171,6 +5256,7 @@ function statusClassName(tone: StatusTone): string {
 
 const TOOL_MODE_OPTIONS: Array<{ mode: DesignBuilderToolMode; label: string }> = [
   { mode: 'select', label: 'Select' },
+  { mode: 'place_dimension', label: 'Dimension' },
   { mode: 'draw_wall', label: 'Draw Wall' },
   { mode: 'move_wall_node', label: 'Move Node' },
   { mode: 'move_opening', label: 'Move Opening' },
@@ -5293,7 +5379,7 @@ function EditableControls({
 }: {
   selectedObjectType: DesignObjectType | null;
   preset: CmuBuildingPreset;
-  designGeometryResult: ReturnType<typeof generateDesignGeometry>;
+  designGeometryResult: DesignGeometryResult;
   unitSystem: DesignUnitSystem;
   onUnitSystemChange: (unitSystem: DesignUnitSystem) => void;
   onFootprintChange: (field: 'lengthMeters' | 'widthMeters', value: number) => void;

@@ -3,15 +3,21 @@ import type {
   DesignBuilderElevationViewState,
   DesignBuilderInteractionEvent,
   DesignBuilderToolMode,
+  Design2dDrawingStyleMode,
   ElevationFace,
   IsolatedFooting,
   PlacedDesignComponent,
+  ResolvedFloorTileLayout,
+  ResolvedPlywoodCeilingLayout,
+  ResolvedRoofSystem,
+  RoofVec3,
   StructuralBeam,
   StructuralFrameSystemParameters,
   WallOpeningParameters,
 } from '../types';
 import type { DesignLayoutBounds } from '../domain/designLayoutBounds';
 import type { HelperMeasurement } from '../domain/designComponentPlacement';
+import type { ResolvedInteriorFloorSlab } from '../domain/interiorFloorSlab';
 import {
   buildDesignRenderModel,
   coordinateLabelForElevationFace,
@@ -32,9 +38,21 @@ import {
   formatPlanGridSpacingMeters,
   projectCellWidthPx,
 } from '../domain/planGridState';
+import {
+  renderDrawingPrimitive,
+  resolve2dDrawingStyle,
+  type DrawingPrimitive,
+} from '../domain/design2dDrawingPrimitives';
+import {
+  PURLIN_PROFILE_DEPTH_METERS,
+  TRUSS_CHORD_PROFILE_METERS,
+} from '../domain/roofFramingResolver';
 
 const FALLBACK_SURFACE_SIZE = { width: 900, height: 520 };
 const DEFAULT_ELEVATION_GRID_SPACING_METERS = 0.5;
+const FRONT_ELEVATION_FACE: ElevationFace = 'north';
+const SIDE_ELEVATION_FACE: ElevationFace = 'east';
+const FLOOR_TILE_SURFACE_THICKNESS_METERS = 0.008;
 
 interface DesignBuilderElevationCanvasProps {
   toolMode: DesignBuilderToolMode;
@@ -43,10 +61,15 @@ interface DesignBuilderElevationCanvasProps {
   viewCommand?: { id: number; action: 'fit' | 'reset' | 'grid_scale'; spacingMeters?: number } | null;
   frameSystem?: StructuralFrameSystemParameters;
   isolatedFootings?: readonly IsolatedFooting[];
+  resolvedRoofSystem?: ResolvedRoofSystem | null;
+  interiorFloorSlab?: ResolvedInteriorFloorSlab | null;
+  floorTileLayout?: ResolvedFloorTileLayout | null;
+  plywoodCeilingLayout?: ResolvedPlywoodCeilingLayout | null;
   openings?: readonly WallOpeningParameters[];
   placedComponents?: readonly PlacedDesignComponent[];
   componentPreview?: PlacedDesignComponent | null;
   designRenderModel?: DesignRenderModel;
+  drawingStyleMode?: Design2dDrawingStyleMode;
   helperMeasurements?: readonly HelperMeasurement[];
   onElevationViewChange?: (view: DesignBuilderElevationViewState) => void;
   onComponentPointer?: (event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number }) => void;
@@ -69,6 +92,12 @@ function faceLabel(face: ElevationFace): string {
     default:
       return 'North Elevation';
   }
+}
+
+function sheetElevationTitle(face: ElevationFace): string {
+  if (face === FRONT_ELEVATION_FACE) return 'Front Elevation';
+  if (face === SIDE_ELEVATION_FACE) return 'Side Elevation';
+  return faceLabel(face);
 }
 
 function numberValue(value: unknown, fallback: number): number {
@@ -102,6 +131,10 @@ function buildElevationBounds(params: {
   isolatedFootings: readonly IsolatedFooting[];
   openings: readonly WallOpeningParameters[];
   components: readonly DesignRenderRcComponent[];
+  resolvedRoofSystem?: ResolvedRoofSystem | null;
+  interiorFloorSlab?: ResolvedInteriorFloorSlab | null;
+  floorTileLayout?: ResolvedFloorTileLayout | null;
+  plywoodCeilingLayout?: ResolvedPlywoodCeilingLayout | null;
 }): PlanViewportBounds {
   const stations: number[] = [];
   const elevations: number[] = [0];
@@ -149,6 +182,79 @@ function buildElevationBounds(params: {
     }
   });
 
+  if (params.resolvedRoofSystem?.supported) {
+    const roof = params.resolvedRoofSystem;
+    const addRoofPoint = (point: RoofVec3) => {
+      stations.push(stationForFace(params.face, point));
+      elevations.push(point.y);
+    };
+    roof.roofSheetPerimeter.forEach(addRoofPoint);
+    roof.claddingPerimeter.forEach(addRoofPoint);
+    roof.roofTopPlanes.forEach((plane) => plane.corners.forEach(addRoofPoint));
+    roof.claddingDisplayPlanes.forEach((plane) => plane.corners.forEach(addRoofPoint));
+    roof.ridgeStart && addRoofPoint(roof.ridgeStart);
+    roof.ridgeEnd && addRoofPoint(roof.ridgeEnd);
+    roof.trussPlacements.forEach((truss) => {
+      addRoofPoint(truss.bearingLeft);
+      addRoofPoint(truss.bearingRight);
+      addRoofPoint(truss.apex);
+      truss.members.forEach((member) => {
+        addRoofPoint(member.start);
+        addRoofPoint(member.end);
+      });
+    });
+    roof.purlinPlacements.forEach((purlin) => {
+      addRoofPoint(purlin.start);
+      addRoofPoint(purlin.end);
+    });
+    roof.gableEndRoofingClosures.forEach((closure) => closure.corners.forEach(addRoofPoint));
+  }
+
+  if (params.interiorFloorSlab?.enabled) {
+    elevations.push(params.interiorFloorSlab.bottomElevationMeters, params.interiorFloorSlab.topElevationMeters);
+  }
+
+  if (params.floorTileLayout?.enabled) {
+    const slabTop = params.interiorFloorSlab?.topElevationMeters ?? 0;
+    elevations.push(
+      slabTop,
+      slabTop + params.floorTileLayout.thinsetThicknessMeters,
+      slabTop + params.floorTileLayout.thinsetThicknessMeters + FLOOR_TILE_SURFACE_THICKNESS_METERS,
+    );
+    params.floorTileLayout.placements.forEach((tile) => {
+      const halfX = tile.renderWidthMeters / 2;
+      const halfZ = tile.renderDepthMeters / 2;
+      stations.push(
+        stationForFace(params.face, { x: tile.renderCenter.x - halfX, z: tile.renderCenter.z - halfZ }),
+        stationForFace(params.face, { x: tile.renderCenter.x + halfX, z: tile.renderCenter.z + halfZ }),
+      );
+    });
+  }
+
+  if (params.plywoodCeilingLayout?.enabled) {
+    const ceiling = params.plywoodCeilingLayout;
+    const addPoint = (point: { x: number; y: number; z: number }) => {
+      stations.push(stationForFace(params.face, point));
+      elevations.push(point.y);
+    };
+    elevations.push(
+      ceiling.frameBottomElevationMeters,
+      ceiling.frameBottomElevationMeters + ceiling.tubeSizeMeters,
+      ceiling.ceilingHeightMeters - ceiling.sheetThicknessMeters,
+      ceiling.ceilingHeightMeters,
+    );
+    ceiling.frameMembers.forEach((member) => {
+      addPoint(member.start);
+      addPoint(member.end);
+    });
+    ceiling.panelPlacements.forEach((panel) => {
+      const halfX = panel.widthMeters / 2;
+      const halfZ = panel.lengthMeters / 2;
+      addPoint({ x: panel.center.x - halfX, y: panel.center.y, z: panel.center.z - halfZ });
+      addPoint({ x: panel.center.x + halfX, y: panel.center.y, z: panel.center.z + halfZ });
+    });
+  }
+
   if (stations.length === 0) stations.push(-1, 8);
   return {
     minX: Math.min(...stations),
@@ -165,10 +271,15 @@ export default function DesignBuilderElevationCanvas({
   viewCommand = null,
   frameSystem,
   isolatedFootings = [],
+  resolvedRoofSystem = null,
+  interiorFloorSlab = null,
+  floorTileLayout = null,
+  plywoodCeilingLayout = null,
   openings = [],
   placedComponents = [],
   componentPreview = null,
   designRenderModel,
+  drawingStyleMode = 'architectural',
   helperMeasurements = [],
   onElevationViewChange,
   onComponentPointer,
@@ -185,6 +296,16 @@ export default function DesignBuilderElevationCanvas({
   const [surfaceSize, setSurfaceSize] = useState(FALLBACK_SURFACE_SIZE);
   const [viewport, setViewport] = useState<PlanViewportState>(DEFAULT_PLAN_VIEWPORT);
   const [cursor, setCursor] = useState<{ xMeters: number; zMeters: number } | null>(null);
+  const drawingStyle = useMemo(() => resolve2dDrawingStyle(drawingStyleMode), [drawingStyleMode]);
+  const architecturalDrawing = drawingStyleMode === 'architectural';
+  const sheetBackerFill = architecturalDrawing ? drawingStyle.sheetFill : drawingStyle.viewportFill;
+  const referenceStroke = drawingStyle.referenceStroke;
+  const permanentStroke = drawingStyle.lineStroke;
+  const mutedStroke = drawingStyle.mutedStroke;
+  const concreteFill = drawingStyle.concreteFill;
+  const selectionStroke = drawingStyle.selectionStroke;
+  const previewStroke = drawingStyle.previewStroke;
+  const previewFill = drawingStyle.previewFill;
 
   const committedRenderModel = useMemo(
     () => designRenderModel ?? buildDesignRenderModel({ placedComponents, layoutBounds }),
@@ -199,17 +320,51 @@ export default function DesignBuilderElevationCanvas({
     [committedRenderModel.rcComponents, previewRenderModel.rcComponents],
   );
 
-  const modelBounds = useMemo(
+  const frontModelBounds = useMemo(
     () =>
       buildElevationBounds({
-        face: elevationView.face,
+        face: FRONT_ELEVATION_FACE,
         layoutBounds,
         frameSystem,
         isolatedFootings,
         openings,
         components: allRenderComponents,
+        resolvedRoofSystem,
+        interiorFloorSlab,
+        floorTileLayout,
+        plywoodCeilingLayout,
       }),
-    [allRenderComponents, elevationView.face, frameSystem, isolatedFootings, layoutBounds, openings],
+    [allRenderComponents, floorTileLayout, frameSystem, interiorFloorSlab, isolatedFootings, layoutBounds, openings, plywoodCeilingLayout, resolvedRoofSystem],
+  );
+  const sideModelBounds = useMemo(
+    () =>
+      buildElevationBounds({
+        face: SIDE_ELEVATION_FACE,
+        layoutBounds,
+        frameSystem,
+        isolatedFootings,
+        openings,
+        components: allRenderComponents,
+        resolvedRoofSystem,
+        interiorFloorSlab,
+        floorTileLayout,
+        plywoodCeilingLayout,
+      }),
+    [allRenderComponents, floorTileLayout, frameSystem, interiorFloorSlab, isolatedFootings, layoutBounds, openings, plywoodCeilingLayout, resolvedRoofSystem],
+  );
+  const sideElevationStationOffsetMeters = useMemo(() => {
+    const frontWidth = Math.max(1, frontModelBounds.maxX - frontModelBounds.minX);
+    const gap = Math.max(1.6, frontWidth * 0.24);
+    return frontModelBounds.maxX - sideModelBounds.minX + gap;
+  }, [frontModelBounds.maxX, frontModelBounds.minX, sideModelBounds.minX]);
+  const modelBounds = useMemo(
+    () => ({
+      minX: Math.min(frontModelBounds.minX, sideModelBounds.minX + sideElevationStationOffsetMeters),
+      maxX: Math.max(frontModelBounds.maxX, sideModelBounds.maxX + sideElevationStationOffsetMeters),
+      minZ: Math.min(frontModelBounds.minZ, sideModelBounds.minZ),
+      maxZ: Math.max(frontModelBounds.maxZ, sideModelBounds.maxZ),
+    }),
+    [frontModelBounds, sideElevationStationOffsetMeters, sideModelBounds],
   );
 
   const controller = useMemo(
@@ -288,7 +443,7 @@ export default function DesignBuilderElevationCanvas({
 
   useEffect(() => {
     const key = [
-      elevationView.face,
+      'elevation-sheet',
       modelBounds.minX.toFixed(3),
       modelBounds.maxX.toFixed(3),
       modelBounds.minZ.toFixed(3),
@@ -296,11 +451,11 @@ export default function DesignBuilderElevationCanvas({
       surfaceSize.width.toFixed(0),
       surfaceSize.height.toFixed(0),
     ].join(':');
-    if (userAdjustedViewRef.current && lastAutoFitKeyRef.current?.startsWith(`${elevationView.face}:`)) return;
+    if (userAdjustedViewRef.current && lastAutoFitKeyRef.current?.startsWith('elevation-sheet:')) return;
     if (lastAutoFitKeyRef.current === key) return;
     lastAutoFitKeyRef.current = key;
     setViewport(fitPlanViewportToBounds(modelBounds, surfaceSize, 0.18));
-  }, [elevationView.face, modelBounds, surfaceSize]);
+  }, [modelBounds, surfaceSize]);
 
   useEffect(() => {
     if (!viewCommand || lastViewCommandIdRef.current === viewCommand.id) return;
@@ -442,9 +597,9 @@ export default function DesignBuilderElevationCanvas({
         y1={start.sy}
         x2={end.sx}
         y2={end.sy}
-        stroke="currentColor"
-        strokeOpacity={major ? 0.18 : 0.08}
-        strokeWidth={major ? 1.25 : 1}
+        stroke={major ? drawingStyle.gridMajorStroke : drawingStyle.gridStroke}
+        strokeOpacity={architecturalDrawing ? (major ? 0.42 : 0.24) : (major ? 0.18 : 0.08)}
+        strokeWidth={major ? drawingStyle.weights.reference + 0.3 : drawingStyle.weights.reference}
         pointerEvents="none"
         data-grid-kind={major ? 'major' : 'minor'}
       />,
@@ -462,9 +617,9 @@ export default function DesignBuilderElevationCanvas({
         y1={start.sy}
         x2={end.sx}
         y2={end.sy}
-        stroke="currentColor"
-        strokeOpacity={Math.abs(z) < 0.001 ? 0.82 : major ? 0.18 : 0.08}
-        strokeWidth={Math.abs(z) < 0.001 ? 1.6 : major ? 1.25 : 1}
+        stroke={Math.abs(z) < 0.001 ? permanentStroke : major ? drawingStyle.gridMajorStroke : drawingStyle.gridStroke}
+        strokeOpacity={Math.abs(z) < 0.001 ? 0.82 : architecturalDrawing ? (major ? 0.42 : 0.24) : (major ? 0.18 : 0.08)}
+        strokeWidth={Math.abs(z) < 0.001 ? drawingStyle.weights.medium : major ? drawingStyle.weights.reference + 0.3 : drawingStyle.weights.reference}
         pointerEvents="none"
         data-grid-kind={major ? 'major' : 'minor'}
       />,
@@ -476,7 +631,6 @@ export default function DesignBuilderElevationCanvas({
   const horizontalAxisEnd = worldToScreen({ xMeters: visibleBounds.maxX, zMeters: 0 });
   const verticalAxisStart = worldToScreen({ xMeters: 0, zMeters: visibleBounds.minZ });
   const verticalAxisEnd = worldToScreen({ xMeters: 0, zMeters: visibleBounds.maxZ });
-  const horizontalAxisName = elevationView.face === 'north' || elevationView.face === 'south' ? 'X' : 'Y';
 
   const renderRect = (
     key: string,
@@ -492,8 +646,9 @@ export default function DesignBuilderElevationCanvas({
       opacity?: number;
       data?: Record<string, string>;
     },
+    stationOffsetMeters = 0,
   ) => {
-    const top = worldToScreen({ xMeters: station, zMeters: topElevationMeters });
+    const top = worldToScreen({ xMeters: station + stationOffsetMeters, zMeters: topElevationMeters });
     const width = Math.max(8, widthMeters * viewport.zoom);
     const height = Math.max(6, heightMeters * viewport.zoom);
     return (
@@ -514,34 +669,442 @@ export default function DesignBuilderElevationCanvas({
     );
   };
 
-  const renderGeneratedBeam = (beam: StructuralBeam) => {
-    const startStation = stationForFace(elevationView.face, { x: beam.startPoint.x, z: beam.startPoint.z });
-    const endStation = stationForFace(elevationView.face, { x: beam.endPoint.x, z: beam.endPoint.z });
-    const centerStation = (startStation + endStation) / 2;
-    return renderRect(`beam-${beam.id}`, centerStation, beam.topElevationMeters, Math.abs(endStation - startStation), beam.depthMeters, {
-      fill: '#94a3b866',
-      stroke: '#475569',
-      strokeWidth: 1.4,
-      data: { 'data-canvas-layer': 'beams-walls', 'data-beam-kind': beam.kind },
+  const projectionWidthForColumn = (column: StructuralFrameSystemParameters['columns'][number], face: ElevationFace) =>
+    face === 'north' || face === 'south' ? column.widthMeters : column.depthMeters;
+
+  const projectionWidthForFooting = (footing: IsolatedFooting, face: ElevationFace) =>
+    face === 'north' || face === 'south' ? footing.widthMeters : footing.lengthMeters;
+
+  const wallTopElevationMeters = resolvedRoofSystem?.supported
+    ? resolvedRoofSystem.roofBeamTopY
+    : frameSystem?.beams
+        .filter((beam) => beam.kind === 'roof_beam')
+        .reduce((top, beam) => Math.max(top, beam.topElevationMeters), layoutBounds?.maxY ?? 3)
+      ?? layoutBounds?.maxY
+      ?? 3;
+  const infillBaseElevationMeters = frameSystem?.beams
+    .filter((beam) => beam.kind === 'plinth_beam')
+    .reduce((top, beam) => Math.max(top, beam.topElevationMeters), 0)
+    ?? 0;
+  const infillTopElevationMeters = frameSystem?.beams
+    .filter((beam) => beam.kind === 'roof_beam')
+    .reduce((base, beam) => Math.min(base, beam.baseElevationMeters), wallTopElevationMeters)
+    ?? wallTopElevationMeters;
+
+  const renderInfillPanels = (
+    face: ElevationFace,
+    keyPrefix: string,
+    stationOffsetMeters = 0,
+  ) => {
+    const columns = (frameSystem?.columns ?? [])
+      .map((column) => {
+        const station = stationForFace(face, column.position);
+        const halfWidth = projectionWidthForColumn(column, face) / 2;
+        return { column, station, halfWidth };
+      })
+      .sort((a, b) => a.station - b.station);
+    if (columns.length < 2) return null;
+    const panelBase = infillBaseElevationMeters;
+    const panelTop = Math.max(panelBase + 0.1, infillTopElevationMeters);
+    const panels = columns.slice(0, -1).map((left, index) => {
+      const right = columns[index + 1]!;
+      const panelStart = left.station + left.halfWidth;
+      const panelEnd = right.station - right.halfWidth;
+      if (panelEnd - panelStart < 0.12) return null;
+      const topLeft = worldToScreen({ xMeters: panelStart + stationOffsetMeters, zMeters: panelTop });
+      const bottomRight = worldToScreen({ xMeters: panelEnd + stationOffsetMeters, zMeters: panelBase });
+      const width = Math.max(4, bottomRight.sx - topLeft.sx);
+      const height = Math.max(6, bottomRight.sy - topLeft.sy);
+      const courseLines = Array.from({ length: Math.max(0, Math.floor((panelTop - panelBase) / 0.2)) }, (_, courseIndex) => {
+        const z = panelBase + (courseIndex + 1) * 0.2;
+        const start = worldToScreen({ xMeters: panelStart + stationOffsetMeters, zMeters: z });
+        const end = worldToScreen({ xMeters: panelEnd + stationOffsetMeters, zMeters: z });
+        return (
+          <line
+            key={`${keyPrefix}-infill-${index}-course-${courseIndex}`}
+            x1={start.sx}
+            y1={start.sy}
+            x2={end.sx}
+            y2={end.sy}
+            stroke={referenceStroke}
+            strokeWidth={drawingStyle.weights.reference}
+            strokeOpacity={0.22}
+            data-elevation-wall-course="true"
+          />
+        );
+      });
+      return (
+        <g key={`${keyPrefix}-infill-panel-${left.column.id}-${right.column.id}`} pointerEvents="none" data-elevation-infill-panel={keyPrefix}>
+          <rect
+            x={topLeft.sx}
+            y={topLeft.sy}
+            width={width}
+            height={height}
+            fill={architecturalDrawing ? '#ffffff' : '#33415555'}
+            fillOpacity={architecturalDrawing ? 0.5 : 0.38}
+            stroke={mutedStroke}
+            strokeWidth={drawingStyle.weights.light + 0.2}
+          />
+          {courseLines}
+        </g>
+      );
     });
+    return (
+      <g key={`${keyPrefix}-infill-panels`} pointerEvents="none" data-elevation-wall-envelope={keyPrefix}>
+        {panels}
+      </g>
+    );
   };
 
-  const renderGeneratedColumn = (column: StructuralFrameSystemParameters['columns'][number]) => {
-    const selected = false;
-    const station = stationForFace(elevationView.face, column.position);
+  const roofPointToScreen = (face: ElevationFace, point: RoofVec3, stationOffsetMeters = 0) =>
+    worldToScreen({ xMeters: stationForFace(face, point) + stationOffsetMeters, zMeters: point.y });
+
+  const modelPointToScreen = (face: ElevationFace, point: { x: number; y: number; z: number }, stationOffsetMeters = 0) =>
+    worldToScreen({ xMeters: stationForFace(face, point) + stationOffsetMeters, zMeters: point.y });
+
+  const renderProjectedRoofLine = (
+    key: string,
+    face: ElevationFace,
+    startPoint: RoofVec3,
+    endPoint: RoofVec3,
+    stationOffsetMeters: number,
+    options: {
+      stroke?: string;
+      strokeWidth?: number;
+      strokeOpacity?: number;
+      strokeDasharray?: string;
+      data?: Record<string, string>;
+    } = {},
+  ) => {
+    const start = roofPointToScreen(face, startPoint, stationOffsetMeters);
+    const end = roofPointToScreen(face, endPoint, stationOffsetMeters);
+    if (Math.hypot(end.sx - start.sx, end.sy - start.sy) < 2) return null;
     return (
-      <g key={column.id} pointerEvents="none" data-canvas-layer="columns">
-        {renderRect(`column-body-${column.id}`, station, column.topElevationMeters, column.widthMeters, column.heightMeters, {
-          fill: '#cbd5e1',
-          stroke: selected ? '#22d3ee' : '#475569',
-          strokeWidth: selected ? 2.2 : 1.6,
+      <line
+        key={key}
+        x1={start.sx}
+        y1={start.sy}
+        x2={end.sx}
+        y2={end.sy}
+        stroke={options.stroke ?? permanentStroke}
+        strokeWidth={options.strokeWidth ?? drawingStyle.weights.medium}
+        strokeOpacity={options.strokeOpacity ?? 1}
+        strokeDasharray={options.strokeDasharray}
+        pointerEvents="none"
+        {...options.data}
+      />
+    );
+  };
+
+  const renderProjectedRoofMember = (
+    key: string,
+    face: ElevationFace,
+    startPoint: RoofVec3,
+    endPoint: RoofVec3,
+    stationOffsetMeters: number,
+    profileDepthMeters: number,
+    options: {
+      fill?: string;
+      stroke?: string;
+      strokeWidth?: number;
+      opacity?: number;
+      data?: Record<string, string>;
+    } = {},
+  ) => {
+    const start = roofPointToScreen(face, startPoint, stationOffsetMeters);
+    const end = roofPointToScreen(face, endPoint, stationOffsetMeters);
+    const dx = end.sx - start.sx;
+    const dy = end.sy - start.sy;
+    const length = Math.hypot(dx, dy);
+    if (length < 2) return null;
+    const half = Math.max(2, (profileDepthMeters * viewport.zoom) / 2);
+    const nx = (-dy / length) * half;
+    const ny = (dx / length) * half;
+    const points = [
+      `${start.sx + nx},${start.sy + ny}`,
+      `${end.sx + nx},${end.sy + ny}`,
+      `${end.sx - nx},${end.sy - ny}`,
+      `${start.sx - nx},${start.sy - ny}`,
+    ].join(' ');
+    return (
+      <polygon
+        key={key}
+        points={points}
+        fill={options.fill ?? (architecturalDrawing ? '#e5e7eb' : '#475569')}
+        stroke={options.stroke ?? permanentStroke}
+        strokeWidth={options.strokeWidth ?? drawingStyle.weights.light}
+        opacity={options.opacity ?? 1}
+        pointerEvents="none"
+        {...options.data}
+      />
+    );
+  };
+
+  const renderProjectedModelMember = (
+    key: string,
+    face: ElevationFace,
+    startPoint: { x: number; y: number; z: number },
+    endPoint: { x: number; y: number; z: number },
+    stationOffsetMeters: number,
+    profileDepthMeters: number,
+    options: {
+      fill?: string;
+      stroke?: string;
+      strokeWidth?: number;
+      opacity?: number;
+      data?: Record<string, string>;
+    } = {},
+  ) => {
+    const start = modelPointToScreen(face, startPoint, stationOffsetMeters);
+    const end = modelPointToScreen(face, endPoint, stationOffsetMeters);
+    const dx = end.sx - start.sx;
+    const dy = end.sy - start.sy;
+    const length = Math.hypot(dx, dy);
+    if (length < 2) return null;
+    const half = Math.max(2, (profileDepthMeters * viewport.zoom) / 2);
+    const nx = (-dy / length) * half;
+    const ny = (dx / length) * half;
+    const points = [
+      `${start.sx + nx},${start.sy + ny}`,
+      `${end.sx + nx},${end.sy + ny}`,
+      `${end.sx - nx},${end.sy - ny}`,
+      `${start.sx - nx},${start.sy - ny}`,
+    ].join(' ');
+    return (
+      <polygon
+        key={key}
+        points={points}
+        fill={options.fill ?? (architecturalDrawing ? '#e5e7eb' : '#475569')}
+        stroke={options.stroke ?? permanentStroke}
+        strokeWidth={options.strokeWidth ?? drawingStyle.weights.light}
+        opacity={options.opacity ?? 1}
+        pointerEvents="none"
+        {...options.data}
+      />
+    );
+  };
+
+  const floorFinishSpan = (face: ElevationFace): { center: number; width: number } | null => {
+    const stations: number[] = [];
+    floorTileLayout?.placements.forEach((tile) => {
+      const halfX = tile.renderWidthMeters / 2;
+      const halfZ = tile.renderDepthMeters / 2;
+      stations.push(
+        stationForFace(face, { x: tile.renderCenter.x - halfX, z: tile.renderCenter.z - halfZ }),
+        stationForFace(face, { x: tile.renderCenter.x + halfX, z: tile.renderCenter.z + halfZ }),
+      );
+    });
+    if (stations.length === 0 && layoutBounds) {
+      stations.push(
+        face === 'north' || face === 'south' ? layoutBounds.minX : layoutBounds.minZ,
+        face === 'north' || face === 'south' ? layoutBounds.maxX : layoutBounds.maxZ,
+      );
+    }
+    if (stations.length === 0) return null;
+    const min = Math.min(...stations);
+    const max = Math.max(...stations);
+    return { center: (min + max) / 2, width: Math.max(0.05, max - min) };
+  };
+
+  const renderFloorFinishProjection = (
+    face: ElevationFace,
+    keyPrefix: string,
+    stationOffsetMeters = 0,
+  ) => {
+    if (!floorTileLayout?.enabled) return null;
+    const span = floorFinishSpan(face);
+    if (!span) return null;
+    const slabTop = interiorFloorSlab?.topElevationMeters ?? 0;
+    const thinsetTop = slabTop + floorTileLayout.thinsetThicknessMeters;
+    const tileTop = thinsetTop + FLOOR_TILE_SURFACE_THICKNESS_METERS;
+    return (
+      <g key={`${keyPrefix}-floor-finish`} pointerEvents="none" data-elevation-floor-finish={keyPrefix}>
+        {renderRect(`${keyPrefix}-floor-thinset`, span.center, thinsetTop, span.width, floorTileLayout.thinsetThicknessMeters, {
+          fill: architecturalDrawing ? '#d6c79f' : '#a16207',
+          stroke: mutedStroke,
+          strokeWidth: drawingStyle.weights.light,
+          data: { 'data-elevation-floor-thinset': keyPrefix },
+        }, stationOffsetMeters)}
+        {floorTileLayout.placements.map((tile) => {
+          const station = stationForFace(face, tile.renderCenter);
+          const width = Math.max(0.01, face === 'north' || face === 'south' ? tile.renderWidthMeters : tile.renderDepthMeters);
+          return renderRect(`${keyPrefix}-floor-tile-${tile.id}`, station, tileTop, width, FLOOR_TILE_SURFACE_THICKNESS_METERS, {
+            fill: tile.kind === 'cut' ? (architecturalDrawing ? '#d7d2cb' : '#78716c') : (architecturalDrawing ? '#ece7df' : '#9a8f84'),
+            stroke: referenceStroke,
+            strokeWidth: drawingStyle.weights.reference,
+            data: { 'data-elevation-floor-tile': tile.kind },
+          }, stationOffsetMeters);
         })}
+      </g>
+    );
+  };
+
+  const renderPlywoodCeilingProjection = (
+    face: ElevationFace,
+    keyPrefix: string,
+    stationOffsetMeters = 0,
+  ) => {
+    if (!plywoodCeilingLayout?.enabled) return null;
+    return (
+      <g key={`${keyPrefix}-plywood-ceiling`} pointerEvents="none" data-elevation-plywood-ceiling={keyPrefix}>
+        {plywoodCeilingLayout.panelPlacements.map((panel) => {
+          const station = stationForFace(face, panel.center);
+          const width = Math.max(0.01, face === 'north' || face === 'south' ? panel.widthMeters : panel.lengthMeters);
+          const top = panel.center.y + panel.thicknessMeters / 2;
+          return renderRect(`${keyPrefix}-ceiling-plywood-${panel.id}`, station, top, width, panel.thicknessMeters, {
+            fill: architecturalDrawing ? '#d7b98f' : plywoodCeilingLayout.plywoodColor,
+            stroke: mutedStroke,
+            strokeWidth: drawingStyle.weights.reference,
+            data: { 'data-elevation-ceiling-plywood': panel.kind },
+          }, stationOffsetMeters);
+        })}
+        {plywoodCeilingLayout.frameMembers.map((member) =>
+          renderProjectedModelMember(`${keyPrefix}-ceiling-frame-${member.id}`, face, member.start, member.end, stationOffsetMeters, member.heightMeters, {
+            fill: architecturalDrawing ? '#e5e7eb' : '#374151',
+            stroke: permanentStroke,
+            strokeWidth: drawingStyle.weights.light,
+            opacity: 0.92,
+            data: { 'data-elevation-ceiling-frame': member.kind },
+          }),
+        )}
+      </g>
+    );
+  };
+
+  const renderRoofProjection = (
+    face: ElevationFace,
+    keyPrefix: string,
+    stationOffsetMeters = 0,
+  ) => {
+    if (!resolvedRoofSystem?.supported) return null;
+    const roof = resolvedRoofSystem;
+    const lineKey = (start: RoofVec3, end: RoofVec3) =>
+      [
+        stationForFace(face, start) + stationOffsetMeters,
+        start.y,
+        stationForFace(face, end) + stationOffsetMeters,
+        end.y,
+      ].map((value) => value.toFixed(3)).join(':');
+    const projectedMemberKeys = new Set<string>();
+    const uniqueLine = (
+      key: string,
+      start: RoofVec3,
+      end: RoofVec3,
+      options: Parameters<typeof renderProjectedRoofLine>[5],
+    ) => {
+      const normalizedKey = lineKey(start, end);
+      const reverseKey = lineKey(end, start);
+      if (projectedMemberKeys.has(normalizedKey) || projectedMemberKeys.has(reverseKey)) return null;
+      projectedMemberKeys.add(normalizedKey);
+      return renderProjectedRoofLine(key, face, start, end, stationOffsetMeters, options);
+    };
+    const uniqueMember = (
+      key: string,
+      start: RoofVec3,
+      end: RoofVec3,
+      profileDepthMeters: number,
+      options: Parameters<typeof renderProjectedRoofMember>[6],
+    ) => {
+      const normalizedKey = lineKey(start, end);
+      const reverseKey = lineKey(end, start);
+      if (projectedMemberKeys.has(normalizedKey) || projectedMemberKeys.has(reverseKey)) return null;
+      projectedMemberKeys.add(normalizedKey);
+      return renderProjectedRoofMember(key, face, start, end, stationOffsetMeters, profileDepthMeters, options);
+    };
+    const planeSource = roof.claddingDisplayPlanes.length > 0 ? roof.claddingDisplayPlanes : roof.roofTopPlanes;
+    return (
+      <g key={`${keyPrefix}-roof-projection`} pointerEvents="none" data-elevation-roof-projection={keyPrefix}>
+        {planeSource.flatMap((plane) =>
+          plane.corners.map((corner, index) => {
+            const next = plane.corners[(index + 1) % plane.corners.length];
+            if (!next) return null;
+            return uniqueLine(`${keyPrefix}-roof-plane-${plane.id}-${index}`, corner, next, {
+              stroke: mutedStroke,
+              strokeWidth: drawingStyle.weights.light + 0.4,
+              strokeOpacity: 0.7,
+              data: { 'data-elevation-roof-plane': plane.id },
+            });
+          }),
+        )}
+        {roof.gableEndRoofingClosures.flatMap((closure) =>
+          closure.corners.map((corner, index) => {
+            const next = closure.corners[(index + 1) % closure.corners.length];
+            if (!next) return null;
+            return uniqueLine(`${keyPrefix}-gable-closure-${closure.id}-${index}`, corner, next, {
+              stroke: referenceStroke,
+              strokeWidth: drawingStyle.weights.light,
+              strokeOpacity: 0.72,
+              data: { 'data-elevation-gable-closure': closure.id },
+            });
+          }),
+        )}
+        {roof.purlinPlacements.map((purlin) =>
+          uniqueMember(`${keyPrefix}-purlin-${purlin.id}`, purlin.start, purlin.end, PURLIN_PROFILE_DEPTH_METERS, {
+            fill: architecturalDrawing ? '#f1f5f9' : '#475569',
+            stroke: mutedStroke,
+            strokeWidth: drawingStyle.weights.light,
+            opacity: 0.9,
+            data: { 'data-elevation-roof-purlin': purlin.slopePlaneId },
+          }),
+        )}
+        {roof.trussPlacements.flatMap((truss) =>
+          truss.members.map((member) => {
+            const isPrimary = member.memberKind === 'bottom_chord' || member.memberKind.startsWith('top_chord');
+            return uniqueMember(`${keyPrefix}-truss-${truss.id}-${member.id}`, member.start, member.end, TRUSS_CHORD_PROFILE_METERS, {
+              fill: isPrimary ? (architecturalDrawing ? '#e5e7eb' : '#334155') : (architecturalDrawing ? '#f8fafc' : '#475569'),
+              stroke: isPrimary ? permanentStroke : mutedStroke,
+              strokeWidth: isPrimary ? drawingStyle.weights.medium : drawingStyle.weights.light + 0.35,
+              opacity: isPrimary ? 0.96 : 0.84,
+              data: { 'data-elevation-roof-truss-member': member.memberKind, 'data-elevation-roof-truss-id': truss.id },
+            });
+          }),
+        )}
+        {roof.ridgeStart && roof.ridgeEnd
+          ? renderProjectedRoofLine(`${keyPrefix}-roof-ridge`, face, roof.ridgeStart, roof.ridgeEnd, stationOffsetMeters, {
+              stroke: permanentStroke,
+              strokeWidth: drawingStyle.weights.heavy,
+              data: { 'data-elevation-roof-ridge': 'true' },
+            })
+          : null}
+      </g>
+    );
+  };
+
+  const renderGeneratedBeam = (beam: StructuralBeam, face = FRONT_ELEVATION_FACE, keyPrefix = 'front', stationOffsetMeters = 0) => {
+    const startStation = stationForFace(face, { x: beam.startPoint.x, z: beam.startPoint.z });
+    const endStation = stationForFace(face, { x: beam.endPoint.x, z: beam.endPoint.z });
+    const centerStation = (startStation + endStation) / 2;
+    return renderRect(`${keyPrefix}-beam-${beam.id}`, centerStation, beam.topElevationMeters, Math.abs(endStation - startStation), beam.depthMeters, {
+      fill: architecturalDrawing ? '#eef2f7' : '#94a3b866',
+      stroke: architecturalDrawing ? mutedStroke : '#475569',
+      strokeWidth: drawingStyle.weights.medium,
+      data: { 'data-canvas-layer': 'beams-walls', 'data-beam-kind': beam.kind },
+    }, stationOffsetMeters);
+  };
+
+  const renderGeneratedColumn = (
+    column: StructuralFrameSystemParameters['columns'][number],
+    face = FRONT_ELEVATION_FACE,
+    keyPrefix = 'front',
+    stationOffsetMeters = 0,
+  ) => {
+    const selected = false;
+    const station = stationForFace(face, column.position);
+    const center = worldToScreen({ xMeters: station + stationOffsetMeters, zMeters: (column.topElevationMeters + column.baseElevationMeters) / 2 });
+    const projectionWidth = projectionWidthForColumn(column, face);
+    return (
+      <g key={`${keyPrefix}-${column.id}`} pointerEvents="none" data-canvas-layer="columns">
+        {renderRect(`${keyPrefix}-column-body-${column.id}`, station, column.topElevationMeters, projectionWidth, column.heightMeters, {
+          fill: concreteFill,
+          stroke: selected ? selectionStroke : permanentStroke,
+          strokeWidth: selected ? drawingStyle.weights.selection : drawingStyle.weights.medium,
+        }, stationOffsetMeters)}
         <line
-          x1={worldToScreen({ xMeters: station - column.widthMeters * 0.8, zMeters: (column.topElevationMeters + column.baseElevationMeters) / 2 }).sx}
-          y1={worldToScreen({ xMeters: station, zMeters: (column.topElevationMeters + column.baseElevationMeters) / 2 }).sy}
-          x2={worldToScreen({ xMeters: station + column.widthMeters * 0.8, zMeters: (column.topElevationMeters + column.baseElevationMeters) / 2 }).sx}
-          y2={worldToScreen({ xMeters: station, zMeters: (column.topElevationMeters + column.baseElevationMeters) / 2 }).sy}
-          stroke="#64748b"
+          x1={worldToScreen({ xMeters: station + stationOffsetMeters - projectionWidth * 0.8, zMeters: (column.topElevationMeters + column.baseElevationMeters) / 2 }).sx}
+          y1={center.sy}
+          x2={worldToScreen({ xMeters: station + stationOffsetMeters + projectionWidth * 0.8, zMeters: (column.topElevationMeters + column.baseElevationMeters) / 2 }).sx}
+          y2={center.sy}
+          stroke={referenceStroke}
           strokeWidth={1}
           strokeOpacity={0.65}
         />
@@ -549,19 +1112,25 @@ export default function DesignBuilderElevationCanvas({
     );
   };
 
-  const renderComponent = (component: DesignRenderRcComponent, preview = false) => {
-    const station = stationForFace(elevationView.face, component.position);
+  const renderComponent = (
+    component: DesignRenderRcComponent,
+    preview = false,
+    face = FRONT_ELEVATION_FACE,
+    keyPrefix = 'front',
+    stationOffsetMeters = 0,
+  ) => {
+    const station = stationForFace(face, component.position);
     const widthMeters = renderWidthForComponent(component);
     const heightMeters = componentThicknessForElevation(component);
-    const fill = preview ? '#22d3ee33' : component.type === 'footer' ? '#78716c66' : '#cbd5e1';
-    const stroke = preview ? '#67e8f9' : component.type === 'footer' ? '#78716c' : '#475569';
+    const fill = preview ? previewFill : component.type === 'footer' ? (architecturalDrawing ? '#f1f5f9' : '#78716c66') : concreteFill;
+    const stroke = preview ? previewStroke : component.type === 'footer' ? mutedStroke : permanentStroke;
     const top = component.type === 'footer' || component.type === 'slab'
       ? component.elevations.top
       : component.elevations.top;
-    return renderRect(`component-${component.id}-${preview ? 'preview' : 'placed'}`, station, top, widthMeters, heightMeters, {
+    return renderRect(`${keyPrefix}-component-${component.id}-${preview ? 'preview' : 'placed'}`, station, top, widthMeters, heightMeters, {
       fill,
       stroke,
-      strokeWidth: preview ? 2 : 1.5,
+      strokeWidth: preview ? drawingStyle.weights.preview : drawingStyle.weights.medium,
       strokeDasharray: preview ? '6 4' : undefined,
       opacity: preview ? 0.82 : 1,
       data: {
@@ -570,54 +1139,128 @@ export default function DesignBuilderElevationCanvas({
         'data-component-system': component.system,
         'data-canvas-layer': preview ? 'active-placement-preview' : `component-${component.type}`,
       },
-    });
+    }, stationOffsetMeters);
   };
 
-  const renderComponentFooter = (component: DesignRenderRcComponent) => {
+  const renderComponentFooter = (
+    component: DesignRenderRcComponent,
+    face = FRONT_ELEVATION_FACE,
+    keyPrefix = 'front',
+    stationOffsetMeters = 0,
+  ) => {
     if (component.type !== 'column' || !component.footer) return null;
-    const station = stationForFace(elevationView.face, component.position);
-    return renderRect(`component-footer-${component.id}`, station, component.footer.topElevationMeters, component.footer.widthMeters, component.footer.thicknessMeters, {
-      fill: '#78716c66',
-      stroke: '#78716c',
-      strokeWidth: 1.4,
+    const station = stationForFace(face, component.position);
+    return renderRect(`${keyPrefix}-component-footer-${component.id}`, station, component.footer.topElevationMeters, component.footer.widthMeters, component.footer.thicknessMeters, {
+      fill: architecturalDrawing ? '#f1f5f9' : '#78716c66',
+      stroke: mutedStroke,
+      strokeWidth: drawingStyle.weights.light,
       strokeDasharray: '6 4',
       data: { 'data-canvas-layer': 'footers-foundations', 'data-component-footer-for': component.id },
-    });
+    }, stationOffsetMeters);
   };
 
   const helperAnchor = previewRenderModel.rcComponents[0]
     ? worldToScreen({
-        xMeters: stationForFace(elevationView.face, previewRenderModel.rcComponents[0].position),
+        xMeters: stationForFace(FRONT_ELEVATION_FACE, previewRenderModel.rcComponents[0].position),
         zMeters: previewRenderModel.rcComponents[0].elevations.top,
       })
     : null;
+  const elevationAnnotationPrimitives: DrawingPrimitive[] = [];
+  if (architecturalDrawing) {
+    const frontGroundStart = worldToScreen({ xMeters: frontModelBounds.minX, zMeters: 0 });
+    const frontGroundEnd = worldToScreen({ xMeters: frontModelBounds.maxX, zMeters: 0 });
+    const frontTopLevel = worldToScreen({ xMeters: frontModelBounds.minX, zMeters: modelBounds.maxZ });
+    const frontPlinthLevel = worldToScreen({ xMeters: frontModelBounds.minX, zMeters: 0 });
+    const sideGroundStart = worldToScreen({ xMeters: sideModelBounds.minX + sideElevationStationOffsetMeters, zMeters: 0 });
+    const sideGroundEnd = worldToScreen({ xMeters: sideModelBounds.maxX + sideElevationStationOffsetMeters, zMeters: 0 });
+    const frontTitleX = (frontGroundStart.sx + frontGroundEnd.sx) / 2;
+    const sideTitleX = (sideGroundStart.sx + sideGroundEnd.sx) / 2;
+    const titleY = Math.max(34, Math.min(frontGroundStart.sy, sideGroundStart.sy) - Math.max(76, viewport.zoom * 0.65));
+    elevationAnnotationPrimitives.push(
+      {
+        kind: 'text',
+        key: 'elevation-title',
+        x: surfaceSize.width / 2,
+        y: 30,
+        text: 'Elevation View',
+        anchor: 'middle',
+        size: 12,
+        weight: 'bold',
+        data: { 'data-drawing-annotation': 'elevation-title' },
+      },
+      {
+        kind: 'text',
+        key: 'front-elevation-title',
+        x: frontTitleX,
+        y: titleY,
+        text: sheetElevationTitle(FRONT_ELEVATION_FACE),
+        anchor: 'middle',
+        size: 11,
+        weight: 'bold',
+        data: { 'data-drawing-annotation': 'front-elevation-title' },
+      },
+      {
+        kind: 'text',
+        key: 'side-elevation-title',
+        x: sideTitleX,
+        y: titleY,
+        text: sheetElevationTitle(SIDE_ELEVATION_FACE),
+        anchor: 'middle',
+        size: 11,
+        weight: 'bold',
+        data: { 'data-drawing-annotation': 'side-elevation-title' },
+      },
+      {
+        kind: 'line',
+        key: 'front-elevation-ground',
+        x1: frontGroundStart.sx - 24,
+        y1: frontGroundStart.sy,
+        x2: frontGroundEnd.sx + 24,
+        y2: frontGroundEnd.sy,
+        weight: 'heavy',
+        data: { 'data-drawing-annotation': 'ground-line', 'data-elevation-projection': 'front' },
+      },
+      {
+        kind: 'line',
+        key: 'side-elevation-ground',
+        x1: sideGroundStart.sx - 24,
+        y1: sideGroundStart.sy,
+        x2: sideGroundEnd.sx + 24,
+        y2: sideGroundEnd.sy,
+        weight: 'heavy',
+        data: { 'data-drawing-annotation': 'ground-line', 'data-elevation-projection': 'side' },
+      },
+      {
+        kind: 'levelMarker',
+        key: 'level-000',
+        x: frontPlinthLevel.sx - 56,
+        y: frontPlinthLevel.sy,
+        label: '+0.000',
+        direction: 'right',
+        data: { 'data-drawing-annotation': 'level-marker' },
+      },
+      {
+        kind: 'levelMarker',
+        key: 'level-top',
+        x: frontTopLevel.sx - 56,
+        y: frontTopLevel.sy,
+        label: `+${modelBounds.maxZ.toFixed(2)} m`,
+        direction: 'right',
+        data: { 'data-drawing-annotation': 'level-marker' },
+      },
+    );
+  }
 
   return (
-    <div className="relative h-full min-h-[420px] overflow-hidden rounded-2xl border border-slate-200 bg-slate-950 text-slate-100 dark:border-slate-700">
+    <div className="relative h-full min-h-[420px] overflow-hidden rounded-2xl border border-slate-200 bg-slate-950 text-slate-100 dark:border-slate-700" data-drawing-style-mode={drawingStyleMode}>
       <div
         className="absolute left-3 top-3 z-10 flex flex-wrap items-center gap-2 rounded-full border border-cyan-700 bg-slate-900/90 px-3 py-1 text-xs font-medium text-cyan-200"
         data-view-grid-meters={gridState.displayMinorSpacingMeters}
       >
-        <span>
+        <span>Front + Side Elevation | View grid {formatPlanGridSpacingMeters(gridState.displayMinorSpacingMeters)}</span>
+        <span className="sr-only">
           {faceLabel(elevationView.face)} · View grid {formatPlanGridSpacingMeters(gridState.displayMinorSpacingMeters)}
         </span>
-        <span className="text-slate-500">|</span>
-        {(['north', 'east', 'south', 'west'] as ElevationFace[]).map((face) => (
-          <button
-            key={face}
-            type="button"
-            onClick={() => {
-              userAdjustedViewRef.current = false;
-              lastAutoFitKeyRef.current = null;
-              onElevationViewChange?.({ ...elevationView, face });
-            }}
-            className={`rounded-md px-2 py-0.5 text-[11px] uppercase ${
-              elevationView.face === face ? 'bg-cyan-500 text-slate-950' : 'text-slate-300 hover:bg-slate-800'
-            }`}
-          >
-            {face}
-          </button>
-        ))}
       </div>
       <svg
         ref={svgRef}
@@ -631,64 +1274,111 @@ export default function DesignBuilderElevationCanvas({
         onContextMenu={handleContextMenu}
         aria-label="Design Builder elevation view"
       >
-        <rect width={surfaceSize.width} height={surfaceSize.height} fill="#0f172a" data-canvas-layer="background" />
+        <rect width={surfaceSize.width} height={surfaceSize.height} fill={drawingStyle.viewportFill} data-canvas-layer="background" />
+        <rect
+          x={architecturalDrawing ? 18 : 0}
+          y={architecturalDrawing ? 18 : 0}
+          width={architecturalDrawing ? Math.max(0, surfaceSize.width - 36) : surfaceSize.width}
+          height={architecturalDrawing ? Math.max(0, surfaceSize.height - 36) : surfaceSize.height}
+          fill={sheetBackerFill}
+          stroke={architecturalDrawing ? drawingStyle.sheetStroke : 'none'}
+          strokeWidth={architecturalDrawing ? 1 : 0}
+          pointerEvents="none"
+          data-canvas-layer="drawing-sheet"
+        />
         <g data-canvas-layer="grid" className="text-slate-400">
           {gridLines}
         </g>
         <g data-canvas-layer="axes">
-          <line x1={horizontalAxisStart.sx} y1={horizontalAxisStart.sy} x2={horizontalAxisEnd.sx} y2={horizontalAxisEnd.sy} stroke="#334155" strokeWidth={1.5} strokeOpacity={0.85} pointerEvents="none" />
-          <line x1={verticalAxisStart.sx} y1={verticalAxisStart.sy} x2={verticalAxisEnd.sx} y2={verticalAxisEnd.sy} stroke="#334155" strokeWidth={1.5} strokeOpacity={0.85} pointerEvents="none" />
-          <line x1={origin.sx - 10} y1={origin.sy} x2={origin.sx + 10} y2={origin.sy} stroke="#22d3ee" strokeWidth={2} pointerEvents="none" />
-          <line x1={origin.sx} y1={origin.sy - 10} x2={origin.sx} y2={origin.sy + 10} stroke="#22d3ee" strokeWidth={2} pointerEvents="none" />
-          <circle cx={origin.sx} cy={origin.sy} r={4} fill="#22d3ee" pointerEvents="none" />
-          <text x={origin.sx + 8} y={origin.sy - 8} fill="#67e8f9" fontSize={10} fontWeight={700} pointerEvents="none">0,0</text>
-          <text x={horizontalAxisEnd.sx - 6} y={origin.sy - 6} textAnchor="end" fill="#64748b" fontSize={10} fontWeight={600} pointerEvents="none">{`+${horizontalAxisName} Station`}</text>
-          <text x={origin.sx + 6} y={verticalAxisEnd.sy + 14} fill="#64748b" fontSize={10} fontWeight={600} pointerEvents="none">+Z Height</text>
+          <line x1={horizontalAxisStart.sx} y1={horizontalAxisStart.sy} x2={horizontalAxisEnd.sx} y2={horizontalAxisEnd.sy} stroke={referenceStroke} strokeWidth={1.2} strokeOpacity={0.7} pointerEvents="none" />
+          <line x1={verticalAxisStart.sx} y1={verticalAxisStart.sy} x2={verticalAxisEnd.sx} y2={verticalAxisEnd.sy} stroke={referenceStroke} strokeWidth={1.2} strokeOpacity={0.7} pointerEvents="none" />
+          <line x1={origin.sx - 10} y1={origin.sy} x2={origin.sx + 10} y2={origin.sy} stroke={referenceStroke} strokeWidth={1.4} pointerEvents="none" />
+          <line x1={origin.sx} y1={origin.sy - 10} x2={origin.sx} y2={origin.sy + 10} stroke={referenceStroke} strokeWidth={1.4} pointerEvents="none" />
+          <circle cx={origin.sx} cy={origin.sy} r={4} fill={referenceStroke} pointerEvents="none" />
+          <text x={origin.sx + 8} y={origin.sy - 8} fill={drawingStyle.textFill} fontSize={10} fontWeight={700} pointerEvents="none">0,0</text>
+          <text x={horizontalAxisEnd.sx - 6} y={origin.sy - 6} textAnchor="end" fill={mutedStroke} fontSize={10} fontWeight={600} pointerEvents="none">+Station</text>
+          <text x={origin.sx + 6} y={verticalAxisEnd.sy + 14} fill={mutedStroke} fontSize={10} fontWeight={600} pointerEvents="none">+Z Height</text>
         </g>
-        <text x={surfaceSize.width / 2} y={18} textAnchor="middle" fill="#94a3b8" fontSize={11} fontWeight={700} pointerEvents="none">{faceLabel(elevationView.face)}</text>
+        {elevationAnnotationPrimitives.map((primitive) => renderDrawingPrimitive(primitive, drawingStyle))}
 
+        <g data-canvas-layer="walls">
+          {renderInfillPanels(FRONT_ELEVATION_FACE, 'front')}
+          {renderInfillPanels(SIDE_ELEVATION_FACE, 'side', sideElevationStationOffsetMeters)}
+        </g>
         <g data-canvas-layer="footers-foundations">
           {isolatedFootings.map((footing) => {
-            const station = stationForFace(elevationView.face, footing.position);
-            return renderRect(`footing-${footing.id}`, station, footing.topElevationMeters, footing.widthMeters, footing.thicknessMeters, {
-              fill: '#78716c66',
-              stroke: '#78716c',
-              strokeWidth: 1.4,
+            const station = stationForFace(FRONT_ELEVATION_FACE, footing.position);
+            return renderRect(`front-footing-${footing.id}`, station, footing.topElevationMeters, projectionWidthForFooting(footing, FRONT_ELEVATION_FACE), footing.thicknessMeters, {
+              fill: architecturalDrawing ? '#f1f5f9' : '#78716c66',
+              stroke: mutedStroke,
+              strokeWidth: drawingStyle.weights.light,
+              data: { 'data-elevation-footing': footing.id },
             });
           })}
-          {committedRenderModel.rcComponents.map(renderComponentFooter)}
-          {committedRenderModel.rcComponents.filter((component) => component.type === 'footer').map((component) => renderComponent(component))}
+          {isolatedFootings.map((footing) => {
+            const station = stationForFace(SIDE_ELEVATION_FACE, footing.position);
+            return renderRect(`side-footing-${footing.id}`, station, footing.topElevationMeters, projectionWidthForFooting(footing, SIDE_ELEVATION_FACE), footing.thicknessMeters, {
+              fill: architecturalDrawing ? '#f1f5f9' : '#78716c66',
+              stroke: mutedStroke,
+              strokeWidth: drawingStyle.weights.light,
+              data: { 'data-elevation-footing': footing.id },
+            }, sideElevationStationOffsetMeters);
+          })}
+          {committedRenderModel.rcComponents.map((component) => renderComponentFooter(component, FRONT_ELEVATION_FACE, 'front'))}
+          {committedRenderModel.rcComponents.map((component) => renderComponentFooter(component, SIDE_ELEVATION_FACE, 'side', sideElevationStationOffsetMeters))}
+          {committedRenderModel.rcComponents.filter((component) => component.type === 'footer').map((component) => renderComponent(component, false, FRONT_ELEVATION_FACE, 'front'))}
+          {committedRenderModel.rcComponents.filter((component) => component.type === 'footer').map((component) => renderComponent(component, false, SIDE_ELEVATION_FACE, 'side', sideElevationStationOffsetMeters))}
         </g>
         <g data-canvas-layer="slabs">
-          {committedRenderModel.rcComponents.filter((component) => component.type === 'slab').map((component) => renderComponent(component))}
+          {committedRenderModel.rcComponents.filter((component) => component.type === 'slab').map((component) => renderComponent(component, false, FRONT_ELEVATION_FACE, 'front'))}
+          {committedRenderModel.rcComponents.filter((component) => component.type === 'slab').map((component) => renderComponent(component, false, SIDE_ELEVATION_FACE, 'side', sideElevationStationOffsetMeters))}
+        </g>
+        <g data-canvas-layer="floor-finishes">
+          {renderFloorFinishProjection(FRONT_ELEVATION_FACE, 'front')}
+          {renderFloorFinishProjection(SIDE_ELEVATION_FACE, 'side', sideElevationStationOffsetMeters)}
+        </g>
+        <g data-canvas-layer="ceiling-finishes">
+          {renderPlywoodCeilingProjection(FRONT_ELEVATION_FACE, 'front')}
+          {renderPlywoodCeilingProjection(SIDE_ELEVATION_FACE, 'side', sideElevationStationOffsetMeters)}
         </g>
         <g data-canvas-layer="beams-walls">
-          {frameSystem?.beams.map(renderGeneratedBeam)}
+          {frameSystem?.beams.map((beam) => renderGeneratedBeam(beam, FRONT_ELEVATION_FACE, 'front'))}
+          {frameSystem?.beams.map((beam) => renderGeneratedBeam(beam, SIDE_ELEVATION_FACE, 'side', sideElevationStationOffsetMeters))}
           {committedRenderModel.rcComponents
             .filter((component) => component.type === 'tie_beam' || component.type === 'plinth_beam' || component.type === 'roof_beam')
-            .map((component) => renderComponent(component))}
+            .map((component) => renderComponent(component, false, FRONT_ELEVATION_FACE, 'front'))}
+          {committedRenderModel.rcComponents
+            .filter((component) => component.type === 'tie_beam' || component.type === 'plinth_beam' || component.type === 'roof_beam')
+            .map((component) => renderComponent(component, false, SIDE_ELEVATION_FACE, 'side', sideElevationStationOffsetMeters))}
         </g>
         <g data-canvas-layer="columns">
-          {frameSystem?.columns.map(renderGeneratedColumn)}
-          {committedRenderModel.rcComponents.filter((component) => component.type === 'column').map((component) => renderComponent(component))}
+          {frameSystem?.columns.map((column) => renderGeneratedColumn(column, FRONT_ELEVATION_FACE, 'front'))}
+          {frameSystem?.columns.map((column) => renderGeneratedColumn(column, SIDE_ELEVATION_FACE, 'side', sideElevationStationOffsetMeters))}
+          {committedRenderModel.rcComponents.filter((component) => component.type === 'column').map((component) => renderComponent(component, false, FRONT_ELEVATION_FACE, 'front'))}
+          {committedRenderModel.rcComponents.filter((component) => component.type === 'column').map((component) => renderComponent(component, false, SIDE_ELEVATION_FACE, 'side', sideElevationStationOffsetMeters))}
         </g>
         <g data-canvas-layer="placed-openings">
-          {openings.map((opening) => {
+          {[
+            { face: FRONT_ELEVATION_FACE, keyPrefix: 'front', stationOffsetMeters: 0 },
+            { face: SIDE_ELEVATION_FACE, keyPrefix: 'side', stationOffsetMeters: sideElevationStationOffsetMeters },
+          ].flatMap(({ face, keyPrefix, stationOffsetMeters }) => openings.map((opening) => {
+            if (opening.wallFace && opening.wallFace !== face) return null;
+            if (!opening.wallFace && face !== FRONT_ELEVATION_FACE) return null;
             const station = numberValue(opening.positionAlongSegment ?? opening.offsetMeters, 0);
             const sill = numberValue(opening.sillHeightMeters, opening.type === 'door' ? 0 : 0.9);
             const top = sill + opening.heightMeters;
-            const point = worldToScreen({ xMeters: station, zMeters: top });
+            const point = worldToScreen({ xMeters: station + stationOffsetMeters, zMeters: top });
             const width = Math.max(8, opening.widthMeters * viewport.zoom);
             const height = Math.max(8, opening.heightMeters * viewport.zoom);
             return (
-              <g key={opening.id} pointerEvents="none" data-opening-type={opening.type}>
+              <g key={`${keyPrefix}-${opening.id}`} pointerEvents="none" data-opening-type={opening.type}>
                 <rect
                   x={point.sx - width / 2}
                   y={point.sy}
                   width={width}
                   height={height}
-                  fill="#0f172a99"
-                  stroke="#67e8f9"
+                  fill={architecturalDrawing ? '#ffffff' : '#0f172a99'}
+                  stroke={drawingStyle.openingStroke}
                   strokeWidth={1.5}
                 />
                 {opening.type === 'window' ? (
@@ -697,17 +1387,21 @@ export default function DesignBuilderElevationCanvas({
                     y1={point.sy + height / 2}
                     x2={point.sx + width / 2 - 4}
                     y2={point.sy + height / 2}
-                    stroke="#67e8f9"
+                    stroke={drawingStyle.openingStroke}
                     strokeWidth={1}
                     strokeOpacity={0.85}
                   />
                 ) : null}
               </g>
             );
-          })}
+          }))}
+        </g>
+        <g data-canvas-layer="roof-structure">
+          {renderRoofProjection(FRONT_ELEVATION_FACE, 'front')}
+          {renderRoofProjection(SIDE_ELEVATION_FACE, 'side', sideElevationStationOffsetMeters)}
         </g>
         <g data-canvas-layer="active-placement-preview">
-          {previewRenderModel.rcComponents.map((component) => renderComponent(component, true))}
+          {previewRenderModel.rcComponents.map((component) => renderComponent(component, true, FRONT_ELEVATION_FACE, 'front'))}
         </g>
         {helperAnchor && helperMeasurements.length > 0 ? (
           <g pointerEvents="none" data-canvas-layer="helper-measurements">

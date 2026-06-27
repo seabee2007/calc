@@ -5,6 +5,8 @@ import type {
   DesignBuilderCameraSnapshot,
   DesignBuilderLayoutMode,
   DesignBuilderStoredViewMode,
+  Design2DViewType,
+  DesignAnnotation,
   DesignBuilderSnapMode,
   DesignBuilderToolMode,
   DesignEstimatePreviewLine,
@@ -56,6 +58,7 @@ export interface DesignBuilderSessionState {
   designModel: DesignModel | null;
   objects: DesignModelObject[];
   placedComponents: PlacedDesignComponent[];
+  annotations: DesignAnnotation[];
   unitSystem: DesignUnitSystem;
   selectedObjectType: DesignObjectType | null;
   selectedOpeningId: string | null;
@@ -66,6 +69,7 @@ export interface DesignBuilderSessionState {
   persistedQuantityItems: DesignQuantityItem[];
   changedAfterCommit: boolean;
   viewMode: DesignBuilderStoredViewMode;
+  active2DView: Design2DViewType;
   elevationView: DesignBuilderElevationViewState;
   snapMode: DesignBuilderSnapMode;
   moduleFitMode: ModuleFitMode;
@@ -126,6 +130,7 @@ export const useDesignBuilderSessionStore = create<DesignBuilderSessionStore>((s
         designModel: null,
         objects: [],
         placedComponents: [],
+        annotations: [],
         unitSystem: 'metric',
         selectedObjectType: null,
         selectedOpeningId: null,
@@ -135,7 +140,8 @@ export const useDesignBuilderSessionStore = create<DesignBuilderSessionStore>((s
         previewLines: [],
         persistedQuantityItems: [],
         changedAfterCommit: false,
-        viewMode: '3d',
+        viewMode: '2d',
+        active2DView: 'foundation-plan',
         elevationView: { face: 'north' },
         snapMode: 'grid',
         moduleFitMode: 'exact',

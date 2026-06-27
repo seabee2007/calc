@@ -3,28 +3,15 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { DEFAULT_ROOF_LAYER_VISIBILITY } from '../domain/roofSystemDefaults';
 import {
+  generateCmuLayout,
   logOpeningCoursePlacementsTableForDev,
-  type CmuBlockType,
   type DesignGeometryResult,
-  resolveSegmentWallLayoutStart,
 } from '../geometry/designGeometry';
 import { resolveCmuModuleConfig } from '../domain/cmuModuleRules';
-import { TOP_COURSE_RENDER_EPSILON_METERS } from '../domain/cmuInfillPanelSolver';
-import {
-  CORRUGATED_SHEET_DISPLAY_THICKNESS_METERS,
-  distanceAlongRoofNormal,
-  elevationOnRoofPlaneAtPoint,
-  normalizeOutwardRoofNormal,
-  offsetPointAlongRoofNormal,
-  PURLIN_PROFILE_DEPTH_METERS,
-  PURLIN_TO_SHEET_CLEARANCE_METERS,
-  resolveTrussTopChordUpperPoint,
-} from '../domain/roofFramingResolver';
 import {
   fitPerspectiveCameraToBounds,
   logDesignFramingDiagnostics,
   reset3dView,
-  resolveSceneGridLayout,
   type DesignLayoutBounds,
 } from '../domain/designLayoutBounds';
 import {
@@ -34,19 +21,6 @@ import {
   DESIGN_ORBIT_ZOOM_SPEED,
   resolveOrbitMaxDistanceMeters,
 } from '../domain/designCameraControls';
-import {
-  createOpeningRenderGroups,
-  populateOpeningAssemblyRenderGroups,
-} from '../domain/openingAssembly3dRender';
-import { createOpeningFrame3dGroup } from '../domain/openingFrame3dGraphics';
-import type { ResolvedCmuOpening } from '../domain/cmuOpeningRules';
-import { buildInfillWallProxyPieces, resolveInfillPlasterPanelPlacements, type PlasterOpening } from '../domain/infillPlaster';
-import {
-  FOUNDATION_CONTACT_EPSILON_METERS,
-  TOP_OF_PLINTH_BEAM_Y,
-} from '../domain/foundationElevations';
-import { getNormalizedPointerFromClient } from '../domain/pointerPlanMapping';
-import { buildSegmentFrameMap, projectPointToSegmentStation } from '../domain/openingPlacementResolver';
 import type {
   DesignBuilderCameraSnapshot,
   DesignBuilderInteractionEvent,
@@ -61,78 +35,47 @@ import type {
   RoofDisplayMode,
   RoofLayerVisibility,
   RoofSystemSettings,
-  RoofVec3,
   PlacedDesignComponent,
-  WallOpeningParameters,
 } from '../types';
-import {
-  buildHipMemberMesh,
-  buildPurlinMesh,
-  buildRoofCladdingRenderPlanes,
-  createCorrugatedMetalMaterial,
-  createFasciaTrimGeometry,
-  createFoldedRoofEdgeCapGroup,
-  createFoldedRidgeCapGroup,
-  createRakedCapStripGeometry,
-  createRakedConcreteCapMaterial,
-  createRidgeCapMaterial,
-  createSoffitPanelGeometry,
-  buildSteelTrussMemberMeshes,
-  buildTrussAnchorBoltMeshes,
-  buildTrussBasePlateMesh,
-  buildTrussPlaneGuide,
-  resolveRoofPlaneEavePair,
-  createSteelTrussMaterials,
-  buildRakedCapStripRenderSegments,
-} from '../geometry/roofRenderingGeometry';
 import {
   ensurePreviewMaterialsLoaded,
   resolveCastConcreteMaterial,
   resolveCmuMaterial,
-  resolveFasciaTrimMaterial,
-  resolveFloorGroutMaterial,
-  resolveFloorThinsetMaterial,
-  resolveFloorTileMaterial,
-  resolvePlasterFinishMaterial,
-  resolveRoofMetalMaterial,
-  resolveRoofCladdingUvOptions,
-  resolveSiteGroundMaterial,
-  resolveSoffitTrimMaterial,
-  resolveStructuralSteelMaterial,
   subscribeMaterialDiagnostics,
 } from '../rendering/materials/designMaterialLibrary';
-import { buildMortarJointMeshes } from '../rendering/materials/cmuMortarJointRender';
-import type { MortarJointDiagnostics } from '../rendering/materials/cmuMortarJointInstances';
-import type { CmuBlockInstance } from '../geometry/designGeometry';
+import type { DesignRenderModel } from '../domain/designRenderModel';
+import { createFootprintSlabGeometry } from './DesignBuilderFootprintScene';
 import {
-  createRoofCladdingGeometry,
-  createVerticalCladdingGeometry,
-  resolveRoofRidgeDirection,
-} from '../rendering/materials/designRenderingUv';
+  buildDesignBuilderViewerCmuInfillScene,
+  buildDesignBuilderViewerCmuMortarScene,
+} from './DesignBuilderViewerCmuInfillScene';
+import { buildDesignBuilderViewerInteriorFinishScene } from './DesignBuilderViewerInteriorFinishScene';
+import { buildDesignBuilderViewerRoofAssemblyScene } from './DesignBuilderViewerRoofAssemblyScene';
+import { buildDesignBuilderViewerRoofReferenceScene } from './DesignBuilderViewerRoofReferenceScene';
+import { buildDesignBuilderViewerStructuralFrameScene } from './DesignBuilderViewerStructuralFrameScene';
+import { buildDesignBuilderViewerSupplementalScene } from './DesignBuilderViewerSupplementalScene';
 import {
-  buildDesignRenderModel,
-  type DesignRenderModel,
-} from '../domain/designRenderModel';
+  blockColor,
+  buildCmuBlockInstanceSceneGroup,
+  legacyWallProxyMeshes,
+} from './DesignBuilderWallScene';
+import { buildOpeningSceneGroups } from './DesignBuilderOpeningScene';
+import { buildManualMasonrySceneGroup } from './DesignBuilderManualMasonryScene';
+import {
+  buildOpeningPlacementPreviewSceneGroup,
+  type DesignBuilderPlacementPreview,
+} from './DesignBuilderOpeningPreviewScene';
+import { createDesignBuilderViewerInteractionController } from './DesignBuilderViewerInteraction';
+import { createDesignBuilderViewerPickers } from './DesignBuilderViewerPicking';
+import { createDesignBuilderViewerSceneEnvironment } from './DesignBuilderViewerSceneEnvironment';
+import { createDesignBuilderViewerSceneRegistry } from './DesignBuilderViewerSceneRegistry';
+import { createDesignBuilderViewerResources } from './DesignBuilderViewerResources';
+import {
+  createDesignBuilderViewerRebuildState,
+  type DesignBuilderViewerModelParams,
+} from './DesignBuilderViewerRebuildState';
 
 const CLICK_DRAG_THRESHOLD_PX = 5;
-
-export interface DesignBuilderPlacementPreview {
-  wallFace: NonNullable<WallOpeningParameters['wallFace']>;
-  offsetMeters: number;
-  positionAlongSegment?: number;
-  openingType: WallOpeningParameters['type'];
-  widthMeters: number;
-  heightMeters: number;
-  sillHeightMeters?: number;
-  isValid: boolean;
-  statusKind?: 'clean' | 'half_block' | 'cut_block' | 'invalid';
-  openingId?: string;
-  wallSegmentId?: string;
-  wallRotationY?: number;
-  frameOrigin?: { x: number; y: number; z: number };
-  hitPoint?: { x: number; y: number; z: number };
-  openingDraft?: WallOpeningParameters;
-}
 
 interface DesignBuilderViewerProps {
   modelLoaded: boolean;
@@ -172,159 +115,6 @@ interface DesignBuilderViewerProps {
     planX?: number;
     planZ?: number;
   }) => void;
-}
-
-function isDarkMode(): boolean {
-  return document.documentElement.classList.contains('dark');
-}
-
-function selectionPriorityForObjectType(objectType: DesignObjectType): number {
-  if (objectType === 'door_opening' || objectType === 'window_opening') return 100;
-  if (objectType === 'cmu_wall_system') return 40;
-  if (
-    objectType === 'building_footprint' ||
-    objectType === 'thickened_edge_slab' ||
-    objectType === 'gable_roof_system' ||
-    objectType === 'steel_truss_system'
-  ) {
-    return 20;
-  }
-  return 1;
-}
-
-const ROOF_CLADDING_BEAM_CLEARANCE_METERS = CORRUGATED_SHEET_DISPLAY_THICKNESS_METERS;
-
-function roofDisplayModeShowsGableMasonry(roofDisplayMode: RoofDisplayMode): boolean {
-  return (
-    roofDisplayMode === 'full_roof' ||
-    roofDisplayMode === 'gable_masonry_only' ||
-    roofDisplayMode === 'foundation_frame_roof'
-  );
-}
-
-function isGableEndCmuBlock(block: Pick<CmuBlockInstance, 'source'>): boolean {
-  return block.source === 'gable_end_solver';
-}
-
-function resolveVisibleCmuBlockInstances(params: {
-  showCmuInfill: boolean;
-  showIndividualBlocks: boolean;
-  roofDisplayMode: RoofDisplayMode;
-  roofLayerVisibility: RoofLayerVisibility;
-  blockInstances: CmuBlockInstance[];
-}): CmuBlockInstance[] {
-  const showGableEndCmu =
-    roofDisplayModeShowsGableMasonry(params.roofDisplayMode) &&
-    (params.roofLayerVisibility.gableEndCmu ?? DEFAULT_ROOF_LAYER_VISIBILITY.gableEndCmu);
-  const gableEndBlocks = showGableEndCmu
-    ? params.blockInstances.filter(isGableEndCmuBlock)
-    : [];
-
-  if (!params.showCmuInfill) return gableEndBlocks;
-
-  if (params.showIndividualBlocks) {
-    return showGableEndCmu
-      ? params.blockInstances
-      : params.blockInstances.filter((block) => !isGableEndCmuBlock(block));
-  }
-
-  return gableEndBlocks;
-}
-
-function createRoofSheetEaveLipGeometry(params: {
-  corners: readonly RoofVec3[];
-  eavePair: [number, number];
-  planeNormal: RoofVec3;
-  slabTopMeters: number;
-  thicknessMeters: number;
-}): THREE.BufferGeometry {
-  const [firstIndex, secondIndex] = params.eavePair;
-  const topA = params.corners[firstIndex]!;
-  const topB = params.corners[secondIndex]!;
-  const bottomB = offsetPointAlongRoofNormal(topB, params.planeNormal, -params.thicknessMeters);
-  const bottomA = offsetPointAlongRoofNormal(topA, params.planeNormal, -params.thicknessMeters);
-  const vertices = [topA, topB, bottomB, bottomA];
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute(
-    'position',
-    new THREE.Float32BufferAttribute(
-      vertices.flatMap((vertex) => [vertex.x, params.slabTopMeters + vertex.y, vertex.z]),
-      3,
-    ),
-  );
-  geometry.setIndex([0, 1, 2, 0, 2, 3]);
-  geometry.computeVertexNormals();
-  return geometry;
-}
-
-function createFootprintSlabGeometry(
-  exteriorFacePolygon: readonly { x: number; z: number }[],
-  slabThicknessMeters: number,
-): THREE.BufferGeometry {
-  const shape = new THREE.Shape();
-  exteriorFacePolygon.forEach((point, index) => {
-    if (index === 0) {
-      shape.moveTo(point.x, point.z);
-    } else {
-      shape.lineTo(point.x, point.z);
-    }
-  });
-  shape.closePath();
-  const geometry = new THREE.ExtrudeGeometry(shape, {
-    depth: Math.max(0.01, slabThicknessMeters),
-    bevelEnabled: false,
-  });
-  geometry.rotateX(Math.PI / 2);
-  return geometry;
-}
-
-function addCmuMortarJointMeshes(params: {
-  blocks: readonly CmuBlockInstance[];
-  wall: CmuWallSystemParameters;
-  slabTopMeters: number;
-  visualStyle: DesignVisualStyle;
-  cmuCutawayActive: boolean;
-  cmuOpacity: number;
-  debugMode: boolean;
-  root: THREE.Group;
-  trackGeometry: (geometry: THREE.BufferGeometry) => THREE.BufferGeometry;
-  trackMat: (material: THREE.Material) => void;
-}): MortarJointDiagnostics | null {
-  if (params.blocks.length === 0) {
-    return null;
-  }
-  const moduleConfig = resolveCmuModuleConfig(params.wall);
-  const mortarMaterialOptions = {
-    visualStyle: params.visualStyle,
-    selected: false,
-    ...(params.cmuCutawayActive ? { transparent: true as const, opacity: params.cmuOpacity } : {}),
-  };
-  const { group, diagnostics } = buildMortarJointMeshes({
-    blocks: params.blocks,
-    mortarJointMeters: moduleConfig.mortarJointMeters,
-    defaultBlockDepthMeters: params.wall.blockDepthMeters ?? params.wall.wallThicknessMeters,
-    defaultBlockHeightMeters: moduleConfig.actualHeightMeters,
-    slabTopMeters: params.slabTopMeters,
-    materialOptions: mortarMaterialOptions,
-    debugMode: params.debugMode,
-    trackGeometry: params.trackGeometry,
-    trackMaterial: params.trackMat,
-  });
-  if (group.children.length > 0) {
-    params.root.add(group);
-  }
-  return diagnostics;
-}
-
-function createFootprintSetoutLine(
-  polygon: readonly { x: number; z: number }[],
-  y: number,
-  color: number,
-): THREE.Line {
-  const points = polygon.length >= 2 ? [...polygon, polygon[0]] : polygon;
-  const geometry = new THREE.BufferGeometry().setFromPoints(points.map((point) => new THREE.Vector3(point.x, y, point.z)));
-  const material = new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.95 });
-  return new THREE.Line(geometry, material);
 }
 
 export default function DesignBuilderViewer({
@@ -381,7 +171,7 @@ export default function DesignBuilderViewer({
   const updateGhostRef = useRef<(() => void) | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const previewMaterialsReadyRef = useRef(false);
-  const modelParamsRef = useRef({
+  const modelParamsRef = useRef<DesignBuilderViewerModelParams>({
     modelLoaded,
     slab,
     wall,
@@ -488,301 +278,52 @@ export default function DesignBuilderViewer({
     const ghostRoot = new THREE.Group();
     scene.add(root, ghostRoot);
 
-    const initialGridLayout = resolveSceneGridLayout(modelParamsRef.current.layoutBounds);
-    let grid = new THREE.GridHelper(initialGridLayout.gridSize, initialGridLayout.gridDivisions);
-    grid.position.set(initialGridLayout.centerX, 0, initialGridLayout.centerZ);
-    scene.add(grid);
-    const floorMesh = new THREE.Mesh(new THREE.PlaneGeometry(initialGridLayout.gridSize, initialGridLayout.gridSize));
-    floorMesh.rotation.x = -Math.PI / 2;
-    floorMesh.position.set(initialGridLayout.centerX, -0.004, initialGridLayout.centerZ);
-    scene.add(floorMesh);
-    let activeGridSize = initialGridLayout.gridSize;
-    let activeGridDivisions = initialGridLayout.gridDivisions;
+    const resources = createDesignBuilderViewerResources();
+    const sceneEnvironment = createDesignBuilderViewerSceneEnvironment({
+      scene,
+      initialBounds: modelParamsRef.current.layoutBounds ?? null,
+      getLayoutBounds: () => modelParamsRef.current.layoutBounds ?? null,
+      getVisualStyle: () => modelParamsRef.current.visualStyle,
+      trackMaterial: resources.trackMaterial,
+    });
     const raycaster = new THREE.Raycaster();
     const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
     const selectable: THREE.Object3D[] = [];
     const wallPickables: THREE.Object3D[] = [];
-    const materialsToDispose: THREE.Material[] = [];
-    const geometriesToDispose: THREE.BufferGeometry[] = [];
-    let ghostMaterials: THREE.Material[] = [];
+    const sceneRegistry = createDesignBuilderViewerSceneRegistry({
+      root,
+      selectableObjects: selectable,
+      wallPickableObjects: wallPickables,
+    });
+    const trackGeometry = resources.trackGeometry;
+    const makeMaterial = resources.makeMaterial;
 
-    let pointerDown: { x: number; y: number; button: number } | null = null;
-    let manualBrushActive = false;
-    let dragOpeningId: string | null = null;
+    const addSelectable = sceneRegistry.addSelectable;
+    const addWallPickable = sceneRegistry.addWallPickable;
 
-    function trackGeometry<T extends THREE.BufferGeometry>(geometry: T): T {
-      geometriesToDispose.push(geometry);
-      return geometry;
-    }
-
-    function makeMaterial(color: number, selected: boolean, options: THREE.MeshStandardMaterialParameters = {}) {
-      const material = new THREE.MeshStandardMaterial({
-        color: selected ? 0x22d3ee : color,
-        roughness: 0.78,
-        metalness: 0.03,
-        transparent: selected,
-        opacity: selected ? 0.92 : 1,
-        emissive: selected ? 0x0e7490 : 0x000000,
-        emissiveIntensity: selected ? 0.22 : 0,
-        ...options,
-      });
-      materialsToDispose.push(material);
-      return material;
-    }
-
-    function addSelectable(
-      object: THREE.Object3D,
-      objectType: DesignObjectType,
-      openingId?: string,
-      priority = selectionPriorityForObjectType(objectType),
-    ) {
-      object.userData.selectable = true;
-      object.userData.designObjectType = objectType;
-      object.userData.selectionPriority = priority;
-      if (openingId) object.userData.openingId = openingId;
-      selectable.push(object);
-      root.add(object);
-    }
-
-    function addWallPickable(
-      mesh: THREE.Mesh,
-      data: { wallFace?: WallOpeningParameters['wallFace']; wallSegmentId?: string; lengthMeters?: number },
-    ) {
-      if (data.wallFace) mesh.userData.wallFace = data.wallFace;
-      if (data.wallSegmentId) mesh.userData.wallSegmentId = data.wallSegmentId;
-      if (typeof data.lengthMeters === 'number') mesh.userData.lengthMeters = data.lengthMeters;
-      mesh.userData.isWallPickable = true;
-      wallPickables.push(mesh);
-      root.add(mesh);
-      return mesh;
-    }
-
-    function applySceneFraming(bounds: DesignLayoutBounds | null) {
-      const layout = resolveSceneGridLayout(bounds);
-      if (Math.abs(activeGridSize - layout.gridSize) > 0.01 || activeGridDivisions !== layout.gridDivisions) {
-        scene.remove(grid);
-        grid.geometry.dispose();
-        (grid.material as THREE.Material).dispose();
-        grid = new THREE.GridHelper(layout.gridSize, layout.gridDivisions);
-        activeGridSize = layout.gridSize;
-        activeGridDivisions = layout.gridDivisions;
-        scene.add(grid);
-        applyTheme();
-      }
-      grid.position.set(layout.centerX, 0, layout.centerZ);
-      floorMesh.position.set(layout.centerX, -0.004, layout.centerZ);
-      if (floorMesh.geometry instanceof THREE.PlaneGeometry) {
-        floorMesh.geometry.dispose();
-      }
-      floorMesh.geometry = new THREE.PlaneGeometry(layout.gridSize, layout.gridSize);
-      refreshSiteGroundMaterial();
-    }
-
-    function applyTheme() {
-      const dark = isDarkMode();
-      scene.background = new THREE.Color(dark ? 0x0f172a : 0xf8fafc);
-      (grid.material as THREE.Material).opacity = dark ? 0.35 : 0.22;
-      (grid.material as THREE.Material).transparent = true;
-      refreshSiteGroundMaterial();
-    }
-
-    function refreshSiteGroundMaterial() {
-      const params = modelParamsRef.current;
-      const layout = resolveSceneGridLayout(params.layoutBounds);
-      const material = resolveSiteGroundMaterial(
-        {
-          visualStyle: params.visualStyle,
-          selected: false,
-          gridSizeMeters: layout.gridSize,
-        },
-        (nextMaterial) => {
-          materialsToDispose.push(nextMaterial);
-        },
-      );
-      floorMesh.material = material;
-    }
-
-    function setPointerFromEvent(event: PointerEvent) {
-      const pointer = getNormalizedPointerFromClient(event, renderer.domElement);
-      raycaster.setFromCamera(pointer, camera);
-    }
-
-    function pickWall(event: PointerEvent) {
-      setPointerFromEvent(event);
-      const segmentFrames = modelParamsRef.current.geometryResult?.wallCmuLayout?.segmentFrames ?? [];
-      const frameById = buildSegmentFrameMap(segmentFrames);
-      const viewDirection = raycaster.ray.direction.clone().normalize();
-      const candidates = raycaster
-        .intersectObjects(wallPickables, false)
-        .filter((hit) => hit.object.userData.isWallPickable)
-        .map((hit) => {
-          const wallSegmentId = hit.object.userData.wallSegmentId as string | undefined;
-          const frame = wallSegmentId ? frameById.get(wallSegmentId) : null;
-          const facing = frame
-            ? frame.outwardNormal.x * -viewDirection.x + frame.outwardNormal.z * -viewDirection.z > 0.05
-            : true;
-          return { hit, wallSegmentId, frame, facing };
-        })
-        .filter((candidate) => candidate.facing)
-        .sort((left, right) => left.hit.distance - right.hit.distance);
-
-      const best = candidates[0];
-      if (!best) return null;
-      const point = best.hit.point;
-
-      if (best.wallSegmentId && best.frame) {
-        const positionAlongSegment = projectPointToSegmentStation(
-          { x: point.x, z: point.z },
-          best.frame,
-        );
-        if (import.meta.env.DEV) {
-          console.debug(
-            `Host wall: ${best.wallSegmentId}\nStation: ${positionAlongSegment.toFixed(2)} m / ${best.frame.lengthMeters.toFixed(2)} m`,
-          );
-        }
-        return {
-          wallSegmentId: best.wallSegmentId,
-          positionAlongSegment,
-          hitPoint: { x: point.x, y: point.y, z: point.z },
-        };
-      }
-
-      if (!best.hit.object.userData.wallFace) return null;
-      const wallFace = best.hit.object.userData.wallFace as WallOpeningParameters['wallFace'];
-      const offsetWall = modelParamsRef.current.wall;
-      const offsetMeters =
-        wallFace === 'north' || wallFace === 'south'
-          ? point.x + offsetWall.lengthMeters / 2
-          : point.z + offsetWall.widthMeters / 2;
-      return { wallFace, offsetMeters, hitPoint: { x: point.x, y: point.y, z: point.z } };
-    }
-
-    function selectableDataFor(object: THREE.Object3D | null) {
-      let current: THREE.Object3D | null = object;
-      while (current) {
-        if (current.userData.selectable && current.userData.designObjectType) {
-          return current.userData as {
-            designObjectType: DesignObjectType;
-            openingId?: string;
-            selectionPriority?: number;
-          };
-        }
-        current = current.parent;
-      }
-      return null;
-    }
-
-    function pickSelectable(event: PointerEvent) {
-      setPointerFromEvent(event);
-      return raycaster
-        .intersectObjects(selectable, true)
-        .map((hit) => ({ hit, data: selectableDataFor(hit.object) }))
-        .filter((item): item is { hit: THREE.Intersection; data: NonNullable<ReturnType<typeof selectableDataFor>> } => item.data != null)
-        .sort((a, b) => {
-          const priorityDelta = (b.data.selectionPriority ?? 0) - (a.data.selectionPriority ?? 0);
-          return priorityDelta !== 0 ? priorityDelta : a.hit.distance - b.hit.distance;
-        })[0] ?? null;
-    }
-
-    function pickManualBrushPoint(event: PointerEvent) {
-      setPointerFromEvent(event);
-      const hit = new THREE.Vector3();
-      if (!raycaster.ray.intersectPlane(groundPlane, hit)) return null;
-      return { x: hit.x, z: hit.z };
-    }
+    const applySceneFraming = sceneEnvironment.applySceneFraming;
+    const applyTheme = sceneEnvironment.applyTheme;
+    const refreshSiteGroundMaterial = sceneEnvironment.refreshSiteGroundMaterial;
 
     function clearGhost() {
-      ghostMaterials.forEach((material) => material.dispose());
-      ghostMaterials = [];
-      ghostRoot.clear();
+      resources.clearGhostRoot(ghostRoot);
     }
 
     function updateGhost() {
       clearGhost();
       const preview = placementPreviewRef.current;
       if (!preview) return;
-      const ghostWall = modelParamsRef.current.wall;
-      const ghostSlab = modelParamsRef.current.slab;
-      const roughAllowance = preview.openingDraft?.roughOpeningAllowanceMeters ?? 0.05;
-      const roughWidth = preview.openingDraft?.roughOpeningWidthMeters ?? preview.widthMeters + roughAllowance * 2;
-      const roughHeight = preview.openingDraft?.roughOpeningHeightMeters ?? preview.heightMeters + roughAllowance * 2;
-      const centerStation = preview.positionAlongSegment ?? preview.offsetMeters + preview.widthMeters / 2;
-      const sillHeight = preview.openingType === 'door' ? 0 : preview.sillHeightMeters ?? 0;
-      const segmentFrames = modelParamsRef.current.geometryResult?.wallCmuLayout?.segmentFrames ?? [];
-      const hostSegmentFrame = preview.wallSegmentId
-        ? segmentFrames.find((segment) => segment.segmentId === preview.wallSegmentId)
-        : undefined;
-      const previewInfillOffset =
-        modelParamsRef.current.geometryResult?.resolvedInfillPanelBounds
-          ?.filter((bounds) => !bounds.panelId.includes('-below-'))
-          .find((bounds) => bounds.hostSegmentId === preview.wallSegmentId)
-          ?.infillCenterlineInwardOffsetMeters ?? 0;
-      const previewHostSegmentFrame = hostSegmentFrame
-        ? {
-            ...hostSegmentFrame,
-            infillCenterlineInwardOffsetMeters: previewInfillOffset,
-          }
-        : undefined;
-      const resolvedLike: ResolvedCmuOpening & {
-        worldX?: number;
-        worldZ?: number;
-        rotationY?: number;
-        placementStatusKind?: string;
-      } = {
-            id: preview.openingId ?? 'preview',
-            type: preview.openingType,
-            wallFace: preview.wallFace,
-            wallSegmentId: preview.wallSegmentId,
-            actualWidthMeters: preview.widthMeters,
-            actualHeightMeters: preview.heightMeters,
-            actualAreaSquareMeters: preview.widthMeters * preview.heightMeters,
-            roughOpeningWidthMeters: roughWidth,
-            roughOpeningHeightMeters: roughHeight,
-            roughOpeningAreaSquareMeters: roughWidth * roughHeight,
-            roughStartAlongMeters: centerStation - roughWidth / 2,
-            roughEndAlongMeters: centerStation + roughWidth / 2,
-            roughBottomMeters: preview.openingType === 'door' ? 0 : Math.max(0, sillHeight - (roughHeight - preview.heightMeters) / 2),
-            roughTopMeters:
-              (preview.openingType === 'door' ? 0 : Math.max(0, sillHeight - (roughHeight - preview.heightMeters) / 2)) + roughHeight,
-            actualStartAlongMeters: centerStation - preview.widthMeters / 2,
-            actualEndAlongMeters: centerStation + preview.widthMeters / 2,
-            actualBottomMeters: sillHeight,
-            actualTopMeters: sillHeight + preview.heightMeters,
-            lintelType: preview.openingDraft?.lintelType ?? ghostWall.lintelType ?? 'bond_beam',
-            lintelBearingMeters: preview.openingDraft?.lintelBearingMeters ?? ghostWall.lintelBearingMeters ?? 0.2,
-            lintelCourseCount: preview.openingDraft?.lintelCourseCount ?? ghostWall.lintelCourseCount ?? 1,
-            lintelLengthMeters: roughWidth + (preview.openingDraft?.lintelBearingMeters ?? ghostWall.lintelBearingMeters ?? 0.2) * 2,
-            lintelHeightMeters: ghostWall.blockHeightMeters * (preview.openingDraft?.lintelCourseCount ?? ghostWall.lintelCourseCount ?? 1),
-            jambGroutEnabled: true,
-            jambRebarEnabled: false,
-            groutCellsEachSide: 1,
-            jambGroutCellCount: 2,
-            groutCellsAboveOpening: 0,
-            groutCellsBelowWindow: 0,
-            openingFrameMaterial: preview.openingDraft?.openingFrameMaterial ?? 'none',
-            ...(preview.frameOrigin && typeof preview.wallRotationY === 'number'
-              ? {
-                  worldX: preview.frameOrigin.x,
-                  worldZ: preview.frameOrigin.z,
-                  rotationY: preview.wallRotationY,
-                  placementStatusKind: preview.statusKind,
-                }
-              : { placementStatusKind: preview.statusKind }),
-          };
-
-      const frame = createOpeningFrame3dGroup(resolvedLike, ghostWall, ghostSlab.slabThicknessMeters, {
-        preview: true,
-        valid: preview.isValid,
-        selected: Boolean(preview.openingId && preview.openingId === selectedOpeningIdRef.current),
-        showOpeningLayout: modelParamsRef.current.showOpeningLayout,
-        hostSegmentFrame: previewHostSegmentFrame,
+      const params = modelParamsRef.current;
+      const frame = buildOpeningPlacementPreviewSceneGroup({
+        preview,
+        wall: params.wall,
+        slabTopMeters: params.slab.slabThicknessMeters,
+        segmentFrames: params.geometryResult?.wallCmuLayout?.segmentFrames,
+        resolvedInfillPanelBounds: params.geometryResult?.resolvedInfillPanelBounds,
+        selectedOpeningId: selectedOpeningIdRef.current,
+        showOpeningLayout: params.showOpeningLayout,
       });
-      frame.traverse((child) => {
-        if (child instanceof THREE.Mesh || child instanceof THREE.LineSegments) {
-          ghostMaterials.push(...(Array.isArray(child.material) ? child.material : [child.material]));
-        }
-      });
-      frame.renderOrder = 10;
+      resources.trackGhostMaterialsFrom(frame);
       ghostRoot.renderOrder = 10;
       ghostRoot.add(frame);
     }
@@ -792,219 +333,65 @@ export default function DesignBuilderViewer({
       const params = modelParamsRef.current;
       if (!params.modelLoaded) return;
       const {
-        wall: currentWall,
-        slab: currentSlab,
-        roof: currentRoof,
-        geometryResult: currentGeometry,
-        layoutBounds: currentLayoutBounds,
-        placedComponents: currentPlacedComponents,
-        designRenderModel: currentDesignRenderModel,
-        selectedObjectType: currentSelectedObjectType,
-        showOpeningLayout: currentShowOpeningLayout,
-        showGroutCells: currentShowGroutCells,
-        showClosureWarnings: currentShowClosureWarnings,
-        showRoofReferencePerimeters: currentShowRoofReferencePerimeters,
-        showRoofFramingGuides: currentShowRoofFramingGuides,
-        foundationViewMode: currentFoundationViewMode,
-        visualStyle: currentVisualStyle,
-        roofSystem: currentRoofSystem,
-        roofDisplayMode: currentRoofDisplayMode,
-        roofLayerVisibility: currentRoofLayerVisibility,
-      } = params;
-      const usePreviewMaterials =
-        currentVisualStyle === 'material_preview' && previewMaterialsReadyRef.current;
-      const frameSelected = currentSelectedObjectType === 'structural_frame_system';
-      const cmuSelected = currentSelectedObjectType === 'cmu_wall_system';
-      const roofSelected = currentSelectedObjectType === 'gable_roof_system';
-      const gableSelected = currentSelectedObjectType === 'gable_end_system';
+        currentWall,
+        currentSlab,
+        currentGeometry,
+        currentLayoutBounds,
+        currentPlacedComponents,
+        currentDesignRenderModel,
+        currentSelectedObjectType,
+        currentShowOpeningLayout,
+        currentShowGroutCells,
+        currentShowClosureWarnings,
+        currentShowRoofReferencePerimeters,
+        currentShowRoofFramingGuides,
+        currentFoundationViewMode,
+        currentVisualStyle,
+        currentRoofSystem,
+        currentRoofDisplayMode,
+        currentRoofLayerVisibility,
+        usePreviewMaterials,
+        frameSelected,
+        cmuSelected,
+        roofSelected,
+        gableSelected,
+        cmuCutawayActive,
+        cmuOpacity,
+        cmuMaterialOptions,
+        blankGeometryActive,
+        sceneSize,
+      } = createDesignBuilderViewerRebuildState({
+        modelParams: params,
+        previewMaterialsReady: previewMaterialsReadyRef.current,
+      });
 
-      function trackMat(material: THREE.Material) {
-        materialsToDispose.push(material);
-      }
+      const trackMat = resources.trackMaterial;
 
-      const cmuCutawayActive = currentFoundationViewMode === 'cutaway_below_grade';
-      const cmuOpacity = cmuCutawayActive ? 0.35 : usePreviewMaterials ? 1 : 0.9;
-      const cmuMaterialOptions = {
-        visualStyle: currentVisualStyle,
-        selected: cmuSelected,
-        ...(cmuCutawayActive ? { transparent: true as const, opacity: cmuOpacity } : {}),
-      };
-      root.clear();
-      selectable.length = 0;
-      wallPickables.length = 0;
-      geometriesToDispose.splice(0).forEach((geometry) => geometry.dispose());
-      materialsToDispose.splice(0).forEach((material) => material.dispose());
+      sceneRegistry.reset();
+      resources.resetTrackedResources();
 
       applySceneFraming(currentLayoutBounds);
-      const blankGeometryActive = currentGeometry?.sourcePath === 'blank';
-      sceneSizeRef.current = {
-        length: blankGeometryActive ? 6 : currentWall.lengthMeters,
-        width: blankGeometryActive ? 6 : currentWall.widthMeters,
-        height: blankGeometryActive
-          ? 2
-          : currentSlab.slabThicknessMeters + currentWall.heightMeters + (currentRoof.widthMeters / 2 + currentRoof.overhangMeters) * currentRoof.pitchRisePerRun,
-      };
+      sceneSizeRef.current = sceneSize;
 
       function addSupplementalPlacedComponents() {
-        const supplementalRenderModel =
-          currentDesignRenderModel ?? buildDesignRenderModel({
-            placedComponents: currentPlacedComponents,
-            layoutBounds: currentLayoutBounds,
-          });
-        if (supplementalRenderModel.rcComponents.length === 0) return;
-        const structuralMaterial = usePreviewMaterials
-          ? resolveCastConcreteMaterial(
-              { visualStyle: currentVisualStyle, selected: frameSelected, role: 'structural' },
-              trackMat,
-            )
-          : makeMaterial(0xcbd5e1, frameSelected, {
-              roughness: 0.82,
-            });
-        const footingMaterial = usePreviewMaterials
-          ? resolveCastConcreteMaterial(
-              { visualStyle: currentVisualStyle, selected: frameSelected, role: 'structural' },
-              trackMat,
-            )
-          : makeMaterial(0x78716c, frameSelected, {
-              roughness: 0.9,
-            });
-        const beamMaterial = usePreviewMaterials
-          ? resolveCastConcreteMaterial(
-              { visualStyle: currentVisualStyle, selected: frameSelected, role: 'beam' },
-              trackMat,
-            )
-          : makeMaterial(0x94a3b8, frameSelected, {
-              roughness: 0.82,
-            });
-        const supplementalPlaster = currentGeometry?.infillSystem?.plaster;
-        const useSupplementalPlasterFinish =
-          currentFoundationViewMode !== 'structural_frame_only' && Boolean(supplementalPlaster?.enabled);
-        const supplementalPlasterFinish = supplementalPlaster?.finish ?? 'textured';
-        const supplementalPlinthTopElevationMeters =
-          currentGeometry?.frameSystem?.beams.find((beam) => beam.kind === 'plinth_beam')?.topElevationMeters ??
-          TOP_OF_PLINTH_BEAM_Y;
-        const resolveSupplementalPlasterMaterial = (selected: boolean) =>
-          usePreviewMaterials
-            ? resolvePlasterFinishMaterial(
-                {
-                  visualStyle: currentVisualStyle,
-                  selected,
-                  plasterFinish: supplementalPlasterFinish,
-                },
-                trackMat,
-              )
-            : makeMaterial(supplementalPlasterFinish === 'smooth' ? 0xded8cf : 0xd8d1c5, selected, {
-                side: THREE.DoubleSide,
-              });
-
-        supplementalRenderModel.rcComponents.forEach((component) => {
-          const position = { x: component.position.x, z: component.position.z };
-          if (component.type === 'column') {
-            const width = Math.max(0.02, component.dimensions.width);
-            const depth = Math.max(0.02, component.dimensions.depth);
-            const base = component.elevations.base;
-            const top = Math.max(base + 0.02, component.elevations.top);
-            if (component.footer) {
-              const footerWidth = Math.max(width, component.footer.widthMeters);
-              const footerLength = Math.max(depth, component.footer.lengthMeters);
-              const footerBottom = component.footer.bottomElevationMeters;
-              const footerTop = component.footer.topElevationMeters;
-              const footerMesh = new THREE.Mesh(
-                trackGeometry(new THREE.BoxGeometry(footerWidth, Math.max(0.02, footerTop - footerBottom), footerLength)),
-                footingMaterial,
-              );
-              footerMesh.position.set(
-                position.x,
-                currentSlab.slabThicknessMeters + (footerTop + footerBottom) / 2,
-                position.z,
-              );
-              addSelectable(footerMesh, 'structural_frame_system', undefined, 55);
-            }
-            if (useSupplementalPlasterFinish) {
-              const concreteTop = Math.min(top, supplementalPlinthTopElevationMeters);
-              const concreteHeight = Math.max(0, concreteTop - base);
-              if (concreteHeight > FOUNDATION_CONTACT_EPSILON_METERS) {
-                const concreteMesh = new THREE.Mesh(
-                  trackGeometry(new THREE.BoxGeometry(width, concreteHeight, depth)),
-                  structuralMaterial,
-                );
-                concreteMesh.position.set(
-                  position.x,
-                  currentSlab.slabThicknessMeters + base + concreteHeight / 2,
-                  position.z,
-                );
-                addSelectable(concreteMesh, 'structural_frame_system', undefined, 60);
-              }
-              const plasterBase = Math.max(base, supplementalPlinthTopElevationMeters);
-              const plasterHeight = Math.max(0, top - plasterBase);
-              if (plasterHeight > FOUNDATION_CONTACT_EPSILON_METERS) {
-                const plasterMesh = new THREE.Mesh(
-                  trackGeometry(new THREE.BoxGeometry(width, plasterHeight, depth)),
-                  resolveSupplementalPlasterMaterial(frameSelected),
-                );
-                plasterMesh.position.set(
-                  position.x,
-                  currentSlab.slabThicknessMeters + plasterBase + plasterHeight / 2,
-                  position.z,
-                );
-                addSelectable(plasterMesh, 'structural_frame_system', undefined, 60);
-              }
-              return;
-            }
-            const height = Math.max(0.02, top - base);
-            const mesh = new THREE.Mesh(
-              trackGeometry(new THREE.BoxGeometry(width, height, depth)),
-              structuralMaterial,
-            );
-            mesh.position.set(
-              position.x,
-              currentSlab.slabThicknessMeters + base + height / 2,
-              position.z,
-            );
-            addSelectable(mesh, 'structural_frame_system', undefined, 60);
-            return;
-          }
-          if (component.type === 'footer') {
-            const width = Math.max(0.02, component.dimensions.width);
-            const length = Math.max(0.02, component.dimensions.length ?? component.dimensions.depth);
-            const bottom = component.elevations.base;
-            const top = component.elevations.top;
-            const mesh = new THREE.Mesh(
-              trackGeometry(new THREE.BoxGeometry(width, Math.max(0.02, top - bottom), length)),
-              footingMaterial,
-            );
-            mesh.position.set(position.x, currentSlab.slabThicknessMeters + (top + bottom) / 2, position.z);
-            addSelectable(mesh, 'structural_frame_system', undefined, 55);
-            return;
-          }
-          if (component.type === 'slab') {
-            const width = Math.max(0.02, component.dimensions.width);
-            const length = Math.max(0.02, component.dimensions.length ?? 2);
-            const thickness = Math.max(0.02, component.dimensions.height);
-            const top = component.elevations.top;
-            const mesh = new THREE.Mesh(
-              trackGeometry(new THREE.BoxGeometry(length, thickness, width)),
-              structuralMaterial,
-            );
-            mesh.position.set(position.x, currentSlab.slabThicknessMeters + top - thickness / 2, position.z);
-            addSelectable(mesh, 'structural_frame_system', undefined, 50);
-            return;
-          }
-          if (component.type === 'tie_beam' || component.type === 'plinth_beam' || component.type === 'roof_beam') {
-            const length = Math.max(0.02, component.dimensions.length ?? 1.2);
-            const width = Math.max(0.02, component.dimensions.width);
-            const depth = Math.max(0.02, component.dimensions.depth);
-            const elevation = component.elevations.base;
-            const rotation = component.sourceComponent.viewPlacement.plan?.rotationRadians ?? 0;
-            const mesh = new THREE.Mesh(
-              trackGeometry(new THREE.BoxGeometry(length, depth, width)),
-              beamMaterial,
-            );
-            mesh.position.set(position.x, currentSlab.slabThicknessMeters + elevation + depth / 2, position.z);
-            mesh.rotation.y = -rotation;
-            addSelectable(mesh, 'structural_frame_system', undefined, 55);
-          }
+        const supplementalScene = buildDesignBuilderViewerSupplementalScene({
+          state: {
+            currentDesignRenderModel,
+            currentPlacedComponents,
+            currentLayoutBounds,
+            currentGeometry,
+            currentSlab,
+            currentFoundationViewMode,
+            currentVisualStyle,
+            usePreviewMaterials,
+            frameSelected,
+          },
+          trackGeometry,
+          trackMaterial: trackMat,
+          makeMaterial,
         });
+        sceneRegistry.registerSelectables(supplementalScene.selectableObjects);
+        if (supplementalScene.group.children.length > 0) root.add(supplementalScene.group);
       }
 
       if (blankGeometryActive) {
@@ -1019,7 +406,7 @@ export default function DesignBuilderViewer({
         opacity: 0,
         depthWrite: false,
       });
-      materialsToDispose.push(pickMaterial);
+      trackMat(pickMaterial);
       const wallY = currentSlab.slabThicknessMeters + currentWall.heightMeters / 2;
       const wallInset = Math.max(0, currentWall.wallThicknessMeters) / 2;
 
@@ -1055,7 +442,9 @@ export default function DesignBuilderViewer({
             cmuLayout.unitPlacements,
             selectedOpening,
             moduleConfig.moduleHeightMeters,
-            selectedOpening.wallSegmentId ?? selectedOpening.wallFace ?? undefined,
+            (selectedOpening as typeof selectedOpening & { wallSegmentId?: string }).wallSegmentId ??
+              selectedOpening.wallFace ??
+              undefined,
           );
         }
       }
@@ -1071,1330 +460,86 @@ export default function DesignBuilderViewer({
           addWallPickable(pickMesh, { wallSegmentId: segment.segmentId, lengthMeters: segment.lengthMeters });
         });
 
-        const frameSystem = currentGeometry.frameSystem;
-        const infillPlaster = currentGeometry.infillSystem?.plaster;
-        const useFramePlasterFinish = showCmuInfill && Boolean(infillPlaster?.enabled);
-        const plasterFinish = infillPlaster?.finish ?? 'textured';
-        const plinthTopElevationMeters =
-          frameSystem?.beams.find((beam) => beam.kind === 'plinth_beam')?.topElevationMeters ??
-          TOP_OF_PLINTH_BEAM_Y;
-        const resolveFramePlasterMaterial = (selected: boolean) =>
-          usePreviewMaterials
-            ? resolvePlasterFinishMaterial(
-                { visualStyle: currentVisualStyle, selected, plasterFinish },
-                trackMat,
-              )
-            : makeMaterial(plasterFinish === 'smooth' ? 0xded8cf : 0xd8d1c5, selected, {
-                side: THREE.DoubleSide,
-              });
-        const isPlasterFinishedBeamKind = (kind: string, baseElevationMeters: number) =>
-          baseElevationMeters >= plinthTopElevationMeters - FOUNDATION_CONTACT_EPSILON_METERS &&
-          (kind === 'ring_beam' || kind === 'roof_beam' || kind === 'lintel_beam');
-        const columnConcreteMaterial = usePreviewMaterials
-          ? resolveCastConcreteMaterial(
-              { visualStyle: currentVisualStyle, selected: frameSelected, role: 'structural' },
-              trackMat,
-            )
-          : makeMaterial(0x9ca3af, frameSelected, {
-              roughness: 0.85,
-            });
-        if (frameSystem?.columns.length) {
-          frameSystem.columns.forEach((column) => {
-            if (useFramePlasterFinish) {
-              const belowPlinthHeight = Math.max(
-                0,
-                plinthTopElevationMeters - column.baseElevationMeters,
-              );
-              const abovePlinthHeight = Math.max(
-                0,
-                column.topElevationMeters - plinthTopElevationMeters,
-              );
-              if (belowPlinthHeight > FOUNDATION_CONTACT_EPSILON_METERS) {
-                const belowMesh = new THREE.Mesh(
-                  trackGeometry(
-                    new THREE.BoxGeometry(column.widthMeters, belowPlinthHeight, column.depthMeters),
-                  ),
-                  columnConcreteMaterial,
-                );
-                belowMesh.position.set(
-                  column.position.x,
-                  currentSlab.slabThicknessMeters +
-                    column.baseElevationMeters +
-                    belowPlinthHeight / 2,
-                  column.position.z,
-                );
-                addSelectable(belowMesh, 'structural_frame_system');
-              }
-              if (abovePlinthHeight > FOUNDATION_CONTACT_EPSILON_METERS) {
-                const aboveMesh = new THREE.Mesh(
-                  trackGeometry(
-                    new THREE.BoxGeometry(column.widthMeters, abovePlinthHeight, column.depthMeters),
-                  ),
-                  resolveFramePlasterMaterial(frameSelected),
-                );
-                aboveMesh.position.set(
-                  column.position.x,
-                  currentSlab.slabThicknessMeters + plinthTopElevationMeters + abovePlinthHeight / 2,
-                  column.position.z,
-                );
-                addSelectable(aboveMesh, 'structural_frame_system');
-              }
-              return;
-            }
-            const mesh = new THREE.Mesh(
-              trackGeometry(
-                new THREE.BoxGeometry(column.widthMeters, column.heightMeters, column.depthMeters),
-              ),
-              columnConcreteMaterial,
-            );
-            mesh.position.set(
-              column.position.x,
-              currentSlab.slabThicknessMeters + column.baseElevationMeters + column.heightMeters / 2,
-              column.position.z,
-            );
-            addSelectable(mesh, 'structural_frame_system');
-          });
-        }
-        if (frameSystem?.beams.length) {
-          const beamMaterial = usePreviewMaterials
-            ? resolveCastConcreteMaterial(
-                { visualStyle: currentVisualStyle, selected: frameSelected, role: 'beam' },
-                trackMat,
-              )
-            : makeMaterial(0x6b7280, frameSelected, {
-                roughness: 0.8,
-              });
-          const plinthBeamMaterial = usePreviewMaterials
-            ? resolveCastConcreteMaterial(
-                { visualStyle: currentVisualStyle, selected: frameSelected, role: 'beam' },
-                trackMat,
-              )
-            : makeMaterial(0x57534e, frameSelected, {
-                roughness: 0.85,
-              });
-          const tieBeamMaterial = usePreviewMaterials
-            ? resolveCastConcreteMaterial(
-                { visualStyle: currentVisualStyle, selected: frameSelected, role: 'beam' },
-                trackMat,
-              )
-            : makeMaterial(0x44403c, frameSelected, {
-                roughness: 0.85,
-              });
-          const roofBeamMaterial = usePreviewMaterials
-            ? resolveCastConcreteMaterial(
-                { visualStyle: currentVisualStyle, selected: frameSelected, role: 'beam' },
-                trackMat,
-              )
-            : makeMaterial(0x6b7280, frameSelected, {
-                roughness: 0.8,
-              });
-          frameSystem.beams.forEach((beam) => {
-            const dx = beam.endPoint.x - beam.startPoint.x;
-            const dz = beam.endPoint.z - beam.startPoint.z;
-            const length = Math.hypot(dx, dz);
-            if (length <= 0) return;
-            const material =
-              useFramePlasterFinish && isPlasterFinishedBeamKind(beam.kind, beam.baseElevationMeters)
-                ? resolveFramePlasterMaterial(frameSelected)
-                : beam.kind === 'plinth_beam' || beam.kind === 'grade_beam'
-                  ? plinthBeamMaterial
-                  : beam.kind === 'tie_beam'
-                    ? tieBeamMaterial
-                    : beam.kind === 'roof_beam' || beam.kind === 'ring_beam'
-                      ? roofBeamMaterial
-                      : beamMaterial;
-            const mesh = new THREE.Mesh(
-              trackGeometry(new THREE.BoxGeometry(length, beam.depthMeters, beam.widthMeters)),
-              material,
-            );
-            mesh.position.set(
-              (beam.startPoint.x + beam.endPoint.x) / 2,
-              currentSlab.slabThicknessMeters + beam.baseElevationMeters + beam.depthMeters / 2,
-              (beam.startPoint.z + beam.endPoint.z) / 2,
-            );
-            mesh.rotation.y = -Math.atan2(dz, dx);
-            addSelectable(mesh, 'structural_frame_system');
-          });
-        }
-        const interiorFloorSlab = currentGeometry.interiorFloorSlab;
-        if (
-          interiorFloorSlab?.enabled &&
-          currentGeometry.resolvedFootprint?.interiorFacePolygon.length
-        ) {
-          const interiorSlabMaterial = usePreviewMaterials
-            ? resolveCastConcreteMaterial(
-                { visualStyle: currentVisualStyle, selected: frameSelected, role: 'structural' },
-                trackMat,
-              )
-            : makeMaterial(0x78716c, frameSelected, {
-                roughness: 0.92,
-                metalness: 0.02,
-              });
-          const interiorSlabMesh = new THREE.Mesh(
-            trackGeometry(
-              createFootprintSlabGeometry(
-                currentGeometry.resolvedFootprint.interiorFacePolygon,
-                interiorFloorSlab.thicknessMeters,
-              ),
-            ),
-            interiorSlabMaterial,
-          );
-          interiorSlabMesh.position.y =
-            currentSlab.slabThicknessMeters + interiorFloorSlab.topElevationMeters;
-          addSelectable(interiorSlabMesh, 'structural_frame_system');
-          root.add(interiorSlabMesh);
-
-          const floorTileLayout = currentGeometry.floorTileLayout;
-          if (showCmuInfill && floorTileLayout?.enabled) {
-            const thinsetMaterial = usePreviewMaterials
-              ? resolveFloorThinsetMaterial(
-                  { visualStyle: currentVisualStyle, selected: frameSelected },
-                  trackMat,
-                )
-              : makeMaterial(0xc9b896, frameSelected, {
-                  roughness: 0.92,
-                });
-            const thinsetMesh = new THREE.Mesh(
-              trackGeometry(
-                createFootprintSlabGeometry(
-                  currentGeometry.resolvedFootprint.interiorFacePolygon,
-                  floorTileLayout.thinsetThicknessMeters,
-                ),
-              ),
-              thinsetMaterial,
-            );
-            thinsetMesh.position.y =
-              currentSlab.slabThicknessMeters +
-              interiorFloorSlab.topElevationMeters +
-              floorTileLayout.thinsetThicknessMeters;
-            root.add(thinsetMesh);
-
-            const tileSurfaceThicknessMeters = 0.008;
-            const tileGroutTopBiasMeters = 0.00025;
-            const tileLayerBaseY =
-              currentSlab.slabThicknessMeters +
-              interiorFloorSlab.topElevationMeters +
-              floorTileLayout.thinsetThicknessMeters;
-            const tileSurfaceTopY = tileLayerBaseY + tileSurfaceThicknessMeters;
-            const tileSurfaceY = tileLayerBaseY + tileSurfaceThicknessMeters / 2;
-            const applyFloorTileLayerDepthBias = (
-              material: THREE.MeshStandardMaterial,
-              layer: 'grout' | 'tile',
-            ) => {
-              material.polygonOffset = true;
-              if (layer === 'grout') {
-                material.polygonOffsetFactor = 2;
-                material.polygonOffsetUnits = 2;
-              } else {
-                material.polygonOffsetFactor = -2;
-                material.polygonOffsetUnits = -4;
-              }
-            };
-
-            if (floorTileLayout.groutJointMeters > 0.0005) {
-              const groutMaterial = usePreviewMaterials
-                ? resolveFloorGroutMaterial(
-                    { visualStyle: currentVisualStyle, selected: frameSelected },
-                    trackMat,
-                  )
-                : makeMaterial(0xf5f5f0, frameSelected, {
-                    roughness: 0.88,
-                  });
-              applyFloorTileLayerDepthBias(groutMaterial, 'grout');
-              const groutMesh = new THREE.Mesh(
-                trackGeometry(
-                  createFootprintSlabGeometry(
-                    currentGeometry.resolvedFootprint.interiorFacePolygon,
-                    tileSurfaceThicknessMeters,
-                  ),
-                ),
-                groutMaterial,
-              );
-              // Keep grout visually flush while biasing slightly below tiles to avoid z-fighting.
-              groutMesh.position.y = tileSurfaceTopY - tileGroutTopBiasMeters;
-              groutMesh.renderOrder = 2;
-              root.add(groutMesh);
-            }
-
-            const tileMaterial = usePreviewMaterials
-              ? resolveFloorTileMaterial(
-                  {
-                    visualStyle: currentVisualStyle,
-                    selected: frameSelected,
-                    tileWidthMeters: floorTileLayout.tileWidthMeters,
-                    tileDepthMeters: floorTileLayout.tileDepthMeters,
-                  },
-                  trackMat,
-                )
-              : makeMaterial(0x9a9590, frameSelected, {
-                  roughness: 0.45,
-                });
-            applyFloorTileLayerDepthBias(tileMaterial, 'tile');
-            floorTileLayout.placements.forEach((placement) => {
-              const tileWidthMeters = placement.renderWidthMeters;
-              const tileDepthMeters = placement.renderDepthMeters;
-              const tileCenter = placement.renderCenter;
-              if (tileWidthMeters <= 0.001 || tileDepthMeters <= 0.001) {
-                return;
-              }
-              const tileGeometry =
-                placement.renderPolygon && placement.renderPolygon.length >= 3
-                  ? createFootprintSlabGeometry(placement.renderPolygon, tileSurfaceThicknessMeters)
-                  : new THREE.BoxGeometry(
-                      tileWidthMeters,
-                      tileSurfaceThicknessMeters,
-                      tileDepthMeters,
-                    );
-              const tileMesh = new THREE.Mesh(trackGeometry(tileGeometry), tileMaterial);
-              if (placement.renderPolygon && placement.renderPolygon.length >= 3) {
-                tileMesh.position.y = tileSurfaceTopY;
-              } else {
-                tileMesh.position.set(tileCenter.x, tileSurfaceY, tileCenter.z);
-                tileMesh.rotation.y = placement.rotationY;
-              }
-              tileMesh.renderOrder = 3;
-              root.add(tileMesh);
-            });
-          }
-
-          const plywoodCeilingLayout = currentGeometry.plywoodCeilingLayout;
-          if (showCmuInfill && plywoodCeilingLayout?.enabled) {
-            const parsePlywoodColor = (hex: string): number => {
-              const normalized = hex.trim().replace('#', '');
-              if (/^[0-9a-fA-F]{6}$/.test(normalized)) {
-                return Number.parseInt(normalized, 16);
-              }
-              return 0xd4b896;
-            };
-            const frameMaterial = usePreviewMaterials
-              ? resolveStructuralSteelMaterial(
-                  { visualStyle: currentVisualStyle, selected: frameSelected },
-                  trackMat,
-                )
-              : makeMaterial(0x374151, frameSelected, {
-                  roughness: 0.55,
-                  metalness: 0.35,
-                });
-            plywoodCeilingLayout.frameMembers.forEach((member) => {
-              const dx = member.end.x - member.start.x;
-              const dz = member.end.z - member.start.z;
-              const length = Math.hypot(dx, dz);
-              if (length <= 0.001) return;
-              const mesh = new THREE.Mesh(
-                trackGeometry(
-                  new THREE.BoxGeometry(length, member.heightMeters, member.widthMeters),
-                ),
-                frameMaterial,
-              );
-              mesh.position.set(
-                (member.start.x + member.end.x) / 2,
-                currentSlab.slabThicknessMeters + member.start.y,
-                (member.start.z + member.end.z) / 2,
-              );
-              mesh.rotation.y = -Math.atan2(dz, dx);
-              mesh.renderOrder = 4;
-              root.add(mesh);
-            });
-
-            const plywoodColor = parsePlywoodColor(plywoodCeilingLayout.plywoodColor);
-            const plywoodMaterial = usePreviewMaterials
-              ? resolveSoffitTrimMaterial(
-                  { visualStyle: currentVisualStyle, selected: frameSelected },
-                  trackMat,
-                )
-              : makeMaterial(plywoodColor, frameSelected, {
-                  roughness: 0.72,
-                  metalness: 0.02,
-                });
-            if (usePreviewMaterials) {
-              plywoodMaterial.color.setHex(plywoodColor);
-            }
-            plywoodMaterial.polygonOffset = true;
-            plywoodMaterial.polygonOffsetFactor = -1;
-            plywoodMaterial.polygonOffsetUnits = -2;
-            plywoodCeilingLayout.panelPlacements.forEach((panel) => {
-              if (panel.widthMeters <= 0.001 || panel.lengthMeters <= 0.001) return;
-              const mesh = new THREE.Mesh(
-                trackGeometry(
-                  new THREE.BoxGeometry(
-                    panel.widthMeters,
-                    panel.thicknessMeters,
-                    panel.lengthMeters,
-                  ),
-                ),
-                plywoodMaterial,
-              );
-              mesh.position.set(
-                panel.center.x,
-                currentSlab.slabThicknessMeters + panel.center.y,
-                panel.center.z,
-              );
-              mesh.renderOrder = 5;
-              root.add(mesh);
-            });
-          }
-        }
-        if (currentGeometry.isolatedFootings?.length) {
-          const footingMaterial = usePreviewMaterials
-            ? resolveCastConcreteMaterial(
-                { visualStyle: currentVisualStyle, selected: frameSelected, role: 'structural' },
-                trackMat,
-              )
-            : makeMaterial(0x78716c, frameSelected, {
-                roughness: 0.9,
-              });
-          currentGeometry.isolatedFootings.forEach((footing) => {
-            const mesh = new THREE.Mesh(
-              trackGeometry(
-                new THREE.BoxGeometry(footing.widthMeters, footing.thicknessMeters, footing.lengthMeters),
-              ),
-              footingMaterial,
-            );
-            mesh.position.set(
-              footing.position.x,
-              currentSlab.slabThicknessMeters + footing.centerElevationMeters,
-              footing.position.z,
-            );
-            addSelectable(mesh, 'structural_frame_system');
-          });
-        }
-        if (import.meta.env.DEV && currentShowRoofReferencePerimeters && currentGeometry.resolvedRoofSystem?.supported) {
-          const roofY =
-            (currentGeometry.resolvedRoofSystem.roofBeamTopElevationMeters ?? currentSlab.slabThicknessMeters + 2.8) + 0.08;
-          const wallExterior = currentGeometry.exteriorFootprint ?? currentGeometry.resolvedFootprint?.exteriorFacePolygon ?? [];
-          if (wallExterior.length >= 3) {
-            const wallLine = createFootprintSetoutLine(wallExterior, roofY, 0xffffff);
-            wallLine.userData.explicitHelperMarker = true;
-            trackGeometry(wallLine.geometry);
-            materialsToDispose.push(wallLine.material as THREE.Material);
-            root.add(wallLine);
-          }
-          const bearing = currentGeometry.resolvedRoofSystem.structuralBearingPerimeter.map((point) => ({
-            x: point.x,
-            z: point.z,
-          }));
-          if (bearing.length >= 3) {
-            const bearingLine = createFootprintSetoutLine(bearing, roofY + 0.02, 0x14b8a6);
-            bearingLine.userData.explicitHelperMarker = true;
-            trackGeometry(bearingLine.geometry);
-            materialsToDispose.push(bearingLine.material as THREE.Material);
-            root.add(bearingLine);
-          }
-          const cladding = currentGeometry.resolvedRoofSystem.claddingPerimeter.map((point) => ({
-            x: point.x,
-            z: point.z,
-          }));
-          if (cladding.length >= 3) {
-            const claddingLine = createFootprintSetoutLine(cladding, roofY + 0.04, 0xeab308);
-            claddingLine.userData.explicitHelperMarker = true;
-            trackGeometry(claddingLine.geometry);
-            materialsToDispose.push(claddingLine.material as THREE.Material);
-            root.add(claddingLine);
-          }
-        }
-        const roofSegmentFrames = currentGeometry.wallCmuLayout?.segmentFrames ?? [];
-        const roofFrameById = buildSegmentFrameMap(roofSegmentFrames);
-        const showRoofCladding =
-          (currentRoofDisplayMode === 'full_roof' ||
-            currentRoofDisplayMode === 'roof_cladding_only' ||
-            currentRoofDisplayMode === 'foundation_frame_roof') &&
-          currentRoofLayerVisibility.roofCladding;
-        const showRoofFraming =
-          currentRoofDisplayMode === 'full_roof' ||
-          currentRoofDisplayMode === 'steel_framing_only' ||
-          currentRoofDisplayMode === 'foundation_frame_roof';
-        const showSteelTrusses = showRoofFraming && currentRoofLayerVisibility.steelTrusses;
-        const showPurlins = showRoofFraming && currentRoofLayerVisibility.purlins;
-        const showRidgeCap =
-          (currentRoofDisplayMode === 'full_roof' ||
-            currentRoofDisplayMode === 'roof_cladding_only' ||
-            currentRoofDisplayMode === 'foundation_frame_roof') &&
-          currentRoofLayerVisibility.ridgeCap;
-        const showFascia =
-          (currentRoofDisplayMode === 'full_roof' ||
-            currentRoofDisplayMode === 'roof_cladding_only' ||
-            currentRoofDisplayMode === 'foundation_frame_roof') &&
-          currentRoofLayerVisibility.fascia;
-        const showSoffit =
-          (currentRoofDisplayMode === 'full_roof' ||
-            currentRoofDisplayMode === 'roof_cladding_only' ||
-            currentRoofDisplayMode === 'foundation_frame_roof') &&
-          (currentRoofLayerVisibility.soffit ?? DEFAULT_ROOF_LAYER_VISIBILITY.soffit);
-        const showGableMasonry =
-          (currentRoofDisplayMode === 'full_roof' ||
-            currentRoofDisplayMode === 'gable_masonry_only' ||
-            currentRoofDisplayMode === 'foundation_frame_roof') &&
-          (currentRoofLayerVisibility.gableEndCmu || currentRoofLayerVisibility.rakedConcreteCap);
-        const showRakedCap =
-          showGableMasonry && currentRoofLayerVisibility.rakedConcreteCap;
-
-        if (currentGeometry.resolvedRoofSystem?.supported && currentRoofSystem?.enabled) {
-          const resolvedRoof = currentGeometry.resolvedRoofSystem;
-          const roofCladdingGroup = new THREE.Group();
-          roofCladdingGroup.name = 'roofCladdingGroup';
-          const trussChordGroup = new THREE.Group();
-          trussChordGroup.name = 'trussChordGroup';
-          const trussWebGroup = new THREE.Group();
-          trussWebGroup.name = 'trussWebGroup';
-          const purlinGroup = new THREE.Group();
-          purlinGroup.name = 'purlinGroup';
-          const basePlateGroup = new THREE.Group();
-          basePlateGroup.name = 'basePlateGroup';
-          const anchorBoltGroup = new THREE.Group();
-          anchorBoltGroup.name = 'anchorBoltGroup';
-          const rakedCapGroup = new THREE.Group();
-          rakedCapGroup.name = 'rakedCapGroup';
-          const ridgeCapGroup = new THREE.Group();
-          ridgeCapGroup.name = 'ridgeCapGroup';
-          const fasciaGroup = new THREE.Group();
-          fasciaGroup.name = 'fasciaGroup';
-          const soffitGroup = new THREE.Group();
-          soffitGroup.name = 'soffitGroup';
-          const framingGuideGroup = new THREE.Group();
-          framingGuideGroup.name = 'framingGuideGroup';
-
-          const corrugatedEnabled = currentRoofSystem.corrugatedMetal.enabled;
-          const rawCladdingPlanes =
-            resolvedRoof.claddingDisplayPlanes.length > 0
-              ? resolvedRoof.claddingDisplayPlanes
-              : resolvedRoof.roofTopPlanes;
-          const sheetReferencePerimeter =
-            resolvedRoof.roofSheetPerimeter.length > 0
-              ? resolvedRoof.roofSheetPerimeter
-              : resolvedRoof.claddingPerimeter;
-          const claddingPlanes = buildRoofCladdingRenderPlanes({
-            planes: rawCladdingPlanes,
-            clearanceMeters: ROOF_CLADDING_BEAM_CLEARANCE_METERS,
-          });
-
-          const ridgeDirectionHint =
-            resolvedRoof.claddingRidgeStart && resolvedRoof.claddingRidgeEnd
-              ? {
-                  x: resolvedRoof.claddingRidgeEnd.x - resolvedRoof.claddingRidgeStart.x,
-                  z: resolvedRoof.claddingRidgeEnd.z - resolvedRoof.claddingRidgeStart.z,
-                }
-              : undefined;
-
-          if (showRoofCladding) {
-            const debugGuides = import.meta.env.DEV && currentShowRoofFramingGuides;
-            const roofUsesMeterUvGeometry = usePreviewMaterials && !debugGuides;
-            const roofCladdingUvOptions = roofUsesMeterUvGeometry ? resolveRoofCladdingUvOptions() : null;
-            const roofMaterial = debugGuides
-              ? new THREE.MeshStandardMaterial({ color: 0x9ca3af, metalness: 0.72, roughness: 0.38 })
-              : usePreviewMaterials
-                ? resolveRoofMetalMaterial(
-                    { visualStyle: currentVisualStyle, selected: roofSelected },
-                    trackMat,
-                  )
-                : corrugatedEnabled
-                  ? createCorrugatedMetalMaterial()
-                  : makeMaterial(0x64748b, roofSelected, {
-                      roughness: 0.75,
-                      opacity: 0.92,
-                    });
-            roofMaterial.side = THREE.DoubleSide;
-            roofMaterial.needsUpdate = true;
-            if (debugGuides || !usePreviewMaterials) {
-              materialsToDispose.push(roofMaterial);
-            }
-            for (const plane of claddingPlanes) {
-              if (plane.corners.length < 3) continue;
-              const planeNormal = normalizeOutwardRoofNormal(plane.normal);
-              const visibleCorners = plane.corners;
-              const topGeometry = roofUsesMeterUvGeometry
-                ? trackGeometry(
-                    createRoofCladdingGeometry({
-                      corners: visibleCorners,
-                      slabTopMeters: currentSlab.slabThicknessMeters,
-                      planeNormal: new THREE.Vector3(planeNormal.x, planeNormal.y, planeNormal.z),
-                      ridgeDirection: resolveRoofRidgeDirection(visibleCorners, ridgeDirectionHint),
-                      corrugationRepeatPerMeter: roofCladdingUvOptions?.corrugationRepeatPerMeter,
-                      swapCorrugationAxis: roofCladdingUvOptions?.swapCorrugationAxis,
-                    }),
-                  )
-                : trackGeometry(
-                    (() => {
-                      const positions: number[] = [];
-                      for (const corner of visibleCorners) {
-                        positions.push(corner.x, currentSlab.slabThicknessMeters + corner.y, corner.z);
-                      }
-                      const indices = plane.corners.length === 3 ? [0, 1, 2] : [0, 1, 2, 0, 2, 3];
-                      const geometry = new THREE.BufferGeometry();
-                      geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-                      geometry.setIndex(indices);
-                      geometry.computeVertexNormals();
-                      return geometry;
-                    })(),
-                  );
-              roofCladdingGroup.add(new THREE.Mesh(topGeometry, roofMaterial));
-              const eavePair = resolveRoofPlaneEavePair({
-                corners: visibleCorners,
-                referencePerimeter: sheetReferencePerimeter,
-              });
-              if (eavePair) {
-                const lipGeometry = trackGeometry(
-                  createRoofSheetEaveLipGeometry({
-                    corners: visibleCorners,
-                    eavePair,
-                    planeNormal,
-                    slabTopMeters: currentSlab.slabThicknessMeters,
-                    thicknessMeters: Math.max(CORRUGATED_SHEET_DISPLAY_THICKNESS_METERS, 0.012),
-                  }),
-                );
-                roofCladdingGroup.add(new THREE.Mesh(lipGeometry, roofMaterial));
-              }
-            }
-
-            if (resolvedRoof.gableEndRoofingClosures.length > 0) {
-              const gableEndRoofingClosureGroup = new THREE.Group();
-              gableEndRoofingClosureGroup.name = 'gableEndRoofingClosureGroup';
-              for (const closure of resolvedRoof.gableEndRoofingClosures) {
-                if (closure.corners.length < 3) continue;
-                const closureGeometry = trackGeometry(
-                  createVerticalCladdingGeometry({
-                    corners: closure.corners,
-                    slabTopMeters: currentSlab.slabThicknessMeters,
-                    corrugationRepeatPerMeter: roofCladdingUvOptions?.corrugationRepeatPerMeter,
-                  }),
-                );
-                gableEndRoofingClosureGroup.add(new THREE.Mesh(closureGeometry, roofMaterial));
-              }
-              roofCladdingGroup.add(gableEndRoofingClosureGroup);
-            }
-          }
-
-          if (showSteelTrusses && resolvedRoof.roofType === 'gable' && currentRoofSystem.steelTrusses.enabled) {
-            const debugGuides = import.meta.env.DEV && currentShowRoofFramingGuides;
-            const steelMaterials = usePreviewMaterials && !debugGuides
-              ? {
-                  chord: resolveStructuralSteelMaterial(
-                    { visualStyle: currentVisualStyle, selected: roofSelected },
-                    trackMat,
-                  ),
-                  web: resolveStructuralSteelMaterial(
-                    { visualStyle: currentVisualStyle, selected: roofSelected },
-                    trackMat,
-                  ),
-                  plate: resolveStructuralSteelMaterial(
-                    { visualStyle: currentVisualStyle, selected: roofSelected },
-                    trackMat,
-                  ),
-                  bolt: resolveStructuralSteelMaterial(
-                    { visualStyle: currentVisualStyle, selected: roofSelected },
-                    trackMat,
-                  ),
-                  purlin: resolveStructuralSteelMaterial(
-                    { visualStyle: currentVisualStyle, selected: roofSelected },
-                    trackMat,
-                  ),
-                }
-              : createSteelTrussMaterials();
-            if (!usePreviewMaterials || debugGuides) {
-              materialsToDispose.push(
-                steelMaterials.chord,
-                steelMaterials.web,
-                steelMaterials.plate,
-                steelMaterials.bolt,
-              );
-            }
-            for (const placement of resolvedRoof.trussPlacements) {
-              const { chordMeshes, webMeshes } = buildSteelTrussMemberMeshes({
-                placement,
-                slabOffsetY: currentSlab.slabThicknessMeters,
-                materials: { chord: steelMaterials.chord, web: steelMaterials.web },
-                debugGuides,
-              });
-              for (const mesh of chordMeshes) {
-                trackGeometry(mesh.geometry);
-                trussChordGroup.add(mesh);
-              }
-              for (const mesh of webMeshes) {
-                trackGeometry(mesh.geometry);
-                trussWebGroup.add(mesh);
-              }
-              if (currentRoofSystem.steelTrusses.basePlateEnabled) {
-                const plateBearings = [
-                  {
-                    structuralBearing: placement.bearingLeft,
-                    plateCenter: placement.basePlateCenterLeft ?? placement.bearingLeft,
-                    oppositeBearing: placement.bearingRight,
-                  },
-                  {
-                    structuralBearing: placement.bearingRight,
-                    plateCenter: placement.basePlateCenterRight ?? placement.bearingRight,
-                    oppositeBearing: placement.bearingLeft,
-                  },
-                ];
-                for (const { structuralBearing, plateCenter, oppositeBearing } of plateBearings) {
-                  const spanDirection = new THREE.Vector3(
-                    oppositeBearing.x - structuralBearing.x,
-                    0,
-                    oppositeBearing.z - structuralBearing.z,
-                  );
-                  const bearingWorld = new THREE.Vector3(
-                    plateCenter.x,
-                    currentSlab.slabThicknessMeters + plateCenter.y,
-                    plateCenter.z,
-                  );
-                  const plate = buildTrussBasePlateMesh({
-                    bearing: bearingWorld,
-                    settings: currentRoofSystem,
-                    spanDirection,
-                    material: debugGuides
-                      ? new THREE.MeshStandardMaterial({ color: 0x22c55e, metalness: 0.5, roughness: 0.45 })
-                      : steelMaterials.plate,
-                  });
-                  trackGeometry(plate.geometry);
-                  basePlateGroup.add(plate);
-                  if (currentRoofSystem.steelTrusses.anchorBoltsPerBearing > 0) {
-                    const bolts = buildTrussAnchorBoltMeshes({
-                      bearing: bearingWorld,
-                      settings: currentRoofSystem,
-                      spanDirection,
-                      material: steelMaterials.bolt,
-                    });
-                    for (const bolt of bolts) {
-                      trackGeometry(bolt.geometry);
-                      anchorBoltGroup.add(bolt);
-                    }
-                  }
-                }
-              }
-              if (debugGuides) {
-                const guide = buildTrussPlaneGuide({
-                  placement,
-                  slabOffsetY: currentSlab.slabThicknessMeters,
-                });
-                guide.userData.explicitHelperMarker = true;
-                trackGeometry(guide.geometry);
-                materialsToDispose.push(guide.material as THREE.Material);
-                framingGuideGroup.add(guide);
-              }
-            }
-          }
-
-          if (showRoofFraming && resolvedRoof.roofType === 'hip') {
-            const debugGuides = import.meta.env.DEV && currentShowRoofFramingGuides;
-            const hipMaterial =
-              usePreviewMaterials && !debugGuides
-                ? resolveStructuralSteelMaterial(
-                    { visualStyle: currentVisualStyle, selected: roofSelected },
-                    trackMat,
-                  )
-                : new THREE.MeshStandardMaterial({ color: 0x546e7a, metalness: 0.78, roughness: 0.32 });
-            if (!usePreviewMaterials || debugGuides) {
-              materialsToDispose.push(hipMaterial);
-            }
-            for (const member of resolvedRoof.hipFramingMembers) {
-              const mesh = buildHipMemberMesh(
-                new THREE.Vector3(
-                  member.start.x,
-                  currentSlab.slabThicknessMeters + member.start.y,
-                  member.start.z,
-                ),
-                new THREE.Vector3(
-                  member.end.x,
-                  currentSlab.slabThicknessMeters + member.end.y,
-                  member.end.z,
-                ),
-                hipMaterial,
-              );
-              trackGeometry(mesh.geometry);
-              trussChordGroup.add(mesh);
-            }
-          }
-
-          if (showPurlins && currentRoofSystem.purlins.enabled) {
-            const debugGuides = import.meta.env.DEV && currentShowRoofFramingGuides;
-            const steelMaterials = usePreviewMaterials && !debugGuides ? null : createSteelTrussMaterials();
-            const purlinMaterial =
-              debugGuides
-                ? new THREE.MeshStandardMaterial({ color: 0x3b82f6, metalness: 0.5, roughness: 0.45 })
-                : usePreviewMaterials
-                  ? resolveStructuralSteelMaterial(
-                      { visualStyle: currentVisualStyle, selected: roofSelected },
-                      trackMat,
-                    )
-                  : steelMaterials!.purlin;
-            if (debugGuides || !usePreviewMaterials) {
-              materialsToDispose.push(purlinMaterial);
-            }
-            for (const purlin of resolvedRoof.purlinPlacements) {
-              const mesh = buildPurlinMesh({
-                start: new THREE.Vector3(
-                  purlin.start.x,
-                  currentSlab.slabThicknessMeters + purlin.start.y,
-                  purlin.start.z,
-                ),
-                end: new THREE.Vector3(
-                  purlin.end.x,
-                  currentSlab.slabThicknessMeters + purlin.end.y,
-                  purlin.end.z,
-                ),
-                planeNormal: new THREE.Vector3(
-                  purlin.planeNormal.x,
-                  purlin.planeNormal.y,
-                  purlin.planeNormal.z,
-                ),
-                material: purlinMaterial,
-                profile: purlin.rowIndex === 0 ? 'vertical_eave' : 'roof_normal',
-              });
-              trackGeometry(mesh.geometry);
-              purlinGroup.add(mesh);
-            }
-            if (import.meta.env.DEV && currentShowRoofFramingGuides && resolvedRoof.trussPlacements.length > 0) {
-              const slabY = currentSlab.slabThicknessMeters;
-              const samplePurlin =
-                resolvedRoof.purlinPlacements.find((purlin) => purlin.rowIndex > 0) ??
-                resolvedRoof.purlinPlacements[0]!;
-              const sampleTruss = resolvedRoof.trussPlacements[Math.floor(resolvedRoof.trussPlacements.length / 2)]!;
-              const topLeft = sampleTruss.members.find((member) => member.memberKind === 'top_chord_left')!;
-              const normal = normalizeOutwardRoofNormal(samplePurlin.planeNormal);
-              const chordCenter = {
-                x: (topLeft.start.x + topLeft.end.x) / 2,
-                y: (topLeft.start.y + topLeft.end.y) / 2,
-                z: (topLeft.start.z + topLeft.end.z) / 2,
-              };
-              const chordTop = resolveTrussTopChordUpperPoint({ chordCenter, outwardNormal: normal });
-              const purlinCenter = {
-                x: (samplePurlin.start.x + samplePurlin.end.x) / 2,
-                y: (samplePurlin.start.y + samplePurlin.end.y) / 2,
-                z: (samplePurlin.start.z + samplePurlin.end.z) / 2,
-              };
-              const purlinTop = offsetPointAlongRoofNormal(purlinCenter, normal, PURLIN_PROFILE_DEPTH_METERS / 2);
-              const displayPlane =
-                resolvedRoof.claddingDisplayPlanes.find(
-                  (plane) => plane.id === `${samplePurlin.slopePlaneId}-cladding-display`,
-                ) ?? resolvedRoof.claddingDisplayPlanes[0];
-              let renderedSheetUnderside = offsetPointAlongRoofNormal(
-                purlinTop,
-                normal,
-                PURLIN_TO_SHEET_CLEARANCE_METERS,
-              );
-              if (displayPlane) {
-                const displayTopY = elevationOnRoofPlaneAtPoint(displayPlane, purlinCenter.x, purlinCenter.z);
-                if (displayTopY != null) {
-                  renderedSheetUnderside = offsetPointAlongRoofNormal(
-                    { x: purlinCenter.x, y: displayTopY, z: purlinCenter.z },
-                    normal,
-                    -CORRUGATED_SHEET_DISPLAY_THICKNESS_METERS,
-                  );
-                }
-              }
-              const addContactLine = (from: { x: number; y: number; z: number }, to: { x: number; y: number; z: number }, color: number) => {
-                const material = new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.95 });
-                materialsToDispose.push(material);
-                const geometry = trackGeometry(
-                  new THREE.BufferGeometry().setFromPoints([
-                    new THREE.Vector3(from.x, slabY + from.y, from.z),
-                    new THREE.Vector3(to.x, slabY + to.y, to.z),
-                  ]),
-                );
-                const line = new THREE.Line(geometry, material);
-                line.userData.explicitHelperMarker = true;
-                framingGuideGroup.add(line);
-              };
-              const chordGap = distanceAlongRoofNormal(
-                offsetPointAlongRoofNormal(purlinCenter, normal, -PURLIN_PROFILE_DEPTH_METERS / 2),
-                chordTop,
-                normal,
-              );
-              const sheetGap = distanceAlongRoofNormal(purlinTop, renderedSheetUnderside, normal);
-              addContactLine(chordTop, purlinCenter, chordGap < -0.001 || chordGap > 0.003 ? 0xff0000 : 0xffff00);
-              addContactLine(purlinTop, renderedSheetUnderside, sheetGap < 0 || sheetGap > 0.006 ? 0xff0000 : 0xffa500);
-            }
-          }
-
-          if (
-            showRidgeCap &&
-            corrugatedEnabled &&
-            (resolvedRoof.ridgeCapPlacements.length > 0 || resolvedRoof.ridgeCapPlacement)
-          ) {
-            const ridgeCapPlacements =
-              resolvedRoof.ridgeCapPlacements.length > 0
-                ? resolvedRoof.ridgeCapPlacements
-                : resolvedRoof.ridgeCapPlacement
-                  ? [resolvedRoof.ridgeCapPlacement]
-                  : [];
-            const debugGuides = import.meta.env.DEV && currentShowRoofFramingGuides;
-            const ridgeCapMaterial = debugGuides
-              ? new THREE.MeshStandardMaterial({ color: 0x14b8a6, metalness: 0.5, roughness: 0.45 })
-              : usePreviewMaterials
-                ? resolveRoofMetalMaterial(
-                    { visualStyle: currentVisualStyle, selected: roofSelected },
-                    trackMat,
-                  )
-                : createRidgeCapMaterial();
-            if (debugGuides || !usePreviewMaterials) {
-              materialsToDispose.push(ridgeCapMaterial);
-            }
-            for (const ridgeCapPlacement of ridgeCapPlacements) {
-              const capStart = new THREE.Vector3(
-                ridgeCapPlacement.start.x,
-                currentSlab.slabThicknessMeters + ridgeCapPlacement.start.y,
-                ridgeCapPlacement.start.z,
-              );
-              const capEnd = new THREE.Vector3(
-                ridgeCapPlacement.end.x,
-                currentSlab.slabThicknessMeters + ridgeCapPlacement.end.y,
-                ridgeCapPlacement.end.z,
-              );
-              const capAdjacentPlanes =
-                resolvedRoof.roofType === 'hip'
-                  ? (ridgeCapPlacement.adjacentPlaneIds ?? [])
-                      .map((planeId) => {
-                        const displayPlane =
-                          resolvedRoof.claddingDisplayPlanes.find(
-                            (plane) => plane.id.replace(/-cladding-display$/, '') === planeId,
-                          ) ?? resolvedRoof.roofTopPlanes.find((plane) => plane.id === planeId);
-                        return displayPlane
-                          ? {
-                              normal: new THREE.Vector3(
-                                displayPlane.normal.x,
-                                displayPlane.normal.y,
-                                displayPlane.normal.z,
-                              ),
-                              corners: displayPlane.corners.map(
-                                (corner) =>
-                                  new THREE.Vector3(
-                                    corner.x,
-                                    currentSlab.slabThicknessMeters + corner.y,
-                                    corner.z,
-                                  ),
-                              ),
-                            }
-                          : null;
-                      })
-                      .filter((plane): plane is { normal: THREE.Vector3; corners: THREE.Vector3[] } => plane != null)
-                  : [];
-              const ridgeCap =
-                resolvedRoof.roofType === 'hip' && capAdjacentPlanes.length > 0
-                  ? createFoldedRoofEdgeCapGroup({
-                      start: capStart,
-                      end: capEnd,
-                      capWidthMeters: ridgeCapPlacement.widthMeters,
-                      capThicknessMeters: ridgeCapPlacement.thicknessMeters,
-                      material: ridgeCapMaterial,
-                      adjacentPlanes: capAdjacentPlanes,
-                      miterBottomEnds: true,
-                    })
-                  : createFoldedRidgeCapGroup(
-                      capStart,
-                      capEnd,
-                      ridgeCapPlacement.widthMeters,
-                      ridgeCapPlacement.thicknessMeters,
-                      ridgeCapPlacement.roofAngleRadians,
-                      ridgeCapMaterial,
-                    );
-              ridgeCap.traverse((child) => {
-                if (child instanceof THREE.Mesh) {
-                  trackGeometry(child.geometry);
-                }
-              });
-              ridgeCapGroup.add(ridgeCap);
-            }
-          }
-
-          if (
-            showFascia &&
-            currentRoofSystem.fascia.enabled &&
-            resolvedRoof.fasciaPlacements.length > 0
-          ) {
-            const debugGuides = import.meta.env.DEV && currentShowRoofFramingGuides;
-            const fasciaMaterial = debugGuides
-              ? new THREE.MeshStandardMaterial({ color: 0x22c55e, metalness: 0.5, roughness: 0.45 })
-              : usePreviewMaterials
-                ? resolveFasciaTrimMaterial(
-                    { visualStyle: currentVisualStyle, selected: roofSelected },
-                    trackMat,
-                  )
-                : createRidgeCapMaterial();
-            fasciaMaterial.side = THREE.DoubleSide;
-            fasciaMaterial.needsUpdate = true;
-            if (debugGuides || !usePreviewMaterials) {
-              materialsToDispose.push(fasciaMaterial);
-            }
-            for (const placement of resolvedRoof.fasciaPlacements) {
-              const mesh = new THREE.Mesh(
-                trackGeometry(createFasciaTrimGeometry({
-                  placement,
-                  slabTopMeters: currentSlab.slabThicknessMeters,
-                })),
-                fasciaMaterial,
-              );
-              mesh.userData.fasciaEdgeRole = placement.edgeRole;
-              fasciaGroup.add(mesh);
-            }
-          }
-
-          if (
-            showSoffit &&
-            currentRoofSystem.soffit.enabled &&
-            resolvedRoof.soffitPlacements.length > 0
-          ) {
-            const debugGuides = import.meta.env.DEV && currentShowRoofFramingGuides;
-            const soffitMaterial = debugGuides
-              ? new THREE.MeshStandardMaterial({ color: 0x38bdf8, metalness: 0.45, roughness: 0.5 })
-              : usePreviewMaterials
-                ? resolveSoffitTrimMaterial(
-                    { visualStyle: currentVisualStyle, selected: roofSelected },
-                    trackMat,
-                  )
-                : createRidgeCapMaterial();
-            soffitMaterial.side = THREE.DoubleSide;
-            soffitMaterial.needsUpdate = true;
-            if (debugGuides || !usePreviewMaterials) {
-              materialsToDispose.push(soffitMaterial);
-            }
-            for (const placement of resolvedRoof.soffitPlacements) {
-              const mesh = new THREE.Mesh(
-                trackGeometry(createSoffitPanelGeometry({
-                  placement,
-                  slabTopMeters: currentSlab.slabThicknessMeters,
-                })),
-                soffitMaterial,
-              );
-              mesh.userData.soffitEdgeRole = placement.edgeRole;
-              soffitGroup.add(mesh);
-            }
-          }
-
-          if (
-            import.meta.env.DEV &&
-            currentShowRoofFramingGuides &&
-            resolvedRoof.roofType === 'gable' &&
-            resolvedRoof.structuralRidgeStart &&
-            resolvedRoof.structuralRidgeEnd &&
-            resolvedRoof.claddingRidgeStart &&
-            resolvedRoof.claddingRidgeEnd
-          ) {
-            const slabY = currentSlab.slabThicknessMeters;
-            const peakY = resolvedRoof.roofPeakY;
-            const addGuideLine = (start: THREE.Vector3, end: THREE.Vector3, color: number) => {
-              const material = new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.95 });
-              materialsToDispose.push(material);
-              const geometry = trackGeometry(new THREE.BufferGeometry().setFromPoints([start, end]));
-              const line = new THREE.Line(geometry, material);
-              line.userData.explicitHelperMarker = true;
-              framingGuideGroup.add(line);
-            };
-            const ridgeSpan = Math.hypot(
-              resolvedRoof.claddingRidgeEnd.x - resolvedRoof.claddingRidgeStart.x,
-              resolvedRoof.claddingRidgeEnd.z - resolvedRoof.claddingRidgeStart.z,
-            );
-            const ridgeUx =
-              ridgeSpan > 0
-                ? (resolvedRoof.claddingRidgeEnd.x - resolvedRoof.claddingRidgeStart.x) / ridgeSpan
-                : 1;
-            const ridgeUz =
-              ridgeSpan > 0
-                ? (resolvedRoof.claddingRidgeEnd.z - resolvedRoof.claddingRidgeStart.z) / ridgeSpan
-                : 0;
-            const spanPerpX = -ridgeUz;
-            const spanPerpZ = ridgeUx;
-            const spanHalf = resolvedRoof.rafterRunMeters;
-            for (const [point, color] of [
-              [resolvedRoof.structuralRidgeStart, 0x14b8a6],
-              [resolvedRoof.structuralRidgeEnd, 0x14b8a6],
-              [resolvedRoof.claddingRidgeStart, 0xeab308],
-              [resolvedRoof.claddingRidgeEnd, 0xeab308],
-            ] as const) {
-              addGuideLine(
-                new THREE.Vector3(
-                  point.x + spanPerpX * spanHalf,
-                  slabY + peakY,
-                  point.z + spanPerpZ * spanHalf,
-                ),
-                new THREE.Vector3(
-                  point.x - spanPerpX * spanHalf,
-                  slabY + peakY,
-                  point.z - spanPerpZ * spanHalf,
-                ),
-                color,
-              );
-            }
-          }
-
-          if (
-            currentRoofSystem?.gable.rakedConcreteCapEnabled &&
-            showRakedCap &&
-            currentGeometry.rakedCapPlacements?.length
-          ) {
-            const capMaterial = usePreviewMaterials
-              ? resolveCastConcreteMaterial(
-                  { visualStyle: currentVisualStyle, selected: gableSelected, role: 'structural' },
-                  trackMat,
-                )
-              : createRakedConcreteCapMaterial(gableSelected);
-            capMaterial.side = THREE.DoubleSide;
-            capMaterial.needsUpdate = true;
-            if (!usePreviewMaterials) {
-              materialsToDispose.push(capMaterial);
-            }
-            const capsByStrip = new Map<
-              string,
-              Array<(typeof currentGeometry.rakedCapPlacements)[number]>
-            >();
-            for (const cap of currentGeometry.rakedCapPlacements) {
-              const key = `${cap.gableEndSegmentId}:${cap.slope}`;
-              const group = capsByStrip.get(key) ?? [];
-              group.push(cap);
-              capsByStrip.set(key, group);
-            }
-            for (const [, caps] of capsByStrip) {
-              const frame = roofFrameById.get(caps[0]!.gableEndSegmentId);
-              if (!frame) continue;
-              const sortedCaps = [...caps].sort(
-                (left, right) => left.startStationMeters - right.startStationMeters,
-              );
-              const strip = buildRakedCapStripRenderSegments(sortedCaps);
-              if (!strip || strip.segments.length === 0) continue;
-
-              const firstCap = sortedCaps[0]!;
-              const layoutStart = resolveSegmentWallLayoutStart(frame);
-              const startX =
-                layoutStart.x + frame.tangent.x * strip.startStationMeters;
-              const startZ =
-                layoutStart.z + frame.tangent.z * strip.startStationMeters;
-              const capCenterOffsetMeters =
-                firstCap.wallDepthMeters / 2 + (firstCap.centerlineInwardOffsetMeters ?? 0);
-              const mesh = new THREE.Mesh(
-                trackGeometry(createRakedCapStripGeometry(strip.segments)),
-                capMaterial,
-              );
-              mesh.position.set(
-                startX + frame.inwardNormal.x * capCenterOffsetMeters,
-                currentSlab.slabThicknessMeters,
-                startZ + frame.inwardNormal.z * capCenterOffsetMeters,
-              );
-              mesh.rotation.y = frame.rotationY;
-              rakedCapGroup.add(mesh);
-            }
-          }
-
-          for (const group of [
-            roofCladdingGroup,
-            ridgeCapGroup,
-            fasciaGroup,
-            soffitGroup,
-            trussChordGroup,
-            trussWebGroup,
-            purlinGroup,
-            basePlateGroup,
-            anchorBoltGroup,
-            rakedCapGroup,
-            framingGuideGroup,
-          ]) {
-            if (group.children.length === 0) continue;
-            const roofObjectType: DesignObjectType =
-              group === rakedCapGroup ? 'gable_end_system' : 'gable_roof_system';
-            const roofSelectionPriority = selectionPriorityForObjectType(roofObjectType);
-            group.traverse((child) => {
-              if (child instanceof THREE.Mesh || child instanceof THREE.InstancedMesh) {
-                child.userData.selectable = true;
-                child.userData.designObjectType = roofObjectType;
-                child.userData.selectionPriority = roofSelectionPriority;
-                selectable.push(child);
-              }
-            });
-            root.add(group);
-          }
-        }
-
-        const blockInstances = resolveVisibleCmuBlockInstances({
+        const structuralFrameScene = buildDesignBuilderViewerStructuralFrameScene({
+          state: {
+            currentGeometry,
+            currentSlab,
+            currentVisualStyle,
+            usePreviewMaterials,
+            frameSelected,
+          },
           showCmuInfill,
-          showIndividualBlocks: currentWall.showIndividualBlocks,
-          roofDisplayMode: currentRoofDisplayMode,
-          roofLayerVisibility: currentRoofLayerVisibility,
-          blockInstances: currentGeometry.blockInstances,
+          trackGeometry,
+          trackMaterial: trackMat,
+          makeMaterial,
         });
-        const cmuBlocksForMortar = blockInstances;
-        if (cmuBlocksForMortar.length > 0) {
-          addCmuMortarJointMeshes({
-            blocks: cmuBlocksForMortar,
-            wall: currentWall,
-            slabTopMeters: currentSlab.slabThicknessMeters,
-            visualStyle: currentVisualStyle,
+        sceneRegistry.registerSelectables(structuralFrameScene.selectableObjects);
+        if (structuralFrameScene.group.children.length > 0) root.add(structuralFrameScene.group);
+        const interiorFinishScene = buildDesignBuilderViewerInteriorFinishScene({
+          state: {
+            currentGeometry,
+            currentSlab,
+            currentVisualStyle,
+            usePreviewMaterials,
+            frameSelected,
+          },
+          showCmuInfill,
+          trackGeometry,
+          trackMaterial: trackMat,
+          makeMaterial,
+        });
+        interiorFinishScene.groups.forEach((group) => root.add(group));
+        const roofReferenceScene = buildDesignBuilderViewerRoofReferenceScene({
+          enabled: import.meta.env.DEV && currentShowRoofReferencePerimeters,
+          geometry: currentGeometry,
+          slab: currentSlab,
+          trackGeometry,
+          trackMaterial: trackMat,
+        });
+        if (roofReferenceScene.children.length > 0) root.add(roofReferenceScene);
+        const roofAssemblyScene = buildDesignBuilderViewerRoofAssemblyScene({
+          state: {
+            currentGeometry,
+            currentSlab,
+            currentVisualStyle,
+            currentRoofSystem,
+            currentRoofDisplayMode,
+            currentRoofLayerVisibility,
+            currentShowRoofFramingGuides,
+            usePreviewMaterials,
+            roofSelected,
+            gableSelected,
+          },
+          trackGeometry,
+          trackMaterial: trackMat,
+          makeMaterial,
+        });
+        sceneRegistry.registerSelectables(roofAssemblyScene.selectableObjects);
+        roofAssemblyScene.groups.forEach((group) => root.add(group));
+
+        const cmuInfillScene = buildDesignBuilderViewerCmuInfillScene({
+          state: {
+            currentGeometry,
+            currentWall,
+            currentSlab,
+            currentSelectedObjectType,
+            currentVisualStyle,
+            currentRoofDisplayMode,
+            currentRoofLayerVisibility,
+            usePreviewMaterials,
+            cmuSelected,
             cmuCutawayActive,
             cmuOpacity,
-            debugMode: false,
-            root,
-            trackGeometry,
-            trackMat,
-          });
-        }
-
-        if (blockInstances.length > 0) {
-          const blockHeightMeters = resolveCmuModuleConfig(currentWall).actualHeightMeters;
-          const blocksByType = groupBlocksByType(blockInstances);
-          blocksByType.forEach((instances, blockType) => {
-            const blockGeometry = trackGeometry(new THREE.BoxGeometry(1, 1, 1));
-            const blockMaterial = usePreviewMaterials
-              ? resolveCmuMaterial(cmuMaterialOptions, trackMat)
-              : makeMaterial(blockColor(blockType), cmuSelected, {
-                  transparent: cmuOpacity < 1,
-                  opacity: cmuOpacity,
-                });
-            const blocks = new THREE.InstancedMesh(blockGeometry, blockMaterial, instances.length);
-            const matrix = new THREE.Matrix4();
-            const quaternion = new THREE.Quaternion();
-            instances.forEach((block, index) => {
-              quaternion.setFromEuler(new THREE.Euler(0, block.rotationY, 0));
-              const baseHeightMeters = block.physicalHeightMeters ?? block.heightMeters ?? blockHeightMeters;
-              const isTopClosure = block.source === 'panel_top_closure';
-              const renderHeightMeters = isTopClosure
-                ? baseHeightMeters + TOP_COURSE_RENDER_EPSILON_METERS
-                : baseHeightMeters;
-              const renderYOffsetMeters = isTopClosure ? TOP_COURSE_RENDER_EPSILON_METERS / 2 : 0;
-              matrix.compose(
-                new THREE.Vector3(block.x, currentSlab.slabThicknessMeters + block.y + renderYOffsetMeters, block.z),
-                quaternion,
-                new THREE.Vector3(block.actualLengthMeters ?? block.lengthMeters, renderHeightMeters, block.depthMeters ?? currentWall.blockDepthMeters),
-              );
-              blocks.setMatrixAt(index, matrix);
-            });
-            blocks.instanceMatrix.needsUpdate = true;
-            addSelectable(blocks, 'cmu_wall_system');
-          });
-        }
-
-        if (showCmuInfill && !currentWall.showIndividualBlocks) {
-          const wallMaterial = makeMaterial(0xd1d5db, currentSelectedObjectType === 'cmu_wall_system', {
-            transparent: true,
-            opacity: cmuOpacity,
-          });
-          const segmentFrameById = new Map(
-            (cmuLayout.segmentFrames ?? []).map((frame) => [frame.segmentId, frame]),
-          );
-          const panelBoundsBySegment = new Map<string, NonNullable<typeof currentGeometry.resolvedInfillPanelBounds>[number]>();
-          (currentGeometry.resolvedInfillPanelBounds ?? []).forEach((bounds) => {
-            const existing = panelBoundsBySegment.get(bounds.hostSegmentId);
-            if (!existing || bounds.bottomElevationMeters > existing.bottomElevationMeters) {
-              panelBoundsBySegment.set(bounds.hostSegmentId, bounds);
-            }
-          });
-          const exteriorSegmentIds = new Set(
-            (currentGeometry.resolvedFootprint?.orderedPerimeterSegments ?? []).map(
-              (perimeterSegment) => perimeterSegment.segmentId,
-            ),
-          );
-          const roughOpenings = cmuLayout.roughOpenings as PlasterOpening[];
-          currentGeometry.wallSegments.forEach((segment) => {
-            const frame = segmentFrameById.get(segment.segmentId);
-            const panelBounds = panelBoundsBySegment.get(segment.segmentId);
-            const trimStartMeters = panelBounds?.startStationMeters ?? 0;
-            const trimEndMeters = panelBounds
-              ? Math.max(0, segment.lengthMeters - panelBounds.endStationMeters)
-              : 0;
-            const wallPieces = buildInfillWallProxyPieces({
-              segmentLengthMeters: segment.lengthMeters,
-              wallHeightMeters: panelBounds?.clearHeightMeters ?? segment.heightMeters,
-              wallThicknessMeters: segment.thicknessMeters,
-              hostSegmentId: segment.segmentId,
-              openings: roughOpenings,
-              trimStartMeters,
-              trimEndMeters,
-            });
-            wallPieces.forEach((piece) => {
-              const infillCenterlineInwardOffsetMeters =
-                panelBounds?.infillCenterlineInwardOffsetMeters ??
-                segment.infillCenterlineInwardOffsetMeters ??
-                0;
-              const centerlinePoint = frame
-                ? {
-                    x:
-                      frame.centerlineStart.x +
-                      frame.tangent.x * piece.centerStationMeters +
-                      frame.inwardNormal.x * infillCenterlineInwardOffsetMeters,
-                    z:
-                      frame.centerlineStart.z +
-                      frame.tangent.z * piece.centerStationMeters +
-                      frame.inwardNormal.z * infillCenterlineInwardOffsetMeters,
-                  }
-                : { x: segment.x, z: segment.z };
-              const wallMesh = new THREE.Mesh(
-                trackGeometry(
-                  new THREE.BoxGeometry(piece.lengthMeters, piece.heightMeters, piece.thicknessMeters),
-                ),
-                wallMaterial,
-              );
-              wallMesh.position.set(
-                centerlinePoint.x,
-                currentSlab.slabThicknessMeters +
-                  (panelBounds?.bottomElevationMeters ?? 0) +
-                  piece.centerElevationMeters,
-                centerlinePoint.z,
-              );
-              wallMesh.rotation.y = segment.rotationY;
-              wallMesh.renderOrder = 0;
-              addSelectable(wallMesh, 'cmu_wall_system');
-            });
-          });
-        }
-
-        if (showCmuInfill) {
-          const exteriorSegmentIds = new Set(
-            (currentGeometry.resolvedFootprint?.orderedPerimeterSegments ?? []).map(
-              (segment) => segment.segmentId,
-            ),
-          );
-          const plasterPlacements = resolveInfillPlasterPanelPlacements({
-            infillSystem: currentGeometry.infillSystem,
-            panelBounds: currentGeometry.resolvedInfillPanelBounds ?? [],
-            openings: cmuLayout.roughOpenings as PlasterOpening[],
-            wallThicknessMeters: currentWall.wallThicknessMeters,
-            exteriorSegmentIds,
-          });
-          if (plasterPlacements.length > 0) {
-            const plasterGroup = new THREE.Group();
-            plasterGroup.name = 'plasterGroup';
-            plasterPlacements.forEach((placement) => {
-              const plasterMaterial = usePreviewMaterials
-                ? resolvePlasterFinishMaterial(
-                    {
-                      visualStyle: currentVisualStyle,
-                      selected: currentSelectedObjectType === 'cmu_infill_system',
-                      plasterFinish: placement.finish,
-                    },
-                    trackMat,
-                  )
-                : makeMaterial(
-                    placement.finish === 'smooth' ? 0xded8cf : 0xd8d1c5,
-                    currentSelectedObjectType === 'cmu_infill_system',
-                    {
-                      side: THREE.DoubleSide,
-                    },
-                  );
-              const mesh = new THREE.Mesh(
-                trackGeometry(
-                  new THREE.BoxGeometry(
-                    placement.widthMeters,
-                    placement.heightMeters,
-                    placement.thicknessMeters,
-                  ),
-                ),
-                plasterMaterial,
-              );
-              mesh.position.set(
-                placement.center.x,
-                currentSlab.slabThicknessMeters + placement.center.y,
-                placement.center.z,
-              );
-              mesh.rotation.y = placement.rotationY;
-              mesh.renderOrder = 1;
-              plasterGroup.add(mesh);
-            });
-            plasterGroup.traverse((child) => {
-              if (child instanceof THREE.Mesh) {
-                child.userData.selectable = true;
-                child.userData.designObjectType = 'cmu_infill_system';
-                child.userData.selectionPriority = selectionPriorityForObjectType('cmu_infill_system');
-                selectable.push(child);
-              }
-            });
-            root.add(plasterGroup);
-          }
-        }
+            cmuMaterialOptions,
+          },
+          cmuLayout,
+          showCmuInfill,
+          trackGeometry,
+          trackMaterial: trackMat,
+          makeMaterial,
+        });
+        sceneRegistry.registerSelectables(cmuInfillScene.selectableObjects);
+        cmuInfillScene.groups.forEach((group) => root.add(group));
       } else if (legacyPresetActive) {
         addLabel(root, 'NORTH WALL', new THREE.Vector3(0, 0.06, -currentWall.widthMeters / 2 - 0.8), 0x0284c7);
         addLabel(root, 'SOUTH WALL', new THREE.Vector3(0, 0.06, currentWall.widthMeters / 2 + 0.8), 0x0284c7);
@@ -2419,146 +564,71 @@ export default function DesignBuilderViewer({
 
         const blockInstances = currentWall.showIndividualBlocks ? cmuLayout.blocks : [];
         if (blockInstances.length > 0) {
-        addCmuMortarJointMeshes({
-          blocks: blockInstances,
-          wall: currentWall,
-          slabTopMeters: currentSlab.slabThicknessMeters,
-          visualStyle: currentVisualStyle,
-          cmuCutawayActive,
-          cmuOpacity,
-          debugMode: false,
-          root,
-          trackGeometry,
-          trackMat,
-        });
-        const blockHeightMeters = resolveCmuModuleConfig(currentWall).actualHeightMeters;
-        const blocksByType = groupBlocksByType(blockInstances);
-        blocksByType.forEach((instances, blockType) => {
-          const blockGeometry = trackGeometry(new THREE.BoxGeometry(1, 1, 1));
-          const blockMaterial = usePreviewMaterials
-            ? resolveCmuMaterial(cmuMaterialOptions, trackMat)
-            : makeMaterial(blockColor(blockType), cmuSelected);
-          const blocks = new THREE.InstancedMesh(blockGeometry, blockMaterial, instances.length);
-          const matrix = new THREE.Matrix4();
-          const quaternion = new THREE.Quaternion();
-          instances.forEach((block, index) => {
-            quaternion.setFromEuler(new THREE.Euler(0, block.rotationY, 0));
-            matrix.compose(
-              new THREE.Vector3(block.x, currentSlab.slabThicknessMeters + block.y, block.z),
-              quaternion,
-              new THREE.Vector3(block.actualLengthMeters ?? block.lengthMeters, block.heightMeters ?? blockHeightMeters, block.depthMeters ?? currentWall.blockDepthMeters),
-            );
-            blocks.setMatrixAt(index, matrix);
+          const mortarScene = buildDesignBuilderViewerCmuMortarScene({
+            blocks: blockInstances,
+            wall: currentWall,
+            slabTopMeters: currentSlab.slabThicknessMeters,
+            visualStyle: currentVisualStyle,
+            cmuCutawayActive,
+            cmuOpacity,
+            debugMode: false,
+            trackGeometry,
+            trackMaterial: trackMat,
           });
-          blocks.instanceMatrix.needsUpdate = true;
-          addSelectable(blocks, 'cmu_wall_system');
-        });
+          if (mortarScene.group.children.length > 0) root.add(mortarScene.group);
+          const blockModule = resolveCmuModuleConfig(currentWall);
+          const blockHeightMeters = blockModule.actualHeightMeters ?? blockModule.moduleHeightMeters;
+          const cmuBlockGroup = buildCmuBlockInstanceSceneGroup({
+            blockInstances,
+            blockHeightMeters,
+            defaultBlockDepthMeters: currentWall.blockDepthMeters,
+            slabTopMeters: currentSlab.slabThicknessMeters,
+            createMaterial: (blockType) =>
+              usePreviewMaterials
+                ? resolveCmuMaterial(cmuMaterialOptions, trackMat)
+                : makeMaterial(blockColor(blockType), cmuSelected),
+            trackGeometry,
+          });
+          cmuBlockGroup.children.forEach((child) => addSelectable(child, 'cmu_wall_system'));
         } else {
-        const wallMaterial = makeMaterial(0xd1d5db, currentSelectedObjectType === 'cmu_wall_system', {
-          transparent: true,
-          opacity: 0.9,
-        });
-        const northSouthWall = trackGeometry(new THREE.BoxGeometry(currentWall.lengthMeters, currentWall.heightMeters, currentWall.wallThicknessMeters));
-        const eastWestWall = trackGeometry(new THREE.BoxGeometry(currentWall.wallThicknessMeters, currentWall.heightMeters, currentWall.widthMeters));
-        const north = new THREE.Mesh(northSouthWall, wallMaterial);
-        north.position.set(0, wallY, -currentWall.widthMeters / 2 + wallInset);
-        const south = north.clone();
-        south.position.z = currentWall.widthMeters / 2 - wallInset;
-        const east = new THREE.Mesh(eastWestWall, wallMaterial);
-        east.position.set(currentWall.lengthMeters / 2 - wallInset, wallY, 0);
-        const west = east.clone();
-        west.position.x = -currentWall.lengthMeters / 2 + wallInset;
-        [north, south, east, west].forEach((mesh) => addSelectable(mesh, 'cmu_wall_system'));
-        }
-      }
-
-      const manualRuns = currentWall.manualMasonryCourseRuns ?? [];
-      if (manualRuns.length > 0) {
-        const manualBlocks = manualRuns.flatMap((run) => {
-          const length = run.moduleLengthMeters || currentWall.blockLengthMeters * (run.unitType === 'half_block' ? 0.5 : 1);
-          const height = run.moduleHeightMeters || currentWall.blockHeightMeters;
-          const thickness = run.wallThicknessMeters || currentWall.wallThicknessMeters;
-          const tangentLength = Math.hypot(run.tangent?.x ?? 1, run.tangent?.z ?? 0) || 1;
-          const tangent = {
-            x: (run.tangent?.x ?? 1) / tangentLength,
-            z: (run.tangent?.z ?? 0) / tangentLength,
-          };
-          const normal = { x: -tangent.z, z: tangent.x };
-          const origin = run.origin ?? { x: run.originX, y: run.courseIndex * height, z: run.originZ };
-          const rotationY = Math.atan2(tangent.z, tangent.x);
-          return Array.from({ length: run.count }, (_, index) => ({
-            id: `${run.id}:${index}`,
-            unitType: run.unitType,
-            length,
-            height,
-            thickness,
-            x: origin.x + tangent.x * (index * length + length / 2) + normal.x * (thickness / 2),
-            y: origin.y + height / 2,
-            z: origin.z + tangent.z * (index * length + length / 2) + normal.z * (thickness / 2),
-            rotationY,
-          }));
-        });
-        const manualBlocksByType = new Map<string, typeof manualBlocks>();
-        manualBlocks.forEach((block) => {
-          const blocks = manualBlocksByType.get(block.unitType) ?? [];
-          blocks.push(block);
-          manualBlocksByType.set(block.unitType, blocks);
-        });
-        manualBlocksByType.forEach((instances, unitType) => {
-          const blockGeometry = trackGeometry(new THREE.BoxGeometry(1, 1, 1));
-          const blockMaterial = usePreviewMaterials
-            ? resolveCmuMaterial(cmuMaterialOptions, trackMat)
-            : makeMaterial(manualBlockColor(unitType), cmuSelected);
-          const blocks = new THREE.InstancedMesh(blockGeometry, blockMaterial, instances.length);
-          blocks.userData.manualMasonry = true;
-          const matrix = new THREE.Matrix4();
-          const quaternion = new THREE.Quaternion();
-          instances.forEach((block, index) => {
-            quaternion.setFromEuler(new THREE.Euler(0, block.rotationY, 0));
-            matrix.compose(
-              new THREE.Vector3(block.x, currentSlab.slabThicknessMeters + block.y, block.z),
-              quaternion,
-              new THREE.Vector3(block.length, block.height, block.thickness),
-            );
-            blocks.setMatrixAt(index, matrix);
+          const wallMaterial = makeMaterial(0xd1d5db, currentSelectedObjectType === 'cmu_wall_system', {
+            transparent: true,
+            opacity: 0.9,
           });
-          blocks.instanceMatrix.needsUpdate = true;
-          addSelectable(blocks, 'cmu_wall_system', undefined, 60);
-        });
+          legacyWallProxyMeshes({
+            wall: currentWall,
+            slabTopMeters: currentSlab.slabThicknessMeters,
+            material: wallMaterial,
+            trackGeometry,
+          }).forEach((mesh) => addSelectable(mesh, 'cmu_wall_system'));
+        }
       }
 
-      const openingRenderGroups = createOpeningRenderGroups();
-      const openingInfillBoundsBySegmentId = new Map<
-        string,
-        {
-          hostSegmentId: string;
-          bottomElevationMeters: number;
-          infillCenterlineInwardOffsetMeters: number;
-        }
-      >();
-      (currentGeometry?.resolvedInfillPanelBounds ?? []).forEach((bounds) => {
-        const existing = openingInfillBoundsBySegmentId.get(bounds.hostSegmentId);
-        if (!existing || bounds.bottomElevationMeters > existing.bottomElevationMeters) {
-          openingInfillBoundsBySegmentId.set(bounds.hostSegmentId, bounds);
-        }
+      const manualMasonryScene = buildManualMasonrySceneGroup({
+        runs: currentWall.manualMasonryCourseRuns ?? [],
+        wall: currentWall,
+        slabTopMeters: currentSlab.slabThicknessMeters,
+        createMaterial: (_unitType, color) =>
+          usePreviewMaterials
+            ? resolveCmuMaterial(cmuMaterialOptions, trackMat)
+            : makeMaterial(color, cmuSelected),
+        trackGeometry,
       });
-      const openingInfillOffsetBySegmentId = new Map(
-        [...openingInfillBoundsBySegmentId].map(([segmentId, bounds]) => [
-          segmentId,
-          bounds.infillCenterlineInwardOffsetMeters,
-        ]),
-      );
-      populateOpeningAssemblyRenderGroups(openingRenderGroups, {
+      sceneRegistry.registerSelectables(manualMasonryScene.selectableObjects);
+      if (manualMasonryScene.group.children.length > 0) root.add(manualMasonryScene.group);
+
+      const openingSceneGroups = buildOpeningSceneGroups({
         cmuLayout,
         wall: currentWall,
         slabTopMeters: currentSlab.slabThicknessMeters,
         showGroutCells: currentShowGroutCells,
         showOpeningLayout: currentShowOpeningLayout,
+        showClosureWarnings: currentShowClosureWarnings,
         selectedOpeningId: selectedOpeningIdRef.current,
         hoveredOpeningId: hoveredOpeningIdRef.current,
+        resolvedInfillPanelBounds: currentGeometry?.resolvedInfillPanelBounds,
         trackGeometry,
         makeMaterial,
-        infillCenterlineOffsetBySegmentId: openingInfillOffsetBySegmentId,
         resolveLintelMaterial: usePreviewMaterials
           ? () =>
               resolveCastConcreteMaterial(
@@ -2567,62 +637,12 @@ export default function DesignBuilderViewer({
               )
           : undefined,
       });
-
-      openingRenderGroups.frameGroup.traverse((child) => {
-        const openingId = child.userData.openingId as string | undefined;
-        if (!openingId) return;
-        const opening = cmuLayout.roughOpenings.find((candidate) => candidate.id === openingId);
-        const objectType: DesignObjectType = opening?.type === 'door' ? 'door_opening' : 'window_opening';
-        child.userData.selectable = true;
-        child.userData.designObjectType = objectType;
-        child.userData.openingId = openingId;
-        child.userData.selectionPriority = 100;
-        if (child instanceof THREE.Mesh || child instanceof THREE.LineSegments) selectable.push(child);
-      });
-      openingRenderGroups.lintelGroup.traverse((child) => {
-        if (child instanceof THREE.Mesh && child.userData.lintelSolid) {
-          child.userData.selectable = true;
-          child.userData.designObjectType = 'cmu_wall_system';
-          child.userData.selectionPriority = 40;
-          selectable.push(child);
-        }
-      });
-      root.add(openingRenderGroups.lintelGroup);
-      root.add(openingRenderGroups.frameGroup);
-      if (currentShowGroutCells) {
-        openingRenderGroups.groutCellGroup.traverse((child) => {
-          if (child instanceof THREE.Mesh && child.userData.groutSolid) {
-            child.userData.selectable = true;
-            child.userData.designObjectType = 'cmu_wall_system';
-            child.userData.selectionPriority = 10;
-            selectable.push(child);
-          }
-        });
-        root.add(openingRenderGroups.groutCellGroup);
-      }
-      if (currentShowOpeningLayout) {
-        root.add(openingRenderGroups.roughOpeningGuideGroup);
-      }
-
-      if (currentShowClosureWarnings) {
-        const closureMaterial = makeMaterial(0xf59e0b, true, { transparent: true, opacity: 0.86 });
-        cmuLayout.openingCourseClosures
-          .filter((closure) => closure.closureType === 'cut_block' || closure.closureType === 'grout_fill')
-          .forEach((closure) => {
-            const wallLength = closure.wallFace === 'north' || closure.wallFace === 'south' ? currentWall.lengthMeters : currentWall.widthMeters;
-            const centeredAlong = closure.roughOpeningEdge - wallLength / 2;
-            const x = closure.wallFace === 'east' ? currentWall.lengthMeters / 2 : closure.wallFace === 'west' ? -currentWall.lengthMeters / 2 : centeredAlong;
-            const z = closure.wallFace === 'north' ? -currentWall.widthMeters / 2 : closure.wallFace === 'south' ? currentWall.widthMeters / 2 : centeredAlong;
-            const marker = new THREE.Mesh(
-              trackGeometry(new THREE.BoxGeometry(Math.max(0.035, closure.residualGap), currentWall.blockHeightMeters * 0.5, currentWall.wallThicknessMeters + 0.1)),
-              closureMaterial,
-            );
-            marker.position.set(x, currentSlab.slabThicknessMeters + (closure.courseBottom + closure.courseTop) / 2, z);
-            marker.rotation.y = closure.wallFace === 'east' || closure.wallFace === 'west' ? Math.PI / 2 : 0;
-            marker.userData.explicitHelperMarker = true;
-            addSelectable(marker, 'cmu_wall_system', undefined, 5);
-          });
-      }
+      sceneRegistry.registerSelectables(openingSceneGroups.selectableObjects);
+      root.add(openingSceneGroups.lintelGroup);
+      root.add(openingSceneGroups.frameGroup);
+      if (currentShowGroutCells) root.add(openingSceneGroups.groutCellGroup);
+      if (currentShowOpeningLayout) root.add(openingSceneGroups.roughOpeningGuideGroup);
+      if (currentShowClosureWarnings) root.add(openingSceneGroups.closureWarningGroup);
 
       addSupplementalPlacedComponents();
       refreshSiteGroundMaterial();
@@ -2664,203 +684,57 @@ export default function DesignBuilderViewer({
     };
     controls.addEventListener('end', emitCameraSnapshot);
 
-    const handlePointerDown = (event: PointerEvent) => {
-      if (event.button === 1) event.preventDefault();
-      pointerDown = { x: event.clientX, y: event.clientY, button: event.button };
-      const mode = toolModeRef.current;
-      if (manualMasonryEnabledRef.current && event.button === 0) {
-        const point = pickManualBrushPoint(event);
-        if (!point) return;
-        event.preventDefault();
-        manualBrushActive = true;
-        controls.enabled = false;
-        onManualMasonryPointerRef.current?.({ kind: 'start', planX: point.x, planZ: point.z });
-        return;
-      }
-      if (mode === 'move_opening' && event.button === 0) {
-        const hit = pickSelectable(event);
-        const openingId = hit?.data.openingId;
-        if (openingId) {
-          dragOpeningId = openingId;
-          controls.enabled = false;
-        }
-      }
-    };
+    const viewerPickers = createDesignBuilderViewerPickers({
+      element: renderer.domElement,
+      camera,
+      raycaster,
+      selectableObjects: selectable,
+      wallPickableObjects: wallPickables,
+      getWall: () => modelParamsRef.current.wall,
+      getSegmentFrames: () => modelParamsRef.current.geometryResult?.wallCmuLayout?.segmentFrames ?? [],
+      groundPlane,
+      debug: import.meta.env.DEV,
+    });
 
-    const handlePointerMove = (event: PointerEvent) => {
-      const mode = toolModeRef.current;
-      if (manualMasonryEnabledRef.current) {
-        const point = pickManualBrushPoint(event);
-        if (!point) return;
-        onManualMasonryPointerRef.current?.({ kind: 'preview', planX: point.x, planZ: point.z });
-        return;
-      }
-      if (dragOpeningId) {
-        const pick = pickWall(event);
-        if (!pick) {
-          placementPreviewRef.current = null;
-          updateGhostRef.current?.();
-          return;
-        }
-          onInteractionRef.current?.({
-            kind: 'opening_move',
-            toolMode: mode,
-            phase: 'preview',
-            openingId: dragOpeningId,
-            wallFace: pick.wallFace,
-            offsetMeters: pick.offsetMeters,
-            wallSegmentId: pick.wallSegmentId,
-            positionAlongSegment: pick.positionAlongSegment,
-            hitPointX: pick.hitPoint?.x,
-            hitPointY: pick.hitPoint?.y,
-            hitPointZ: pick.hitPoint?.z,
-          });
-        return;
-      }
-      if (mode === 'place_door' || mode === 'place_window') {
-        const pick = pickWall(event);
-        if (!pick) return;
-        onInteractionRef.current?.({
-          kind: 'wall_pick',
-          toolMode: mode,
-          wallFace: pick.wallFace,
-          offsetMeters: pick.offsetMeters,
-          wallSegmentId: pick.wallSegmentId,
-          positionAlongSegment: pick.positionAlongSegment,
-          hitPointX: pick.hitPoint?.x,
-          hitPointY: pick.hitPoint?.y,
-          hitPointZ: pick.hitPoint?.z,
-          openingType: mode === 'place_door' ? 'door' : 'window',
-        });
-        return;
-      }
-      if (mode === 'select' && !dragOpeningId) {
-        const hit = pickSelectable(event);
-        const nextHoveredOpeningId = hit?.data.openingId ?? null;
-        if (nextHoveredOpeningId !== hoveredOpeningIdRef.current) {
-          hoveredOpeningIdRef.current = nextHoveredOpeningId;
-          rebuildModelRef.current?.();
-        }
-      }
-    };
+    const interactionController = createDesignBuilderViewerInteractionController({
+      clickDragThresholdPx: CLICK_DRAG_THRESHOLD_PX,
+      getToolMode: () => toolModeRef.current,
+      isManualMasonryEnabled: () => manualMasonryEnabledRef.current,
+      pickManualBrushPoint: viewerPickers.pickManualBrushPoint,
+      pickWall: viewerPickers.pickWall,
+      pickSelectable: viewerPickers.pickSelectable,
+      emitInteraction: (event) => onInteractionRef.current?.(event),
+      emitManualMasonryPointer: (event) => onManualMasonryPointerRef.current?.(event),
+      selectObjectType: (objectType) => onSelectRef.current(objectType),
+      setControlsEnabled: (enabled) => {
+        controls.enabled = enabled;
+      },
+      clearPlacementPreview: () => {
+        placementPreviewRef.current = null;
+        updateGhostRef.current?.();
+      },
+      getOpeningType: (openingId) =>
+        modelParamsRef.current.wall.openings.find((item) => item.id === openingId)?.type,
+      getHoveredOpeningId: () => hoveredOpeningIdRef.current,
+      setHoveredOpeningId: (openingId) => {
+        hoveredOpeningIdRef.current = openingId;
+      },
+      rebuildModel: () => rebuildModelRef.current?.(),
+    });
 
-    const handlePointerUp = (event: PointerEvent) => {
-      if (manualMasonryEnabledRef.current && manualBrushActive && event.button === 0) {
-        const point = pickManualBrushPoint(event);
-        manualBrushActive = false;
-        controls.enabled = true;
-        pointerDown = null;
-        if (point) onManualMasonryPointerRef.current?.({ kind: 'commit', planX: point.x, planZ: point.z });
-        return;
-      }
-      if (event.button !== 0 || pointerDown?.button !== 0) {
-        pointerDown = null;
-        return;
-      }
-      const moved = Math.hypot(event.clientX - pointerDown.x, event.clientY - pointerDown.y);
-      pointerDown = null;
-      const mode = toolModeRef.current;
-
-      if (dragOpeningId) {
-        const pick = pickWall(event);
-        if (pick) {
-          onInteractionRef.current?.({
-            kind: 'opening_move',
-            toolMode: mode,
-            phase: 'commit',
-            openingId: dragOpeningId,
-            wallFace: pick.wallFace,
-            offsetMeters: pick.offsetMeters,
-            wallSegmentId: pick.wallSegmentId,
-            positionAlongSegment: pick.positionAlongSegment,
-            hitPointX: pick.hitPoint?.x,
-            hitPointY: pick.hitPoint?.y,
-            hitPointZ: pick.hitPoint?.z,
-            openingType: modelParamsRef.current.wall.openings.find((item) => item.id === dragOpeningId)?.type,
-          });
-        }
-        dragOpeningId = null;
-        controls.enabled = true;
-        return;
-      }
-
-      if (moved > CLICK_DRAG_THRESHOLD_PX) return;
-
-      if (mode === 'place_door' || mode === 'place_window') {
-        const pick = pickWall(event);
-        if (!pick) return;
-        onInteractionRef.current?.({
-          kind: 'place_commit',
-          toolMode: mode,
-          wallFace: pick.wallFace,
-          offsetMeters: pick.offsetMeters,
-          wallSegmentId: pick.wallSegmentId,
-          positionAlongSegment: pick.positionAlongSegment,
-          hitPointX: pick.hitPoint?.x,
-          hitPointY: pick.hitPoint?.y,
-          hitPointZ: pick.hitPoint?.z,
-          openingType: mode === 'place_door' ? 'door' : 'window',
-        });
-        return;
-      }
-
-      const pick = pickSelectable(event);
-      const openingId = pick?.data.openingId;
-      if (openingId) {
-        onInteractionRef.current?.({
-          kind: 'select_opening',
-          toolMode: mode,
-          openingId,
-          openingType: pick?.data.designObjectType === 'door_opening' ? 'door' : 'window',
-        });
-        return;
-      }
-      const objectType = pick?.data.designObjectType;
-      if (objectType) {
-        onSelectRef.current(objectType);
-        onInteractionRef.current?.({ kind: 'select_object', toolMode: mode, objectType });
-        return;
-      }
-      onInteractionRef.current?.({ kind: 'clear_selection', toolMode: mode });
-    };
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (manualMasonryEnabledRef.current && (event.key === 'Backspace' || event.key === 'Delete')) {
-        event.preventDefault();
-        onManualMasonryPointerRef.current?.({ kind: 'undo' });
-        return;
-      }
-      if (event.key !== 'Escape') return;
-      dragOpeningId = null;
-      dragWallFace = null;
-      manualBrushActive = false;
-      controls.enabled = true;
-      if (manualMasonryEnabledRef.current) {
-        onManualMasonryPointerRef.current?.({ kind: 'cancel_preview' });
-        return;
-      }
-      onInteractionRef.current?.({ kind: 'cancel', toolMode: toolModeRef.current });
-    };
-
-    const handleContextMenu = (event: MouseEvent) => {
-      if (!manualMasonryEnabledRef.current) return;
-      event.preventDefault();
-      onManualMasonryPointerRef.current?.({ kind: 'undo' });
-    };
-
-    renderer.domElement.addEventListener('pointerdown', handlePointerDown);
-    renderer.domElement.addEventListener('pointermove', handlePointerMove);
-    renderer.domElement.addEventListener('pointerup', handlePointerUp);
-    renderer.domElement.addEventListener('contextmenu', handleContextMenu);
-    window.addEventListener('keydown', handleKeyDown);
+    renderer.domElement.addEventListener('pointerdown', interactionController.handlePointerDown);
+    renderer.domElement.addEventListener('pointermove', interactionController.handlePointerMove);
+    renderer.domElement.addEventListener('pointerup', interactionController.handlePointerUp);
+    renderer.domElement.addEventListener('contextmenu', interactionController.handleContextMenu);
+    window.addEventListener('keydown', interactionController.handleKeyDown);
 
     return () => {
       cancelAnimationFrame(frame);
-      renderer.domElement.removeEventListener('pointerdown', handlePointerDown);
-      renderer.domElement.removeEventListener('pointermove', handlePointerMove);
-      renderer.domElement.removeEventListener('pointerup', handlePointerUp);
-      renderer.domElement.removeEventListener('contextmenu', handleContextMenu);
-      window.removeEventListener('keydown', handleKeyDown);
+      renderer.domElement.removeEventListener('pointerdown', interactionController.handlePointerDown);
+      renderer.domElement.removeEventListener('pointermove', interactionController.handlePointerMove);
+      renderer.domElement.removeEventListener('pointerup', interactionController.handlePointerUp);
+      renderer.domElement.removeEventListener('contextmenu', interactionController.handleContextMenu);
+      window.removeEventListener('keydown', interactionController.handleKeyDown);
       controls.removeEventListener('end', emitCameraSnapshot);
       observer.disconnect();
       themeObserver.disconnect();
@@ -2868,8 +742,8 @@ export default function DesignBuilderViewer({
       rendererRef.current = null;
       controls.dispose();
       clearGhost();
-      geometriesToDispose.forEach((geometry) => geometry.dispose());
-      materialsToDispose.forEach((material) => material.dispose());
+      sceneEnvironment.dispose();
+      resources.disposeTrackedResources();
       renderer.dispose();
       host.removeChild(renderer.domElement);
       rebuildModelRef.current = null;
@@ -3008,49 +882,4 @@ function roundRect(context: CanvasRenderingContext2D, x: number, y: number, widt
   context.lineTo(x, y + radius);
   context.quadraticCurveTo(x, y, x + radius, y);
   context.closePath();
-}
-
-function groupBlocksByType<T extends { blockType: CmuBlockType }>(blocks: T[]): Map<CmuBlockType, T[]> {
-  const grouped = new Map<CmuBlockType, T[]>();
-  blocks.forEach((block) => {
-    const existing = grouped.get(block.blockType) ?? [];
-    existing.push(block);
-    grouped.set(block.blockType, existing);
-  });
-  return grouped;
-}
-
-function blockColor(blockType: CmuBlockType): number {
-  switch (blockType) {
-    case 'half':
-      return 0xcbd5e1;
-    case 'corner':
-    case 'end':
-      return 0xbfc7d2;
-    case 'jamb':
-      return 0xa8b3c3;
-    case 'lintel_bond_beam':
-      return 0x94a3b8;
-    case 'cut':
-      return 0xd6d3d1;
-    case 'full':
-    default:
-      return 0xd1d5db;
-  }
-}
-
-function manualBlockColor(unitType: string): number {
-  switch (unitType) {
-    case 'half_block':
-      return 0xcbd5e1;
-    case 'end_block':
-      return 0xbfc7d2;
-    case 'jamb_block':
-      return 0xa8b3c3;
-    case 'bond_beam_block':
-      return 0x94a3b8;
-    case 'full_block':
-    default:
-      return 0xd1d5db;
-  }
 }

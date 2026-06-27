@@ -21,7 +21,8 @@ describe('Design Builder session store', () => {
       selectedOpeningId: preset.wall.openings[0]?.id ?? null,
       toolMode: 'move_opening',
       changedAfterCommit: true,
-      viewMode: 'elevation',
+      viewMode: '2d',
+      active2DView: 'elevation-view',
       elevationView: { face: 'east', cursorX: 2.5, cursorZ: 1.2 },
       placedComponents: [
         {
@@ -67,7 +68,8 @@ describe('Design Builder session store', () => {
     expect(session?.selectedObjectType).toBe('door_opening');
     expect(session?.selectedOpeningId).toBe(preset.wall.openings[0]?.id);
     expect(session?.toolMode).toBe('move_opening');
-    expect(session?.viewMode).toBe('elevation');
+    expect(session?.viewMode).toBe('2d');
+    expect(session?.active2DView).toBe('elevation-view');
     expect(session?.elevationView.face).toBe('east');
     expect(session?.placedComponents).toHaveLength(1);
     expect(session?.snapMode).toBe('cmu_module');

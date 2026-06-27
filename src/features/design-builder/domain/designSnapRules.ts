@@ -100,6 +100,16 @@ export function resolveDesignSnapPoint(params: {
     });
   }
 
+  const perpendicularGuideSnap = findPreviousSegmentPerpendicularSnap({
+    layout: params.layout,
+    point: params.point,
+    toleranceMeters: guideCaptureMeters,
+    pixelsPerMeter,
+    snapNodeById,
+    drawContext: params.drawContext,
+  });
+  if (perpendicularGuideSnap) candidates.push(perpendicularGuideSnap);
+
   if (params.drawContext?.shiftHeld && params.drawContext.activeNodeId && params.drawContext.orthogonalLock) {
     const constrained = resolveShiftConstrainedPoint({
       layout: params.layout,
@@ -192,6 +202,80 @@ function snapPointForNode(
   snapNodeById: Map<string, PlanPoint> | null,
 ): PlanPoint {
   return snapNodeById?.get(node.id) ?? { x: node.x, z: node.z };
+}
+
+function findPreviousSegmentPerpendicularSnap(params: {
+  layout: DesignWallLayoutParameters;
+  point: { x: number; z: number };
+  toleranceMeters: number;
+  pixelsPerMeter: number;
+  snapNodeById: Map<string, PlanPoint> | null;
+  drawContext?: {
+    activeNodeId?: string | null;
+    drawStartNodeId?: string | null;
+    orthogonalLock?: boolean;
+    shiftHeld?: boolean;
+    closureCornerCandidate?: { x: number; z: number } | null;
+  };
+}): DesignSnapTarget | null {
+  const activeNodeId = params.drawContext?.activeNodeId;
+  if (!params.drawContext?.orthogonalLock || !activeNodeId) return null;
+  if (params.drawContext.closureCornerCandidate) return null;
+  const activeNode = params.layout.nodes.find((node) => node.id === activeNodeId);
+  if (!activeNode) return null;
+
+  const previousSegment = [...params.layout.segments]
+    .reverse()
+    .find((segment) => segment.startNodeId === activeNodeId || segment.endNodeId === activeNodeId);
+  if (!previousSegment) return null;
+
+  const otherNodeId =
+    previousSegment.startNodeId === activeNodeId ? previousSegment.endNodeId : previousSegment.startNodeId;
+  const otherNode = params.layout.nodes.find((node) => node.id === otherNodeId);
+  if (!otherNode) return null;
+
+  const activePoint = snapPointForNode(activeNode, params.snapNodeById);
+  const otherPoint = snapPointForNode(otherNode, params.snapNodeById);
+  const previousDx = activePoint.x - otherPoint.x;
+  const previousDz = activePoint.z - otherPoint.z;
+  const previousLength = Math.hypot(previousDx, previousDz);
+  if (previousLength <= 1e-9) return null;
+
+  const directions = [
+    { x: -previousDz / previousLength, z: previousDx / previousLength },
+    { x: previousDz / previousLength, z: -previousDx / previousLength },
+  ];
+  const ranked = directions
+    .map((direction) => {
+      const projectedDistance =
+        (params.point.x - activePoint.x) * direction.x + (params.point.z - activePoint.z) * direction.z;
+      if (projectedDistance <= 0) return null;
+      const point = {
+        x: activePoint.x + direction.x * projectedDistance,
+        z: activePoint.z + direction.z * projectedDistance,
+      };
+      return {
+        point,
+        distanceMeters: distance(params.point, point),
+      };
+    })
+    .filter((candidate): candidate is { point: { x: number; z: number }; distanceMeters: number } =>
+      Boolean(candidate),
+    )
+    .sort((a, b) => a.distanceMeters - b.distanceMeters);
+  const best = ranked[0];
+  if (!best || best.distanceMeters > params.toleranceMeters) return null;
+
+  return {
+    type: 'guide',
+    point: best.point,
+    distancePx: best.distanceMeters * params.pixelsPerMeter,
+    priority: 2,
+    sourceId: previousSegment.id,
+    label: '90Â°',
+    valid: true,
+    captured: true,
+  };
 }
 
 function findNearestEndpointSnap(

@@ -147,6 +147,34 @@ describe('designSnapRules', () => {
     expect(target.point.z).toBeCloseTo(0.04, 6);
   });
 
+  it('captures a perpendicular guide when continuing from a previous wall segment', () => {
+    const layout = createEmptyWallLayout({
+      nodes: [
+        { id: 'a', x: 0, z: 0 },
+        { id: 'b', x: 0, z: 2 },
+      ],
+      segments: [{ id: 's1', startNodeId: 'a', endNodeId: 'b', wallHeightMeters: 2.8 }],
+    });
+    const target = resolveDesignSnapPoint({
+      layout,
+      point: { x: 2.05, z: 2.04 },
+      snapMode: 'off',
+      pixelsPerMeter: 48,
+      drawContext: {
+        activeNodeId: 'b',
+        drawStartNodeId: 'a',
+        orthogonalLock: true,
+        shiftHeld: false,
+      },
+    });
+
+    expect(target.type).toBe('guide');
+    expect(target.label).toMatch(/90/);
+    expect(target.point.x).toBeCloseTo(2.05, 6);
+    expect(target.point.z).toBeCloseTo(2, 6);
+    expect(target.captured).toBe(true);
+  });
+
   it('captures constrained guide targets while shift is held', () => {
     const layout = createEmptyWallLayout({ nodes: [{ id: 'a', x: 0, z: 0 }] });
     const target = resolveDesignSnapPoint({

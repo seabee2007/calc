@@ -5,13 +5,13 @@ import type {
   StructuralColumn,
   StructuralFoundationSettings,
   StructuralFrameSystemParameters,
-} from '../types';
-import type { SegmentFrame } from '../geometry/designGeometry';
+} from "../types";
+import type { SegmentFrame } from "../geometry/designGeometry";
 import {
   getExteriorPerimeterSegmentIds,
   getStructuralColumnNodeIds,
-} from '../geometry/designGeometry';
-import { resolveInsideFaceStation } from './infillPanelBoundsResolver';
+} from "../geometry/designGeometry";
+import { resolveInsideFaceStation } from "./infillPanelBoundsResolver";
 import {
   normalizeRcFrameFoundationSettings,
   plinthBeamElevations,
@@ -20,13 +20,14 @@ import {
   roofBeamElevations,
   tieBeamElevations,
   TOP_OF_PLINTH_BEAM_Y,
-} from './foundationElevations';
-import { createIsolatedFootingsForColumns } from './isolatedFootingLayout';
-import type { IsolatedFooting } from '../types';
+} from "./foundationElevations";
+import { createIsolatedFootingsForColumns } from "./isolatedFootingLayout";
+import type { IsolatedFooting } from "../types";
 import {
+  DEFAULT_RC_INTERMEDIATE_SUPPORT_SPACING_METERS,
   DEFAULT_RC_COLUMN_DEPTH_METERS,
   DEFAULT_RC_COLUMN_WIDTH_METERS,
-} from './structuralFrameDefaults';
+} from "./structuralFrameDefaults";
 
 export type ColumnFootprint = {
   column: StructuralColumn;
@@ -46,11 +47,26 @@ function columnIdForNode(nodeId: string): string {
   return `col-${nodeId}`;
 }
 
-function beamId(kind: StructuralBeam['kind'], segmentId: string): string {
-  return `beam-${kind}-${segmentId}`;
+function columnIdForSegmentStation(
+  segmentId: string,
+  supportIndex: number,
+): string {
+  return `col-${segmentId}-support-${supportIndex}`;
 }
 
-function resolveFoundation(params: StructuralFoundationSettings | RcFrameFoundationSettings | undefined): RcFrameFoundationSettings {
+function beamId(
+  kind: StructuralBeam["kind"],
+  segmentId: string,
+  bayIndex?: number,
+): string {
+  return bayIndex == null
+    ? `beam-${kind}-${segmentId}`
+    : `beam-${kind}-${segmentId}-${bayIndex}`;
+}
+
+function resolveFoundation(
+  params: StructuralFoundationSettings | RcFrameFoundationSettings | undefined,
+): RcFrameFoundationSettings {
   return normalizeRcFrameFoundationSettings(params);
 }
 
@@ -90,7 +106,7 @@ export function columnExteriorBounds(column: StructuralColumn): {
 export function columnInsideFaceStationOnSegment(
   column: StructuralColumn,
   frame: SegmentFrame,
-  side: 'start' | 'end',
+  side: "start" | "end",
 ): number {
   return resolveInsideFaceStation({ column, frame, side });
 }
@@ -100,7 +116,8 @@ export function createCornerColumnsForLayout(params: {
   segmentFrames: SegmentFrame[];
   frameSystem: StructuralFrameSystemParameters;
   wallHeightMeters: number;
-  foundation: StructuralFoundationSettings | RcFrameFoundationSettings | undefined;
+  foundation:
+    StructuralFoundationSettings | RcFrameFoundationSettings | undefined;
 }): StructuralColumn[] {
   const foundation = resolveFoundation(params.foundation);
   const elevations = resolveFoundationElevations({
@@ -112,7 +129,9 @@ export function createCornerColumnsForLayout(params: {
     depth: resolveColumnDimensions(foundation, params.frameSystem).depthMeters,
   };
   const exteriorSegmentIds = getExteriorPerimeterSegmentIds(params.layout);
-  const nodeIds = new Set(getStructuralColumnNodeIds(params.layout, exteriorSegmentIds));
+  const nodeIds = new Set(
+    getStructuralColumnNodeIds(params.layout, exteriorSegmentIds),
+  );
   const nodeById = new Map(params.layout.nodes.map((n) => [n.id, n]));
   const columns: StructuralColumn[] = [];
   for (const nodeId of nodeIds) {
@@ -125,23 +144,115 @@ export function createCornerColumnsForLayout(params: {
     columns.push({
       id: columnIdForNode(nodeId),
       name: `Corner Column ${nodeId}`,
-      kind: 'rc_column',
+      kind: "rc_column",
       position: { x: node.x, z: node.z },
       widthMeters: width,
       depthMeters: depth,
       ...geometry,
       hostNodeId: nodeId,
-      source: 'auto_frame_layout',
+      source: "auto_frame_layout",
     });
   }
   return columns;
 }
 
+function columnStationOnFrame(
+  column: StructuralColumn,
+  frame: SegmentFrame,
+): number {
+  return (
+    (column.position.x - frame.start.x) * frame.tangent.x +
+    (column.position.z - frame.start.z) * frame.tangent.z
+  );
+}
+
+function intermediateSupportStations(params: {
+  spanMeters: number;
+  spacingMeters: number;
+}): number[] {
+  const spacingMeters = Math.max(0.1, params.spacingMeters);
+  const bayCount = Math.max(1, Math.ceil(params.spanMeters / spacingMeters));
+  if (bayCount <= 1) return [];
+  const bayLength = params.spanMeters / bayCount;
+  return Array.from(
+    { length: bayCount - 1 },
+    (_, index) => bayLength * (index + 1),
+  );
+}
+
+function createIntermediateColumnsForLayout(params: {
+  layout: DesignWallLayoutParameters;
+  segmentFrames: SegmentFrame[];
+  frameSystem: StructuralFrameSystemParameters;
+  wallHeightMeters: number;
+  foundation: RcFrameFoundationSettings;
+}): StructuralColumn[] {
+  if (params.foundation.columns.placementMode !== "corners_and_intermediate")
+    return [];
+  const elevations = resolveFoundationElevations({
+    foundation: params.foundation,
+    wallHeightMeters: params.wallHeightMeters,
+  });
+  const dimensions = resolveColumnDimensions(
+    params.foundation,
+    params.frameSystem,
+  );
+  const exteriorSegmentIds = getExteriorPerimeterSegmentIds(params.layout);
+  const columns: StructuralColumn[] = [];
+  for (const frame of params.segmentFrames) {
+    if (!exteriorSegmentIds.has(frame.segmentId)) continue;
+    const stations = intermediateSupportStations({
+      spanMeters: frame.lengthMeters,
+      spacingMeters:
+        params.foundation.columns.intermediateSpacingMeters ||
+        DEFAULT_RC_INTERMEDIATE_SUPPORT_SPACING_METERS,
+    });
+    stations.forEach((stationMeters, index) => {
+      const geometry = resolveColumnGeometry({
+        column: {
+          widthMeters: dimensions.widthMeters,
+          depthMeters: dimensions.depthMeters,
+        },
+        elevations,
+      });
+      columns.push({
+        id: columnIdForSegmentStation(frame.segmentId, index + 1),
+        name: `Intermediate Column ${frame.segmentId} ${index + 1}`,
+        kind: "rc_column",
+        position: {
+          x: frame.start.x + frame.tangent.x * stationMeters,
+          z: frame.start.z + frame.tangent.z * stationMeters,
+        },
+        widthMeters: dimensions.widthMeters,
+        depthMeters: dimensions.depthMeters,
+        ...geometry,
+        hostSegmentId: frame.segmentId,
+        source: "auto_frame_layout",
+      });
+    });
+  }
+  return columns;
+}
+
+function createAutoColumnsForLayout(params: {
+  layout: DesignWallLayoutParameters;
+  segmentFrames: SegmentFrame[];
+  frameSystem: StructuralFrameSystemParameters;
+  wallHeightMeters: number;
+  foundation: RcFrameFoundationSettings;
+}): StructuralColumn[] {
+  return [
+    ...createCornerColumnsForLayout(params),
+    ...createIntermediateColumnsForLayout(params),
+  ];
+}
+
 function beamBetweenColumns(params: {
-  kind: StructuralBeam['kind'];
+  kind: StructuralBeam["kind"];
   startCol: StructuralColumn;
   endCol: StructuralColumn;
   segmentId: string;
+  bayIndex?: number;
   widthMeters: number;
   depthMeters: number;
   baseElevationMeters: number;
@@ -150,19 +261,23 @@ function beamBetweenColumns(params: {
   const startFace = facePointToward(params.startCol, params.endCol.position);
   const endFace = facePointToward(params.endCol, params.startCol.position);
   return {
-    id: beamId(params.kind, params.segmentId),
+    id: beamId(params.kind, params.segmentId, params.bayIndex),
     name: `${params.kind} ${params.segmentId}`,
     kind: params.kind,
     startColumnId: params.startCol.id,
     endColumnId: params.endCol.id,
-    startPoint: { x: startFace.x, y: params.baseElevationMeters, z: startFace.z },
+    startPoint: {
+      x: startFace.x,
+      y: params.baseElevationMeters,
+      z: startFace.z,
+    },
     endPoint: { x: endFace.x, y: params.baseElevationMeters, z: endFace.z },
     widthMeters: params.widthMeters,
     depthMeters: params.depthMeters,
     baseElevationMeters: params.baseElevationMeters,
     topElevationMeters: params.topElevationMeters,
     hostSegmentId: params.segmentId,
-    source: 'auto_frame_layout',
+    source: "auto_frame_layout",
   };
 }
 
@@ -185,9 +300,11 @@ function facePointToward(
 
 export function createPerimeterBeamsForLayout(params: {
   layout: DesignWallLayoutParameters;
+  segmentFrames?: SegmentFrame[];
   columns: StructuralColumn[];
   frameSystem: StructuralFrameSystemParameters;
-  foundation: StructuralFoundationSettings | RcFrameFoundationSettings | undefined;
+  foundation:
+    StructuralFoundationSettings | RcFrameFoundationSettings | undefined;
   wallHeightMeters: number;
 }): StructuralBeam[] {
   const foundation = resolveFoundation(params.foundation);
@@ -197,66 +314,111 @@ export function createPerimeterBeamsForLayout(params: {
   }
 
   const plinthElevations = plinthBeamElevations(foundation);
-  const roofElevations = roofBeamElevations(params.wallHeightMeters, foundation);
+  const roofElevations = roofBeamElevations(
+    params.wallHeightMeters,
+    foundation,
+  );
   const tieElevations = tieBeamElevations(foundation, params.wallHeightMeters);
   const exteriorSegmentIds = getExteriorPerimeterSegmentIds(params.layout);
+  const segmentFrameById = new Map(
+    (params.segmentFrames ?? []).map((frame) => [frame.segmentId, frame]),
+  );
 
   const beams: StructuralBeam[] = [];
   for (const seg of params.layout.segments) {
+    const isExterior = exteriorSegmentIds.has(seg.id);
+    const frame = segmentFrameById.get(seg.id);
     const startCol = colByNode.get(seg.startNodeId);
     const endCol = colByNode.get(seg.endNodeId);
-    if (!startCol || !endCol) continue;
+    const segmentColumns =
+      isExterior && frame
+        ? params.columns
+            .filter((column) => {
+              if (
+                column.hostNodeId === seg.startNodeId ||
+                column.hostNodeId === seg.endNodeId
+              )
+                return true;
+              return column.hostSegmentId === seg.id;
+            })
+            .map((column) => ({
+              column,
+              station:
+                column.hostNodeId === seg.startNodeId
+                  ? 0
+                  : column.hostNodeId === seg.endNodeId
+                    ? frame.lengthMeters
+                    : columnStationOnFrame(column, frame),
+            }))
+            .filter(
+              (entry) =>
+                entry.station >= -0.001 &&
+                entry.station <= frame.lengthMeters + 0.001,
+            )
+            .sort((a, b) => a.station - b.station)
+            .map((entry) => entry.column)
+        : [startCol, endCol].filter(
+            (column): column is StructuralColumn => column != null,
+          );
+    if (segmentColumns.length < 2) continue;
 
-    const isExterior = exteriorSegmentIds.has(seg.id);
     const includePlinthBeam =
       foundation.plinthBeam.enabled &&
       (isExterior
         ? foundation.plinthBeam.followsExteriorSegments
         : foundation.plinthBeam.followsInteriorSegments);
 
-    if (includePlinthBeam) {
-      beams.push(
-        beamBetweenColumns({
-          kind: 'plinth_beam',
-          startCol,
-          endCol,
-          segmentId: seg.id,
-          widthMeters: foundation.plinthBeam.widthMeters,
-          depthMeters: foundation.plinthBeam.depthMeters,
-          baseElevationMeters: plinthElevations.baseElevationMeters,
-          topElevationMeters: plinthElevations.topElevationMeters,
-        }),
-      );
-    }
+    for (let index = 0; index < segmentColumns.length - 1; index += 1) {
+      const startSupport = segmentColumns[index]!;
+      const endSupport = segmentColumns[index + 1]!;
+      const bayIndex = segmentColumns.length > 2 ? index : undefined;
+      if (includePlinthBeam) {
+        beams.push(
+          beamBetweenColumns({
+            kind: "plinth_beam",
+            startCol: startSupport,
+            endCol: endSupport,
+            segmentId: seg.id,
+            bayIndex,
+            widthMeters: foundation.plinthBeam.widthMeters,
+            depthMeters: foundation.plinthBeam.depthMeters,
+            baseElevationMeters: plinthElevations.baseElevationMeters,
+            topElevationMeters: plinthElevations.topElevationMeters,
+          }),
+        );
+      }
 
-    if (foundation.roofBeam.enabled && isExterior) {
-      beams.push(
-        beamBetweenColumns({
-          kind: 'roof_beam',
-          startCol,
-          endCol,
-          segmentId: seg.id,
-          widthMeters: foundation.roofBeam.widthMeters,
-          depthMeters: foundation.roofBeam.depthMeters,
-          baseElevationMeters: roofElevations.baseElevationMeters,
-          topElevationMeters: roofElevations.topElevationMeters,
-        }),
-      );
-    }
+      if (foundation.roofBeam.enabled && isExterior) {
+        beams.push(
+          beamBetweenColumns({
+            kind: "roof_beam",
+            startCol: startSupport,
+            endCol: endSupport,
+            segmentId: seg.id,
+            bayIndex,
+            widthMeters: foundation.roofBeam.widthMeters,
+            depthMeters: foundation.roofBeam.depthMeters,
+            baseElevationMeters: roofElevations.baseElevationMeters,
+            topElevationMeters: roofElevations.topElevationMeters,
+          }),
+        );
+      }
 
-    if (foundation.tieBeam.enabled && isExterior) {
-      beams.push(
-        beamBetweenColumns({
-          kind: 'tie_beam',
-          startCol,
-          endCol,
-          segmentId: seg.id,
-          widthMeters: foundation.tieBeam.widthMeters,
-          depthMeters: foundation.tieBeam.depthMeters,
-          baseElevationMeters: tieElevations.baseElevationMeters,
-          topElevationMeters: tieElevations.topElevationMeters,
-        }),
-      );
+      if (foundation.tieBeam.enabled && isExterior) {
+        beams.push(
+          beamBetweenColumns({
+            kind: "tie_beam",
+            startCol: startSupport,
+            endCol: endSupport,
+            segmentId: seg.id,
+            bayIndex,
+            widthMeters: foundation.tieBeam.widthMeters,
+            depthMeters: foundation.tieBeam.depthMeters,
+            baseElevationMeters: tieElevations.baseElevationMeters,
+            topElevationMeters: tieElevations.topElevationMeters,
+          }),
+        );
+      }
     }
   }
   return beams;
@@ -266,7 +428,8 @@ export function autoFrameLayout(params: {
   layout: DesignWallLayoutParameters;
   segmentFrames: SegmentFrame[];
   frameSystem: StructuralFrameSystemParameters;
-  foundation: StructuralFoundationSettings | RcFrameFoundationSettings | undefined;
+  foundation:
+    StructuralFoundationSettings | RcFrameFoundationSettings | undefined;
 }): FrameLayoutResult {
   return reconcileStructuralFrameWithFoundation({
     layout: params.layout,
@@ -281,12 +444,13 @@ export function reconcileStructuralFrameWithFoundation(params: {
   layout: DesignWallLayoutParameters;
   segmentFrames: SegmentFrame[];
   frameSystem: StructuralFrameSystemParameters;
-  foundation: StructuralFoundationSettings | RcFrameFoundationSettings | undefined;
+  foundation:
+    StructuralFoundationSettings | RcFrameFoundationSettings | undefined;
   wallHeightMeters: number;
 }): FrameLayoutResult {
   const foundation = resolveFoundation(params.foundation);
   const wallHeight = params.wallHeightMeters;
-  const generatedCornerColumns = createCornerColumnsForLayout({
+  const generatedAutoColumns = createAutoColumnsForLayout({
     layout: params.layout,
     segmentFrames: params.segmentFrames,
     frameSystem: params.frameSystem,
@@ -298,29 +462,42 @@ export function reconcileStructuralFrameWithFoundation(params: {
       .filter((column) => column.hostNodeId)
       .map((column) => [column.hostNodeId!, column]),
   );
-  const generatedHostNodeIds = new Set(generatedCornerColumns.map((column) => column.hostNodeId).filter(Boolean));
+  const existingById = new Map(
+    params.frameSystem.columns.map((column) => [column.id, column]),
+  );
+  const generatedHostNodeIds = new Set(
+    generatedAutoColumns.map((column) => column.hostNodeId).filter(Boolean),
+  );
+  const generatedIds = new Set(generatedAutoColumns.map((column) => column.id));
   const columns =
     params.frameSystem.columns.length > 0
       ? [
-          ...generatedCornerColumns.map((generated) => {
-            const existing = generated.hostNodeId ? existingByHostNodeId.get(generated.hostNodeId) : undefined;
-            return existing
+          ...generatedAutoColumns.map((generated) => {
+            const existing = generated.hostNodeId
+              ? existingByHostNodeId.get(generated.hostNodeId)
+              : undefined;
+            const existingByGeneratedId = existingById.get(generated.id);
+            return existing || existingByGeneratedId
               ? {
-                  ...existing,
+                  ...(existing ?? existingByGeneratedId!),
                   position: generated.position,
+                  hostSegmentId: generated.hostSegmentId,
                 }
               : generated;
           }),
           ...params.frameSystem.columns.filter((column) =>
             column.hostNodeId
-              ? !generatedHostNodeIds.has(column.hostNodeId) && column.source !== 'auto_frame_layout'
-              : column.source !== 'auto_frame_layout',
+              ? !generatedHostNodeIds.has(column.hostNodeId) &&
+                column.source !== "auto_frame_layout"
+              : !generatedIds.has(column.id) &&
+                column.source !== "auto_frame_layout",
           ),
         ]
-      : generatedCornerColumns;
+      : generatedAutoColumns;
 
   const resolvedBeams = createPerimeterBeamsForLayout({
     layout: params.layout,
+    segmentFrames: params.segmentFrames,
     columns,
     frameSystem: params.frameSystem,
     foundation,
@@ -347,7 +524,7 @@ export function reconcileStructuralFrameWithFoundation(params: {
   return {
     frameSystem: {
       ...params.frameSystem,
-      buildingSystemMode: 'reinforced_concrete_frame_with_cmu_infill',
+      buildingSystemMode: "reinforced_concrete_frame_with_cmu_infill",
       columns: reconciledColumns,
       beams: resolvedBeams,
     },
@@ -405,7 +582,8 @@ export function deduplicatedStructuralConcreteVolumeCubicMeters(params: {
   for (const beam of params.beams) {
     const startCol = params.columns.find((c) => c.id === beam.startColumnId);
     const endCol = params.columns.find((c) => c.id === beam.endColumnId);
-    if (startCol) total -= beamColumnIntersectionVolumeCubicMeters(startCol, beam);
+    if (startCol)
+      total -= beamColumnIntersectionVolumeCubicMeters(startCol, beam);
     if (endCol) total -= beamColumnIntersectionVolumeCubicMeters(endCol, beam);
   }
   return Math.max(0, total);

@@ -12,15 +12,14 @@ import type {
   StructuralFoundationSettings,
   StructuralFrameSystemParameters,
   ThickenedEdgeSlabParameters,
-} from '../types';
+} from "../types";
 import type {
   CmuBlockInstance,
   CmuLayoutResult,
   CmuLintelInstance,
   DesignGeometryResult,
   ResolvedWallLayoutGeometry,
-  SegmentFrame,
-} from './designGeometry';
+} from "./designGeometry";
 import {
   emptyCmuLayout,
   findExteriorFootprintBoundaryViolations,
@@ -30,42 +29,47 @@ import {
   resolveLayoutRoughOpeningsFromWall,
   resolveWallLayoutGeometry,
   resolvedBuildingFootprintFromWallLayout,
-} from './designGeometry';
-import {
-  reconcileStructuralFrameWithFoundation,
-} from '../domain/structuralFrameLayout';
+} from "./designGeometry";
+import { reconcileStructuralFrameWithFoundation } from "../domain/structuralFrameLayout";
 import {
   createDefaultFoundationSettings,
   normalizeRcFrameFoundationSettings,
   resolveFoundationElevations,
   resolveStructuralConcreteVolumes,
   resolveStructuralWallHeightMeters,
-} from '../domain/foundationElevations';
-import { resolveInteriorFloorSlab } from '../domain/interiorFloorSlab';
-import { resolveFloorTileLayout } from '../domain/floorTileLayout';
-import { resolvePlywoodCeilingLayout } from '../domain/plywoodCeilingLayout';
+} from "../domain/foundationElevations";
+import { resolveInteriorFloorSlab } from "../domain/interiorFloorSlab";
+import { resolveFloorTileLayout } from "../domain/floorTileLayout";
+import { resolvePlywoodCeilingLayout } from "../domain/plywoodCeilingLayout";
 import {
   countPanelVerticalCourses,
   isAboveGradeInfillPanel,
   resolveInfillPanelsWithBounds,
   solveInfillPanelBlocks,
-} from '../domain/cmuInfillPanelSolver';
-import type { ResolvedInfillPanelBounds } from '../domain/infillPanelBoundsResolver';
-import { solveGableEndPlacements } from '../domain/gableEndSolver';
-import { solveGableEndMasonryBlocks } from '../domain/gableEndMasonrySolver';
-import { resolveCmuModuleDefinition } from '../domain/cmuModuleRules';
-import type { ResolvedCmuOpening } from '../domain/cmuOpeningRules';
-import { createEmptyCmuInfillSystem, createEmptyGableEndSystem } from '../domain/structuralFrameDefaults';
-import { createDefaultRoofSystemSettings } from '../domain/roofSystemDefaults';
-import { normalizeCmuInfillSystem } from '../domain/infillPlaster';
-import { resolveRoofSystem } from '../domain/roofSystemResolver';
-import { resolveOuterRoofBeamBearingLoop } from '../domain/roofFootprintSupport';
-import { buildResolvedGableEnd } from '../domain/roofGableSolver';
+} from "../domain/cmuInfillPanelSolver";
+import type { ResolvedInfillPanelBounds } from "../domain/infillPanelBoundsResolver";
+import {
+  infillPanelFromResolvedBounds,
+  resolveInfillPanelBoundsForSegment,
+} from "../domain/infillPanelBoundsResolver";
+import { solveGableEndPlacements } from "../domain/gableEndSolver";
+import { solveGableEndMasonryBlocks } from "../domain/gableEndMasonrySolver";
+import { resolveCmuModuleDefinition } from "../domain/cmuModuleRules";
+import type { ResolvedCmuOpening } from "../domain/cmuOpeningRules";
+import {
+  createEmptyCmuInfillSystem,
+  createEmptyGableEndSystem,
+} from "../domain/structuralFrameDefaults";
+import { createDefaultRoofSystemSettings } from "../domain/roofSystemDefaults";
+import { normalizeCmuInfillSystem } from "../domain/infillPlaster";
+import { resolveRoofSystem } from "../domain/roofSystemResolver";
+import { resolveOuterRoofBeamBearingLoop } from "../domain/roofFootprintSupport";
+import { buildResolvedGableEnd } from "../domain/roofGableSolver";
 import {
   solveRakedCapPlacementsWithWarnings,
   totalGableCmuAreaSquareMeters,
   totalRakedCapVolumeCubicMeters,
-} from '../domain/rakedCapSolver';
+} from "../domain/rakedCapSolver";
 
 export type StructuralFrameGeometryInput = {
   buildingSystemMode: BuildingSystemMode;
@@ -106,19 +110,26 @@ export type StructuralFrameGeometryExtras = {
   gableEndSystem: GableEndSystemParameters;
   structuralConcreteVolumeCubicMeters: number;
   structuralConcreteVolumeBreakdown: StructuralConcreteVolumeBreakdown;
-  gablePlacements: import('../types').GableCmuPlacement[];
+  gablePlacements: import("../types").GableCmuPlacement[];
   rakedCapPlacements: RakedCapPlacement[];
   resolvedRoofSystem: ResolvedRoofSystem | null;
   resolvedInfillPanelBounds: ResolvedInfillPanelBounds[];
-  interiorFloorSlab?: import('../domain/interiorFloorSlab').ResolvedInteriorFloorSlab;
+  interiorFloorSlab?: import("../domain/interiorFloorSlab").ResolvedInteriorFloorSlab;
 };
 
 export function generateFrameInfillGeometry(
   input: StructuralFrameGeometryInput,
 ): DesignGeometryResult & StructuralFrameGeometryExtras {
-  const wall = { ...input.wall, bondPattern: input.wall.bondPattern ?? 'running_bond' };
-  const resolvedWallGeometry = resolveWallLayoutGeometry(input.wallLayout, wall);
-  const resolvedFootprint = resolvedBuildingFootprintFromWallLayout(resolvedWallGeometry);
+  const wall = {
+    ...input.wall,
+    bondPattern: input.wall.bondPattern ?? "running_bond",
+  };
+  const resolvedWallGeometry = resolveWallLayoutGeometry(
+    input.wallLayout,
+    wall,
+  );
+  const resolvedFootprint =
+    resolvedBuildingFootprintFromWallLayout(resolvedWallGeometry);
   const segmentFrames = getSegmentFramesForWallLayout(input.wallLayout, wall);
   const exteriorSegmentIds = getExteriorPerimeterSegmentIds(input.wallLayout);
 
@@ -141,7 +152,7 @@ export function generateFrameInfillGeometry(
   const frameSystem = reconciled.frameSystem;
   const isolatedFootings = reconciled.isolatedFootings;
 
-  const panelEntries = resolveInfillPanelsWithBounds({
+  let panelEntries = resolveInfillPanelsWithBounds({
     layout: input.wallLayout,
     segmentFrames,
     columns: frameSystem.columns,
@@ -150,14 +161,11 @@ export function generateFrameInfillGeometry(
     foundation: foundationSettings,
     existingPanels: input.infillSystem.panels,
   });
-  const panels = panelEntries.map((entry) => entry.panel);
-  const resolvedInfillPanelBounds = panelEntries.map((entry) => entry.bounds);
-  const aboveGradePanelBounds = resolvedInfillPanelBounds.filter(
-    (_, index) => isAboveGradeInfillPanel(panels[index]!),
-  );
-
   const module = resolveCmuModuleDefinition(wall);
-  const roughOpenings = resolveLayoutRoughOpeningsFromWall({ wall, segmentFrames });
+  const roughOpenings = resolveLayoutRoughOpeningsFromWall({
+    wall,
+    segmentFrames,
+  });
   const allBlocks: CmuBlockInstance[] = [];
   const allLintels: CmuLintelInstance[] = [];
   let totalFull = 0;
@@ -165,13 +173,16 @@ export function generateFrameInfillGeometry(
   let totalCut = 0;
   let totalTopClosure = 0;
   const layoutWarnings: string[] = [];
-  const gablePlacements: import('../types').GableCmuPlacement[] = [];
+  const gablePlacements: import("../types").GableCmuPlacement[] = [];
   const rakedCapPlacements: RakedCapPlacement[] = [];
 
   const roofBeam =
-    frameSystem.beams.find((beam) => beam.kind === 'roof_beam') ??
-    frameSystem.beams.find((beam) => beam.kind === 'ring_beam');
-  const foundationElevations = resolveFoundationElevations({ foundation: foundationSettings, wallHeightMeters });
+    frameSystem.beams.find((beam) => beam.kind === "roof_beam") ??
+    frameSystem.beams.find((beam) => beam.kind === "ring_beam");
+  const foundationElevations = resolveFoundationElevations({
+    foundation: foundationSettings,
+    wallHeightMeters,
+  });
   const roofBeamTopElevationMeters =
     roofBeam?.topElevationMeters ?? foundationElevations.roofBeamTopY;
   const roofSystem = input.roofSystem ?? createDefaultRoofSystemSettings();
@@ -191,18 +202,74 @@ export function generateFrameInfillGeometry(
     roofBeamTopElevationMeters,
     segmentFrames,
   });
-  layoutWarnings.push(...resolvedRoofSystem.warnings.map((warning) => warning.message));
+  layoutWarnings.push(
+    ...resolvedRoofSystem.warnings.map((warning) => warning.message),
+  );
+
+  if (
+    resolvedRoofSystem.supported &&
+    resolvedRoofSystem.gableEndSegmentIds.length > 0
+  ) {
+    const roofGableSegmentIds = new Set(resolvedRoofSystem.gableEndSegmentIds);
+    const nonGableEntries = panelEntries.filter(
+      (entry) =>
+        !isAboveGradeInfillPanel(entry.panel) ||
+        !roofGableSegmentIds.has(entry.panel.hostSegmentId),
+    );
+    const fullWidthGableEntries = input.wallLayout.segments.flatMap(
+      (segment, index) => {
+        if (!roofGableSegmentIds.has(segment.id)) return [];
+        const frame = segmentFrames.find(
+          (candidate) => candidate.segmentId === segment.id,
+        );
+        if (!frame) return [];
+        const bounds = resolveInfillPanelBoundsForSegment({
+          panelId: `infill-${segment.id}-gable-${index}`,
+          segmentId: segment.id,
+          segment,
+          frame,
+          columns: frameSystem.columns,
+          beams: frameSystem.beams,
+        });
+        return bounds
+          ? [
+              {
+                bounds,
+                panel: infillPanelFromResolvedBounds({
+                  bounds,
+                  wall,
+                  beams: frameSystem.beams,
+                }),
+              },
+            ]
+          : [];
+      },
+    );
+    panelEntries = [...nonGableEntries, ...fullWidthGableEntries];
+  }
+
+  const panels = panelEntries.map((entry) => entry.panel);
+  const resolvedInfillPanelBounds = panelEntries.map((entry) => entry.bounds);
+  const aboveGradePanelBounds = resolvedInfillPanelBounds.filter((_, index) =>
+    isAboveGradeInfillPanel(panels[index]!),
+  );
 
   for (const segment of input.wallLayout.segments) {
-    const segmentEntries = panelEntries.filter((entry) => entry.panel.hostSegmentId === segment.id);
+    const segmentEntries = panelEntries.filter(
+      (entry) => entry.panel.hostSegmentId === segment.id,
+    );
     let courseIndexOffset = 0;
-    const frame = segmentFrames.find((candidate) => candidate.segmentId === segment.id);
+    const frame = segmentFrames.find(
+      (candidate) => candidate.segmentId === segment.id,
+    );
     if (!frame) continue;
 
     for (const { panel, bounds } of segmentEntries) {
       const segmentOpenings = isAboveGradeInfillPanel(panel)
         ? roughOpenings.filter(
-            (opening) => (opening as ResolvedCmuOpening & { wallSegmentId?: string }).wallSegmentId === segment.id,
+            (opening) =>
+              (opening as ResolvedCmuOpening & { wallSegmentId?: string })
+                .wallSegmentId === segment.id,
           )
         : [];
       const solved = solveInfillPanelBlocks({
@@ -214,7 +281,7 @@ export function generateFrameInfillGeometry(
         openings: segmentOpenings,
         logBoundsForDev: import.meta.env.DEV,
       });
-      if (panel.infillZone === 'below_grade') {
+      if (panel.infillZone === "below_grade") {
         courseIndexOffset += countPanelVerticalCourses({
           panelBottomElevationMeters: panel.bottomElevationMeters,
           panelTopElevationMeters: panel.topElevationMeters,
@@ -246,7 +313,8 @@ export function generateFrameInfillGeometry(
           roofSystem,
           resolvedRoof: resolvedRoofSystem,
           roofBeamTopElevationMeters,
-          infillCenterlineInwardOffsetMeters: bounds.infillCenterlineInwardOffsetMeters,
+          infillCenterlineInwardOffsetMeters:
+            bounds.infillCenterlineInwardOffsetMeters,
         });
         allBlocks.push(...gableResult.blocks);
         totalFull += gableResult.fullBlockCount;
@@ -266,7 +334,8 @@ export function generateFrameInfillGeometry(
           resolvedRoof: resolvedRoofSystem,
           wallDepthMeters: frame.wallThicknessMeters ?? module.blockDepthMeters,
           moduleHeightMeters: module.nominalModuleHeightMeters,
-          infillCenterlineInwardOffsetMeters: bounds.infillCenterlineInwardOffsetMeters,
+          infillCenterlineInwardOffsetMeters:
+            bounds.infillCenterlineInwardOffsetMeters,
         });
         rakedCapPlacements.push(...capResult.placements);
         layoutWarnings.push(...capResult.warnings);
@@ -281,9 +350,9 @@ export function generateFrameInfillGeometry(
               blocks: gableResult.blocks,
               rakedCapPlacements: capResult.placements,
               warnings: capResult.warnings.map((message) => ({
-                code: 'insufficient_raked_cap_depth',
+                code: "insufficient_raked_cap_depth",
                 message,
-                severity: 'review' as const,
+                severity: "review" as const,
               })),
             }),
           ],
@@ -313,11 +382,14 @@ export function generateFrameInfillGeometry(
   }
 
   if (resolvedRoofSystem.supported) {
-    const gableCmuBlocks = allBlocks.filter((block) => block.source === 'gable_end_solver');
+    const gableCmuBlocks = allBlocks.filter(
+      (block) => block.source === "gable_end_solver",
+    );
     resolvedRoofSystem = {
       ...resolvedRoofSystem,
       gableCmuAreaSquareMeters: totalGableCmuAreaSquareMeters(gableCmuBlocks),
-      rakedCapVolumeCubicMeters: totalRakedCapVolumeCubicMeters(rakedCapPlacements),
+      rakedCapVolumeCubicMeters:
+        totalRakedCapVolumeCubicMeters(rakedCapPlacements),
     };
   }
 
@@ -334,8 +406,11 @@ export function generateFrameInfillGeometry(
       cut: totalCut,
       end: 0,
       corner: 0,
-      jamb: allBlocks.filter((block) => block.source === 'opening_jamb_closure').length,
-      lintel_bond_beam: allLintels.filter((lintel) => lintel.kind === 'bond_beam_lintel').length,
+      jamb: allBlocks.filter((block) => block.source === "opening_jamb_closure")
+        .length,
+      lintel_bond_beam: allLintels.filter(
+        (lintel) => lintel.kind === "bond_beam_lintel",
+      ).length,
     },
     topClosureCutBlockCount: totalTopClosure,
     warnings: layoutWarnings,
@@ -343,10 +418,13 @@ export function generateFrameInfillGeometry(
   };
 
   const exteriorFootprint = resolvedWallGeometry.exteriorFacePolygon;
-  const boundsBySegment = new Map(aboveGradePanelBounds.map((bounds) => [bounds.hostSegmentId, bounds]));
+  const boundsBySegment = new Map(
+    aboveGradePanelBounds.map((bounds) => [bounds.hostSegmentId, bounds]),
+  );
   const wallSegments = segmentFrames.map((frame) => {
     const panelBounds = boundsBySegment.get(frame.segmentId);
-    const clearHeightMeters = panelBounds?.clearHeightMeters ?? frame.wallHeightMeters;
+    const clearHeightMeters =
+      panelBounds?.clearHeightMeters ?? frame.wallHeightMeters;
     const baseElevationMeters = panelBounds?.bottomElevationMeters ?? 0;
     const infillCenterlineInwardOffsetMeters =
       panelBounds?.infillCenterlineInwardOffsetMeters ?? 0;
@@ -424,7 +502,8 @@ export function generateFrameInfillGeometry(
   });
   const maxCeilingHeightMeters = Math.max(
     0,
-    elevations.roofBeamBottomY - foundationSettings.plywoodCeiling.tubeSizeMeters,
+    elevations.roofBeamBottomY -
+      foundationSettings.plywoodCeiling.tubeSizeMeters,
   );
   const plywoodCeilingLayout = resolvePlywoodCeilingLayout({
     interiorFacePolygon,
@@ -436,15 +515,17 @@ export function generateFrameInfillGeometry(
     interiorFloorSlabVolumeCubicMeters: interiorFloorSlab.volumeCubicMeters,
     gradeBeamVolumeCubicMeters: volumeResult.plinthBeamVolumeCubicMeters,
     ringBeamVolumeCubicMeters: volumeResult.roofBeamVolumeCubicMeters,
-    columnBelowGradeVolumeCubicMeters: volumeResult.columnBelowPlinthVolumeCubicMeters,
-    columnAboveGradeVolumeCubicMeters: volumeResult.columnAbovePlinthVolumeCubicMeters,
+    columnBelowGradeVolumeCubicMeters:
+      volumeResult.columnBelowPlinthVolumeCubicMeters,
+    columnAboveGradeVolumeCubicMeters:
+      volumeResult.columnAbovePlinthVolumeCubicMeters,
   };
   const structuralConcreteVolumeCubicMeters =
     structuralConcreteVolumeBreakdown.totalDeduplicatedVolumeCubicMeters +
     interiorFloorSlab.volumeCubicMeters;
 
   return {
-    sourcePath: 'layout_graph',
+    sourcePath: "layout_graph",
     wallSegments,
     blockInstances,
     cornerCourseLayouts: [],
@@ -452,7 +533,7 @@ export function generateFrameInfillGeometry(
     resolvedFootprint,
     boundaryViolations,
     blockCount: allBlocks.length,
-    bondPattern: wall.bondPattern ?? 'running_bond',
+    bondPattern: wall.bondPattern ?? "running_bond",
     wallCmuLayout,
     frameSystem,
     foundationSettings,
@@ -477,19 +558,21 @@ export function generateBearingWallGeometryFromLayout(params: {
   resolvedWallGeometry?: ResolvedWallLayoutGeometry;
 }): Pick<
   DesignGeometryResult,
-  | 'wallSegments'
-  | 'blockInstances'
-  | 'cornerCourseLayouts'
-  | 'exteriorFootprint'
-  | 'resolvedFootprint'
-  | 'boundaryViolations'
-  | 'blockCount'
-  | 'bondPattern'
-  | 'wallCmuLayout'
+  | "wallSegments"
+  | "blockInstances"
+  | "cornerCourseLayouts"
+  | "exteriorFootprint"
+  | "resolvedFootprint"
+  | "boundaryViolations"
+  | "blockCount"
+  | "bondPattern"
+  | "wallCmuLayout"
 > {
   const resolvedWallGeometry =
-    params.resolvedWallGeometry ?? resolveWallLayoutGeometry(params.wallLayout, params.wall);
-  const resolvedFootprint = resolvedBuildingFootprintFromWallLayout(resolvedWallGeometry);
+    params.resolvedWallGeometry ??
+    resolveWallLayoutGeometry(params.wallLayout, params.wall);
+  const resolvedFootprint =
+    resolvedBuildingFootprintFromWallLayout(resolvedWallGeometry);
   const wallCmuLayout = generateCmuLayoutFromWallLayout(
     params.wallLayout,
     params.wall,
@@ -503,9 +586,13 @@ export function generateBearingWallGeometryFromLayout(params: {
     lengthMeters: frame.lengthMeters,
     heightMeters: frame.wallHeightMeters,
     thicknessMeters: frame.wallThicknessMeters,
-    x: (frame.start.x + frame.end.x) / 2 + frame.inwardNormal.x * (frame.wallThicknessMeters / 2),
+    x:
+      (frame.start.x + frame.end.x) / 2 +
+      frame.inwardNormal.x * (frame.wallThicknessMeters / 2),
     y: frame.wallHeightMeters / 2,
-    z: (frame.start.z + frame.end.z) / 2 + frame.inwardNormal.z * (frame.wallThicknessMeters / 2),
+    z:
+      (frame.start.z + frame.end.z) / 2 +
+      frame.inwardNormal.z * (frame.wallThicknessMeters / 2),
     rotationY: frame.rotationY,
   }));
   const blockInstances = wallCmuLayout.blocks.map((block) => ({
@@ -539,7 +626,8 @@ export function generateBearingWallGeometryFromLayout(params: {
   const boundaryViolations = findExteriorFootprintBoundaryViolations(
     blockInstances,
     exteriorFootprint,
-    params.wall.wallThicknessMeters || params.wallLayout.defaultWallThicknessMeters,
+    params.wall.wallThicknessMeters ||
+      params.wallLayout.defaultWallThicknessMeters,
   );
   return {
     wallSegments,
@@ -547,33 +635,33 @@ export function generateBearingWallGeometryFromLayout(params: {
     cornerCourseLayouts:
       wallCmuLayout.cornerAssemblies?.map((assembly) => ({
         cornerId: assembly.cornerId,
-        nodeId: assembly.cornerId.replace(/^corner-/, ''),
+        nodeId: assembly.cornerId.replace(/^corner-/, ""),
         courseIndex: assembly.courseIndex,
         ownerSegmentId: assembly.ownerSegmentId,
         buttingSegmentId: assembly.buttingSegmentId,
         cornerType:
-          assembly.cornerType === 'convex_outside'
-            ? 'outside'
-            : assembly.cornerType === 'concave_inside'
-              ? 'inside'
+          assembly.cornerType === "convex_outside"
+            ? "outside"
+            : assembly.cornerType === "concave_inside"
+              ? "inside"
               : assembly.cornerType,
-        strategy: 'interlocked_running_bond' as const,
+        strategy: "interlocked_running_bond" as const,
         ownerStartTrim: assembly.ownerSetbackMeters,
         buttingStartTrim: assembly.buttingSetbackMeters,
         generatedUnitType:
-          assembly.generatedUnitType === 'corner'
-            ? 'corner_block'
-            : assembly.generatedUnitType === 'half'
-              ? 'half_block'
-              : assembly.generatedUnitType === 'cut'
-                ? 'cut_block'
-                : 'full_block',
+          assembly.generatedUnitType === "corner"
+            ? "corner_block"
+            : assembly.generatedUnitType === "half"
+              ? "half_block"
+              : assembly.generatedUnitType === "cut"
+                ? "cut_block"
+                : "full_block",
       })) ?? [],
     exteriorFootprint,
     resolvedFootprint,
     boundaryViolations,
     blockCount: wallCmuLayout.blocks.length,
-    bondPattern: params.wall.bondPattern ?? 'running_bond',
+    bondPattern: params.wall.bondPattern ?? "running_bond",
     wallCmuLayout,
   };
 }
@@ -585,8 +673,8 @@ export function defaultFrameSystemsForPreset(): {
 } {
   return {
     frameSystem: {
-      kind: 'structural_frame_system',
-      buildingSystemMode: 'reinforced_concrete_frame_with_cmu_infill',
+      kind: "structural_frame_system",
+      buildingSystemMode: "reinforced_concrete_frame_with_cmu_infill",
       defaultColumnWidthMeters: 0.35,
       defaultColumnDepthMeters: 0.35,
       defaultGradeBeamWidthMeters: 0.3,
@@ -601,17 +689,20 @@ export function defaultFrameSystemsForPreset(): {
   };
 }
 
-export function createDefaultGableEnd(hostSegmentId: string, eaveElevationMeters: number): GableEndSettings {
+export function createDefaultGableEnd(
+  hostSegmentId: string,
+  eaveElevationMeters: number,
+): GableEndSettings {
   return {
-    kind: 'gable_end',
+    kind: "gable_end",
     id: `gable-${hostSegmentId}`,
     hostWallSegmentId: hostSegmentId,
     eaveElevationMeters,
-    peakMode: 'rise_above_eave',
+    peakMode: "rise_above_eave",
     peakRiseMeters: 1.2,
-    ridgePosition: 'centered',
+    ridgePosition: "centered",
     roofToMasonryClearanceMeters: 0.1016,
-    roofClearanceMeasurement: 'perpendicular_to_roof_slope',
-    bondPattern: 'running_bond',
+    roofClearanceMeasurement: "perpendicular_to_roof_slope",
+    bondPattern: "running_bond",
   };
 }

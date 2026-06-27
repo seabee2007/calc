@@ -952,7 +952,10 @@ export function resolveRoofSystem(params: {
   const claddingDisplayPlanes =
     settings.purlins.enabled && framing.purlinPlacements.length > 0
       ? buildCladdingDisplayPlanes({
-          structuralPlanes: sheetTopPlanes ?? topPlanes,
+          structuralPlanes:
+            settings.roofType === 'gable' ? topPlanes : (sheetTopPlanes ?? topPlanes),
+          footprintPlanes:
+            settings.roofType === 'gable' ? (sheetTopPlanes ?? topPlanes) : undefined,
           trussPlacements: framing.trussPlacements,
           purlinPlacements: framing.purlinPlacements,
           peakY,

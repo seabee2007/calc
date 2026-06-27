@@ -279,8 +279,13 @@ describe('gable CMU viewer regression', () => {
       join(__dirname, '..', 'ui', 'DesignBuilderViewer.tsx'),
       'utf8',
     );
-    expect(viewerSource).toContain('createRoofSheetEaveLipGeometry');
-    expect(viewerSource).not.toMatch(/if \(resolvedRoof\.roofType === 'hip'\)\s*{\s*const eaveIndices/);
+    const roofSceneSource = readFileSync(
+      join(__dirname, '..', 'ui', 'DesignBuilderRoofScene.ts'),
+      'utf8',
+    );
+    expect(viewerSource).toContain('buildRoofCladdingSceneGroup');
+    expect(roofSceneSource).toContain('createRoofSheetEaveLipGeometry');
+    expect(roofSceneSource).not.toMatch(/if \(resolvedRoof\.roofType === 'hip'\)\s*{\s*const eaveIndices/);
   });
 
   it('renders soffit as an independent roof layer', () => {
@@ -288,10 +293,15 @@ describe('gable CMU viewer regression', () => {
       join(__dirname, '..', 'ui', 'DesignBuilderViewer.tsx'),
       'utf8',
     );
+    const roofSceneSource = readFileSync(
+      join(__dirname, '..', 'ui', 'DesignBuilderRoofScene.ts'),
+      'utf8',
+    );
     expect(viewerSource).toContain('soffitGroup');
     expect(viewerSource).toContain('currentRoofLayerVisibility.soffit');
-    expect(viewerSource).toContain('createSoffitPanelGeometry');
-    expect(viewerSource).not.toMatch(/resolvedRoof\.roofType === 'hip'[\s\S]{0,160}soffit/i);
+    expect(viewerSource).toContain('buildSoffitSceneGroup');
+    expect(roofSceneSource).toContain('createSoffitPanelGeometry');
+    expect(roofSceneSource).not.toMatch(/resolvedRoof\.roofType === 'hip'[\s\S]{0,160}soffit/i);
   });
 
   it('keeps gable CMU visible when smooth wall proxy is active', () => {
@@ -299,9 +309,13 @@ describe('gable CMU viewer regression', () => {
       join(__dirname, '..', 'ui', 'DesignBuilderViewer.tsx'),
       'utf8',
     );
+    const wallSceneSource = readFileSync(
+      join(__dirname, '..', 'ui', 'DesignBuilderWallScene.ts'),
+      'utf8',
+    );
     expect(viewerSource).toContain('resolveVisibleCmuBlockInstances');
-    expect(viewerSource).toContain('if (!params.showCmuInfill) return gableEndBlocks');
-    expect(viewerSource).toContain('params.blockInstances.filter(isGableEndCmuBlock)');
+    expect(wallSceneSource).toContain('if (!params.showCmuInfill) return gableEndBlocks');
+    expect(wallSceneSource).toContain('params.blockInstances.filter(isGableEndCmuBlock)');
     expect(viewerSource).toContain('if (showCmuInfill && !currentWall.showIndividualBlocks)');
   });
 

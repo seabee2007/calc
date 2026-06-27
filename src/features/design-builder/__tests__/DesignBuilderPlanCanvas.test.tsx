@@ -7,6 +7,7 @@ import { getSegmentFramesForWallLayout } from '../geometry/designGeometry';
 import { projectCellWidthPx } from '../domain/planGridState';
 import { DoorConfigurationControls } from '../ui/DoorConfigurationControls';
 import DesignBuilderPlanCanvas from '../ui/DesignBuilderPlanCanvas';
+import type { PlacedDesignComponent, ResolvedRoofSystem } from '../types';
 
 function collectWallEndpointScreenPoints(container: HTMLElement): Array<{ x: number; y: number }> {
   const points: Array<{ x: number; y: number }> = [];
@@ -125,6 +126,176 @@ function createColumnDragFixture() {
     },
   ] as const;
   return { layout, frameSystem, isolatedFootings };
+}
+
+function createResolvedRoofFixture(): ResolvedRoofSystem {
+  const perimeter = [
+    { x: -0.6, y: 3, z: -0.6 },
+    { x: 4.6, y: 3, z: -0.6 },
+    { x: 4.6, y: 3, z: 2.6 },
+    { x: -0.6, y: 3, z: 2.6 },
+  ];
+  const ridgeStart = { x: 0.4, y: 3.8, z: 1 };
+  const ridgeEnd = { x: 3.6, y: 3.8, z: 1 };
+  const trussPlacements: ResolvedRoofSystem['trussPlacements'] = [0.4, 2, 3.6].map((x, index) => {
+    const bearingLeft = { x, y: 3, z: -0.6 };
+    const bearingRight = { x, y: 3, z: 2.6 };
+    const apex = { x, y: 3.8, z: 1 };
+    return {
+      id: `truss-${index + 1}`,
+      stationMeters: index * 1.6,
+      bearingLeft,
+      bearingRight,
+      apex,
+      ridgeAxis: 'x',
+      planeNormal: { x: 1, y: 0, z: 0 },
+      members: [
+        { id: `truss-${index + 1}-bottom`, memberKind: 'bottom_chord', start: bearingLeft, end: bearingRight },
+        { id: `truss-${index + 1}-top-left`, memberKind: 'top_chord_left', start: bearingLeft, end: apex },
+        { id: `truss-${index + 1}-top-right`, memberKind: 'top_chord_right', start: apex, end: bearingRight },
+        { id: `truss-${index + 1}-web-vertical`, memberKind: 'vertical_web', start: { x, y: 3, z: 1 }, end: apex },
+        { id: `truss-${index + 1}-web-left`, memberKind: 'diagonal_web', start: { x, y: 3, z: 0.1 }, end: apex },
+        { id: `truss-${index + 1}-web-right`, memberKind: 'diagonal_web', start: { x, y: 3, z: 1.9 }, end: apex },
+      ],
+    };
+  });
+  const purlinPlacements: ResolvedRoofSystem['purlinPlacements'] = [
+    { id: 'north-eave-purlin', slopePlaneId: 'north-slope', rowIndex: 0, start: { x: -0.6, y: 3.05, z: -0.45 }, end: { x: 4.6, y: 3.05, z: -0.45 }, planeNormal: { x: 0, y: 1, z: -0.25 } },
+    { id: 'north-mid-purlin', slopePlaneId: 'north-slope', rowIndex: 1, start: { x: -0.2, y: 3.42, z: 0.35 }, end: { x: 4.2, y: 3.42, z: 0.35 }, planeNormal: { x: 0, y: 1, z: -0.25 } },
+    { id: 'south-mid-purlin', slopePlaneId: 'south-slope', rowIndex: 1, start: { x: -0.2, y: 3.42, z: 1.65 }, end: { x: 4.2, y: 3.42, z: 1.65 }, planeNormal: { x: 0, y: 1, z: 0.25 } },
+    { id: 'south-eave-purlin', slopePlaneId: 'south-slope', rowIndex: 0, start: { x: -0.6, y: 3.05, z: 2.45 }, end: { x: 4.6, y: 3.05, z: 2.45 }, planeNormal: { x: 0, y: 1, z: 0.25 } },
+  ];
+  return {
+    supported: true,
+    roofType: 'gable',
+    roofBearingSource: 'roof_beam_outer_faces',
+    exteriorRoofBeamBounds: {
+      footprint: perimeter,
+      center: { x: 2, y: 3, z: 1 },
+      widthMeters: 4,
+      depthMeters: 2,
+    },
+    structuralBearingPerimeter: [
+      { x: 0, y: 3, z: 0 },
+      { x: 4, y: 3, z: 0 },
+      { x: 4, y: 3, z: 2 },
+      { x: 0, y: 3, z: 2 },
+    ],
+    claddingPerimeter: perimeter,
+    roofSheetPerimeter: perimeter,
+    eaveFootprint: perimeter,
+    ridgeStart,
+    ridgeEnd,
+    structuralRidgeStart: ridgeStart,
+    structuralRidgeEnd: ridgeEnd,
+    claddingRidgeStart: ridgeStart,
+    claddingRidgeEnd: ridgeEnd,
+    structuralRidgeLengthMeters: 3.2,
+    claddingRidgeLengthMeters: 3.2,
+    gableEndOverhangMeters: 0.6,
+    ridgeCapPlacement: null,
+    ridgeCapPlacements: [],
+    roofBeamTopElevationMeters: 3,
+    roofBeamTopY: 3,
+    peakElevationMeters: 3.8,
+    roofPeakY: 3.8,
+    roofAssemblyThicknessMeters: 0.15,
+    roofTopPlanes: [
+      {
+        id: 'north-slope',
+        corners: [perimeter[0]!, perimeter[1]!, ridgeEnd, ridgeStart],
+        normal: { x: 0, y: 1, z: -0.25 },
+      },
+      {
+        id: 'south-slope',
+        corners: [ridgeStart, ridgeEnd, perimeter[2]!, perimeter[3]!],
+        normal: { x: 0, y: 1, z: 0.25 },
+      },
+    ],
+    claddingDisplayPlanes: [],
+    roofUndersidePlanes: [],
+    gableEndSegmentIds: [],
+    rafterRunMeters: 1,
+    rafterRiseMeters: 0.8,
+    rafterLengthMeters: 1.28,
+    structuralRafterRunMeters: 1,
+    claddingRafterRunMeters: 1.6,
+    claddingRafterLengthMeters: 1.79,
+    roofPitchRadians: Math.atan(0.8),
+    roofRunMeters: 1,
+    roofRiseMeters: 0.8,
+    roofMemberReferenceLengthMeters: 1.28,
+    ridgeLengthMeters: 3.2,
+    roofSurfaceAreaSquareMeters: 12,
+    trussCount: trussPlacements.length,
+    actualTrussSpacingMeters: 1.6,
+    trussStations: trussPlacements.map((truss) => truss.stationMeters),
+    trussPlacements,
+    purlinRowsPerSlope: 2,
+    actualPurlinSpacingMeters: 0.8,
+    purlinPlacements,
+    hipFramingMembers: [],
+    gableCmuAreaSquareMeters: 0,
+    rakedCapVolumeCubicMeters: 0,
+    gableEnds: [],
+    gableEndRoofingClosures: [],
+    fasciaPlacements: [],
+    soffitPlacements: [],
+    warnings: [],
+  };
+}
+
+function createPlacedColumn(id = 'placed-column-a', xMeters = 0, zMeters = 0): PlacedDesignComponent {
+  return {
+    id,
+    type: 'column',
+    division: 'Structure',
+    category: 'structure',
+    viewPlacement: {
+      plan: { xMeters, zMeters },
+    },
+    parameters: {
+      widthMeters: 0.3,
+      depthMeters: 0.3,
+      heightMeters: 3,
+      baseElevationMeters: 0,
+      autoFooter: true,
+      footerWidthMeters: 0.9,
+      footerLengthMeters: 0.9,
+      footerThicknessMeters: 0.3,
+      footerBottomElevationMeters: -0.6,
+      footerTopElevationMeters: -0.3,
+    },
+    derived: { topElevationMeters: 3 },
+    metadata: {
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    },
+  };
+}
+
+function createPlacedFooter(id = 'placed-footer-a', xMeters = 0, zMeters = 0): PlacedDesignComponent {
+  return {
+    id,
+    type: 'footer',
+    division: 'Structure',
+    category: 'structure',
+    viewPlacement: {
+      plan: { xMeters, zMeters },
+    },
+    parameters: {
+      widthMeters: 0.9,
+      lengthMeters: 0.9,
+      thicknessMeters: 0.3,
+      bottomElevationMeters: -0.6,
+      topElevationMeters: -0.3,
+    },
+    derived: { topElevationMeters: -0.3 },
+    metadata: {
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    },
+  };
 }
 
 describe('DesignBuilderPlanCanvas', () => {
@@ -486,6 +657,48 @@ describe('DesignBuilderPlanCanvas', () => {
     expect(container.querySelector('[data-plan-opening-state="valid"]')).toBeTruthy();
   });
 
+  it('renders opening previews above permanent wall geometry', () => {
+    const preset = createFiveBySixCmuBuildingPreset();
+    const frames = getSegmentFramesForWallLayout(preset.wallLayout, preset.wall);
+    const frame = frames[0]!;
+    const resolved = resolveOpeningPlacementFromPlanPoint({
+      planX: frame.exteriorStart.x + frame.tangent.x * (frame.lengthMeters * 0.5),
+      planZ: frame.exteriorStart.z + frame.tangent.z * (frame.lengthMeters * 0.5),
+      hostSegmentId: frame.segmentId,
+      segmentFrame: frame,
+      openingDefinition: {
+        type: 'door',
+        widthMeters: 0.9,
+        heightMeters: 2.1,
+        roughOpeningAllowanceMeters: 0.05,
+      },
+      snapMode: 'grid',
+      gridSpacingMeters: 0.1,
+      wall: { ...preset.wall, snapToModule: false },
+    });
+
+    const { container } = render(
+      <DesignBuilderPlanCanvas
+        layout={preset.wallLayout}
+        toolMode="place_door"
+        segmentFrames={frames}
+        openingPreview={{
+          resolvedPlacement: resolved,
+          openingType: 'door',
+          isValid: true,
+          statusKind: 'clean',
+        }}
+        onInteraction={vi.fn()}
+      />,
+    );
+
+    const wall = container.querySelector('[data-plan-wall-visible="true"]');
+    const preview = container.querySelector('[data-canvas-layer="active-opening-preview"]');
+    expect(wall).toBeTruthy();
+    expect(preview).toBeTruthy();
+    expect(Boolean(wall?.compareDocumentPosition(preview!) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true);
+  });
+
   it('breaks wall lines at committed rough openings and renders opening symbols', () => {
     const preset = createFiveBySixCmuBuildingPreset();
     const frames = getSegmentFramesForWallLayout(preset.wallLayout, preset.wall);
@@ -702,6 +915,410 @@ describe('DesignBuilderPlanCanvas', () => {
       planX: 1,
       planZ: 0,
     }));
+  });
+
+  it('normalizes placed columns into permanent concrete style and commits component drag from the same hit target', () => {
+    const { layout } = createColumnDragFixture();
+    const onInteraction = vi.fn();
+    const { container } = render(
+      <DesignBuilderPlanCanvas
+        layout={layout}
+        toolMode="select"
+        snapMode="off"
+        viewport={{ centerX: 0, centerZ: 0, zoom: 100 }}
+        placedComponents={[createPlacedColumn()]}
+        drawingStyleMode="architectural"
+        onInteraction={onInteraction}
+      />,
+    );
+
+    const placedColumn = container.querySelector('[data-component-column-body-id]');
+    expect(placedColumn).toBeTruthy();
+    expect(placedColumn?.getAttribute('fill')).toBe('#e5e7eb');
+    expect(placedColumn?.getAttribute('stroke')).toBe('#111827');
+    const placedFooter = container.querySelector('[data-component-footer-id]');
+    expect(placedFooter).toBeTruthy();
+    expect(placedFooter?.getAttribute('fill')).toBe('#f1f5f9');
+    expect(placedFooter?.getAttribute('stroke')).toBe('#4b5563');
+    expect(placedFooter?.getAttribute('stroke-dasharray')).toBeNull();
+
+    const svg = screen.getByLabelText(/design builder wall layout plan view/i) as SVGSVGElement;
+    mockPlanSurface(svg);
+
+    fireEvent.pointerDown(svg, { button: 0, pointerId: 14, clientX: 400, clientY: 200 });
+    fireEvent.pointerMove(svg, { pointerId: 14, clientX: 500, clientY: 200 });
+
+    expect(container.querySelector('[data-column-drag-preview="true"]')).toBeTruthy();
+    expect(onInteraction).toHaveBeenCalledWith(expect.objectContaining({
+      kind: 'component_select',
+      componentId: 'placed-column-a',
+    }));
+
+    fireEvent.pointerUp(svg, { pointerId: 14, clientX: 500, clientY: 200 });
+
+    expect(onInteraction).toHaveBeenCalledWith(expect.objectContaining({
+      kind: 'component_move',
+      phase: 'commit',
+      componentId: 'placed-column-a',
+      planX: 1,
+      planZ: 0,
+    }));
+  });
+
+  it('renders placed footers as solid footing symbols with centered column markers', () => {
+    const { layout } = createColumnDragFixture();
+    const { container } = render(
+      <DesignBuilderPlanCanvas
+        layout={layout}
+        toolMode="select"
+        viewport={{ centerX: 0, centerZ: 0, zoom: 100 }}
+        placedComponents={[createPlacedFooter()]}
+        drawingStyleMode="architectural"
+        onInteraction={vi.fn()}
+      />,
+    );
+
+    const placedFooter = container.querySelector('[data-component-id="placed-footer-a"][data-component-type="footer"]');
+    expect(placedFooter).toBeTruthy();
+    expect(placedFooter?.getAttribute('fill')).toBe('#f1f5f9');
+    expect(placedFooter?.getAttribute('stroke')).toBe('#4b5563');
+    expect(placedFooter?.getAttribute('stroke-dasharray')).toBeNull();
+
+    const columnMarker = container.querySelector('[data-component-footer-column-marker-id="placed-footer-a"]');
+    expect(columnMarker).toBeTruthy();
+    expect(columnMarker?.getAttribute('fill')).toBe('#d4d4d4');
+    expect(columnMarker?.getAttribute('stroke')).toBe('#111827');
+  });
+
+  it('renders architectural foundation columns without node circles and beams as outlined material strips', () => {
+    const { layout, frameSystem, isolatedFootings } = createColumnDragFixture();
+    const { container } = render(
+      <DesignBuilderPlanCanvas
+        layout={layout}
+        toolMode="select"
+        viewport={{ centerX: 2, centerZ: 1, zoom: 100 }}
+        frameSystem={frameSystem}
+        isolatedFootings={isolatedFootings}
+        drawingStyleMode="architectural"
+        onInteraction={vi.fn()}
+      />,
+    );
+
+    expect(container.querySelector('circle[data-plan-node-id]')).toBeFalsy();
+    const beam = container.querySelector('[data-foundation-beam-id="beam-a-b"]');
+    expect(beam).toBeTruthy();
+    expect(beam?.tagName.toLowerCase()).toBe('polygon');
+    expect(beam?.getAttribute('fill')).toBe('none');
+    expect(beam?.getAttribute('stroke')).toBe('#111827');
+  });
+
+  it('selects generated columns from their footing footprint and highlights the footing with the column', () => {
+    const { layout, frameSystem, isolatedFootings } = createColumnDragFixture();
+    const onInteraction = vi.fn();
+    const { container } = render(
+      <DesignBuilderPlanCanvas
+        layout={layout}
+        toolMode="select"
+        snapMode="off"
+        viewport={{ centerX: 0, centerZ: 0, zoom: 100 }}
+        frameSystem={frameSystem}
+        isolatedFootings={isolatedFootings}
+        selectedNodeId="node-a"
+        drawingStyleMode="architectural"
+        onInteraction={onInteraction}
+      />,
+    );
+
+    const selectedFooting = container.querySelector('[data-foundation-footing-id="footing-a"]');
+    expect(selectedFooting?.getAttribute('stroke')).toBe('#0891b2');
+
+    const svg = screen.getByLabelText(/design builder wall layout plan view/i) as SVGSVGElement;
+    mockPlanSurface(svg);
+    fireEvent.pointerDown(svg, { button: 0, pointerId: 21, clientX: 435, clientY: 165 });
+
+    expect(onInteraction).toHaveBeenCalledWith(expect.objectContaining({
+      kind: 'select_node',
+      nodeId: 'node-a',
+    }));
+  });
+
+  it('uses architectural sheet style for permanent plan geometry without cyan component strokes', () => {
+    const { container } = render(
+      <DesignBuilderPlanCanvas
+        layout={createEmptyWallLayout()}
+        toolMode="select"
+        placedComponents={[createPlacedColumn('placed-column-b')]}
+        drawingStyleMode="architectural"
+        onInteraction={vi.fn()}
+      />,
+    );
+
+    expect(container.querySelector('[data-drawing-style-mode="architectural"]')).toBeTruthy();
+    expect(container.querySelector('[data-canvas-layer="drawing-sheet"]')).toHaveAttribute('fill', '#f8fafc');
+    const column = container.querySelector('[data-component-id="placed-column-b"][data-component-type="column"] rect:not([stroke-dasharray])');
+    expect(column?.getAttribute('stroke')).not.toBe('#22d3ee');
+    expect(column?.getAttribute('stroke')).not.toBe('#38bdf8');
+  });
+
+  it('creates a saved dimension annotation from the three-click workflow and renders it without cyan', () => {
+    const layout = createEmptyWallLayout({
+      nodes: [
+        { id: 'node-a', x: 0, z: 0 },
+        { id: 'node-b', x: 1, z: 0 },
+      ],
+    });
+    const onAnnotationCreate = vi.fn();
+    const { container, rerender } = render(
+      <DesignBuilderPlanCanvas
+        layout={layout}
+        toolMode="place_dimension"
+        viewport={{ centerX: 0, centerZ: 0, zoom: 100 }}
+        drawingStyleMode="architectural"
+        onAnnotationCreate={onAnnotationCreate}
+        onInteraction={vi.fn()}
+      />,
+    );
+
+    const svg = screen.getByLabelText(/design builder wall layout plan view/i) as SVGSVGElement;
+    mockPlanSurface(svg);
+
+    fireEvent.pointerDown(svg, { button: 0, clientX: 400, clientY: 200 });
+    fireEvent.pointerDown(svg, { button: 0, clientX: 500, clientY: 200 });
+    fireEvent.pointerMove(svg, { clientX: 450, clientY: 150 });
+    expect(container.querySelector('[data-canvas-layer="active-dimension-preview"]')).toBeTruthy();
+    fireEvent.pointerDown(svg, { button: 0, clientX: 450, clientY: 150 });
+
+    expect(onAnnotationCreate).toHaveBeenCalledTimes(1);
+    const annotation = onAnnotationCreate.mock.calls[0][0];
+    expect(annotation).toMatchObject({
+      type: 'dimension',
+      viewType: 'foundation-plan',
+      dimensionKind: 'horizontal',
+      measuredValue: 1,
+      unit: 'm',
+      points: {
+        start: { x: 0, z: 0 },
+        end: { x: 1, z: 0 },
+      },
+    });
+    expect(annotation.offsetPoint.z).toBeCloseTo(0.5, 6);
+
+    rerender(
+      <DesignBuilderPlanCanvas
+        layout={layout}
+        toolMode="select"
+        viewport={{ centerX: 0, centerZ: 0, zoom: 100 }}
+        drawingStyleMode="architectural"
+        annotations={[annotation]}
+        onInteraction={vi.fn()}
+      />,
+    );
+
+    const permanentStrokes = Array.from(container.querySelectorAll('[data-canvas-layer="permanent-dimensions"] line'))
+      .map((line) => line.getAttribute('stroke'));
+    expect(permanentStrokes.length).toBeGreaterThan(0);
+    expect(permanentStrokes).toEqual(expect.arrayContaining(['#111827']));
+    expect(permanentStrokes).not.toContain('#22d3ee');
+    expect(permanentStrokes).not.toContain('#38bdf8');
+  });
+
+  it('snaps dimensions to generated RC column corners with forgiving pointer travel', () => {
+    const { layout, frameSystem } = createColumnDragFixture();
+    const onAnnotationCreate = vi.fn();
+    render(
+      <DesignBuilderPlanCanvas
+        layout={layout}
+        toolMode="place_dimension"
+        snapMode="off"
+        viewport={{ centerX: 0, centerZ: 0, zoom: 100 }}
+        frameSystem={frameSystem}
+        onAnnotationCreate={onAnnotationCreate}
+        onInteraction={vi.fn()}
+      />,
+    );
+
+    const svg = screen.getByLabelText(/design builder wall layout plan view/i) as SVGSVGElement;
+    mockPlanSurface(svg);
+
+    fireEvent.pointerDown(svg, { button: 0, clientX: 421, clientY: 215 });
+    fireEvent.pointerDown(svg, { button: 0, clientX: 400, clientY: 200 });
+    fireEvent.pointerMove(svg, { clientX: 380, clientY: 180 });
+    fireEvent.pointerDown(svg, { button: 0, clientX: 380, clientY: 180 });
+
+    expect(onAnnotationCreate).toHaveBeenCalledTimes(1);
+    expect(onAnnotationCreate.mock.calls[0][0]).toMatchObject({
+      points: {
+        start: { x: 0.15, z: -0.15 },
+        end: { x: 0, z: 0 },
+      },
+      references: {
+        startSnapType: 'column-corner',
+        startComponentId: 'column-a',
+      },
+    });
+  });
+
+  it('saves and renders dimensions against the active 2D plan view', () => {
+    const layout = createEmptyWallLayout({
+      nodes: [
+        { id: 'node-a', x: 0, z: 0 },
+        { id: 'node-b', x: 1, z: 0 },
+      ],
+    });
+    const onAnnotationCreate = vi.fn();
+    const { container } = render(
+      <DesignBuilderPlanCanvas
+        layout={layout}
+        toolMode="place_dimension"
+        active2DView="roof-plan"
+        viewport={{ centerX: 0, centerZ: 0, zoom: 100 }}
+        annotations={[{
+          id: 'roof-dim-1',
+          type: 'dimension',
+          viewType: 'roof-plan',
+          points: { start: { x: 0, z: 0 }, end: { x: 1, z: 0 } },
+          offsetPoint: { x: 0.5, z: 0.5 },
+          dimensionKind: 'horizontal',
+          measuredValue: 1,
+          unit: 'm',
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        }, {
+          id: 'foundation-dim-1',
+          type: 'dimension',
+          viewType: 'foundation-plan',
+          points: { start: { x: 0, z: 0 }, end: { x: 2, z: 0 } },
+          offsetPoint: { x: 1, z: 0.75 },
+          dimensionKind: 'horizontal',
+          measuredValue: 2,
+          unit: 'm',
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        }]}
+        onAnnotationCreate={onAnnotationCreate}
+        onInteraction={vi.fn()}
+      />,
+    );
+
+    expect(container.querySelector('[data-drawing-annotation="plan-title"]')?.textContent).toContain('Roof Plan');
+    expect(container.querySelector('[data-dimension-id="roof-dim-1"]')).toBeTruthy();
+    expect(container.querySelector('[data-dimension-id="foundation-dim-1"]')).toBeFalsy();
+
+    const svg = screen.getByLabelText(/design builder wall layout plan view/i) as SVGSVGElement;
+    mockPlanSurface(svg);
+    fireEvent.pointerDown(svg, { button: 0, clientX: 400, clientY: 200 });
+    fireEvent.pointerDown(svg, { button: 0, clientX: 500, clientY: 200 });
+    fireEvent.pointerMove(svg, { clientX: 450, clientY: 150 });
+    fireEvent.pointerDown(svg, { button: 0, clientX: 450, clientY: 150 });
+
+    expect(onAnnotationCreate.mock.calls[0][0]).toMatchObject({
+      type: 'dimension',
+      viewType: 'roof-plan',
+    });
+  });
+
+  it('renders a real roof plan from resolved roof geometry without foundation column graphics', () => {
+    const { layout, frameSystem } = createColumnDragFixture();
+    const { container } = render(
+      <DesignBuilderPlanCanvas
+        layout={layout}
+        toolMode="select"
+        active2DView="roof-plan"
+        viewport={{ centerX: 2, centerZ: 1, zoom: 100 }}
+        frameSystem={frameSystem}
+        resolvedRoofSystem={createResolvedRoofFixture()}
+        drawingStyleMode="architectural"
+        onInteraction={vi.fn()}
+      />,
+    );
+
+    expect(container.querySelector('[data-drawing-annotation="plan-title"]')?.textContent).toContain('Roof Plan');
+    expect(container.querySelector('[data-roof-plan-outline="true"]')).toBeTruthy();
+    expect(container.querySelector('[data-roof-plan-ridge="true"]')).toBeTruthy();
+    expect(container.querySelector('[data-roof-plan-hatch="true"]')).toBeTruthy();
+    expect(container.querySelector('[data-roof-plan-purlin="north-slope"]')).toBeTruthy();
+    expect(container.querySelector('[data-roof-plan-truss-member="bottom_chord"]')).toBeTruthy();
+    expect(container.querySelector('[data-roof-plan-truss-member="diagonal_web"]')).toBeTruthy();
+    expect(container.querySelector('[data-roof-plan-ridge="true"]')?.tagName.toLowerCase()).toBe('polygon');
+    expect(container.querySelector('[data-roof-plan-purlin="north-slope"]')?.tagName.toLowerCase()).toBe('polygon');
+    expect(container.querySelector('[data-roof-plan-truss-member="bottom_chord"]')?.tagName.toLowerCase()).toBe('polygon');
+    expect(container.querySelector('[data-roof-plan-callout="ridge"]')?.textContent).toContain('RIDGE');
+    expect(container.querySelector('[data-roof-plan-slope-arrow="north-slope"]')).toBeTruthy();
+    expect(container.querySelector('[data-dimension-id="roof-overall-length"]')).toBeTruthy();
+    expect(container.querySelector('[data-column-drag-column-id="column-a"]')).toBeFalsy();
+    expect(container.querySelector('[data-plan-wall-visible="true"]')).toBeFalsy();
+  });
+
+  it('snaps roof plan dimensions to roof outline corners', () => {
+    const onAnnotationCreate = vi.fn();
+    render(
+      <DesignBuilderPlanCanvas
+        layout={createEmptyWallLayout()}
+        toolMode="place_dimension"
+        active2DView="roof-plan"
+        snapMode="off"
+        viewport={{ centerX: 2, centerZ: 1, zoom: 100 }}
+        resolvedRoofSystem={createResolvedRoofFixture()}
+        onAnnotationCreate={onAnnotationCreate}
+        onInteraction={vi.fn()}
+      />,
+    );
+
+    const svg = screen.getByLabelText(/design builder wall layout plan view/i) as SVGSVGElement;
+    mockPlanSurface(svg);
+
+    fireEvent.pointerDown(svg, { button: 0, clientX: 140, clientY: 360 });
+    fireEvent.pointerDown(svg, { button: 0, clientX: 660, clientY: 360 });
+    fireEvent.pointerMove(svg, { clientX: 400, clientY: 330 });
+    fireEvent.pointerDown(svg, { button: 0, clientX: 400, clientY: 330 });
+
+    expect(onAnnotationCreate).toHaveBeenCalledTimes(1);
+    expect(onAnnotationCreate.mock.calls[0][0]).toMatchObject({
+      viewType: 'roof-plan',
+      points: {
+        start: { x: -0.6, z: -0.6 },
+        end: { x: 4.6, z: -0.6 },
+      },
+      references: {
+        startSnapType: expect.stringMatching(/^roof-/),
+        endSnapType: expect.stringMatching(/^roof-/),
+      },
+    });
+  });
+
+  it('hides saved roof plan dimensions whose offset line sits inside the roof footprint', () => {
+    const insideRoofDimension = {
+      id: 'roof-dim-inside',
+      type: 'dimension' as const,
+      viewType: 'roof-plan' as const,
+      points: { start: { x: 0.4, z: -0.6 }, end: { x: 0.4, z: 2.6 } },
+      offsetPoint: { x: 0.6, z: 1 },
+      dimensionKind: 'vertical' as const,
+      measuredValue: 3.2,
+      unit: 'm' as const,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    };
+    const outsideRoofDimension = {
+      ...insideRoofDimension,
+      id: 'roof-dim-outside',
+      offsetPoint: { x: 5.3, z: 1 },
+    };
+
+    const { container } = render(
+      <DesignBuilderPlanCanvas
+        layout={createEmptyWallLayout()}
+        toolMode="select"
+        active2DView="roof-plan"
+        viewport={{ centerX: 2, centerZ: 1, zoom: 100 }}
+        resolvedRoofSystem={createResolvedRoofFixture()}
+        annotations={[insideRoofDimension, outsideRoofDimension]}
+        onInteraction={vi.fn()}
+      />,
+    );
+
+    expect(container.querySelector('[data-dimension-id="roof-dim-inside"]')).toBeFalsy();
+    expect(container.querySelector('[data-dimension-id="roof-dim-outside"]')).toBeTruthy();
   });
 
   it('selects an existing RC column without committing a move when pointer travel stays below the drag threshold', () => {

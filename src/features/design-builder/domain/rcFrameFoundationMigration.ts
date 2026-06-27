@@ -1,32 +1,35 @@
 import type {
   GradeBeamSettings,
-  InteriorFloorSlabSettings,
   IsolatedFootingSettings,
   LegacyStructuralFoundationSettings,
   RcFrameFoundationSettings,
   StructuralBeamSettings,
   StructuralFoundationSettings,
-} from '../types';
-import { defaultInteriorFloorSlabSettings } from './interiorFloorSlab';
-import { defaultInteriorFloorTileSettings } from './floorTileCatalog';
-import { defaultPlywoodCeilingSettings } from './plywoodCeilingCatalog';
+} from "../types";
+import { defaultInteriorFloorSlabSettings } from "./interiorFloorSlab";
+import { defaultInteriorFloorTileSettings } from "./floorTileCatalog";
+import { defaultPlywoodCeilingSettings } from "./plywoodCeilingCatalog";
 import {
+  DEFAULT_RC_INTERMEDIATE_SUPPORT_SPACING_METERS,
   DEFAULT_RC_COLUMN_DEPTH_METERS,
   DEFAULT_RC_COLUMN_WIDTH_METERS,
-} from './structuralFrameDefaults';
+} from "./structuralFrameDefaults";
 
 /** @deprecated Intermediate persisted shape — tie beam drop lived on tieBeam + footings.dropBelowTieBeamMeters */
 type IntermediateRcFrameFoundationSettings = RcFrameFoundationSettings & {
   tieBeam: StructuralBeamSettings & { dropBelowPlinthBeamMeters?: number };
-  isolatedFootings: RcFrameFoundationSettings['isolatedFootings'] & {
+  isolatedFootings: RcFrameFoundationSettings["isolatedFootings"] & {
     dropBelowTieBeamMeters?: number;
   };
 };
 
 export function isLegacyFoundationSettings(
-  settings: StructuralFoundationSettings | RcFrameFoundationSettings | LegacyStructuralFoundationSettings,
+  settings:
+    | StructuralFoundationSettings
+    | RcFrameFoundationSettings
+    | LegacyStructuralFoundationSettings,
 ): settings is LegacyStructuralFoundationSettings {
-  return 'gradeBeam' in settings && !('plinthBeam' in settings);
+  return "gradeBeam" in settings && !("plinthBeam" in settings);
 }
 
 function migrateIntermediateFoundationSettings(
@@ -34,7 +37,10 @@ function migrateIntermediateFoundationSettings(
 ): RcFrameFoundationSettings {
   const footings = settings.isolatedFootings;
   let dropBelowPlinthBeamMeters = footings.dropBelowPlinthBeamMeters;
-  if (dropBelowPlinthBeamMeters == null || !Number.isFinite(dropBelowPlinthBeamMeters)) {
+  if (
+    dropBelowPlinthBeamMeters == null ||
+    !Number.isFinite(dropBelowPlinthBeamMeters)
+  ) {
     const tieDrop = settings.tieBeam.dropBelowPlinthBeamMeters ?? 0;
     const tieDepth = settings.tieBeam.depthMeters ?? 0;
     const footingDropBelowTie = footings.dropBelowTieBeamMeters ?? 0;
@@ -43,8 +49,10 @@ function migrateIntermediateFoundationSettings(
   return {
     plinthBeam: {
       ...settings.plinthBeam,
-      followsExteriorSegments: settings.plinthBeam.followsExteriorSegments ?? true,
-      followsInteriorSegments: settings.plinthBeam.followsInteriorSegments ?? false,
+      followsExteriorSegments:
+        settings.plinthBeam.followsExteriorSegments ?? true,
+      followsInteriorSegments:
+        settings.plinthBeam.followsInteriorSegments ?? false,
     },
     interiorFloorSlab: defaultInteriorFloorSlabSettings(),
     floorTileFinish: defaultInteriorFloorTileSettings(),
@@ -97,15 +105,20 @@ export function migrateLegacyFoundationSettings(
     columns: {
       widthMeters: DEFAULT_RC_COLUMN_WIDTH_METERS,
       depthMeters: DEFAULT_RC_COLUMN_DEPTH_METERS,
-      heightAbovePlinthMeters: 2.8 + (ringBeam?.depthMeters ?? DEFAULT_RC_COLUMN_DEPTH_METERS),
-      placementMode: 'corners_only',
+      heightAbovePlinthMeters:
+        2.8 + (ringBeam?.depthMeters ?? DEFAULT_RC_COLUMN_DEPTH_METERS),
+      placementMode: "corners_and_intermediate",
+      intermediateSpacingMeters: DEFAULT_RC_INTERMEDIATE_SUPPORT_SPACING_METERS,
     },
     isolatedFootings: {
       enabled: footings.enabled,
       widthMeters: footings.footingWidthMeters,
       lengthMeters: footings.footingLengthMeters,
       thicknessMeters: footings.footingThicknessMeters,
-      dropBelowPlinthBeamMeters: Math.max(0.3, footings.dropBelowGradeBeamMeters),
+      dropBelowPlinthBeamMeters: Math.max(
+        0.3,
+        footings.dropBelowGradeBeamMeters,
+      ),
       autoCreateAtStructuralColumns: footings.autoCreateAtStructuralColumns,
     },
   };
@@ -123,30 +136,40 @@ export function normalizeRcFrameFoundationSettings(
     return createDefaultRcFrameFoundationSettings();
   }
   if (isLegacyFoundationSettings(settings)) {
-    return ensurePlinthBeamFollowFlags(migrateLegacyFoundationSettings(settings));
+    return ensurePlinthBeamFollowFlags(
+      migrateLegacyFoundationSettings(settings),
+    );
   }
-  if ('plinthBeam' in settings) {
+  if ("plinthBeam" in settings) {
     const intermediate = settings as IntermediateRcFrameFoundationSettings;
     if (
       intermediate.tieBeam.dropBelowPlinthBeamMeters != null ||
       intermediate.isolatedFootings.dropBelowTieBeamMeters != null
     ) {
-      return ensurePlinthBeamFollowFlags(migrateIntermediateFoundationSettings(intermediate));
+      return ensurePlinthBeamFollowFlags(
+        migrateIntermediateFoundationSettings(intermediate),
+      );
     }
     return ensurePlinthBeamFollowFlags(settings);
   }
   return createDefaultRcFrameFoundationSettings();
 }
 
-function ensurePlinthBeamFollowFlags(settings: RcFrameFoundationSettings): RcFrameFoundationSettings {
-  const roofDepth = settings.roofBeam.enabled ? Math.max(0, settings.roofBeam.depthMeters) : 0;
+function ensurePlinthBeamFollowFlags(
+  settings: RcFrameFoundationSettings,
+): RcFrameFoundationSettings {
+  const roofDepth = settings.roofBeam.enabled
+    ? Math.max(0, settings.roofBeam.depthMeters)
+    : 0;
   const fallbackHeightAbovePlinth = 2.8 + roofDepth;
   return {
     ...settings,
     plinthBeam: {
       ...settings.plinthBeam,
-      followsExteriorSegments: settings.plinthBeam.followsExteriorSegments ?? true,
-      followsInteriorSegments: settings.plinthBeam.followsInteriorSegments ?? false,
+      followsExteriorSegments:
+        settings.plinthBeam.followsExteriorSegments ?? true,
+      followsInteriorSegments:
+        settings.plinthBeam.followsInteriorSegments ?? false,
     },
     interiorFloorSlab: {
       ...defaultInteriorFloorSlabSettings(),
@@ -166,6 +189,10 @@ function ensurePlinthBeamFollowFlags(settings: RcFrameFoundationSettings): RcFra
         settings.columns.heightAbovePlinthMeters > 0
           ? settings.columns.heightAbovePlinthMeters
           : fallbackHeightAbovePlinth,
+      intermediateSpacingMeters:
+        settings.columns.intermediateSpacingMeters > 0
+          ? settings.columns.intermediateSpacingMeters
+          : DEFAULT_RC_INTERMEDIATE_SUPPORT_SPACING_METERS,
     },
   };
 }
@@ -196,7 +223,8 @@ export function createDefaultRcFrameFoundationSettings(): RcFrameFoundationSetti
       widthMeters: DEFAULT_RC_COLUMN_WIDTH_METERS,
       depthMeters: DEFAULT_RC_COLUMN_DEPTH_METERS,
       heightAbovePlinthMeters: 2.8 + DEFAULT_RC_COLUMN_DEPTH_METERS,
-      placementMode: 'corners_only',
+      placementMode: "corners_and_intermediate",
+      intermediateSpacingMeters: DEFAULT_RC_INTERMEDIATE_SUPPORT_SPACING_METERS,
     },
     isolatedFootings: {
       enabled: true,
@@ -210,9 +238,12 @@ export function createDefaultRcFrameFoundationSettings(): RcFrameFoundationSetti
 }
 
 /** @deprecated Use createDefaultRcFrameFoundationSettings */
-export const createDefaultFoundationSettings = createDefaultRcFrameFoundationSettings;
+export const createDefaultFoundationSettings =
+  createDefaultRcFrameFoundationSettings;
 
-export function legacyGradeBeamFromPlinth(plinth: GradeBeamSettings): GradeBeamSettings {
+export function legacyGradeBeamFromPlinth(
+  plinth: GradeBeamSettings,
+): GradeBeamSettings {
   return {
     ...plinth,
     followsExteriorSegments: true,
@@ -220,10 +251,12 @@ export function legacyGradeBeamFromPlinth(plinth: GradeBeamSettings): GradeBeamS
   };
 }
 
-export function legacyFootingsFromRc(footings: RcFrameFoundationSettings['isolatedFootings']): IsolatedFootingSettings {
+export function legacyFootingsFromRc(
+  footings: RcFrameFoundationSettings["isolatedFootings"],
+): IsolatedFootingSettings {
   return {
     enabled: footings.enabled,
-    placementMode: 'at_columns',
+    placementMode: "at_columns",
     footingWidthMeters: footings.widthMeters,
     footingLengthMeters: footings.lengthMeters,
     footingThicknessMeters: footings.thicknessMeters,

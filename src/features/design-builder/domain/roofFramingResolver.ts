@@ -1112,6 +1112,7 @@ function weldSharedCladdingDisplayPlaneCorners(params: {
 
 export function buildCladdingDisplayPlanes(params: {
   structuralPlanes: readonly RoofPlane[];
+  footprintPlanes?: readonly RoofPlane[];
   trussPlacements: readonly TrussPlacement[];
   purlinPlacements: readonly PurlinPlacement[];
   peakY: number;
@@ -1124,12 +1125,26 @@ export function buildCladdingDisplayPlanes(params: {
   }
   const displayThicknessMeters =
     params.claddingDisplayThicknessMeters ?? CORRUGATED_SHEET_DISPLAY_THICKNESS_METERS;
+  const footprintPlaneById = new Map(
+    (params.footprintPlanes ?? []).map((plane) => [plane.id, plane]),
+  );
   const displayPlanes = params.structuralPlanes.map((plane) => {
+    const explicitFootprintPlane = footprintPlaneById.get(plane.id);
+    const footprintPlane = explicitFootprintPlane ?? plane;
+    const projectExplicitFootprint = explicitFootprintPlane !== undefined;
     const planeNormal = normalizeOutwardRoofNormal(plane.normal);
     const planePurlins = params.purlinPlacements.filter((purlin) => purlin.slopePlaneId === plane.id);
     if (planePurlins.length === 0) {
-      return { ...plane };
+      return { ...footprintPlane };
     }
+    const purlinDisplayPlane = plane.id.startsWith('gable-roof')
+      ? buildCladdingDisplayPlaneFromPurlins({
+          id: plane.id,
+          planePurlins,
+          planeNormal,
+          displayThicknessMeters,
+        })
+      : null;
     const offsets = planePurlins
       .map((purlin) => {
         const center = {
@@ -1153,17 +1168,29 @@ export function buildCladdingDisplayPlanes(params: {
       .filter((offset): offset is number => offset != null && Number.isFinite(offset))
       .sort((a, b) => a - b);
     if (offsets.length === 0) {
-      return { ...plane };
+      return { ...footprintPlane };
     }
     const offset = offsets[offsets.length - 1]!;
-    const displayPlane = offsetRoofPlaneAlongNormal(plane, offset);
+    const displayPlane = purlinDisplayPlane ?? offsetRoofPlaneAlongNormal(plane, offset);
+    const projectToDisplayPlane = (corner: RoofVec3): RoofVec3 => ({
+      x: corner.x,
+      y:
+        elevationOnRoofPlaneAtPoint(displayPlane, corner.x, corner.z) ??
+        displayPlane.corners[0]?.y ??
+        corner.y,
+      z: corner.z,
+    });
     const paired =
       params.claddingRidgeStart && params.claddingRidgeEnd
-        ? pairEaveCornersToRidge(eaveCornersForPlane(plane), params.claddingRidgeStart, params.claddingRidgeEnd)
+        ? pairEaveCornersToRidge(
+            eaveCornersForPlane(footprintPlane),
+            params.claddingRidgeStart,
+            params.claddingRidgeEnd,
+          )
         : null;
     const corners =
       paired && params.claddingRidgeStart && params.claddingRidgeEnd
-        ? plane.corners.map((corner, index) => {
+        ? footprintPlane.corners.map((corner) => {
             const rowT = rowStationOnSlope({
               point: corner,
               eaveAtStart: paired.eaveAtStart,
@@ -1172,7 +1199,7 @@ export function buildCladdingDisplayPlanes(params: {
               ridgeEnd: params.claddingRidgeEnd!,
             });
             if (rowT < 1 - PURLIN_ROW_STATION_TOLERANCE) {
-              return displayPlane.corners[index] ?? corner;
+              return projectToDisplayPlane(corner);
             }
             const ridgePoint =
               Math.hypot(corner.x - params.claddingRidgeStart!.x, corner.z - params.claddingRidgeStart!.z) <=
@@ -1188,7 +1215,9 @@ export function buildCladdingDisplayPlanes(params: {
               z: ridgePoint.z,
             };
           })
-        : displayPlane.corners;
+        : projectExplicitFootprint
+          ? footprintPlane.corners.map(projectToDisplayPlane)
+          : displayPlane.corners;
     return {
       ...displayPlane,
       id: `${plane.id}-cladding-display`,
@@ -1200,7 +1229,39 @@ export function buildCladdingDisplayPlanes(params: {
     : weldSharedCladdingDisplayPlaneCorners({
         sourcePlanes: params.structuralPlanes,
         displayPlanes,
-      });
+    });
+}
+
+function buildCladdingDisplayPlaneFromPurlins(params: {
+  id: string;
+  planePurlins: readonly PurlinPlacement[];
+  planeNormal: RoofVec3;
+  displayThicknessMeters: number;
+}): RoofPlane | null {
+  if (params.planePurlins.length < 2) return null;
+  const sorted = [...params.planePurlins].sort((a, b) => a.rowIndex - b.rowIndex);
+  const low = sorted[0]!;
+  const high = sorted[sorted.length - 1]!;
+  const sheetOffset =
+    PURLIN_PROFILE_DEPTH_METERS / 2 +
+    PURLIN_TO_SHEET_CLEARANCE_METERS +
+    params.displayThicknessMeters;
+  const lowStart = offsetPointAlongRoofNormal(low.start, params.planeNormal, sheetOffset);
+  const lowEnd = offsetPointAlongRoofNormal(low.end, params.planeNormal, sheetOffset);
+  const highEnd = offsetPointAlongRoofNormal(high.end, params.planeNormal, sheetOffset);
+  const highStart = offsetPointAlongRoofNormal(high.start, params.planeNormal, sheetOffset);
+  const corners = [lowStart, lowEnd, highEnd, highStart];
+  if (
+    planDistance(lowStart, lowEnd) < 0.05 ||
+    Math.max(planDistance(lowStart, highStart), planDistance(lowEnd, highEnd)) < 0.05
+  ) {
+    return null;
+  }
+  return {
+    id: `${params.id}-purlin-cladding-top`,
+    corners,
+    normal: roofPlaneNormalFromCorners(corners, params.planeNormal),
+  };
 }
 
 function pairPlaneEaveToHighCorners(plane: RoofPlane): {

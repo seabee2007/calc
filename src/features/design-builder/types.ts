@@ -1,46 +1,59 @@
-export type DesignUnitSystem = 'metric' | 'imperial';
-export type DesignModelType = 'cmu_building' | 'frame_cmu_building';
-export type DesignModelStatus = 'draft' | 'ready_for_estimate' | 'committed';
+export type DesignUnitSystem = "metric" | "imperial";
+export type DesignModelType = "cmu_building" | "frame_cmu_building";
+export type DesignModelStatus = "draft" | "ready_for_estimate" | "committed";
 
 export type BuildingSystemMode =
-  | 'cmu_bearing_wall'
-  | 'reinforced_concrete_frame_with_cmu_infill';
+  "cmu_bearing_wall" | "reinforced_concrete_frame_with_cmu_infill";
 
-/** CAD builder canvas mode. */
-export type BuilderViewMode = 'plan' | 'elevation' | '3d';
+/** Internal 2D component placement projection. */
+export type BuilderViewMode = "plan" | "elevation";
 
-export type DesignBuilderStoredViewMode = BuilderViewMode;
+/** User-facing Design Builder mode. */
+export type DesignBuilderViewMode = "2d" | "3d";
 
-export function builderViewModeFromStored(stored: DesignBuilderStoredViewMode | '2d'): BuilderViewMode {
-  return stored === '2d' ? 'plan' : stored;
+export type Design2DViewType =
+  | "foundation-plan"
+  | "roof-plan"
+  | "electrical-plan"
+  | "plumbing-plan"
+  | "elevation-view";
+
+export type DesignBuilderStoredViewMode = DesignBuilderViewMode;
+
+export function builderViewModeFromStored(
+  stored: DesignBuilderStoredViewMode | string | undefined,
+): DesignBuilderViewMode {
+  return stored === "3d" ? "3d" : "2d";
 }
 
-export function storedViewModeFromBuilder(mode: BuilderViewMode | '2d'): DesignBuilderStoredViewMode {
-  return mode === '2d' ? 'plan' : mode;
+export function storedViewModeFromBuilder(
+  mode: DesignBuilderViewMode,
+): DesignBuilderStoredViewMode {
+  return mode;
 }
 
 export type DesignComponentDivision =
-  | 'Structure'
-  | 'Openings'
-  | 'Plumbing'
-  | 'Electrical'
-  | 'HVAC'
-  | 'Roofing'
-  | 'Finishes'
-  | 'Casework'
-  | 'Site Utilities';
+  | "Structure"
+  | "Openings"
+  | "Plumbing"
+  | "Electrical"
+  | "HVAC"
+  | "Roofing"
+  | "Finishes"
+  | "Casework"
+  | "Site Utilities";
 
-export type DesignComponentCategory = 'structure' | 'openings' | 'future';
+export type DesignComponentCategory = "structure" | "openings" | "future";
 
 export type DesignComponentType =
-  | 'column'
-  | 'footer'
-  | 'tie_beam'
-  | 'plinth_beam'
-  | 'slab'
-  | 'roof_beam'
-  | 'door'
-  | 'window';
+  | "column"
+  | "footer"
+  | "tie_beam"
+  | "plinth_beam"
+  | "slab"
+  | "roof_beam"
+  | "door"
+  | "window";
 
 export interface PlanPlacementData {
   xMeters: number;
@@ -48,7 +61,7 @@ export interface PlanPlacementData {
   rotationRadians?: number;
 }
 
-export type ElevationFace = 'north' | 'east' | 'south' | 'west';
+export type ElevationFace = "north" | "east" | "south" | "west";
 
 export interface ElevationPlacementData {
   face: ElevationFace;
@@ -88,6 +101,38 @@ export interface PlacedDesignComponent {
   };
 }
 
+export interface DesignPoint2D {
+  x: number;
+  z: number;
+}
+
+export type DesignDimensionKind = "horizontal" | "vertical" | "aligned";
+
+export interface DesignDimensionAnnotation {
+  id: string;
+  type: "dimension";
+  viewType: Design2DViewType;
+  points: {
+    start: DesignPoint2D;
+    end: DesignPoint2D;
+  };
+  offsetPoint: DesignPoint2D;
+  dimensionKind: DesignDimensionKind;
+  measuredValue: number;
+  unit: "m" | "ft" | "in";
+  labelOverride?: string;
+  references?: {
+    startComponentId?: string;
+    endComponentId?: string;
+    startSnapType?: string;
+    endSnapType?: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type DesignAnnotation = DesignDimensionAnnotation;
+
 export interface DesignBuilderElevationViewState {
   face: ElevationFace;
   cursorX?: number;
@@ -95,25 +140,25 @@ export interface DesignBuilderElevationViewState {
 }
 
 export const BUILDING_SYSTEM_MODE_LABELS: Record<BuildingSystemMode, string> = {
-  cmu_bearing_wall: 'CMU Bearing Wall',
-  reinforced_concrete_frame_with_cmu_infill: 'RC Frame + CMU Infill',
+  cmu_bearing_wall: "CMU Bearing Wall",
+  reinforced_concrete_frame_with_cmu_infill: "RC Frame + CMU Infill",
 };
 
 export type DesignObjectType =
-  | 'building_footprint'
-  | 'wall_layout'
-  | 'thickened_edge_slab'
-  | 'cmu_wall_system'
-  | 'structural_frame_system'
-  | 'cmu_infill_system'
-  | 'gable_end_system'
-  | 'door_opening'
-  | 'window_opening'
-  | 'gable_roof_system'
-  | 'steel_truss_system';
+  | "building_footprint"
+  | "wall_layout"
+  | "thickened_edge_slab"
+  | "cmu_wall_system"
+  | "structural_frame_system"
+  | "cmu_infill_system"
+  | "gable_end_system"
+  | "door_opening"
+  | "window_opening"
+  | "gable_roof_system"
+  | "steel_truss_system";
 
-export type DesignQuantitySource = 'parametric_design_builder';
-export type DesignQuantityConfidence = 'calculated_from_parameters';
+export type DesignQuantitySource = "parametric_design_builder";
+export type DesignQuantityConfidence = "calculated_from_parameters";
 
 export interface DesignModel {
   id: string;
@@ -165,23 +210,24 @@ export interface DesignQuantityItem {
 }
 
 export interface RectangleFootprintParameters {
-  kind: 'rectangle';
+  kind: "rectangle";
   lengthMeters: number;
   widthMeters: number;
 }
 
 export interface ThickenedEdgeSlabParameters {
-  kind: 'thickened_edge_slab';
+  kind: "thickened_edge_slab";
   lengthMeters: number;
   widthMeters: number;
   slabThicknessMeters: number;
   edgeWidthMeters: number;
   edgeDepthMeters: number;
-  edgeMode: 'replaces_slab_at_perimeter' | 'adds_below_slab';
+  edgeMode: "replaces_slab_at_perimeter" | "adds_below_slab";
 }
 
-export type DesignWallDimensionBasis = 'outside_face' | 'wall_centerline' | 'inside_clear';
-export type ModuleFitMode = 'exact' | 'snap_during_draw' | 'resolve_after_draw';
+export type DesignWallDimensionBasis =
+  "outside_face" | "wall_centerline" | "inside_clear";
+export type ModuleFitMode = "exact" | "snap_during_draw" | "resolve_after_draw";
 
 export type FoundationSetout = {
   slabEdgeOffsetMeters: number;
@@ -190,9 +236,11 @@ export type FoundationSetout = {
   wallBearingOffsetMeters: number;
 };
 
-export type DesignWallCornerType = 'outside' | 'inside' | 'end' | 'tee' | 'cross';
+export type DesignWallCornerType =
+  "outside" | "inside" | "end" | "tee" | "cross";
 
-export type DesignWallBondStrategy = 'interlock' | 'butt' | 'pilaster' | 'control_joint';
+export type DesignWallBondStrategy =
+  "interlock" | "butt" | "pilaster" | "control_joint";
 
 export interface DesignWallNode {
   id: string;
@@ -216,7 +264,7 @@ export interface DesignWallCornerOverride {
 }
 
 export interface DesignWallLayoutParameters {
-  kind: 'wall_layout';
+  kind: "wall_layout";
   dimensionBasis: DesignWallDimensionBasis;
   nodes: DesignWallNode[];
   segments: DesignWallSegment[];
@@ -240,9 +288,9 @@ export interface GeneratedWallCorner {
 
 export interface WallOpeningParameters {
   id: string;
-  type: 'door' | 'window';
+  type: "door" | "window";
   /** @deprecated Legacy face label; prefer wallSegmentId + positionAlongSegment */
-  wallFace?: 'north' | 'east' | 'south' | 'west';
+  wallFace?: "north" | "east" | "south" | "west";
   /** @deprecated Legacy offset; prefer positionAlongSegment */
   offsetMeters?: number;
   wallSegmentId?: string;
@@ -257,7 +305,7 @@ export interface WallOpeningParameters {
   roughOpeningWidthMeters?: number;
   roughOpeningHeightMeters?: number;
   roughOpeningAllowanceMeters?: number;
-  lintelType?: 'bond_beam' | 'precast_concrete' | 'steel_placeholder' | 'none';
+  lintelType?: "bond_beam" | "precast_concrete" | "steel_placeholder" | "none";
   lintelBearingMeters?: number;
   lintelCourseCount?: number;
   jambGroutEnabled?: boolean;
@@ -265,24 +313,25 @@ export interface WallOpeningParameters {
   groutCellsEachSide?: number;
   groutCellsAboveOpening?: number;
   groutCellsBelowWindow?: number;
-  sillCondition?: 'none' | 'reinforced_sill' | 'grouted_sill_course';
-  openingFrameMaterial?: 'hollow_metal' | 'vinyl' | 'wood' | 'aluminum' | 'none';
+  sillCondition?: "none" | "reinforced_sill" | "grouted_sill_course";
+  openingFrameMaterial?:
+    "hollow_metal" | "vinyl" | "wood" | "aluminum" | "none";
   /** Door plan/3D handing when hinge is viewed from increasing wall-station direction. */
-  swingDirection?: 'left' | 'right';
+  swingDirection?: "left" | "right";
   /** Door plan/3D swing relative to wall interior side. */
-  swingType?: 'inswing' | 'outswing';
+  swingType?: "inswing" | "outswing";
   notes?: string;
 }
 
 export type CmuUnitType =
-  | 'full'
-  | 'half'
-  | 'end'
-  | 'corner'
-  | 'jamb'
-  | 'bond_beam_lintel'
-  | 'cap'
-  | 'cut';
+  | "full"
+  | "half"
+  | "end"
+  | "corner"
+  | "jamb"
+  | "bond_beam_lintel"
+  | "cap"
+  | "cut";
 
 export interface CmuCoreGeometry {
   coreCount: number;
@@ -308,7 +357,7 @@ export interface CmuBlockModuleConfig {
 }
 
 export interface CmuWallSystemParameters {
-  kind: 'cmu_wall_system';
+  kind: "cmu_wall_system";
   lengthMeters: number;
   widthMeters: number;
   heightMeters: number;
@@ -319,10 +368,10 @@ export interface CmuWallSystemParameters {
   mortarJointMeters: number;
   blockModule?: CmuBlockModuleConfig;
   snapToModule?: boolean;
-  bondPattern?: 'running_bond' | 'stack_bond';
-  cornerCondition?: 'interlocked' | 'butt';
-  endCondition?: 'return_corner' | 'plain_end';
-  lintelType?: 'bond_beam' | 'precast_concrete' | 'none';
+  bondPattern?: "running_bond" | "stack_bond";
+  cornerCondition?: "interlocked" | "butt";
+  endCondition?: "return_corner" | "plain_end";
+  lintelType?: "bond_beam" | "precast_concrete" | "none";
   lintelBearingMeters?: number;
   lintelCourseCount?: number;
   bondBeamEnabled?: boolean;
@@ -341,21 +390,21 @@ export interface CmuWallSystemParameters {
 }
 
 export interface GableRoofSystemParameters {
-  kind: 'gable_roof_system';
+  kind: "gable_roof_system";
   lengthMeters: number;
   widthMeters: number;
   pitchRisePerRun: number;
   overhangMeters: number;
-  ridgeDirection: 'length';
+  ridgeDirection: "length";
 }
 
 export interface SteelTrussSystemParameters {
-  kind: 'steel_truss_system';
+  kind: "steel_truss_system";
   buildingLengthMeters: number;
   spacingMeters: number;
 }
 
-export type StructuralColumnKind = 'rc_column' | 'tie_column';
+export type StructuralColumnKind = "rc_column" | "tie_column";
 
 export interface StructuralColumn {
   id: string;
@@ -373,16 +422,16 @@ export interface StructuralColumn {
     enabled: boolean;
     notes?: string;
   };
-  source: 'user' | 'auto_frame_layout';
+  source: "user" | "auto_frame_layout";
 }
 
 export type StructuralBeamKind =
-  | 'grade_beam'
-  | 'ring_beam'
-  | 'plinth_beam'
-  | 'roof_beam'
-  | 'tie_beam'
-  | 'lintel_beam';
+  | "grade_beam"
+  | "ring_beam"
+  | "plinth_beam"
+  | "roof_beam"
+  | "tie_beam"
+  | "lintel_beam";
 
 export interface StructuralBeam {
   id: string;
@@ -397,7 +446,7 @@ export interface StructuralBeam {
   baseElevationMeters: number;
   topElevationMeters: number;
   hostSegmentId?: string;
-  source: 'user' | 'auto_frame_layout';
+  source: "user" | "auto_frame_layout";
 }
 
 export interface StructuralBeamSettings {
@@ -417,15 +466,15 @@ export interface InteriorFloorSlabSettings {
 }
 
 export type FloorTileSizeKey =
-  | '300x300'
-  | '400x400'
-  | '500x500'
-  | '600x600'
-  | '800x800'
-  | '300x600'
-  | '600x1200';
+  | "300x300"
+  | "400x400"
+  | "500x500"
+  | "600x600"
+  | "800x800"
+  | "300x600"
+  | "600x1200";
 
-export type FloorGroutJointWidth = 'none' | '1/16' | '1/8' | '3/16' | '1/4';
+export type FloorGroutJointWidth = "none" | "1/16" | "1/8" | "3/16" | "1/4";
 
 export interface InteriorFloorTileSettings {
   enabled: boolean;
@@ -435,7 +484,7 @@ export interface InteriorFloorTileSettings {
   wasteFactor: number;
 }
 
-export type FloorTilePlacementKind = 'full' | 'cut';
+export type FloorTilePlacementKind = "full" | "cut";
 
 export interface FloorTilePlacement {
   id: string;
@@ -490,7 +539,7 @@ export interface PlywoodCeilingSettings {
   wasteFactor: number;
 }
 
-export type PlywoodCeilingMemberKind = 'perimeter' | 'cross_brace';
+export type PlywoodCeilingMemberKind = "perimeter" | "cross_brace";
 
 export interface PlywoodCeilingMemberPlacement {
   id: string;
@@ -501,7 +550,7 @@ export interface PlywoodCeilingMemberPlacement {
   heightMeters: number;
 }
 
-export type PlywoodCeilingPanelKind = 'full' | 'cut';
+export type PlywoodCeilingPanelKind = "full" | "cut";
 
 export interface PlywoodCeilingPanelPlacement {
   id: string;
@@ -527,7 +576,7 @@ export interface ResolvedPlywoodCeilingLayout {
   cutPanelCount: number;
   totalPanelCount: number;
   orderPanelCount: number;
-  longAxis: 'x' | 'z';
+  longAxis: "x" | "z";
   shortSpanMeters: number;
   longSpanMeters: number;
   warnings: string[];
@@ -535,7 +584,11 @@ export interface ResolvedPlywoodCeilingLayout {
   panelPlacements: PlywoodCeilingPanelPlacement[];
 }
 
-export type ColumnPlacementMode = 'corners_only' | 'corners_and_junctions' | 'manual';
+export type ColumnPlacementMode =
+  | "corners_only"
+  | "corners_and_junctions"
+  | "corners_and_intermediate"
+  | "manual";
 
 /** @deprecated Legacy persisted shape — migrate via rcFrameFoundationMigration */
 export interface GradeBeamSettings {
@@ -549,7 +602,7 @@ export interface GradeBeamSettings {
 /** @deprecated Legacy persisted shape — migrate via rcFrameFoundationMigration */
 export interface LegacyIsolatedFootingSettings {
   enabled: boolean;
-  placementMode: 'at_columns' | 'manual';
+  placementMode: "at_columns" | "manual";
   footingWidthMeters: number;
   footingLengthMeters: number;
   footingThicknessMeters: number;
@@ -583,6 +636,7 @@ export interface RcFrameFoundationSettings {
     /** Vertical extent from top of plinth beam (Y=0) to top of column / roof beam top. */
     heightAbovePlinthMeters: number;
     placementMode: ColumnPlacementMode;
+    intermediateSpacingMeters: number;
   };
   isolatedFootings: {
     enabled: boolean;
@@ -596,7 +650,8 @@ export interface RcFrameFoundationSettings {
 }
 
 /** @deprecated Use RcFrameFoundationSettings */
-export type StructuralFoundationSettings = LegacyStructuralFoundationSettings | RcFrameFoundationSettings;
+export type StructuralFoundationSettings =
+  LegacyStructuralFoundationSettings | RcFrameFoundationSettings;
 
 export interface IsolatedFooting {
   id: string;
@@ -609,24 +664,28 @@ export interface IsolatedFooting {
   topElevationMeters: number;
   bottomElevationMeters: number;
   centerElevationMeters: number;
-  source: 'auto_at_column' | 'user';
+  source: "auto_at_column" | "user";
 }
 
-export type FoundationViewMode = 'full_model' | 'cutaway_below_grade' | 'structural_frame_only';
+export type FoundationViewMode =
+  "full_model" | "cutaway_below_grade" | "structural_frame_only";
 
-export type DesignVisualStyle = 'technical' | 'material_preview';
+export type DesignVisualStyle = "technical" | "material_preview";
+export type Design2dDrawingStyleMode = "builder" | "architectural";
 
-export type CmuInfillSupportType = 'column' | 'wall_end' | 'opening_jamb';
+export type CmuInfillSupportType = "column" | "wall_end" | "opening_jamb";
 
-export type CmuInfillBottomSupportType = 'plinth_beam' | 'grade_beam' | 'slab' | 'foundation' | 'tie_beam';
+export type CmuInfillBottomSupportType =
+  "plinth_beam" | "grade_beam" | "slab" | "foundation" | "tie_beam";
 
-export type CmuInfillTopSupportType = 'roof_beam' | 'ring_beam' | 'roof_line' | 'gable_profile' | 'plinth_beam';
+export type CmuInfillTopSupportType =
+  "roof_beam" | "ring_beam" | "roof_line" | "gable_profile" | "plinth_beam";
 
-export type CmuInfillZone = 'above_grade' | 'below_grade';
+export type CmuInfillZone = "above_grade" | "below_grade";
 
 export interface DesignMasonrySettings {
   blockModule?: CmuBlockModuleConfig;
-  bondPattern: 'running_bond' | 'stack_bond';
+  bondPattern: "running_bond" | "stack_bond";
   snapToModule: boolean;
   wasteFactor: number;
 }
@@ -651,7 +710,7 @@ export interface CmuInfillPanel {
   masonrySettings: DesignMasonrySettings;
 }
 
-export type CmuInfillPlasterFinish = 'smooth' | 'textured';
+export type CmuInfillPlasterFinish = "smooth" | "textured";
 
 export interface CmuInfillPlasterSettings {
   /** Exterior face plaster; legacy enabled/finish/profile fields map to this side. */
@@ -664,21 +723,21 @@ export interface CmuInfillPlasterSettings {
 }
 
 export interface GableEndSettings {
-  kind: 'gable_end';
+  kind: "gable_end";
   id: string;
   hostWallSegmentId: string;
   eaveElevationMeters: number;
-  peakMode: 'rise_above_eave' | 'absolute_elevation';
+  peakMode: "rise_above_eave" | "absolute_elevation";
   peakRiseMeters?: number;
   peakElevationMeters?: number;
-  ridgePosition: 'centered' | 'custom';
+  ridgePosition: "centered" | "custom";
   ridgeOffsetMeters?: number;
   roofToMasonryClearanceMeters: number;
-  roofClearanceMeasurement: 'perpendicular_to_roof_slope';
-  bondPattern: 'running_bond' | 'stack_bond';
+  roofClearanceMeasurement: "perpendicular_to_roof_slope";
+  bondPattern: "running_bond" | "stack_bond";
 }
 
-export type GableCmuPlacementKind = 'stretcher' | 'half_block' | 'cut_block';
+export type GableCmuPlacementKind = "stretcher" | "half_block" | "cut_block";
 
 export interface GableCmuPlacement {
   id: string;
@@ -694,15 +753,15 @@ export interface GableCmuPlacement {
   lengthMeters: number;
   heightMeters: number;
   depthMeters: number;
-  source: 'gable_panel_solver';
+  source: "gable_panel_solver";
 }
 
 export type ModuleFitStatus =
-  | 'fully_modular'
-  | 'bond_modular'
-  | 'cut_required'
-  | 'opening_conflict'
-  | 'unresolved';
+  | "fully_modular"
+  | "bond_modular"
+  | "cut_required"
+  | "opening_conflict"
+  | "unresolved";
 
 export interface ModuleFitCandidate {
   requestedDimensionMeters: number;
@@ -716,7 +775,7 @@ export interface ModuleFitCandidate {
 }
 
 export interface StructuralFrameSystemParameters {
-  kind: 'structural_frame_system';
+  kind: "structural_frame_system";
   buildingSystemMode: BuildingSystemMode;
   defaultColumnWidthMeters: number;
   defaultColumnDepthMeters: number;
@@ -729,27 +788,25 @@ export interface StructuralFrameSystemParameters {
 }
 
 export interface CmuInfillSystemParameters {
-  kind: 'cmu_infill_system';
+  kind: "cmu_infill_system";
   panels: CmuInfillPanel[];
   plaster?: CmuInfillPlasterSettings;
 }
 
 export interface GableEndSystemParameters {
-  kind: 'gable_end_system';
+  kind: "gable_end_system";
   gableEnds: GableEndSettings[];
 }
 
-export type RoofType = 'hip' | 'gable';
+export type RoofType = "hip" | "gable";
 
 export type RoofRidgeDirection =
-  | 'along_longest_axis'
-  | 'along_shortest_axis'
-  | 'along_selected_wall_pair';
+  "along_longest_axis" | "along_shortest_axis" | "along_selected_wall_pair";
 
-export type RoofSupportSystem = 'steel_trusses' | 'steel_hip_framing';
+export type RoofSupportSystem = "steel_trusses" | "steel_hip_framing";
 
 /** @deprecated Use RoofSupportSystem */
-export type RoofSupportStyle = 'rafter_reference' | 'truss_reference';
+export type RoofSupportStyle = "rafter_reference" | "truss_reference";
 
 export interface RoofSystemSettings {
   enabled: boolean;
@@ -805,7 +862,7 @@ export interface RoofSystemSettings {
     rakedConcreteCapEnabled: boolean;
     /** @deprecated Use rakedConcreteCapEnabled */
     capEnabled?: boolean;
-    capMaterial: 'cast_in_place_concrete';
+    capMaterial: "cast_in_place_concrete";
     /** Through-wall thickness of the raked cap (defaults to gable wall thickness). */
     rakedConcreteCapWallDepthMeters?: number;
     rakedConcreteCapDepthMeters: number;
@@ -820,11 +877,11 @@ export interface RoofSystemSettings {
 export type RoofSettings = RoofSystemSettings;
 
 export type RoofDisplayMode =
-  | 'full_roof'
-  | 'roof_cladding_only'
-  | 'steel_framing_only'
-  | 'gable_masonry_only'
-  | 'foundation_frame_roof';
+  | "full_roof"
+  | "roof_cladding_only"
+  | "steel_framing_only"
+  | "gable_masonry_only"
+  | "foundation_frame_roof";
 
 export type PurlinPlacement = {
   id: string;
@@ -837,13 +894,13 @@ export type PurlinPlacement = {
 };
 
 export type SteelMemberKind =
-  | 'top_chord_left'
-  | 'top_chord_right'
-  | 'top_chord_left_eave_extension'
-  | 'top_chord_right_eave_extension'
-  | 'bottom_chord'
-  | 'vertical_web'
-  | 'diagonal_web';
+  | "top_chord_left"
+  | "top_chord_right"
+  | "top_chord_left_eave_extension"
+  | "top_chord_right_eave_extension"
+  | "bottom_chord"
+  | "vertical_web"
+  | "diagonal_web";
 
 export type SteelMemberSegment = {
   id: string;
@@ -863,21 +920,21 @@ export type TrussPlacement = {
   basePlateCenterRight?: RoofVec3;
   apex: RoofVec3;
   /** World-axis classification of the ridge direction for this truss plane. */
-  ridgeAxis: 'x' | 'z';
+  ridgeAxis: "x" | "z";
   planeNormal: RoofVec3;
   members: SteelMemberSegment[];
 };
 
 export type HipFramingMemberKind =
-  | 'ridge'
-  | 'hip'
-  | 'common'
-  | 'jack'
-  | 'hip_corner_support'
-  | 'hip_jack_bottom_chord'
-  | 'ridge_end_frame'
-  | 'ridge_end_frame_web'
-  | 'ridge_end_frame_bottom';
+  | "ridge"
+  | "hip"
+  | "common"
+  | "jack"
+  | "hip_corner_support"
+  | "hip_jack_bottom_chord"
+  | "ridge_end_frame"
+  | "ridge_end_frame_web"
+  | "ridge_end_frame_bottom";
 
 export type HipFramingMember = {
   id: string;
@@ -886,7 +943,7 @@ export type HipFramingMember = {
   memberKind: HipFramingMemberKind;
   lengthMeters: number;
   slopePlaneId?: string;
-  source: 'hip_roof_framing_solver';
+  source: "hip_roof_framing_solver";
 };
 
 export type RidgeCapPlacement = {
@@ -902,7 +959,7 @@ export type RidgeCapPlacement = {
 export type FasciaPlacement = {
   id: string;
   sourcePlaneId: string;
-  edgeRole: 'side_eave' | 'gable_rake' | 'hip_eave' | 'roof_perimeter';
+  edgeRole: "side_eave" | "gable_rake" | "hip_eave" | "roof_perimeter";
   topStart: RoofVec3;
   topEnd: RoofVec3;
   bottomStart: RoofVec3;
@@ -915,7 +972,7 @@ export type FasciaPlacement = {
 
 export type SoffitPlacement = {
   id: string;
-  edgeRole: 'side_eave' | 'gable_return' | 'hip_eave' | 'roof_perimeter';
+  edgeRole: "side_eave" | "gable_return" | "hip_eave" | "roof_perimeter";
   innerStart: RoofVec3;
   innerEnd: RoofVec3;
   outerEnd: RoofVec3;
@@ -937,7 +994,7 @@ export type RoofLayerVisibility = {
 export type DesignWarning = {
   code: string;
   message: string;
-  severity: 'review' | 'error';
+  severity: "review" | "error";
 };
 
 export type RoofVec3 = { x: number; y: number; z: number };
@@ -955,7 +1012,7 @@ export type GableEndRoofingClosure = {
   corners: RoofVec3[];
   outwardNormal: RoofVec3;
   /** Horizontal axis used for the gable profile (the other plan axis is held constant). */
-  profileSpanAxis: 'x' | 'z';
+  profileSpanAxis: "x" | "z";
   areaSquareMeters: number;
 };
 
@@ -969,7 +1026,7 @@ export type GableCourseAssembly = {
 export type RakedCapPlacement = {
   id: string;
   gableEndSegmentId: string;
-  slope: 'left' | 'right';
+  slope: "left" | "right";
   startStationMeters: number;
   endStationMeters: number;
   startBottomY: number;
@@ -979,7 +1036,7 @@ export type RakedCapPlacement = {
   wallDepthMeters: number;
   centerlineInwardOffsetMeters?: number;
   concreteVolumeCubicMeters: number;
-  source: 'gable_raked_concrete_cap';
+  source: "gable_raked_concrete_cap";
 };
 
 /** Canonical resolved raked concrete cap segment. */
@@ -991,7 +1048,7 @@ export type ResolvedGableEnd = {
   rightRoofUnderside?: RoofPlane;
   masonryCourses: GableCourseAssembly[];
   rakedCapPlacements: RakedCapPlacement[];
-  cmuUnitPlacements: import('../geometry/designGeometry').CmuBlockInstance[];
+  cmuUnitPlacements: import("../geometry/designGeometry").CmuBlockInstance[];
   warnings: DesignWarning[];
 };
 
@@ -1006,7 +1063,7 @@ export type ResolvedRoofSystem = {
   supported: boolean;
   unsupportedMessage?: string;
   roofType: RoofType;
-  roofBearingSource?: 'roof_beam_outer_faces' | 'wall_exterior_fallback';
+  roofBearingSource?: "roof_beam_outer_faces" | "wall_exterior_fallback";
   exteriorRoofBeamBounds: ExteriorRoofBeamBounds;
   /** Outer roof-beam bearing line (building exterior envelope). */
   structuralBearingPerimeter: RoofVec3[];
@@ -1146,22 +1203,22 @@ export interface DesignBuilderCameraSnapshot {
 }
 
 export type MasonryUnitType =
-  | 'full_block'
-  | 'half_block'
-  | 'end_block'
-  | 'jamb_block'
-  | 'bond_beam_block'
-  | 'grout_rebar_cell';
+  | "full_block"
+  | "half_block"
+  | "end_block"
+  | "jamb_block"
+  | "bond_beam_block"
+  | "grout_rebar_cell";
 
 export type MasonryToolMode =
-  | 'select'
-  | 'full_block'
-  | 'half_block'
-  | 'end_block'
-  | 'jamb_block'
-  | 'bond_beam_block'
-  | 'grout_rebar_cell'
-  | 'erase';
+  | "select"
+  | "full_block"
+  | "half_block"
+  | "end_block"
+  | "jamb_block"
+  | "bond_beam_block"
+  | "grout_rebar_cell"
+  | "erase";
 
 export interface MasonryCourseRun {
   id: string;
@@ -1175,13 +1232,13 @@ export interface MasonryCourseRun {
   moduleLengthMeters: number;
   moduleHeightMeters: number;
   wallThicknessMeters: number;
-  direction: 'forward' | 'reverse';
-  source: 'manual' | 'manual_3d_brush';
+  direction: "forward" | "reverse";
+  source: "manual" | "manual_3d_brush";
   /** @deprecated Prefer origin.x */
   originX: number;
   /** @deprecated Prefer origin.z */
   originZ: number;
-  orientation: 'east' | 'west' | 'north' | 'south';
+  orientation: "east" | "west" | "north" | "south";
 }
 
 export interface MasonryCellOverride {
@@ -1189,8 +1246,8 @@ export interface MasonryCellOverride {
   wallSegmentId: string;
   courseIndex: number;
   moduleIndex: number;
-  action: 'remove' | 'replace' | 'grout_cell';
-  replacementUnitType?: MasonryCourseRun['unitType'];
+  action: "remove" | "replace" | "grout_cell";
+  replacementUnitType?: MasonryCourseRun["unitType"];
 }
 
 export interface ManualMasonryPlacementPreview {
@@ -1200,66 +1257,67 @@ export interface ManualMasonryPlacementPreview {
   startModuleIndex: number;
   unitType: MasonryUnitType;
   count: number;
-  orientation: 'east' | 'west' | 'north' | 'south';
+  orientation: "east" | "west" | "north" | "south";
   valid: boolean;
 }
 
 export type DesignBuilderToolMode =
-  | 'select'
-  | 'draw_wall'
-  | 'move_wall_node'
-  | 'place_door'
-  | 'place_window'
-  | 'place_component'
-  | 'move_opening'
-  | 'delete';
+  | "select"
+  | "draw_wall"
+  | "move_wall_node"
+  | "place_door"
+  | "place_window"
+  | "place_component"
+  | "place_dimension"
+  | "move_opening"
+  | "delete";
 
-export type DesignBuilderSnapMode = 'grid' | 'cmu_module' | 'off';
+export type DesignBuilderSnapMode = "grid" | "cmu_module" | "off";
 
-export type DesignBuilderLayoutMode = 'blank' | 'editing' | 'demo_loaded';
+export type DesignBuilderLayoutMode = "blank" | "editing" | "demo_loaded";
 
 export type DesignBuilderSelection =
-  | { kind: 'wall_segment'; id: string }
-  | { kind: 'wall_node'; id: string }
-  | { kind: 'opening'; id: string }
-  | { kind: 'structural_column'; id: string }
-  | { kind: 'structural_beam'; id: string }
-  | { kind: 'cmu_infill_panel'; id: string }
-  | { kind: 'gable_end'; id: string }
-  | { kind: 'none' };
+  | { kind: "wall_segment"; id: string }
+  | { kind: "wall_node"; id: string }
+  | { kind: "opening"; id: string }
+  | { kind: "structural_column"; id: string }
+  | { kind: "structural_beam"; id: string }
+  | { kind: "cmu_infill_panel"; id: string }
+  | { kind: "gable_end"; id: string }
+  | { kind: "none" };
 
 export type DesignBuilderInteractionKind =
-  | 'select_object'
-  | 'select_opening'
-  | 'clear_selection'
-  | 'select_node'
-  | 'select_segment'
-  | 'wall_pick'
-  | 'segment_pick'
-  | 'opening_move'
-  | 'component_preview'
-  | 'component_place'
-  | 'component_select'
-  | 'component_delete'
-  | 'component_move'
-  | 'place_commit'
-  | 'draw_point'
-  | 'draw_preview'
-  | 'move_node'
-  | 'cancel'
-  | 'undo_last_segment';
+  | "select_object"
+  | "select_opening"
+  | "clear_selection"
+  | "select_node"
+  | "select_segment"
+  | "wall_pick"
+  | "segment_pick"
+  | "opening_move"
+  | "component_preview"
+  | "component_place"
+  | "component_select"
+  | "component_delete"
+  | "component_move"
+  | "place_commit"
+  | "draw_point"
+  | "draw_preview"
+  | "move_node"
+  | "cancel"
+  | "undo_last_segment";
 
 export interface DesignBuilderInteractionEvent {
   kind: DesignBuilderInteractionKind;
   toolMode: DesignBuilderToolMode;
-  phase?: 'preview' | 'commit';
-  wallFace?: NonNullable<WallOpeningParameters['wallFace']>;
+  phase?: "preview" | "commit";
+  wallFace?: NonNullable<WallOpeningParameters["wallFace"]>;
   offsetMeters?: number;
   wallSegmentId?: string;
   positionAlongSegment?: number;
   nodeId?: string;
   openingId?: string;
-  openingType?: WallOpeningParameters['type'];
+  openingType?: WallOpeningParameters["type"];
   componentType?: DesignComponentType;
   componentId?: string;
   objectType?: DesignObjectType;
@@ -1276,10 +1334,7 @@ export interface DesignBuilderInteractionEvent {
 }
 
 export type OpeningPlacementStatusKind =
-  | 'clean'
-  | 'half_block'
-  | 'cut_block'
-  | 'invalid';
+  "clean" | "half_block" | "cut_block" | "invalid";
 
 export interface OpeningPlacementStatus {
   kind: OpeningPlacementStatusKind;

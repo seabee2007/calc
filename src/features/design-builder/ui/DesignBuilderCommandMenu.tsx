@@ -116,6 +116,9 @@ type DesignBuilderCommandMenuProps = {
   panelClassName?: string;
   isActive?: boolean;
   closeOnSelect?: boolean;
+  onSummaryClick?: () => void;
+  summaryAriaLabel?: string;
+  summaryDisplayLabel?: ReactNode;
   children: ReactNode;
 };
 
@@ -126,6 +129,9 @@ export function DesignBuilderCommandMenu({
   panelClassName = 'w-48',
   isActive = false,
   closeOnSelect = true,
+  onSummaryClick,
+  summaryAriaLabel,
+  summaryDisplayLabel,
   children,
 }: DesignBuilderCommandMenuProps) {
   const menuId = useId();
@@ -155,12 +161,16 @@ export function DesignBuilderCommandMenu({
     >
       <button
         type="button"
+        aria-label={summaryAriaLabel}
         aria-expanded={open}
         aria-haspopup="menu"
-        onClick={() => setOpen((current) => !current)}
+        onClick={() => {
+          onSummaryClick?.();
+          setOpen((current) => !current);
+        }}
         className={summaryClassName}
       >
-        {label}
+        {summaryDisplayLabel ?? label}
       </button>
       {open ? (
         <div

@@ -1,10 +1,15 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type PointerEvent } from 'react';
 import type {
   DesignBuilderInteractionEvent,
   DesignBuilderSnapMode,
   DesignBuilderToolMode,
+  Design2DViewType,
+  DesignAnnotation,
+  DesignDimensionAnnotation,
+  Design2dDrawingStyleMode,
   DesignWallLayoutParameters,
   PlacedDesignComponent,
+  ResolvedRoofSystem,
   StructuralBeam,
   StructuralColumn,
 } from '../types';
@@ -45,6 +50,16 @@ import { listOrthogonalGuideDirections, resolveDrawWallGuidance, type Orthogonal
 import { resolveCmuModuleConfig } from '../domain/cmuModuleRules';
 import { DESIGN_BUILDER_COPY } from '../domain/designBuilderCopy';
 import { formatDrawWallStatusChip } from '../domain/designDrawWallFeedback';
+import {
+  renderDrawingPrimitive,
+  resolve2dDrawingStyle,
+  type DrawingPrimitive,
+} from '../domain/design2dDrawingPrimitives';
+import {
+  DEFAULT_RIDGE_CAP_WIDTH_METERS,
+  PURLIN_PROFILE_WIDTH_METERS,
+  TRUSS_CHORD_PROFILE_METERS,
+} from '../domain/roofFramingResolver';
 
 const MIN_SEGMENT_LENGTH_METERS = 0.08;
 const COLUMN_DRAG_THRESHOLD_PX = 4;
@@ -124,6 +139,70 @@ type PlanComponentHit = {
   };
 };
 
+type DimensionSnapPoint = {
+  point: { x: number; z: number };
+  type: string;
+  componentId?: string;
+};
+
+type DimensionDraftState =
+  | { step: 'start'; start: DimensionSnapPoint }
+  | { step: 'offset'; start: DimensionSnapPoint; end: DimensionSnapPoint; offsetPoint: { x: number; z: number } };
+
+type RoofPlanDisplayOptions = {
+  showHatch: boolean;
+  showSlopeArrows: boolean;
+  showDimensions: boolean;
+  showReferenceLines: boolean;
+};
+
+function planViewTitle(viewType: Design2DViewType): string {
+  switch (viewType) {
+    case 'roof-plan':
+      return 'Roof Plan';
+    case 'electrical-plan':
+      return 'Electrical Plan';
+    case 'plumbing-plan':
+      return 'Plumbing Plan';
+    case 'elevation-view':
+      return 'Elevation View';
+    case 'foundation-plan':
+    default:
+      return 'Foundation Plan';
+  }
+}
+
+function roofPlanPerimeterPoints(roof: ResolvedRoofSystem | null): Array<{ x: number; z: number }> {
+  if (!roof?.supported) return [];
+  const source = roof.roofSheetPerimeter.length >= 3
+    ? roof.roofSheetPerimeter
+    : roof.claddingPerimeter.length >= 3
+      ? roof.claddingPerimeter
+      : roof.eaveFootprint;
+  return source.map((point) => ({ x: point.x, z: point.z }));
+}
+
+function pointInPlanPolygon(point: { x: number; z: number }, polygon: Array<{ x: number; z: number }>): boolean {
+  if (polygon.length < 3) return false;
+  let inside = false;
+  for (let index = 0, previous = polygon.length - 1; index < polygon.length; previous = index, index += 1) {
+    const currentPoint = polygon[index]!;
+    const previousPoint = polygon[previous]!;
+    const crossesZ = currentPoint.z > point.z !== previousPoint.z > point.z;
+    if (!crossesZ) continue;
+    const crossingX = ((previousPoint.x - currentPoint.x) * (point.z - currentPoint.z)) / (previousPoint.z - currentPoint.z) + currentPoint.x;
+    if (point.x < crossingX) inside = !inside;
+  }
+  return inside;
+}
+
+function roofPitchLabel(roof: ResolvedRoofSystem): string | null {
+  if (!Number.isFinite(roof.roofRunMeters) || !Number.isFinite(roof.roofRiseMeters) || roof.roofRunMeters <= 0) return null;
+  const risePer12 = (roof.roofRiseMeters / roof.roofRunMeters) * 12;
+  if (!Number.isFinite(risePer12) || risePer12 <= 0) return null;
+  return `${risePer12.toFixed(1)}:12`;
+}
+
 interface DesignBuilderPlanCanvasProps {
   layout: DesignWallLayoutParameters;
   toolMode: DesignBuilderToolMode;
@@ -151,13 +230,18 @@ interface DesignBuilderPlanCanvasProps {
   closureCornerSnap?: { point: { x: number; z: number }; captured: boolean } | null;
   frameSystem?: import('../types').StructuralFrameSystemParameters;
   isolatedFootings?: readonly import('../types').IsolatedFooting[];
-  resolvedRoofSystem?: import('../types').ResolvedRoofSystem | null;
+  resolvedRoofSystem?: ResolvedRoofSystem | null;
+  roofPlanDisplay?: RoofPlanDisplayOptions;
   selectedObjectType?: import('../types').DesignObjectType | null;
+  drawingStyleMode?: Design2dDrawingStyleMode;
+  active2DView?: Design2DViewType;
+  annotations?: readonly DesignAnnotation[];
   placedComponents?: readonly PlacedDesignComponent[];
   componentPreview?: PlacedDesignComponent | null;
   designRenderModel?: DesignRenderModel;
   helperMeasurements?: readonly HelperMeasurement[];
   onComponentPointer?: (event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number }) => void;
+  onAnnotationCreate?: (annotation: DesignDimensionAnnotation) => void;
   onInteraction: (event: DesignBuilderInteractionEvent) => void;
 }
 
@@ -189,12 +273,22 @@ export default function DesignBuilderPlanCanvas({
   frameSystem,
   isolatedFootings = [],
   resolvedRoofSystem = null,
+  roofPlanDisplay = {
+    showHatch: true,
+    showSlopeArrows: true,
+    showDimensions: true,
+    showReferenceLines: true,
+  },
   selectedObjectType = null,
+  drawingStyleMode = 'architectural',
+  active2DView = 'foundation-plan',
+  annotations = [],
   placedComponents = [],
   componentPreview = null,
   designRenderModel,
   helperMeasurements = [],
   onComponentPointer,
+  onAnnotationCreate,
   onInteraction,
 }: DesignBuilderPlanCanvasProps) {
   const svgRef = useRef<SVGSVGElement | null>(null);
@@ -207,6 +301,39 @@ export default function DesignBuilderPlanCanvas({
   const [hoveredOpeningId, setHoveredOpeningId] = useState<string | null>(null);
   const [cursorPoint, setCursorPoint] = useState<{ x: number; z: number } | null>(null);
   const [columnDragState, setColumnDragStateSnapshot] = useState<ColumnDragState | null>(null);
+  const [dimensionDraft, setDimensionDraft] = useState<DimensionDraftState | null>(null);
+  const [dimensionSnap, setDimensionSnap] = useState<DimensionSnapPoint | null>(null);
+  const roofClipReactId = useId();
+  const roofClipId = `roof-plan-clip-${roofClipReactId.replace(/[^a-zA-Z0-9_-]/g, '')}`;
+  const drawingStyle = useMemo(() => resolve2dDrawingStyle(drawingStyleMode), [drawingStyleMode]);
+  const architecturalDrawing = drawingStyleMode === 'architectural';
+  const sheetBackerFill = architecturalDrawing ? drawingStyle.sheetFill : drawingStyle.viewportFill;
+  const viewportBackerFill = drawingStyle.viewportFill;
+  const referenceStroke = drawingStyle.referenceStroke;
+  const permanentStroke = drawingStyle.lineStroke;
+  const mutedStroke = drawingStyle.mutedStroke;
+  const concreteFill = drawingStyle.concreteFill;
+  const structuralFill = drawingStyle.structuralFill;
+  const selectionStroke = drawingStyle.selectionStroke;
+  const previewStroke = drawingStyle.previewStroke;
+  const previewFill = drawingStyle.previewFill;
+  const textBackerStroke = architecturalDrawing ? drawingStyle.sheetFill : '#0f172a';
+  const isRoofPlanView = active2DView === 'roof-plan';
+  const showStructuralPlanGeometry = active2DView === 'foundation-plan';
+  const roofPlanPerimeter = useMemo(() => roofPlanPerimeterPoints(resolvedRoofSystem), [resolvedRoofSystem]);
+  const roofPlanBounds = useMemo(() => {
+    if (roofPlanPerimeter.length === 0) return null;
+    const xs = roofPlanPerimeter.map((point) => point.x);
+    const zs = roofPlanPerimeter.map((point) => point.z);
+    return {
+      minX: Math.min(...xs),
+      maxX: Math.max(...xs),
+      minZ: Math.min(...zs),
+      maxZ: Math.max(...zs),
+      centerX: (Math.min(...xs) + Math.max(...xs)) / 2,
+      centerZ: (Math.min(...zs) + Math.max(...zs)) / 2,
+    };
+  }, [roofPlanPerimeter]);
 
   const setColumnDragState = useCallback((next: ColumnDragState | null) => {
     columnDragStateRef.current = next;
@@ -510,12 +637,16 @@ export default function DesignBuilderPlanCanvas({
         if (!column.hostNodeId) continue;
         const dx = point.x - column.position.x;
         const dz = point.z - column.position.z;
+        const footing = isolatedFootings.find((item) => item.columnId === column.id);
         const bodyHit =
           Math.abs(dx) <= column.widthMeters / 2 + handleToleranceMeters &&
           Math.abs(dz) <= column.depthMeters / 2 + handleToleranceMeters;
+        const footerHit =
+          footing != null &&
+          Math.abs(dx) <= footing.widthMeters / 2 + handleToleranceMeters &&
+          Math.abs(dz) <= footing.lengthMeters / 2 + handleToleranceMeters;
         const centerHandleHit = Math.hypot(dx, dz) <= Math.max(handleToleranceMeters, 0.12);
-        if (bodyHit || centerHandleHit) {
-          const footing = isolatedFootings.find((item) => item.columnId === column.id);
+        if (bodyHit || footerHit || centerHandleHit) {
           return {
             id: column.id,
             source: 'frame',
@@ -537,6 +668,158 @@ export default function DesignBuilderPlanCanvas({
     },
     [frameSystem?.columns, hitTestPlanComponent, isolatedFootings, viewport.zoom],
   );
+
+  const dimensionSnapPoints = useMemo<DimensionSnapPoint[]>(() => {
+    const points: DimensionSnapPoint[] = [];
+    const add = (point: { x: number; z: number }, type: string, componentId?: string) => {
+      if (!Number.isFinite(point.x) || !Number.isFinite(point.z)) return;
+      points.push({ point, type, componentId });
+    };
+    const addRectSnapPoints = (
+      center: { x: number; z: number },
+      widthMeters: number,
+      depthMeters: number,
+      typePrefix: string,
+      componentId?: string,
+    ) => {
+      const halfW = widthMeters / 2;
+      const halfD = depthMeters / 2;
+      add(center, `${typePrefix}-center`, componentId);
+      add({ x: center.x - halfW, z: center.z - halfD }, `${typePrefix}-corner`, componentId);
+      add({ x: center.x + halfW, z: center.z - halfD }, `${typePrefix}-corner`, componentId);
+      add({ x: center.x + halfW, z: center.z + halfD }, `${typePrefix}-corner`, componentId);
+      add({ x: center.x - halfW, z: center.z + halfD }, `${typePrefix}-corner`, componentId);
+      add({ x: center.x, z: center.z - halfD }, `${typePrefix}-edge-midpoint`, componentId);
+      add({ x: center.x + halfW, z: center.z }, `${typePrefix}-edge-midpoint`, componentId);
+      add({ x: center.x, z: center.z + halfD }, `${typePrefix}-edge-midpoint`, componentId);
+      add({ x: center.x - halfW, z: center.z }, `${typePrefix}-edge-midpoint`, componentId);
+    };
+    const addSegmentSnapPoints = (start: { x: number; z: number }, end: { x: number; z: number }, typePrefix: string, componentId?: string) => {
+      add(start, `${typePrefix}-endpoint`, componentId);
+      add(end, `${typePrefix}-endpoint`, componentId);
+      add({ x: (start.x + end.x) / 2, z: (start.z + end.z) / 2 }, `${typePrefix}-midpoint`, componentId);
+    };
+    if (isRoofPlanView) {
+      roofPlanPerimeter.forEach((point, index) => {
+        add(point, 'roof-corner', `roof-corner-${index}`);
+        const next = roofPlanPerimeter[(index + 1) % roofPlanPerimeter.length];
+        if (next) addSegmentSnapPoints(point, next, 'roof-edge', `roof-edge-${index}`);
+      });
+      if (resolvedRoofSystem?.ridgeStart && resolvedRoofSystem.ridgeEnd) {
+        addSegmentSnapPoints(
+          { x: resolvedRoofSystem.ridgeStart.x, z: resolvedRoofSystem.ridgeStart.z },
+          { x: resolvedRoofSystem.ridgeEnd.x, z: resolvedRoofSystem.ridgeEnd.z },
+          'roof-ridge',
+          'roof-ridge',
+        );
+      }
+      resolvedRoofSystem?.hipFramingMembers.forEach((member) => {
+        if (member.memberKind !== 'hip' && member.memberKind !== 'ridge') return;
+        addSegmentSnapPoints(
+          { x: member.start.x, z: member.start.z },
+          { x: member.end.x, z: member.end.z },
+          `roof-${member.memberKind}`,
+          member.id,
+        );
+      });
+      resolvedRoofSystem?.roofTopPlanes.forEach((plane) => {
+        plane.corners.forEach((corner, index) => add({ x: corner.x, z: corner.z }, 'roof-plane-corner', `${plane.id}-${index}`));
+      });
+      return points;
+    }
+    layout.nodes.forEach((node) => {
+      const displayPoint = planDisplayNodeById.get(node.id) ?? node;
+      add(displayPoint, 'wall-node');
+    });
+    layout.segments.forEach((segment) => {
+      const endpoints = resolveSegmentDisplayEndpoints({ segment, layout, planDisplayNodeById });
+      if (!endpoints) return;
+      add(endpoints.displayStart, 'wall-endpoint');
+      add(endpoints.displayEnd, 'wall-endpoint');
+      add({
+        x: (endpoints.displayStart.x + endpoints.displayEnd.x) / 2,
+        z: (endpoints.displayStart.z + endpoints.displayEnd.z) / 2,
+      }, 'wall-midpoint');
+    });
+    frameSystem?.columns.forEach((column) => {
+      addRectSnapPoints(column.position, column.widthMeters, column.depthMeters, 'column', column.id);
+    });
+    frameSystem?.beams.forEach((beam) => {
+      add({ x: beam.startPoint.x, z: beam.startPoint.z }, 'beam-endpoint', beam.id);
+      add({ x: beam.endPoint.x, z: beam.endPoint.z }, 'beam-endpoint', beam.id);
+    });
+    isolatedFootings.forEach((footing) => {
+      addRectSnapPoints(footing.position, footing.widthMeters, footing.lengthMeters, 'footing', footing.id);
+    });
+    committedRenderModel.rcComponents.forEach((component) => {
+      addRectSnapPoints(
+        { x: component.position.x, z: component.position.z },
+        component.dimensions.length ?? component.dimensions.width,
+        component.dimensions.depth,
+        component.type,
+        component.sourceComponentId,
+      );
+    });
+    openingItems.forEach((item) => {
+      try {
+        const geometry = buildPlanOpeningGeometry(item.resolved);
+        add(geometry.roughStart, 'opening-jamb', item.openingId);
+        add(geometry.roughEnd, 'opening-jamb', item.openingId);
+      } catch {
+        // Some tests and legacy drafts may carry partial opening resolution data.
+      }
+    });
+    return points;
+  }, [
+    committedRenderModel.rcComponents,
+    frameSystem?.beams,
+    frameSystem?.columns,
+    isolatedFootings,
+    isRoofPlanView,
+    layout,
+    openingItems,
+    planDisplayNodeById,
+    resolvedRoofSystem,
+    roofPlanPerimeter,
+  ]);
+
+  const resolveDimensionSnap = useCallback(
+    (point: { x: number; z: number }): DimensionSnapPoint => {
+      const toleranceMeters = Math.max(0.12, 18 / Math.max(1, viewport.zoom));
+      let best: { candidate: DimensionSnapPoint; distance: number } | null = null;
+      dimensionSnapPoints.forEach((candidate) => {
+        const distance = Math.hypot(candidate.point.x - point.x, candidate.point.z - point.z);
+        if (distance <= toleranceMeters && (!best || distance < best.distance)) {
+          best = { candidate, distance };
+        }
+      });
+      if (best) return best.candidate;
+      if (snapMode !== 'off') {
+        const spacing = Math.max(0.001, snapSpacingMeters ?? layout.gridSpacingMeters);
+        return {
+          point: {
+            x: Math.round(point.x / spacing) * spacing,
+            z: Math.round(point.z / spacing) * spacing,
+          },
+          type: 'grid-intersection',
+        };
+      }
+      return { point, type: 'free-point' };
+    },
+    [dimensionSnapPoints, layout.gridSpacingMeters, snapMode, snapSpacingMeters, viewport.zoom],
+  );
+
+  const inferDimensionKind = useCallback((start: { x: number; z: number }, end: { x: number; z: number }): DesignDimensionAnnotation['dimensionKind'] => {
+    if (Math.abs(start.z - end.z) <= 0.05) return 'horizontal';
+    if (Math.abs(start.x - end.x) <= 0.05) return 'vertical';
+    return 'aligned';
+  }, []);
+
+  const measuredDimensionValue = useCallback((start: { x: number; z: number }, end: { x: number; z: number }, kind: DesignDimensionAnnotation['dimensionKind']) => {
+    if (kind === 'horizontal') return Math.abs(end.x - start.x);
+    if (kind === 'vertical') return Math.abs(end.z - start.z);
+    return Math.hypot(end.x - start.x, end.z - start.z);
+  }, []);
 
   const cancelColumnDrag = useCallback(() => {
     const activeDrag = columnDragStateRef.current;
@@ -594,6 +877,10 @@ export default function DesignBuilderPlanCanvas({
       if (event.key === 'Escape' && columnDragStateRef.current) {
         cancelColumnDrag();
       }
+      if (event.key === 'Escape' && dimensionDraft) {
+        setDimensionDraft(null);
+        setDimensionSnap(null);
+      }
     };
     const onKeyUp = (event: KeyboardEvent) => {
       if (event.code === 'Space') spaceHeldRef.current = false;
@@ -604,7 +891,7 @@ export default function DesignBuilderPlanCanvas({
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
     };
-  }, [cancelColumnDrag]);
+  }, [cancelColumnDrag, dimensionDraft]);
 
   useEffect(() => {
     const planSurface = svgRef.current;
@@ -671,6 +958,14 @@ export default function DesignBuilderPlanCanvas({
       onComponentPointer?.({ phase: 'preview', xMeters: point.x, zMeters: point.z });
       return;
     }
+    if (toolMode === 'place_dimension') {
+      const snapped = resolveDimensionSnap(point);
+      setDimensionSnap(snapped);
+      if (dimensionDraft?.step === 'offset') {
+        setDimensionDraft({ ...dimensionDraft, offsetPoint: point });
+      }
+      return;
+    }
     if (toolMode === 'draw_wall') {
       onInteraction({
         kind: 'draw_preview',
@@ -710,6 +1005,12 @@ export default function DesignBuilderPlanCanvas({
       onInteraction({ kind: 'cancel', toolMode });
       return;
     }
+    if (toolMode === 'place_dimension') {
+      event.preventDefault();
+      setDimensionDraft(null);
+      setDimensionSnap(null);
+      return;
+    }
     if (toolMode !== 'draw_wall') return;
     event.preventDefault();
     onInteraction({ kind: 'undo_last_segment', toolMode });
@@ -730,6 +1031,51 @@ export default function DesignBuilderPlanCanvas({
       componentPointerIdRef.current = event.pointerId;
       event.currentTarget.setPointerCapture(event.pointerId);
       onComponentPointer?.({ phase: 'preview', xMeters: point.x, zMeters: point.z });
+      return;
+    }
+    if (toolMode === 'place_dimension') {
+      event.preventDefault();
+      event.stopPropagation();
+      const snapped = resolveDimensionSnap(point);
+      setDimensionSnap(snapped);
+      if (!dimensionDraft) {
+        setDimensionDraft({ step: 'start', start: snapped });
+        return;
+      }
+      if (dimensionDraft.step === 'start') {
+        setDimensionDraft({
+          step: 'offset',
+          start: dimensionDraft.start,
+          end: snapped,
+          offsetPoint: point,
+        });
+        return;
+      }
+      const kind = inferDimensionKind(dimensionDraft.start.point, dimensionDraft.end.point);
+      const now = new Date().toISOString();
+      onAnnotationCreate?.({
+        id: `dimension-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+        type: 'dimension',
+        viewType: active2DView,
+        points: {
+          start: dimensionDraft.start.point,
+          end: dimensionDraft.end.point,
+        },
+        offsetPoint: point,
+        dimensionKind: kind,
+        measuredValue: measuredDimensionValue(dimensionDraft.start.point, dimensionDraft.end.point, kind),
+        unit: 'm',
+        references: {
+          startComponentId: dimensionDraft.start.componentId,
+          endComponentId: dimensionDraft.end.componentId,
+          startSnapType: dimensionDraft.start.type,
+          endSnapType: dimensionDraft.end.type,
+        },
+        createdAt: now,
+        updatedAt: now,
+      });
+      setDimensionDraft(null);
+      setDimensionSnap(null);
       return;
     }
     if (toolMode === 'draw_wall') {
@@ -949,9 +1295,9 @@ export default function DesignBuilderPlanCanvas({
         y1={start.sy}
         x2={end.sx}
         y2={end.sy}
-        stroke="currentColor"
-        strokeOpacity={major ? 0.18 : 0.08}
-        strokeWidth={major ? 1.25 : 1}
+        stroke={major ? drawingStyle.gridMajorStroke : drawingStyle.gridStroke}
+        strokeOpacity={architecturalDrawing ? (major ? 0.42 : 0.24) : (major ? 0.18 : 0.08)}
+        strokeWidth={major ? drawingStyle.weights.reference + 0.3 : drawingStyle.weights.reference}
         pointerEvents="none"
         data-grid-kind={major ? 'major' : 'minor'}
         data-grid-spacing-meters={major ? majorGridStep : minorGridStep}
@@ -970,9 +1316,9 @@ export default function DesignBuilderPlanCanvas({
         y1={start.sy}
         x2={end.sx}
         y2={end.sy}
-        stroke="currentColor"
-        strokeOpacity={major ? 0.18 : 0.08}
-        strokeWidth={major ? 1.25 : 1}
+        stroke={major ? drawingStyle.gridMajorStroke : drawingStyle.gridStroke}
+        strokeOpacity={architecturalDrawing ? (major ? 0.42 : 0.24) : (major ? 0.18 : 0.08)}
+        strokeWidth={major ? drawingStyle.weights.reference + 0.3 : drawingStyle.weights.reference}
         pointerEvents="none"
         data-grid-kind={major ? 'major' : 'minor'}
         data-grid-spacing-meters={major ? majorGridStep : minorGridStep}
@@ -1031,6 +1377,525 @@ export default function DesignBuilderPlanCanvas({
   const xAxisEnd = planToSurfacePoint({ x: visibleBounds.maxX, z: 0 });
   const yAxisStart = planToSurfacePoint({ x: 0, z: visibleBounds.minZ });
   const yAxisEnd = planToSurfacePoint({ x: 0, z: visibleBounds.maxZ });
+  const planAnnotationPrimitives: DrawingPrimitive[] = [];
+  if (architecturalDrawing) {
+    planAnnotationPrimitives.push({
+      kind: 'text',
+      key: 'plan-title',
+      x: surfaceSize.width / 2,
+      y: isRoofPlanView ? 24 : 30,
+      text: planViewTitle(active2DView),
+      anchor: 'middle',
+      size: isRoofPlanView ? 11 : 12,
+      weight: 'bold',
+      data: { 'data-drawing-annotation': 'plan-title' },
+    });
+  }
+
+  const renderDimensionGraphic = (params: {
+    id: string;
+    start: { x: number; z: number };
+    end: { x: number; z: number };
+    offsetPoint: { x: number; z: number };
+    kind: DesignDimensionAnnotation['dimensionKind'];
+    label?: string;
+    preview?: boolean;
+  }) => {
+    const start = planToSurfacePoint(params.start);
+    const end = planToSurfacePoint(params.end);
+    const offset = planToSurfacePoint(params.offsetPoint);
+    const measured = measuredDimensionValue(params.start, params.end, params.kind);
+    const color = params.preview ? previewStroke : drawingStyle.lineStroke;
+    const referenceColor = params.preview ? previewStroke : drawingStyle.referenceStroke;
+    const label = params.label ?? `${measured.toFixed(2)} m`;
+    let d1 = { x: start.sx, y: start.sy };
+    let d2 = { x: end.sx, y: end.sy };
+    if (params.kind === 'horizontal') {
+      d1 = { x: start.sx, y: offset.sy };
+      d2 = { x: end.sx, y: offset.sy };
+    } else if (params.kind === 'vertical') {
+      d1 = { x: offset.sx, y: start.sy };
+      d2 = { x: offset.sx, y: end.sy };
+    } else {
+      const dx = end.sx - start.sx;
+      const dy = end.sy - start.sy;
+      const length = Math.max(1, Math.hypot(dx, dy));
+      const normal = { x: -dy / length, y: dx / length };
+      const midpoint = { x: (start.sx + end.sx) / 2, y: (start.sy + end.sy) / 2 };
+      const offsetDistance = (offset.sx - midpoint.x) * normal.x + (offset.sy - midpoint.y) * normal.y;
+      d1 = { x: start.sx + normal.x * offsetDistance, y: start.sy + normal.y * offsetDistance };
+      d2 = { x: end.sx + normal.x * offsetDistance, y: end.sy + normal.y * offsetDistance };
+    }
+    const tick = 5;
+    const textX = (d1.x + d2.x) / 2;
+    const textY = (d1.y + d2.y) / 2 - 6;
+    return (
+      <g key={params.id} pointerEvents="none" data-canvas-layer={params.preview ? 'active-dimension-preview' : 'permanent-dimensions'} data-dimension-id={params.id}>
+        <line x1={start.sx} y1={start.sy} x2={d1.x} y2={d1.y} stroke={referenceColor} strokeWidth={params.preview ? 1.2 : 0.8} strokeDasharray={params.preview ? '4 3' : undefined} />
+        <line x1={end.sx} y1={end.sy} x2={d2.x} y2={d2.y} stroke={referenceColor} strokeWidth={params.preview ? 1.2 : 0.8} strokeDasharray={params.preview ? '4 3' : undefined} />
+        <line x1={d1.x} y1={d1.y} x2={d2.x} y2={d2.y} stroke={color} strokeWidth={params.preview ? 1.8 : 1.1} />
+        <line x1={d1.x - tick} y1={d1.y + tick} x2={d1.x + tick} y2={d1.y - tick} stroke={color} strokeWidth={params.preview ? 1.8 : 1.1} />
+        <line x1={d2.x - tick} y1={d2.y + tick} x2={d2.x + tick} y2={d2.y - tick} stroke={color} strokeWidth={params.preview ? 1.8 : 1.1} />
+        <text
+          x={textX}
+          y={textY}
+          textAnchor="middle"
+          fill={params.preview ? previewStroke : drawingStyle.textFill}
+          fontSize={10}
+          fontWeight={700}
+          paintOrder="stroke"
+          stroke={textBackerStroke}
+          strokeWidth={3}
+        >
+          {label}
+        </text>
+      </g>
+    );
+  };
+
+  const renderedDimensionAnnotations = annotations
+    .filter((annotation): annotation is DesignDimensionAnnotation => annotation.type === 'dimension' && annotation.viewType === active2DView)
+    .filter((annotation) => {
+      if (!isRoofPlanView || roofPlanPerimeter.length < 3) return true;
+      return !pointInPlanPolygon(annotation.offsetPoint, roofPlanPerimeter);
+    })
+    .map((annotation) =>
+      renderDimensionGraphic({
+        id: annotation.id,
+        start: annotation.points.start,
+        end: annotation.points.end,
+        offsetPoint: annotation.offsetPoint,
+        kind: annotation.dimensionKind,
+        label: annotation.labelOverride,
+      }),
+    );
+
+  const renderedDimensionPreview =
+    dimensionDraft?.step === 'offset'
+      ? renderDimensionGraphic({
+          id: 'dimension-preview',
+          start: dimensionDraft.start.point,
+          end: dimensionDraft.end.point,
+          offsetPoint: dimensionDraft.offsetPoint,
+          kind: inferDimensionKind(dimensionDraft.start.point, dimensionDraft.end.point),
+          preview: true,
+        })
+      : null;
+
+  const renderPlanMaterialStrip = (
+    key: string,
+    startPoint: { x: number; z: number },
+    endPoint: { x: number; z: number },
+    widthMeters: number,
+    options: {
+      fill?: string;
+      stroke?: string;
+      strokeWidth?: number;
+      opacity?: number;
+      strokeDasharray?: string;
+      data?: Record<string, string>;
+    } = {},
+  ) => {
+    const start = planToSurfacePoint(startPoint);
+    const end = planToSurfacePoint(endPoint);
+    const dx = end.sx - start.sx;
+    const dy = end.sy - start.sy;
+    const length = Math.hypot(dx, dy);
+    if (length < 2) return null;
+    const half = Math.max(1.5, (Math.max(0.01, widthMeters) * viewport.zoom) / 2);
+    const nx = (-dy / length) * half;
+    const ny = (dx / length) * half;
+    const points = [
+      `${start.sx + nx},${start.sy + ny}`,
+      `${end.sx + nx},${end.sy + ny}`,
+      `${end.sx - nx},${end.sy - ny}`,
+      `${start.sx - nx},${start.sy - ny}`,
+    ].join(' ');
+    return (
+      <polygon
+        key={key}
+        points={points}
+        fill={options.fill ?? 'none'}
+        stroke={options.stroke ?? permanentStroke}
+        strokeWidth={options.strokeWidth ?? drawingStyle.weights.light}
+        strokeDasharray={options.strokeDasharray}
+        opacity={options.opacity ?? 1}
+        strokeLinejoin="round"
+        pointerEvents="none"
+        {...options.data}
+      />
+    );
+  };
+
+  const renderRoofPlanDrawing = () => {
+    if (!isRoofPlanView) return null;
+    if (!resolvedRoofSystem?.supported || roofPlanPerimeter.length < 3) {
+      return (
+        <g pointerEvents="none" data-canvas-layer="roof-plan">
+          <text
+            x={surfaceSize.width / 2}
+            y={78}
+            textAnchor="middle"
+            fill={mutedStroke}
+            fontSize={11}
+            fontWeight={700}
+            data-roof-plan-warning="true"
+          >
+            Complex roof geometry needs manual refinement
+          </text>
+        </g>
+      );
+    }
+
+    const polygonPoints = roofPlanPerimeter
+      .map((point) => {
+        const surface = planToSurfacePoint(point);
+        return `${surface.sx},${surface.sy}`;
+      })
+      .join(' ');
+    const roof = resolvedRoofSystem;
+    const pitch = roofPitchLabel(roof);
+    const ridgeStart = roof.ridgeStart ? { x: roof.ridgeStart.x, z: roof.ridgeStart.z } : null;
+    const ridgeEnd = roof.ridgeEnd ? { x: roof.ridgeEnd.x, z: roof.ridgeEnd.z } : null;
+    const ridgeVector = ridgeStart && ridgeEnd ? { x: ridgeEnd.x - ridgeStart.x, z: ridgeEnd.z - ridgeStart.z } : { x: 1, z: 0 };
+    const ridgeLength = Math.max(0.001, Math.hypot(ridgeVector.x, ridgeVector.z));
+    const ridgeUnit = { x: ridgeVector.x / ridgeLength, z: ridgeVector.z / ridgeLength };
+    const hatchNormal = { x: -ridgeUnit.z, z: ridgeUnit.x };
+    const roofPlanProjectionSpan = roofPlanBounds
+      ? Math.max(roofPlanBounds.maxX - roofPlanBounds.minX, roofPlanBounds.maxZ - roofPlanBounds.minZ)
+      : 0;
+    const renderPlanMemberFootprint = (
+      key: string,
+      startPoint: { x: number; z: number },
+      endPoint: { x: number; z: number },
+      widthMeters: number,
+      options: {
+        fill?: string;
+        stroke?: string;
+        strokeWidth?: number;
+        opacity?: number;
+        data?: Record<string, string>;
+        clip?: boolean;
+      } = {},
+    ) => {
+      const start = planToSurfacePoint(startPoint);
+      const end = planToSurfacePoint(endPoint);
+      const dx = end.sx - start.sx;
+      const dy = end.sy - start.sy;
+      const length = Math.hypot(dx, dy);
+      if (length < 2) return null;
+      const half = Math.max(1.5, (Math.max(0.01, widthMeters) * viewport.zoom) / 2);
+      const nx = (-dy / length) * half;
+      const ny = (dx / length) * half;
+      const points = [
+        `${start.sx + nx},${start.sy + ny}`,
+        `${end.sx + nx},${end.sy + ny}`,
+        `${end.sx - nx},${end.sy - ny}`,
+        `${start.sx - nx},${start.sy - ny}`,
+      ].join(' ');
+      return (
+        <polygon
+          key={key}
+          points={points}
+          fill={options.fill ?? (architecturalDrawing ? '#e5e7eb' : '#475569')}
+          stroke={options.stroke ?? permanentStroke}
+          strokeWidth={options.strokeWidth ?? drawingStyle.weights.light}
+          opacity={options.opacity ?? 1}
+          clipPath={options.clip === false ? undefined : `url(#${roofClipId})`}
+          strokeLinejoin="round"
+          pointerEvents="none"
+          {...options.data}
+        />
+      );
+    };
+    const hatchLines = roofPlanDisplay.showHatch && roofPlanBounds
+      ? Array.from({ length: Math.max(0, Math.ceil(((roofPlanBounds.maxX - roofPlanBounds.minX) + (roofPlanBounds.maxZ - roofPlanBounds.minZ)) / 0.35)) }, (_, index) => {
+          const offset = index * 0.35 - (roofPlanBounds.maxX - roofPlanBounds.minX + roofPlanBounds.maxZ - roofPlanBounds.minZ) / 2;
+          const center = { x: roofPlanBounds.centerX + hatchNormal.x * offset, z: roofPlanBounds.centerZ + hatchNormal.z * offset };
+          const half = Math.max(roofPlanBounds.maxX - roofPlanBounds.minX, roofPlanBounds.maxZ - roofPlanBounds.minZ) * 0.75;
+          const start = planToSurfacePoint({ x: center.x - ridgeUnit.x * half, z: center.z - ridgeUnit.z * half });
+          const end = planToSurfacePoint({ x: center.x + ridgeUnit.x * half, z: center.z + ridgeUnit.z * half });
+          return (
+            <line
+              key={`roof-hatch-${index}`}
+              x1={start.sx}
+              y1={start.sy}
+              x2={end.sx}
+              y2={end.sy}
+              stroke={referenceStroke}
+              strokeWidth={0.8}
+              strokeOpacity={0.2}
+              clipPath={`url(#${roofClipId})`}
+              data-roof-plan-hatch="true"
+            />
+          );
+        })
+      : [];
+    const purlinFootprints = roof.purlinPlacements.map((purlin) =>
+      renderPlanMemberFootprint(
+        purlin.id,
+        { x: purlin.start.x, z: purlin.start.z },
+        { x: purlin.end.x, z: purlin.end.z },
+        PURLIN_PROFILE_WIDTH_METERS,
+        {
+          fill: architecturalDrawing ? '#f1f5f9' : '#475569',
+          stroke: mutedStroke,
+          strokeWidth: drawingStyle.weights.light,
+          opacity: 0.9,
+          data: { 'data-roof-plan-purlin': purlin.slopePlaneId },
+        },
+      ),
+    );
+    const inferredPurlinLines = roof.purlinPlacements.length === 0 && roofPlanDisplay.showHatch && roofPlanBounds
+      ? Array.from({ length: Math.max(0, Math.floor(roofPlanProjectionSpan / 0.65) + 1) }, (_, index) => {
+          const count = Math.max(1, Math.floor(roofPlanProjectionSpan / 0.65) + 1);
+          const offset = (index / Math.max(1, count - 1) - 0.5) * roofPlanProjectionSpan;
+          const center = { x: roofPlanBounds.centerX + hatchNormal.x * offset, z: roofPlanBounds.centerZ + hatchNormal.z * offset };
+          const half = roofPlanProjectionSpan * 0.72;
+          const start = planToSurfacePoint({ x: center.x - ridgeUnit.x * half, z: center.z - ridgeUnit.z * half });
+          const end = planToSurfacePoint({ x: center.x + ridgeUnit.x * half, z: center.z + ridgeUnit.z * half });
+          return (
+            <line
+              key={`roof-inferred-purlin-${index}`}
+              x1={start.sx}
+              y1={start.sy}
+              x2={end.sx}
+              y2={end.sy}
+              stroke={mutedStroke}
+              strokeWidth={drawingStyle.weights.light + 0.35}
+              strokeOpacity={0.58}
+              clipPath={`url(#${roofClipId})`}
+              data-roof-plan-framing-line="inferred-purlin"
+            />
+          );
+        })
+      : [];
+    const trussMemberFootprints = roof.trussPlacements.flatMap((truss) =>
+      truss.members.map((member) => {
+        const isPrimary = member.memberKind === 'bottom_chord' || member.memberKind.startsWith('top_chord');
+        return renderPlanMemberFootprint(
+          `${truss.id}-${member.id}`,
+          { x: member.start.x, z: member.start.z },
+          { x: member.end.x, z: member.end.z },
+          TRUSS_CHORD_PROFILE_METERS,
+          {
+            fill: isPrimary ? (architecturalDrawing ? '#e5e7eb' : '#334155') : (architecturalDrawing ? '#f8fafc' : '#475569'),
+            stroke: isPrimary ? permanentStroke : mutedStroke,
+            strokeWidth: isPrimary ? drawingStyle.weights.medium : drawingStyle.weights.light + 0.35,
+            opacity: isPrimary ? 0.96 : 0.84,
+            data: {
+              'data-roof-plan-truss-member': member.memberKind,
+              'data-roof-plan-truss-id': truss.id,
+            },
+          },
+        );
+      }),
+    );
+    const inferredTrussLines = roof.trussPlacements.length === 0 && ridgeStart && ridgeEnd && roofPlanBounds
+      ? Array.from({ length: Math.max(2, Math.floor(ridgeLength / 0.8) + 1) }, (_, index) => {
+          const count = Math.max(2, Math.floor(ridgeLength / 0.8) + 1);
+          const t = index / Math.max(1, count - 1);
+          const ridgePoint = {
+            x: ridgeStart.x + ridgeVector.x * t,
+            z: ridgeStart.z + ridgeVector.z * t,
+          };
+          const half = roofPlanProjectionSpan * 0.58;
+          const start = planToSurfacePoint({ x: ridgePoint.x - hatchNormal.x * half, z: ridgePoint.z - hatchNormal.z * half });
+          const end = planToSurfacePoint({ x: ridgePoint.x + hatchNormal.x * half, z: ridgePoint.z + hatchNormal.z * half });
+          return (
+            <line
+              key={`roof-inferred-truss-${index}`}
+              x1={start.sx}
+              y1={start.sy}
+              x2={end.sx}
+              y2={end.sy}
+              stroke={permanentStroke}
+              strokeWidth={drawingStyle.weights.light + 0.5}
+              strokeOpacity={0.62}
+              clipPath={`url(#${roofClipId})`}
+              data-roof-plan-framing-line="inferred-truss"
+            />
+          );
+        })
+      : [];
+    const planeLines = roof.roofTopPlanes.map((plane) => (
+      <polyline
+        key={`roof-plane-${plane.id}`}
+        points={[...plane.corners, plane.corners[0]!]
+          .filter(Boolean)
+          .map((corner) => {
+            const surface = planToSurfacePoint({ x: corner.x, z: corner.z });
+            return `${surface.sx},${surface.sy}`;
+          })
+          .join(' ')}
+        fill="none"
+        stroke={referenceStroke}
+        strokeWidth={drawingStyle.weights.light + 0.2}
+        strokeOpacity={0.68}
+        pointerEvents="none"
+        data-roof-plan-plane={plane.id}
+      />
+    ));
+    const slopeArrows = roofPlanDisplay.showSlopeArrows
+      ? roof.roofTopPlanes.map((plane) => {
+          const centroid = plane.corners.reduce((sum, corner) => ({ x: sum.x + corner.x, z: sum.z + corner.z }), { x: 0, z: 0 });
+          centroid.x /= Math.max(1, plane.corners.length);
+          centroid.z /= Math.max(1, plane.corners.length);
+          const ridgeMid = ridgeStart && ridgeEnd
+            ? { x: (ridgeStart.x + ridgeEnd.x) / 2, z: (ridgeStart.z + ridgeEnd.z) / 2 }
+            : { x: roofPlanBounds?.centerX ?? centroid.x, z: roofPlanBounds?.centerZ ?? centroid.z };
+          const direction = { x: centroid.x - ridgeMid.x, z: centroid.z - ridgeMid.z };
+          const length = Math.max(0.001, Math.hypot(direction.x, direction.z));
+          const unit = length > 0.001 ? { x: direction.x / length, z: direction.z / length } : { x: 0, z: 1 };
+          const arrowStart = planToSurfacePoint({ x: centroid.x - unit.x * 0.32, z: centroid.z - unit.z * 0.32 });
+          const arrowEnd = planToSurfacePoint({ x: centroid.x + unit.x * 0.42, z: centroid.z + unit.z * 0.42 });
+          const headLeft = planToSurfacePoint({ x: centroid.x + unit.x * 0.28 - unit.z * 0.12, z: centroid.z + unit.z * 0.28 + unit.x * 0.12 });
+          const headRight = planToSurfacePoint({ x: centroid.x + unit.x * 0.28 + unit.z * 0.12, z: centroid.z + unit.z * 0.28 - unit.x * 0.12 });
+          return (
+            <g key={`roof-slope-${plane.id}`} pointerEvents="none" data-roof-plan-slope-arrow={plane.id}>
+              <line x1={arrowStart.sx} y1={arrowStart.sy} x2={arrowEnd.sx} y2={arrowEnd.sy} stroke={mutedStroke} strokeWidth={1.4} />
+              <polyline points={`${headLeft.sx},${headLeft.sy} ${arrowEnd.sx},${arrowEnd.sy} ${headRight.sx},${headRight.sy}`} fill="none" stroke={mutedStroke} strokeWidth={1.4} />
+              {pitch ? (
+                <text
+                  x={arrowEnd.sx + 6}
+                  y={arrowEnd.sy - 6}
+                  fill={drawingStyle.textFill}
+                  fontSize={9}
+                  fontWeight={700}
+                  paintOrder="stroke"
+                  stroke={textBackerStroke}
+                  strokeWidth={2.5}
+                >
+                  {pitch}
+                </text>
+              ) : null}
+            </g>
+          );
+        })
+      : [];
+
+    return (
+      <g pointerEvents="none" data-canvas-layer="roof-plan" data-roof-plan-type={roof.roofType}>
+        <defs>
+          <clipPath id={roofClipId}>
+            <polygon points={polygonPoints} />
+          </clipPath>
+        </defs>
+        {roofPlanDisplay.showReferenceLines && roof.structuralBearingPerimeter.length >= 3 ? (
+          <polygon
+            points={roof.structuralBearingPerimeter
+              .map((point) => {
+                const surface = planToSurfacePoint({ x: point.x, z: point.z });
+                return `${surface.sx},${surface.sy}`;
+              })
+              .join(' ')}
+            fill="none"
+            stroke={referenceStroke}
+            strokeWidth={drawingStyle.weights.light}
+            strokeDasharray="8 5"
+            strokeOpacity={0.54}
+            data-roof-plan-bearing="true"
+          />
+        ) : null}
+        <polygon
+          points={polygonPoints}
+          fill={architecturalDrawing ? '#f8fafc' : 'none'}
+          fillOpacity={0.36}
+          stroke={selectedObjectType === 'gable_roof_system' ? selectionStroke : permanentStroke}
+          strokeWidth={selectedObjectType === 'gable_roof_system' ? drawingStyle.weights.selection : drawingStyle.weights.medium + 0.6}
+          data-roof-plan-outline="true"
+        />
+        {hatchLines}
+        {inferredPurlinLines}
+        {purlinFootprints}
+        {planeLines}
+        {inferredTrussLines}
+        {trussMemberFootprints}
+        {ridgeStart && ridgeEnd ? (
+          <>
+            {(roof.ridgeCapPlacements.length > 0
+              ? roof.ridgeCapPlacements
+              : roof.ridgeCapPlacement
+                ? [roof.ridgeCapPlacement]
+                : [{
+                    id: 'fallback',
+                    start: { ...ridgeStart, y: roof.peakElevationMeters },
+                    end: { ...ridgeEnd, y: roof.peakElevationMeters },
+                    widthMeters: DEFAULT_RIDGE_CAP_WIDTH_METERS,
+                  }]
+            ).map((cap) =>
+              renderPlanMemberFootprint(
+                `roof-ridge-cap-${cap.id}`,
+                { x: cap.start.x, z: cap.start.z },
+                { x: cap.end.x, z: cap.end.z },
+                cap.widthMeters,
+                {
+                  fill: architecturalDrawing ? '#d1d5db' : '#64748b',
+                  stroke: selectedObjectType === 'gable_roof_system' ? selectionStroke : permanentStroke,
+                  strokeWidth: selectedObjectType === 'gable_roof_system' ? drawingStyle.weights.selection : drawingStyle.weights.medium,
+                  opacity: 0.96,
+                  data: { 'data-roof-plan-ridge': 'true' },
+                  clip: false,
+                },
+              ),
+            )}
+            <text
+              x={planToSurfacePoint({ x: (ridgeStart.x + ridgeEnd.x) / 2, z: (ridgeStart.z + ridgeEnd.z) / 2 }).sx}
+              y={planToSurfacePoint({ x: (ridgeStart.x + ridgeEnd.x) / 2, z: (ridgeStart.z + ridgeEnd.z) / 2 }).sy - 10}
+              textAnchor="middle"
+              fill={drawingStyle.textFill}
+              fontSize={8.5}
+              fontWeight={700}
+              paintOrder="stroke"
+              stroke={textBackerStroke}
+              strokeWidth={2.5}
+              data-roof-plan-callout="ridge"
+            >
+              {`RIDGE ${roof.ridgeLengthMeters.toFixed(2)} m`}
+            </text>
+          </>
+        ) : null}
+        {roof.hipFramingMembers
+          .filter((member) => member.memberKind === 'hip' || member.memberKind === 'ridge')
+          .map((member) =>
+            renderPlanMemberFootprint(
+              member.id,
+              { x: member.start.x, z: member.start.z },
+              { x: member.end.x, z: member.end.z },
+              TRUSS_CHORD_PROFILE_METERS,
+              {
+                fill: member.memberKind === 'ridge'
+                  ? (architecturalDrawing ? '#e5e7eb' : '#334155')
+                  : (architecturalDrawing ? '#f8fafc' : '#475569'),
+                stroke: member.memberKind === 'ridge' ? permanentStroke : mutedStroke,
+                strokeWidth: member.memberKind === 'ridge' ? drawingStyle.weights.medium : drawingStyle.weights.light + 0.35,
+                opacity: member.memberKind === 'ridge' ? 0.96 : 0.86,
+                data: { 'data-roof-plan-member': member.memberKind },
+              },
+            ),
+          )}
+        {slopeArrows}
+        {roofPlanDisplay.showDimensions && roofPlanBounds ? (
+          <>
+            {renderDimensionGraphic({
+              id: 'roof-overall-length',
+              start: { x: roofPlanBounds.minX, z: roofPlanBounds.maxZ },
+              end: { x: roofPlanBounds.maxX, z: roofPlanBounds.maxZ },
+              offsetPoint: { x: roofPlanBounds.centerX, z: roofPlanBounds.maxZ + 0.95 },
+              kind: 'horizontal',
+            })}
+            {renderDimensionGraphic({
+              id: 'roof-overall-width',
+              start: { x: roofPlanBounds.maxX, z: roofPlanBounds.minZ },
+              end: { x: roofPlanBounds.maxX, z: roofPlanBounds.maxZ },
+              offsetPoint: { x: roofPlanBounds.maxX + 0.75, z: roofPlanBounds.centerZ },
+              kind: 'vertical',
+            })}
+          </>
+        ) : null}
+      </g>
+    );
+  };
 
   const renderPlanRcComponent = (component: DesignRenderRcComponent, preview = false) => {
     const selected = !preview && selectedComponentId === component.sourceComponentId;
@@ -1060,16 +1925,11 @@ export default function DesignBuilderPlanCanvas({
                 y={center.sy - footerLengthPx / 2}
                 width={footerWidthPx}
                 height={footerLengthPx}
-                fill={preview ? '#38bdf822' : '#78716c55'}
-                stroke={preview || selected ? '#67e8f9' : '#57534e'}
+                fill={preview ? previewFill : architecturalDrawing ? '#f1f5f9' : '#78716c55'}
+                stroke={preview ? previewStroke : selected ? selectionStroke : architecturalDrawing ? mutedStroke : '#57534e'}
                 strokeWidth={selected ? 2 : 1.2}
-                strokeDasharray="6 4"
-              />
-              <path
-                d={`M ${center.sx - footerWidthPx / 2} ${center.sy + footerLengthPx / 2} L ${center.sx + footerWidthPx / 2} ${center.sy - footerLengthPx / 2}`}
-                stroke={preview ? '#67e8f9' : '#2dd4bf'}
-                strokeWidth={0.8}
-                strokeOpacity={0.65}
+                strokeDasharray={preview ? '6 4' : undefined}
+                data-component-footer-id={component.footer.id}
               />
             </>
           ) : null}
@@ -1078,13 +1938,14 @@ export default function DesignBuilderPlanCanvas({
             y={center.sy - depthPx / 2}
             width={widthPx}
             height={depthPx}
-            fill={preview ? '#67e8f966' : '#cbd5e1'}
-            stroke={preview || selected ? '#22d3ee' : '#475569'}
+            fill={preview ? previewFill : concreteFill}
+            stroke={preview ? previewStroke : selected ? selectionStroke : permanentStroke}
             strokeWidth={preview || selected ? 2 : 1.6}
             strokeDasharray={preview ? '4 3' : undefined}
+            data-component-column-body-id={component.id}
           />
-          <line x1={center.sx - widthPx * 0.8} y1={center.sy} x2={center.sx + widthPx * 0.8} y2={center.sy} stroke={preview ? '#38bdf8' : '#64748b'} strokeWidth={1} strokeOpacity={preview ? 0.8 : 0.7} />
-          <line x1={center.sx} y1={center.sy - depthPx * 0.8} x2={center.sx} y2={center.sy + depthPx * 0.8} stroke={preview ? '#38bdf8' : '#64748b'} strokeWidth={1} strokeOpacity={preview ? 0.8 : 0.7} />
+          <line x1={center.sx - widthPx * 0.8} y1={center.sy} x2={center.sx + widthPx * 0.8} y2={center.sy} stroke={preview ? previewStroke : referenceStroke} strokeWidth={1} strokeOpacity={preview ? 0.8 : 0.7} />
+          <line x1={center.sx} y1={center.sy - depthPx * 0.8} x2={center.sx} y2={center.sy + depthPx * 0.8} stroke={preview ? previewStroke : referenceStroke} strokeWidth={1} strokeOpacity={preview ? 0.8 : 0.7} />
           {selected
             ? [
                 [-1, -1],
@@ -1098,8 +1959,8 @@ export default function DesignBuilderPlanCanvas({
                   y={center.sy + dy * (depthPx / 2) - 4}
                   width={8}
                   height={8}
-                  fill="#22d3ee"
-                  stroke="#0f172a"
+                  fill={selectionStroke}
+                  stroke={textBackerStroke}
                   strokeWidth={1}
                 />
               ))
@@ -1115,8 +1976,8 @@ export default function DesignBuilderPlanCanvas({
           y={center.sy - widthPx / 2}
           width={lengthPx}
           height={widthPx}
-          fill={preview ? '#22d3ee22' : '#94a3b833'}
-          stroke={preview || selected ? '#67e8f9' : '#64748b'}
+          fill={preview ? previewFill : architecturalDrawing ? '#eef2f7' : '#94a3b833'}
+          stroke={preview ? previewStroke : selected ? selectionStroke : mutedStroke}
           strokeWidth={preview || selected ? 2 : 1.5}
           strokeDasharray={preview ? '5 4' : undefined}
           {...common}
@@ -1124,19 +1985,48 @@ export default function DesignBuilderPlanCanvas({
       );
     }
     if (component.type === 'footer') {
+      const markerSizePx = Math.max(6, Math.min(widthPx, depthPx) / 3);
       return (
-        <rect
-          key={component.id}
-          x={center.sx - widthPx / 2}
-          y={center.sy - depthPx / 2}
-          width={widthPx}
-          height={depthPx}
-          fill={preview ? '#38bdf822' : '#78716c55'}
-          stroke={preview || selected ? '#67e8f9' : '#78716c'}
-          strokeWidth={preview || selected ? 2 : 1.5}
-          strokeDasharray="6 4"
-          {...common}
-        />
+        <g key={component.id} pointerEvents="none">
+          <rect
+            x={center.sx - widthPx / 2}
+            y={center.sy - depthPx / 2}
+            width={widthPx}
+            height={depthPx}
+            fill={preview ? previewFill : architecturalDrawing ? '#f1f5f9' : '#78716c55'}
+            stroke={preview ? previewStroke : selected ? selectionStroke : architecturalDrawing ? mutedStroke : '#57534e'}
+            strokeWidth={selected ? 2.2 : preview ? 2 : 1.5}
+            {...common}
+          />
+          <rect
+            x={center.sx - markerSizePx / 2}
+            y={center.sy - markerSizePx / 2}
+            width={markerSizePx}
+            height={markerSizePx}
+            fill={preview ? previewFill : structuralFill}
+            stroke={preview ? previewStroke : selected ? selectionStroke : permanentStroke}
+            strokeWidth={preview || selected ? 1.8 : 1.3}
+            data-component-footer-column-marker-id={component.id}
+          />
+          <line
+            x1={center.sx - markerSizePx * 0.7}
+            y1={center.sy}
+            x2={center.sx + markerSizePx * 0.7}
+            y2={center.sy}
+            stroke={preview ? previewStroke : selected ? selectionStroke : referenceStroke}
+            strokeWidth={0.8}
+            strokeOpacity={preview ? 0.8 : 0.6}
+          />
+          <line
+            x1={center.sx}
+            y1={center.sy - markerSizePx * 0.7}
+            x2={center.sx}
+            y2={center.sy + markerSizePx * 0.7}
+            stroke={preview ? previewStroke : selected ? selectionStroke : referenceStroke}
+            strokeWidth={0.8}
+            strokeOpacity={preview ? 0.8 : 0.6}
+          />
+        </g>
       );
     }
     return (
@@ -1146,8 +2036,8 @@ export default function DesignBuilderPlanCanvas({
         y={center.sy - depthPx / 2}
         width={widthPx}
         height={depthPx}
-        fill={preview ? '#67e8f966' : '#cbd5e1'}
-        stroke={preview || selected ? '#22d3ee' : '#475569'}
+        fill={preview ? previewFill : concreteFill}
+        stroke={preview ? previewStroke : selected ? selectionStroke : permanentStroke}
         strokeWidth={preview || selected ? 2 : 1.5}
         strokeDasharray={preview ? '4 3' : undefined}
         {...common}
@@ -1190,22 +2080,19 @@ export default function DesignBuilderPlanCanvas({
     return (
       <g pointerEvents="none" data-column-drag-preview="true" data-column-drag-column-id={columnDragState.columnId}>
         {connectedBeams.map((beam: StructuralBeam) => {
-          const start = planToSurfacePoint(moveEndpoint(beam.startPoint, beam.startColumnId === columnDragState.columnId));
-          const end = planToSurfacePoint(moveEndpoint(beam.endPoint, beam.endColumnId === columnDragState.columnId));
-          return (
-            <line
-              key={`drag-beam-${beam.id}`}
-              x1={start.sx}
-              y1={start.sy}
-              x2={end.sx}
-              y2={end.sy}
-              stroke="#67e8f9"
-              strokeOpacity={0.82}
-              strokeWidth={Math.max(4, beam.widthMeters * viewport.zoom)}
-              strokeDasharray="9 5"
-              strokeLinecap="butt"
-              data-column-drag-beam-preview={beam.id}
-            />
+          return renderPlanMaterialStrip(
+            `drag-beam-${beam.id}`,
+            moveEndpoint(beam.startPoint, beam.startColumnId === columnDragState.columnId),
+            moveEndpoint(beam.endPoint, beam.endColumnId === columnDragState.columnId),
+            beam.widthMeters,
+            {
+              fill: 'none',
+              stroke: previewStroke,
+              strokeWidth: 1.8,
+              strokeDasharray: '8 5',
+              opacity: 0.88,
+              data: { 'data-column-drag-beam-preview': beam.id },
+            },
           );
         })}
         {columnDragState.footer ? (
@@ -1265,12 +2152,11 @@ export default function DesignBuilderPlanCanvas({
           y={previewCenter.sy - halfD}
           width={halfW * 2}
           height={halfD * 2}
-          fill="#67e8f966"
-          stroke="#22d3ee"
-          strokeWidth={2.4}
+          fill={structuralFill}
+          stroke={previewStroke}
+          strokeWidth={2.2}
+          strokeDasharray="5 3"
         />
-        <line x1={previewCenter.sx - halfW * 1.45} y1={previewCenter.sy} x2={previewCenter.sx + halfW * 1.45} y2={previewCenter.sy} stroke="#e0f2fe" strokeWidth={1.2} />
-        <line x1={previewCenter.sx} y1={previewCenter.sy - halfD * 1.45} x2={previewCenter.sx} y2={previewCenter.sy + halfD * 1.45} stroke="#e0f2fe" strokeWidth={1.2} />
         <rect
           x={previewCenter.sx + 14}
           y={previewCenter.sy + 14}
@@ -1295,8 +2181,16 @@ export default function DesignBuilderPlanCanvas({
     );
   };
 
+  const showPlanNodeMarkers =
+    showStructuralPlanGeometry &&
+    (!architecturalDrawing ||
+      (frameSystem?.columns.length ?? 0) === 0 ||
+      toolMode === 'draw_wall' ||
+      toolMode === 'move_wall_node' ||
+      selectedNodeId != null);
+
   return (
-    <div className="relative h-full min-h-[420px] overflow-hidden rounded-2xl border border-slate-200 bg-slate-950 text-slate-100 dark:border-slate-700">
+    <div className="relative h-full min-h-[420px] overflow-hidden rounded-2xl border border-slate-200 bg-slate-950 text-slate-100 dark:border-slate-700" data-drawing-style-mode={drawingStyleMode}>
       <div
         className="absolute left-3 top-3 rounded-full border border-cyan-700 bg-slate-900/90 px-3 py-1 text-xs font-medium text-cyan-200"
         data-view-grid-meters={planGridState.displayMinorSpacingMeters}
@@ -1335,24 +2229,36 @@ export default function DesignBuilderPlanCanvas({
         onContextMenu={handleContextMenu}
         aria-label="Design Builder wall layout plan view"
       >
-        <rect width={surfaceSize.width} height={surfaceSize.height} fill="#0f172a" />
+        <rect width={surfaceSize.width} height={surfaceSize.height} fill={viewportBackerFill} data-canvas-layer="background" />
+        <rect
+          x={architecturalDrawing ? 18 : 0}
+          y={architecturalDrawing ? 18 : 0}
+          width={architecturalDrawing ? Math.max(0, surfaceSize.width - 36) : surfaceSize.width}
+          height={architecturalDrawing ? Math.max(0, surfaceSize.height - 36) : surfaceSize.height}
+          fill={sheetBackerFill}
+          stroke={architecturalDrawing ? drawingStyle.sheetStroke : 'none'}
+          strokeWidth={architecturalDrawing ? 1 : 0}
+          pointerEvents="none"
+          data-canvas-layer="drawing-sheet"
+        />
         {gridLines}
-        <line x1={xAxisStart.sx} y1={xAxisStart.sy} x2={xAxisEnd.sx} y2={xAxisEnd.sy} stroke="#334155" strokeWidth={1.5} strokeOpacity={0.85} pointerEvents="none" data-axis="x" />
-        <line x1={yAxisStart.sx} y1={yAxisStart.sy} x2={yAxisEnd.sx} y2={yAxisEnd.sy} stroke="#334155" strokeWidth={1.5} strokeOpacity={0.85} pointerEvents="none" data-axis="y" />
-        <line x1={originPoint.sx - 10} y1={originPoint.sy} x2={originPoint.sx + 10} y2={originPoint.sy} stroke="#22d3ee" strokeWidth={2} pointerEvents="none" data-origin-crosshair="x" />
-        <line x1={originPoint.sx} y1={originPoint.sy - 10} x2={originPoint.sx} y2={originPoint.sy + 10} stroke="#22d3ee" strokeWidth={2} pointerEvents="none" data-origin-crosshair="y" />
-        <circle cx={originPoint.sx} cy={originPoint.sy} r={4} fill="#22d3ee" pointerEvents="none" data-origin-marker="true" />
-        <text x={originPoint.sx + 8} y={originPoint.sy - 8} fill="#67e8f9" fontSize={10} fontWeight={700} pointerEvents="none">0,0</text>
-        <text x={xAxisEnd.sx - 6} y={originPoint.sy - 6} textAnchor="end" fill="#64748b" fontSize={10} fontWeight={600} pointerEvents="none">+X East</text>
-        <text x={originPoint.sx + 6} y={yAxisStart.sy + 14} fill="#64748b" fontSize={10} fontWeight={600} pointerEvents="none">+Y North</text>
+        <line x1={xAxisStart.sx} y1={xAxisStart.sy} x2={xAxisEnd.sx} y2={xAxisEnd.sy} stroke={referenceStroke} strokeWidth={1.2} strokeOpacity={0.7} pointerEvents="none" data-axis="x" />
+        <line x1={yAxisStart.sx} y1={yAxisStart.sy} x2={yAxisEnd.sx} y2={yAxisEnd.sy} stroke={referenceStroke} strokeWidth={1.2} strokeOpacity={0.7} pointerEvents="none" data-axis="y" />
+        <line x1={originPoint.sx - 10} y1={originPoint.sy} x2={originPoint.sx + 10} y2={originPoint.sy} stroke={referenceStroke} strokeWidth={1.4} pointerEvents="none" data-origin-crosshair="x" />
+        <line x1={originPoint.sx} y1={originPoint.sy - 10} x2={originPoint.sx} y2={originPoint.sy + 10} stroke={referenceStroke} strokeWidth={1.4} pointerEvents="none" data-origin-crosshair="y" />
+        <circle cx={originPoint.sx} cy={originPoint.sy} r={4} fill={referenceStroke} pointerEvents="none" data-origin-marker="true" />
+        <text x={originPoint.sx + 8} y={originPoint.sy - 8} fill={drawingStyle.textFill} fontSize={10} fontWeight={700} pointerEvents="none">0,0</text>
+        <text x={xAxisEnd.sx - 6} y={originPoint.sy - 6} textAnchor="end" fill={mutedStroke} fontSize={10} fontWeight={600} pointerEvents="none">+X East</text>
+        <text x={originPoint.sx + 6} y={yAxisStart.sy + 14} fill={mutedStroke} fontSize={10} fontWeight={600} pointerEvents="none">+Y North</text>
+        {planAnnotationPrimitives.map((primitive) => renderDrawingPrimitive(primitive, drawingStyle))}
         {PLAN_RULER_TICKS_METERS.flatMap((tick) => {
           const marks = [];
           if (tick >= visibleBounds.minX && tick <= visibleBounds.maxX) {
             const alongX = planToSurfacePoint({ x: tick, z: 0 });
             marks.push(
               <g key={`tick-x-${tick}`} pointerEvents="none">
-                <line x1={alongX.sx} y1={originPoint.sy - 4} x2={alongX.sx} y2={originPoint.sy + 4} stroke="#475569" strokeWidth={1} />
-                <text x={alongX.sx} y={originPoint.sy + 14} textAnchor="middle" fill="#64748b" fontSize={9}>{tick} m</text>
+                <line x1={alongX.sx} y1={originPoint.sy - 4} x2={alongX.sx} y2={originPoint.sy + 4} stroke={referenceStroke} strokeWidth={1} />
+                <text x={alongX.sx} y={originPoint.sy + 14} textAnchor="middle" fill={mutedStroke} fontSize={9}>{tick} m</text>
               </g>,
             );
           }
@@ -1360,18 +2266,23 @@ export default function DesignBuilderPlanCanvas({
             const alongZ = planToSurfacePoint({ x: 0, z: tick });
             marks.push(
               <g key={`tick-z-${tick}`} pointerEvents="none">
-                <line x1={originPoint.sx - 4} y1={alongZ.sy} x2={originPoint.sx + 4} y2={alongZ.sy} stroke="#475569" strokeWidth={1} />
-                <text x={originPoint.sx - 8} y={alongZ.sy + 3} textAnchor="end" fill="#64748b" fontSize={9}>{tick} m</text>
+                <line x1={originPoint.sx - 4} y1={alongZ.sy} x2={originPoint.sx + 4} y2={alongZ.sy} stroke={referenceStroke} strokeWidth={1} />
+                <text x={originPoint.sx - 8} y={alongZ.sy + 3} textAnchor="end" fill={mutedStroke} fontSize={9}>{tick} m</text>
               </g>,
             );
           }
           return marks;
         })}
-        <text x={surfaceSize.width / 2} y={18} textAnchor="middle" fill="#94a3b8" fontSize={11} fontWeight={700} pointerEvents="none">North (+Y)</text>
-        <text x={surfaceSize.width / 2} y={surfaceSize.height - 10} textAnchor="middle" fill="#64748b" fontSize={11} fontWeight={700} pointerEvents="none">South</text>
-        <text x={surfaceSize.width - 12} y={surfaceSize.height / 2} textAnchor="end" fill="#64748b" fontSize={11} fontWeight={700} pointerEvents="none">East (+X)</text>
-        <text x={12} y={surfaceSize.height / 2} textAnchor="start" fill="#64748b" fontSize={11} fontWeight={700} pointerEvents="none">West</text>
-        {layout.segments.map((segment) => {
+        {!isRoofPlanView ? (
+          <>
+            <text x={surfaceSize.width / 2} y={architecturalDrawing ? 52 : 18} textAnchor="middle" fill={mutedStroke} fontSize={11} fontWeight={700} pointerEvents="none">North (+Y)</text>
+            <text x={surfaceSize.width / 2} y={surfaceSize.height - 10} textAnchor="middle" fill={mutedStroke} fontSize={11} fontWeight={700} pointerEvents="none">South</text>
+            <text x={surfaceSize.width - 12} y={surfaceSize.height / 2} textAnchor="end" fill={mutedStroke} fontSize={11} fontWeight={700} pointerEvents="none">East (+X)</text>
+            <text x={12} y={surfaceSize.height / 2} textAnchor="start" fill={mutedStroke} fontSize={11} fontWeight={700} pointerEvents="none">West</text>
+          </>
+        ) : null}
+        {renderRoofPlanDrawing()}
+        {showStructuralPlanGeometry ? layout.segments.map((segment) => {
           const endpoints = resolveSegmentDisplayEndpoints({
             segment,
             layout,
@@ -1380,8 +2291,8 @@ export default function DesignBuilderPlanCanvas({
           if (!endpoints) return null;
           const { displayStart, displayEnd } = endpoints;
           const selected = selectedSegmentId === segment.id;
-          const stroke = toolMode === 'delete' && selected ? '#f97316' : selected ? '#22d3ee' : '#94a3b8';
-          const strokeWidth = selected ? 6 : 4;
+          const stroke = toolMode === 'delete' && selected ? '#f97316' : selected ? selectionStroke : permanentStroke;
+          const strokeWidth = selected ? drawingStyle.weights.selection + 2 : drawingStyle.weights.heavy;
           const frame = framesBySegmentId.get(segment.id);
           const roughOpenings = roughOpeningsBySegmentId.get(segment.id) ?? [];
           if (frame && roughOpenings.length > 0) {
@@ -1464,8 +2375,8 @@ export default function DesignBuilderPlanCanvas({
               />
             </g>
           );
-        })}
-        {orthogonalGuideRays.map((guide, index) => {
+        }) : null}
+        {showStructuralPlanGeometry ? orthogonalGuideRays.map((guide, index) => {
           const start = planToSurfacePoint(guide.start);
           const end = planToSurfacePoint(guide.end);
           return (
@@ -1482,8 +2393,8 @@ export default function DesignBuilderPlanCanvas({
               pointerEvents="none"
             />
           );
-        })}
-        {drawGuidance?.guideLine && !shiftConstrained ? (
+        }) : null}
+        {showStructuralPlanGeometry && drawGuidance?.guideLine && !shiftConstrained ? (
           (() => {
             const start = planToSurfacePoint(drawGuidance.guideLine.start);
             const end = planToSurfacePoint(drawGuidance.guideLine.end);
@@ -1502,7 +2413,7 @@ export default function DesignBuilderPlanCanvas({
             );
           })()
         ) : null}
-        {orthogonalClosureAssist?.isEligible ? (
+        {showStructuralPlanGeometry && orthogonalClosureAssist?.isEligible ? (
           (() => {
             const start = planToSurfacePoint(orthogonalClosureAssist.candidatePoint);
             const end = planToSurfacePoint(orthogonalClosureAssist.firstNode);
@@ -1541,7 +2452,7 @@ export default function DesignBuilderPlanCanvas({
             );
           })()
         ) : null}
-        {activeNode && draftEnd ? (
+        {showStructuralPlanGeometry && activeNode && draftEnd ? (
           (() => {
             const a = planToSurfacePoint(activeNode);
             const b = planToSurfacePoint(draftEnd);
@@ -1560,7 +2471,7 @@ export default function DesignBuilderPlanCanvas({
             );
           })()
         ) : null}
-        {snapMarker ? (
+        {showStructuralPlanGeometry && snapMarker ? (
           <circle
             cx={snapMarker.sx}
             cy={snapMarker.sy}
@@ -1574,7 +2485,7 @@ export default function DesignBuilderPlanCanvas({
             data-closure-assist-marker={closureAssistActive ? 'true' : 'false'}
           />
         ) : null}
-        {closureCornerMarker && !closureAssistActive ? (
+        {showStructuralPlanGeometry && closureCornerMarker && !closureAssistActive ? (
           <circle
             cx={closureCornerMarker.sx}
             cy={closureCornerMarker.sy}
@@ -1587,7 +2498,7 @@ export default function DesignBuilderPlanCanvas({
             data-closure-corner-snap="true"
           />
         ) : null}
-        {previewMidpoint && previewLength > 0 ? (
+        {showStructuralPlanGeometry && previewMidpoint && previewLength > 0 ? (
           <text
             x={previewMidpoint.sx + 8}
             y={previewMidpoint.sy - 8}
@@ -1602,7 +2513,7 @@ export default function DesignBuilderPlanCanvas({
             {`${(previewMetrics?.lengthMeters ?? previewLength).toFixed(2)} m · ${(previewMetrics?.angleDegrees ?? 0).toFixed(0)}°`}
           </text>
         ) : null}
-        {(shiftConstraintLabel ?? drawGuidance?.label) && snapMarker ? (
+        {showStructuralPlanGeometry && (shiftConstraintLabel ?? drawGuidance?.label) && snapMarker ? (
           <text
             x={snapMarker.sx + 12}
             y={snapMarker.sy - 14}
@@ -1617,7 +2528,7 @@ export default function DesignBuilderPlanCanvas({
             {shiftConstraintLabel ?? drawGuidance?.label}
           </text>
         ) : null}
-        {resolvedRoofSystem?.supported && resolvedRoofSystem.eaveFootprint.length >= 3 ? (
+        {!isRoofPlanView && resolvedRoofSystem?.supported && resolvedRoofSystem.eaveFootprint.length >= 3 ? (
           <>
             <polygon
               points={resolvedRoofSystem.eaveFootprint
@@ -1629,8 +2540,8 @@ export default function DesignBuilderPlanCanvas({
               fill="none"
               stroke={
                 selectedObjectType === 'gable_roof_system' || selectedObjectType === 'gable_end_system'
-                  ? '#14b8a6'
-                  : '#64748b'
+                  ? selectionStroke
+                  : referenceStroke
               }
               strokeOpacity={selectedObjectType === 'gable_roof_system' ? 0.95 : 0.45}
               strokeWidth={selectedObjectType === 'gable_roof_system' ? 2 : 1.5}
@@ -1655,7 +2566,7 @@ export default function DesignBuilderPlanCanvas({
                   x: resolvedRoofSystem.ridgeEnd.x,
                   z: resolvedRoofSystem.ridgeEnd.z,
                 }).sy}
-                stroke={selectedObjectType === 'gable_roof_system' ? '#14b8a6' : '#94a3b8'}
+                stroke={selectedObjectType === 'gable_roof_system' ? selectionStroke : mutedStroke}
                 strokeOpacity={selectedObjectType === 'gable_roof_system' ? 0.95 : 0.55}
                 strokeWidth={selectedObjectType === 'gable_roof_system' ? 2.5 : 1.5}
                 pointerEvents="none"
@@ -1682,7 +2593,7 @@ export default function DesignBuilderPlanCanvas({
                       y1={surface.sy}
                       x2={surface.sx + 4}
                       y2={surface.sy}
-                      stroke={selectedObjectType === 'gable_roof_system' ? '#14b8a6' : '#64748b'}
+                      stroke={selectedObjectType === 'gable_roof_system' ? selectionStroke : referenceStroke}
                       strokeWidth={1.5}
                       pointerEvents="none"
                     />
@@ -1702,7 +2613,7 @@ export default function DesignBuilderPlanCanvas({
                   cx={midpoint.sx}
                   cy={midpoint.sy}
                   r={selectedObjectType === 'gable_end_system' ? 5 : 3}
-                  fill={selectedObjectType === 'gable_end_system' ? '#14b8a6' : '#94a3b8'}
+                  fill={selectedObjectType === 'gable_end_system' ? selectionStroke : mutedStroke}
                   fillOpacity={0.85}
                   pointerEvents="none"
                 />
@@ -1710,35 +2621,39 @@ export default function DesignBuilderPlanCanvas({
             })}
           </>
         ) : null}
-        {frameSystem?.beams.map((beam) => {
-            const start = planToSurfacePoint({ x: beam.startPoint.x, z: beam.startPoint.z });
-            const end = planToSurfacePoint({ x: beam.endPoint.x, z: beam.endPoint.z });
+        {showStructuralPlanGeometry ? frameSystem?.beams.map((beam) => {
             const stroke =
               beam.kind === 'plinth_beam' || beam.kind === 'grade_beam'
-                ? '#57534e'
+                ? (architecturalDrawing ? permanentStroke : '#57534e')
                 : beam.kind === 'tie_beam'
-                  ? '#44403c'
+                  ? (architecturalDrawing ? mutedStroke : '#44403c')
                   : beam.kind === 'roof_beam' || beam.kind === 'ring_beam'
-                    ? '#6b7280'
-                    : '#78716c';
-            return (
-              <line
-                key={beam.id}
-                x1={start.sx}
-                y1={start.sy}
-                x2={end.sx}
-                y2={end.sy}
-                stroke={stroke}
-                strokeWidth={Math.max(4, beam.widthMeters * viewport.zoom)}
-                strokeLinecap="butt"
-                pointerEvents="none"
-              />
+                    ? (architecturalDrawing ? referenceStroke : '#6b7280')
+                    : (architecturalDrawing ? mutedStroke : '#78716c');
+            return renderPlanMaterialStrip(
+              beam.id,
+              { x: beam.startPoint.x, z: beam.startPoint.z },
+              { x: beam.endPoint.x, z: beam.endPoint.z },
+              beam.widthMeters,
+              {
+                fill: architecturalDrawing ? 'none' : `${stroke}55`,
+                stroke,
+                strokeWidth: architecturalDrawing ? drawingStyle.weights.medium : 1.5,
+                data: {
+                  'data-foundation-beam-id': beam.id,
+                  'data-foundation-beam-kind': beam.kind,
+                },
+              },
             );
-          })}
-        {isolatedFootings.map((footing) => {
+          }) : null}
+        {showStructuralPlanGeometry ? isolatedFootings.map((footing) => {
           const center = planToSurfacePoint(footing.position);
           const halfW = (footing.widthMeters * viewport.zoom) / 2;
           const halfL = (footing.lengthMeters * viewport.zoom) / 2;
+          const footingColumn = frameSystem?.columns.find((column) => column.id === footing.columnId);
+          const selected =
+            selectedNodeId != null &&
+            footingColumn?.hostNodeId === selectedNodeId;
           return (
             <rect
               key={footing.id}
@@ -1746,14 +2661,16 @@ export default function DesignBuilderPlanCanvas({
               y={center.sy - halfL}
               width={halfW * 2}
               height={halfL * 2}
-              fill="#78716c55"
-              stroke="#57534e"
-              strokeWidth={1.5}
+              fill={selected ? (architecturalDrawing ? '#e0f2fe' : '#dbeafe') : architecturalDrawing ? '#f1f5f9' : '#78716c55'}
+              stroke={selected ? selectionStroke : architecturalDrawing ? mutedStroke : '#57534e'}
+              strokeWidth={selected ? 2.2 : 1.5}
               pointerEvents="none"
+              data-foundation-footing-id={footing.id}
+              data-foundation-footing-column-id={footing.columnId}
             />
           );
-        })}
-        {frameSystem?.columns.map((column) => {
+        }) : null}
+        {showStructuralPlanGeometry ? frameSystem?.columns.map((column) => {
           const center = planToSurfacePoint(column.position);
           const halfW = (column.widthMeters * viewport.zoom) / 2;
           const halfD = (column.depthMeters * viewport.zoom) / 2;
@@ -1765,12 +2682,12 @@ export default function DesignBuilderPlanCanvas({
                 y={center.sy - halfD}
                 width={halfW * 2}
                 height={halfD * 2}
-                fill={selected ? '#dbeafe' : '#9ca3af'}
-                stroke={selected ? '#22d3ee' : '#334155'}
+                fill={selected ? (architecturalDrawing ? '#e0f2fe' : '#dbeafe') : structuralFill}
+                stroke={selected ? selectionStroke : permanentStroke}
                 strokeWidth={selected ? 2.2 : 1.5}
               />
-              <line x1={center.sx - halfW * 1.4} y1={center.sy} x2={center.sx + halfW * 1.4} y2={center.sy} stroke="#38bdf8" strokeWidth={1} strokeOpacity={selected ? 0.95 : 0.55} />
-              <line x1={center.sx} y1={center.sy - halfD * 1.4} x2={center.sx} y2={center.sy + halfD * 1.4} stroke="#38bdf8" strokeWidth={1} strokeOpacity={selected ? 0.95 : 0.55} />
+              <line x1={center.sx - halfW * 1.4} y1={center.sy} x2={center.sx + halfW * 1.4} y2={center.sy} stroke={selected ? selectionStroke : referenceStroke} strokeWidth={1} strokeOpacity={selected ? 0.95 : 0.55} />
+              <line x1={center.sx} y1={center.sy - halfD * 1.4} x2={center.sx} y2={center.sy + halfD * 1.4} stroke={selected ? selectionStroke : referenceStroke} strokeWidth={1} strokeOpacity={selected ? 0.95 : 0.55} />
               {selected
                 ? [
                     [-1, -1],
@@ -1784,24 +2701,64 @@ export default function DesignBuilderPlanCanvas({
                       y={center.sy + dy * halfD - 4}
                       width={8}
                       height={8}
-                      fill="#22d3ee"
-                      stroke="#0f172a"
+                      fill={selectionStroke}
+                      stroke={textBackerStroke}
                       strokeWidth={1}
                     />
                   ))
                 : null}
             </g>
           );
-        })}
-        {committedRenderModel.rcComponents.map((component) => renderPlanRcComponent(component))}
-        {openingRenderItems.map((item) => (
-          <PlanOpeningSymbol key={item.key} item={item} project={planToSurfacePoint} zoom={viewport.zoom} />
-        ))}
-        {previewRenderModel.rcComponents.map((component) => renderPlanRcComponent(component, true))}
-        {previewRenderItem ? (
-          <PlanOpeningSymbol item={previewRenderItem} project={planToSurfacePoint} zoom={viewport.zoom} />
+        }) : null}
+        {showStructuralPlanGeometry ? committedRenderModel.rcComponents.map((component) => renderPlanRcComponent(component)) : null}
+        {showStructuralPlanGeometry ? openingRenderItems.map((item) => (
+          <PlanOpeningSymbol key={item.key} item={item} project={planToSurfacePoint} zoom={viewport.zoom} drawingStyle={drawingStyle} />
+        )) : null}
+        <g data-canvas-layer="permanent-dimensions">
+          {renderedDimensionAnnotations}
+        </g>
+        {showStructuralPlanGeometry ? previewRenderModel.rcComponents.map((component) => renderPlanRcComponent(component, true)) : null}
+        {showStructuralPlanGeometry && previewRenderItem ? (
+          <PlanOpeningSymbol item={previewRenderItem} project={planToSurfacePoint} zoom={viewport.zoom} drawingStyle={drawingStyle} />
         ) : null}
-        {renderColumnDragPreview()}
+        {showStructuralPlanGeometry ? renderColumnDragPreview() : null}
+        {dimensionDraft?.step === 'start' ? (
+          (() => {
+            const point = planToSurfacePoint(dimensionDraft.start.point);
+            return (
+              <circle
+                cx={point.sx}
+                cy={point.sy}
+                r={5}
+                fill={previewStroke}
+                stroke={textBackerStroke}
+                strokeWidth={1.5}
+                pointerEvents="none"
+                data-canvas-layer="active-dimension-preview"
+                data-dimension-pending-point="true"
+              />
+            );
+          })()
+        ) : null}
+        {renderedDimensionPreview}
+        {toolMode === 'place_dimension' && dimensionSnap ? (
+          (() => {
+            const point = planToSurfacePoint(dimensionSnap.point);
+            return (
+              <circle
+                cx={point.sx}
+                cy={point.sy}
+                r={4}
+                fill="none"
+                stroke={previewStroke}
+                strokeWidth={1.8}
+                pointerEvents="none"
+                data-canvas-layer="handles-control-points"
+                data-dimension-snap-marker={dimensionSnap.type}
+              />
+            );
+          })()
+        ) : null}
         {helperAnchor && helperMeasurements.length > 0 ? (
           <g pointerEvents="none">
             <rect
@@ -1832,7 +2789,7 @@ export default function DesignBuilderPlanCanvas({
             ))}
           </g>
         ) : null}
-        {layout.nodes.map((node) => {
+        {showPlanNodeMarkers ? layout.nodes.map((node) => {
           const displayPoint = planDisplayNodeById.get(node.id) ?? node;
           const point = planToSurfacePoint(displayPoint);
           const selected = selectedNodeId === node.id || activeNodeId === node.id;
@@ -1849,7 +2806,7 @@ export default function DesignBuilderPlanCanvas({
               data-plan-node-id={node.id}
             />
           );
-        })}
+        }) : null}
       </svg>
       <div className="pointer-events-none absolute bottom-3 right-3 rounded-xl border border-slate-700 bg-slate-900/90 px-2.5 py-2 text-[11px] font-bold text-slate-100 shadow-sm" aria-label="Plan orientation north up">
         <div className="flex items-center gap-2">

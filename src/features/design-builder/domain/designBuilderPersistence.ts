@@ -10,6 +10,8 @@ import {
 import { normalizeCmuInfillSystem } from './infillPlaster';
 import type {
   BuildingSystemMode,
+  Design2DViewType,
+  DesignAnnotation,
   DesignBuilderElevationViewState,
   DesignBuilderStoredViewMode,
   DesignModel,
@@ -43,10 +45,12 @@ export type PersistedDesignBuilderState = {
   openings: WallOpeningParameters[];
   displayPreferences?: {
     activeView?: DesignBuilderStoredViewMode;
+    active2DView?: Design2DViewType;
     elevationView?: DesignBuilderElevationViewState;
     roofDisplayMode?: string;
     foundationViewMode?: string;
     visualStyle?: string;
+    twoDDrawingStyle?: string;
       materialSelections?: {
       cmuMaterialId?: string;
       mortarMaterialId?: string;
@@ -66,6 +70,7 @@ export type PersistedDesignBuilderState = {
       };
   };
   placedComponents: PlacedDesignComponent[];
+  annotations: DesignAnnotation[];
   updatedAt: string;
 };
 
@@ -92,6 +97,7 @@ export function serializePersistedDesignBuilderState(
   preset: CmuBuildingPreset,
   displayPreferences?: PersistedDesignBuilderState['displayPreferences'],
   placedComponents: PlacedDesignComponent[] = [],
+  annotations: DesignAnnotation[] = [],
 ): PersistedDesignBuilderState {
   return {
     schemaVersion: PERSISTED_DESIGN_BUILDER_SCHEMA_VERSION,
@@ -102,14 +108,28 @@ export function serializePersistedDesignBuilderState(
     openings: structuredClone(preset.wall.openings),
     displayPreferences,
     placedComponents: structuredClone(placedComponents),
+    annotations: structuredClone(annotations),
     updatedAt: new Date().toISOString(),
   };
 }
 
 function normalizeStoredViewMode(value: unknown): DesignBuilderStoredViewMode | undefined {
-  if (value === '2d') return 'plan';
-  if (value === 'plan' || value === 'elevation' || value === '3d') return value;
+  if (value === '2d' || value === '3d') return value;
+  if (value === 'plan' || value === 'elevation') return '2d';
   return undefined;
+}
+
+function normalize2DViewType(value: unknown, legacyActiveView?: unknown): Design2DViewType {
+  if (
+    value === 'elevation-view' ||
+    value === 'roof-plan' ||
+    value === 'electrical-plan' ||
+    value === 'plumbing-plan'
+  ) {
+    return value;
+  }
+  if (legacyActiveView === 'elevation') return 'elevation-view';
+  return 'foundation-plan';
 }
 
 function normalizeElevationView(value: unknown): DesignBuilderElevationViewState {
@@ -132,6 +152,15 @@ function normalizePlacedComponents(value: unknown): PlacedDesignComponent[] {
   });
 }
 
+function normalizeAnnotations(value: unknown): DesignAnnotation[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((item): item is DesignAnnotation => {
+    if (!item || typeof item !== 'object') return false;
+    const candidate = item as Partial<DesignAnnotation>;
+    return Boolean(candidate.id && candidate.type === 'dimension' && candidate.points && candidate.offsetPoint);
+  });
+}
+
 export function migratePersistedDesignBuilderState(
   raw: Partial<PersistedDesignBuilderState> | null | undefined,
 ): PersistedDesignBuilderState | null {
@@ -150,15 +179,22 @@ export function migratePersistedDesignBuilderState(
     wallLayout: structuredClone(raw.wallLayout ?? createBlankCmuBuildingPreset().wallLayout),
     openings: normalizeOpeningsHeadAlignment(structuredClone(raw.openings ?? [])),
     displayPreferences: raw.displayPreferences
-      ? {
+        ? {
           ...raw.displayPreferences,
           activeView: normalizeStoredViewMode(raw.displayPreferences.activeView),
+          active2DView: normalize2DViewType(
+            raw.displayPreferences.active2DView,
+            raw.displayPreferences.activeView,
+          ),
           elevationView: normalizeElevationView(raw.displayPreferences.elevationView),
         }
       : {
+          activeView: '2d',
+          active2DView: 'foundation-plan',
           elevationView: { face: 'north' },
         },
     placedComponents: normalizePlacedComponents(raw.placedComponents),
+    annotations: normalizeAnnotations(raw.annotations),
     updatedAt: raw.updatedAt ?? new Date().toISOString(),
   };
 }
@@ -227,11 +263,12 @@ export function designModelMetadataWithPersistedState(
   preset: CmuBuildingPreset,
   displayPreferences?: PersistedDesignBuilderState['displayPreferences'],
   placedComponents: PlacedDesignComponent[] = [],
+  annotations: DesignAnnotation[] = [],
 ): Record<string, unknown> {
   return {
     ...model.metadata,
     source: 'parametric_design_builder',
-    designBuilderState: serializePersistedDesignBuilderState(preset, displayPreferences, placedComponents),
+    designBuilderState: serializePersistedDesignBuilderState(preset, displayPreferences, placedComponents, annotations),
   };
 }
 

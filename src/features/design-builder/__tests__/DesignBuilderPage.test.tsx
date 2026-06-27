@@ -212,11 +212,13 @@ function selectOpeningTool(label: RegExp | string) {
 }
 
 function selectViewMode(mode: 'plan' | '3d') {
-  fireEvent.click(
-    screen.getByRole('button', {
-      name: mode === 'plan' ? /switch to 2d plan view/i : /switch to 3d view/i,
-    }),
-  );
+  if (mode === '3d') {
+    fireEvent.click(screen.getByRole('button', { name: /switch to 3d view/i }));
+    return;
+  }
+  fireEvent.click(screen.getByRole('button', { name: /2d drawing views/i }));
+  const foundationPlan = screen.queryByRole('menuitem', { name: /foundation plan/i });
+  if (foundationPlan) fireEvent.click(foundationPlan);
 }
 
 function clickDrawWall() {

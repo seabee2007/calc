@@ -102,6 +102,7 @@ export function applyPerimeterBeams(preset: CmuBuildingPreset): CmuBuildingPrese
         });
   const beams = createPerimeterBeamsForLayout({
     layout: preset.wallLayout,
+    segmentFrames,
     columns,
     frameSystem: preset.frameSystem,
     foundation,
