@@ -129,6 +129,7 @@ export function blockFromPanelUnit(params: {
   stationMeters: number;
   nominalLengthMeters: number;
   actualLengthMeters: number;
+  placementCenterStationMeters?: number;
   courseBottomElevationMeters: number;
   physicalHeightMeters: number;
   blockType: CmuBlockInstance['blockType'];
@@ -136,7 +137,9 @@ export function blockFromPanelUnit(params: {
   source?: CmuUnitPlacement['source'];
   infillCenterlineInwardOffsetMeters?: number;
 }): CmuBlockInstance {
-  const centerStation = params.stationMeters + params.nominalLengthMeters / 2;
+  const centerStation =
+    params.placementCenterStationMeters ??
+    params.stationMeters + params.nominalLengthMeters / 2;
   const infillCenterlineInwardOffsetMeters = params.infillCenterlineInwardOffsetMeters ?? 0;
   const blockX =
     params.frame.centerlineStart.x +

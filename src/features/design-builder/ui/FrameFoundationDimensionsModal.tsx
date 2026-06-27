@@ -36,7 +36,10 @@ import { totalRoofSoffitAreaSquareMeters } from "../domain/roofSoffitSolver";
 import { resolveRoofSystem } from "../domain/roofSystemResolver";
 import { resolveOuterRoofBeamBearingLoop } from "../domain/roofFootprintSupport";
 import { reconcileStructuralFrameWithFoundation } from "../domain/structuralFrameLayout";
-import { getSegmentFramesForWallLayout } from "../geometry/designGeometry";
+import {
+  getExteriorPerimeterSegmentIds,
+  getSegmentFramesForWallLayout,
+} from "../geometry/designGeometry";
 import {
   previewFrameLayoutCounts,
   type FrameFoundationDimensionsApplyPayload,
@@ -309,11 +312,13 @@ export default function FrameFoundationDimensionsModal({
   );
 
   const resolvedRoof = useMemo(() => {
+    const exteriorSegmentIds = getExteriorPerimeterSegmentIds(wallLayout);
     const roofBearingLoop = resolveOuterRoofBeamBearingLoop({
       layout: wallLayout,
       segmentFrames,
       roofBeams: previewFrameSystem.beams,
       fallbackExteriorFootprint: exteriorFootprint,
+      exteriorSegmentIds,
     });
     return resolveRoofSystem({
       layout: wallLayout,
@@ -324,6 +329,7 @@ export default function FrameFoundationDimensionsModal({
       roofSystem: roofDraft,
       roofBeamTopElevationMeters: elevations.roofBeamTopY,
       segmentFrames,
+      exteriorSegmentIds,
     });
   }, [
     elevations.roofBeamTopY,

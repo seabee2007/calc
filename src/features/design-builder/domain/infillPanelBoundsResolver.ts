@@ -2,9 +2,11 @@ import type {
   CmuInfillPanel,
   CmuWallSystemParameters,
   DesignWallLayoutParameters,
+  DesignWallSegment,
   RcFrameFoundationSettings,
   StructuralBeam,
   StructuralColumn,
+  WallFooting,
 } from "../types";
 import type { SegmentFrame } from "../geometry/designGeometry";
 import { projectPointToSegmentStation } from "./openingPlacementResolver";
@@ -15,6 +17,10 @@ import {
 } from "./foundationElevations";
 import { normalizeRcFrameFoundationSettings } from "./rcFrameFoundationMigration";
 import { resolveDesignMasonrySettings } from "./masonrySettings";
+import {
+  resolvePartitionWallCourseJoinTrims,
+  type PartitionWallCourseJoinTrim,
+} from "./partitionWallJoinRules";
 
 export const FRAME_INFILL_RENDER_EPSILON_METERS = 0.001;
 export const FRAME_INFILL_BOUNDS_TOLERANCE_METERS = 0.002;
@@ -34,6 +40,8 @@ export type ResolvedInfillPanelBounds = {
   clearHeightMeters: number;
   /** CMU/infill centerline offset used to align block faces to the roof-beam inside face. */
   infillCenterlineInwardOffsetMeters?: number;
+  /** Interlocked running-bond trims applied per masonry course at partition wall joins. */
+  partitionWallCourseJoinTrim?: PartitionWallCourseJoinTrim;
   hostWallCenterlineStart: Vec3;
   hostWallCenterlineEnd: Vec3;
   tangent: Vec3;
@@ -163,6 +171,43 @@ function pointOnFrameAtStation(
   };
 }
 
+function trimInfillBoundsToStations(params: {
+  bounds: ResolvedInfillPanelBounds;
+  frame: SegmentFrame;
+  startStationMeters: number;
+  endStationMeters: number;
+}): ResolvedInfillPanelBounds | null {
+  const startStationMeters = Math.max(
+    0,
+    Math.min(params.frame.lengthMeters, params.startStationMeters),
+  );
+  const endStationMeters = Math.max(
+    0,
+    Math.min(params.frame.lengthMeters, params.endStationMeters),
+  );
+  const clearWidthMeters = endStationMeters - startStationMeters;
+  if (clearWidthMeters <= 0.05) return null;
+
+  return {
+    ...params.bounds,
+    startStationMeters,
+    endStationMeters,
+    clearWidthMeters,
+    leftSupportInsideFaceStation: startStationMeters,
+    rightSupportInsideFaceStation: endStationMeters,
+    leftSupportInsideFaceWorld: pointOnFrameAtStation(
+      params.frame,
+      startStationMeters,
+      params.bounds.bottomElevationMeters,
+    ),
+    rightSupportInsideFaceWorld: pointOnFrameAtStation(
+      params.frame,
+      endStationMeters,
+      params.bounds.bottomElevationMeters,
+    ),
+  };
+}
+
 function trimInteriorPartitionInfillAtExteriorShell(params: {
   bounds: ResolvedInfillPanelBounds;
   segment: DesignWallSegment;
@@ -188,27 +233,12 @@ function trimInteriorPartitionInfillAtExteriorShell(params: {
     );
   }
 
-  const clearWidthMeters = endStationMeters - startStationMeters;
-  if (clearWidthMeters <= 0.05) return null;
-
-  return {
-    ...params.bounds,
+  return trimInfillBoundsToStations({
+    bounds: params.bounds,
+    frame: params.frame,
     startStationMeters,
     endStationMeters,
-    clearWidthMeters,
-    leftSupportInsideFaceStation: startStationMeters,
-    rightSupportInsideFaceStation: endStationMeters,
-    leftSupportInsideFaceWorld: pointOnFrameAtStation(
-      params.frame,
-      startStationMeters,
-      params.bounds.bottomElevationMeters,
-    ),
-    rightSupportInsideFaceWorld: pointOnFrameAtStation(
-      params.frame,
-      endStationMeters,
-      params.bounds.bottomElevationMeters,
-    ),
-  };
+  });
 }
 
 export function resolveInfillPanelBoundsForSegment(params: {
@@ -510,6 +540,10 @@ export function resolveInfillPanelBoundsForLayout(params: {
 }): ResolvedInfillPanelBounds[] {
   const bounds: ResolvedInfillPanelBounds[] = [];
   const exterior = exteriorSegmentAndNodeIds(params.layout);
+  const partitionCourseJoinTrims = resolvePartitionWallCourseJoinTrims({
+    layout: params.layout,
+    segmentFrames: params.segmentFrames,
+  });
   params.layout.segments.forEach((segment, index) => {
     const frame = params.segmentFrames.find(
       (candidate) => candidate.segmentId === segment.id,
@@ -531,7 +565,14 @@ export function resolveInfillPanelBoundsForLayout(params: {
         exteriorSegmentIds: exterior.segmentIds,
         exteriorNodeIds: exterior.nodeIds,
       });
-      if (trimmed) bounds.push(trimmed);
+      if (!trimmed) continue;
+      bounds.push({
+        ...trimmed,
+        partitionWallCourseJoinTrim:
+          segment.wallRole === "partition"
+            ? partitionCourseJoinTrims.get(segment.id)
+            : undefined,
+      });
     }
   });
   return bounds;
@@ -542,7 +583,8 @@ function segmentBelowGradeElevations(params: {
   segmentId: string;
   wallHeightMeters: number;
   foundation?: RcFrameFoundationSettings;
-}): { tieBeamTopMeters: number; plinthBeamBottomMeters: number } | null {
+  wallFootingTopMeters?: number;
+}): { bottomSupportTopMeters: number; plinthBeamBottomMeters: number } | null {
   const foundation = params.foundation
     ? normalizeRcFrameFoundationSettings(params.foundation)
     : null;
@@ -570,10 +612,18 @@ function segmentBelowGradeElevations(params: {
     plinthBeam?.baseElevationMeters ?? elevations?.bottomOfPlinthBeamY;
   if (tieBeamTopMeters == null || plinthBeamBottomMeters == null) return null;
 
-  const clearHeightMeters = plinthBeamBottomMeters - tieBeamTopMeters;
+  const bottomSupportTopMeters = params.wallFootingTopMeters ?? tieBeamTopMeters;
+  const clearHeightMeters = plinthBeamBottomMeters - bottomSupportTopMeters;
   if (clearHeightMeters <= 0.05) return null;
 
-  return { tieBeamTopMeters, plinthBeamBottomMeters };
+  return { bottomSupportTopMeters, plinthBeamBottomMeters };
+}
+
+function belowGradeInfillCenterlineOffset(frame: SegmentFrame): number {
+  return (
+    (frame.start.x - frame.centerlineStart.x) * frame.inwardNormal.x +
+    (frame.start.z - frame.centerlineStart.z) * frame.inwardNormal.z
+  );
 }
 
 export function resolveBelowGradeInfillPanelBoundsForSegment(params: {
@@ -584,6 +634,7 @@ export function resolveBelowGradeInfillPanelBoundsForSegment(params: {
   columns: StructuralColumn[];
   beams: StructuralBeam[];
   foundation?: RcFrameFoundationSettings;
+  wallFootingTopMeters?: number;
 }): ResolvedInfillPanelBounds | null {
   const aboveGrade = resolveInfillPanelBoundsForSegment({
     panelId: params.panelId,
@@ -600,33 +651,36 @@ export function resolveBelowGradeInfillPanelBoundsForSegment(params: {
     segmentId: params.segmentId,
     wallHeightMeters: params.segment.wallHeightMeters,
     foundation: params.foundation,
+    wallFootingTopMeters: params.wallFootingTopMeters,
   });
   if (!belowGradeElevations) return null;
 
-  const { tieBeamTopMeters, plinthBeamBottomMeters } = belowGradeElevations;
+  const { bottomSupportTopMeters, plinthBeamBottomMeters } = belowGradeElevations;
+  const infillCenterlineInwardOffsetMeters =
+    belowGradeInfillCenterlineOffset(params.frame);
 
   return {
     ...aboveGrade,
     panelId: params.panelId,
-    infillCenterlineInwardOffsetMeters: 0,
-    bottomElevationMeters: tieBeamTopMeters,
+    infillCenterlineInwardOffsetMeters,
+    bottomElevationMeters: bottomSupportTopMeters,
     topElevationMeters: plinthBeamBottomMeters,
-    clearHeightMeters: plinthBeamBottomMeters - tieBeamTopMeters,
+    clearHeightMeters: plinthBeamBottomMeters - bottomSupportTopMeters,
     hostWallCenterlineStart: {
       ...aboveGrade.hostWallCenterlineStart,
-      y: tieBeamTopMeters,
+      y: bottomSupportTopMeters,
     },
     hostWallCenterlineEnd: {
       ...aboveGrade.hostWallCenterlineEnd,
-      y: tieBeamTopMeters,
+      y: bottomSupportTopMeters,
     },
     leftSupportInsideFaceWorld: {
       ...aboveGrade.leftSupportInsideFaceWorld,
-      y: tieBeamTopMeters,
+      y: bottomSupportTopMeters,
     },
     rightSupportInsideFaceWorld: {
       ...aboveGrade.rightSupportInsideFaceWorld,
-      y: tieBeamTopMeters,
+      y: bottomSupportTopMeters,
     },
   };
 }
@@ -637,8 +691,17 @@ export function resolveBelowGradeInfillPanelBoundsForLayout(params: {
   columns: StructuralColumn[];
   beams: StructuralBeam[];
   foundation?: RcFrameFoundationSettings;
+  wallFootings?: readonly WallFooting[];
 }): ResolvedInfillPanelBounds[] {
   const bounds: ResolvedInfillPanelBounds[] = [];
+  const exterior = exteriorSegmentAndNodeIds(params.layout);
+  const partitionCourseJoinTrims = resolvePartitionWallCourseJoinTrims({
+    layout: params.layout,
+    segmentFrames: params.segmentFrames,
+  });
+  const wallFootingBySegmentId = new Map(
+    (params.wallFootings ?? []).map((footing) => [footing.hostSegmentId, footing]),
+  );
   params.layout.segments.forEach((segment, index) => {
     const frame = params.segmentFrames.find(
       (candidate) => candidate.segmentId === segment.id,
@@ -657,33 +720,52 @@ export function resolveBelowGradeInfillPanelBoundsForLayout(params: {
       segmentId: segment.id,
       wallHeightMeters: segment.wallHeightMeters,
       foundation: params.foundation,
+      wallFootingTopMeters: wallFootingBySegmentId.get(segment.id)?.topElevationMeters,
     });
     if (!belowGradeElevations) return;
+    const bottomSupportTopMeters = belowGradeElevations.bottomSupportTopMeters;
+    const infillCenterlineInwardOffsetMeters =
+      belowGradeInfillCenterlineOffset(frame);
     for (const aboveGrade of aboveGradeBounds) {
-      bounds.push({
+      const belowGradeBounds: ResolvedInfillPanelBounds = {
         ...aboveGrade,
-        infillCenterlineInwardOffsetMeters: 0,
-        bottomElevationMeters: belowGradeElevations.tieBeamTopMeters,
+        infillCenterlineInwardOffsetMeters,
+        bottomElevationMeters: bottomSupportTopMeters,
         topElevationMeters: belowGradeElevations.plinthBeamBottomMeters,
         clearHeightMeters:
           belowGradeElevations.plinthBeamBottomMeters -
-          belowGradeElevations.tieBeamTopMeters,
+          bottomSupportTopMeters,
         hostWallCenterlineStart: {
           ...aboveGrade.hostWallCenterlineStart,
-          y: belowGradeElevations.tieBeamTopMeters,
+          y: bottomSupportTopMeters,
         },
         hostWallCenterlineEnd: {
           ...aboveGrade.hostWallCenterlineEnd,
-          y: belowGradeElevations.tieBeamTopMeters,
+          y: bottomSupportTopMeters,
         },
         leftSupportInsideFaceWorld: {
           ...aboveGrade.leftSupportInsideFaceWorld,
-          y: belowGradeElevations.tieBeamTopMeters,
+          y: bottomSupportTopMeters,
         },
         rightSupportInsideFaceWorld: {
           ...aboveGrade.rightSupportInsideFaceWorld,
-          y: belowGradeElevations.tieBeamTopMeters,
+          y: bottomSupportTopMeters,
         },
+      };
+      const exteriorTrimmed = trimInteriorPartitionInfillAtExteriorShell({
+        bounds: belowGradeBounds,
+        segment,
+        frame,
+        exteriorSegmentIds: exterior.segmentIds,
+        exteriorNodeIds: exterior.nodeIds,
+      });
+      if (!exteriorTrimmed) continue;
+      bounds.push({
+        ...exteriorTrimmed,
+        partitionWallCourseJoinTrim:
+          segment.wallRole === "partition"
+            ? partitionCourseJoinTrims.get(segment.id)
+            : undefined,
       });
     }
   });

@@ -32,26 +32,35 @@ describe('infill panel bounds resolver', () => {
   const preset = applyAutoFrameLayout(createFiveBySixCmuBuildingPreset());
   const frames = getSegmentFramesForWallLayout(preset.wallLayout, preset.wall);
 
-  it('spans exactly from column inside face to inside face on every segment', () => {
+  it('spans each segment from first column inside face to last column inside face', () => {
     const bounds = resolveInfillPanelBoundsForLayout({
       layout: preset.wallLayout,
       segmentFrames: frames,
       columns: preset.frameSystem.columns,
       beams: preset.frameSystem.beams,
     });
-    expect(bounds.length).toBe(preset.wallLayout.segments.length);
 
-    bounds.forEach((panelBounds) => {
-      const frame = frames.find((candidate) => candidate.segmentId === panelBounds.hostSegmentId)!;
-      const segment = preset.wallLayout.segments.find((candidate) => candidate.id === panelBounds.hostSegmentId)!;
+    preset.wallLayout.segments.forEach((segment) => {
+      const segmentBounds = bounds
+        .filter((panelBounds) => panelBounds.hostSegmentId === segment.id)
+        .sort((a, b) => a.startStationMeters - b.startStationMeters);
+      expect(segmentBounds.length).toBeGreaterThan(0);
+      const frame = frames.find((candidate) => candidate.segmentId === segment.id)!;
       const startCol = findColumnAtNode(preset.frameSystem.columns, segment.startNodeId)!;
       const endCol = findColumnAtNode(preset.frameSystem.columns, segment.endNodeId)!;
       const startInset = resolveInsideFaceStation({ column: startCol, frame, side: 'start' });
       const endInset = resolveInsideFaceStation({ column: endCol, frame, side: 'end' });
 
-      expect(panelBounds.startStationMeters).toBeCloseTo(startInset, 3);
-      expect(panelBounds.endStationMeters).toBeCloseTo(endInset, 3);
-      expect(panelBounds.clearWidthMeters).toBeCloseTo(endInset - startInset, 3);
+      expect(segmentBounds[0]!.startStationMeters).toBeCloseTo(startInset, 3);
+      expect(segmentBounds.at(-1)!.endStationMeters).toBeCloseTo(endInset, 3);
+      segmentBounds.forEach((panelBounds) => {
+        expect(panelBounds.startStationMeters).toBeGreaterThanOrEqual(startInset - 0.001);
+        expect(panelBounds.endStationMeters).toBeLessThanOrEqual(endInset + 0.001);
+        expect(panelBounds.clearWidthMeters).toBeCloseTo(
+          panelBounds.endStationMeters - panelBounds.startStationMeters,
+          3,
+        );
+      });
     });
   });
 

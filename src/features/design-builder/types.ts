@@ -248,12 +248,15 @@ export interface DesignWallNode {
   z: number;
 }
 
+export type DesignWallRole = "exterior" | "partition";
+
 export interface DesignWallSegment {
   id: string;
   startNodeId: string;
   endNodeId: string;
   wallHeightMeters: number;
   wallThicknessMeters: number;
+  wallRole?: DesignWallRole;
   cmuSystemId?: string;
   cornerStrategyOverride?: DesignWallBondStrategy;
 }
@@ -665,6 +668,20 @@ export interface IsolatedFooting {
   bottomElevationMeters: number;
   centerElevationMeters: number;
   source: "auto_at_column" | "user";
+}
+
+export interface WallFooting {
+  id: string;
+  name: string;
+  hostSegmentId: string;
+  startPoint: { x: number; z: number };
+  endPoint: { x: number; z: number };
+  widthMeters: number;
+  thicknessMeters: number;
+  topElevationMeters: number;
+  bottomElevationMeters: number;
+  centerElevationMeters: number;
+  source: "auto_partition_wall";
 }
 
 export type FoundationViewMode =

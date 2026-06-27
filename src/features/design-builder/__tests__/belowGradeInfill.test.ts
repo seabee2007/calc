@@ -29,6 +29,12 @@ describe('below-grade CMU infill', () => {
   });
 
   it('creates below-grade panel bounds between tie beam top and plinth beam bottom', () => {
+    const aboveGrade = resolveInfillPanelBoundsForLayout({
+      layout: preset.wallLayout,
+      segmentFrames: frames,
+      columns: preset.frameSystem.columns,
+      beams: preset.frameSystem.beams,
+    });
     const belowGrade = resolveBelowGradeInfillPanelBoundsForLayout({
       layout: preset.wallLayout,
       segmentFrames: frames,
@@ -36,7 +42,7 @@ describe('below-grade CMU infill', () => {
       beams: preset.frameSystem.beams,
       foundation,
     });
-    expect(belowGrade.length).toBe(preset.wallLayout.segments.length);
+    expect(belowGrade.length).toBe(aboveGrade.length);
     belowGrade.forEach((bounds) => {
       expect(bounds.bottomElevationMeters).toBeCloseTo(elevations.topOfTieBeamY, 6);
       expect(bounds.topElevationMeters).toBeCloseTo(elevations.bottomOfPlinthBeamY, 6);
@@ -60,7 +66,12 @@ describe('below-grade CMU infill', () => {
     });
 
     aboveGrade.forEach((above) => {
-      const below = belowGrade.find((candidate) => candidate.hostSegmentId === above.hostSegmentId)!;
+      const below = belowGrade.find(
+        (candidate) =>
+          candidate.hostSegmentId === above.hostSegmentId &&
+          Math.abs(candidate.startStationMeters - above.startStationMeters) <= 0.001 &&
+          Math.abs(candidate.endStationMeters - above.endStationMeters) <= 0.001,
+      )!;
       expect(below.startStationMeters).toBeCloseTo(above.startStationMeters, 6);
       expect(below.endStationMeters).toBeCloseTo(above.endStationMeters, 6);
       expect(below.clearWidthMeters).toBeCloseTo(above.clearWidthMeters, 6);
@@ -77,16 +88,40 @@ describe('below-grade CMU infill', () => {
       foundation,
     });
     const belowEntries = entries.filter((entry) => entry.panel.infillZone === 'below_grade');
-    expect(belowEntries.length).toBe(preset.wallLayout.segments.length);
+    expect(belowEntries.length).toBe(
+      entries.filter((entry) => isAboveGradeInfillPanel(entry.panel)).length,
+    );
 
     belowEntries.forEach(({ panel, bounds }) => {
       const frame = frames.find((candidate) => candidate.segmentId === panel.hostSegmentId)!;
       const solved = solveInfillPanelBlocks({ panel, bounds, frame, wall: preset.wall });
+      const expectedBeamCenterlineOffset =
+        (frame.start.x - frame.centerlineStart.x) * frame.inwardNormal.x +
+        (frame.start.z - frame.centerlineStart.z) * frame.inwardNormal.z;
       expect(solved.blocks.length).toBeGreaterThan(0);
       expect(solved.blocks.every((block) => block.y < elevations.topOfPlinthBeamY)).toBe(true);
       expect(
         solved.blocks.every((block) => block.y >= elevations.topOfTieBeamY - 0.001),
       ).toBe(true);
+      expect(bounds.infillCenterlineInwardOffsetMeters).toBeCloseTo(
+        expectedBeamCenterlineOffset,
+        6,
+      );
+      solved.blocks.forEach((block) => {
+        const start = block.startAlongMeters ?? block.stationMeters ?? 0;
+        const end =
+          block.endAlongMeters ??
+          start + (block.actualLengthMeters ?? block.lengthMeters);
+        const centerStation = (start + end) / 2;
+        const frameCenterlinePoint = {
+          x: frame.centerlineStart.x + frame.tangent.x * centerStation,
+          z: frame.centerlineStart.z + frame.tangent.z * centerStation,
+        };
+        const blockOffset =
+          (block.x - frameCenterlinePoint.x) * frame.inwardNormal.x +
+          (block.z - frameCenterlinePoint.z) * frame.inwardNormal.z;
+        expect(blockOffset).toBeCloseTo(expectedBeamCenterlineOffset, 6);
+      });
     });
   });
 
@@ -110,9 +145,15 @@ describe('below-grade CMU infill', () => {
       (block) => (block.y ?? 0) < elevations.topOfPlinthBeamY - 0.001,
     ).length;
     expect(belowGradeBlockCount).toBeGreaterThan(0);
-    expect(frameGeometry.infillSystem?.panels.filter((panel) => panel.infillZone === 'below_grade').length).toBe(
-      preset.wallLayout.segments.length,
-    );
+    const frameBelowGradePanels =
+      frameGeometry.infillSystem?.panels.filter(
+        (panel) => panel.infillZone === 'below_grade',
+      ) ?? [];
+    const frameBelowGradeBounds =
+      frameGeometry.resolvedInfillPanelBounds?.filter((bounds) =>
+        bounds.panelId.includes('-below-'),
+      ) ?? [];
+    expect(frameBelowGradePanels.length).toBe(frameBelowGradeBounds.length);
 
     const bearingPreset = createFiveBySixCmuBuildingPreset();
     const bearingGeometry = generateDesignGeometry(
@@ -146,7 +187,7 @@ describe('below-grade CMU infill', () => {
       foundation: disabledTiePreset.foundationSettings,
     });
     expect(panels.filter((panel) => panel.infillZone === 'below_grade')).toHaveLength(0);
-    expect(panels.filter((panel) => isAboveGradeInfillPanel(panel)).length).toBe(
+    expect(panels.filter((panel) => isAboveGradeInfillPanel(panel)).length).toBeGreaterThanOrEqual(
       disabledTiePreset.wallLayout.segments.length,
     );
   });

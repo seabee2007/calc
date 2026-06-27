@@ -7,6 +7,7 @@ import type {
   DesignBuilderSnapMode,
   DesignBuilderToolMode,
   DesignUnitSystem,
+  DesignWallRole,
   PlacedDesignComponent,
 } from "../types";
 import { getDesignComponentDefinition } from "../domain/designComponentRegistry";
@@ -29,6 +30,8 @@ export type DesignBuilderToolInstructionStripProps = {
   onSegmentLengthInputChange: (value: string) => void;
   wallHeightMeters: number;
   onWallHeightChange: (value: number) => void;
+  drawWallRole: DesignWallRole;
+  onDrawWallRoleChange: (value: DesignWallRole) => void;
   unitSystem: DesignUnitSystem;
   orthogonalGuidesEnabled: boolean;
   onToggleOrthogonalGuides: () => void;
@@ -69,6 +72,19 @@ export function DesignBuilderToolInstructionStrip(
 
       {props.toolMode === "draw_wall" ? (
         <>
+          <label className="flex items-center gap-2 font-medium text-slate-600 dark:text-slate-300">
+            Wall type
+            <select
+              value={props.drawWallRole}
+              onChange={(event) =>
+                props.onDrawWallRoleChange(event.target.value as DesignWallRole)
+              }
+              className="h-8 rounded border border-slate-300 bg-white px-2 dark:border-slate-700 dark:bg-slate-950"
+            >
+              <option value="exterior">Exterior wall</option>
+              <option value="partition">Partition wall</option>
+            </select>
+          </label>
           <label className="flex items-center gap-2 font-medium text-slate-600 dark:text-slate-300">
             Length
             <input

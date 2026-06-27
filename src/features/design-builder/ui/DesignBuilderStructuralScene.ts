@@ -8,6 +8,7 @@ import type {
   IsolatedFooting,
   StructuralBeam,
   StructuralFrameSystemParameters,
+  WallFooting,
 } from '../types';
 import { createFootprintSlabGeometry } from './DesignBuilderFootprintScene';
 import {
@@ -65,6 +66,7 @@ function materialForBeam(params: {
 export function buildResolvedStructuralFrameSceneGroup(params: {
   frameSystem?: StructuralFrameSystemParameters;
   isolatedFootings?: readonly IsolatedFooting[];
+  wallFootings?: readonly WallFooting[];
   interiorFloorSlab?: ResolvedInteriorFloorSlab;
   interiorFacePolygon?: readonly { x: number; z: number }[];
   slabTopMeters: number;
@@ -194,6 +196,28 @@ export function buildResolvedStructuralFrameSceneGroup(params: {
       userData: { structuralElementId: footing.id },
     });
     group.add(mesh);
+  });
+
+  params.wallFootings?.forEach((footing) => {
+    const mesh = buildRcBeamMesh({
+      name: `wallFooting:${footing.id}`,
+      start: {
+        x: footing.startPoint.x,
+        z: footing.startPoint.z,
+      },
+      end: {
+        x: footing.endPoint.x,
+        z: footing.endPoint.z,
+      },
+      baseElevationMeters: footing.bottomElevationMeters,
+      widthMeters: footing.widthMeters,
+      depthMeters: footing.thicknessMeters,
+      slabTopMeters: params.slabTopMeters,
+      material: params.materials.footing,
+      trackGeometry: params.trackGeometry,
+      userData: { structuralElementId: footing.id },
+    });
+    if (mesh) group.add(mesh);
   });
 
   return group;

@@ -328,6 +328,7 @@ export interface DesignGeometryResult {
   frameSystem?: import('../types').StructuralFrameSystemParameters;
   foundationSettings?: import('../types').StructuralFoundationSettings;
   isolatedFootings?: import('../types').IsolatedFooting[];
+  wallFootings?: import('../types').WallFooting[];
   infillSystem?: import('../types').CmuInfillSystemParameters;
   gableEndSystem?: import('../types').GableEndSystemParameters;
   structuralConcreteVolumeCubicMeters?: number;

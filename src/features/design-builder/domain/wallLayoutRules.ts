@@ -5,6 +5,7 @@ import type {
   DesignWallDimensionBasis,
   DesignWallLayoutParameters,
   DesignWallNode,
+  DesignWallRole,
   DesignWallSegment,
   WallOpeningParameters,
 } from '../types';
@@ -525,7 +526,12 @@ export function addWallSegment(
   startNodeId: string,
   endX: number,
   endZ: number,
-  options?: { exactLengthMeters?: number; wallHeightMeters?: number; wallThicknessMeters?: number },
+  options?: {
+    exactLengthMeters?: number;
+    wallHeightMeters?: number;
+    wallThicknessMeters?: number;
+    wallRole?: DesignWallRole;
+  },
 ): DesignWallLayoutParameters {
   const start = layout.nodes.find((node) => node.id === startNodeId);
   if (!start) return layout;
@@ -546,6 +552,7 @@ export function addWallSegment(
     endNodeId,
     wallHeightMeters: options?.wallHeightMeters ?? layout.defaultWallHeightMeters,
     wallThicknessMeters: options?.wallThicknessMeters ?? layout.defaultWallThicknessMeters,
+    wallRole: options?.wallRole,
   };
   const next = {
     ...layout,
@@ -764,10 +771,10 @@ export function createOutsideFaceRectangleLayout(params: {
       { id: nw, x: -halfLength, z: halfWidth },
     ],
     segments: [
-      { id: createWallLayoutId('segment'), startNodeId: sw, endNodeId: se, ...segmentDefaults },
-      { id: createWallLayoutId('segment'), startNodeId: se, endNodeId: ne, ...segmentDefaults },
-      { id: createWallLayoutId('segment'), startNodeId: ne, endNodeId: nw, ...segmentDefaults },
-      { id: createWallLayoutId('segment'), startNodeId: nw, endNodeId: sw, ...segmentDefaults },
+      { id: createWallLayoutId('segment'), startNodeId: sw, endNodeId: se, wallRole: 'exterior', ...segmentDefaults },
+      { id: createWallLayoutId('segment'), startNodeId: se, endNodeId: ne, wallRole: 'exterior', ...segmentDefaults },
+      { id: createWallLayoutId('segment'), startNodeId: ne, endNodeId: nw, wallRole: 'exterior', ...segmentDefaults },
+      { id: createWallLayoutId('segment'), startNodeId: nw, endNodeId: sw, wallRole: 'exterior', ...segmentDefaults },
     ],
     isFootprintClosed: true,
     defaultWallHeightMeters: height,

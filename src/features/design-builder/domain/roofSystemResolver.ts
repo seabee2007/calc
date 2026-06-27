@@ -641,6 +641,7 @@ export function resolveRoofSystem(params: {
   roofSystem: RoofSystemSettings;
   roofBeamTopElevationMeters: number;
   segmentFrames?: readonly SegmentFrame[];
+  exteriorSegmentIds?: ReadonlySet<string> | readonly string[];
 }): ResolvedRoofSystem & { roofAssemblyThicknessMeters: number } {
   const settings = params.roofSystem;
   const rawBearingLoop = params.structuralBearingPerimeter.map((point) => ({ ...point }));
@@ -648,6 +649,7 @@ export function resolveRoofSystem(params: {
   const analysis = analyzeRectangularFootprint({
     layout: params.layout,
     exteriorFootprint: rawBearingLoop,
+    exteriorSegmentIds: params.exteriorSegmentIds,
   });
   const bearingLoop = analysis.supported
     ? analysis.bearingCorners.map((point) => ({ ...point }))
@@ -787,7 +789,7 @@ export function resolveRoofSystem(params: {
     ridgeStart = gable.claddingRidgeStart;
     ridgeEnd = gable.claddingRidgeEnd;
     gableEndSegmentIds = settings.gable.enabled
-      ? filterExteriorGableEndSegmentIds(params.layout, gable.gableEndSegmentIds)
+      ? filterExteriorGableEndSegmentIds(params.layout, gable.gableEndSegmentIds, params.exteriorSegmentIds)
       : [];
   } else {
     const hip = buildHipRoofPlanes({

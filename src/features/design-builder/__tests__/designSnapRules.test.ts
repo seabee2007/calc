@@ -63,6 +63,27 @@ describe('designSnapRules', () => {
     expect(target.point.z).not.toBeCloseTo(layout.nodes[0].z, 6);
   });
 
+  it('snaps to the nearest displayed wall face edge when the pointer is closer to the edge', () => {
+    const layout = createOutsideFaceRectangleLayout({ lengthMeters: 6, widthMeters: 5 });
+    const preset = createFiveBySixCmuBuildingPreset();
+    const frames = getSegmentFramesForWallLayout(layout, preset.wall);
+    const southSegment = layout.segments[0];
+    const southFrame = frames.find((frame) => frame.segmentId === southSegment.id)!;
+    const target = resolveDesignSnapPoint({
+      layout,
+      segmentFrames: frames,
+      point: { x: 0.7, z: southFrame.exteriorStart.z + 0.02 },
+      snapMode: 'off',
+      pixelsPerMeter: 48,
+    });
+
+    expect(target.type).toBe('line');
+    expect(target.sourceId).toBe(southSegment.id);
+    expect(target.label).toBe('Wall exterior edge');
+    expect(target.point.x).toBeCloseTo(0.7, 6);
+    expect(target.point.z).toBeCloseTo(southFrame.exteriorStart.z, 6);
+  });
+
   it('matches wall line snap to the same centerline shown in plan view', () => {
     const layout = createOutsideFaceRectangleLayout({ lengthMeters: 6, widthMeters: 5 });
     const preset = createFiveBySixCmuBuildingPreset();
@@ -194,5 +215,32 @@ describe('designSnapRules', () => {
     expect(target.label).toMatch(/Locked/);
     expect(target.point.x).toBeCloseTo(3.05, 6);
     expect(target.point.z).toBe(0);
+  });
+
+  it('keeps shift-constrained drawing exactly orthogonal even near a slightly skewed previous segment', () => {
+    const layout = createEmptyWallLayout({
+      nodes: [
+        { id: 'a', x: 0, z: 0 },
+        { id: 'b', x: 0.03, z: 2 },
+      ],
+      segments: [{ id: 's1', startNodeId: 'a', endNodeId: 'b', wallHeightMeters: 2.8 }],
+    });
+    const target = resolveDesignSnapPoint({
+      layout,
+      point: { x: 2.05, z: 2.04 },
+      snapMode: 'off',
+      pixelsPerMeter: 48,
+      drawContext: {
+        activeNodeId: 'b',
+        drawStartNodeId: 'a',
+        orthogonalLock: true,
+        shiftHeld: true,
+      },
+    });
+
+    expect(target.type).toBe('guide');
+    expect(target.label).toMatch(/Locked/);
+    expect(target.point.x).toBeCloseTo(2.05, 6);
+    expect(target.point.z).toBeCloseTo(2, 6);
   });
 });

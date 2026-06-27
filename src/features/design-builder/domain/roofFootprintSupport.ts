@@ -17,6 +17,7 @@ export type ResolveOuterRoofBeamBearingLoopInput = {
   segmentFrames: readonly SegmentFrame[];
   roofBeams: readonly StructuralBeam[];
   fallbackExteriorFootprint: readonly PlanVec2[];
+  exteriorSegmentIds?: ReadonlySet<string> | readonly string[];
 };
 
 export type ResolvedRoofBearingLoop = {
@@ -64,6 +65,12 @@ export type RidgeAxis = 'localX' | 'localZ';
 const ORTHOGONAL_TOLERANCE = 0.08;
 const MIN_EDGE_LENGTH_METERS = 0.1;
 const COLLINEAR_TOLERANCE = 0.001;
+
+function normalizeSegmentIdSet(segmentIds?: ReadonlySet<string> | readonly string[]): Set<string> | null {
+  if (!segmentIds) return null;
+  const ids = segmentIds instanceof Set ? segmentIds : new Set(segmentIds);
+  return ids.size > 0 ? new Set(ids) : null;
+}
 
 export function footprintBounds(footprint: readonly PlanVec2[]): FootprintBounds {
   const xs = footprint.map((point) => point.x);
@@ -406,8 +413,13 @@ export function resolveOuterRoofBeamBearingLoop(
     };
   };
 
-  if (!input.layout.isFootprintClosed || input.layout.segments.length < 4) {
-    warnings.push('Roof bearing loop fell back to wall exterior: footprint is not a closed quadrilateral.');
+  const exteriorSegmentIds = normalizeSegmentIdSet(input.exteriorSegmentIds);
+  const perimeterFrames = exteriorSegmentIds
+    ? input.segmentFrames.filter((frame) => exteriorSegmentIds.has(frame.segmentId))
+    : input.segmentFrames;
+
+  if (perimeterFrames.length < 4) {
+    warnings.push('Roof bearing loop fell back to wall exterior: exterior perimeter has fewer than four segments.');
     return fallback();
   }
 
@@ -417,7 +429,7 @@ export function resolveOuterRoofBeamBearingLoop(
     if (beam.hostSegmentId) roofBeamBySegmentId.set(beam.hostSegmentId, beam);
   }
 
-  const orderedFrames = orderedSegmentFrames(input.segmentFrames);
+  const orderedFrames = orderedSegmentFrames(perimeterFrames);
   const outerLines: Array<{ start: PlanVec2; end: PlanVec2 }> = [];
   for (const frame of orderedFrames) {
     const beam = roofBeamBySegmentId.get(frame.segmentId);
@@ -488,6 +500,7 @@ export function deriveLocalRectangularBasis(firstEdgeTangent: PlanVec2): LocalRe
 export function analyzeRectangularFootprint(params: {
   layout: DesignWallLayoutParameters;
   exteriorFootprint: readonly PlanVec2[];
+  exteriorSegmentIds?: ReadonlySet<string> | readonly string[];
 }): RectangularFootprintAnalysis {
   const empty: RectangularFootprintAnalysis = {
     supported: false,
@@ -510,7 +523,12 @@ export function analyzeRectangularFootprint(params: {
     axisZSegmentIds: [],
   };
 
-  if (!params.layout.isFootprintClosed || params.layout.segments.length < 4) {
+  const exteriorSegmentIds = normalizeSegmentIdSet(params.exteriorSegmentIds);
+  const candidateSegments = exteriorSegmentIds
+    ? params.layout.segments.filter((segment) => exteriorSegmentIds.has(segment.id))
+    : params.layout.segments;
+
+  if (candidateSegments.length < 4) {
     return empty;
   }
   const corners = simplifyCollinearClosedLoop(params.exteriorFootprint);
@@ -550,7 +568,7 @@ export function analyzeRectangularFootprint(params: {
     }
   }
 
-  const tangents = params.layout.segments.map((segment) => ({
+  const tangents = candidateSegments.map((segment) => ({
     segmentId: segment.id,
     tangent: segmentTangent(segment, params.layout.nodes),
   }));
@@ -672,8 +690,9 @@ function exteriorSegmentIdSet(layout: DesignWallLayoutParameters): Set<string> {
 export function filterExteriorGableEndSegmentIds(
   layout: DesignWallLayoutParameters,
   segmentIds: readonly string[],
+  exteriorSegmentIds?: ReadonlySet<string> | readonly string[],
 ): string[] {
-  const exteriorIds = exteriorSegmentIdSet(layout);
+  const exteriorIds = normalizeSegmentIdSet(exteriorSegmentIds) ?? exteriorSegmentIdSet(layout);
   return segmentIds.filter((segmentId) => exteriorIds.has(segmentId));
 }
 

@@ -182,6 +182,7 @@ import type {
   PlacedDesignComponent,
   DesignWallSegment,
   DesignWallLayoutParameters,
+  DesignWallRole,
   CmuInfillPlasterSettings,
   MasonryCourseRun,
   MasonryToolMode,
@@ -426,6 +427,7 @@ export default function DesignBuilderPage({
   const [selectedSegmentId, setSelectedSegmentId] = useState<string | null>(null);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [segmentLengthInput, setSegmentLengthInput] = useState('');
+  const [drawWallRole, setDrawWallRole] = useState<DesignWallRole>('exterior');
   const [openingToolSettings, setOpeningToolSettings] = useState<
     Record<
       'door' | 'window',
@@ -2363,6 +2365,7 @@ export default function DesignBuilderPage({
       const next = addWallSegment(layout, currentActiveDrawNodeId, point.x, point.z, {
         exactLengthMeters: exactLength,
         wallHeightMeters: layout.defaultWallHeightMeters,
+        wallRole: drawWallRole,
       });
       commitWallLayout(next, 'Draw wall', 'wall_add');
       if (layout.segments.length === 0 && !hasUserAdjustedPlanViewRef.current) {
@@ -3863,6 +3866,8 @@ export default function DesignBuilderPage({
                 defaultWallHeightMeters,
               })
             }
+            drawWallRole={drawWallRole}
+            onDrawWallRoleChange={setDrawWallRole}
             unitSystem={unitSystem}
             orthogonalGuidesEnabled={wallLayout.orthogonalLock}
             onToggleOrthogonalGuides={toggleOrthogonalGuides}
@@ -3920,6 +3925,7 @@ export default function DesignBuilderPage({
                 openingPreview={planOpeningPreview}
                 frameSystem={designGeometryResult.frameSystem}
                 isolatedFootings={designGeometryResult.isolatedFootings}
+                wallFootings={designGeometryResult.wallFootings}
                 resolvedRoofSystem={designGeometryResult.resolvedRoofSystem ?? null}
                 roofPlanDisplay={{
                   showHatch: showRoofPlanHatch,

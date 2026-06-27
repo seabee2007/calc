@@ -120,6 +120,7 @@ export function buildDesignBuilderViewerStructuralFrameScene(params: {
   const group = buildResolvedStructuralFrameSceneGroup({
     frameSystem,
     isolatedFootings: geometry.isolatedFootings,
+    wallFootings: geometry.wallFootings,
     interiorFloorSlab,
     interiorFacePolygon: geometry.resolvedFootprint?.interiorFacePolygon,
     slabTopMeters: state.currentSlab.slabThicknessMeters,

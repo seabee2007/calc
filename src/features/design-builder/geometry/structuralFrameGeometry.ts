@@ -12,6 +12,7 @@ import type {
   StructuralFoundationSettings,
   StructuralFrameSystemParameters,
   ThickenedEdgeSlabParameters,
+  WallFooting,
 } from "../types";
 import type {
   CmuBlockInstance,
@@ -106,6 +107,7 @@ export type StructuralFrameGeometryExtras = {
   frameSystem: StructuralFrameSystemParameters;
   foundationSettings: StructuralFoundationSettings;
   isolatedFootings: IsolatedFooting[];
+  wallFootings: WallFooting[];
   infillSystem: CmuInfillSystemParameters;
   gableEndSystem: GableEndSystemParameters;
   structuralConcreteVolumeCubicMeters: number;
@@ -151,6 +153,7 @@ export function generateFrameInfillGeometry(
   });
   const frameSystem = reconciled.frameSystem;
   const isolatedFootings = reconciled.isolatedFootings;
+  const wallFootings = reconciled.wallFootings;
 
   let panelEntries = resolveInfillPanelsWithBounds({
     layout: input.wallLayout,
@@ -159,6 +162,7 @@ export function generateFrameInfillGeometry(
     beams: frameSystem.beams,
     wall,
     foundation: foundationSettings,
+    wallFootings,
     existingPanels: input.infillSystem.panels,
   });
   const module = resolveCmuModuleDefinition(wall);
@@ -191,6 +195,7 @@ export function generateFrameInfillGeometry(
     segmentFrames,
     roofBeams: frameSystem.beams,
     fallbackExteriorFootprint: resolvedWallGeometry.exteriorFacePolygon,
+    exteriorSegmentIds,
   });
   let resolvedRoofSystem = resolveRoofSystem({
     layout: input.wallLayout,
@@ -201,6 +206,7 @@ export function generateFrameInfillGeometry(
     roofSystem,
     roofBeamTopElevationMeters,
     segmentFrames,
+    exteriorSegmentIds,
   });
   layoutWarnings.push(
     ...resolvedRoofSystem.warnings.map((warning) => warning.message),
@@ -499,7 +505,14 @@ export function generateFrameInfillGeometry(
   const volumeResult = resolveStructuralConcreteVolumes({
     columns: frameSystem.columns,
     beams: frameSystem.beams,
-    footings: isolatedFootings,
+    footings: [...isolatedFootings, ...wallFootings.map((footing) => ({
+      widthMeters: footing.widthMeters,
+      lengthMeters: Math.hypot(
+        footing.endPoint.x - footing.startPoint.x,
+        footing.endPoint.z - footing.startPoint.z,
+      ),
+      thicknessMeters: footing.thicknessMeters,
+    }))],
     elevations,
   });
   const interiorFacePolygon = resolvedFootprint?.interiorFacePolygon ?? [];
@@ -550,6 +563,7 @@ export function generateFrameInfillGeometry(
     frameSystem,
     foundationSettings,
     isolatedFootings,
+    wallFootings,
     infillSystem: { ...normalizeCmuInfillSystem(input.infillSystem), panels },
     gableEndSystem: input.gableEndSystem,
     structuralConcreteVolumeCubicMeters,

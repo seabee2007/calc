@@ -128,6 +128,9 @@ export function resolveDesignSnapPoint(params: {
     });
   }
 
+  const wallEdgeSnap = findNearestWallEdgeSnap(params.point, captureMeters, pixelsPerMeter, params.segmentFrames);
+  if (wallEdgeSnap) candidates.push(wallEdgeSnap);
+
   const lineSnap = findNearestLineSnap(params.layout, params.point, captureMeters, pixelsPerMeter, snapNodeById);
   if (lineSnap) candidates.push(lineSnap);
 
@@ -220,6 +223,7 @@ function findPreviousSegmentPerpendicularSnap(params: {
 }): DesignSnapTarget | null {
   const activeNodeId = params.drawContext?.activeNodeId;
   if (!params.drawContext?.orthogonalLock || !activeNodeId) return null;
+  if (params.drawContext.shiftHeld) return null;
   if (params.drawContext.closureCornerCandidate) return null;
   const activeNode = params.layout.nodes.find((node) => node.id === activeNodeId);
   if (!activeNode) return null;
@@ -276,6 +280,39 @@ function findPreviousSegmentPerpendicularSnap(params: {
     valid: true,
     captured: true,
   };
+}
+
+function findNearestWallEdgeSnap(
+  point: { x: number; z: number },
+  toleranceMeters: number,
+  pixelsPerMeter: number,
+  segmentFrames?: readonly SegmentFrame[],
+): DesignSnapTarget | null {
+  if (!segmentFrames || segmentFrames.length === 0) return null;
+  let best: DesignSnapTarget | null = null;
+  segmentFrames.forEach((frame) => {
+    [
+      { label: 'Wall exterior edge', start: frame.exteriorStart, end: frame.exteriorEnd },
+      { label: 'Wall interior edge', start: frame.interiorStart, end: frame.interiorEnd },
+    ].forEach((edge) => {
+      const projected = projectPointToSegment(point, edge.start, edge.end);
+      if (projected.isEndpoint) return;
+      const distanceMeters = distance(point, projected.point);
+      if (distanceMeters > toleranceMeters) return;
+      if (best && distanceMeters * pixelsPerMeter >= best.distancePx) return;
+      best = {
+        type: 'line',
+        point: projected.point,
+        distancePx: distanceMeters * pixelsPerMeter,
+        priority: 6,
+        sourceId: frame.segmentId,
+        label: edge.label,
+        valid: true,
+        captured: true,
+      };
+    });
+  });
+  return best;
 }
 
 function findNearestEndpointSnap(

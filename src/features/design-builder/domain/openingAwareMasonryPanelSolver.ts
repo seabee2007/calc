@@ -2,6 +2,7 @@ import type { CmuInfillPanel, CmuWallSystemParameters } from '../types';
 import type { ResolvedCmuOpening } from './cmuOpeningRules';
 import { resolveCmuModuleDefinition } from './cmuModuleRules';
 import type { CmuBlockInstance, SegmentFrame } from '../geometry/designGeometry';
+import type { PartitionWallCourseJoinTrim } from './partitionWallJoinRules';
 import {
   blockOverlapsOpeningAssembly,
   buildLayoutLintelSolidPlacements,
@@ -58,6 +59,15 @@ function resolvePanelVerticalCourses(params: {
 }
 
 export type OpeningAwareMasonryPanelKind = 'bearing_wall_segment' | 'rc_frame_infill';
+
+function partitionCourseEndpointTrimMeters(
+  endpoint: PartitionWallCourseJoinTrim['start'] | PartitionWallCourseJoinTrim['end'],
+  courseIndex: number,
+): number {
+  if (!endpoint) return 0;
+  const courseParity = (courseIndex % 2) as 0 | 1;
+  return courseParity === endpoint.ownerCourseParity ? 0 : endpoint.trimMeters;
+}
 
 export type OpeningAwareMasonryPanelResult = {
   blocks: CmuBlockInstance[];
@@ -326,6 +336,7 @@ export function solveOpeningAwareMasonryPanel(params: {
   courseIndexOffset?: number;
   bondDatumStationMeters?: number;
   infillCenterlineInwardOffsetMeters?: number;
+  partitionWallCourseJoinTrim?: PartitionWallCourseJoinTrim;
 }): OpeningAwareMasonryPanelResult {
   if (params.panelKind !== 'rc_frame_infill') {
     return {
@@ -391,6 +402,24 @@ export function solveOpeningAwareMasonryPanel(params: {
       params.panelBottomElevationMeters,
       courseIndexOffset,
     );
+    const courseStartTrimMeters = partitionCourseEndpointTrimMeters(
+      params.partitionWallCourseJoinTrim?.start,
+      absoluteCourseIndex,
+    );
+    const courseEndTrimMeters = partitionCourseEndpointTrimMeters(
+      params.partitionWallCourseJoinTrim?.end,
+      absoluteCourseIndex,
+    );
+    const coursePanelStartStationMeters =
+      params.panelStartStationMeters + courseStartTrimMeters;
+    const coursePanelEndStationMeters =
+      params.panelEndStationMeters - courseEndTrimMeters;
+    if (coursePanelEndStationMeters - coursePanelStartStationMeters <= 0.05) {
+      warnings.push(
+        `Skipped course ${absoluteCourseIndex + 1} on panel ${params.panel.id}; partition corner weave trims exceed clear panel span.`,
+      );
+      continue;
+    }
 
     if (isTopClosure) {
       if (courseTopElevationMeters > params.panelTopElevationMeters + FRAME_INFILL_HEIGHT_TOLERANCE_METERS) {
@@ -403,15 +432,15 @@ export function solveOpeningAwareMasonryPanel(params: {
     const cells = buildRunningBondModuleGrid({
       bondDatumStationMeters: bondDatum,
       courseIndex: absoluteCourseIndex,
-      coverageEndMeters: params.panelEndStationMeters,
+      coverageEndMeters: coursePanelEndStationMeters,
       nominalModuleMeters: nominalModule,
       halfNominalMeters: halfNominal,
       bondPattern,
     });
     const clipped = clipGridCellsToInterval({
       cells,
-      intervalStartMeters: params.panelStartStationMeters,
-      intervalEndMeters: params.panelEndStationMeters,
+      intervalStartMeters: coursePanelStartStationMeters,
+      intervalEndMeters: coursePanelEndStationMeters,
       nominalModuleMeters: nominalModule,
       halfNominalMeters: halfNominal,
       actualFullLengthMeters: actualFull,
@@ -439,7 +468,22 @@ export function solveOpeningAwareMasonryPanel(params: {
         const isJambClosure = segment.source === 'opening_jamb_closure';
         const blockType = blockTypeForOpeningSegment(segment, nominalModule, clippedBlock.blockType);
         const nominalLengthMeters = segment.lengthMeters;
-        const actualLengthMeters = actualLengthForOpeningSegment(segment, clippedBlock.actualLengthMeters);
+        const touchesPartitionJoinStart =
+          params.partitionWallCourseJoinTrim?.start != null &&
+          Math.abs(segment.startAlongMeters - coursePanelStartStationMeters) <= 0.001;
+        const touchesPartitionJoinEnd =
+          params.partitionWallCourseJoinTrim?.end != null &&
+          Math.abs(segment.endAlongMeters - coursePanelEndStationMeters) <= 0.001;
+        const actualLengthMeters =
+          touchesPartitionJoinStart || touchesPartitionJoinEnd
+            ? nominalLengthMeters
+            : actualLengthForOpeningSegment(segment, clippedBlock.actualLengthMeters);
+        const placementCenterStationMeters =
+          touchesPartitionJoinStart && !touchesPartitionJoinEnd
+            ? segment.startAlongMeters + actualLengthMeters / 2
+            : touchesPartitionJoinEnd && !touchesPartitionJoinStart
+              ? segment.endAlongMeters - actualLengthMeters / 2
+              : undefined;
 
         const block = blockFromPanelUnit({
           panel: params.panel,
@@ -449,6 +493,7 @@ export function solveOpeningAwareMasonryPanel(params: {
           stationMeters: segment.startAlongMeters,
           nominalLengthMeters,
           actualLengthMeters,
+          placementCenterStationMeters,
           courseBottomElevationMeters,
           physicalHeightMeters,
           blockType,

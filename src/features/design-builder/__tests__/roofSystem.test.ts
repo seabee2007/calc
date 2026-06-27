@@ -31,6 +31,7 @@ import { normalizeRcFrameFoundationSettings } from "../domain/rcFrameFoundationM
 import {
   buildDesignGeometryInputFromLayout,
   generateDesignGeometry,
+  getExteriorPerimeterSegmentIds,
   getSegmentFramesForWallLayout,
 } from "../geometry/designGeometry";
 import { projectPointToSegmentStation } from "../domain/openingPlacementResolver";
@@ -224,6 +225,28 @@ function splitLongRectangleLayout(
         id: "west",
         startNodeId: "nw",
         endNodeId: "sw",
+        wallThicknessMeters: 0.2,
+        wallHeightMeters: 2.8,
+      },
+    ],
+  };
+}
+
+function splitLongRectangleWithPartitionLayout(): import("../types").DesignWallLayoutParameters {
+  const layout = splitLongRectangleLayout(18, 6);
+  return {
+    ...layout,
+    isFootprintClosed: false,
+    nodes: [
+      ...layout.nodes,
+      { id: "partition-end", x: 0, z: 0 },
+    ],
+    segments: [
+      ...layout.segments,
+      {
+        id: "partition",
+        startNodeId: "s-mid",
+        endNodeId: "partition-end",
         wallThicknessMeters: 0.2,
         wallHeightMeters: 2.8,
       },
@@ -523,6 +546,36 @@ describe("Roof system — hip, gable, raked cap", () => {
     expect(analysis.localZSegmentIds).toEqual(["east", "west"]);
   });
 
+  it("keeps partition walls out of rectangular roof footprint analysis", () => {
+    const layout = splitLongRectangleWithPartitionLayout();
+    const exteriorSegmentIds = getExteriorPerimeterSegmentIds(layout);
+    const footprint = [
+      { x: -9, z: -3 },
+      { x: 0, z: -3 },
+      { x: 9, z: -3 },
+      { x: 9, z: 3 },
+      { x: 0, z: 3 },
+      { x: -9, z: 3 },
+    ];
+    const analysis = analyzeRectangularFootprint({
+      layout,
+      exteriorFootprint: footprint,
+      exteriorSegmentIds,
+    });
+
+    expect(layout.isFootprintClosed).toBe(false);
+    expect(analysis.supported).toBe(true);
+    expect(analysis.localXSegmentIds).toEqual([
+      "south-a",
+      "south-b",
+      "north-a",
+      "north-b",
+    ]);
+    expect(analysis.localZSegmentIds).toEqual(["east", "west"]);
+    expect(analysis.localXSegmentIds).not.toContain("partition");
+    expect(analysis.localZSegmentIds).not.toContain("partition");
+  });
+
   it("resolves gable and hip roofs on split long rectangular footprints", () => {
     const layout = splitLongRectangleLayout(18, 6);
     const footprint = [
@@ -565,6 +618,52 @@ describe("Roof system — hip, gable, raked cap", () => {
     expect(hip.roofTopPlanes).toHaveLength(4);
     expect(hip.claddingRidgeStart?.x).toBeCloseTo(-6, 6);
     expect(hip.claddingRidgeEnd?.x).toBeCloseTo(6, 6);
+  });
+
+  it("resolves roofs from the exterior wall shell when partitions branch inside", () => {
+    const layout = splitLongRectangleWithPartitionLayout();
+    const exteriorSegmentIds = getExteriorPerimeterSegmentIds(layout);
+    const footprint = [
+      { x: -9, z: -3 },
+      { x: 0, z: -3 },
+      { x: 9, z: -3 },
+      { x: 9, z: 3 },
+      { x: 0, z: 3 },
+      { x: -9, z: 3 },
+    ];
+
+    const roof = resolveRoofSystem({
+      layout,
+      wallExteriorFootprint: footprint,
+      structuralBearingPerimeter: footprint,
+      bearingSource: "wall_exterior_fallback",
+      roofSystem: {
+        ...createDefaultRoofSystemSettings(),
+        roofType: "gable",
+        eaveOverhangMeters: 0,
+      },
+      roofBeamTopElevationMeters: 2.8,
+      exteriorSegmentIds,
+    });
+
+    expect(roof.supported).toBe(true);
+    expect(roof.unsupportedMessage).toBeUndefined();
+    expect(roof.gableEndSegmentIds).toEqual(["east", "west"]);
+    expect(roof.gableEndSegmentIds).not.toContain("partition");
+    expect(roof.roofTopPlanes).toHaveLength(2);
+  });
+
+  it("generates RC frame roofs with an exterior shell plus interior partitions", () => {
+    const layout = splitLongRectangleWithPartitionLayout();
+    const roof = frameInfillGeometry(
+      gableRoofSystem({ eaveOverhangMeters: 0 }),
+      layout,
+    ).resolvedRoofSystem!;
+
+    expect(roof.supported).toBe(true);
+    expect(roof.unsupportedMessage).toBeUndefined();
+    expect(roof.gableEndSegmentIds).not.toContain("partition");
+    expect(roof.roofTopPlanes.length).toBeGreaterThan(0);
   });
 
   it("generates steel trusses across the full length of buildings longer than 10m", () => {

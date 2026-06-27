@@ -366,6 +366,270 @@ describe("RC frame foundation — plinth / roof / tie beams", () => {
     ).toBe(true);
   });
 
+  it("creates half-depth strip footings under partition wall segments", () => {
+    const partitionPreset = createFiveBySixCmuBuildingPreset();
+    const startNode = partitionPreset.wallLayout.nodes[0]!;
+    const endNodeId = "partition-end";
+    partitionPreset.wallLayout = {
+      ...partitionPreset.wallLayout,
+      isFootprintClosed: false,
+      nodes: [
+        ...partitionPreset.wallLayout.nodes,
+        { id: endNodeId, x: 0, z: 0 },
+      ],
+      segments: [
+        ...partitionPreset.wallLayout.segments,
+        {
+          id: "partition-wall",
+          startNodeId: startNode.id,
+          endNodeId,
+          wallHeightMeters: partitionPreset.wallLayout.defaultWallHeightMeters,
+          wallThicknessMeters: 0.2,
+          wallRole: "partition",
+        },
+      ],
+    };
+    const partitionFoundation = normalizeRcFrameFoundationSettings({
+      ...partitionPreset.foundationSettings,
+      isolatedFootings: {
+        ...partitionPreset.foundationSettings.isolatedFootings,
+        dropBelowPlinthBeamMeters: 1.2,
+        thicknessMeters: 0.3,
+      },
+    });
+    const partitionGeometry = generateDesignGeometry(
+      buildDesignGeometryInputFromLayout({
+        wallLayout: partitionPreset.wallLayout,
+        cmuSettings: partitionPreset.wall,
+        slabSettings: partitionPreset.slab,
+        roofSettings: partitionPreset.roof,
+        trussSettings: partitionPreset.truss,
+        buildingSystemMode: "reinforced_concrete_frame_with_cmu_infill",
+        frameSystem: partitionPreset.frameSystem,
+        foundationSettings: partitionFoundation,
+        infillSystem: partitionPreset.infillSystem,
+        gableEndSystem: partitionPreset.gableEndSystem,
+      }),
+    );
+    const partitionFooting = partitionGeometry.wallFootings?.find(
+      (footing) => footing.hostSegmentId === "partition-wall",
+    );
+    const partitionElevations = resolveFoundationElevations({
+      foundation: partitionFoundation,
+      wallHeightMeters: partitionPreset.wallLayout.defaultWallHeightMeters,
+    });
+
+    expect(partitionFooting).toBeDefined();
+    expect(partitionFooting!.widthMeters).toBeCloseTo(0.4, 6);
+    expect(partitionFooting!.thicknessMeters).toBeCloseTo(0.3, 6);
+    expect(partitionFooting!.topElevationMeters).toBeCloseTo(
+      partitionElevations.bottomOfPlinthBeamY -
+        partitionFoundation.isolatedFootings.dropBelowPlinthBeamMeters / 2,
+      6,
+    );
+    const partitionBelowGradePanel =
+      partitionGeometry.infillSystem.panels.find(
+        (panel) =>
+          panel.hostSegmentId === "partition-wall" &&
+          panel.infillZone === "below_grade",
+      );
+    expect(partitionBelowGradePanel).toBeDefined();
+    expect(partitionBelowGradePanel!.bottomElevationMeters).toBeCloseTo(
+      partitionFooting!.topElevationMeters,
+      6,
+    );
+    const partitionBelowGradeBounds =
+      partitionGeometry.resolvedInfillPanelBounds?.find(
+        (bounds) =>
+          bounds.hostSegmentId === "partition-wall" &&
+          bounds.panelId.includes("-below-"),
+      );
+    expect(partitionBelowGradeBounds).toBeDefined();
+    expect(
+      partitionBelowGradeBounds!.infillCenterlineInwardOffsetMeters,
+    ).toBeCloseTo(0, 6);
+  });
+
+  it("does not add wall strip footings to unlabeled or exterior wall segments", () => {
+    const mixedPreset = createFiveBySixCmuBuildingPreset();
+    const startNode = mixedPreset.wallLayout.nodes[0]!;
+    const endNodeId = "unlabeled-interior-end";
+    mixedPreset.wallLayout = {
+      ...mixedPreset.wallLayout,
+      isFootprintClosed: false,
+      nodes: [
+        ...mixedPreset.wallLayout.nodes,
+        { id: endNodeId, x: 0, z: 0 },
+      ],
+      segments: [
+        ...mixedPreset.wallLayout.segments,
+        {
+          id: "unlabeled-interior-wall",
+          startNodeId: startNode.id,
+          endNodeId,
+          wallHeightMeters: mixedPreset.wallLayout.defaultWallHeightMeters,
+          wallThicknessMeters: 0.2,
+        },
+      ],
+    };
+
+    const mixedGeometry = generateDesignGeometry(
+      buildDesignGeometryInputFromLayout({
+        wallLayout: mixedPreset.wallLayout,
+        cmuSettings: mixedPreset.wall,
+        slabSettings: mixedPreset.slab,
+        roofSettings: mixedPreset.roof,
+        trussSettings: mixedPreset.truss,
+        buildingSystemMode: "reinforced_concrete_frame_with_cmu_infill",
+        frameSystem: mixedPreset.frameSystem,
+        foundationSettings: mixedPreset.foundationSettings,
+        infillSystem: mixedPreset.infillSystem,
+        gableEndSystem: mixedPreset.gableEndSystem,
+      }),
+    );
+
+    expect(mixedGeometry.wallFootings ?? []).toHaveLength(0);
+  });
+
+  it("weaves partition CMU infill courses at L-corners", () => {
+    const cornerPreset = createFiveBySixCmuBuildingPreset();
+    const wallThicknessMeters = 0.2;
+    cornerPreset.wallLayout = {
+      ...cornerPreset.wallLayout,
+      nodes: [
+        ...cornerPreset.wallLayout.nodes,
+        { id: "partition-start", x: 2, z: 1 },
+        { id: "partition-corner", x: 2, z: 3 },
+        { id: "partition-end", x: 4, z: 3 },
+      ],
+      segments: [
+        ...cornerPreset.wallLayout.segments,
+        {
+          id: "partition-incoming",
+          startNodeId: "partition-start",
+          endNodeId: "partition-corner",
+          wallHeightMeters: cornerPreset.wallLayout.defaultWallHeightMeters,
+          wallThicknessMeters,
+          wallRole: "partition",
+        },
+        {
+          id: "partition-outgoing",
+          startNodeId: "partition-corner",
+          endNodeId: "partition-end",
+          wallHeightMeters: cornerPreset.wallLayout.defaultWallHeightMeters,
+          wallThicknessMeters,
+          wallRole: "partition",
+        },
+      ],
+    };
+
+    const cornerGeometry = generateDesignGeometry(
+      buildDesignGeometryInputFromLayout({
+        wallLayout: cornerPreset.wallLayout,
+        cmuSettings: cornerPreset.wall,
+        slabSettings: cornerPreset.slab,
+        roofSettings: cornerPreset.roof,
+        trussSettings: cornerPreset.truss,
+        buildingSystemMode: "reinforced_concrete_frame_with_cmu_infill",
+        frameSystem: cornerPreset.frameSystem,
+        foundationSettings: cornerPreset.foundationSettings,
+        infillSystem: cornerPreset.infillSystem,
+        gableEndSystem: cornerPreset.gableEndSystem,
+      }),
+    );
+    const incomingFrame = cornerGeometry.wallCmuLayout.segmentFrames.find(
+      (frame) => frame.segmentId === "partition-incoming",
+    )!;
+    const outgoingFrame = cornerGeometry.wallCmuLayout.segmentFrames.find(
+      (frame) => frame.segmentId === "partition-outgoing",
+    )!;
+    const incomingFooting = cornerGeometry.wallFootings?.find(
+      (footing) => footing.hostSegmentId === "partition-incoming",
+    );
+    const outgoingFooting = cornerGeometry.wallFootings?.find(
+      (footing) => footing.hostSegmentId === "partition-outgoing",
+    );
+    const expectedTrimMeters = wallThicknessMeters / 2;
+
+    expect(incomingFooting).toBeDefined();
+    expect(outgoingFooting).toBeDefined();
+    expect(incomingFooting!.endPoint.x).toBeCloseTo(
+      incomingFrame.centerlineEnd.x,
+      6,
+    );
+    expect(incomingFooting!.endPoint.z).toBeCloseTo(
+      incomingFrame.centerlineEnd.z,
+      6,
+    );
+    expect(outgoingFooting!.startPoint.x).toBeCloseTo(
+      outgoingFrame.centerlineStart.x,
+      6,
+    );
+    expect(outgoingFooting!.startPoint.z).toBeCloseTo(
+      outgoingFrame.centerlineStart.z,
+      6,
+    );
+
+    const aboveGradeBlocks = cornerGeometry.wallCmuLayout.blocks.filter(
+      (block) =>
+        block.source === "rc_frame_infill" &&
+        (block.segmentId === "partition-incoming" ||
+          block.segmentId === "partition-outgoing"),
+    );
+    const firstAboveGradeCourseIndex = Math.min(
+      ...aboveGradeBlocks.map((block) => block.courseIndex ?? block.course),
+    );
+    const secondAboveGradeCourseIndex = firstAboveGradeCourseIndex + 1;
+    const courseStations = (
+      segmentId: string,
+      courseIndex: number,
+    ): { start: number; end: number } => {
+      const courseBlocks = aboveGradeBlocks.filter(
+        (block) =>
+          block.segmentId === segmentId &&
+          (block.courseIndex ?? block.course) === courseIndex,
+      );
+      expect(courseBlocks.length).toBeGreaterThan(0);
+      return {
+        start: Math.min(
+          ...courseBlocks.map((block) => block.stationMeters ?? 0),
+        ),
+        end: Math.max(
+          ...courseBlocks.map(
+            (block) =>
+              block.endAlongMeters ??
+              (block.stationMeters ?? 0) + block.lengthMeters,
+          ),
+        ),
+      };
+    };
+
+    const incomingEvenCourse = courseStations(
+      "partition-incoming",
+      firstAboveGradeCourseIndex,
+    );
+    const incomingOddCourse = courseStations(
+      "partition-incoming",
+      secondAboveGradeCourseIndex,
+    );
+    const outgoingEvenCourse = courseStations(
+      "partition-outgoing",
+      firstAboveGradeCourseIndex,
+    );
+    const outgoingOddCourse = courseStations(
+      "partition-outgoing",
+      secondAboveGradeCourseIndex,
+    );
+
+    expect(incomingEvenCourse.end).toBeCloseTo(incomingFrame.lengthMeters, 6);
+    expect(incomingOddCourse.end).toBeCloseTo(
+      incomingFrame.lengthMeters - expectedTrimMeters,
+      6,
+    );
+    expect(outgoingEvenCourse.start).toBeCloseTo(expectedTrimMeters, 6);
+    expect(outgoingOddCourse.start).toBeCloseTo(0, 6);
+  });
+
   it("does not duplicate footings at shared corner columns", () => {
     for (const node of preset.wallLayout.nodes) {
       const column = findColumnAtNode(preset.frameSystem.columns, node.id)!;

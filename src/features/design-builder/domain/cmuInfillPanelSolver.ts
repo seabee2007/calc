@@ -5,6 +5,7 @@ import type {
   RcFrameFoundationSettings,
   StructuralBeam,
   StructuralColumn,
+  WallFooting,
 } from "../types";
 import {
   belowGradeInfillPanelFromResolvedBounds,
@@ -86,6 +87,7 @@ function resolveAllInfillPanelBounds(params: {
   columns: StructuralColumn[];
   beams: StructuralBeam[];
   foundation?: RcFrameFoundationSettings;
+  wallFootings?: readonly WallFooting[];
 }): ResolvedInfillPanelBounds[] {
   const belowGrade = resolveBelowGradeInfillPanelBoundsForLayout(params);
   const aboveGrade = resolveInfillPanelBoundsForLayout(params);
@@ -178,6 +180,7 @@ export function deriveInfillPanelsForLayout(params: {
   beams: StructuralBeam[];
   wall: CmuWallSystemParameters;
   foundation?: RcFrameFoundationSettings;
+  wallFootings?: readonly WallFooting[];
   existingPanels?: readonly CmuInfillPanel[];
 }): CmuInfillPanel[] {
   const resolvedBounds = resolveAllInfillPanelBounds(params);
@@ -213,6 +216,7 @@ export function resolveInfillPanelsWithBounds(params: {
   beams: StructuralBeam[];
   wall: CmuWallSystemParameters;
   foundation?: RcFrameFoundationSettings;
+  wallFootings?: readonly WallFooting[];
   existingPanels?: readonly CmuInfillPanel[];
 }): Array<{ panel: CmuInfillPanel; bounds: ResolvedInfillPanelBounds }> {
   const resolvedBounds = resolveAllInfillPanelBounds(params);
@@ -275,6 +279,7 @@ export function solveInfillPanelBlocks(params: {
     courseIndexOffset,
     infillCenterlineInwardOffsetMeters:
       params.bounds.infillCenterlineInwardOffsetMeters,
+    partitionWallCourseJoinTrim: params.bounds.partitionWallCourseJoinTrim,
   });
 
   const blocks = solved.blocks;

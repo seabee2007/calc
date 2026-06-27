@@ -5,6 +5,7 @@ import type {
   StructuralColumn,
   StructuralFoundationSettings,
   StructuralFrameSystemParameters,
+  WallFooting,
 } from "../types";
 import type { SegmentFrame } from "../geometry/designGeometry";
 import {
@@ -41,6 +42,7 @@ export type ColumnFootprint = {
 export type FrameLayoutResult = {
   frameSystem: StructuralFrameSystemParameters;
   isolatedFootings: IsolatedFooting[];
+  wallFootings: WallFooting[];
 };
 
 function columnIdForNode(nodeId: string): string {
@@ -245,6 +247,47 @@ function createAutoColumnsForLayout(params: {
     ...createCornerColumnsForLayout(params),
     ...createIntermediateColumnsForLayout(params),
   ];
+}
+
+function wallFootingIdForSegment(segmentId: string): string {
+  return `wall-footing-${segmentId}`;
+}
+
+function createWallFootingsForPartitionSegments(params: {
+  layout: DesignWallLayoutParameters;
+  segmentFrames: SegmentFrame[];
+  foundation: RcFrameFoundationSettings;
+  topOfPlinthBeamY: number;
+}): WallFooting[] {
+  const settings = params.foundation.isolatedFootings;
+  if (!settings.enabled || !settings.autoCreateAtStructuralColumns) return [];
+
+  const segmentById = new Map(params.layout.segments.map((segment) => [segment.id, segment]));
+  const topElevationMeters =
+    params.topOfPlinthBeamY - Math.max(0, settings.dropBelowPlinthBeamMeters) / 2;
+  const thicknessMeters = Math.max(0.1, settings.thicknessMeters);
+  const bottomElevationMeters = topElevationMeters - thicknessMeters;
+
+  return params.segmentFrames.flatMap((frame) => {
+    const segment = segmentById.get(frame.segmentId);
+    if (!segment) return [];
+    if (segment.wallRole !== "partition") return [];
+    if (frame.lengthMeters <= 0.05) return [];
+
+    return [{
+      id: wallFootingIdForSegment(segment.id),
+      name: `Wall Footing ${segment.id}`,
+      hostSegmentId: segment.id,
+      startPoint: { ...frame.centerlineStart },
+      endPoint: { ...frame.centerlineEnd },
+      widthMeters: Math.max(0.1, frame.wallThicknessMeters * 2),
+      thicknessMeters,
+      topElevationMeters,
+      bottomElevationMeters,
+      centerElevationMeters: topElevationMeters - thicknessMeters / 2,
+      source: "auto_partition_wall" as const,
+    }];
+  });
 }
 
 function beamBetweenColumns(params: {
@@ -520,6 +563,12 @@ export function reconcileStructuralFrameWithFoundation(params: {
     foundation,
     topOfFootingY: elevations.topOfFootingY,
   });
+  const wallFootings = createWallFootingsForPartitionSegments({
+    layout: params.layout,
+    segmentFrames: params.segmentFrames,
+    foundation,
+    topOfPlinthBeamY: elevations.bottomOfPlinthBeamY,
+  });
 
   return {
     frameSystem: {
@@ -529,6 +578,7 @@ export function reconcileStructuralFrameWithFoundation(params: {
       beams: resolvedBeams,
     },
     isolatedFootings,
+    wallFootings,
   };
 }
 

@@ -12,6 +12,7 @@ import type {
   ResolvedRoofSystem,
   StructuralBeam,
   StructuralColumn,
+  WallFooting,
 } from '../types';
 import type { HelperMeasurement } from '../domain/designComponentPlacement';
 import {
@@ -230,6 +231,7 @@ interface DesignBuilderPlanCanvasProps {
   closureCornerSnap?: { point: { x: number; z: number }; captured: boolean } | null;
   frameSystem?: import('../types').StructuralFrameSystemParameters;
   isolatedFootings?: readonly import('../types').IsolatedFooting[];
+  wallFootings?: readonly WallFooting[];
   resolvedRoofSystem?: ResolvedRoofSystem | null;
   roofPlanDisplay?: RoofPlanDisplayOptions;
   selectedObjectType?: import('../types').DesignObjectType | null;
@@ -272,6 +274,7 @@ export default function DesignBuilderPlanCanvas({
   closureCornerSnap = null,
   frameSystem,
   isolatedFootings = [],
+  wallFootings = [],
   resolvedRoofSystem = null,
   roofPlanDisplay = {
     showHatch: true,
@@ -349,7 +352,6 @@ export default function DesignBuilderPlanCanvas({
     () => buildPlanDisplayNodeById({ layout, framesBySegmentId }),
     [framesBySegmentId, layout],
   );
-
   const roughOpeningsBySegmentId = useMemo(() => {
     const bySegment = new Map<string, { roughOpeningStartMeters: number; roughOpeningEndMeters: number }[]>();
     openingItems.forEach((item) => {
@@ -2646,6 +2648,23 @@ export default function DesignBuilderPlanCanvas({
               },
             );
           }) : null}
+        {showStructuralPlanGeometry ? wallFootings.map((footing) =>
+          renderPlanMaterialStrip(
+            footing.id,
+            footing.startPoint,
+            footing.endPoint,
+            footing.widthMeters,
+            {
+              fill: architecturalDrawing ? 'none' : '#78716c44',
+              stroke: architecturalDrawing ? mutedStroke : '#57534e',
+              strokeWidth: architecturalDrawing ? drawingStyle.weights.medium : 1.4,
+              data: {
+                'data-foundation-wall-footing-id': footing.id,
+                'data-foundation-wall-footing-segment-id': footing.hostSegmentId,
+              },
+            },
+          )
+        ) : null}
         {showStructuralPlanGeometry ? isolatedFootings.map((footing) => {
           const center = planToSurfacePoint(footing.position);
           const halfW = (footing.widthMeters * viewport.zoom) / 2;

@@ -243,6 +243,9 @@ describe('Structure dimensions pipeline', () => {
     const blockDepthMeters = block.depthMeters ?? preset.wall.wallThicknessMeters;
     const roofBeamInsideFaceOffsetFromWallCenterline =
       roofBeam.widthMeters / 2 - frame.wallThicknessMeters / 2;
+    const belowGradeBeamCenterlineOffset =
+      (frame.start.x - frame.centerlineStart.x) * frame.inwardNormal.x +
+      (frame.start.z - frame.centerlineStart.z) * frame.inwardNormal.z;
 
     expect(bounds.infillCenterlineInwardOffsetMeters).toBeCloseTo(
       roofBeam.widthMeters / 2 - blockDepthMeters,
@@ -253,8 +256,14 @@ describe('Structure dimensions pipeline', () => {
       roofBeamInsideFaceOffsetFromWallCenterline,
       6,
     );
-    expect(belowGradeBounds.infillCenterlineInwardOffsetMeters).toBe(0);
-    expect(centerOffsetFromFrame(belowGradeBlock)).toBeCloseTo(0, 6);
+    expect(belowGradeBounds.infillCenterlineInwardOffsetMeters).toBeCloseTo(
+      belowGradeBeamCenterlineOffset,
+      6,
+    );
+    expect(centerOffsetFromFrame(belowGradeBlock)).toBeCloseTo(
+      belowGradeBeamCenterlineOffset,
+      6,
+    );
   });
 
   it('changing roof peak height changes roof apex and truss apex', () => {
