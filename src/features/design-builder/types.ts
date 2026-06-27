@@ -6,17 +6,92 @@ export type BuildingSystemMode =
   | 'cmu_bearing_wall'
   | 'reinforced_concrete_frame_with_cmu_infill';
 
-/** Plan (2D) vs perspective (3D) builder canvas mode. */
-export type BuilderViewMode = '2d' | '3d';
+/** CAD builder canvas mode. */
+export type BuilderViewMode = 'plan' | 'elevation' | '3d';
 
-export type DesignBuilderStoredViewMode = 'plan' | '3d';
+export type DesignBuilderStoredViewMode = BuilderViewMode;
 
-export function builderViewModeFromStored(stored: DesignBuilderStoredViewMode): BuilderViewMode {
-  return stored === 'plan' ? '2d' : '3d';
+export function builderViewModeFromStored(stored: DesignBuilderStoredViewMode | '2d'): BuilderViewMode {
+  return stored === '2d' ? 'plan' : stored;
 }
 
-export function storedViewModeFromBuilder(mode: BuilderViewMode): DesignBuilderStoredViewMode {
-  return mode === '2d' ? 'plan' : '3d';
+export function storedViewModeFromBuilder(mode: BuilderViewMode | '2d'): DesignBuilderStoredViewMode {
+  return mode === '2d' ? 'plan' : mode;
+}
+
+export type DesignComponentDivision =
+  | 'Structure'
+  | 'Openings'
+  | 'Plumbing'
+  | 'Electrical'
+  | 'HVAC'
+  | 'Roofing'
+  | 'Finishes'
+  | 'Casework'
+  | 'Site Utilities';
+
+export type DesignComponentCategory = 'structure' | 'openings' | 'future';
+
+export type DesignComponentType =
+  | 'column'
+  | 'footer'
+  | 'tie_beam'
+  | 'plinth_beam'
+  | 'slab'
+  | 'roof_beam'
+  | 'door'
+  | 'window';
+
+export interface PlanPlacementData {
+  xMeters: number;
+  zMeters: number;
+  rotationRadians?: number;
+}
+
+export type ElevationFace = 'north' | 'east' | 'south' | 'west';
+
+export interface ElevationPlacementData {
+  face: ElevationFace;
+  xMeters: number;
+  zMeters: number;
+}
+
+export interface WorldPlacementData {
+  xMeters: number;
+  yMeters: number;
+  zMeters: number;
+}
+
+export interface DesignComponentViewPlacement {
+  plan?: PlanPlacementData;
+  elevation?: ElevationPlacementData;
+  world?: WorldPlacementData;
+}
+
+export interface PlacedDesignComponent {
+  id: string;
+  type: DesignComponentType;
+  division: DesignComponentDivision;
+  category: DesignComponentCategory;
+  viewPlacement: DesignComponentViewPlacement;
+  parameters: Record<string, unknown>;
+  derived: Record<string, unknown>;
+  references?: {
+    hostId?: string;
+    connectedComponentIds?: string[];
+    elevationFace?: string;
+    gridlineId?: string;
+  };
+  metadata: {
+    createdAt: string;
+    updatedAt: string;
+  };
+}
+
+export interface DesignBuilderElevationViewState {
+  face: ElevationFace;
+  cursorX?: number;
+  cursorZ?: number;
 }
 
 export const BUILDING_SYSTEM_MODE_LABELS: Record<BuildingSystemMode, string> = {
@@ -373,6 +448,8 @@ export interface FloorTilePlacement {
   renderCenter: { x: number; z: number };
   renderWidthMeters: number;
   renderDepthMeters: number;
+  /** Exact clipped tile footprint after floor polygon intersection. */
+  renderPolygon?: { x: number; z: number }[];
   installedAreaSquareMeters: number;
   rotationY: number;
 }
@@ -1133,6 +1210,7 @@ export type DesignBuilderToolMode =
   | 'move_wall_node'
   | 'place_door'
   | 'place_window'
+  | 'place_component'
   | 'move_opening'
   | 'delete';
 
@@ -1159,6 +1237,11 @@ export type DesignBuilderInteractionKind =
   | 'wall_pick'
   | 'segment_pick'
   | 'opening_move'
+  | 'component_preview'
+  | 'component_place'
+  | 'component_select'
+  | 'component_delete'
+  | 'component_move'
   | 'place_commit'
   | 'draw_point'
   | 'draw_preview'
@@ -1177,6 +1260,8 @@ export interface DesignBuilderInteractionEvent {
   nodeId?: string;
   openingId?: string;
   openingType?: WallOpeningParameters['type'];
+  componentType?: DesignComponentType;
+  componentId?: string;
   objectType?: DesignObjectType;
   widthMeters?: number;
   heightMeters?: number;

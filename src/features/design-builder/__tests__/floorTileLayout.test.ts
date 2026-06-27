@@ -211,4 +211,48 @@ describe('resolveFloorTileLayout', () => {
     );
     expect(cornerCuts.length).toBe(4);
   });
+
+  it('keeps narrow wall and corner cut tiles smaller than the old sample grid', () => {
+    const roomSizeMeters = 1.84235;
+    const narrowCutRoom: readonly { x: number; z: number }[] = [
+      { x: 0, z: 0 },
+      { x: roomSizeMeters, z: 0 },
+      { x: roomSizeMeters, z: roomSizeMeters },
+      { x: 0, z: roomSizeMeters },
+    ];
+    const layout = resolveFloorTileLayout({
+      interiorFacePolygon: narrowCutRoom,
+      floorTileFinish: {
+        enabled: true,
+        tileSizeKey: '600x600',
+        groutJointWidth: '1/8',
+      },
+      interiorFloorSlabEnabled: true,
+    });
+    const rightWallCuts = layout.placements.filter((placement) => {
+      const rightEdge = placement.renderCenter.x + placement.renderWidthMeters / 2;
+      return placement.kind === 'cut' && Math.abs(rightEdge - roomSizeMeters) < 0.001;
+    });
+    const topWallCuts = layout.placements.filter((placement) => {
+      const topEdge = placement.renderCenter.z + placement.renderDepthMeters / 2;
+      return placement.kind === 'cut' && Math.abs(topEdge - roomSizeMeters) < 0.001;
+    });
+    const topRightCornerCut = layout.placements.find((placement) => {
+      const rightEdge = placement.renderCenter.x + placement.renderWidthMeters / 2;
+      const topEdge = placement.renderCenter.z + placement.renderDepthMeters / 2;
+      return (
+        placement.kind === 'cut' &&
+        Math.abs(rightEdge - roomSizeMeters) < 0.001 &&
+        Math.abs(topEdge - roomSizeMeters) < 0.001
+      );
+    });
+
+    expect(rightWallCuts.length).toBeGreaterThan(0);
+    expect(topWallCuts.length).toBeGreaterThan(0);
+    expect(topRightCornerCut).toBeDefined();
+    expect(topRightCornerCut!.renderWidthMeters).toBeGreaterThan(0.01);
+    expect(topRightCornerCut!.renderWidthMeters).toBeLessThan(0.03);
+    expect(topRightCornerCut!.renderDepthMeters).toBeGreaterThan(0.01);
+    expect(topRightCornerCut!.renderDepthMeters).toBeLessThan(0.03);
+  });
 });

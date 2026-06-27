@@ -32,6 +32,101 @@ function assertRenderedCornersMeet(
   });
 }
 
+function mockPlanSurface(svg: SVGSVGElement) {
+  (svg as unknown as { setPointerCapture: ReturnType<typeof vi.fn> }).setPointerCapture = vi.fn();
+  (svg as unknown as { releasePointerCapture: ReturnType<typeof vi.fn> }).releasePointerCapture = vi.fn();
+  vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({
+    left: 0,
+    top: 0,
+    width: 800,
+    height: 400,
+    right: 800,
+    bottom: 400,
+    x: 0,
+    y: 0,
+    toJSON: () => ({}),
+  } as DOMRect);
+}
+
+function createColumnDragFixture() {
+  const layout = createEmptyWallLayout({
+    nodes: [
+      { id: 'node-a', x: 0, z: 0 },
+      { id: 'node-b', x: 4, z: 0 },
+    ],
+  });
+  const frameSystem = {
+    kind: 'structural_frame_system',
+    buildingSystemMode: 'reinforced_concrete_frame_with_cmu_infill',
+    defaultColumnWidthMeters: 0.3,
+    defaultColumnDepthMeters: 0.3,
+    defaultGradeBeamWidthMeters: 0.2,
+    defaultGradeBeamDepthMeters: 0.3,
+    defaultRingBeamWidthMeters: 0.2,
+    defaultRingBeamDepthMeters: 0.3,
+    columns: [
+      {
+        id: 'column-a',
+        name: 'Column A',
+        kind: 'rc_column',
+        position: { x: 0, z: 0 },
+        widthMeters: 0.3,
+        depthMeters: 0.3,
+        heightMeters: 3,
+        baseElevationMeters: 0,
+        topElevationMeters: 3,
+        hostNodeId: 'node-a',
+        source: 'auto_frame_layout',
+      },
+      {
+        id: 'column-b',
+        name: 'Column B',
+        kind: 'rc_column',
+        position: { x: 4, z: 0 },
+        widthMeters: 0.3,
+        depthMeters: 0.3,
+        heightMeters: 3,
+        baseElevationMeters: 0,
+        topElevationMeters: 3,
+        hostNodeId: 'node-b',
+        source: 'auto_frame_layout',
+      },
+    ],
+    beams: [
+      {
+        id: 'beam-a-b',
+        name: 'Beam A-B',
+        kind: 'plinth_beam',
+        startColumnId: 'column-a',
+        endColumnId: 'column-b',
+        startPoint: { x: 0, y: 0, z: 0 },
+        endPoint: { x: 4, y: 0, z: 0 },
+        widthMeters: 0.22,
+        depthMeters: 0.3,
+        baseElevationMeters: 0,
+        topElevationMeters: 0.3,
+        source: 'auto_frame_layout',
+      },
+    ],
+  } as const;
+  const isolatedFootings = [
+    {
+      id: 'footing-a',
+      name: 'Footing A',
+      columnId: 'column-a',
+      position: { x: 0, z: 0 },
+      widthMeters: 0.9,
+      lengthMeters: 0.9,
+      thicknessMeters: 0.3,
+      topElevationMeters: -0.3,
+      bottomElevationMeters: -0.6,
+      centerElevationMeters: -0.45,
+      source: 'auto_at_column',
+    },
+  ] as const;
+  return { layout, frameSystem, isolatedFootings };
+}
+
 describe('DesignBuilderPlanCanvas', () => {
   it('shows adaptive view grid and persistent snap spacing in the status chip', () => {
     const { container } = render(
@@ -567,6 +662,100 @@ describe('DesignBuilderPlanCanvas', () => {
     );
 
     assertRenderedCornersMeet(container, layout);
+  });
+
+  it('drags existing RC columns with a local ghost and commits the node move on pointer up', () => {
+    const { layout, frameSystem, isolatedFootings } = createColumnDragFixture();
+    const onInteraction = vi.fn();
+    const { container } = render(
+      <DesignBuilderPlanCanvas
+        layout={layout}
+        toolMode="select"
+        snapMode="off"
+        viewport={{ centerX: 0, centerZ: 0, zoom: 100 }}
+        frameSystem={frameSystem}
+        isolatedFootings={isolatedFootings}
+        onInteraction={onInteraction}
+      />,
+    );
+
+    const svg = screen.getByLabelText(/design builder wall layout plan view/i) as SVGSVGElement;
+    mockPlanSurface(svg);
+
+    fireEvent.pointerDown(svg, { button: 0, pointerId: 11, clientX: 400, clientY: 200 });
+    fireEvent.pointerMove(svg, { pointerId: 11, clientX: 500, clientY: 200 });
+
+    expect(container.querySelector('[data-column-drag-preview="true"]')).toBeTruthy();
+    expect(container.querySelector('[data-column-drag-column-id="column-a"]')).toBeTruthy();
+    expect(container.querySelector('[data-column-drag-beam-preview="beam-a-b"]')).toBeTruthy();
+    expect(container.querySelector('[data-column-drag-footer-preview="footing-a"]')).toBeTruthy();
+    expect(onInteraction).toHaveBeenCalledWith(expect.objectContaining({ kind: 'select_node', nodeId: 'node-a' }));
+    expect(onInteraction).not.toHaveBeenCalledWith(expect.objectContaining({ kind: 'move_node', phase: 'preview' }));
+
+    fireEvent.pointerUp(svg, { pointerId: 11, clientX: 500, clientY: 200 });
+
+    expect(container.querySelector('[data-column-drag-preview="true"]')).toBeFalsy();
+    expect(onInteraction).toHaveBeenCalledWith(expect.objectContaining({
+      kind: 'move_node',
+      phase: 'commit',
+      nodeId: 'node-a',
+      planX: 1,
+      planZ: 0,
+    }));
+  });
+
+  it('selects an existing RC column without committing a move when pointer travel stays below the drag threshold', () => {
+    const { layout, frameSystem, isolatedFootings } = createColumnDragFixture();
+    const onInteraction = vi.fn();
+    render(
+      <DesignBuilderPlanCanvas
+        layout={layout}
+        toolMode="select"
+        snapMode="off"
+        viewport={{ centerX: 0, centerZ: 0, zoom: 100 }}
+        frameSystem={frameSystem}
+        isolatedFootings={isolatedFootings}
+        onInteraction={onInteraction}
+      />,
+    );
+
+    const svg = screen.getByLabelText(/design builder wall layout plan view/i) as SVGSVGElement;
+    mockPlanSurface(svg);
+
+    fireEvent.pointerDown(svg, { button: 0, pointerId: 12, clientX: 400, clientY: 200 });
+    fireEvent.pointerUp(svg, { pointerId: 12, clientX: 402, clientY: 200 });
+
+    expect(onInteraction).toHaveBeenCalledWith(expect.objectContaining({ kind: 'select_node', nodeId: 'node-a' }));
+    expect(onInteraction).not.toHaveBeenCalledWith(expect.objectContaining({ kind: 'move_node', phase: 'commit' }));
+  });
+
+  it('cancels an in-progress RC column drag with Escape without mutating the model', () => {
+    const { layout, frameSystem, isolatedFootings } = createColumnDragFixture();
+    const onInteraction = vi.fn();
+    const { container } = render(
+      <DesignBuilderPlanCanvas
+        layout={layout}
+        toolMode="select"
+        snapMode="off"
+        viewport={{ centerX: 0, centerZ: 0, zoom: 100 }}
+        frameSystem={frameSystem}
+        isolatedFootings={isolatedFootings}
+        onInteraction={onInteraction}
+      />,
+    );
+
+    const svg = screen.getByLabelText(/design builder wall layout plan view/i) as SVGSVGElement;
+    mockPlanSurface(svg);
+
+    fireEvent.pointerDown(svg, { button: 0, pointerId: 13, clientX: 400, clientY: 200 });
+    fireEvent.pointerMove(svg, { pointerId: 13, clientX: 500, clientY: 200 });
+    expect(container.querySelector('[data-column-drag-preview="true"]')).toBeTruthy();
+
+    fireEvent.keyDown(window, { key: 'Escape' });
+    fireEvent.pointerUp(svg, { pointerId: 13, clientX: 500, clientY: 200 });
+
+    expect(container.querySelector('[data-column-drag-preview="true"]')).toBeFalsy();
+    expect(onInteraction).not.toHaveBeenCalledWith(expect.objectContaining({ kind: 'move_node', phase: 'commit' }));
   });
 });
 

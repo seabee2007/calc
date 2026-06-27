@@ -21,7 +21,20 @@ describe('Design Builder session store', () => {
       selectedOpeningId: preset.wall.openings[0]?.id ?? null,
       toolMode: 'move_opening',
       changedAfterCommit: true,
-      viewMode: 'plan',
+      viewMode: 'elevation',
+      elevationView: { face: 'east', cursorX: 2.5, cursorZ: 1.2 },
+      placedComponents: [
+        {
+          id: 'component-column-1',
+          type: 'column',
+          division: 'Structure',
+          category: 'structure',
+          viewPlacement: { elevation: { face: 'east', xMeters: 2.5, zMeters: 0 } },
+          parameters: { widthMeters: 0.3, depthMeters: 0.3, heightMeters: 3 },
+          derived: { topElevationMeters: 3 },
+          metadata: { createdAt: '2026-06-27T00:00:00.000Z', updatedAt: '2026-06-27T00:00:00.000Z' },
+        },
+      ],
       snapMode: 'cmu_module',
       objectTreeExpanded: { foundation: false, layout: false, masonry: true, structure: false, openings: false, roofGable: false, estimate: false },
       previewLines: [
@@ -54,7 +67,9 @@ describe('Design Builder session store', () => {
     expect(session?.selectedObjectType).toBe('door_opening');
     expect(session?.selectedOpeningId).toBe(preset.wall.openings[0]?.id);
     expect(session?.toolMode).toBe('move_opening');
-    expect(session?.viewMode).toBe('plan');
+    expect(session?.viewMode).toBe('elevation');
+    expect(session?.elevationView.face).toBe('east');
+    expect(session?.placedComponents).toHaveLength(1);
     expect(session?.snapMode).toBe('cmu_module');
     expect(session?.objectTreeExpanded?.layout).toBe(false);
     expect(session?.objectTreeExpanded?.masonry).toBe(true);

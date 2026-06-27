@@ -286,16 +286,38 @@ export function reconcileStructuralFrameWithFoundation(params: {
 }): FrameLayoutResult {
   const foundation = resolveFoundation(params.foundation);
   const wallHeight = params.wallHeightMeters;
+  const generatedCornerColumns = createCornerColumnsForLayout({
+    layout: params.layout,
+    segmentFrames: params.segmentFrames,
+    frameSystem: params.frameSystem,
+    wallHeightMeters: wallHeight,
+    foundation,
+  });
+  const existingByHostNodeId = new Map(
+    params.frameSystem.columns
+      .filter((column) => column.hostNodeId)
+      .map((column) => [column.hostNodeId!, column]),
+  );
+  const generatedHostNodeIds = new Set(generatedCornerColumns.map((column) => column.hostNodeId).filter(Boolean));
   const columns =
     params.frameSystem.columns.length > 0
-      ? params.frameSystem.columns
-      : createCornerColumnsForLayout({
-          layout: params.layout,
-          segmentFrames: params.segmentFrames,
-          frameSystem: params.frameSystem,
-          wallHeightMeters: wallHeight,
-          foundation,
-        });
+      ? [
+          ...generatedCornerColumns.map((generated) => {
+            const existing = generated.hostNodeId ? existingByHostNodeId.get(generated.hostNodeId) : undefined;
+            return existing
+              ? {
+                  ...existing,
+                  position: generated.position,
+                }
+              : generated;
+          }),
+          ...params.frameSystem.columns.filter((column) =>
+            column.hostNodeId
+              ? !generatedHostNodeIds.has(column.hostNodeId) && column.source !== 'auto_frame_layout'
+              : column.source !== 'auto_frame_layout',
+          ),
+        ]
+      : generatedCornerColumns;
 
   const resolvedBeams = createPerimeterBeamsForLayout({
     layout: params.layout,

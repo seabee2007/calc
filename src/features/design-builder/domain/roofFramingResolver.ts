@@ -1983,10 +1983,11 @@ export function resolveRidgeCapPlacement(params: {
   if (!params.enabled || params.roofType !== 'gable' || !params.ridgeStart || !params.ridgeEnd) {
     return null;
   }
+  const ridgeCapY = Math.max(params.ridgeStart.y, params.ridgeEnd.y);
   const placement: RidgeCapPlacement = {
     id: 'ridge-cap',
-    start: params.ridgeStart,
-    end: params.ridgeEnd,
+    start: { ...params.ridgeStart, y: ridgeCapY },
+    end: { ...params.ridgeEnd, y: ridgeCapY },
     widthMeters: DEFAULT_RIDGE_CAP_WIDTH_METERS,
     thicknessMeters: DEFAULT_RIDGE_CAP_THICKNESS_METERS,
     roofAngleRadians: Math.atan2(params.rafterRiseMeters, params.rafterRunMeters),

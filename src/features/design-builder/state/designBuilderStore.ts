@@ -1,8 +1,10 @@
 import { create } from 'zustand';
 import type { CmuBuildingPreset } from '../domain/designBuilderPreset';
 import type {
+  DesignBuilderElevationViewState,
   DesignBuilderCameraSnapshot,
   DesignBuilderLayoutMode,
+  DesignBuilderStoredViewMode,
   DesignBuilderSnapMode,
   DesignBuilderToolMode,
   DesignEstimatePreviewLine,
@@ -13,6 +15,7 @@ import type {
   DesignUnitSystem,
   MasonryToolMode,
   ModuleFitMode,
+  PlacedDesignComponent,
 } from '../types';
 import {
   DEFAULT_PLAN_VIEWPORT,
@@ -52,6 +55,7 @@ export interface DesignBuilderSessionState {
   preset: CmuBuildingPreset | null;
   designModel: DesignModel | null;
   objects: DesignModelObject[];
+  placedComponents: PlacedDesignComponent[];
   unitSystem: DesignUnitSystem;
   selectedObjectType: DesignObjectType | null;
   selectedOpeningId: string | null;
@@ -61,7 +65,8 @@ export interface DesignBuilderSessionState {
   previewLines: DesignEstimatePreviewLine[];
   persistedQuantityItems: DesignQuantityItem[];
   changedAfterCommit: boolean;
-  viewMode: 'plan' | '3d';
+  viewMode: DesignBuilderStoredViewMode;
+  elevationView: DesignBuilderElevationViewState;
   snapMode: DesignBuilderSnapMode;
   moduleFitMode: ModuleFitMode;
   objectTreeExpanded: ObjectTreeExpansionState;
@@ -120,6 +125,7 @@ export const useDesignBuilderSessionStore = create<DesignBuilderSessionStore>((s
         preset: null,
         designModel: null,
         objects: [],
+        placedComponents: [],
         unitSystem: 'metric',
         selectedObjectType: null,
         selectedOpeningId: null,
@@ -130,6 +136,7 @@ export const useDesignBuilderSessionStore = create<DesignBuilderSessionStore>((s
         persistedQuantityItems: [],
         changedAfterCommit: false,
         viewMode: '3d',
+        elevationView: { face: 'north' },
         snapMode: 'grid',
         moduleFitMode: 'exact',
         objectTreeExpanded: DEFAULT_OBJECT_TREE_EXPANSION,

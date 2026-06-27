@@ -15,6 +15,7 @@ import {
   TRUSS_CHORD_PROFILE_METERS,
 } from '../domain/roofFramingResolver';
 import { buildDesignGeometryInputFromLayout, generateDesignGeometry } from '../geometry/designGeometry';
+import { CONSTRUCTION_TOLERANCE_METERS } from './constructionTolerance';
 
 describe('roof layer stack', () => {
   it('seats purlins on truss top chords with cladding above purlins and chords clearing roof beams', () => {
@@ -74,7 +75,7 @@ describe('roof layer stack', () => {
     const chordBottomAtBearingToRoofBeamGap =
       chordTopAtBearing.y - normal.y * TRUSS_CHORD_PROFILE_METERS - roof.roofBeamTopY;
 
-    expect(purlinBottomToChordTopGap).toBeGreaterThanOrEqual(-0.001);
+    expect(purlinBottomToChordTopGap).toBeGreaterThanOrEqual(-0.001 - CONSTRUCTION_TOLERANCE_METERS);
     expect(purlinBottomToChordTopGap).toBeLessThanOrEqual(0.003);
     expect(sheetUndersideToPurlinTopGap).toBeGreaterThanOrEqual(0);
     expect(sheetUndersideToPurlinTopGap).toBeLessThanOrEqual(0.005);

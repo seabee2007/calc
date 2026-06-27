@@ -204,7 +204,7 @@ describe('gableEndMasonrySolver', () => {
     }
   });
 
-  it('adds a cut-height top closure row on both exterior gable ends from roof-beam top', () => {
+  it('adds a cut-height top closure row on both exterior gable ends from wall top', () => {
     const preset = applyAutoFrameLayout(createFiveBySixCmuBuildingPreset());
     const foundation = normalizeRcFrameFoundationSettings(preset.foundationSettings);
     const module = resolveCmuModuleDefinition(preset.wall);
@@ -230,10 +230,15 @@ describe('gableEndMasonrySolver', () => {
     );
     const roof = geometry.resolvedRoofSystem;
     expect(roof?.gableEndSegmentIds).toHaveLength(2);
-    const roofBeamTop = geometry.frameSystem.beams.find((beam) => beam.kind === 'roof_beam')?.topElevationMeters;
-    expect(roofBeamTop).toBeDefined();
-
     for (const segmentId of roof!.gableEndSegmentIds) {
+      const panelTop = geometry.infillSystem?.panels.find(
+        (panel) => panel.hostSegmentId === segmentId && panel.infillZone === 'above_grade',
+      )?.topElevationMeters;
+      const roofBeamTop = geometry.frameSystem.beams.find(
+        (beam) => beam.kind === 'roof_beam' && beam.hostSegmentId === segmentId,
+      )?.topElevationMeters;
+      expect(panelTop).toBeDefined();
+      expect(roofBeamTop).toBeDefined();
       const segmentBlocks = geometry.blockInstances.filter(
         (block) => block.segmentId === segmentId && block.source === 'gable_end_solver',
       );
@@ -241,7 +246,8 @@ describe('gableEndMasonrySolver', () => {
       const firstBottom = Math.min(
         ...segmentBlocks.map((block) => block.y - (block.physicalHeightMeters ?? block.heightMeters ?? 0) / 2),
       );
-      expect(firstBottom).toBeCloseTo(roofBeamTop!, 3);
+      expect(firstBottom).toBeCloseTo(panelTop!, 3);
+      expect(firstBottom).toBeLessThan(roofBeamTop!);
 
       const topCourseIndex = Math.max(...segmentBlocks.map((block) => block.courseIndex ?? 0));
       const topCourseBlocks = segmentBlocks.filter((block) => (block.courseIndex ?? 0) === topCourseIndex);

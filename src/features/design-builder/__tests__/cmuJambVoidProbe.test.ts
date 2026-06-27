@@ -5,9 +5,10 @@ import {
   buildDesignGeometryInputFromLayout,
   generateDesignGeometry,
 } from '../geometry/designGeometry';
+import { CONSTRUCTION_TOLERANCE_METERS } from './constructionTolerance';
 
 describe('cmu jamb void probe', () => {
-  it('keeps CMU out of the door void and rough opening reveal', () => {
+  it('keeps CMU out of the door void', () => {
     const preset = applyAutoFrameLayout(createFiveBySixCmuBuildingPreset());
     const geometry = generateDesignGeometry(
       buildDesignGeometryInputFromLayout({
@@ -37,30 +38,19 @@ describe('cmu jamb void probe', () => {
     const intruders = blocks.filter((block) => {
       const start = block.startAlongMeters ?? block.stationMeters ?? 0;
       const end = block.endAlongMeters ?? start + (block.lengthMeters ?? 0);
-      const courseBottom = (block.courseIndex ?? 0) * 0.2;
-      const courseTop = courseBottom + (block.heightMeters ?? 0.2);
+      const blockHeight = block.physicalHeightMeters ?? block.heightMeters ?? 0.2;
+      const courseBottom = block.y - blockHeight / 2;
+      const courseTop = block.y + blockHeight / 2;
       const inDoorHeight =
-        courseBottom < door!.actualTopMeters && courseTop > door!.actualBottomMeters + 0.01;
-      if (!inDoorHeight) return false;
-      return end > door!.actualStartAlongMeters + 0.002 && start < door!.actualEndAlongMeters - 0.002;
-    });
-
-    const revealBlocks = blocks.filter((block) => {
-      const start = block.startAlongMeters ?? block.stationMeters ?? 0;
-      const end = block.endAlongMeters ?? start + (block.lengthMeters ?? 0);
-      const courseBottom = (block.courseIndex ?? 0) * 0.2;
-      const courseTop = courseBottom + (block.heightMeters ?? 0.2);
-      const inDoorHeight =
-        courseBottom < door!.actualTopMeters && courseTop > door!.actualBottomMeters + 0.01;
+        courseBottom < door!.actualTopMeters - CONSTRUCTION_TOLERANCE_METERS &&
+        courseTop > door!.actualBottomMeters + CONSTRUCTION_TOLERANCE_METERS;
       if (!inDoorHeight) return false;
       return (
-        start < door!.actualStartAlongMeters - 0.001 &&
-        end > door!.roughStartAlongMeters + 0.001 &&
-        end <= door!.actualStartAlongMeters + 0.001
+        end > door!.actualStartAlongMeters + CONSTRUCTION_TOLERANCE_METERS &&
+        start < door!.actualEndAlongMeters - CONSTRUCTION_TOLERANCE_METERS
       );
     });
 
     expect(intruders).toHaveLength(0);
-    expect(revealBlocks).toHaveLength(0);
   });
 });

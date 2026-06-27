@@ -117,7 +117,7 @@ export function createDesignSnapshot(params: {
     roofSystem: structuredClone(
       normalizeRoofSystemSettings(params.preset.roofSystem ?? createDefaultRoofSystemSettings()),
     ),
-    buildingSystemMode: params.preset.buildingSystemMode ?? 'cmu_bearing_wall',
+    buildingSystemMode: params.preset.buildingSystemMode ?? 'reinforced_concrete_frame_with_cmu_infill',
     designObjects: structuredClone(params.objects),
     layoutState: params.layoutState,
     selectedOpeningId: params.selectedOpeningId ?? null,
@@ -130,7 +130,7 @@ export function createDesignSnapshot(params: {
 export function snapshotToPreset(snapshot: DesignBuilderSnapshot, name: string): CmuBuildingPreset {
   return {
     name,
-    buildingSystemMode: snapshot.buildingSystemMode ?? 'cmu_bearing_wall',
+    buildingSystemMode: snapshot.buildingSystemMode ?? 'reinforced_concrete_frame_with_cmu_infill',
     wallLayout: structuredClone(snapshot.wallLayout),
     footprint: structuredClone(snapshot.footprint),
     slab: structuredClone(snapshot.slab),

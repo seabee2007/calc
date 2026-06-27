@@ -140,8 +140,9 @@ describe('gable full alignment probe', () => {
     };
 
     console.log(JSON.stringify(report, null, 2));
-    expect(firstGableBottom).toBeGreaterThanOrEqual(roofBeam.topElevationMeters - 0.01);
-    expect(firstGableBottom).toBeLessThan(roofBeam.topElevationMeters + 0.05);
+    expect(firstGableBottom).toBeGreaterThanOrEqual(gablePanel.topElevationMeters - 0.01);
+    expect(firstGableBottom).toBeLessThan(gablePanel.topElevationMeters + 0.05);
+    expect(firstGableBottom).toBeLessThan(roofBeam.topElevationMeters);
     expect(Math.abs(report.topCenterVsRidgeStation)).toBeLessThan(0.05);
     expect(Math.abs(report.bottomCenterVsRidgeStation)).toBeLessThan(0.05);
     expect(Math.abs(report.ridgeStationSegmentCenter - report.ridgeOnWallFromCladdingMidpoint)).toBeLessThan(0.002);

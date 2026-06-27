@@ -17,7 +17,7 @@ export const ROOF_CAP_CONTACT_CLEARANCE_METERS = 0;
 export function createDefaultStructuralFrameSystem(): StructuralFrameSystemParameters {
   return {
     kind: 'structural_frame_system',
-    buildingSystemMode: 'cmu_bearing_wall',
+    buildingSystemMode: 'reinforced_concrete_frame_with_cmu_infill',
     defaultColumnWidthMeters: DEFAULT_RC_COLUMN_WIDTH_METERS,
     defaultColumnDepthMeters: DEFAULT_RC_COLUMN_DEPTH_METERS,
     defaultGradeBeamWidthMeters: DEFAULT_GRADE_BEAM_WIDTH_METERS,

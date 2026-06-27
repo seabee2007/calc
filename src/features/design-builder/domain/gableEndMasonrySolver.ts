@@ -271,7 +271,10 @@ export function solveGableEndMasonryBlocks(params: {
   });
   const firstGableCourseIndex =
     infillVertical.fullCourseCount + (infillVertical.hasTopClosureCourse ? 1 : 0);
-  const gableBandBaseElevationMeters = params.roofBeamTopElevationMeters;
+  const gableBandBaseElevationMeters = Math.min(
+    params.panel.topElevationMeters,
+    params.roofBeamTopElevationMeters,
+  );
   const physicalHeightMeters = module.actualBlockHeightMeters;
   const maxCourses = Math.ceil(
     (params.resolvedRoof.peakElevationMeters - gableBandBaseElevationMeters) /

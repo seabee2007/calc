@@ -180,8 +180,8 @@ export function createBlankCmuBuildingPreset(
     dimensionBasis: 'outside_face',
   });
   return {
-    name: 'Blank CMU Layout',
-    buildingSystemMode: 'cmu_bearing_wall',
+    name: 'Blank RC Layout',
+    buildingSystemMode: 'reinforced_concrete_frame_with_cmu_infill',
     wallLayout,
     footprint: {
       kind: 'rectangle',

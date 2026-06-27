@@ -2,6 +2,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useReducer,
   useRef,
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
@@ -173,6 +174,7 @@ import type {
   BuilderViewMode,
   BuildingSystemMode,
   DesignBuilderCameraSnapshot,
+  DesignBuilderElevationViewState,
   DesignBuilderInteractionEvent,
   DesignBuilderLayoutMode,
   DesignBuilderSelection,
@@ -180,6 +182,7 @@ import type {
   DesignBuilderSnapMode,
   DesignEstimatePreviewLine,
   DesignVisualStyle,
+  DesignComponentType,
   FoundationViewMode,
   RoofDisplayMode,
   RoofLayerVisibility,
@@ -190,6 +193,7 @@ import type {
   DesignObjectType,
   DesignQuantityItem,
   DesignUnitSystem,
+  PlacedDesignComponent,
   DesignWallSegment,
   DesignWallLayoutParameters,
   CmuInfillPlasterSettings,
@@ -229,12 +233,26 @@ import MaterialsColorsModal, {
   type MaterialsFinishesScope,
 } from './MaterialsColorsModal';
 import DesignBuilderPlanCanvas from './DesignBuilderPlanCanvas';
+import DesignBuilderElevationCanvas from './DesignBuilderElevationCanvas';
 import {
   closeDesignBuilderCommandMenus,
   CommandMenuAction,
   DesignBuilderCommandMenu,
   DesignBuilderCommandMenuProvider,
 } from './DesignBuilderCommandMenu';
+import {
+  groupDesignComponentDefinitions,
+  getDesignComponentDefinition,
+} from '../domain/designComponentRegistry';
+import {
+  buildPlacedComponent,
+  componentPlacementReducer,
+  createIdleComponentPlacementState,
+  resolveElevationHelperMeasurements,
+  resolvePlanHelperMeasurements,
+  snapComponentPlanPoint,
+} from '../domain/designComponentPlacement';
+import { buildDesignRenderModel } from '../domain/designRenderModel';
 
 interface DesignBuilderPageProps {
   projectId: string;
@@ -370,6 +388,10 @@ export default function DesignBuilderPage({
   const [preset, setPreset] = useState<CmuBuildingPreset | null>(() => storedSession?.preset ?? createBlankCmuBuildingPreset());
   const [designModel, setDesignModel] = useState<DesignModel | null>(() => storedSession?.designModel ?? null);
   const [objects, setObjects] = useState<DesignModelObject[]>(() => storedSession?.objects ?? []);
+  const [placedComponents, setPlacedComponents] = useState<PlacedDesignComponent[]>(
+    () => storedSession?.placedComponents ?? [],
+  );
+  const [selectedComponentId, setSelectedComponentId] = useState<string | null>(null);
   const [unitSystem, setUnitSystem] = useState<DesignUnitSystem>(() => storedSession?.unitSystem ?? 'metric');
   const [selectedObjectType, setSelectedObjectType] = useState<DesignObjectType | null>(
     () => storedSession?.selectedObjectType ?? null,
@@ -438,8 +460,18 @@ export default function DesignBuilderPage({
     revision: 0,
   });
   const [lastStructureApplyRevision, setLastStructureApplyRevision] = useState(0);
-  const [viewMode, setViewMode] = useState<'plan' | '3d'>(() => storedSession?.viewMode ?? '3d');
+  const [viewMode, setViewMode] = useState<BuilderViewMode>(() => builderViewModeFromStored(storedSession?.viewMode ?? '3d'));
   const builderViewMode = builderViewModeFromStored(viewMode);
+  const [elevationView, setElevationView] = useState<DesignBuilderElevationViewState>(
+    () => storedSession?.elevationView ?? { face: 'north' },
+  );
+  const [componentPlacement, dispatchComponentPlacement] = useReducer(
+    componentPlacementReducer,
+    viewMode,
+    createIdleComponentPlacementState,
+  );
+  const [componentPanelPosition, setComponentPanelPosition] = useState({ x: 18, y: 72 });
+  const [componentPanelCollapsed, setComponentPanelCollapsed] = useState(false);
 
   const [snapMode, setSnapMode] = useState<DesignBuilderSnapMode>(() => storedSession?.snapMode ?? 'grid');
   const [moduleFitMode, setModuleFitMode] = useState<ModuleFitMode>(() => storedSession?.moduleFitMode ?? 'exact');
@@ -485,6 +517,8 @@ export default function DesignBuilderPage({
       setLayoutEpoch(storedSession.layoutEpoch ?? 0);
       setDesignModel(storedSession.designModel);
       setObjects(storedSession.objects);
+      setPlacedComponents(storedSession.placedComponents ?? []);
+      setSelectedComponentId(null);
       setUnitSystem(storedSession.unitSystem);
       setSelectedObjectType(storedSession.selectedObjectType);
       setSelectedOpeningId(storedSession.selectedOpeningId ?? null);
@@ -505,7 +539,9 @@ export default function DesignBuilderPage({
         setPreset(createBlankCmuBuildingPreset());
         setDesignHistory(createDesignHistoryState());
       }
-      setViewMode(storedSession.viewMode ?? '3d');
+      setViewMode(builderViewModeFromStored(storedSession.viewMode ?? '3d'));
+      setElevationView(storedSession.elevationView ?? { face: 'north' });
+      dispatchComponentPlacement({ type: 'reset', activeView: builderViewModeFromStored(storedSession.viewMode ?? '3d') });
       setSnapMode(storedSession.snapMode ?? 'grid');
       setModuleFitMode(storedSession.moduleFitMode ?? 'exact');
       setObjectTreeExpanded(storedSession.objectTreeExpanded ?? DEFAULT_OBJECT_TREE_EXPANSION);
@@ -559,6 +595,8 @@ export default function DesignBuilderPage({
         setPreset(nextPreset);
         setLayoutState(nextPreset.wallLayout.segments.length > 0 ? 'editing' : 'blank');
         setManualMasonryRuns(nextPreset.wall.manualMasonryCourseRuns ?? []);
+        setPlacedComponents(persistedState?.placedComponents ?? []);
+        setSelectedComponentId(null);
         setSaveState('saved');
         setLastSaveTime(persistedState?.updatedAt ?? modelResult.data.updatedAt);
         setLastSaveError(null);
@@ -567,7 +605,10 @@ export default function DesignBuilderPage({
           lastReason: 'design_loaded_from_estimate',
         }));
         if (persistedState?.displayPreferences?.activeView) {
-          setViewMode(persistedState.displayPreferences.activeView);
+          setViewMode(builderViewModeFromStored(persistedState.displayPreferences.activeView));
+        }
+        if (persistedState?.displayPreferences?.elevationView) {
+          setElevationView(persistedState.displayPreferences.elevationView);
         }
         if (persistedState?.displayPreferences?.roofDisplayMode) {
           setRoofDisplayMode(persistedState.displayPreferences.roofDisplayMode as RoofDisplayMode);
@@ -604,6 +645,7 @@ export default function DesignBuilderPage({
       preset,
       designModel,
       objects,
+      placedComponents,
       unitSystem,
       selectedObjectType,
       selectedOpeningId,
@@ -611,6 +653,7 @@ export default function DesignBuilderPage({
       masonryToolMode,
       changedAfterCommit,
       viewMode,
+      elevationView,
       snapMode,
       moduleFitMode,
       objectTreeExpanded,
@@ -635,6 +678,7 @@ export default function DesignBuilderPage({
     masonryToolMode,
     modelLoaded,
     objects,
+    placedComponents,
     persistedQuantityItems,
     planViewport,
     preset,
@@ -646,6 +690,7 @@ export default function DesignBuilderPage({
     toolMode,
     changedAfterCommit,
     viewMode,
+    elevationView,
     snapMode,
     moduleFitMode,
     objectTreeExpanded,
@@ -864,6 +909,10 @@ export default function DesignBuilderPage({
       }),
     [designGeometryResult, footprintClosed, manualMasonryRuns, resolvedPreset.roof, resolvedPreset.slab, resolvedPreset.truss, wallLayout],
   );
+  const designRenderModel = useMemo(
+    () => buildDesignRenderModel({ placedComponents, layoutBounds: designLayoutBounds }),
+    [designLayoutBounds, placedComponents],
+  );
   const layoutFramingKey = useMemo(
     () => buildLayoutFramingKey(layoutEpoch, designLayoutBounds),
     [designLayoutBounds, layoutEpoch],
@@ -871,11 +920,19 @@ export default function DesignBuilderPage({
 
   const setBuilderViewMode = useCallback((mode: BuilderViewMode) => {
     const nextViewMode = storedViewModeFromBuilder(mode);
-    if (nextViewMode === '3d' && viewMode === 'plan' && designLayoutBounds && !hasUserAdjusted3dViewRef.current) {
+    if (nextViewMode === '3d' && viewMode !== '3d' && designLayoutBounds && !hasUserAdjusted3dViewRef.current) {
       pending3dFitRef.current = true;
     }
     setViewMode(nextViewMode);
-  }, [designLayoutBounds, viewMode]);
+    if (toolMode === 'place_component') {
+      setToolMode('select');
+      dispatchComponentPlacement({ type: 'reset', activeView: nextViewMode });
+      if (nextViewMode === '3d') {
+        setComponentPanelCollapsed(true);
+        setStatus({ tone: 'info', message: '2D component placement cancelled for 3D view.' });
+      }
+    }
+  }, [designLayoutBounds, toolMode, viewMode]);
 
   useEffect(() => {
     if (sessionFramingValidatedRef.current || !storedSession?.camera || !designLayoutBounds) return;
@@ -1012,6 +1069,220 @@ export default function DesignBuilderPage({
     placementPreview,
     toolMode,
   ]);
+  const componentDefinitionGroups = useMemo(() => groupDesignComponentDefinitions(), []);
+
+  function rcComponentDefaults(componentType: DesignComponentType): Record<string, unknown> {
+    const foundation = normalizeRcFrameFoundationSettings(resolvedPreset.foundationSettings);
+    const elevations = resolveFoundationElevations({
+      foundation,
+      wallHeightMeters: resolvedPreset.wall.heightMeters,
+    });
+    switch (componentType) {
+      case 'column':
+        return {
+          widthMeters: foundation.columns.widthMeters,
+          depthMeters: foundation.columns.depthMeters,
+          heightMeters: elevations.columnHeightMeters,
+          baseElevationMeters: elevations.columnBottomY,
+          topElevationMeters: elevations.columnTopY,
+          materialType: 'reinforced_concrete',
+          autoFooter: foundation.isolatedFootings.enabled && foundation.isolatedFootings.autoCreateAtStructuralColumns,
+          footerWidthMeters: foundation.isolatedFootings.widthMeters,
+          footerLengthMeters: foundation.isolatedFootings.lengthMeters,
+          footerThicknessMeters: foundation.isolatedFootings.thicknessMeters,
+          footerBottomElevationMeters: elevations.bottomOfFootingY,
+          footerTopElevationMeters: elevations.topOfFootingY,
+        };
+      case 'footer':
+        return {
+          widthMeters: foundation.isolatedFootings.widthMeters,
+          lengthMeters: foundation.isolatedFootings.lengthMeters,
+          thicknessMeters: foundation.isolatedFootings.thicknessMeters,
+          bottomElevationMeters: elevations.bottomOfFootingY,
+          topElevationMeters: elevations.topOfFootingY,
+          materialType: 'reinforced_concrete',
+        };
+      case 'tie_beam':
+        return {
+          widthMeters: foundation.tieBeam.widthMeters,
+          depthMeters: foundation.tieBeam.depthMeters,
+          elevationMeters: elevations.bottomOfTieBeamY,
+          materialType: 'reinforced_concrete',
+        };
+      case 'plinth_beam':
+        return {
+          widthMeters: foundation.plinthBeam.widthMeters,
+          depthMeters: foundation.plinthBeam.depthMeters,
+          elevationMeters: elevations.bottomOfPlinthBeamY,
+          materialType: 'reinforced_concrete',
+        };
+      case 'roof_beam':
+        return {
+          widthMeters: foundation.roofBeam.widthMeters,
+          depthMeters: foundation.roofBeam.depthMeters,
+          elevationMeters: elevations.roofBeamBottomY,
+          materialType: 'reinforced_concrete',
+        };
+      case 'slab':
+        return {
+          thicknessMeters: foundation.interiorFloorSlab.thicknessMeters,
+          widthMeters: Math.max(0, resolvedPreset.footprint.widthMeters),
+          lengthMeters: Math.max(0, resolvedPreset.footprint.lengthMeters),
+          topElevationMeters: elevations.interiorFloorSlabTopY,
+          materialType: 'reinforced_concrete',
+        };
+      default:
+        return {};
+    }
+  }
+
+  function activateDesignComponent(componentType: DesignComponentType) {
+    if (componentType === 'door' || componentType === 'window') {
+      dispatchComponentPlacement({ type: 'reset', activeView: viewMode });
+      setComponentPanelCollapsed(true);
+      activateToolMode(componentType === 'door' ? 'place_door' : 'place_window');
+      return;
+    }
+    const definition = getDesignComponentDefinition(componentType);
+    const nextView = definition.supportedViews.includes(viewMode)
+      ? viewMode
+      : definition.supportedViews[0] ?? 'plan';
+    setViewMode(nextView);
+    setToolMode('place_component');
+    setPlacementPreview(null);
+    dispatchComponentPlacement({ type: 'select_component', componentType, activeView: nextView });
+    dispatchComponentPlacement({ type: 'update_parameters', parameters: rcComponentDefaults(componentType) });
+    setComponentPanelCollapsed(false);
+    closeDesignBuilderCommandMenus();
+    setStatus({ tone: 'info', message: `${definition.displayName} placement active. Move over the canvas and click to place.` });
+  }
+
+  function cancelComponentPlacement() {
+    dispatchComponentPlacement({ type: 'cancel' });
+    setToolMode('select');
+    setStatus({ tone: 'info', message: 'Component placement cancelled.' });
+  }
+
+  function handleComponentPointer(event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number }) {
+    if (!componentPlacement.activeComponentType || !componentPlacement.activeComponentDefinition) return;
+    const snapPosition =
+      viewMode === 'plan'
+        ? snapComponentPlanPoint({
+            point: { xMeters: event.xMeters, zMeters: event.zMeters },
+            snapMode,
+            snapSpacingMeters: planSnapSpacingMeters,
+          })
+        : snapComponentPlanPoint({
+            point: { xMeters: event.xMeters, zMeters: event.zMeters },
+            snapMode: snapMode === 'off' ? 'off' : 'grid',
+            snapSpacingMeters: 0.1,
+          });
+    const helperMeasurements =
+      viewMode === 'elevation'
+        ? resolveElevationHelperMeasurements({
+            position: { xMeters: event.xMeters, zMeters: event.zMeters },
+            snapPosition,
+            elevationView,
+            componentType: componentPlacement.activeComponentType,
+            parameters: componentPlacement.draftComponentParameters,
+          })
+        : resolvePlanHelperMeasurements({
+            position: { xMeters: event.xMeters, zMeters: event.zMeters },
+            snapPosition,
+            layout: wallLayout,
+            columns: designGeometryResult.frameSystem?.columns ?? resolvedPreset.frameSystem.columns,
+          });
+    dispatchComponentPlacement({
+      type: 'preview',
+      activeView: viewMode,
+      cursor: { xMeters: event.xMeters, zMeters: event.zMeters },
+      snap: snapPosition,
+      helperMeasurements,
+      elevationFace: elevationView.face,
+    });
+    if (event.phase !== 'commit') return;
+    const errors = componentPlacement.activeComponentDefinition.validate(componentPlacement.draftComponentParameters);
+    if (errors.length > 0) {
+      setStatus({ tone: 'error', message: errors[0] });
+      return;
+    }
+    const component = buildPlacedComponent({
+      type: componentPlacement.activeComponentType,
+      activeView: viewMode,
+      parameters: componentPlacement.draftComponentParameters,
+      position: snapPosition,
+      elevationFace: elevationView.face,
+    });
+    const relatedComponents: PlacedDesignComponent[] = [];
+    let placedComponent = component;
+    const foundation = normalizeRcFrameFoundationSettings(resolvedPreset.foundationSettings);
+    if (
+      component.type === 'column' &&
+      foundation.isolatedFootings.enabled &&
+      foundation.isolatedFootings.autoCreateAtStructuralColumns
+    ) {
+      const footer = buildPlacedComponent({
+        type: 'footer',
+        activeView: viewMode,
+        parameters: rcComponentDefaults('footer'),
+        position: snapPosition,
+        elevationFace: elevationView.face,
+      });
+      const footerWithReference: PlacedDesignComponent = {
+        ...footer,
+        references: { ...(footer.references ?? {}), hostId: component.id },
+      };
+      placedComponent = {
+        ...component,
+        references: {
+          ...(component.references ?? {}),
+          connectedComponentIds: [...(component.references?.connectedComponentIds ?? []), footer.id],
+        },
+      };
+      relatedComponents.push(footerWithReference);
+    }
+    setPlacedComponents((current) => [...current, placedComponent, ...relatedComponents]);
+    setSelectedComponentId(placedComponent.id);
+    setSelectedSegmentId(null);
+    setSelectedNodeId(null);
+    setSelectedOpeningId(null);
+    setSelectedObjectType('structural_frame_system');
+    dispatchComponentPlacement({ type: 'placed', component: placedComponent });
+    setSaveState('unsaved');
+    setChangedAfterCommit(true);
+    setStatus({ tone: 'success', message: `${componentPlacement.activeComponentDefinition.displayName} placed.` });
+  }
+
+  function handleComponentParameterChange(key: string, value: string, kind: 'number' | 'text' | 'select') {
+    dispatchComponentPlacement({
+      type: 'update_parameters',
+      parameters: {
+        [key]: kind === 'number' ? Number(value) : value,
+      },
+    });
+    setSaveState('unsaved');
+  }
+
+  function handleComponentPanelDragStart(event: ReactPointerEvent<HTMLDivElement>) {
+    if ((event.target as HTMLElement | null)?.closest('button,input,select')) return;
+    const start = { x: event.clientX, y: event.clientY };
+    const origin = componentPanelPosition;
+    const previousUserSelect = document.body.style.userSelect;
+    document.body.style.userSelect = 'none';
+    const handleMove = (moveEvent: PointerEvent) => {
+      setComponentPanelPosition({
+        x: Math.max(8, origin.x + moveEvent.clientX - start.x),
+        y: Math.max(8, origin.y + moveEvent.clientY - start.y),
+      });
+    };
+    const cleanup = () => {
+      document.body.style.userSelect = previousUserSelect;
+      window.removeEventListener('pointermove', handleMove);
+      window.removeEventListener('pointerup', cleanup);
+    };
+    window.addEventListener('pointermove', handleMove);
+    window.addEventListener('pointerup', cleanup);
+  }
   const cmuLayout = designGeometryResult.wallCmuLayout;
   const manualMasonrySummary = useMemo(() => summarizeManualMasonryRuns(manualMasonryRuns), [manualMasonryRuns]);
   const moduleWarnings = useMemo(
@@ -1202,6 +1473,9 @@ export default function DesignBuilderPage({
     : [];
   const selectedWallSegment = selectedSegmentId
     ? wallLayout.segments.find((segment) => segment.id === selectedSegmentId) ?? null
+    : null;
+  const selectedComponent = selectedComponentId
+    ? placedComponents.find((component) => component.id === selectedComponentId) ?? null
     : null;
   const activeSelection: DesignBuilderSelection = selectedSegmentId
     ? { kind: 'wall_segment', id: selectedSegmentId }
@@ -1612,6 +1886,90 @@ export default function DesignBuilderPage({
     });
   }
 
+  function deletePlacedComponent(componentId: string) {
+    const target = placedComponents.find((component) => component.id === componentId);
+    if (!target) {
+      setStatus({ tone: 'info', message: 'Select a component to delete.' });
+      return;
+    }
+    const idsToRemove = new Set<string>([componentId]);
+    if (target.type === 'column') {
+      for (const id of target.references?.connectedComponentIds ?? []) {
+        idsToRemove.add(id);
+      }
+      for (const component of placedComponents) {
+        if (component.references?.hostId === componentId) {
+          idsToRemove.add(component.id);
+        }
+      }
+    }
+    const now = new Date().toISOString();
+    setPlacedComponents((current) =>
+      current
+        .filter((component) => !idsToRemove.has(component.id))
+        .map((component) => {
+          const nextConnected = component.references?.connectedComponentIds?.filter((id) => !idsToRemove.has(id));
+          const hostWasRemoved = component.references?.hostId ? idsToRemove.has(component.references.hostId) : false;
+          if (nextConnected === component.references?.connectedComponentIds && !hostWasRemoved) return component;
+          return {
+            ...component,
+            references: {
+              ...(component.references ?? {}),
+              hostId: hostWasRemoved ? undefined : component.references?.hostId,
+              connectedComponentIds: nextConnected && nextConnected.length > 0 ? nextConnected : undefined,
+            },
+            metadata: {
+              ...component.metadata,
+              updatedAt: now,
+            },
+          };
+        }),
+    );
+    if (selectedComponentId === componentId || idsToRemove.has(selectedComponentId ?? '')) {
+      setSelectedComponentId(null);
+    }
+    setDraftPlanEnd(null);
+    setSaveState('unsaved');
+    setChangedAfterCommit(true);
+    const label = getDesignComponentDefinition(target.type).displayName;
+    setStatus({
+      tone: 'success',
+      message:
+        idsToRemove.size > 1
+          ? `${label} and ${idsToRemove.size - 1} related component${idsToRemove.size === 2 ? '' : 's'} removed.`
+          : `${label} removed.`,
+    });
+  }
+
+  async function confirmDeletePlacedComponent(componentId: string) {
+    const target = placedComponents.find((component) => component.id === componentId);
+    if (!target) {
+      setStatus({ tone: 'info', message: 'Select a component to delete.' });
+      return;
+    }
+    const label = getDesignComponentDefinition(target.type).displayName;
+    const confirmed = await confirm({
+      title: `Delete ${label}?`,
+      message:
+        target.type === 'column'
+          ? 'This will remove the selected column component and any related component footing created with it.'
+          : 'This will remove the selected placed component from the design.',
+      confirmLabel: 'Delete component',
+      confirmVariant: 'danger',
+      showWarningIcon: true,
+    });
+    if (!confirmed) return;
+    deletePlacedComponent(componentId);
+  }
+
+  function handleDeleteSelectedComponent() {
+    if (!selectedComponentId) {
+      setStatus({ tone: 'info', message: 'Select a component to delete.' });
+      return;
+    }
+    void confirmDeletePlacedComponent(selectedComponentId);
+  }
+
   function handleDeleteSelectedOpening() {
     if (!selectedOpeningId) {
       setStatus({ tone: 'info', message: 'Select an opening to delete.' });
@@ -1911,6 +2269,10 @@ export default function DesignBuilderPage({
     if (!modelLoaded) return;
 
     if (event.kind === 'cancel') {
+      if (toolMode === 'place_component') {
+        cancelComponentPlacement();
+        return;
+      }
       cancelPlanDraw();
       return;
     }
@@ -2084,10 +2446,68 @@ export default function DesignBuilderPage({
       return;
     }
 
+    if (event.kind === 'component_select' && event.componentId) {
+      setSelectedComponentId(event.componentId);
+      setSelectedSegmentId(null);
+      setSelectedNodeId(null);
+      setSelectedOpeningId(null);
+      setSelectedObjectType('structural_frame_system');
+      return;
+    }
+
+    if (event.kind === 'component_delete' && event.componentId) {
+      if (event.phase !== 'commit') return;
+      void confirmDeletePlacedComponent(event.componentId);
+      return;
+    }
+
+    if (event.kind === 'component_move' && event.componentId && event.planX != null && event.planZ != null) {
+      const point = snapPlanPoint(event.planX, event.planZ, snapLayout, moduleLength);
+      if (event.phase === 'preview') {
+        setDraftPlanEnd(point);
+        return;
+      }
+      const now = new Date().toISOString();
+      setPlacedComponents((current) => {
+        const target = current.find((component) => component.id === event.componentId);
+        if (!target) return current;
+        const relatedIds = new Set(target.references?.connectedComponentIds ?? []);
+        return current.map((component) => {
+          const isTarget = component.id === event.componentId;
+          const isRelatedFooter =
+            component.type === 'footer' &&
+            (component.references?.hostId === event.componentId || relatedIds.has(component.id));
+          if (!isTarget && !isRelatedFooter) return component;
+          return {
+            ...component,
+            viewPlacement: {
+              ...component.viewPlacement,
+              plan: {
+                ...(component.viewPlacement.plan ?? {}),
+                xMeters: point.x,
+                zMeters: point.z,
+              },
+            },
+            metadata: {
+              ...component.metadata,
+              updatedAt: now,
+            },
+          };
+        });
+      });
+      setDraftPlanEnd(null);
+      setSelectedComponentId(event.componentId);
+      setSaveState('unsaved');
+      setChangedAfterCommit(true);
+      setStatus({ tone: 'success', message: 'Column moved.' });
+      return;
+    }
+
     if (event.kind === 'select_node' && event.nodeId) {
       setSelectedNodeId(event.nodeId);
       setSelectedSegmentId(null);
       setSelectedOpeningId(null);
+      setSelectedComponentId(null);
       setSelectedObjectType(null);
       if (toolMode === 'move_wall_node') setActiveDrawNodeId(event.nodeId);
       return;
@@ -2131,6 +2551,7 @@ export default function DesignBuilderPage({
         setSelectedOpeningId(openingHit.openingId);
         setSelectedSegmentId(null);
         setSelectedNodeId(null);
+        setSelectedComponentId(null);
         const opening = effectiveWall.openings.find((item) => item.id === openingHit.openingId);
         if (opening) {
           setSelectedObjectType(opening.type === 'door' ? 'door_opening' : 'window_opening');
@@ -2146,6 +2567,7 @@ export default function DesignBuilderPage({
       setSelectedSegmentId(hit.segment.id);
       setSelectedNodeId(null);
       setSelectedOpeningId(null);
+      setSelectedComponentId(null);
       setSelectedObjectType(null);
       if (toolMode === 'delete') {
         void confirmDeleteWallSegment(hit.segment.id);
@@ -2257,6 +2679,13 @@ export default function DesignBuilderPage({
           cancelPlanDraw();
           return;
         }
+        if (toolMode === 'place_component') {
+          event.preventDefault();
+          event.stopPropagation();
+          event.stopImmediatePropagation();
+          cancelComponentPlacement();
+          return;
+        }
         if (placementPreview || toolMode !== 'select') {
           event.preventDefault();
           event.stopPropagation();
@@ -2265,7 +2694,7 @@ export default function DesignBuilderPage({
           setToolMode('select');
           return;
         }
-        if (selectedSegmentId || selectedNodeId || selectedOpeningId || selectedObjectType) {
+        if (selectedSegmentId || selectedNodeId || selectedOpeningId || selectedComponentId || selectedObjectType) {
           event.preventDefault();
           event.stopPropagation();
           event.stopImmediatePropagation();
@@ -2283,11 +2712,17 @@ export default function DesignBuilderPage({
       if ((event.key === 'Delete' || event.key === 'Backspace') && selectedSegmentId) {
         event.preventDefault();
         void confirmDeleteWallSegment(selectedSegmentId);
+        return;
+      }
+
+      if ((event.key === 'Delete' || event.key === 'Backspace') && selectedComponentId) {
+        event.preventDefault();
+        void confirmDeletePlacedComponent(selectedComponentId);
       }
     };
     window.addEventListener('keydown', handleKeyDown, true);
     return () => window.removeEventListener('keydown', handleKeyDown, true);
-  }, [modelLoaded, selectedObjectType, selectedOpeningId, selectedNodeId, selectedSegmentId, toolMode, placementPreview, wallLayout]);
+  }, [modelLoaded, selectedComponentId, selectedObjectType, selectedOpeningId, selectedNodeId, selectedSegmentId, toolMode, placementPreview, wallLayout]);
 
   const handleViewerInteraction = (event: DesignBuilderInteractionEvent) => {
       if (!modelLoaded) return;
@@ -2295,6 +2730,10 @@ export default function DesignBuilderPage({
 
       switch (event.kind) {
         case 'cancel':
+          if (toolMode === 'place_component') {
+            cancelComponentPlacement();
+            break;
+          }
           if (placementPreview || toolMode !== 'select') {
             setPlacementPreview(null);
             setToolMode('select');
@@ -2452,7 +2891,10 @@ export default function DesignBuilderPage({
               event.hitPointX != null && event.hitPointZ != null
                 ? { x: event.hitPointX, y: event.hitPointY, z: event.hitPointZ }
                 : undefined;
-            const resolved = hitPoint && event.wallSegmentId
+            const legacyOffsetMove = !hitPoint && !event.wallSegmentId && event.wallFace && event.offsetMeters != null;
+            const resolved = legacyOffsetMove
+              ? null
+              : hitPoint && event.wallSegmentId
               ? resolveOpeningPlacementForHit({
                   hitPoint,
                   wallSegmentId: event.wallSegmentId,
@@ -2472,7 +2914,16 @@ export default function DesignBuilderPage({
                     slabTopMeters: resolvedPreset.slab.slabThicknessMeters,
                   })
                 : null;
-            const patched = resolved
+            const patched = legacyOffsetMove
+              ? {
+                  ...opening,
+                  wallFace: event.wallFace,
+                  offsetMeters: event.offsetMeters,
+                  wallSegmentId: undefined,
+                  positionAlongSegment: undefined,
+                  placementUsesCenterStation: undefined,
+                }
+              : resolved
               ? openingDraftFromPlacementResolution(resolved, openingDefinition, wall, wallLayout, opening.id)
               : event.wallSegmentId && event.positionAlongSegment != null
                 ? applyOpeningSegmentPatch(opening, wall, wallLayout, {
@@ -2556,11 +3007,12 @@ export default function DesignBuilderPage({
       const syncedPreset = syncPresetFromLayout(preset, preset.wallLayout);
       const metadata = designModelMetadataWithPersistedState(activeModel, syncedPreset, {
         activeView: viewMode,
+        elevationView,
         roofDisplayMode,
         foundationViewMode,
         visualStyle,
         materialSelections,
-      });
+      }, placedComponents);
       const metadataResult = await updateDesignModelMetadata(activeModel.id, metadata);
       if (metadataResult.error || !metadataResult.data) {
         throw new Error(metadataResult.error ?? 'Could not save design metadata.');
@@ -3026,6 +3478,7 @@ export default function DesignBuilderPage({
     setSelectedOpeningId(null);
     setSelectedSegmentId(null);
     setSelectedNodeId(null);
+    setSelectedComponentId(null);
     setPlacementPreview(null);
   }
 
@@ -3143,6 +3596,9 @@ export default function DesignBuilderPage({
     setPlacementPreview(null);
     setObjectTreeExpanded(DEFAULT_OBJECT_TREE_EXPANSION);
     setPreviewLines([]);
+    setPlacedComponents([]);
+    setSelectedComponentId(null);
+    dispatchComponentPlacement({ type: 'reset', activeView: 'plan' });
     setPersistedQuantityItems([]);
     setChangedAfterCommit((current) => current || persistedQuantityItems.some((item) => item.estimateLineId));
     setDesignHistory(createDesignHistoryState());
@@ -3180,6 +3636,7 @@ export default function DesignBuilderPage({
       preset: committedBlankPreset,
       selectedObjectType: null,
       selectedOpeningId: null,
+      placedComponents: [],
       previewLines: [],
       persistedQuantityItems: [],
       toolMode: 'select',
@@ -3262,10 +3719,16 @@ export default function DesignBuilderPage({
     }
   }
 
-  const activeToolLabel = TOOL_MODE_OPTIONS.find((option) => option.mode === toolMode)?.label ?? 'Select';
+  const activeToolLabel = toolMode === 'place_component'
+    ? componentPlacement.activeComponentDefinition?.displayName ?? 'Place Component'
+    : toolMode === 'place_door'
+      ? 'Place Door'
+      : toolMode === 'place_window'
+        ? 'Place Window'
+    : TOOL_MODE_OPTIONS.find((option) => option.mode === toolMode)?.label ?? 'Select';
   const activeBuildingSystemMode = resolvedPreset.buildingSystemMode;
   const isFrameStructureMode = activeBuildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill';
-  const structureMenuLabel = 'Structure';
+  const structureMenuLabel = 'Settings';
   const drawWallInstruction = DESIGN_BUILDER_COPY.hints.drawWall;
   const drawWallSnapFeedback = formatDrawWallSnapTargetFeedback({
     snapTarget: draftSnapTarget,
@@ -3279,8 +3742,10 @@ export default function DesignBuilderPage({
     ? DESIGN_BUILDER_COPY.hints.opening
     : toolMode === 'place_window'
       ? DESIGN_BUILDER_COPY.hints.opening
-      : toolMode === 'move_wall_node'
-        ? 'Drag node · Esc exits'
+      : toolMode === 'place_component'
+        ? `${componentPlacement.activeComponentDefinition?.displayName ?? 'Component'} placement - Click canvas to place - Esc cancels`
+        : toolMode === 'move_wall_node'
+        ? 'Drag node - Esc exits'
         : toolMode === 'move_opening'
           ? 'Drag selected opening along wall segment'
           : null;
@@ -3427,7 +3892,7 @@ export default function DesignBuilderPage({
                   >
                     <span className="font-medium capitalize">
                       {opening.type}
-                      {opening.wallSegmentId ? ` · segment` : opening.wallFace ? ` · ${opening.wallFace}` : ''}
+                      {opening.wallSegmentId ? ` - segment` : opening.wallFace ? ` - ${opening.wallFace}` : ''}
                     </span>
                     <span className="mt-0.5 block text-xs text-slate-500 dark:text-slate-400">
                       Offset {(opening.positionAlongSegment ?? opening.offsetMeters ?? 0).toFixed(2)}m
@@ -3496,7 +3961,7 @@ export default function DesignBuilderPage({
             <div className="flex flex-wrap items-center gap-2">
               <DesignBuilderCommandMenu
                 menuKind="tools"
-                label={<>{activeToolLabel} <span aria-hidden>▾</span></>}
+                label={<>{activeToolLabel}</>}
                 isActive={toolMode === 'select'}
                 summaryClassName={`flex h-9 items-center gap-1 rounded-lg border px-3 text-xs font-semibold transition focus:outline-none focus:ring-2 focus:ring-cyan-400/40 ${
                   toolMode === 'select'
@@ -3526,88 +3991,75 @@ export default function DesignBuilderPage({
                 ))}
               </DesignBuilderCommandMenu>
 
-              <div
-                role="group"
-                aria-label="Switch between 2D plan and 3D view"
-                className="inline-flex h-9 overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700"
-              >
-                <button
-                  type="button"
-                  aria-label="Switch to 2D plan view"
-                  aria-pressed={builderViewMode === '2d'}
-                  onClick={() => setBuilderViewMode('2d')}
-                  className={`px-3 text-xs font-semibold transition ${
-                    builderViewMode === '2d'
-                      ? 'bg-cyan-600 text-white'
-                      : 'text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800'
-                  }`}
-                >
-                  2D
-                </button>
-                <button
-                  type="button"
-                  aria-label="Switch to 3D view"
-                  aria-pressed={builderViewMode === '3d'}
-                  onClick={() => setBuilderViewMode('3d')}
-                  className={`border-l border-slate-200 px-3 text-xs font-semibold transition dark:border-slate-700 ${
-                    builderViewMode === '3d'
-                      ? 'bg-cyan-600 text-white'
-                      : 'text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800'
-                  }`}
-                >
-                  3D
-                </button>
-              </div>
-
               <DesignBuilderCommandMenu
-                menuKind="openings"
-                label={<>Openings <span aria-hidden>▾</span></>}
-                isActive={toolMode === 'place_door' || toolMode === 'place_window' || toolMode === 'move_opening'}
-                panelClassName="w-52"
-                summaryClassName={`flex h-9 items-center gap-1 rounded-lg border px-3 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-cyan-400/40 ${
-                  toolMode === 'place_door' || toolMode === 'place_window' || toolMode === 'move_opening'
+                menuKind="components"
+                label={<>Components</>}
+                isActive={toolMode === 'place_component' || toolMode === 'place_door' || toolMode === 'place_window'}
+                panelClassName="w-56 p-2"
+                summaryClassName={`flex h-9 items-center gap-1 rounded-lg border px-3 text-xs font-semibold transition focus:outline-none focus:ring-2 focus:ring-cyan-400/40 ${
+                  toolMode === 'place_component' || toolMode === 'place_door' || toolMode === 'place_window'
                     ? 'border-cyan-400 bg-cyan-50 text-cyan-800 dark:border-cyan-600 dark:bg-cyan-950/50 dark:text-cyan-100'
                     : 'border-slate-200 text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800'
                 }`}
               >
-                {([
-                  ['place_door', 'Door Opening'],
-                  ['place_window', 'Window Opening'],
-                  ['move_opening', 'Move Opening'],
-                ] as Array<[DesignBuilderToolMode, string]>).map(([mode, label]) => (
-                  <CommandMenuAction
-                    key={mode}
-                    onClick={() => activateToolMode(mode)}
-                    disabled={!modelLoaded}
-                    className={`block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-50 ${
-                      toolMode === mode
-                        ? 'bg-cyan-600 text-white'
-                        : 'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    {label}
-                  </CommandMenuAction>
+                {componentDefinitionGroups.map((group) => (
+                  <div key={group.division} className="py-1">
+                    <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                      {group.division}
+                    </div>
+                    {group.definitions.map((definition) => (
+                      <CommandMenuAction
+                        key={definition.type}
+                        onClick={() => activateDesignComponent(definition.type)}
+                        disabled={!modelLoaded}
+                        className={`block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-50 ${
+                          componentPlacement.activeComponentType === definition.type ||
+                          (definition.type === 'door' && toolMode === 'place_door') ||
+                          (definition.type === 'window' && toolMode === 'place_window')
+                            ? 'bg-cyan-600 text-white'
+                            : 'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800'
+                        }`}
+                      >
+                        {definition.displayName}
+                      </CommandMenuAction>
+                    ))}
+                  </div>
                 ))}
               </DesignBuilderCommandMenu>
 
+              <div
+                role="group"
+                aria-label="Switch Design Builder view"
+                className="inline-flex h-9 overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700"
+              >
+                {([
+                  ['plan', '2D Plan'],
+                  ['elevation', '2D Elevation'],
+                  ['3d', '3D'],
+                ] as Array<[BuilderViewMode, string]>).map(([mode, label], index) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    aria-label={`Switch to ${label} view`}
+                    aria-pressed={builderViewMode === mode}
+                    onClick={() => setBuilderViewMode(mode)}
+                    className={`${index === 0 ? '' : 'border-l border-slate-200 dark:border-slate-700'} px-3 text-xs font-semibold transition ${
+                      builderViewMode === mode
+                        ? 'bg-cyan-600 text-white'
+                        : 'text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
               <DesignBuilderCommandMenu
                 menuKind="structure"
-                label={<>{structureMenuLabel} <span aria-hidden>▾</span></>}
+                label={<>{structureMenuLabel}</>}
                 panelClassName="w-56"
                 summaryClassName="flex h-9 items-center gap-1 rounded-lg border border-cyan-400 bg-cyan-50 px-3 text-xs font-semibold text-cyan-800 focus:outline-none focus:ring-2 focus:ring-cyan-400/40 dark:border-cyan-600 dark:bg-cyan-950/50 dark:text-cyan-100"
               >
-                <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400">System Mode</div>
-                <CommandMenuAction
-                  onClick={() => handleSetBuildingSystemMode('cmu_bearing_wall')}
-                  aria-pressed={activeBuildingSystemMode === 'cmu_bearing_wall'}
-                  className={`block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold ${
-                    activeBuildingSystemMode === 'cmu_bearing_wall'
-                      ? 'bg-cyan-600 text-white'
-                      : 'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800'
-                  }`}
-                >
-                  CMU Bearing Wall
-                </CommandMenuAction>
+                <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400">System</div>
                 <CommandMenuAction
                   onClick={() => handleSetBuildingSystemMode('reinforced_concrete_frame_with_cmu_infill')}
                   aria-pressed={activeBuildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill'}
@@ -3619,6 +4071,22 @@ export default function DesignBuilderPage({
                 >
                   RC Structure
                 </CommandMenuAction>
+                <details className="px-1 py-1">
+                  <summary className="cursor-pointer rounded-lg px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+                    Advanced
+                  </summary>
+                  <CommandMenuAction
+                    onClick={() => handleSetBuildingSystemMode('cmu_bearing_wall')}
+                    aria-pressed={activeBuildingSystemMode === 'cmu_bearing_wall'}
+                    className={`mt-1 block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold ${
+                      activeBuildingSystemMode === 'cmu_bearing_wall'
+                        ? 'bg-cyan-600 text-white'
+                        : 'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800'
+                    }`}
+                  >
+                    CMU Bearing Wall
+                  </CommandMenuAction>
+                </details>
                 {isFrameStructureMode ? (
                   <>
                     <div className="my-1 border-t border-slate-200 dark:border-slate-700" />
@@ -3635,7 +4103,7 @@ export default function DesignBuilderPage({
 
               <DesignBuilderCommandMenu
                 menuKind="snap"
-                label={<>Snap: {snapMode === 'cmu_module' ? 'CMU' : snapMode === 'grid' ? 'Grid' : 'Off'} <span aria-hidden>▾</span></>}
+                label={<>Snap: {snapMode === 'cmu_module' ? 'CMU' : snapMode === 'grid' ? 'Grid' : 'Off'}</>}
                 closeOnSelect={false}
                 panelClassName="w-64 p-2"
                 summaryClassName="flex h-9 items-center gap-1 rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-cyan-400/40 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
@@ -3742,7 +4210,7 @@ export default function DesignBuilderPage({
 
               <DesignBuilderCommandMenu
                 menuKind="view"
-                label={<>View <span aria-hidden>▾</span></>}
+                label={<>View</>}
                 panelClassName="w-56 p-2"
                 summaryClassName="flex h-9 items-center gap-1 rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-cyan-400/40 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
               >
@@ -3775,7 +4243,7 @@ export default function DesignBuilderPage({
 
               <DesignBuilderCommandMenu
                 menuKind="display"
-                label={<>Display <span aria-hidden>▾</span></>}
+                label={<>Display</>}
                 closeOnSelect={false}
                 panelClassName="w-64 max-h-[min(70vh,520px)] space-y-1 overflow-y-auto p-3 text-xs"
                 summaryClassName="flex h-9 items-center gap-1 rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-cyan-400/40 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
@@ -3927,7 +4395,7 @@ export default function DesignBuilderPage({
               <div className="ml-auto flex items-center gap-2">
                 <DesignBuilderCommandMenu
                   menuKind="workspace-actions"
-                  label={<>Actions <span aria-hidden>▾</span></>}
+                  label={<>Actions</>}
                   panelClassName="w-48"
                   summaryClassName="flex h-9 items-center gap-1 rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-cyan-400/40 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
                 >
@@ -4092,6 +4560,15 @@ export default function DesignBuilderPage({
                 <>
                   <button
                     type="button"
+                    onClick={handleDeleteSelectedComponent}
+                    disabled={!selectedComponentId}
+                    title={selectedComponent ? `Delete selected ${getDesignComponentDefinition(selectedComponent.type).displayName}` : 'Select a component to delete.'}
+                    className="h-8 rounded-lg border border-red-300 px-2.5 font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-950/40"
+                  >
+                    Delete selected component
+                  </button>
+                  <button
+                    type="button"
                     onClick={handleDeleteSelectedOpening}
                     disabled={!selectedOpeningId}
                     className="h-8 rounded-lg border border-red-300 px-2.5 font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-950/40"
@@ -4137,6 +4614,7 @@ export default function DesignBuilderPage({
                 selectedSegmentId={selectedSegmentId}
                 selectedNodeId={selectedNodeId}
                 selectedOpeningId={selectedOpeningId}
+                selectedComponentId={selectedComponentId}
                 snapTarget={draftSnapTarget}
                 shiftConstraintLabel={drawWallConstraintLabel}
                 previewMetrics={drawWallPreviewMetrics}
@@ -4149,6 +4627,28 @@ export default function DesignBuilderPage({
                 isolatedFootings={designGeometryResult.isolatedFootings}
                 resolvedRoofSystem={designGeometryResult.resolvedRoofSystem ?? null}
                 selectedObjectType={selectedObjectType}
+                placedComponents={placedComponents}
+                designRenderModel={designRenderModel}
+                componentPreview={componentPlacement.activeView === 'plan' ? componentPlacement.placementPreview : null}
+                helperMeasurements={componentPlacement.activeView === 'plan' ? componentPlacement.helperMeasurements : []}
+                onComponentPointer={handleComponentPointer}
+                onInteraction={handlePlanInteraction}
+              />
+            ) : viewMode === 'elevation' ? (
+              <DesignBuilderElevationCanvas
+                toolMode={toolMode}
+                elevationView={elevationView}
+                layoutBounds={designLayoutBounds}
+                viewCommand={viewCommand}
+                frameSystem={designGeometryResult.frameSystem}
+                isolatedFootings={designGeometryResult.isolatedFootings}
+                openings={effectiveWall.openings}
+                placedComponents={placedComponents}
+                designRenderModel={designRenderModel}
+                componentPreview={componentPlacement.activeView === 'elevation' ? componentPlacement.placementPreview : null}
+                helperMeasurements={componentPlacement.activeView === 'elevation' ? componentPlacement.helperMeasurements : []}
+                onElevationViewChange={setElevationView}
+                onComponentPointer={handleComponentPointer}
                 onInteraction={handlePlanInteraction}
               />
             ) : (
@@ -4164,6 +4664,8 @@ export default function DesignBuilderPage({
                 selectedOpeningId={selectedOpeningId}
                 toolMode={toolMode}
                 placementPreview={placementPreview}
+                placedComponents={placedComponents}
+                designRenderModel={designRenderModel}
                 onInteraction={handleViewerInteraction}
                 onSelectObjectType={setSelectedObjectType}
                 fitContainer={focusMode}
@@ -4187,6 +4689,87 @@ export default function DesignBuilderPage({
                 materialRevision={materialRevision}
               />
             )}
+            {toolMode === 'place_component' && componentPlacement.activeComponentDefinition ? (
+              <div
+                className="absolute z-20 w-72 rounded-xl border border-slate-700 bg-slate-950/95 text-slate-100 shadow-2xl"
+                style={{ left: componentPanelPosition.x, top: componentPanelPosition.y }}
+                data-component-parameter-panel="true"
+              >
+                <div
+                  className="flex cursor-move items-center justify-between border-b border-slate-800 px-3 py-2"
+                  onPointerDown={handleComponentPanelDragStart}
+                >
+                  <div>
+                    <div className="text-xs font-bold text-cyan-200">
+                      {componentPlacement.activeComponentDefinition.displayName}
+                    </div>
+                    <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                      {componentPlacement.activeComponentDefinition.division}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setComponentPanelCollapsed((current) => !current)}
+                      className="rounded-md px-2 py-1 text-xs font-bold text-slate-300 hover:bg-slate-800"
+                    >
+                      {componentPanelCollapsed ? 'Show' : 'Min'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={cancelComponentPlacement}
+                      className="rounded-md px-2 py-1 text-xs font-bold text-slate-300 hover:bg-slate-800"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+                {!componentPanelCollapsed ? (
+                  <div className="space-y-3 p-3">
+                    {componentPlacement.activeComponentDefinition.parameterSchema.map((field) => (
+                      <label key={field.key} className="block text-xs font-semibold text-slate-300">
+                        <span className="mb-1 flex items-center justify-between">
+                          <span>{field.label}</span>
+                          {field.unit ? <span className="text-[10px] text-slate-500">{field.unit}</span> : null}
+                        </span>
+                        {field.kind === 'select' ? (
+                          <select
+                            value={String(componentPlacement.draftComponentParameters[field.key] ?? '')}
+                            onChange={(event) => handleComponentParameterChange(field.key, event.target.value, field.kind)}
+                            className="h-8 w-full rounded-lg border border-slate-700 bg-slate-900 px-2 text-xs text-slate-100 outline-none focus:border-cyan-500"
+                          >
+                            {(field.options ?? []).map((option) => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <input
+                            type={field.kind === 'number' ? 'number' : 'text'}
+                            step={field.kind === 'number' ? '0.01' : undefined}
+                            min={field.min}
+                            value={String(componentPlacement.draftComponentParameters[field.key] ?? '')}
+                            onChange={(event) => handleComponentParameterChange(field.key, event.target.value, field.kind)}
+                            className="h-8 w-full rounded-lg border border-slate-700 bg-slate-900 px-2 text-xs text-slate-100 outline-none focus:border-cyan-500"
+                          />
+                        )}
+                      </label>
+                    ))}
+                    {componentPlacement.placementStatus.errors.length > 0 ? (
+                      <div className="rounded-lg border border-red-900 bg-red-950/50 px-2 py-1.5 text-xs font-semibold text-red-200">
+                        {componentPlacement.placementStatus.errors[0]}
+                      </div>
+                    ) : null}
+                    <div className="rounded-lg border border-slate-800 bg-slate-900/80 px-2 py-1.5 text-[11px] font-medium text-slate-400">
+                      {viewMode === 'elevation'
+                        ? `View: X / Z on ${elevationView.face.toUpperCase()} face`
+                        : 'View: X / Y plan placement'}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
             {viewMode === 'plan' && toolMode === 'draw_wall' ? (
               <div className="pointer-events-none absolute left-3 top-12 z-10 space-y-1 rounded-xl border border-amber-400/60 bg-slate-900/95 px-3 py-2 text-xs font-medium text-amber-100 shadow-lg">
                 <div>{drawWallInstruction}</div>
@@ -4479,7 +5062,7 @@ export default function DesignBuilderPage({
                     </span>
                   </div>
                   <div className="mt-1 text-slate-600 dark:text-slate-300">
-                    {line.quantity} {line.unit} · Division {line.divisionCode} {line.divisionName}
+                    {line.quantity} {line.unit} - Division {line.divisionCode} {line.divisionName}
                   </div>
                   <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                     Source object: {OBJECT_TREE_ITEMS.find((item) => item.objectType === objectTypeForPreviewLine(line))?.label}
@@ -4590,8 +5173,6 @@ const TOOL_MODE_OPTIONS: Array<{ mode: DesignBuilderToolMode; label: string }> =
   { mode: 'select', label: 'Select' },
   { mode: 'draw_wall', label: 'Draw Wall' },
   { mode: 'move_wall_node', label: 'Move Node' },
-  { mode: 'place_door', label: 'Place Door' },
-  { mode: 'place_window', label: 'Place Window' },
   { mode: 'move_opening', label: 'Move Opening' },
   { mode: 'delete', label: 'Delete' },
 ];
@@ -4919,7 +5500,7 @@ function EditableControls({
           value={preset.buildingSystemMode}
           onChange={(value) => onStructureFieldChange({ buildingSystemMode: value as import('../types').BuildingSystemMode })}
           options={[
-            { value: 'cmu_bearing_wall', label: 'CMU Bearing Wall' },
+            { value: 'cmu_bearing_wall', label: 'CMU Bearing Wall (advanced)' },
             { value: 'reinforced_concrete_frame_with_cmu_infill', label: 'RC Frame + CMU Infill' },
           ]}
         />
@@ -4937,11 +5518,11 @@ function EditableControls({
         />
         {preset.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill' ? (
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            Use Structure → RC Settings to edit columns, beams, footings, and roof settings.
+            Use Settings, then RC Settings to edit columns, beams, footings, and roof settings.
           </p>
         ) : null}
         <p className="text-sm text-slate-600 dark:text-slate-300">
-          Columns: {preset.frameSystem.columns.length} · Beams: {preset.frameSystem.beams.length}
+          Columns: {preset.frameSystem.columns.length} - Beams: {preset.frameSystem.beams.length}
         </p>
       </div>
     );
@@ -4996,7 +5577,7 @@ function EditableControls({
         />
         {designGeometryResult.wallCmuLayout.counts ? (
           <p className="text-xs text-slate-500">
-            Full {designGeometryResult.wallCmuLayout.counts.full} · Half {designGeometryResult.wallCmuLayout.counts.half} · Cut{' '}
+            Full {designGeometryResult.wallCmuLayout.counts.full} - Half {designGeometryResult.wallCmuLayout.counts.half} - Cut{' '}
             {designGeometryResult.wallCmuLayout.counts.cut}
           </p>
         ) : null}
@@ -5039,7 +5620,7 @@ function EditableControls({
           </>
         ) : (
           <p className="text-sm text-slate-500">
-            Configure gable-end CMU and raked cap through Structure → RC Settings when using a Gable Roof.
+              Configure gable-end CMU and raked cap through Settings, then RC Settings when using a Gable Roof.
           </p>
         )}
       </div>
@@ -5335,7 +5916,7 @@ function DisplayMenuCollapsibleSection({
       >
         <span>{title}</span>
         <span aria-hidden className="text-[10px]">
-          {open ? '▾' : '▸'}
+          {open ? 'v' : '>'}
         </span>
       </button>
       {open ? (

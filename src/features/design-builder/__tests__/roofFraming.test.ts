@@ -17,6 +17,7 @@ import {
   PURLIN_TO_CHORD_CLEARANCE_METERS,
   PURLIN_TO_SHEET_CLEARANCE_METERS,
   resolveEvenStations,
+  resolveRidgeCapPlacement,
   resolveTrussTopChordUpperPoint,
   TRUSS_CHORD_PROFILE_METERS,
   trussMemberLength,
@@ -1705,6 +1706,22 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
     expect(placement!.start.y).toBeGreaterThan(roof.roofPeakY);
     expect(Math.abs(placement!.end.y - placement!.start.y)).toBeLessThan(0.002);
     expect(placement!.thicknessMeters).toBeLessThanOrEqual(0.05);
+    expect(() => validateRidgeCapPlacement(placement!)).not.toThrow();
+  });
+
+  it('levels gable ridge cap endpoints when edited geometry produces uneven display ridge heights', () => {
+    const placement = resolveRidgeCapPlacement({
+      roofType: 'gable',
+      ridgeStart: { x: 0, y: 3.1, z: 0 },
+      ridgeEnd: { x: 4, y: 3.28, z: 0.2 },
+      rafterRunMeters: 2,
+      rafterRiseMeters: 1,
+      enabled: true,
+    });
+
+    expect(placement).not.toBeNull();
+    expect(placement!.start.y).toBeCloseTo(3.28, 6);
+    expect(placement!.end.y).toBeCloseTo(3.28, 6);
     expect(() => validateRidgeCapPlacement(placement!)).not.toThrow();
   });
 

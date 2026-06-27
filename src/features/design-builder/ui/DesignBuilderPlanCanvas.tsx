@@ -4,7 +4,16 @@ import type {
   DesignBuilderSnapMode,
   DesignBuilderToolMode,
   DesignWallLayoutParameters,
+  PlacedDesignComponent,
+  StructuralBeam,
+  StructuralColumn,
 } from '../types';
+import type { HelperMeasurement } from '../domain/designComponentPlacement';
+import {
+  buildDesignRenderModel,
+  type DesignRenderModel,
+  type DesignRenderRcComponent,
+} from '../domain/designRenderModel';
 import type { DesignSnapTarget } from '../domain/designSnapRules';
 import type { SegmentFrame } from '../geometry/designGeometry';
 import type { ResolvedOpeningPlacement } from '../domain/openingPlacementResolver';
@@ -38,8 +47,14 @@ import { DESIGN_BUILDER_COPY } from '../domain/designBuilderCopy';
 import { formatDrawWallStatusChip } from '../domain/designDrawWallFeedback';
 
 const MIN_SEGMENT_LENGTH_METERS = 0.08;
+const COLUMN_DRAG_THRESHOLD_PX = 4;
 const FALLBACK_SURFACE_SIZE = { width: 900, height: 520 };
-const PLAN_RULER_TICKS_METERS = [0, 5, 10, 50];
+const PLAN_RULER_TICK_INTERVAL_METERS = 5;
+const PLAN_RULER_TICK_MAX_METERS = 40;
+const PLAN_RULER_TICKS_METERS = Array.from(
+  { length: PLAN_RULER_TICK_MAX_METERS / PLAN_RULER_TICK_INTERVAL_METERS + 1 },
+  (_, index) => index * PLAN_RULER_TICK_INTERVAL_METERS,
+);
 
 export type PlanOpeningCanvasItem = {
   openingId: string;
@@ -60,6 +75,55 @@ export type PlanOpeningCanvasPreview = {
   swingType?: 'inswing' | 'outswing';
 };
 
+type ColumnDragState = {
+  status: 'candidate' | 'dragging-column';
+  pointerId: number;
+  columnId: string;
+  source: 'frame' | 'component';
+  nodeId?: string;
+  componentId?: string;
+  originalPosition: { x: number; z: number };
+  previewPosition: { x: number; z: number };
+  widthMeters: number;
+  depthMeters: number;
+  footer?: {
+    id: string;
+    widthMeters: number;
+    lengthMeters: number;
+  };
+  startPointer: { clientX: number; clientY: number };
+};
+
+type PlanColumnHit = {
+  id: string;
+  source: 'frame' | 'component';
+  nodeId?: string;
+  componentId?: string;
+  position: { x: number; z: number };
+  widthMeters: number;
+  depthMeters: number;
+  footer?: {
+    id: string;
+    widthMeters: number;
+    lengthMeters: number;
+  };
+};
+
+type PlanComponentHit = {
+  id: string;
+  sourceComponentId: string;
+  type: DesignRenderRcComponent['type'];
+  position: { x: number; z: number };
+  widthMeters: number;
+  depthMeters: number;
+  lengthMeters?: number;
+  footer?: {
+    id: string;
+    widthMeters: number;
+    lengthMeters: number;
+  };
+};
+
 interface DesignBuilderPlanCanvasProps {
   layout: DesignWallLayoutParameters;
   toolMode: DesignBuilderToolMode;
@@ -76,6 +140,7 @@ interface DesignBuilderPlanCanvasProps {
   selectedSegmentId?: string | null;
   selectedNodeId?: string | null;
   selectedOpeningId?: string | null;
+  selectedComponentId?: string | null;
   segmentFrames?: readonly SegmentFrame[];
   openingItems?: readonly PlanOpeningCanvasItem[];
   openingPreview?: PlanOpeningCanvasPreview | null;
@@ -87,7 +152,12 @@ interface DesignBuilderPlanCanvasProps {
   frameSystem?: import('../types').StructuralFrameSystemParameters;
   isolatedFootings?: readonly import('../types').IsolatedFooting[];
   resolvedRoofSystem?: import('../types').ResolvedRoofSystem | null;
-  selectedObjectType?: import('../types').DesignBuilderObjectType | null;
+  selectedObjectType?: import('../types').DesignObjectType | null;
+  placedComponents?: readonly PlacedDesignComponent[];
+  componentPreview?: PlacedDesignComponent | null;
+  designRenderModel?: DesignRenderModel;
+  helperMeasurements?: readonly HelperMeasurement[];
+  onComponentPointer?: (event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number }) => void;
   onInteraction: (event: DesignBuilderInteractionEvent) => void;
 }
 
@@ -107,6 +177,7 @@ export default function DesignBuilderPlanCanvas({
   selectedSegmentId = null,
   selectedNodeId = null,
   selectedOpeningId = null,
+  selectedComponentId = null,
   segmentFrames = [],
   openingItems = [],
   openingPreview = null,
@@ -119,14 +190,28 @@ export default function DesignBuilderPlanCanvas({
   isolatedFootings = [],
   resolvedRoofSystem = null,
   selectedObjectType = null,
+  placedComponents = [],
+  componentPreview = null,
+  designRenderModel,
+  helperMeasurements = [],
+  onComponentPointer,
   onInteraction,
 }: DesignBuilderPlanCanvasProps) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const panDragRef = useRef<{ x: number; y: number } | null>(null);
+  const componentPointerIdRef = useRef<number | null>(null);
+  const columnDragStateRef = useRef<ColumnDragState | null>(null);
   const spaceHeldRef = useRef(false);
   const lastViewCommandIdRef = useRef<number | null>(null);
   const [surfaceSize, setSurfaceSize] = useState(FALLBACK_SURFACE_SIZE);
   const [hoveredOpeningId, setHoveredOpeningId] = useState<string | null>(null);
+  const [cursorPoint, setCursorPoint] = useState<{ x: number; z: number } | null>(null);
+  const [columnDragState, setColumnDragStateSnapshot] = useState<ColumnDragState | null>(null);
+
+  const setColumnDragState = useCallback((next: ColumnDragState | null) => {
+    columnDragStateRef.current = next;
+    setColumnDragStateSnapshot(next);
+  }, []);
 
   const framesBySegmentId = useMemo(
     () => new Map(segmentFrames.map((frame) => [frame.segmentId, frame])),
@@ -294,6 +379,15 @@ export default function DesignBuilderPlanCanvas({
     [controller],
   );
 
+  const committedRenderModel = useMemo(
+    () => designRenderModel ?? buildDesignRenderModel({ placedComponents }),
+    [designRenderModel, placedComponents],
+  );
+  const previewRenderModel = useMemo(
+    () => buildDesignRenderModel({ placedComponents: componentPreview ? [componentPreview] : [] }),
+    [componentPreview],
+  );
+
   const screenFromEvent = useCallback(
     (event: PointerEvent<SVGSVGElement>) => {
       const svg = svgRef.current;
@@ -312,6 +406,144 @@ export default function DesignBuilderPlanCanvas({
     },
     [viewport],
   );
+
+  const snapColumnDragPoint = useCallback(
+    (point: { x: number; z: number }) => {
+      if (snapMode === 'off') return point;
+      const spacing = Math.max(0.001, snapSpacingMeters ?? layout.gridSpacingMeters);
+      return {
+        x: Math.round(point.x / spacing) * spacing,
+        z: Math.round(point.z / spacing) * spacing,
+      };
+    },
+    [layout.gridSpacingMeters, snapMode, snapSpacingMeters],
+  );
+
+  const hitTestPlanComponent = useCallback(
+    (point: { x: number; z: number }): PlanComponentHit | null => {
+      const handleToleranceMeters = Math.max(0.08, 10 / Math.max(1, viewport.zoom));
+      for (const component of [...committedRenderModel.rcComponents].reverse()) {
+        if (component.type !== 'column') continue;
+        const dx = point.x - component.position.x;
+        const dz = point.z - component.position.z;
+        const bodyHit =
+          Math.abs(dx) <= component.dimensions.width / 2 + handleToleranceMeters &&
+          Math.abs(dz) <= component.dimensions.depth / 2 + handleToleranceMeters;
+        const centerHandleHit = Math.hypot(dx, dz) <= Math.max(handleToleranceMeters, 0.12);
+        if (!bodyHit && !centerHandleHit) continue;
+        return {
+          id: component.id,
+          sourceComponentId: component.sourceComponentId,
+          type: component.type,
+          position: { x: component.position.x, z: component.position.z },
+          widthMeters: component.dimensions.width,
+          depthMeters: component.dimensions.depth,
+          lengthMeters: component.dimensions.length ?? component.dimensions.width,
+          footer: component.footer
+            ? {
+                id: component.footer.id,
+                widthMeters: component.footer.widthMeters,
+                lengthMeters: component.footer.lengthMeters,
+              }
+            : undefined,
+        };
+      }
+      for (const component of [...committedRenderModel.rcComponents].reverse()) {
+        const dx = point.x - component.position.x;
+        const dz = point.z - component.position.z;
+        const widthMeters = component.dimensions.width;
+        const depthMeters = component.dimensions.depth;
+        const lengthMeters = component.dimensions.length ?? widthMeters;
+        const hitWidth = component.type === 'slab' ? lengthMeters : widthMeters;
+        const hitDepth = component.type === 'slab' ? widthMeters : depthMeters;
+        const bodyHit =
+          Math.abs(dx) <= hitWidth / 2 + handleToleranceMeters &&
+          Math.abs(dz) <= hitDepth / 2 + handleToleranceMeters;
+        const footerHit =
+          component.type === 'column' && component.footer
+            ? Math.abs(dx) <= component.footer.widthMeters / 2 + handleToleranceMeters &&
+              Math.abs(dz) <= component.footer.lengthMeters / 2 + handleToleranceMeters
+            : false;
+        const centerHandleHit =
+          component.type === 'column' && Math.hypot(dx, dz) <= Math.max(handleToleranceMeters, 0.12);
+        if (!bodyHit && !footerHit && !centerHandleHit) continue;
+        return {
+          id: component.id,
+          sourceComponentId: component.sourceComponentId,
+          type: component.type,
+          position: { x: component.position.x, z: component.position.z },
+          widthMeters,
+          depthMeters,
+          lengthMeters,
+          footer: component.footer
+            ? {
+                id: component.footer.id,
+                widthMeters: component.footer.widthMeters,
+                lengthMeters: component.footer.lengthMeters,
+              }
+            : undefined,
+        };
+      }
+      return null;
+    },
+    [committedRenderModel.rcComponents, viewport.zoom],
+  );
+
+  const hitTestPlanColumn = useCallback(
+    (point: { x: number; z: number }): PlanColumnHit | null => {
+      const handleToleranceMeters = Math.max(0.08, 10 / Math.max(1, viewport.zoom));
+
+      const componentHit = hitTestPlanComponent(point);
+      if (componentHit?.type === 'column') {
+        return {
+          id: componentHit.id,
+          source: 'component',
+          componentId: componentHit.sourceComponentId,
+          position: componentHit.position,
+          widthMeters: componentHit.widthMeters,
+          depthMeters: componentHit.depthMeters,
+          footer: componentHit.footer,
+        };
+      }
+
+      for (const column of [...(frameSystem?.columns ?? [])].reverse()) {
+        if (!column.hostNodeId) continue;
+        const dx = point.x - column.position.x;
+        const dz = point.z - column.position.z;
+        const bodyHit =
+          Math.abs(dx) <= column.widthMeters / 2 + handleToleranceMeters &&
+          Math.abs(dz) <= column.depthMeters / 2 + handleToleranceMeters;
+        const centerHandleHit = Math.hypot(dx, dz) <= Math.max(handleToleranceMeters, 0.12);
+        if (bodyHit || centerHandleHit) {
+          const footing = isolatedFootings.find((item) => item.columnId === column.id);
+          return {
+            id: column.id,
+            source: 'frame',
+            nodeId: column.hostNodeId,
+            position: column.position,
+            widthMeters: column.widthMeters,
+            depthMeters: column.depthMeters,
+            footer: footing
+              ? {
+                  id: footing.id,
+                  widthMeters: footing.widthMeters,
+                  lengthMeters: footing.lengthMeters,
+                }
+              : undefined,
+          };
+        }
+      }
+      return null;
+    },
+    [frameSystem?.columns, hitTestPlanComponent, isolatedFootings, viewport.zoom],
+  );
+
+  const cancelColumnDrag = useCallback(() => {
+    const activeDrag = columnDragStateRef.current;
+    if (!activeDrag) return;
+    svgRef.current?.releasePointerCapture?.(activeDrag.pointerId);
+    setColumnDragState(null);
+  }, [setColumnDragState]);
 
   const updateSurfaceSize = useCallback(() => {
     const rect = svgRef.current?.getBoundingClientRect();
@@ -359,6 +591,9 @@ export default function DesignBuilderPlanCanvas({
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.code === 'Space') spaceHeldRef.current = true;
+      if (event.key === 'Escape' && columnDragStateRef.current) {
+        cancelColumnDrag();
+      }
     };
     const onKeyUp = (event: KeyboardEvent) => {
       if (event.code === 'Space') spaceHeldRef.current = false;
@@ -369,7 +604,7 @@ export default function DesignBuilderPlanCanvas({
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
     };
-  }, []);
+  }, [cancelColumnDrag]);
 
   useEffect(() => {
     const planSurface = svgRef.current;
@@ -396,6 +631,27 @@ export default function DesignBuilderPlanCanvas({
 
 
   const handlePointerMove = (event: PointerEvent<SVGSVGElement>) => {
+    const activeColumnDrag = columnDragStateRef.current;
+    if (activeColumnDrag && activeColumnDrag.pointerId === event.pointerId) {
+      const point = screenFromEvent(event);
+      if (!point) return;
+      const previewPosition = snapColumnDragPoint(point);
+      setCursorPoint(previewPosition);
+      const movedEnough =
+        activeColumnDrag.status === 'dragging-column' ||
+        Math.hypot(
+          event.clientX - activeColumnDrag.startPointer.clientX,
+          event.clientY - activeColumnDrag.startPointer.clientY,
+        ) >= COLUMN_DRAG_THRESHOLD_PX;
+      setColumnDragState({
+        ...activeColumnDrag,
+        status: movedEnough ? 'dragging-column' : 'candidate',
+        previewPosition,
+      });
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
     if (panDragRef.current) {
       const next = controller.panByPointerDelta(event.clientX - panDragRef.current.x, event.clientY - panDragRef.current.y);
       panDragRef.current = { x: event.clientX, y: event.clientY };
@@ -405,10 +661,15 @@ export default function DesignBuilderPlanCanvas({
     }
     const point = screenFromEvent(event);
     if (!point) return;
+    setCursorPoint(point);
     if (toolMode === 'select' || toolMode === 'move_opening') {
       updateHoveredOpening(point);
     } else {
       setHoveredOpeningId(null);
+    }
+    if (toolMode === 'place_component') {
+      onComponentPointer?.({ phase: 'preview', xMeters: point.x, zMeters: point.z });
+      return;
     }
     if (toolMode === 'draw_wall') {
       onInteraction({
@@ -438,6 +699,17 @@ export default function DesignBuilderPlanCanvas({
   };
 
   const handleContextMenu = (event: PointerEvent<SVGSVGElement>) => {
+    if (columnDragStateRef.current) {
+      event.preventDefault();
+      event.stopPropagation();
+      cancelColumnDrag();
+      return;
+    }
+    if (toolMode === 'place_component') {
+      event.preventDefault();
+      onInteraction({ kind: 'cancel', toolMode });
+      return;
+    }
     if (toolMode !== 'draw_wall') return;
     event.preventDefault();
     onInteraction({ kind: 'undo_last_segment', toolMode });
@@ -453,6 +725,13 @@ export default function DesignBuilderPlanCanvas({
     if (event.button !== 0) return;
     const point = screenFromEvent(event);
     if (!point) return;
+    setCursorPoint(point);
+    if (toolMode === 'place_component') {
+      componentPointerIdRef.current = event.pointerId;
+      event.currentTarget.setPointerCapture(event.pointerId);
+      onComponentPointer?.({ phase: 'preview', xMeters: point.x, zMeters: point.z });
+      return;
+    }
     if (toolMode === 'draw_wall') {
       onInteraction({
         kind: 'draw_point',
@@ -482,6 +761,83 @@ export default function DesignBuilderPlanCanvas({
       return;
     }
     if (toolMode === 'select' || toolMode === 'delete') {
+      const hitComponent = hitTestPlanComponent(point);
+      if (hitComponent) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (toolMode === 'delete') {
+          onInteraction({
+            kind: 'component_delete',
+            toolMode,
+            phase: 'commit',
+            componentId: hitComponent.sourceComponentId,
+            planX: point.x,
+            planZ: point.z,
+          });
+          return;
+        }
+        onInteraction({
+          kind: 'component_select',
+          toolMode,
+          phase: 'commit',
+          componentId: hitComponent.sourceComponentId,
+          componentType: hitComponent.type,
+          planX: point.x,
+          planZ: point.z,
+        });
+        if (hitComponent.type !== 'column') {
+          return;
+        }
+        event.currentTarget.setPointerCapture(event.pointerId);
+        setColumnDragState({
+          status: 'candidate',
+          pointerId: event.pointerId,
+          columnId: hitComponent.id,
+          source: 'component',
+          componentId: hitComponent.sourceComponentId,
+          originalPosition: hitComponent.position,
+          previewPosition: hitComponent.position,
+          widthMeters: hitComponent.widthMeters,
+          depthMeters: hitComponent.depthMeters,
+          footer: hitComponent.footer,
+          startPointer: { clientX: event.clientX, clientY: event.clientY },
+        });
+        return;
+      }
+      const hitColumn = toolMode === 'select' ? hitTestPlanColumn(point) : null;
+      if (hitColumn) {
+        event.preventDefault();
+        event.stopPropagation();
+        event.currentTarget.setPointerCapture(event.pointerId);
+        setColumnDragState({
+          status: 'candidate',
+          pointerId: event.pointerId,
+          columnId: hitColumn.id,
+          source: hitColumn.source,
+          nodeId: hitColumn.nodeId,
+          componentId: hitColumn.componentId,
+          originalPosition: hitColumn.position,
+          previewPosition: hitColumn.position,
+          widthMeters: hitColumn.widthMeters,
+          depthMeters: hitColumn.depthMeters,
+          footer: hitColumn.footer,
+          startPointer: { clientX: event.clientX, clientY: event.clientY },
+        });
+        if (hitColumn.source === 'frame' && hitColumn.nodeId) {
+          onInteraction({ kind: 'select_node', toolMode, nodeId: hitColumn.nodeId });
+        } else if (hitColumn.source === 'component') {
+          onInteraction({
+            kind: 'component_select',
+            toolMode,
+            phase: 'commit',
+            componentId: hitColumn.componentId ?? hitColumn.id,
+            componentType: 'column',
+            planX: point.x,
+            planZ: point.z,
+          });
+        }
+        return;
+      }
       const hitNode = layout.nodes.find((node) => Math.hypot(node.x - point.x, node.z - point.z) < 0.25);
       if (hitNode) {
         onInteraction({ kind: 'select_node', toolMode, nodeId: hitNode.id });
@@ -498,6 +854,37 @@ export default function DesignBuilderPlanCanvas({
   };
 
   const handlePointerUp = (event: PointerEvent<SVGSVGElement>) => {
+    const activeColumnDrag = columnDragStateRef.current;
+    if (activeColumnDrag && activeColumnDrag.pointerId === event.pointerId) {
+      const point = screenFromEvent(event);
+      const previewPosition = point ? snapColumnDragPoint(point) : activeColumnDrag.previewPosition;
+      setColumnDragState(null);
+      event.currentTarget.releasePointerCapture?.(event.pointerId);
+      event.preventDefault();
+      event.stopPropagation();
+      if (activeColumnDrag.status === 'dragging-column') {
+        if (activeColumnDrag.source === 'component' && activeColumnDrag.componentId) {
+          onInteraction({
+            kind: 'component_move',
+            toolMode,
+            phase: 'commit',
+            planX: previewPosition.x,
+            planZ: previewPosition.z,
+            componentId: activeColumnDrag.componentId,
+          });
+        } else if (activeColumnDrag.nodeId) {
+          onInteraction({
+            kind: 'move_node',
+            toolMode,
+            phase: 'commit',
+            planX: previewPosition.x,
+            planZ: previewPosition.z,
+            nodeId: activeColumnDrag.nodeId,
+          });
+        }
+      }
+      return;
+    }
     if (panDragRef.current) {
       panDragRef.current = null;
       event.currentTarget.releasePointerCapture?.(event.pointerId);
@@ -507,6 +894,17 @@ export default function DesignBuilderPlanCanvas({
       const point = screenFromEvent(event);
       if (!point) return;
       emitSegmentPick('commit', point);
+      return;
+    }
+    if (toolMode === 'place_component') {
+      const point = screenFromEvent(event);
+      if (componentPointerIdRef.current === event.pointerId) {
+        componentPointerIdRef.current = null;
+        event.currentTarget.releasePointerCapture?.(event.pointerId);
+      }
+      if (!point) return;
+      setCursorPoint(point);
+      onComponentPointer?.({ phase: 'commit', xMeters: point.x, zMeters: point.z });
       return;
     }
     if (toolMode === 'move_opening' && selectedOpeningId) {
@@ -526,6 +924,13 @@ export default function DesignBuilderPlanCanvas({
       planZ: point.z,
       nodeId: activeNodeId,
     });
+  };
+
+  const handlePointerCancel = (event: PointerEvent<SVGSVGElement>) => {
+    const activeColumnDrag = columnDragStateRef.current;
+    if (!activeColumnDrag || activeColumnDrag.pointerId !== event.pointerId) return;
+    setColumnDragState(null);
+    event.currentTarget.releasePointerCapture?.(event.pointerId);
   };
 
   const isMajorGridLine = (value: number, majorStep: number) =>
@@ -627,6 +1032,269 @@ export default function DesignBuilderPlanCanvas({
   const yAxisStart = planToSurfacePoint({ x: 0, z: visibleBounds.minZ });
   const yAxisEnd = planToSurfacePoint({ x: 0, z: visibleBounds.maxZ });
 
+  const renderPlanRcComponent = (component: DesignRenderRcComponent, preview = false) => {
+    const selected = !preview && selectedComponentId === component.sourceComponentId;
+    const center = planToSurfacePoint({ x: component.position.x, z: component.position.z });
+    const widthMeters = component.dimensions.width;
+    const depthMeters = component.dimensions.depth;
+    const lengthMeters = component.dimensions.length ?? widthMeters;
+    const widthPx = Math.max(6, widthMeters * viewport.zoom);
+    const depthPx = Math.max(6, depthMeters * viewport.zoom);
+    const lengthPx = Math.max(8, lengthMeters * viewport.zoom);
+    const common = {
+      pointerEvents: 'none' as const,
+      opacity: preview ? 0.72 : 1,
+      'data-component-id': component.id,
+      'data-component-type': component.type,
+      'data-component-system': component.system,
+    };
+    if (component.type === 'column') {
+      const footerWidthPx = Math.max(widthPx + 10, (component.footer?.widthMeters ?? widthMeters * 2) * viewport.zoom);
+      const footerLengthPx = Math.max(depthPx + 10, (component.footer?.lengthMeters ?? depthMeters * 2) * viewport.zoom);
+      return (
+        <g key={component.id} {...common}>
+          {component.footer ? (
+            <>
+              <rect
+                x={center.sx - footerWidthPx / 2}
+                y={center.sy - footerLengthPx / 2}
+                width={footerWidthPx}
+                height={footerLengthPx}
+                fill={preview ? '#38bdf822' : '#78716c55'}
+                stroke={preview || selected ? '#67e8f9' : '#57534e'}
+                strokeWidth={selected ? 2 : 1.2}
+                strokeDasharray="6 4"
+              />
+              <path
+                d={`M ${center.sx - footerWidthPx / 2} ${center.sy + footerLengthPx / 2} L ${center.sx + footerWidthPx / 2} ${center.sy - footerLengthPx / 2}`}
+                stroke={preview ? '#67e8f9' : '#2dd4bf'}
+                strokeWidth={0.8}
+                strokeOpacity={0.65}
+              />
+            </>
+          ) : null}
+          <rect
+            x={center.sx - widthPx / 2}
+            y={center.sy - depthPx / 2}
+            width={widthPx}
+            height={depthPx}
+            fill={preview ? '#67e8f966' : '#cbd5e1'}
+            stroke={preview || selected ? '#22d3ee' : '#475569'}
+            strokeWidth={preview || selected ? 2 : 1.6}
+            strokeDasharray={preview ? '4 3' : undefined}
+          />
+          <line x1={center.sx - widthPx * 0.8} y1={center.sy} x2={center.sx + widthPx * 0.8} y2={center.sy} stroke={preview ? '#38bdf8' : '#64748b'} strokeWidth={1} strokeOpacity={preview ? 0.8 : 0.7} />
+          <line x1={center.sx} y1={center.sy - depthPx * 0.8} x2={center.sx} y2={center.sy + depthPx * 0.8} stroke={preview ? '#38bdf8' : '#64748b'} strokeWidth={1} strokeOpacity={preview ? 0.8 : 0.7} />
+          {selected
+            ? [
+                [-1, -1],
+                [1, -1],
+                [1, 1],
+                [-1, 1],
+              ].map(([dx, dy]) => (
+                <rect
+                  key={`${component.id}-${dx}-${dy}`}
+                  x={center.sx + dx * (widthPx / 2) - 4}
+                  y={center.sy + dy * (depthPx / 2) - 4}
+                  width={8}
+                  height={8}
+                  fill="#22d3ee"
+                  stroke="#0f172a"
+                  strokeWidth={1}
+                />
+              ))
+            : null}
+        </g>
+      );
+    }
+    if (component.type === 'slab') {
+      return (
+        <rect
+          key={component.id}
+          x={center.sx - lengthPx / 2}
+          y={center.sy - widthPx / 2}
+          width={lengthPx}
+          height={widthPx}
+          fill={preview ? '#22d3ee22' : '#94a3b833'}
+          stroke={preview || selected ? '#67e8f9' : '#64748b'}
+          strokeWidth={preview || selected ? 2 : 1.5}
+          strokeDasharray={preview ? '5 4' : undefined}
+          {...common}
+        />
+      );
+    }
+    if (component.type === 'footer') {
+      return (
+        <rect
+          key={component.id}
+          x={center.sx - widthPx / 2}
+          y={center.sy - depthPx / 2}
+          width={widthPx}
+          height={depthPx}
+          fill={preview ? '#38bdf822' : '#78716c55'}
+          stroke={preview || selected ? '#67e8f9' : '#78716c'}
+          strokeWidth={preview || selected ? 2 : 1.5}
+          strokeDasharray="6 4"
+          {...common}
+        />
+      );
+    }
+    return (
+      <rect
+        key={component.id}
+        x={center.sx - widthPx / 2}
+        y={center.sy - depthPx / 2}
+        width={widthPx}
+        height={depthPx}
+        fill={preview ? '#67e8f966' : '#cbd5e1'}
+        stroke={preview || selected ? '#22d3ee' : '#475569'}
+        strokeWidth={preview || selected ? 2 : 1.5}
+        strokeDasharray={preview ? '4 3' : undefined}
+        {...common}
+      />
+    );
+  };
+
+  const helperAnchor = componentPreview?.viewPlacement.plan
+    ? planToSurfacePoint({
+        x: componentPreview.viewPlacement.plan.xMeters,
+        z: componentPreview.viewPlacement.plan.zMeters,
+      })
+    : null;
+
+  const renderColumnDragPreview = () => {
+    if (columnDragState?.status !== 'dragging-column') return null;
+    const columns = frameSystem?.columns ?? [];
+    const beams = frameSystem?.beams ?? [];
+    const draggedColumn = columns.find((column) => column.id === columnDragState.columnId);
+
+    const delta = {
+      x: columnDragState.previewPosition.x - columnDragState.originalPosition.x,
+      z: columnDragState.previewPosition.z - columnDragState.originalPosition.z,
+    };
+    const originalCenter = planToSurfacePoint(columnDragState.originalPosition);
+    const previewCenter = planToSurfacePoint(columnDragState.previewPosition);
+    const halfW = Math.max(4, (columnDragState.widthMeters * viewport.zoom) / 2);
+    const halfD = Math.max(4, (columnDragState.depthMeters * viewport.zoom) / 2);
+    const connectedBeams =
+      columnDragState.source === 'frame' && draggedColumn
+        ? beams.filter(
+            (beam) => beam.startColumnId === draggedColumn.id || beam.endColumnId === draggedColumn.id,
+          )
+        : [];
+    const moveEndpoint = (point: { x: number; y: number; z: number }, active: boolean) => ({
+      x: active ? point.x + delta.x : point.x,
+      z: active ? point.z + delta.z : point.z,
+    });
+
+    return (
+      <g pointerEvents="none" data-column-drag-preview="true" data-column-drag-column-id={columnDragState.columnId}>
+        {connectedBeams.map((beam: StructuralBeam) => {
+          const start = planToSurfacePoint(moveEndpoint(beam.startPoint, beam.startColumnId === columnDragState.columnId));
+          const end = planToSurfacePoint(moveEndpoint(beam.endPoint, beam.endColumnId === columnDragState.columnId));
+          return (
+            <line
+              key={`drag-beam-${beam.id}`}
+              x1={start.sx}
+              y1={start.sy}
+              x2={end.sx}
+              y2={end.sy}
+              stroke="#67e8f9"
+              strokeOpacity={0.82}
+              strokeWidth={Math.max(4, beam.widthMeters * viewport.zoom)}
+              strokeDasharray="9 5"
+              strokeLinecap="butt"
+              data-column-drag-beam-preview={beam.id}
+            />
+          );
+        })}
+        {columnDragState.footer ? (
+          (() => {
+            const center = planToSurfacePoint({
+              x: columnDragState.originalPosition.x + delta.x,
+              z: columnDragState.originalPosition.z + delta.z,
+            });
+            const halfFootingW = Math.max(8, (columnDragState.footer.widthMeters * viewport.zoom) / 2);
+            const halfFootingL = Math.max(8, (columnDragState.footer.lengthMeters * viewport.zoom) / 2);
+            return (
+              <g data-column-drag-footer-preview={columnDragState.footer.id}>
+                <rect
+                  x={center.sx - halfFootingW}
+                  y={center.sy - halfFootingL}
+                  width={halfFootingW * 2}
+                  height={halfFootingL * 2}
+                  fill="#22d3ee22"
+                  stroke="#67e8f9"
+                  strokeWidth={1.6}
+                  strokeDasharray="7 4"
+                />
+                <path
+                  d={`M ${center.sx - halfFootingW} ${center.sy + halfFootingL} L ${center.sx + halfFootingW} ${center.sy - halfFootingL}`}
+                  stroke="#67e8f9"
+                  strokeOpacity={0.58}
+                  strokeWidth={1}
+                />
+              </g>
+            );
+          })()
+        ) : null}
+        <rect
+          x={originalCenter.sx - halfW}
+          y={originalCenter.sy - halfD}
+          width={halfW * 2}
+          height={halfD * 2}
+          fill="none"
+          stroke="#94a3b8"
+          strokeOpacity={0.68}
+          strokeWidth={1.4}
+          strokeDasharray="3 4"
+          data-column-original-outline="true"
+        />
+        <line
+          x1={originalCenter.sx}
+          y1={originalCenter.sy}
+          x2={previewCenter.sx}
+          y2={previewCenter.sy}
+          stroke="#22d3ee"
+          strokeOpacity={0.7}
+          strokeWidth={1.5}
+          strokeDasharray="5 5"
+        />
+        <rect
+          x={previewCenter.sx - halfW}
+          y={previewCenter.sy - halfD}
+          width={halfW * 2}
+          height={halfD * 2}
+          fill="#67e8f966"
+          stroke="#22d3ee"
+          strokeWidth={2.4}
+        />
+        <line x1={previewCenter.sx - halfW * 1.45} y1={previewCenter.sy} x2={previewCenter.sx + halfW * 1.45} y2={previewCenter.sy} stroke="#e0f2fe" strokeWidth={1.2} />
+        <line x1={previewCenter.sx} y1={previewCenter.sy - halfD * 1.45} x2={previewCenter.sx} y2={previewCenter.sy + halfD * 1.45} stroke="#e0f2fe" strokeWidth={1.2} />
+        <rect
+          x={previewCenter.sx + 14}
+          y={previewCenter.sy + 14}
+          width={178}
+          height={66}
+          rx={6}
+          fill="#020617"
+          fillOpacity={0.88}
+          stroke="#155e75"
+          strokeOpacity={0.9}
+        />
+        <text x={previewCenter.sx + 24} y={previewCenter.sy + 34} fill="#67e8f9" fontSize={11} fontWeight={800} paintOrder="stroke" stroke="#020617" strokeWidth={3}>
+          {`Column X ${columnDragState.previewPosition.x.toFixed(2)} m / Y ${columnDragState.previewPosition.z.toFixed(2)} m`}
+        </text>
+        <text x={previewCenter.sx + 24} y={previewCenter.sy + 52} fill="#cbd5e1" fontSize={11} fontWeight={650} paintOrder="stroke" stroke="#020617" strokeWidth={3}>
+          {`Delta ${delta.x >= 0 ? '+' : ''}${delta.x.toFixed(2)} m / ${delta.z >= 0 ? '+' : ''}${delta.z.toFixed(2)} m`}
+        </text>
+        <text x={previewCenter.sx + 24} y={previewCenter.sy + 70} fill="#cbd5e1" fontSize={11} fontWeight={650} paintOrder="stroke" stroke="#020617" strokeWidth={3}>
+          {`Connected beams: ${connectedBeams.length}`}
+        </text>
+      </g>
+    );
+  };
+
   return (
     <div className="relative h-full min-h-[420px] overflow-hidden rounded-2xl border border-slate-200 bg-slate-950 text-slate-100 dark:border-slate-700">
       <div
@@ -663,6 +1331,7 @@ export default function DesignBuilderPlanCanvas({
         onPointerMove={handlePointerMove}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerCancel}
         onContextMenu={handleContextMenu}
         aria-label="Design Builder wall layout plan view"
       >
@@ -796,12 +1465,6 @@ export default function DesignBuilderPlanCanvas({
             </g>
           );
         })}
-        {openingRenderItems.map((item) => (
-          <PlanOpeningSymbol key={item.key} item={item} project={planToSurfacePoint} zoom={viewport.zoom} />
-        ))}
-        {previewRenderItem ? (
-          <PlanOpeningSymbol item={previewRenderItem} project={planToSurfacePoint} zoom={viewport.zoom} />
-        ) : null}
         {orthogonalGuideRays.map((guide, index) => {
           const start = planToSurfacePoint(guide.start);
           const end = planToSurfacePoint(guide.end);
@@ -1066,7 +1729,7 @@ export default function DesignBuilderPlanCanvas({
                 x2={end.sx}
                 y2={end.sy}
                 stroke={stroke}
-                strokeWidth={Math.max(4, beam.widthMeters * viewport.scale)}
+                strokeWidth={Math.max(4, beam.widthMeters * viewport.zoom)}
                 strokeLinecap="butt"
                 pointerEvents="none"
               />
@@ -1074,8 +1737,8 @@ export default function DesignBuilderPlanCanvas({
           })}
         {isolatedFootings.map((footing) => {
           const center = planToSurfacePoint(footing.position);
-          const halfW = (footing.widthMeters * viewport.scale) / 2;
-          const halfL = (footing.lengthMeters * viewport.scale) / 2;
+          const halfW = (footing.widthMeters * viewport.zoom) / 2;
+          const halfL = (footing.lengthMeters * viewport.zoom) / 2;
           return (
             <rect
               key={footing.id}
@@ -1092,22 +1755,83 @@ export default function DesignBuilderPlanCanvas({
         })}
         {frameSystem?.columns.map((column) => {
           const center = planToSurfacePoint(column.position);
-          const halfW = (column.widthMeters * viewport.scale) / 2;
-          const halfD = (column.depthMeters * viewport.scale) / 2;
+          const halfW = (column.widthMeters * viewport.zoom) / 2;
+          const halfD = (column.depthMeters * viewport.zoom) / 2;
+          const selected = selectedNodeId != null && column.hostNodeId === selectedNodeId;
           return (
-            <rect
-              key={column.id}
-              x={center.sx - halfW}
-              y={center.sy - halfD}
-              width={halfW * 2}
-              height={halfD * 2}
-              fill="#9ca3af"
-              stroke="#334155"
-              strokeWidth={1.5}
-              pointerEvents="none"
-            />
+            <g key={column.id} pointerEvents="none">
+              <rect
+                x={center.sx - halfW}
+                y={center.sy - halfD}
+                width={halfW * 2}
+                height={halfD * 2}
+                fill={selected ? '#dbeafe' : '#9ca3af'}
+                stroke={selected ? '#22d3ee' : '#334155'}
+                strokeWidth={selected ? 2.2 : 1.5}
+              />
+              <line x1={center.sx - halfW * 1.4} y1={center.sy} x2={center.sx + halfW * 1.4} y2={center.sy} stroke="#38bdf8" strokeWidth={1} strokeOpacity={selected ? 0.95 : 0.55} />
+              <line x1={center.sx} y1={center.sy - halfD * 1.4} x2={center.sx} y2={center.sy + halfD * 1.4} stroke="#38bdf8" strokeWidth={1} strokeOpacity={selected ? 0.95 : 0.55} />
+              {selected
+                ? [
+                    [-1, -1],
+                    [1, -1],
+                    [1, 1],
+                    [-1, 1],
+                  ].map(([dx, dy]) => (
+                    <rect
+                      key={`${dx}-${dy}`}
+                      x={center.sx + dx * halfW - 4}
+                      y={center.sy + dy * halfD - 4}
+                      width={8}
+                      height={8}
+                      fill="#22d3ee"
+                      stroke="#0f172a"
+                      strokeWidth={1}
+                    />
+                  ))
+                : null}
+            </g>
           );
         })}
+        {committedRenderModel.rcComponents.map((component) => renderPlanRcComponent(component))}
+        {openingRenderItems.map((item) => (
+          <PlanOpeningSymbol key={item.key} item={item} project={planToSurfacePoint} zoom={viewport.zoom} />
+        ))}
+        {previewRenderModel.rcComponents.map((component) => renderPlanRcComponent(component, true))}
+        {previewRenderItem ? (
+          <PlanOpeningSymbol item={previewRenderItem} project={planToSurfacePoint} zoom={viewport.zoom} />
+        ) : null}
+        {renderColumnDragPreview()}
+        {helperAnchor && helperMeasurements.length > 0 ? (
+          <g pointerEvents="none">
+            <rect
+              x={helperAnchor.sx + 14}
+              y={helperAnchor.sy + 12}
+              width={190}
+              height={Math.max(34, helperMeasurements.length * 18 + 12)}
+              rx={8}
+              fill="#020617"
+              fillOpacity={0.86}
+              stroke="#155e75"
+              strokeOpacity={0.85}
+            />
+            {helperMeasurements.map((measurement, index) => (
+              <text
+                key={measurement.id}
+                x={helperAnchor.sx + 24}
+                y={helperAnchor.sy + 34 + index * 18}
+                fill={index === 0 ? '#67e8f9' : '#cbd5e1'}
+                fontSize={11}
+                fontWeight={index === 0 ? 800 : 600}
+                paintOrder="stroke"
+                stroke="#020617"
+                strokeWidth={3}
+              >
+                {`${measurement.label}: ${measurement.value}`}
+              </text>
+            ))}
+          </g>
+        ) : null}
         {layout.nodes.map((node) => {
           const displayPoint = planDisplayNodeById.get(node.id) ?? node;
           const point = planToSurfacePoint(displayPoint);
@@ -1138,6 +1862,13 @@ export default function DesignBuilderPlanCanvas({
             <div className="text-[10px] font-semibold text-slate-400">North up</div>
           </div>
         </div>
+      </div>
+      <div className="pointer-events-none absolute bottom-3 left-3 rounded-xl border border-slate-700 bg-slate-900/90 px-3 py-2 text-[11px] font-bold text-slate-100 shadow-sm" aria-label="Plan coordinate widget">
+        <div className="text-cyan-200">Plan Coordinates</div>
+        <div className="font-mono text-slate-200">
+          X {cursorPoint ? cursorPoint.x.toFixed(2) : '0.00'} m / Y {cursorPoint ? cursorPoint.z.toFixed(2) : '0.00'} m
+        </div>
+        <div className="text-[10px] font-semibold text-slate-400">North / East</div>
       </div>
     </div>
   );

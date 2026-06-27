@@ -659,7 +659,7 @@ export function generateDesignGeometry(input: DesignGeometryInput): DesignGeomet
       blockCount: wallCmuLayout.totalBlocks,
       bondPattern: wall.bondPattern ?? 'running_bond',
       wallCmuLayout,
-      buildingSystemMode: input.buildingSystemMode ?? 'cmu_bearing_wall',
+      buildingSystemMode: input.buildingSystemMode ?? 'reinforced_concrete_frame_with_cmu_infill',
     };
   }
 

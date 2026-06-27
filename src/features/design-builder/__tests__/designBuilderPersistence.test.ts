@@ -225,9 +225,11 @@ describe('designBuilderPersistence', () => {
       buildingSystemMode: preset.buildingSystemMode,
     };
     const migrated = migratePersistedDesignBuilderState(raw);
-    expect(migrated?.schemaVersion).toBe(1);
+    expect(migrated?.schemaVersion).toBe(2);
     expect(migrated?.rcFrameFoundation.isolatedFootings.widthMeters).toBe(1.1);
     expect(migrated?.openings.find((opening) => opening.type === 'window')?.sillHeightMeters).toBeCloseTo(1.2, 6);
+    expect(migrated?.placedComponents).toEqual([]);
+    expect(migrated?.displayPreferences?.elevationView?.face).toBe('north');
   });
 
   it('writes persisted state into design model metadata', () => {
@@ -245,10 +247,15 @@ describe('designBuilderPersistence', () => {
       createdAt: '',
       updatedAt: '',
     };
-    const metadata = designModelMetadataWithPersistedState(model, preset, { activeView: '3d' });
+    const metadata = designModelMetadataWithPersistedState(model, preset, {
+      activeView: 'elevation',
+      elevationView: { face: 'east' },
+    });
     const nested = metadata.designBuilderState as ReturnType<typeof serializePersistedDesignBuilderState>;
-    expect(nested.schemaVersion).toBe(1);
-    expect(nested.displayPreferences?.activeView).toBe('3d');
+    expect(nested.schemaVersion).toBe(2);
+    expect(nested.displayPreferences?.activeView).toBe('elevation');
+    expect(nested.displayPreferences?.elevationView?.face).toBe('east');
+    expect(nested.placedComponents).toEqual([]);
     expect(nested.rcFrameFoundation).toBeDefined();
     expect(nested.roofSystem).toBeDefined();
   });

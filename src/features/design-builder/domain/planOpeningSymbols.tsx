@@ -124,8 +124,8 @@ export function PlanOpeningSymbol({
   const actualA = project(item.geometry.actualStart);
   const actualB = project(item.geometry.actualEnd);
   const center = project(item.geometry.center);
-  const strokeWidth = (item.selected ? 3.5 : item.hovered ? 3 : 2.5) * scale;
-  const actualStrokeWidth = (item.selected ? 3 : 2.5) * scale;
+  const strokeWidth = (item.placing ? 4 : item.selected ? 3.5 : item.hovered ? 3 : 2.5) * scale;
+  const actualStrokeWidth = (item.placing ? 3.5 : item.selected ? 3 : 2.5) * scale;
   const hingeMarkerRadius = Math.max(2, 2.5 * scale);
 
   const door = item.doorSymbol;
@@ -156,6 +156,7 @@ export function PlanOpeningSymbol({
       data-plan-opening={item.openingType}
       data-plan-opening-key={item.key}
       data-plan-opening-state={item.colorState}
+      data-canvas-layer={item.placing ? 'active-opening-preview' : 'placed-openings'}
       data-door-swing-direction={door?.swingDirection}
       data-door-swing-type={door?.swingType}
       pointerEvents="none"

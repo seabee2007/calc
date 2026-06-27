@@ -63,6 +63,7 @@ import type {
   RoofPlane,
   RoofSystemSettings,
   RoofVec3,
+  PlacedDesignComponent,
   WallOpeningParameters,
 } from '../types';
 import {
@@ -107,6 +108,10 @@ import {
   createVerticalCladdingGeometry,
   resolveRoofRidgeDirection,
 } from '../rendering/materials/designRenderingUv';
+import {
+  buildDesignRenderModel,
+  type DesignRenderModel,
+} from '../domain/designRenderModel';
 
 const CLICK_DRAG_THRESHOLD_PX = 5;
 
@@ -140,6 +145,8 @@ interface DesignBuilderViewerProps {
   selectedOpeningId?: string | null;
   toolMode?: DesignBuilderToolMode;
   placementPreview?: DesignBuilderPlacementPreview | null;
+  placedComponents?: readonly PlacedDesignComponent[];
+  designRenderModel?: DesignRenderModel;
   onSelectObjectType: (objectType: DesignObjectType) => void;
   onInteraction?: (event: DesignBuilderInteractionEvent) => void;
   fitContainer?: boolean;
@@ -459,6 +466,8 @@ export default function DesignBuilderViewer({
   selectedOpeningId = null,
   toolMode = 'select',
   placementPreview = null,
+  placedComponents = [],
+  designRenderModel,
   onSelectObjectType,
   onInteraction,
   fitContainer = false,
@@ -507,6 +516,8 @@ export default function DesignBuilderViewer({
     truss,
     geometryResult,
     layoutBounds,
+    placedComponents,
+    designRenderModel,
     selectedObjectType,
     showOpeningLayout,
     showGroutCells,
@@ -527,6 +538,8 @@ export default function DesignBuilderViewer({
     truss,
     geometryResult,
     layoutBounds,
+    placedComponents,
+    designRenderModel,
     selectedObjectType,
     showOpeningLayout,
     showGroutCells,
@@ -911,6 +924,8 @@ export default function DesignBuilderViewer({
         roof: currentRoof,
         geometryResult: currentGeometry,
         layoutBounds: currentLayoutBounds,
+        placedComponents: currentPlacedComponents,
+        designRenderModel: currentDesignRenderModel,
         selectedObjectType: currentSelectedObjectType,
         showOpeningLayout: currentShowOpeningLayout,
         showGroutCells: currentShowGroutCells,
@@ -956,7 +971,171 @@ export default function DesignBuilderViewer({
           ? 2
           : currentSlab.slabThicknessMeters + currentWall.heightMeters + (currentRoof.widthMeters / 2 + currentRoof.overhangMeters) * currentRoof.pitchRisePerRun,
       };
+
+      function addSupplementalPlacedComponents() {
+        const supplementalRenderModel =
+          currentDesignRenderModel ?? buildDesignRenderModel({
+            placedComponents: currentPlacedComponents,
+            layoutBounds: currentLayoutBounds,
+          });
+        if (supplementalRenderModel.rcComponents.length === 0) return;
+        const structuralMaterial = usePreviewMaterials
+          ? resolveCastConcreteMaterial(
+              { visualStyle: currentVisualStyle, selected: frameSelected, role: 'structural' },
+              trackMat,
+            )
+          : makeMaterial(0xcbd5e1, frameSelected, {
+              roughness: 0.82,
+            });
+        const footingMaterial = usePreviewMaterials
+          ? resolveCastConcreteMaterial(
+              { visualStyle: currentVisualStyle, selected: frameSelected, role: 'structural' },
+              trackMat,
+            )
+          : makeMaterial(0x78716c, frameSelected, {
+              roughness: 0.9,
+            });
+        const beamMaterial = usePreviewMaterials
+          ? resolveCastConcreteMaterial(
+              { visualStyle: currentVisualStyle, selected: frameSelected, role: 'beam' },
+              trackMat,
+            )
+          : makeMaterial(0x94a3b8, frameSelected, {
+              roughness: 0.82,
+            });
+        const supplementalPlaster = currentGeometry?.infillSystem?.plaster;
+        const useSupplementalPlasterFinish =
+          currentFoundationViewMode !== 'structural_frame_only' && Boolean(supplementalPlaster?.enabled);
+        const supplementalPlasterFinish = supplementalPlaster?.finish ?? 'textured';
+        const supplementalPlinthTopElevationMeters =
+          currentGeometry?.frameSystem?.beams.find((beam) => beam.kind === 'plinth_beam')?.topElevationMeters ??
+          TOP_OF_PLINTH_BEAM_Y;
+        const resolveSupplementalPlasterMaterial = (selected: boolean) =>
+          usePreviewMaterials
+            ? resolvePlasterFinishMaterial(
+                {
+                  visualStyle: currentVisualStyle,
+                  selected,
+                  plasterFinish: supplementalPlasterFinish,
+                },
+                trackMat,
+              )
+            : makeMaterial(supplementalPlasterFinish === 'smooth' ? 0xded8cf : 0xd8d1c5, selected, {
+                side: THREE.DoubleSide,
+              });
+
+        supplementalRenderModel.rcComponents.forEach((component) => {
+          const position = { x: component.position.x, z: component.position.z };
+          if (component.type === 'column') {
+            const width = Math.max(0.02, component.dimensions.width);
+            const depth = Math.max(0.02, component.dimensions.depth);
+            const base = component.elevations.base;
+            const top = Math.max(base + 0.02, component.elevations.top);
+            if (component.footer) {
+              const footerWidth = Math.max(width, component.footer.widthMeters);
+              const footerLength = Math.max(depth, component.footer.lengthMeters);
+              const footerBottom = component.footer.bottomElevationMeters;
+              const footerTop = component.footer.topElevationMeters;
+              const footerMesh = new THREE.Mesh(
+                trackGeometry(new THREE.BoxGeometry(footerWidth, Math.max(0.02, footerTop - footerBottom), footerLength)),
+                footingMaterial,
+              );
+              footerMesh.position.set(
+                position.x,
+                currentSlab.slabThicknessMeters + (footerTop + footerBottom) / 2,
+                position.z,
+              );
+              addSelectable(footerMesh, 'structural_frame_system', undefined, 55);
+            }
+            if (useSupplementalPlasterFinish) {
+              const concreteTop = Math.min(top, supplementalPlinthTopElevationMeters);
+              const concreteHeight = Math.max(0, concreteTop - base);
+              if (concreteHeight > FOUNDATION_CONTACT_EPSILON_METERS) {
+                const concreteMesh = new THREE.Mesh(
+                  trackGeometry(new THREE.BoxGeometry(width, concreteHeight, depth)),
+                  structuralMaterial,
+                );
+                concreteMesh.position.set(
+                  position.x,
+                  currentSlab.slabThicknessMeters + base + concreteHeight / 2,
+                  position.z,
+                );
+                addSelectable(concreteMesh, 'structural_frame_system', undefined, 60);
+              }
+              const plasterBase = Math.max(base, supplementalPlinthTopElevationMeters);
+              const plasterHeight = Math.max(0, top - plasterBase);
+              if (plasterHeight > FOUNDATION_CONTACT_EPSILON_METERS) {
+                const plasterMesh = new THREE.Mesh(
+                  trackGeometry(new THREE.BoxGeometry(width, plasterHeight, depth)),
+                  resolveSupplementalPlasterMaterial(frameSelected),
+                );
+                plasterMesh.position.set(
+                  position.x,
+                  currentSlab.slabThicknessMeters + plasterBase + plasterHeight / 2,
+                  position.z,
+                );
+                addSelectable(plasterMesh, 'structural_frame_system', undefined, 60);
+              }
+              return;
+            }
+            const height = Math.max(0.02, top - base);
+            const mesh = new THREE.Mesh(
+              trackGeometry(new THREE.BoxGeometry(width, height, depth)),
+              structuralMaterial,
+            );
+            mesh.position.set(
+              position.x,
+              currentSlab.slabThicknessMeters + base + height / 2,
+              position.z,
+            );
+            addSelectable(mesh, 'structural_frame_system', undefined, 60);
+            return;
+          }
+          if (component.type === 'footer') {
+            const width = Math.max(0.02, component.dimensions.width);
+            const length = Math.max(0.02, component.dimensions.length ?? component.dimensions.depth);
+            const bottom = component.elevations.base;
+            const top = component.elevations.top;
+            const mesh = new THREE.Mesh(
+              trackGeometry(new THREE.BoxGeometry(width, Math.max(0.02, top - bottom), length)),
+              footingMaterial,
+            );
+            mesh.position.set(position.x, currentSlab.slabThicknessMeters + (top + bottom) / 2, position.z);
+            addSelectable(mesh, 'structural_frame_system', undefined, 55);
+            return;
+          }
+          if (component.type === 'slab') {
+            const width = Math.max(0.02, component.dimensions.width);
+            const length = Math.max(0.02, component.dimensions.length ?? 2);
+            const thickness = Math.max(0.02, component.dimensions.height);
+            const top = component.elevations.top;
+            const mesh = new THREE.Mesh(
+              trackGeometry(new THREE.BoxGeometry(length, thickness, width)),
+              structuralMaterial,
+            );
+            mesh.position.set(position.x, currentSlab.slabThicknessMeters + top - thickness / 2, position.z);
+            addSelectable(mesh, 'structural_frame_system', undefined, 50);
+            return;
+          }
+          if (component.type === 'tie_beam' || component.type === 'plinth_beam' || component.type === 'roof_beam') {
+            const length = Math.max(0.02, component.dimensions.length ?? 1.2);
+            const width = Math.max(0.02, component.dimensions.width);
+            const depth = Math.max(0.02, component.dimensions.depth);
+            const elevation = component.elevations.base;
+            const rotation = component.sourceComponent.viewPlacement.plan?.rotationRadians ?? 0;
+            const mesh = new THREE.Mesh(
+              trackGeometry(new THREE.BoxGeometry(length, depth, width)),
+              beamMaterial,
+            );
+            mesh.position.set(position.x, currentSlab.slabThicknessMeters + elevation + depth / 2, position.z);
+            mesh.rotation.y = -rotation;
+            addSelectable(mesh, 'structural_frame_system', undefined, 55);
+          }
+        });
+      }
+
       if (blankGeometryActive) {
+        addSupplementalPlacedComponents();
         clearGhost();
         return;
       }
@@ -1285,18 +1464,21 @@ export default function DesignBuilderViewer({
               if (tileWidthMeters <= 0.001 || tileDepthMeters <= 0.001) {
                 return;
               }
-              const tileMesh = new THREE.Mesh(
-                trackGeometry(
-                  new THREE.BoxGeometry(
-                    tileWidthMeters,
-                    tileSurfaceThicknessMeters,
-                    tileDepthMeters,
-                  ),
-                ),
-                tileMaterial,
-              );
-              tileMesh.position.set(tileCenter.x, tileSurfaceY, tileCenter.z);
-              tileMesh.rotation.y = placement.rotationY;
+              const tileGeometry =
+                placement.renderPolygon && placement.renderPolygon.length >= 3
+                  ? createFootprintSlabGeometry(placement.renderPolygon, tileSurfaceThicknessMeters)
+                  : new THREE.BoxGeometry(
+                      tileWidthMeters,
+                      tileSurfaceThicknessMeters,
+                      tileDepthMeters,
+                    );
+              const tileMesh = new THREE.Mesh(trackGeometry(tileGeometry), tileMaterial);
+              if (placement.renderPolygon && placement.renderPolygon.length >= 3) {
+                tileMesh.position.y = tileSurfaceTopY;
+              } else {
+                tileMesh.position.set(tileCenter.x, tileSurfaceY, tileCenter.z);
+                tileMesh.rotation.y = placement.rotationY;
+              }
               tileMesh.renderOrder = 3;
               root.add(tileMesh);
             });
@@ -2575,6 +2757,7 @@ export default function DesignBuilderViewer({
           });
       }
 
+      addSupplementalPlacedComponents();
       refreshSiteGroundMaterial();
       updateGhost();
     }
@@ -2835,7 +3018,7 @@ export default function DesignBuilderViewer({
 
   useEffect(() => {
     if (modelLoaded) rebuildModelRef.current?.();
-  }, [geometryResult, layoutBounds, materialRevision, modelLoaded, roof, roofDisplayMode, roofLayerVisibility, roofSystem, selectedObjectType, selectedOpeningId, showClosureWarnings, showRoofReferencePerimeters, showRoofFramingGuides, foundationViewMode, showGroutCells, showOpeningLayout, slab, truss, wall, visualStyle]);
+  }, [designRenderModel, geometryResult, layoutBounds, materialRevision, modelLoaded, placedComponents, roof, roofDisplayMode, roofLayerVisibility, roofSystem, selectedObjectType, selectedOpeningId, showClosureWarnings, showRoofReferencePerimeters, showRoofFramingGuides, foundationViewMode, showGroutCells, showOpeningLayout, slab, truss, wall, visualStyle]);
 
   useEffect(() => {
     if (visualStyle === 'material_preview') {

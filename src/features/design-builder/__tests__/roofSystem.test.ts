@@ -16,6 +16,7 @@ import {
 } from '../domain/roofGableSolver';
 import { minimumRakedCapDepthMeters, totalRakedCapVolumeCubicMeters } from '../domain/rakedCapSolver';
 import { serializePersistedDesignBuilderState, presetFromStoredDesign } from '../domain/designBuilderPersistence';
+import { syncPresetFromLayout } from '../domain/layoutWallAdapter';
 import { createOutsideFaceRectangleLayout } from '../domain/wallLayoutRules';
 import { normalizeRcFrameFoundationSettings } from '../domain/rcFrameFoundationMigration';
 import { buildDesignGeometryInputFromLayout, generateDesignGeometry, getSegmentFramesForWallLayout } from '../geometry/designGeometry';
@@ -421,6 +422,139 @@ describe('Roof system — hip, gable, raked cap', () => {
     expect(hip.roofTopPlanes).toHaveLength(4);
     expect(hip.claddingRidgeStart?.x).toBeCloseTo(-6, 6);
     expect(hip.claddingRidgeEnd?.x).toBeCloseTo(6, 6);
+  });
+
+  it('generates steel trusses across the full length of buildings longer than 10m', () => {
+    const layout = createOutsideFaceRectangleLayout({
+      lengthMeters: 16,
+      widthMeters: 5,
+      wallHeightMeters: 2.8,
+      wallThicknessMeters: 0.2,
+    });
+    const roof = frameInfillGeometry(gableRoofSystem(), layout).resolvedRoofSystem!;
+
+    expect(roof.supported).toBe(true);
+    expect(roof.structuralRidgeLengthMeters).toBeGreaterThan(15);
+    expect(roof.trussPlacements.length).toBeGreaterThan(6);
+    expect(roof.trussStations.at(-1)).toBeGreaterThan(15);
+    expect(roof.trussPlacements.at(-1)?.stationMeters).toBeCloseTo(roof.trussStations.at(-1)!, 6);
+  });
+
+  it('reconciles existing auto-frame columns to resized wall nodes before resolving roof trusses', () => {
+    const originalLayout = createOutsideFaceRectangleLayout({
+      lengthMeters: 10,
+      widthMeters: 5,
+      wallHeightMeters: 2.8,
+      wallThicknessMeters: 0.2,
+    });
+    const basePreset = syncPresetFromLayout(
+      { ...createFiveBySixCmuBuildingPreset(), wallLayout: originalLayout },
+      originalLayout,
+    );
+    const framedPreset = applyAutoFrameLayout(basePreset);
+    const resizedLayout = createOutsideFaceRectangleLayout({
+      lengthMeters: 16,
+      widthMeters: 5,
+      wallHeightMeters: 2.8,
+      wallThicknessMeters: 0.2,
+    });
+    const resizedPreset = syncPresetFromLayout(
+      { ...framedPreset, wallLayout: resizedLayout },
+      resizedLayout,
+    );
+
+    const geometry = generateDesignGeometry(
+      buildDesignGeometryInputFromLayout({
+        wallLayout: resizedPreset.wallLayout,
+        cmuSettings: resizedPreset.wall,
+        slabSettings: resizedPreset.slab,
+        roofSettings: resizedPreset.roof,
+        trussSettings: resizedPreset.truss,
+        buildingSystemMode: 'reinforced_concrete_frame_with_cmu_infill',
+        frameSystem: resizedPreset.frameSystem,
+        foundationSettings: resizedPreset.foundationSettings,
+        infillSystem: resizedPreset.infillSystem,
+        gableEndSystem: resizedPreset.gableEndSystem,
+        roofSystem: gableRoofSystem(),
+      }),
+    );
+    const roof = geometry.resolvedRoofSystem!;
+
+    expect(roof.supported).toBe(true);
+    expect(roof.roofBearingSource).toBe('roof_beam_outer_faces');
+    expect(roof.structuralRidgeLengthMeters).toBeGreaterThan(15);
+    expect(roof.trussStations.at(-1)).toBeGreaterThan(15);
+  });
+
+  it('keeps gable CMU closed after resizing a framed building beyond 10m', () => {
+    const originalLayout = createOutsideFaceRectangleLayout({
+      lengthMeters: 10,
+      widthMeters: 5,
+      wallHeightMeters: 2.8,
+      wallThicknessMeters: 0.2,
+    });
+    const basePreset = syncPresetFromLayout(
+      { ...createFiveBySixCmuBuildingPreset(), wallLayout: originalLayout },
+      originalLayout,
+    );
+    const framedPreset = applyAutoFrameLayout(basePreset);
+    const resizedLayout = createOutsideFaceRectangleLayout({
+      lengthMeters: 16,
+      widthMeters: 5,
+      wallHeightMeters: 2.8,
+      wallThicknessMeters: 0.2,
+    });
+    const resizedPreset = syncPresetFromLayout(
+      { ...framedPreset, wallLayout: resizedLayout },
+      resizedLayout,
+    );
+
+    const geometry = generateDesignGeometry(
+      buildDesignGeometryInputFromLayout({
+        wallLayout: resizedPreset.wallLayout,
+        cmuSettings: resizedPreset.wall,
+        slabSettings: resizedPreset.slab,
+        roofSettings: resizedPreset.roof,
+        trussSettings: resizedPreset.truss,
+        buildingSystemMode: 'reinforced_concrete_frame_with_cmu_infill',
+        frameSystem: resizedPreset.frameSystem,
+        foundationSettings: resizedPreset.foundationSettings,
+        infillSystem: resizedPreset.infillSystem,
+        gableEndSystem: resizedPreset.gableEndSystem,
+        roofSystem: gableRoofSystem(),
+      }),
+    );
+
+    const roof = geometry.resolvedRoofSystem!;
+    const gableBlocks = geometry.blockInstances.filter((block) => block.source === 'gable_end_solver');
+    const firstGableBottom = Math.min(
+      ...gableBlocks.map((block) => {
+        const height = block.physicalHeightMeters ?? block.heightMeters ?? 0;
+        return block.y - height / 2;
+      }),
+    );
+    const firstGablePanel = geometry.infillSystem?.panels.find(
+      (panel) =>
+        panel.hostSegmentId === roof.gableEndSegmentIds[0] &&
+        panel.infillZone === 'above_grade',
+    );
+    const firstRoofBeam = geometry.frameSystem?.beams.find(
+      (beam) =>
+        beam.kind === 'roof_beam' &&
+        beam.hostSegmentId === roof.gableEndSegmentIds[0],
+    );
+
+    expect(roof.supported).toBe(true);
+    expect(roof.roofBearingSource).toBe('roof_beam_outer_faces');
+    expect(roof.trussStations.at(-1)).toBeGreaterThan(15);
+    expect(roof.gableEndSegmentIds).toHaveLength(2);
+    expect(roof.gableEnds).toHaveLength(2);
+    expect(gableBlocks.length).toBeGreaterThan(0);
+    expect(firstGablePanel).toBeDefined();
+    expect(firstRoofBeam).toBeDefined();
+    expect(firstGableBottom).toBeGreaterThanOrEqual(firstGablePanel!.topElevationMeters - 0.01);
+    expect(firstGableBottom).toBeLessThan(firstGablePanel!.topElevationMeters + 0.05);
+    expect(firstGableBottom).toBeLessThan(firstRoofBeam!.topElevationMeters);
   });
 
   it('hip roof on a square creates a pyramid roof with one peak', () => {

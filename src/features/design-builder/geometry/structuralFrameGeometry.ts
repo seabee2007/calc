@@ -586,7 +586,7 @@ export function defaultFrameSystemsForPreset(): {
   return {
     frameSystem: {
       kind: 'structural_frame_system',
-      buildingSystemMode: 'cmu_bearing_wall',
+      buildingSystemMode: 'reinforced_concrete_frame_with_cmu_infill',
       defaultColumnWidthMeters: 0.35,
       defaultColumnDepthMeters: 0.35,
       defaultGradeBeamWidthMeters: 0.3,

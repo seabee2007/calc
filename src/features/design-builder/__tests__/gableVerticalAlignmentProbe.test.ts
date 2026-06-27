@@ -105,9 +105,9 @@ describe('gable vertical alignment probe', () => {
     };
 
     console.log(JSON.stringify(report, null, 2));
-    expect(firstGableBottom).toBeGreaterThanOrEqual(roofBeam.topElevationMeters - 0.01);
-    expect(firstGableBottom).toBeLessThan(roofBeam.topElevationMeters + 0.05);
-    expect(firstGableBottom).toBeGreaterThan(gablePanel.topElevationMeters);
+    expect(firstGableBottom).toBeGreaterThanOrEqual(gablePanel.topElevationMeters - 0.01);
+    expect(firstGableBottom).toBeLessThan(gablePanel.topElevationMeters + 0.05);
+    expect(firstGableBottom).toBeLessThan(roofBeam.topElevationMeters);
     expect(firstGableCourseIndex).toBe(
       infillVertical.fullCourseCount + (infillVertical.hasTopClosureCourse ? 1 : 0),
     );

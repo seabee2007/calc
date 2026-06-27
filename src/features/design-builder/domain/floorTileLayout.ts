@@ -8,7 +8,6 @@ import { polygonAreaSquareMeters } from './interiorFloorSlab';
 import { resolveFloorTileQuantities } from './floorTileQuantities';
 
 const TILE_AREA_EPSILON = 1e-6;
-const GRID_SAMPLE_COUNT = 12;
 
 type Point2D = { x: number; z: number };
 
@@ -48,41 +47,117 @@ function polygonBounds(polygon: readonly Point2D[]): { minX: number; maxX: numbe
   return { minX, maxX, minZ, maxZ };
 }
 
-function distancePointToSegmentSquared(point: Point2D, start: Point2D, end: Point2D): number {
-  const dx = end.x - start.x;
-  const dz = end.z - start.z;
-  const lengthSquared = dx * dx + dz * dz;
-  if (lengthSquared <= TILE_AREA_EPSILON) {
-    const deltaX = point.x - start.x;
-    const deltaZ = point.z - start.z;
-    return deltaX * deltaX + deltaZ * deltaZ;
+function signedPolygonAreaSquareMeters(polygon: readonly Point2D[]): number {
+  let area = 0;
+  for (let index = 0; index < polygon.length; index += 1) {
+    const current = polygon[index]!;
+    const next = polygon[(index + 1) % polygon.length]!;
+    area += current.x * next.z - next.x * current.z;
   }
-  const t = Math.max(
-    0,
-    Math.min(1, ((point.x - start.x) * dx + (point.z - start.z) * dz) / lengthSquared),
-  );
-  const projectedX = start.x + t * dx;
-  const projectedZ = start.z + t * dz;
-  const deltaX = point.x - projectedX;
-  const deltaZ = point.z - projectedZ;
-  return deltaX * deltaX + deltaZ * deltaZ;
+  return area / 2;
 }
 
-export function pointInOrOnPolygon(
-  point: Point2D,
+function clippedPolygonAreaSquareMeters(polygon: readonly Point2D[]): number {
+  return Math.abs(signedPolygonAreaSquareMeters(polygon));
+}
+
+type TileClipBoundary = 'left' | 'right' | 'bottom' | 'top';
+
+function isInsideClipBoundary(point: Point2D, boundary: TileClipBoundary, value: number): boolean {
+  switch (boundary) {
+    case 'left':
+      return point.x >= value - TILE_AREA_EPSILON;
+    case 'right':
+      return point.x <= value + TILE_AREA_EPSILON;
+    case 'bottom':
+      return point.z >= value - TILE_AREA_EPSILON;
+    case 'top':
+      return point.z <= value + TILE_AREA_EPSILON;
+  }
+}
+
+function intersectSegmentWithClipBoundary(
+  start: Point2D,
+  end: Point2D,
+  boundary: TileClipBoundary,
+  value: number,
+): Point2D {
+  const dx = end.x - start.x;
+  const dz = end.z - start.z;
+  const denominator = boundary === 'left' || boundary === 'right' ? dx : dz;
+  if (Math.abs(denominator) <= TILE_AREA_EPSILON) {
+    return { ...end };
+  }
+  const t = ((boundary === 'left' || boundary === 'right' ? value - start.x : value - start.z) / denominator);
+  return {
+    x: start.x + dx * t,
+    z: start.z + dz * t,
+  };
+}
+
+function pushDistinctPoint(points: Point2D[], point: Point2D): void {
+  const prior = points.at(-1);
+  if (
+    prior &&
+    Math.abs(prior.x - point.x) <= TILE_AREA_EPSILON &&
+    Math.abs(prior.z - point.z) <= TILE_AREA_EPSILON
+  ) {
+    return;
+  }
+  points.push(point);
+}
+
+function clipPolygonAgainstBoundary(
   polygon: readonly Point2D[],
-  boundaryEpsilonMeters = 0.002,
-): boolean {
-  if (pointInPolygon(point, polygon)) return true;
-  const boundaryEpsilonSquared = boundaryEpsilonMeters * boundaryEpsilonMeters;
+  boundary: TileClipBoundary,
+  value: number,
+): Point2D[] {
+  if (polygon.length === 0) return [];
+  const clipped: Point2D[] = [];
   for (let index = 0; index < polygon.length; index += 1) {
-    const start = polygon[index]!;
-    const end = polygon[(index + 1) % polygon.length]!;
-    if (distancePointToSegmentSquared(point, start, end) <= boundaryEpsilonSquared) {
-      return true;
+    const current = polygon[index]!;
+    const previous = polygon[(index + polygon.length - 1) % polygon.length]!;
+    const currentInside = isInsideClipBoundary(current, boundary, value);
+    const previousInside = isInsideClipBoundary(previous, boundary, value);
+    if (currentInside) {
+      if (!previousInside) {
+        pushDistinctPoint(clipped, intersectSegmentWithClipBoundary(previous, current, boundary, value));
+      }
+      pushDistinctPoint(clipped, current);
+    } else if (previousInside) {
+      pushDistinctPoint(clipped, intersectSegmentWithClipBoundary(previous, current, boundary, value));
     }
   }
-  return false;
+  const first = clipped[0];
+  const last = clipped.at(-1);
+  if (
+    first &&
+    last &&
+    Math.abs(first.x - last.x) <= TILE_AREA_EPSILON &&
+    Math.abs(first.z - last.z) <= TILE_AREA_EPSILON
+  ) {
+    clipped.pop();
+  }
+  return clipped;
+}
+
+function clipPolygonToTileRectangle(
+  polygon: readonly Point2D[],
+  left: number,
+  right: number,
+  bottom: number,
+  top: number,
+): Point2D[] {
+  return [
+    ['left', left],
+    ['right', right],
+    ['bottom', bottom],
+    ['top', top],
+  ].reduce(
+    (subject, [boundary, value]) =>
+      clipPolygonAgainstBoundary(subject, boundary as TileClipBoundary, value as number),
+    [...polygon],
+  );
 }
 
 export function pointInPolygon(point: Point2D, polygon: readonly Point2D[]): boolean {
@@ -99,161 +174,43 @@ export function pointInPolygon(point: Point2D, polygon: readonly Point2D[]): boo
   return inside;
 }
 
-function rectangleSamplePoints(center: Point2D, widthMeters: number, depthMeters: number): Point2D[] {
-  const halfW = widthMeters / 2;
-  const halfD = depthMeters / 2;
-  const points: Point2D[] = [];
-  for (let row = 0; row < GRID_SAMPLE_COUNT; row += 1) {
-    for (let col = 0; col < GRID_SAMPLE_COUNT; col += 1) {
-      const u = (col + 0.5) / GRID_SAMPLE_COUNT;
-      const v = (row + 0.5) / GRID_SAMPLE_COUNT;
-      points.push({
-        x: center.x - halfW + u * widthMeters,
-        z: center.z - halfD + v * depthMeters,
-      });
-    }
-  }
-  return points;
-}
-
-function estimateRectanglePolygonIntersectionArea(params: {
-  center: Point2D;
-  widthMeters: number;
-  depthMeters: number;
-  polygon: readonly Point2D[];
-}): { areaSquareMeters: number; insideSampleCount: number; totalSampleCount: number } {
-  const samples = rectangleSamplePoints(params.center, params.widthMeters, params.depthMeters);
-  let insideSampleCount = 0;
-  for (const sample of samples) {
-    if (pointInPolygon(sample, params.polygon)) insideSampleCount += 1;
-  }
-  const nominalArea = params.widthMeters * params.depthMeters;
-  return {
-    areaSquareMeters: (insideSampleCount / samples.length) * nominalArea,
-    insideSampleCount,
-    totalSampleCount: samples.length,
-  };
-}
-
-function isEdgeInside(
-  polygon: readonly Point2D[],
-  edge: 'left' | 'right' | 'bottom' | 'top',
-  left: number,
-  right: number,
-  bottom: number,
-  top: number,
-): boolean {
-  const edgeSampleCount = 6;
-  for (let index = 0; index <= edgeSampleCount; index += 1) {
-    const t = index / edgeSampleCount;
-    const point =
-      edge === 'left'
-        ? { x: left, z: bottom + t * (top - bottom) }
-        : edge === 'right'
-          ? { x: right, z: bottom + t * (top - bottom) }
-          : edge === 'bottom'
-            ? { x: left + t * (right - left), z: bottom }
-            : { x: left + t * (right - left), z: top };
-    if (!pointInOrOnPolygon(point, polygon)) return false;
-  }
-  return true;
-}
-
-function isRectangleInside(
-  polygon: readonly Point2D[],
-  left: number,
-  right: number,
-  bottom: number,
-  top: number,
-): boolean {
-  return (
-    isEdgeInside(polygon, 'left', left, right, bottom, top) &&
-    isEdgeInside(polygon, 'right', left, right, bottom, top) &&
-    isEdgeInside(polygon, 'bottom', left, right, bottom, top) &&
-    isEdgeInside(polygon, 'top', left, right, bottom, top)
-  );
-}
-
-function resolveClippedTileBounds(params: {
-  center: Point2D;
-  widthMeters: number;
-  depthMeters: number;
-  polygon: readonly Point2D[];
-}): { left: number; right: number; bottom: number; top: number } {
-  const halfW = params.widthMeters / 2;
-  const halfD = params.depthMeters / 2;
-  const nominalLeft = params.center.x - halfW;
-  const nominalRight = params.center.x + halfW;
-  const nominalBottom = params.center.z - halfD;
-  const nominalTop = params.center.z + halfD;
-  let left = nominalLeft;
-  let right = nominalRight;
-  let bottom = nominalBottom;
-  let top = nominalTop;
-
-  const bounds = polygonBounds(params.polygon);
-
-  // Trim each wall side independently so corner modules keep field-side grout spacing.
-  if (nominalLeft < bounds.minX - TILE_AREA_EPSILON) {
-    left = bounds.minX;
-  }
-  if (nominalRight > bounds.maxX + TILE_AREA_EPSILON) {
-    right = bounds.maxX;
-  }
-  if (nominalBottom < bounds.minZ - TILE_AREA_EPSILON) {
-    bottom = bounds.minZ;
-  }
-  if (nominalTop > bounds.maxZ + TILE_AREA_EPSILON) {
-    top = bounds.maxZ;
-  }
-
-  if (!isRectangleInside(params.polygon, left, right, bottom, top)) {
-    for (let index = 0; index < params.polygon.length; index += 1) {
-      const start = params.polygon[index]!;
-      const end = params.polygon[(index + 1) % params.polygon.length]!;
-      if (Math.abs(start.x - end.x) <= TILE_AREA_EPSILON) {
-        const wallX = (start.x + end.x) / 2;
-        if (nominalLeft < wallX - TILE_AREA_EPSILON && right > wallX + TILE_AREA_EPSILON) {
-          left = Math.max(left, wallX);
-        } else if (nominalRight > wallX + TILE_AREA_EPSILON && left < wallX - TILE_AREA_EPSILON) {
-          right = Math.min(right, wallX);
-        }
-      } else if (Math.abs(start.z - end.z) <= TILE_AREA_EPSILON) {
-        const wallZ = (start.z + end.z) / 2;
-        if (nominalBottom < wallZ - TILE_AREA_EPSILON && top > wallZ + TILE_AREA_EPSILON) {
-          bottom = Math.max(bottom, wallZ);
-        } else if (nominalTop > wallZ + TILE_AREA_EPSILON && bottom < wallZ - TILE_AREA_EPSILON) {
-          top = Math.min(top, wallZ);
-        }
-      }
-    }
-  }
-
-  return { left, right, bottom, top };
-}
-
 /** Clip only edges that cross the floor boundary; preserve nominal edges facing the field. */
 export function computeTileRenderBounds(params: {
   center: Point2D;
   widthMeters: number;
   depthMeters: number;
   polygon: readonly Point2D[];
-}): { renderCenter: Point2D; renderWidthMeters: number; renderDepthMeters: number } | null {
-  const { left, right, bottom, top } = resolveClippedTileBounds(params);
-
-  const renderWidthMeters = Math.max(0, right - left);
-  const renderDepthMeters = Math.max(0, top - bottom);
-  if (renderWidthMeters <= TILE_AREA_EPSILON || renderDepthMeters <= TILE_AREA_EPSILON) {
+}): {
+  renderCenter: Point2D;
+  renderWidthMeters: number;
+  renderDepthMeters: number;
+  renderPolygon: Point2D[];
+  installedAreaSquareMeters: number;
+} | null {
+  const halfW = params.widthMeters / 2;
+  const halfD = params.depthMeters / 2;
+  const left = params.center.x - halfW;
+  const right = params.center.x + halfW;
+  const bottom = params.center.z - halfD;
+  const top = params.center.z + halfD;
+  const renderPolygon = clipPolygonToTileRectangle(params.polygon, left, right, bottom, top);
+  if (renderPolygon.length < 3) {
     return null;
   }
-  if (!isRectangleInside(params.polygon, left, right, bottom, top)) {
+  const installedAreaSquareMeters = clippedPolygonAreaSquareMeters(renderPolygon);
+  if (installedAreaSquareMeters <= TILE_AREA_EPSILON) {
     return null;
   }
+  const bounds = polygonBounds(renderPolygon);
+  const renderWidthMeters = Math.max(0, bounds.maxX - bounds.minX);
+  const renderDepthMeters = Math.max(0, bounds.maxZ - bounds.minZ);
 
   return {
-    renderCenter: { x: (left + right) / 2, z: (bottom + top) / 2 },
+    renderCenter: { x: (bounds.minX + bounds.maxX) / 2, z: (bounds.minZ + bounds.maxZ) / 2 },
     renderWidthMeters,
     renderDepthMeters,
+    renderPolygon,
+    installedAreaSquareMeters,
   };
 }
 
@@ -322,14 +279,6 @@ export function resolveFloorTileLayout(params: {
         x: centroid.x + indexX * pitchX,
         z: centroid.z + indexZ * pitchZ,
       };
-      const intersection = estimateRectanglePolygonIntersectionArea({
-        center,
-        widthMeters: preset.widthMeters,
-        depthMeters: preset.depthMeters,
-        polygon: params.interiorFacePolygon,
-      });
-      if (intersection.areaSquareMeters <= TILE_AREA_EPSILON) continue;
-
       const renderBounds = computeTileRenderBounds({
         center,
         widthMeters: preset.widthMeters,
@@ -344,8 +293,6 @@ export function resolveFloorTileLayout(params: {
       const kind = isFull ? 'full' : 'cut';
       if (kind === 'full') fullTileCount += 1;
       else cutTileCount += 1;
-      const tileInstalledAreaSquareMeters =
-        renderBounds.renderWidthMeters * renderBounds.renderDepthMeters;
       placements.push({
         id: `floor-tile-${placementIndex}`,
         kind,
@@ -355,7 +302,8 @@ export function resolveFloorTileLayout(params: {
         renderCenter: renderBounds.renderCenter,
         renderWidthMeters: renderBounds.renderWidthMeters,
         renderDepthMeters: renderBounds.renderDepthMeters,
-        installedAreaSquareMeters: tileInstalledAreaSquareMeters,
+        renderPolygon: renderBounds.renderPolygon,
+        installedAreaSquareMeters: renderBounds.installedAreaSquareMeters,
         rotationY: 0,
       });
       placementIndex += 1;

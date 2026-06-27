@@ -47,6 +47,10 @@ vi.mock('../ui/DesignBuilderPlanCanvas', () => ({
     onInteraction?: (event: DesignBuilderInteractionEvent) => void;
     onManualMasonryPointer?: (event: { kind: 'preview' | 'start' | 'commit' | 'cancel_preview' | 'undo'; planX?: number; planZ?: number }) => void;
     toolMode?: string;
+    onComponentPointer?: (event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number }) => void;
+    placedComponents?: unknown[];
+    designRenderModel?: { rcComponents?: Array<{ type?: string; system?: string; position?: { x?: number; z?: number } }> };
+    componentPreview?: unknown;
     layout?: { nodes: unknown[]; segments: unknown[] };
     manualMasonry?: { enabled: boolean; runs: MasonryCourseRun[]; preview: unknown };
   }) => {
@@ -60,6 +64,8 @@ vi.mock('../ui/DesignBuilderViewer', () => ({
     onInteraction?: (event: DesignBuilderInteractionEvent) => void;
     toolMode?: string;
     placementPreview?: unknown;
+    placedComponents?: unknown[];
+    designRenderModel?: { rcComponents?: Array<{ type?: string; system?: string; position?: { x?: number; z?: number } }> };
     selectedObjectType?: string | null;
     geometryResult?: { sourcePath: string; wallSegments: unknown[]; blockCount: number };
   }) => {
@@ -111,6 +117,8 @@ function latestViewerProps() {
     } | null;
     selectedOpeningId?: string | null;
     selectedObjectType?: string | null;
+    placedComponents?: unknown[];
+    designRenderModel?: { rcComponents?: Array<{ type?: string; system?: string; position?: { x?: number; z?: number } }> };
     wall?: { heightMeters?: number; wallThicknessMeters?: number; bondPattern?: string; blockLengthMeters?: number };
     geometryResult?: {
       sourcePath: string;
@@ -139,6 +147,10 @@ function latestPlanProps() {
     onInteraction?: (event: DesignBuilderInteractionEvent) => void;
     onManualMasonryPointer?: (event: { kind: 'preview' | 'start' | 'commit' | 'cancel_preview' | 'undo'; planX?: number; planZ?: number }) => void;
     toolMode?: string;
+    onComponentPointer?: (event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number }) => void;
+    placedComponents?: unknown[];
+    designRenderModel?: { rcComponents?: Array<{ type?: string; system?: string; position?: { x?: number; z?: number } }> };
+    componentPreview?: unknown;
     layout?: { nodes: unknown[]; segments: unknown[]; isFootprintClosed?: boolean };
     manualMasonry?: { enabled: boolean; runs: MasonryCourseRun[]; preview: unknown };
   };
@@ -189,8 +201,14 @@ function selectToolMode(label: RegExp | string) {
 }
 
 function selectOpeningTool(label: RegExp | string) {
-  openMenuByKind('openings');
-  chooseCommandMenuItem(label);
+  const labelText = String(label).toLowerCase();
+  if (labelText.includes('move')) {
+    openMenuByKind('tools');
+    chooseCommandMenuItem(/move opening/i);
+    return;
+  }
+  openMenuByKind('components');
+  chooseCommandMenuItem(labelText.includes('window') ? /^window$/i : /^door$/i);
 }
 
 function selectViewMode(mode: 'plan' | '3d') {
@@ -542,12 +560,66 @@ describe('DesignBuilderPage', () => {
     selectOpeningTool(/door opening/i);
     await waitFor(() => expect(latestViewerProps().toolMode).toBe('place_door'));
     expect(openCommandMenus()).toHaveLength(0);
+    expect(commandBar().querySelector('[data-menu-kind="openings"]')).not.toBeInTheDocument();
 
     selectToolMode(/^delete$/i);
     await waitFor(() => expect(latestViewerProps().toolMode).toBe('delete'));
 
     selectToolMode(/^select$/i);
     await waitFor(() => expect(latestViewerProps().toolMode).toBe('select'));
+  });
+
+  it('routes Components Door and Window through existing opening placement tools', async () => {
+    seedLoadedDesignBuilderTemplate();
+    render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
+    await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
+
+    openMenuByKind('components');
+    chooseCommandMenuItem(/^door$/i);
+    await waitFor(() => expect(latestViewerProps().toolMode).toBe('place_door'));
+    expect(latestPlanProps().componentPreview).toBeFalsy();
+
+    openMenuByKind('components');
+    chooseCommandMenuItem(/^window$/i);
+    await waitFor(() => expect(latestViewerProps().toolMode).toBe('place_window'));
+    expect(latestPlanProps().componentPreview).toBeFalsy();
+  });
+
+  it('previews a structural component before commit and syncs the placed component into 3D', async () => {
+    seedLoadedDesignBuilderTemplate();
+    render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
+    await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
+
+    openMenuByKind('components');
+    chooseCommandMenuItem(/^column$/i);
+    await waitFor(() => expect(latestPlanProps().toolMode).toBe('place_component'));
+
+    await act(async () => {
+      latestPlanProps().onComponentPointer?.({ phase: 'preview', xMeters: 1.24, zMeters: -0.76 });
+    });
+    await waitFor(() => expect(latestPlanProps().componentPreview).toBeTruthy());
+    expect((latestPlanProps().placedComponents ?? [])).toHaveLength(0);
+
+    await act(async () => {
+      latestPlanProps().onComponentPointer?.({ phase: 'commit', xMeters: 1.24, zMeters: -0.76 });
+    });
+    await waitFor(() => expect((latestPlanProps().placedComponents ?? []).length).toBeGreaterThan(0));
+    expect(latestPlanProps().componentPreview).toBeFalsy();
+    expect(latestPlanProps().designRenderModel?.rcComponents?.[0]).toMatchObject({
+      type: 'column',
+      system: 'reinforced-concrete',
+      position: { x: 1.2, z: -0.8 },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /switch to 3d view/i }));
+    await waitFor(() => expect(screen.getByTestId('design-builder-viewer')).toBeInTheDocument());
+    expect(latestViewerProps().toolMode).toBe('select');
+    expect((latestViewerProps().placedComponents ?? []).length).toBeGreaterThan(0);
+    expect(latestViewerProps().designRenderModel?.rcComponents?.[0]).toMatchObject({
+      type: 'column',
+      system: 'reinforced-concrete',
+      position: { x: 1.2, z: -0.8 },
+    });
   });
 
   it('renders one command bar without duplicate save, close footprint, or cut-block chips', async () => {
@@ -1081,7 +1153,7 @@ describe('DesignBuilderPage', () => {
     render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
     await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
 
-    openMenuByKind('openings');
+    openMenuByKind('components');
     expect(openCommandMenus()).toHaveLength(1);
 
     fireEvent.pointerDown(document.body);
