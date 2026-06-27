@@ -420,33 +420,11 @@ export function createFasciaTrimGeometry(params: {
 }): THREE.BufferGeometry {
   const { placement, slabTopMeters } = params;
   const renderOutboardBiasMeters = 0.003;
-  const cornerLapMeters =
-    placement.edgeRole === 'hip_eave' || placement.edgeRole === 'roof_perimeter' ? 0.045 : 0.02;
-  const span = {
-    x: placement.topEnd.x - placement.topStart.x,
-    y: placement.topEnd.y - placement.topStart.y,
-    z: placement.topEnd.z - placement.topStart.z,
-  };
-  const spanLength = Math.hypot(span.x, span.y, span.z);
-  const lap = Math.min(cornerLapMeters, Math.max(0, spanLength / 2 - 0.001));
-  const run = spanLength > 1e-8
-    ? { x: span.x / spanLength, y: span.y / spanLength, z: span.z / spanLength }
-    : { x: 1, y: 0, z: 0 };
-  const extendStart = (point: RoofVec3) => ({
-    x: point.x - run.x * lap,
-    y: point.y - run.y * lap,
-    z: point.z - run.z * lap,
-  });
-  const extendEnd = (point: RoofVec3) => ({
-    x: point.x + run.x * lap,
-    y: point.y + run.y * lap,
-    z: point.z + run.z * lap,
-  });
   const vertices = [
-    extendStart(placement.topStart),
-    extendEnd(placement.topEnd),
-    extendEnd(placement.bottomEnd),
-    extendStart(placement.bottomStart),
+    placement.topStart,
+    placement.topEnd,
+    placement.bottomEnd,
+    placement.bottomStart,
   ].map((vertex) => ({
     x: vertex.x + placement.faceOutwardNormal.x * renderOutboardBiasMeters,
     y: vertex.y,

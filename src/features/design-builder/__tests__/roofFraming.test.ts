@@ -36,6 +36,7 @@ import {
   buildTrussAnchorBoltMeshes,
   buildTrussBasePlateMesh,
   createMemberBetween,
+  createFasciaTrimGeometry,
   createFoldedRidgeCapGroup,
   memberWorldEndpoints,
 } from '../geometry/roofRenderingGeometry';
@@ -256,9 +257,8 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
     for (const truss of roof.trussPlacements) {
       const diagonals = truss.members.filter((member) => member.memberKind === 'diagonal_web');
       const verticals = truss.members.filter((member) => member.memberKind === 'vertical_web');
-      expect(diagonals).toHaveLength(2);
+      expect(diagonals).toHaveLength(4);
       expect(verticals).toHaveLength(1);
-      expect(trussMemberLength(diagonals[0]!)).toBeCloseTo(trussMemberLength(diagonals[1]!), 3);
 
       const spanMid = {
         x: (truss.bearingLeft.x + truss.bearingRight.x) / 2,
@@ -274,14 +274,45 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
       const stationAlongSpan = (point: { x: number; z: number }) =>
         (point.x - spanMid.x) * spanUnit.x + (point.z - spanMid.z) * spanUnit.z;
 
-      const bottomPoints = diagonals.map((member) =>
-        member.start.y <= member.end.y ? member.start : member.end,
-      );
-      expect(Math.abs(stationAlongSpan(bottomPoints[0]!))).toBeCloseTo(
-        Math.abs(stationAlongSpan(bottomPoints[1]!)),
+      const diagonalById = new Map(diagonals.map((member) => [member.id, member]));
+      const leftOuter = diagonalById.get(`${truss.id}-web-left-outer`)!;
+      const leftInner = diagonalById.get(`${truss.id}-web-left-inner`)!;
+      const rightInner = diagonalById.get(`${truss.id}-web-right-inner`)!;
+      const rightOuter = diagonalById.get(`${truss.id}-web-right-outer`)!;
+      const vertical = verticals[0]!;
+      const bottomChord = truss.members.find((member) => member.memberKind === 'bottom_chord')!;
+      const bottomChordMid = {
+        x: (bottomChord.start.x + bottomChord.end.x) / 2,
+        y: (bottomChord.start.y + bottomChord.end.y) / 2,
+        z: (bottomChord.start.z + bottomChord.end.z) / 2,
+      };
+      expect(leftOuter).toBeDefined();
+      expect(leftInner).toBeDefined();
+      expect(rightInner).toBeDefined();
+      expect(rightOuter).toBeDefined();
+
+      expectPointClose(vertical.start, bottomChordMid);
+      expectPointClose(vertical.end, truss.apex);
+      expectPointClose(leftInner.end, vertical.start);
+      expectPointClose(rightInner.start, vertical.start);
+      expect(leftOuter.end.y).toBeGreaterThan(leftOuter.start.y);
+      expect(leftInner.start.y).toBeGreaterThan(leftInner.end.y);
+      expect(rightInner.end.y).toBeGreaterThan(rightInner.start.y);
+      expect(rightOuter.start.y).toBeGreaterThan(rightOuter.end.y);
+
+      expect(trussMemberLength(leftOuter)).toBeCloseTo(trussMemberLength(rightOuter), 3);
+      expect(trussMemberLength(leftInner)).toBeCloseTo(trussMemberLength(rightInner), 3);
+      expect(Math.abs(stationAlongSpan(leftOuter.start))).toBeCloseTo(
+        Math.abs(stationAlongSpan(rightOuter.end)),
         3,
       );
-      expect(Math.sign(stationAlongSpan(bottomPoints[0]!))).toBe(-Math.sign(stationAlongSpan(bottomPoints[1]!)));
+      expect(Math.abs(stationAlongSpan(leftOuter.end))).toBeCloseTo(
+        Math.abs(stationAlongSpan(rightOuter.start)),
+        3,
+      );
+      expect(Math.sign(stationAlongSpan(leftOuter.start))).toBe(-Math.sign(stationAlongSpan(rightOuter.end)));
+      expect(Math.sign(stationAlongSpan(leftOuter.end))).toBe(-Math.sign(stationAlongSpan(rightOuter.start)));
+      expect(Math.abs(stationAlongSpan(leftOuter.end))).toBeLessThan(Math.abs(stationAlongSpan(leftOuter.start)));
     }
   });
 
@@ -734,6 +765,74 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
     expect(mesh.quaternion.y).toBeCloseTo(expected.y, 3);
     expect(mesh.quaternion.z).toBeCloseTo(expected.z, 3);
     expect(mesh.quaternion.w).toBeCloseTo(expected.w, 3);
+  });
+
+  it('fascia trim render stops flush at resolved placement endpoints', () => {
+    const defaults = createDefaultRoofSystemSettings();
+    const roof = roofFromGeometry(frameInfillGeometry({
+      ...defaults,
+      fascia: { ...defaults.fascia, enabled: true },
+    }));
+    const placement = roof.fasciaPlacements.find((item) => item.edgeRole === 'gable_rake') ?? roof.fasciaPlacements[0]!;
+    expect(placement).toBeDefined();
+
+    const slabTopMeters = preset.slab.slabThicknessMeters;
+    const geometry = createFasciaTrimGeometry({ placement, slabTopMeters });
+    const position = geometry.getAttribute('position') as THREE.BufferAttribute;
+    const start = {
+      x: placement.topStart.x + placement.faceOutwardNormal.x * 0.003,
+      z: placement.topStart.z + placement.faceOutwardNormal.z * 0.003,
+    };
+    const end = {
+      x: placement.topEnd.x + placement.faceOutwardNormal.x * 0.003,
+      z: placement.topEnd.z + placement.faceOutwardNormal.z * 0.003,
+    };
+    const run = {
+      x: end.x - start.x,
+      z: end.z - start.z,
+    };
+    const length = Math.hypot(run.x, run.z);
+    const runUnit = {
+      x: run.x / (length || 1),
+      z: run.z / (length || 1),
+    };
+    const expectedWorldCorners = [
+      new THREE.Vector3(
+        placement.topStart.x + placement.faceOutwardNormal.x * 0.003,
+        slabTopMeters + placement.topStart.y,
+        placement.topStart.z + placement.faceOutwardNormal.z * 0.003,
+      ),
+      new THREE.Vector3(
+        placement.topEnd.x + placement.faceOutwardNormal.x * 0.003,
+        slabTopMeters + placement.topEnd.y,
+        placement.topEnd.z + placement.faceOutwardNormal.z * 0.003,
+      ),
+      new THREE.Vector3(
+        placement.bottomEnd.x + placement.faceOutwardNormal.x * 0.003,
+        slabTopMeters + placement.bottomEnd.y,
+        placement.bottomEnd.z + placement.faceOutwardNormal.z * 0.003,
+      ),
+      new THREE.Vector3(
+        placement.bottomStart.x + placement.faceOutwardNormal.x * 0.003,
+        slabTopMeters + placement.bottomStart.y,
+        placement.bottomStart.z + placement.faceOutwardNormal.z * 0.003,
+      ),
+    ];
+    const stations: number[] = [];
+
+    for (let index = 0; index < position.count; index += 1) {
+      const vertex = new THREE.Vector3(
+        position.getX(index),
+        position.getY(index),
+        position.getZ(index),
+      );
+      expect(vertex.distanceTo(expectedWorldCorners[index]!)).toBeLessThan(0.00001);
+      stations.push((vertex.x - start.x) * runUnit.x + (vertex.z - start.z) * runUnit.z);
+    }
+
+    expect(Math.min(...stations)).toBeGreaterThanOrEqual(-0.001);
+    expect(Math.max(...stations)).toBeLessThanOrEqual(length + 0.001);
+    geometry.dispose();
   });
 
   it('gable roof resolves truss planes perpendicular to ridge', () => {

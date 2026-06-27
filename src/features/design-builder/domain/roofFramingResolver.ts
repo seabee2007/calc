@@ -274,14 +274,22 @@ function buildFinkWebMembers(
   apex: RoofVec3,
 ): SteelMemberSegment[] {
   const lowerCenter = lerpVec3(leftBearing, rightBearing, 0.5);
-  const lowerLeft = lerpVec3(leftBearing, rightBearing, 0.25);
-  const lowerRight = lerpVec3(leftBearing, rightBearing, 0.75);
+  const lowerLeft = lerpVec3(leftBearing, rightBearing, 0.22);
+  const lowerRight = lerpVec3(leftBearing, rightBearing, 0.78);
+  const upperLeft = lerpVec3(leftBearing, apex, 0.72);
+  const upperRight = lerpVec3(rightBearing, apex, 0.72);
   return [
     {
-      id: `${trussId}-web-left`,
+      id: `${trussId}-web-left-outer`,
       memberKind: 'diagonal_web',
       start: lowerLeft,
-      end: apex,
+      end: upperLeft,
+    },
+    {
+      id: `${trussId}-web-left-inner`,
+      memberKind: 'diagonal_web',
+      start: upperLeft,
+      end: lowerCenter,
     },
     {
       id: `${trussId}-web-center`,
@@ -290,10 +298,16 @@ function buildFinkWebMembers(
       end: apex,
     },
     {
-      id: `${trussId}-web-right`,
+      id: `${trussId}-web-right-inner`,
       memberKind: 'diagonal_web',
-      start: lowerRight,
-      end: apex,
+      start: lowerCenter,
+      end: upperRight,
+    },
+    {
+      id: `${trussId}-web-right-outer`,
+      memberKind: 'diagonal_web',
+      start: upperRight,
+      end: lowerRight,
     },
   ];
 }
