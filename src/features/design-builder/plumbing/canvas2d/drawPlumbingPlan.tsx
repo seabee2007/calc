@@ -15,6 +15,7 @@ import {
   type SepticTankModel,
 } from '..';
 import { fittingDefinition } from '../domain/plumbingFittingCompatibility';
+import { drawPlumbingRisers } from './drawPlumbingRisers';
 import { resolveSegmentDisplayEndpoints } from '../../domain/planOpeningGraphics';
 import type {
   DesignWallLayoutParameters,
@@ -339,7 +340,9 @@ function renderEquipment(
       ? 'V'
       : equipment.equipmentType.includes('stack')
         ? 'S'
-        : equipment.label;
+        : equipment.equipmentType === 'distribution_box'
+          ? 'DB'
+          : equipment.label;
   return (
     <g
       key={equipment.id}
@@ -360,6 +363,17 @@ function renderEquipment(
           <circle cx={point.sx} cy={point.sy} r={selectedEquipment ? 8 : 6.5} fill={fill} stroke={stroke} strokeWidth={selectedEquipment ? 2.4 : 1.8} />
           <line x1={point.sx} y1={point.sy - 10} x2={point.sx} y2={point.sy + 10} stroke={stroke} strokeWidth={2} strokeLinecap="round" />
         </>
+      ) : equipment.equipmentType === 'distribution_box' ? (
+        <rect
+          x={point.sx - (selectedEquipment ? 8 : 7)}
+          y={point.sy - (selectedEquipment ? 8 : 7)}
+          width={selectedEquipment ? 16 : 14}
+          height={selectedEquipment ? 16 : 14}
+          rx={2}
+          fill={fill}
+          stroke={stroke}
+          strokeWidth={selectedEquipment ? 2.4 : 1.8}
+        />
       ) : (
         <circle cx={point.sx} cy={point.sy} r={selectedEquipment ? 8 : 6} fill={fill} stroke={stroke} strokeWidth={selectedEquipment ? 2.4 : 1.8} />
       )}
@@ -388,6 +402,7 @@ export function DrawPlumbingPlan({
   validationIssues = [],
 }: DrawPlumbingPlanProps) {
   const fittings = plumbingSystem.fittings ?? [];
+  const riserRunIds = new Set((plumbingSystem.roughIns ?? []).map((roughIn) => roughIn.riserRunId));
   const issueRunIds = new Set(validationIssues.filter((issue) => issue.objectKind === 'run' && issue.objectId).map((issue) => issue.objectId!));
   const draftStart = runDraft ? plumbingSystem.nodes.find((node) => node.id === runDraft.startNodeId) : null;
   const draftPoints = draftStart
@@ -487,8 +502,15 @@ export function DrawPlumbingPlan({
         })}
       </g>
       {plumbingSystem.septicTanks.map((tank) => renderSepticTank(tank, project, selected?.kind === 'septic-tank' && selected.id === tank.id))}
-      {plumbingSystem.runs.map((run) => renderRun(run, project, selected?.kind === 'run' && selected.id === run.id, issueRunIds))}
+      {plumbingSystem.runs
+        .filter((run) => !riserRunIds.has(run.id))
+        .map((run) => renderRun(run, project, selected?.kind === 'run' && selected.id === run.id, issueRunIds))}
       {fittings.map((fitting) => renderFitting(fitting, plumbingSystem, project, selected?.kind === 'fitting' && selected.id === fitting.id))}
+      {drawPlumbingRisers({
+        system: plumbingSystem,
+        project,
+        selectedId: selected?.kind === 'rough-in' ? selected.id : null,
+      })}
       {draftPoints.length >= 2 ? (
         <polyline
           points={pointsToPolyline(draftPoints, project)}

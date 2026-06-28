@@ -433,6 +433,8 @@ export default function DesignBuilderViewer({
           selectedSepticTankId: currentSelectedSepticTankId,
           visibility: currentPlumbing3DVisibility,
           elevationDefaults: {
+            slabTopElevationM: currentSlab.slabThicknessMeters,
+            slabThicknessM: currentSlab.slabThicknessMeters,
             ceilingElevationM: currentWall.heightMeters,
             roofElevationM: Math.max(currentWall.heightMeters + 0.3, currentRoof.widthMeters / 2 * currentRoof.pitchRisePerRun + currentWall.heightMeters),
           },

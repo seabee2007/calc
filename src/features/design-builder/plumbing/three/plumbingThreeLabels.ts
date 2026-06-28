@@ -39,10 +39,21 @@ export function formatPlumbingThreeRunLabel(run: PlumbingRun): string {
 }
 
 export function formatPlumbingThreeFittingLabel(fitting: PlumbingFitting): string {
+  if (fitting.type === 'elbow_90' || fitting.type === 'elbow_90_long_sweep' || fitting.type === 'street_elbow_90') return '90';
+  if (fitting.type === 'elbow_45' || fitting.type === 'street_elbow_45') return '45';
+  if (fitting.type === 'elbow_22_5') return '22.5';
+  if (fitting.type === 'elbow_11_25') return '11.25';
+  if (fitting.type === 'tee' || fitting.type === 'reducing_tee' || fitting.type === 'sanitary_tee' || fitting.type === 'vent_tee') return 'TEE';
+  if (fitting.type === 'wye' || fitting.type === 'combo_wye_45') return 'WYE';
+  if (fitting.type.includes('coupling')) return 'CPLG';
   if (fitting.type === 'floor_cleanout') return 'FCO';
   if (fitting.type === 'yard_cleanout') return 'YCO';
   if (fitting.type === 'cleanout_adapter' || fitting.type === 'cleanout_plug') return 'CO';
   if (fitting.type === 'roof_vent_boot') return 'VTR';
+  if (fitting.type === 'closet_flange') return 'FLG';
+  if (fitting.type === 'closet_bend') return 'CB';
+  if (fitting.type === 'p_trap') return 'P';
+  if (fitting.type === 'trap_adapter') return 'TA';
   return fittingDefinition(fitting.type)?.label ?? fitting.type.replace(/_/g, ' ');
 }
 
@@ -52,6 +63,7 @@ export function formatPlumbingThreeFixtureLabel(fixture: PlumbingFixture): strin
 
 export function formatPlumbingThreeEquipmentLabel(equipment: PlumbingEquipment): string {
   if (equipment.equipmentType === 'roof_vent_termination') return 'VTR';
+  if (equipment.equipmentType === 'distribution_box') return 'D-BOX';
   return equipment.label;
 }
 

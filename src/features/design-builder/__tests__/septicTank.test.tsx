@@ -12,8 +12,12 @@ import {
   createCmuSepticTankNodes,
   createDefaultPlumbingSystem,
   drawSepticTankTopView,
+  ensureSanitaryDrainConnectedToDistributionBox,
   generateSepticTakeoff,
   hitTestSepticTank,
+  IPC_2024_MIN_SEPTIC_SETBACK_FROM_BUILDING_M,
+  ipc2024MinimumDrainageSlopeInPerFt,
+  septicTankInletInvertElevation,
   validateSepticTank,
   type SepticTankModel,
 } from '../plumbing';
@@ -49,11 +53,136 @@ describe('CMU septic tank site utility', () => {
       centerZ: 3,
       idSeed: 'place',
     });
+    const distributionBox = result.system.equipment.find((equipment) => equipment.equipmentType === 'distribution_box');
+    const distributionBoxNode = result.system.nodes.find((node) => node.kind === 'distribution_box');
 
     expect(result.system.septicTanks).toHaveLength(1);
     expect(result.system.nodes.filter((node) => node.septicTankId === result.tank.id)).toHaveLength(4);
     expect(result.system.nodes.some((node) => node.kind === 'septic_inlet')).toBe(true);
     expect(result.system.nodes.some((node) => node.kind === 'septic_outlet')).toBe(true);
+    expect(distributionBox).toBeTruthy();
+    expect(distributionBoxNode).toBeTruthy();
+    expect(result.system.runs.some((run) =>
+      run.startNodeId === distributionBoxNode?.id &&
+      run.endNodeId === result.tank.connectionNodes.inletNodeId &&
+      run.system === 'sanitary',
+    )).toBe(true);
+  });
+
+  it('connects an existing sanitary drain into the distribution box before septic', () => {
+    const base = createDefaultPlumbingSystem();
+    const drainNode = {
+      id: 'building-drain',
+      kind: 'building_drain_exit' as const,
+      system: 'sanitary' as const,
+      position: { x: 0, y: -0.4, z: 0 },
+      label: 'Building drain',
+    };
+    const result = addCmuSepticTankToPlumbingSystem({
+      system: { ...base, nodes: [drainNode] },
+      centerX: 8,
+      centerZ: 0,
+      idSeed: 'connected-dbox',
+    });
+    const distributionBoxNode = result.system.nodes.find((node) => node.kind === 'distribution_box')!;
+    const dboxInletStub = result.system.runs.find((run) => run.endNodeId === distributionBoxNode.id && run.startNodeId !== distributionBoxNode.id);
+    const dboxInletFitting = result.system.fittings.find((fitting) =>
+      fitting.connectedRunIds.includes(dboxInletStub?.id ?? '') &&
+      ['coupling', 'elbow_22_5', 'elbow_45', 'elbow_90_long_sweep'].includes(fitting.type));
+    const dboxApproachRun = result.system.runs.find((run) =>
+      run.startNodeId === drainNode.id &&
+      run.endNodeId === dboxInletFitting?.nodeId);
+    const septicRun = result.system.runs.find((run) => run.startNodeId === distributionBoxNode.id && run.endNodeId === result.tank.connectionNodes.inletNodeId);
+
+    expect(dboxInletStub).toBeTruthy();
+    expect(dboxInletFitting).toBeTruthy();
+    expect(dboxApproachRun).toBeTruthy();
+    expect(result.system.runs.some((run) => run.startNodeId === drainNode.id && run.endNodeId === distributionBoxNode.id)).toBe(false);
+    expect(septicRun).toBeTruthy();
+    expect(dboxInletStub?.slopeInPerFt).toBeGreaterThanOrEqual(ipc2024MinimumDrainageSlopeInPerFt(dboxInletStub?.diameterInches));
+    expect(dboxApproachRun?.slopeInPerFt).toBeGreaterThanOrEqual(ipc2024MinimumDrainageSlopeInPerFt(dboxApproachRun?.diameterInches));
+    expect(septicRun?.slopeInPerFt).toBeGreaterThanOrEqual(ipc2024MinimumDrainageSlopeInPerFt(septicRun?.diameterInches));
+    expect(dboxInletStub?.path[0]?.y).toBeGreaterThan(dboxInletStub?.path.at(-1)?.y ?? 0);
+    expect(dboxApproachRun?.path[0]?.y).toBeGreaterThan(dboxApproachRun?.path.at(-1)?.y ?? 0);
+    expect(septicRun?.path[0]?.y).toBeGreaterThan(septicRun?.path.at(-1)?.y ?? 0);
+  });
+
+  it('connects a later sanitary drain into an existing distribution box', () => {
+    const withSeptic = addCmuSepticTankToPlumbingSystem({
+      system: createDefaultPlumbingSystem(),
+      centerX: 8,
+      centerZ: 0,
+      idSeed: 'dbox-first',
+    }).system;
+    const drainNode = {
+      id: 'later-building-drain',
+      kind: 'building_drain_exit' as const,
+      system: 'sanitary' as const,
+      position: { x: 0, y: -0.4, z: 0 },
+      label: 'Building drain',
+    };
+    const connected = ensureSanitaryDrainConnectedToDistributionBox({
+      ...withSeptic,
+      nodes: [...withSeptic.nodes, drainNode],
+    });
+    const distributionBoxNode = connected.nodes.find((node) => node.kind === 'distribution_box')!;
+
+    const inletStub = connected.runs.find((run) => run.endNodeId === distributionBoxNode.id && run.startNodeId !== distributionBoxNode.id);
+    const inletFitting = connected.fittings.find((fitting) => fitting.connectedRunIds.includes(inletStub?.id ?? ''));
+    expect(inletStub).toBeTruthy();
+    expect(inletFitting).toBeTruthy();
+    expect(connected.runs.some((run) => run.startNodeId === drainNode.id && run.endNodeId === distributionBoxNode.id)).toBe(false);
+  });
+
+  it('uses IPC 2024 drain slope defaults and septic invert nodes', () => {
+    const tank = defaultTank();
+    const nodes = createCmuSepticTankNodes(tank);
+    const inlet = nodes.find((node) => node.kind === 'septic_inlet')!;
+    const outlet = nodes.find((node) => node.kind === 'septic_outlet')!;
+
+    expect(ipc2024MinimumDrainageSlopeInPerFt(3)).toBeCloseTo(0.125);
+    expect(ipc2024MinimumDrainageSlopeInPerFt(2)).toBeCloseTo(0.25);
+    expect(inlet.position.y).toBeCloseTo(septicTankInletInvertElevation(tank));
+    expect(outlet.position.y).toBeLessThan(inlet.position.y);
+  });
+
+  it('pushes default septic placement outside the 10 ft building setback', () => {
+    const result = addCmuSepticTankToPlumbingSystem({
+      system: createDefaultPlumbingSystem(),
+      centerX: 0.5,
+      centerZ: 0.5,
+      buildingFootprint: [
+        { x: 0, z: 0 },
+        { x: 2, z: 0 },
+        { x: 2, z: 2 },
+        { x: 0, z: 2 },
+      ],
+      idSeed: 'setback',
+    });
+
+    expect(Math.hypot(result.tank.placement.centerX - 1, result.tank.placement.centerZ - 1))
+      .toBeGreaterThanOrEqual(IPC_2024_MIN_SEPTIC_SETBACK_FROM_BUILDING_M);
+  });
+
+  it('lowers default tank burial depth when an existing sanitary drain needs more fall', () => {
+    const base = createDefaultPlumbingSystem();
+    const system = {
+      ...base,
+      nodes: [
+        {
+          id: 'building-drain',
+          kind: 'building_drain_exit' as const,
+          system: 'sanitary' as const,
+          position: { x: 0, y: -0.42, z: 0 },
+          label: 'Building drain',
+        },
+      ],
+    };
+    const shallow = createCmuSepticTank({ centerX: 90, centerZ: 0, idSeed: 'shallow' });
+    const adjusted = createCmuSepticTank({ system, centerX: 90, centerZ: 0, idSeed: 'adjusted' });
+
+    expect(adjusted.placement.burialDepthBelowGradeM).toBeGreaterThan(shallow.placement.burialDepthBelowGradeM);
+    expect(septicTankInletInvertElevation(adjusted)).toBeLessThan(septicTankInletInvertElevation(shallow));
   });
 
   it('save/load round trip preserves septic tanks', () => {
@@ -73,6 +202,8 @@ describe('CMU septic tank site utility', () => {
     const migrated = migratePersistedDesignBuilderState(serialized);
 
     expect(migrated?.plumbingSystem.septicTanks).toHaveLength(1);
+    expect(migrated?.plumbingSystem.equipment.some((equipment) => equipment.equipmentType === 'distribution_box')).toBe(true);
+    expect(migrated?.plumbingSystem.runs.some((run) => run.endNodeId === withTank.septicTanks[0]?.connectionNodes.inletNodeId)).toBe(true);
     expect(migrated?.plumbingSystem.septicTanks[0]?.designBasis.capacityGallons).toBe(750);
   });
 
@@ -174,4 +305,3 @@ describe('CMU septic tank site utility', () => {
     expect(screen.getByText(/2 toilets \/ 2 sinks is stored as fixture context only/i)).toBeInTheDocument();
   });
 });
-

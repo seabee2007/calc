@@ -2,9 +2,13 @@ import { render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import {
   addFixtureToPlumbingSystem,
+  addCmuSepticTankToPlumbingSystem,
   addRunToPlumbingSystem,
   buildPlumbingLegend,
   commonFittingsForPipe,
+  createCmuSepticTank,
+  createCmuSepticTankNodes,
+  createOrReplaceFixtureRoughInAssembly,
   createDefaultPlumbingSystem,
   defaultPipeScheduleForMaterial,
   defaultStockLengthForPipe,
@@ -13,10 +17,13 @@ import {
   formatPlumbingRunLabel,
   normalizePlumbingSystem,
   validatePlumbingSystem,
+  type PlumbingNode,
+  type PlumbingRun,
 } from '../plumbing';
 import { buildPlumbingFixtureSchedule } from '../plumbing/plumbingDefaults';
 import { createEmptyWallLayout } from '../domain/wallLayoutRules';
 import DesignBuilderPlanCanvas from '../ui/DesignBuilderPlanCanvas';
+import { hitTestPlumbingSystem } from '../plumbing/canvas2d/plumbingHitTesting';
 
 describe('Design Builder plumbing plan', () => {
   it('rotates fixture connection nodes with the placed fixture', () => {
@@ -67,6 +74,126 @@ describe('Design Builder plumbing plan', () => {
     expect(system.runs[0]!.path).toHaveLength(3);
     expect(system.runs[0]!.path[1]).toMatchObject({ x: 2, z: -1 });
     expect(formatPlumbingRunLabel(system.runs[0]!)).toBe('3" SS @ 0.25"/FT');
+  });
+
+  it('generates model-backed WC rough-ins and counts riser pipe and fittings in takeoff', () => {
+    const withFixture = addFixtureToPlumbingSystem({
+      system: createDefaultPlumbingSystem(),
+      fixtureType: 'toilet',
+      position: { x: 0, y: 0, z: 0 },
+      idSeed: 'rough-wc',
+    });
+    const mainNodes: PlumbingNode[] = [
+      { id: 'main-a', kind: 'building_drain_exit', system: 'sanitary', position: { x: -2, y: -0.4, z: 0.12 }, label: 'A' },
+      { id: 'main-b', kind: 'building_drain_exit', system: 'sanitary', position: { x: 2, y: -0.4, z: 0.12 }, label: 'B' },
+    ];
+    const mainRun: PlumbingRun = {
+      id: 'main-run',
+      system: 'sanitary',
+      startNodeId: 'main-a',
+      endNodeId: 'main-b',
+      path: [mainNodes[0]!.position, mainNodes[1]!.position],
+      diameterInches: 3,
+      material: 'pvc',
+      schedule: 'SCH 40',
+      stockLengthFt: 10,
+      stockLengthPreset: '10ft',
+      stockLengthKind: 'stick',
+      slopeInPerFt: 0.25,
+      elevationMode: 'under_slab',
+      labelVisible: true,
+    };
+    const result = createOrReplaceFixtureRoughInAssembly({
+      system: { ...withFixture, nodes: [...withFixture.nodes, ...mainNodes], runs: [mainRun] },
+      fixtureId: withFixture.fixtures[0]!.id,
+      mainRunId: mainRun.id,
+      tapPoint: { x: 0, y: -0.4, z: 0.12 },
+      segmentIndex: 1,
+    });
+
+    expect(result.roughIn).toBeTruthy();
+    expect(result.system.roughIns).toHaveLength(1);
+    expect(result.system.runs.some((run) => run.id === result.roughIn!.riserRunId && run.elevationMode === 'vertical')).toBe(true);
+    expect(result.system.fittings.some((fitting) => fitting.type === 'closet_flange')).toBe(true);
+    expect(result.system.fittings.some((fitting) => fitting.type === 'closet_bend')).toBe(true);
+    expect(generatePlumbingPipeTakeoff(result.system).some((row) => row.system === 'sanitary' && row.totalLengthFt > 0)).toBe(true);
+    expect(generatePlumbingFittingTakeoff(result.system).some((row) => row.type === 'closet_flange' && row.count === 1)).toBe(true);
+
+    const normalized = normalizePlumbingSystem(result.system);
+    expect(normalized.roughIns[0]).toMatchObject({
+      id: result.roughIn!.id,
+      riserRunId: result.roughIn!.riserRunId,
+      fittingIds: result.roughIn!.fittingIds,
+    });
+  });
+
+  it('generates lavatory and floor drain rough-in trap fittings', () => {
+    const withLav = addFixtureToPlumbingSystem({
+      system: createDefaultPlumbingSystem(),
+      fixtureType: 'lavatory',
+      position: { x: 0, y: 0, z: 0 },
+      idSeed: 'rough-lav',
+    });
+    const withDrain = addFixtureToPlumbingSystem({
+      system: withLav,
+      fixtureType: 'floor_drain',
+      position: { x: 1, y: 0, z: 0 },
+      idSeed: 'rough-fd',
+    });
+    const mainNodes: PlumbingNode[] = [
+      { id: 'main-a', kind: 'building_drain_exit', system: 'sanitary', position: { x: -2, y: -0.4, z: 0 }, label: 'A' },
+      { id: 'main-b', kind: 'building_drain_exit', system: 'sanitary', position: { x: 3, y: -0.4, z: 0 }, label: 'B' },
+    ];
+    const mainRun: PlumbingRun = {
+      id: 'main-run',
+      system: 'sanitary',
+      startNodeId: 'main-a',
+      endNodeId: 'main-b',
+      path: [mainNodes[0]!.position, mainNodes[1]!.position],
+      diameterInches: 3,
+      material: 'pvc',
+      schedule: 'SCH 40',
+      stockLengthFt: 10,
+      stockLengthPreset: '10ft',
+      stockLengthKind: 'stick',
+      slopeInPerFt: 0.25,
+      elevationMode: 'under_slab',
+      labelVisible: true,
+    };
+    const baseSystem = { ...withDrain, nodes: [...withDrain.nodes, ...mainNodes], runs: [mainRun] };
+    const lav = createOrReplaceFixtureRoughInAssembly({
+      system: baseSystem,
+      fixtureId: withDrain.fixtures[0]!.id,
+      mainRunId: mainRun.id,
+      tapPoint: { x: -0.5, y: -0.4, z: 0 },
+      segmentIndex: 1,
+    });
+    const lavTapFitting = lav.system.fittings.find((fitting) => fitting.id === lav.roughIn?.fittingIds[0]);
+    const lavWyeTakeoff = generatePlumbingFittingTakeoff(lav.system).find((row) => row.type === 'wye');
+    const drain = createOrReplaceFixtureRoughInAssembly({
+      system: lav.system,
+      fixtureId: withDrain.fixtures[1]!.id,
+      mainRunId: mainRun.id,
+      tapPoint: { x: 1.5, y: -0.4, z: 0 },
+      segmentIndex: 1,
+    });
+
+    expect(lavTapFitting).toMatchObject({
+      type: 'wye',
+      diameterInches: 3,
+      secondaryDiameterInches: 1.5,
+    });
+    expect(lavWyeTakeoff).toMatchObject({
+      type: 'wye',
+      diameterInches: 3,
+      secondaryDiameterInches: 1.5,
+      description: '3" x 3" x 1.5" sanitary wye',
+      count: 1,
+    });
+    expect(lav.system.fittings.some((fitting) => fitting.type === 'tee' || fitting.type === 'sanitary_tee')).toBe(false);
+    expect(drain.system.fittings.some((fitting) => fitting.type === 'p_trap')).toBe(true);
+    expect(drain.system.fittings.some((fitting) => fitting.type === 'trap_adapter')).toBe(true);
+    expect(drain.system.fittings.some((fitting) => fitting.type === 'floor_drain_body')).toBe(true);
   });
 
   it('applies and normalizes pipe schedule defaults by material', () => {
@@ -193,6 +320,92 @@ describe('Design Builder plumbing plan', () => {
 
     expect(system.fittings.some((fitting) => fitting.type === 'elbow_90_long_sweep' && fitting.isAutoGenerated)).toBe(true);
     expect(generatePlumbingFittingTakeoff(system).some((row) => row.type === 'elbow_90_long_sweep' && row.count === 1)).toBe(true);
+  });
+
+  it('auto-generates couplers from pipe stick length and counts them in fitting takeoff', () => {
+    const nodes: PlumbingNode[] = [
+      {
+        id: 'stick-start',
+        kind: 'fixture_connection',
+        system: 'sanitary',
+        position: { x: 0, y: -0.4, z: 0 },
+        label: 'Start',
+      },
+      {
+        id: 'stick-end',
+        kind: 'fixture_connection',
+        system: 'sanitary',
+        position: { x: 34 * 0.3048, y: -0.4, z: 0 },
+        label: 'End',
+      },
+    ];
+    const system = addRunToPlumbingSystem({
+      system: { ...createDefaultPlumbingSystem(), nodes },
+      systemType: 'sanitary',
+      startNodeId: 'stick-start',
+      endNodeId: 'stick-end',
+      diameterInches: 4,
+      material: 'pvc',
+      stockLengthFt: 10,
+      stockLengthPreset: 'custom',
+      stockLengthKind: 'stick',
+      slopeInPerFt: 0.125,
+    });
+    const run = system.runs[0]!;
+    const couplers = system.fittings.filter((fitting) => fitting.type === 'coupling');
+    const couplerNodeXs = system.nodes
+      .filter((node) => node.label === 'Pipe coupling')
+      .map((node) => node.position.x);
+
+    expect(couplers).toHaveLength(3);
+    expect(run.path).toHaveLength(2);
+    expect(couplerNodeXs[0]).toBeCloseTo(10 * 0.3048, 6);
+    expect(couplerNodeXs[1]).toBeCloseTo(20 * 0.3048, 6);
+    expect(couplerNodeXs[2]).toBeCloseTo(30 * 0.3048, 6);
+    expect(generatePlumbingFittingTakeoff(system).some((row) => row.type === 'coupling' && row.count === 3)).toBe(true);
+  });
+
+  it('moves near-end couplers back so the final pipe piece is at least four inches', () => {
+    const runLengthFt = 10 + 2 / 12;
+    const nodes: PlumbingNode[] = [
+      {
+        id: 'stub-start',
+        kind: 'fixture_connection',
+        system: 'sanitary',
+        position: { x: 0, y: -0.4, z: 0 },
+        label: 'Start',
+      },
+      {
+        id: 'stub-end',
+        kind: 'distribution_box',
+        system: 'sanitary',
+        position: { x: runLengthFt * 0.3048, y: -0.4, z: 0 },
+        label: 'D-Box',
+      },
+    ];
+    const system = addRunToPlumbingSystem({
+      system: { ...createDefaultPlumbingSystem(), nodes },
+      systemType: 'sanitary',
+      startNodeId: 'stub-start',
+      endNodeId: 'stub-end',
+      diameterInches: 4,
+      material: 'pvc',
+      stockLengthFt: 10,
+      stockLengthPreset: 'custom',
+      stockLengthKind: 'stick',
+      slopeInPerFt: 0.125,
+    });
+    const couplerNode = system.nodes.find((node) => node.label === 'Pipe coupling');
+    const takeoff = generatePlumbingPipeTakeoff(system).find((row) => row.material === 'pvc' && row.diameterInches === 4);
+    const fittingTakeoff = generatePlumbingFittingTakeoff(system).find((row) => row.type === 'coupling');
+
+    expect(system.fittings.filter((fitting) => fitting.type === 'coupling')).toHaveLength(1);
+    expect(couplerNode?.position.x).toBeCloseTo((9 + 10 / 12) * 0.3048, 6);
+    expect(takeoff?.stockCount).toBe(2);
+    expect(takeoff?.pipePieces).toHaveLength(2);
+    expect(takeoff?.pipePieces[0]?.lengthFt).toBeCloseTo(9 + 10 / 12, 4);
+    expect(takeoff?.pipePieces[1]?.lengthFt).toBeCloseTo(4 / 12, 4);
+    expect(fittingTakeoff?.count).toBe(1);
   });
 
   it('validates fitting compatibility and stock length values', () => {
@@ -364,6 +577,133 @@ describe('Design Builder plumbing plan', () => {
     ]));
   });
 
+  it('flags pipe through a plinth beam but allows below-grade CMU penetrations', () => {
+    const nodes: PlumbingNode[] = [
+      { id: 'a', kind: 'building_drain_exit', system: 'sanitary', position: { x: -1, y: 0.12, z: 0 }, label: 'A' },
+      { id: 'b', kind: 'building_drain_exit', system: 'sanitary', position: { x: 1, y: 0.12, z: 0 }, label: 'B' },
+      { id: 'c', kind: 'building_drain_exit', system: 'sanitary', position: { x: -1, y: -0.45, z: 0.4 }, label: 'C' },
+      { id: 'd', kind: 'building_drain_exit', system: 'sanitary', position: { x: 1, y: -0.45, z: 0.4 }, label: 'D' },
+    ];
+    const throughBeam: PlumbingRun = {
+      id: 'through-plinth',
+      system: 'sanitary',
+      startNodeId: 'a',
+      endNodeId: 'b',
+      path: [nodes[0]!.position, nodes[1]!.position],
+      diameterInches: 3,
+      material: 'pvc',
+      schedule: 'SCH 40',
+      stockLengthFt: 10,
+      stockLengthPreset: '10ft',
+      stockLengthKind: 'stick',
+      slopeInPerFt: 0.125,
+      elevationMode: 'user_defined',
+      labelVisible: true,
+    };
+    const belowGrade: PlumbingRun = {
+      ...throughBeam,
+      id: 'below-cmu',
+      startNodeId: 'c',
+      endNodeId: 'd',
+      path: [nodes[2]!.position, nodes[3]!.position],
+    };
+    const context = {
+      beams: [{
+        id: 'plinth-a',
+        startPoint: { x: -2, y: 0, z: 0 },
+        endPoint: { x: 2, y: 0, z: 0 },
+        widthMeters: 0.24,
+        kind: 'plinth_beam',
+        baseElevationMeters: 0,
+        topElevationMeters: 0.3,
+      }],
+    };
+
+    const throughIssues = validatePlumbingSystem({ ...createDefaultPlumbingSystem(), nodes, runs: [throughBeam] }, context);
+    const belowIssues = validatePlumbingSystem({ ...createDefaultPlumbingSystem(), nodes, runs: [belowGrade] }, context);
+
+    expect(throughIssues.map((issue) => issue.code)).toContain('pipe_crosses_plinth_beam');
+    expect(belowIssues.map((issue) => issue.code)).not.toContain('pipe_crosses_plinth_beam');
+  });
+
+  it('requires septic tank inlet routing through one distribution box line', () => {
+    const tank = createCmuSepticTank({ centerX: 8, centerZ: 0, idSeed: 'direct-septic' });
+    const septicNodes = createCmuSepticTankNodes(tank);
+    const inlet = septicNodes.find((node) => node.kind === 'septic_inlet')!;
+    const drainNode: PlumbingNode = {
+      id: 'building-drain',
+      kind: 'building_drain_exit',
+      system: 'sanitary',
+      position: { x: 0, y: inlet.position.y + 0.12, z: 0 },
+      label: 'Building drain',
+    };
+    const directRun: PlumbingRun = {
+      id: 'direct-to-septic',
+      system: 'sanitary',
+      startNodeId: drainNode.id,
+      endNodeId: inlet.id,
+      path: [drainNode.position, inlet.position],
+      diameterInches: 4,
+      material: 'pvc',
+      schedule: 'SCH 40',
+      stockLengthFt: 10,
+      stockLengthPreset: '10ft',
+      stockLengthKind: 'stick',
+      slopeInPerFt: 0.125,
+      elevationMode: 'under_slab',
+      labelVisible: true,
+    };
+    const directCodes = validatePlumbingSystem({
+      ...createDefaultPlumbingSystem(),
+      septicTanks: [tank],
+      nodes: [drainNode, ...septicNodes],
+      runs: [directRun],
+    }).map((issue) => issue.code);
+
+    const withDistributionBox = addCmuSepticTankToPlumbingSystem({
+      system: createDefaultPlumbingSystem(),
+      centerX: 8,
+      centerZ: 0,
+      idSeed: 'with-dbox',
+    }).system;
+    const dboxCodes = validatePlumbingSystem(withDistributionBox).map((issue) => issue.code);
+
+    expect(directCodes).toContain('septic_direct_connection_without_distribution_box');
+    expect(dboxCodes).toContain('distribution_box_missing_drain_inlet');
+    expect(dboxCodes).not.toEqual(expect.arrayContaining([
+      'septic_missing_distribution_box',
+      'septic_direct_connection_without_distribution_box',
+      'septic_multiple_inlet_lines',
+    ]));
+  });
+
+  it('validates a connected fixture drain path through the distribution box to septic', () => {
+    const base = createDefaultPlumbingSystem();
+    const upstreamNode: PlumbingNode = {
+      id: 'building-drain',
+      kind: 'building_drain_exit',
+      system: 'sanitary',
+      position: { x: 0, y: -0.4, z: 0 },
+      label: 'Building drain',
+    };
+    const withSeptic = addCmuSepticTankToPlumbingSystem({
+      system: { ...base, nodes: [upstreamNode] },
+      centerX: 8,
+      centerZ: 0,
+      idSeed: 'validated-dbox',
+    }).system;
+    const codes = validatePlumbingSystem(withSeptic).map((issue) => issue.code);
+
+    expect(codes).not.toEqual(expect.arrayContaining([
+      'distribution_box_missing_drain_inlet',
+      'distribution_box_missing_septic_outlet',
+      'septic_missing_distribution_box',
+      'septic_direct_connection_without_distribution_box',
+      'septic_multiple_inlet_lines',
+      'sanitary_drain_path_slope_below_ipc',
+    ]));
+  });
+
   it('renders plumbing walls as solid primary references and foundation as dashed gray overlay', () => {
     const layout = createEmptyWallLayout({
       nodes: [
@@ -426,6 +766,60 @@ describe('Design Builder plumbing plan', () => {
     expect(wall?.getAttribute('stroke-dasharray')).toBeNull();
     expect(foundation?.getAttribute('stroke')).toBe('#94a3b8');
     expect(foundation?.getAttribute('stroke-dasharray')).toBe('8 5');
+  });
+
+  it('renders and hit-tests 2D rough-in markers from model data', () => {
+    const withFixture = addFixtureToPlumbingSystem({
+      system: createDefaultPlumbingSystem(),
+      fixtureType: 'toilet',
+      position: { x: 0, y: 0, z: 0 },
+      idSeed: 'rough-marker',
+    });
+    const mainNodes: PlumbingNode[] = [
+      { id: 'main-a', kind: 'building_drain_exit', system: 'sanitary', position: { x: -2, y: -0.4, z: 0.12 }, label: 'A' },
+      { id: 'main-b', kind: 'building_drain_exit', system: 'sanitary', position: { x: 2, y: -0.4, z: 0.12 }, label: 'B' },
+    ];
+    const mainRun: PlumbingRun = {
+      id: 'main-run',
+      system: 'sanitary',
+      startNodeId: 'main-a',
+      endNodeId: 'main-b',
+      path: [mainNodes[0]!.position, mainNodes[1]!.position],
+      diameterInches: 3,
+      material: 'pvc',
+      schedule: 'SCH 40',
+      stockLengthFt: 10,
+      stockLengthPreset: '10ft',
+      stockLengthKind: 'stick',
+      slopeInPerFt: 0.25,
+      elevationMode: 'under_slab',
+      labelVisible: true,
+    };
+    const result = createOrReplaceFixtureRoughInAssembly({
+      system: { ...withFixture, nodes: [...withFixture.nodes, ...mainNodes], runs: [mainRun] },
+      fixtureId: withFixture.fixtures[0]!.id,
+      mainRunId: mainRun.id,
+      tapPoint: { x: 0, y: -0.4, z: 0.12 },
+      segmentIndex: 1,
+    });
+    const { container } = render(
+      <DesignBuilderPlanCanvas
+        layout={createEmptyWallLayout()}
+        toolMode="select"
+        active2DView="plumbing-plan"
+        viewport={{ centerX: 0, centerZ: 0, zoom: 100 }}
+        plumbingSystem={result.system}
+        onInteraction={() => undefined}
+      />,
+    );
+
+    expect(container.querySelector(`[data-plumbing-rough-in-id="${result.roughIn!.id}"]`)).toBeTruthy();
+    expect(container.querySelector(`[data-plumbing-run-id="${result.roughIn!.riserRunId}"]`)).toBeNull();
+    expect(hitTestPlumbingSystem({
+      system: result.system,
+      point: result.system.nodes.find((node) => node.id === result.roughIn!.riserTopNodeId)!.position,
+      toleranceMeters: 0.15,
+    })).toEqual({ kind: 'rough-in', id: result.roughIn!.id });
   });
 
   it('renders legacy plumbing systems without a fittings collection', () => {

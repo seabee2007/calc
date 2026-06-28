@@ -95,6 +95,7 @@ export type PlumbingPipeTakeoffRow = {
   totalLengthFt: number;
   stockCount: number;
   wasteFt: number;
+  pipePieces: PlumbingPipePieceTakeoff[];
 };
 
 export type PlumbingFittingTakeoffRow = {
@@ -104,7 +105,17 @@ export type PlumbingFittingTakeoffRow = {
   material: PlumbingMaterial;
   schedule?: PlumbingPipeSchedule;
   diameterInches: number | null;
+  secondaryDiameterInches?: number | null;
+  description: string;
   count: number;
+};
+
+export type PlumbingPipePieceTakeoff = {
+  material: PlumbingMaterial;
+  diameterInches: number | null;
+  lengthFt: number;
+  sourceRunId: string;
+  cutPiece: boolean;
 };
 
 function distanceMeters(a: PlumbingPoint3D, b: PlumbingPoint3D): number {
@@ -125,6 +136,66 @@ export function plumbingRunLengthFt(run: PlumbingRun): number {
   return plumbingRunLengthMeters(run) * 3.280839895;
 }
 
+function plumbingFittingDescription(fitting: PlumbingFitting): string {
+  const primary = formatPipeDiameter(fitting.diameterInches);
+  const secondary = formatPipeDiameter(fitting.secondaryDiameterInches);
+  const typeLabel = fitting.type === 'wye'
+    ? 'sanitary wye'
+    : fitting.type.replace(/_/g, ' ');
+  if (fitting.type === 'wye' && primary && secondary && secondary !== primary) {
+    return `${primary} x ${primary} x ${secondary} ${typeLabel}`;
+  }
+  if (primary) return `${primary} ${typeLabel}`;
+  return typeLabel;
+}
+
+function distanceAlongRunMeters(run: PlumbingRun, point: PlumbingPoint3D): number | null {
+  let traversed = 0;
+  for (let index = 1; index < run.path.length; index += 1) {
+    const previous = run.path[index - 1];
+    const current = run.path[index];
+    if (!previous || !current) continue;
+    const segmentLength = distanceMeters(previous, current);
+    if (segmentLength <= 0.0001) continue;
+    const candidateLength = distanceMeters(previous, point) + distanceMeters(point, current);
+    if (Math.abs(candidateLength - segmentLength) <= 0.02) {
+      return traversed + distanceMeters(previous, point);
+    }
+    traversed += segmentLength;
+  }
+  return null;
+}
+
+function solvedPipePiecesForRun(system: PlumbingSystem, run: PlumbingRun): PlumbingPipePieceTakeoff[] {
+  const totalLengthMeters = plumbingRunLengthMeters(run);
+  const couplerDistances = (system.fittings ?? [])
+    .filter((fitting) => fitting.type === 'coupling' && fitting.connectedRunIds.includes(run.id))
+    .map((fitting) => system.nodes.find((node) => node.id === fitting.nodeId)?.position)
+    .filter((point): point is PlumbingPoint3D => Boolean(point))
+    .map((point) => distanceAlongRunMeters(run, point))
+    .filter((distance): distance is number =>
+      distance != null &&
+      distance > 0.001 &&
+      distance < totalLengthMeters - 0.001)
+    .sort((a, b) => a - b)
+    .filter((distance, index, distances) => index === 0 || Math.abs(distance - distances[index - 1]!) > 0.001);
+  const cutPoints = [0, ...couplerDistances, totalLengthMeters];
+  const stockLengthFt = run.stockLengthFt > 0 ? run.stockLengthFt : 0;
+  const pieces: PlumbingPipePieceTakeoff[] = [];
+  for (let index = 1; index < cutPoints.length; index += 1) {
+    const lengthFt = (cutPoints[index]! - cutPoints[index - 1]!) * 3.280839895;
+    if (lengthFt <= 0.001) continue;
+    pieces.push({
+      material: run.material,
+      diameterInches: run.diameterInches,
+      lengthFt,
+      sourceRunId: run.id,
+      cutPiece: stockLengthFt > 0 && lengthFt < stockLengthFt - 0.001,
+    });
+  }
+  return pieces;
+}
+
 export function generatePlumbingPipeTakeoff(system: PlumbingSystem): PlumbingPipeTakeoffRow[] {
   const rows = new Map<string, PlumbingPipeTakeoffRow>();
   system.runs.forEach((run) => {
@@ -137,12 +208,14 @@ export function generatePlumbingPipeTakeoff(system: PlumbingSystem): PlumbingPip
       stockLengthFt,
       run.stockLengthKind,
     ].join('|');
-    const totalLengthFt = plumbingRunLengthFt(run);
+    const pipePieces = solvedPipePiecesForRun(system, run);
+    const totalLengthFt = pipePieces.reduce((total, piece) => total + piece.lengthFt, 0);
     const existing = rows.get(key);
     if (existing) {
       existing.totalLengthFt += totalLengthFt;
       existing.stockCount = stockLengthFt > 0 ? Math.ceil(existing.totalLengthFt / stockLengthFt) : 0;
       existing.wasteFt = existing.stockCount * stockLengthFt - existing.totalLengthFt;
+      existing.pipePieces.push(...pipePieces);
       return;
     }
     const stockCount = stockLengthFt > 0 ? Math.ceil(totalLengthFt / stockLengthFt) : 0;
@@ -158,6 +231,7 @@ export function generatePlumbingPipeTakeoff(system: PlumbingSystem): PlumbingPip
       totalLengthFt,
       stockCount,
       wasteFt: stockCount * stockLengthFt - totalLengthFt,
+      pipePieces,
     });
   });
   return [...rows.values()];
@@ -171,6 +245,7 @@ export function generatePlumbingFittingTakeoff(system: PlumbingSystem): Plumbing
       fitting.material,
       fitting.schedule ?? '',
       fitting.diameterInches ?? '',
+      fitting.secondaryDiameterInches ?? '',
       fitting.type,
     ].join('|');
     const existing = rows.get(key);
@@ -185,6 +260,8 @@ export function generatePlumbingFittingTakeoff(system: PlumbingSystem): Plumbing
       material: fitting.material,
       schedule: fitting.schedule,
       diameterInches: fitting.diameterInches,
+      secondaryDiameterInches: fitting.secondaryDiameterInches,
+      description: plumbingFittingDescription(fitting),
       count: 1,
     });
   });

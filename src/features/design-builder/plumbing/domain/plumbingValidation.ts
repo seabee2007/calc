@@ -1,7 +1,13 @@
 import { getPlumbingFixtureDefinition } from '../plumbingFixtureLibrary';
+import { requiredRoughInSystemsForFixture } from './plumbingFixtureRoughIns';
 import { SUPPORTED_PROCEDURAL_PLUMBING_FITTING_TYPES } from '../three/createProceduralPlumbingFittingMesh';
 import { SUPPORTED_PROCEDURAL_PLUMBING_FIXTURE_TYPES } from '../three/createProceduralPlumbingFixtureMesh';
 import { defaultPlumbingElevationDefaults } from '../three/plumbingElevationResolver';
+import {
+  IPC_2024_MIN_SEPTIC_SETBACK_FROM_BUILDING_M,
+  ipc2024MinimumDrainageSlopeInPerFt,
+} from './ipcDrainageSlope';
+import { septicTankFootprintPolygon } from '../septic/septicGeometry';
 import {
   isFittingAllowedForMaterial,
   isFittingAllowedForSystem,
@@ -10,6 +16,7 @@ import type {
   PlumbingMaterial,
   PlumbingPoint3D,
   PlumbingRun,
+  PlumbingRoughInSystem,
   PlumbingSystem,
   PlumbingValidationIssue,
 } from '../plumbingTypes';
@@ -27,6 +34,8 @@ export type PlumbingValidationContext = {
     endPoint: { x: number; z: number; y?: number };
     widthMeters: number;
     kind?: string;
+    baseElevationMeters?: number;
+    topElevationMeters?: number;
   }[];
   isolatedFootings?: readonly {
     id: string;
@@ -40,6 +49,7 @@ export type PlumbingValidationContext = {
     widthMeters: number;
     depthMeters: number;
   }[];
+  buildingFootprint?: readonly { x: number; z: number }[];
 };
 
 function issue(params: Omit<PlumbingValidationIssue, 'id'>): PlumbingValidationIssue {
@@ -101,6 +111,44 @@ function runSegments(run: PlumbingRun): Array<[PlumbingPoint3D, PlumbingPoint3D]
   return segments;
 }
 
+function effectiveRunPointY(run: PlumbingRun, point: PlumbingPoint3D): number {
+  if (
+    run.elevationMode === 'under_slab' &&
+    (!Number.isFinite(point.y) || point.y >= defaultPlumbingElevationDefaults.slabTopElevationM - 0.001)
+  ) {
+    return defaultPlumbingElevationDefaults.slabTopElevationM -
+      defaultPlumbingElevationDefaults.slabThicknessM -
+      defaultPlumbingElevationDefaults.sanitaryUnderSlabCoverM;
+  }
+  return Number.isFinite(point.y) ? point.y : defaultPlumbingElevationDefaults.waterInWallHeightM;
+}
+
+function runSegmentOverlapsElevation(
+  run: PlumbingRun,
+  a: PlumbingPoint3D,
+  b: PlumbingPoint3D,
+  bottom: number,
+  top: number,
+): boolean {
+  const y1 = effectiveRunPointY(run, a);
+  const y2 = effectiveRunPointY(run, b);
+  return Math.min(y1, y2) <= top && Math.max(y1, y2) >= bottom;
+}
+
+function segmentNearSegment(
+  a: { x: number; z: number },
+  b: { x: number; z: number },
+  c: { x: number; z: number },
+  d: { x: number; z: number },
+  tolerance: number,
+): boolean {
+  return segmentsIntersect(a, b, c, d) ||
+    distancePointToSegment(a, c, d) <= tolerance ||
+    distancePointToSegment(b, c, d) <= tolerance ||
+    distancePointToSegment(c, a, b) <= tolerance ||
+    distancePointToSegment(d, a, b) <= tolerance;
+}
+
 function runTouchesAnyNode(run: PlumbingRun, nodeIds: Set<string>): boolean {
   return nodeIds.has(run.startNodeId) || nodeIds.has(run.endNodeId);
 }
@@ -129,6 +177,43 @@ function requiresSchedule(material: PlumbingMaterial): boolean {
   return material === 'pvc' || material === 'abs' || material === 'cpvc' || material === 'cast_iron';
 }
 
+function polygonBounds(points: readonly { x: number; z: number }[]) {
+  return points.reduce(
+    (bounds, point) => ({
+      minX: Math.min(bounds.minX, point.x),
+      maxX: Math.max(bounds.maxX, point.x),
+      minZ: Math.min(bounds.minZ, point.z),
+      maxZ: Math.max(bounds.maxZ, point.z),
+    }),
+    { minX: Infinity, maxX: -Infinity, minZ: Infinity, maxZ: -Infinity },
+  );
+}
+
+function boundsDistance(a: ReturnType<typeof polygonBounds>, b: ReturnType<typeof polygonBounds>): number {
+  const dx = Math.max(0, Math.max(a.minX - b.maxX, b.minX - a.maxX));
+  const dz = Math.max(0, Math.max(a.minZ - b.maxZ, b.minZ - a.maxZ));
+  return Math.hypot(dx, dz);
+}
+
+function sanitaryRunReachesSeptic(system: PlumbingSystem, startRunId: string): boolean {
+  const septicNodeIds = new Set(system.nodes.filter((node) => node.kind === 'septic_inlet').map((node) => node.id));
+  if (septicNodeIds.size === 0) return false;
+  const startRun = system.runs.find((run) => run.id === startRunId);
+  if (!startRun || startRun.system !== 'sanitary') return false;
+  const queue = [startRun.endNodeId];
+  const visitedNodes = new Set<string>();
+  while (queue.length > 0) {
+    const nodeId = queue.shift()!;
+    if (septicNodeIds.has(nodeId)) return true;
+    if (visitedNodes.has(nodeId)) continue;
+    visitedNodes.add(nodeId);
+    system.runs
+      .filter((run) => run.system === 'sanitary' && run.startNodeId === nodeId)
+      .forEach((run) => queue.push(run.endNodeId));
+  }
+  return false;
+}
+
 export function validatePlumbingSystem(
   system: PlumbingSystem,
   context: PlumbingValidationContext = {},
@@ -136,15 +221,30 @@ export function validatePlumbingSystem(
   const issues: PlumbingValidationIssue[] = [];
   const nodeIds = new Set(system.nodes.map((node) => node.id));
   const runsByNodeId = new Map<string, PlumbingRun[]>();
+  const roughInsByFixtureSystem = new Map<string, string>();
   system.runs.forEach((run) => {
     if (!runsByNodeId.has(run.startNodeId)) runsByNodeId.set(run.startNodeId, []);
     if (!runsByNodeId.has(run.endNodeId)) runsByNodeId.set(run.endNodeId, []);
     runsByNodeId.get(run.startNodeId)?.push(run);
     runsByNodeId.get(run.endNodeId)?.push(run);
   });
+  (system.roughIns ?? []).forEach((roughIn) => {
+    roughInsByFixtureSystem.set(`${roughIn.fixtureId}|${roughIn.system}`, roughIn.id);
+  });
 
   system.fixtures.forEach((fixture) => {
     const definition = getPlumbingFixtureDefinition(fixture.fixtureType);
+    requiredRoughInSystemsForFixture(fixture).forEach((systemType) => {
+      if (!roughInsByFixtureSystem.has(`${fixture.id}|${systemType}`)) {
+        issues.push(issue({
+          severity: 'warning',
+          code: 'fixture_missing_required_rough_in',
+          objectKind: 'fixture',
+          objectId: fixture.id,
+          message: `${fixture.mark} is missing its ${systemType.replace('_', ' ')} rough-in assembly.`,
+        }));
+      }
+    });
     if (!SUPPORTED_PROCEDURAL_PLUMBING_FIXTURE_TYPES.has(fixture.fixtureType)) {
       issues.push(issue({
         severity: 'warning',
@@ -167,7 +267,10 @@ export function validatePlumbingSystem(
         }));
         return;
       }
-      if (!existingNodes.some((nodeId) => (runsByNodeId.get(nodeId) ?? []).some((run) => run.system === connection.system))) {
+      if (
+        !roughInsByFixtureSystem.has(`${fixture.id}|${connection.system}`) &&
+        !existingNodes.some((nodeId) => (runsByNodeId.get(nodeId) ?? []).some((run) => run.system === connection.system))
+      ) {
         issues.push(issue({
           severity: 'warning',
           code: 'fixture_missing_required_run',
@@ -177,6 +280,141 @@ export function validatePlumbingSystem(
         }));
       }
     });
+  });
+
+  (system.roughIns ?? []).forEach((roughIn) => {
+    const fixture = system.fixtures.find((item) => item.id === roughIn.fixtureId);
+    if (!fixture) {
+      issues.push(issue({
+        severity: 'error',
+        code: 'rough_in_missing_fixture',
+        objectKind: 'rough-in',
+        objectId: roughIn.id,
+        message: 'Rough-in assembly references a missing fixture.',
+      }));
+    }
+    if (!system.nodes.some((node) => node.id === roughIn.fixtureNodeId)) {
+      issues.push(issue({
+        severity: 'error',
+        code: 'rough_in_missing_fixture_node',
+        objectKind: 'rough-in',
+        objectId: roughIn.id,
+        message: 'Rough-in assembly references a missing fixture connection node.',
+      }));
+    }
+    const bottomNode = system.nodes.find((node) => node.id === roughIn.riserBottomNodeId);
+    const topNode = system.nodes.find((node) => node.id === roughIn.riserTopNodeId);
+    if (!bottomNode) {
+      issues.push(issue({
+        severity: 'error',
+        code: 'rough_in_missing_bottom_node',
+        objectKind: 'rough-in',
+        objectId: roughIn.id,
+        message: 'Rough-in riser is missing its bottom node.',
+      }));
+    }
+    if (!topNode) {
+      issues.push(issue({
+        severity: 'error',
+        code: 'rough_in_missing_top_node',
+        objectKind: 'rough-in',
+        objectId: roughIn.id,
+        message: 'Rough-in riser is missing its top node.',
+      }));
+    }
+    if (bottomNode && topNode && topNode.position.y <= bottomNode.position.y) {
+      issues.push(issue({
+        severity: 'warning',
+        code: 'rough_in_invalid_riser_height',
+        objectKind: 'rough-in',
+        objectId: roughIn.id,
+        message: 'Rough-in riser has zero or negative height.',
+      }));
+    }
+    const riserRun = system.runs.find((run) => run.id === roughIn.riserRunId);
+    const branchRun = roughIn.branchRunId ? system.runs.find((run) => run.id === roughIn.branchRunId) : null;
+    const roughInFittings = roughIn.fittingIds
+      .map((id) => (system.fittings ?? []).find((fitting) => fitting.id === id))
+      .filter((fitting): fitting is NonNullable<typeof fitting> => Boolean(fitting));
+    if (!riserRun || roughInFittings.length !== roughIn.fittingIds.length) {
+      issues.push(issue({
+        severity: 'warning',
+        code: 'rough_in_missing_takeoff_mapping',
+        objectKind: 'rough-in',
+        objectId: roughIn.id,
+        message: 'Rough-in assembly is missing takeoff-backed run or fitting records.',
+      }));
+    }
+    if (roughIn.system === 'sanitary' && (!branchRun || !roughIn.tapNodeId)) {
+      issues.push(issue({
+        severity: 'warning',
+        code: 'rough_in_disconnected_sanitary',
+        objectKind: 'rough-in',
+        objectId: roughIn.id,
+        message: 'Sanitary rough-in is not connected to a sloped branch and main tap.',
+      }));
+    }
+    if (roughIn.system === 'sanitary' && branchRun && !sanitaryRunReachesSeptic(system, branchRun.id)) {
+      issues.push(issue({
+        severity: 'warning',
+        code: 'sanitary_drain_path_missing_septic',
+        objectKind: 'rough-in',
+        objectId: roughIn.id,
+        message: 'Sanitary rough-in does not have a directed drain path from fixture to septic inlet.',
+      }));
+    }
+    if (
+      branchRun &&
+      roughIn.tapNodeId &&
+      !roughInFittings.some((fitting) =>
+        fitting.nodeId === roughIn.tapNodeId &&
+        fitting.connectedRunIds.includes(branchRun.id) &&
+        (fitting.type === 'wye' || fitting.type === 'combo_wye_45' || fitting.type === 'tee' || fitting.type === 'sanitary_tee'),
+      )
+    ) {
+      issues.push(issue({
+        severity: 'warning',
+        code: 'branch_missing_tap_fitting',
+        objectKind: 'rough-in',
+        objectId: roughIn.id,
+        message: 'Rough-in branch enters the main without a modeled tap fitting.',
+      }));
+    }
+    if (fixture?.fixtureType === 'toilet') {
+      if (!roughInFittings.some((fitting) => fitting.type === 'closet_flange')) {
+        issues.push(issue({
+          severity: 'warning',
+          code: 'wc_missing_closet_flange',
+          objectKind: 'rough-in',
+          objectId: roughIn.id,
+          message: 'WC rough-in is missing a closet flange.',
+        }));
+      }
+      if (!roughInFittings.some((fitting) => fitting.type === 'closet_bend')) {
+        issues.push(issue({
+          severity: 'warning',
+          code: 'wc_missing_closet_bend',
+          objectKind: 'rough-in',
+          objectId: roughIn.id,
+          message: 'WC rough-in is missing a closet bend.',
+        }));
+      }
+    }
+    const trapRequiredFixtureTypes = new Set(['lavatory', 'kitchen_sink', 'utility_sink', 'floor_drain', 'shower', 'tub', 'laundry_box']);
+    if (
+      roughIn.system === 'sanitary' &&
+      fixture &&
+      trapRequiredFixtureTypes.has(fixture.fixtureType) &&
+      !roughInFittings.some((fitting) => fitting.type === 'p_trap')
+    ) {
+      issues.push(issue({
+        severity: 'warning',
+        code: 'fixture_missing_trap',
+        objectKind: 'rough-in',
+        objectId: roughIn.id,
+        message: `${fixture.mark} rough-in is missing a trap.`,
+      }));
+    }
   });
 
   system.runs.forEach((run) => {
@@ -214,6 +452,21 @@ export function validatePlumbingSystem(
         objectKind: 'run',
         objectId: run.id,
         message: 'Sanitary run is missing slope.',
+      }));
+    }
+    if (
+      run.system === 'sanitary' &&
+      run.slopeInPerFt != null &&
+      Number.isFinite(run.slopeInPerFt) &&
+      run.slopeInPerFt > 0 &&
+      run.slopeInPerFt < ipc2024MinimumDrainageSlopeInPerFt(run.diameterInches)
+    ) {
+      issues.push(issue({
+        severity: 'warning',
+        code: 'sanitary_drain_path_slope_below_ipc',
+        objectKind: 'run',
+        objectId: run.id,
+        message: `Sanitary run slope is below the IPC 2024 minimum for ${run.diameterInches ?? 'unknown'} in. pipe.`,
       }));
     }
     if (run.system === 'sanitary' && run.slopeInPerFt != null && Number.isFinite(run.slopeInPerFt) && run.slopeInPerFt <= 0) {
@@ -437,7 +690,7 @@ export function validatePlumbingSystem(
       (node.fixtureId && system.fixtures.some((fixture) => fixture.id === node.fixtureId)) ||
       (node.equipmentId && system.equipment.some((equipment) => equipment.id === node.equipmentId)) ||
       (node.septicTankId && system.septicTanks.some((tank) => tank.id === node.septicTankId));
-    if (!owned && !['building_drain_exit', 'main_service', 'stack', 'cleanout', 'valve', 'fitting', 'wye'].includes(node.kind)) {
+    if (!owned && !['building_drain_exit', 'main_service', 'distribution_box', 'stack', 'cleanout', 'valve', 'fitting', 'wye'].includes(node.kind)) {
       issues.push(issue({
         severity: 'warning',
         code: 'orphan_node',
@@ -448,8 +701,119 @@ export function validatePlumbingSystem(
     }
   });
 
+  if (context.buildingFootprint && context.buildingFootprint.length > 0) {
+    const buildingBounds = polygonBounds(context.buildingFootprint);
+    system.septicTanks.forEach((tank) => {
+      const tankBounds = polygonBounds(septicTankFootprintPolygon(tank));
+      if (boundsDistance(tankBounds, buildingBounds) < IPC_2024_MIN_SEPTIC_SETBACK_FROM_BUILDING_M) {
+        issues.push(issue({
+          severity: 'warning',
+          code: 'septic_tank_too_close_to_building',
+          objectKind: 'septic-tank',
+          objectId: tank.id,
+          message: 'Septic tank is less than 10 ft from the building footprint.',
+        }));
+      }
+    });
+  }
+
+  system.septicTanks.forEach((tank) => {
+    const inletNodeId = tank.connectionNodes.inletNodeId;
+    const incomingRuns = system.runs.filter((run) => run.system === 'sanitary' && run.endNodeId === inletNodeId);
+    if (incomingRuns.length === 0) {
+      issues.push(issue({
+        severity: 'warning',
+        code: 'septic_missing_distribution_box',
+        objectKind: 'septic-tank',
+        objectId: tank.id,
+        message: 'Septic tank inlet is missing a distribution box connection.',
+      }));
+      return;
+    }
+    if (incomingRuns.length > 1) {
+      issues.push(issue({
+        severity: 'warning',
+        code: 'septic_multiple_inlet_lines',
+        objectKind: 'septic-tank',
+        objectId: tank.id,
+        message: 'Septic tank should have one modeled inlet line from the distribution box.',
+      }));
+    }
+    incomingRuns.forEach((run) => {
+      const startNode = system.nodes.find((node) => node.id === run.startNodeId);
+      if (startNode?.kind !== 'distribution_box') {
+        issues.push(issue({
+          severity: 'warning',
+          code: 'septic_direct_connection_without_distribution_box',
+          objectKind: 'run',
+          objectId: run.id,
+          message: 'Sanitary line enters septic tank directly; route it through a distribution box first.',
+        }));
+      }
+    });
+  });
+
+  system.nodes
+    .filter((node) => node.kind === 'distribution_box' && node.system === 'sanitary')
+    .forEach((node) => {
+      const incomingDrainRuns = system.runs.filter((run) =>
+        run.system === 'sanitary' &&
+        run.endNodeId === node.id &&
+        run.startNodeId !== node.id,
+      );
+      const outgoingSepticRuns = system.runs.filter((run) => {
+        if (run.system !== 'sanitary' || run.startNodeId !== node.id) return false;
+        const endNode = system.nodes.find((candidate) => candidate.id === run.endNodeId);
+        return endNode?.kind === 'septic_inlet';
+      });
+      if (incomingDrainRuns.length === 0) {
+        issues.push(issue({
+          severity: 'warning',
+          code: 'distribution_box_missing_drain_inlet',
+          objectKind: 'node',
+          objectId: node.id,
+          message: 'Distribution box is missing an incoming fixture/building drain line.',
+        }));
+      }
+      if (outgoingSepticRuns.length === 0) {
+        issues.push(issue({
+          severity: 'warning',
+          code: 'distribution_box_missing_septic_outlet',
+          objectKind: 'node',
+          objectId: node.id,
+          message: 'Distribution box is not connected to the septic inlet.',
+        }));
+      }
+    });
+
   system.runs.forEach((run) => {
     runSegments(run).forEach(([a, b]) => {
+      const plinthBeam = (context.beams ?? []).find((beam) =>
+        beam.kind === 'plinth_beam' &&
+        segmentNearSegment(
+          a,
+          b,
+          beam.startPoint,
+          beam.endPoint,
+          Math.max(0.05, beam.widthMeters / 2 + ((run.diameterInches ?? 3) * 0.0254 / 2)),
+        ) &&
+        runSegmentOverlapsElevation(
+          run,
+          a,
+          b,
+          beam.baseElevationMeters ?? Math.min(beam.startPoint.y ?? 0, beam.endPoint.y ?? 0),
+          beam.topElevationMeters ?? Math.max(beam.startPoint.y ?? 0, beam.endPoint.y ?? 0) + 0.3,
+        ),
+      );
+      if (plinthBeam) {
+        issues.push(issue({
+          severity: 'warning',
+          code: 'pipe_crosses_plinth_beam',
+          objectKind: 'run',
+          objectId: run.id,
+          message: 'Pipe run passes through the plinth beam; route it through below-grade CMU instead.',
+        }));
+      }
       const crossesColumn = (context.columns ?? []).find((column) =>
         segmentIntersectsRect(a, b, {
           minX: column.position.x - column.widthMeters / 2,
@@ -477,16 +841,28 @@ export function validatePlumbingSystem(
       );
       const crossesStrip =
         (context.wallFootings ?? []).find((footing) => distancePointToSegment(footing.startPoint, a, b) <= footing.widthMeters / 2 || distancePointToSegment(footing.endPoint, a, b) <= footing.widthMeters / 2) ||
-        (context.beams ?? []).find((beam) => distancePointToSegment(beam.startPoint, a, b) <= beam.widthMeters / 2 || distancePointToSegment(beam.endPoint, a, b) <= beam.widthMeters / 2);
+        (context.beams ?? []).find((beam) => {
+          if (beam.kind === 'plinth_beam' && !plinthBeam) return false;
+          return distancePointToSegment(beam.startPoint, a, b) <= beam.widthMeters / 2 ||
+            distancePointToSegment(beam.endPoint, a, b) <= beam.widthMeters / 2;
+        });
       if (crossesFooting || crossesStrip) {
-        issues.push(issue({
-          severity: 'warning',
-          code: 'pipe_crosses_foundation',
-          objectKind: 'run',
-          objectId: run.id,
-          message: 'Pipe run crosses a footing or beam coordination layer.',
-        }));
-        if (!hasSleeveFitting(system, run)) {
+        if (hasSleeveFitting(system, run)) {
+          issues.push(issue({
+            severity: 'info',
+            code: 'pipe_crosses_foundation_with_sleeve',
+            objectKind: 'run',
+            objectId: run.id,
+            message: 'Pipe run crosses a footing or beam with a modeled sleeve.',
+          }));
+        } else {
+          issues.push(issue({
+            severity: 'warning',
+            code: 'pipe_crosses_foundation',
+            objectKind: 'run',
+            objectId: run.id,
+            message: 'Pipe run crosses a footing or beam coordination layer.',
+          }));
           issues.push(issue({
             severity: 'warning',
             code: 'pipe_crosses_footing_without_sleeve',

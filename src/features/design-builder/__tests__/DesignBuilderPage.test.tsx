@@ -914,10 +914,141 @@ describe('DesignBuilderPage', () => {
       const wye = plumbingSystem.nodes.find((node) => node.kind === 'wye');
       expect(wye).toBeTruthy();
       expect(Math.hypot(wye!.position.x - branchTieIn.x, wye!.position.z - branchTieIn.z)).toBeLessThan(0.05);
-      expect(plumbingSystem.runs).toHaveLength(3);
-      expect(plumbingSystem.runs.some((run) => run.startNodeId === branchStart.id && run.endNodeId === wye?.id)).toBe(true);
+      expect(plumbingSystem.runs).toHaveLength(4);
+      expect(plumbingSystem.roughIns).toHaveLength(1);
+      expect(plumbingSystem.roughIns[0]).toMatchObject({ fixtureId: branchStart.fixtureId, tapNodeId: wye?.id });
+      expect(plumbingSystem.runs.some((run) => run.startNodeId === branchStart.id || run.endNodeId === branchStart.id)).toBe(false);
       expect(plumbingSystem.runs.filter((run) => run.startNodeId === wye?.id || run.endNodeId === wye?.id)).toHaveLength(3);
       expect(plumbingSystem.fittings.some((fitting) => fitting.type === 'wye' && fitting.nodeId === wye?.id)).toBe(true);
+      expect(plumbingSystem.fittings.some((fitting) => fitting.type === 'closet_bend')).toBe(true);
+    });
+  });
+
+  it('connects a selected fixture to a run with a model-backed rough-in assembly', async () => {
+    seedLoadedDesignBuilderTemplate();
+    render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
+    await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
+
+    fireEvent.click(screen.getByRole('button', { name: /switch to 2d view/i }));
+    fireEvent.click(screen.getByRole('button', { name: /switch to plumbing drawing/i }));
+
+    await act(async () => {
+      latestPlanProps().onPlumbingFixturePointer?.({ phase: 'commit', xMeters: 1, zMeters: 1 });
+      latestPlanProps().onPlumbingFixturePointer?.({ phase: 'commit', xMeters: 4, zMeters: 1 });
+    });
+    await waitFor(() => {
+      expect(useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']?.plumbingSystem.fixtures).toHaveLength(2);
+    });
+
+    let plumbingSystem = useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']!.plumbingSystem;
+    const sanitaryNodes = plumbingSystem.nodes.filter((node) => node.system === 'sanitary' && node.fixtureId);
+    fireEvent.click(screen.getByRole('button', { name: /^pipe$/i }));
+    await act(async () => {
+      latestPlanProps().onPlumbingPlanPointer?.({
+        phase: 'commit',
+        xMeters: sanitaryNodes[0]!.position.x,
+        zMeters: sanitaryNodes[0]!.position.z,
+      });
+    });
+    await act(async () => {
+      latestPlanProps().onPlumbingPlanPointer?.({
+        phase: 'commit',
+        xMeters: sanitaryNodes[1]!.position.x,
+        zMeters: sanitaryNodes[1]!.position.z,
+      });
+    });
+    await waitFor(() => {
+      expect(useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']?.plumbingSystem.runs).toHaveLength(1);
+    });
+
+    plumbingSystem = useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']!.plumbingSystem;
+    await act(async () => {
+      latestPlanProps().onPlumbingSelect?.({ kind: 'fixture', id: plumbingSystem.fixtures[0]!.id });
+    });
+    fireEvent.click(screen.getByRole('button', { name: /^Connect Fixture$/i }));
+
+    const run = plumbingSystem.runs[0]!;
+    const midpoint = {
+      x: (run.path[0]!.x + run.path[1]!.x) / 2,
+      z: (run.path[0]!.z + run.path[1]!.z) / 2,
+    };
+    await act(async () => {
+      latestPlanProps().onPlumbingPlanPointer?.({ phase: 'commit', xMeters: midpoint.x, zMeters: midpoint.z });
+    });
+
+    await waitFor(() => {
+      const next = useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']!.plumbingSystem;
+      expect(next.roughIns).toHaveLength(1);
+      expect(next.runs.some((item) => item.id === next.roughIns[0]!.riserRunId && item.elevationMode === 'vertical')).toBe(true);
+      expect(next.fittings.some((item) => item.type === 'closet_flange')).toBe(true);
+    });
+  });
+
+  it('auto-generates a WC sweep and stub-up when drawing a sanitary pipe to a fixture', async () => {
+    seedLoadedDesignBuilderTemplate();
+    render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
+    await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
+
+    fireEvent.click(screen.getByRole('button', { name: /switch to 2d view/i }));
+    fireEvent.click(screen.getByRole('button', { name: /switch to plumbing drawing/i }));
+
+    await act(async () => {
+      latestPlanProps().onPlumbingFixturePointer?.({ phase: 'commit', xMeters: 1, zMeters: 1 });
+      latestPlanProps().onPlumbingFixturePointer?.({ phase: 'commit', xMeters: 4, zMeters: 1 });
+      latestPlanProps().onPlumbingFixturePointer?.({ phase: 'commit', xMeters: 2.5, zMeters: 2.2 });
+    });
+    await waitFor(() => {
+      expect(useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']?.plumbingSystem.fixtures).toHaveLength(3);
+    });
+
+    let plumbingSystem = useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']!.plumbingSystem;
+    const sanitaryNodes = plumbingSystem.nodes.filter((node) => node.system === 'sanitary' && node.fixtureId);
+    fireEvent.click(screen.getByRole('button', { name: /^pipe$/i }));
+    await act(async () => {
+      latestPlanProps().onPlumbingPlanPointer?.({
+        phase: 'commit',
+        xMeters: sanitaryNodes[0]!.position.x,
+        zMeters: sanitaryNodes[0]!.position.z,
+      });
+    });
+    await act(async () => {
+      latestPlanProps().onPlumbingPlanPointer?.({
+        phase: 'commit',
+        xMeters: sanitaryNodes[1]!.position.x,
+        zMeters: sanitaryNodes[1]!.position.z,
+      });
+    });
+    await waitFor(() => {
+      expect(useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']?.plumbingSystem.runs).toHaveLength(1);
+    });
+
+    plumbingSystem = useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']!.plumbingSystem;
+    const mainRun = plumbingSystem.runs[0]!;
+    const fixtureNode = sanitaryNodes[2]!;
+    const midpoint = {
+      x: (mainRun.path[0]!.x + mainRun.path[1]!.x) / 2,
+      z: (mainRun.path[0]!.z + mainRun.path[1]!.z) / 2,
+    };
+    await act(async () => {
+      latestPlanProps().onPlumbingPlanPointer?.({ phase: 'commit', xMeters: midpoint.x, zMeters: midpoint.z });
+    });
+    await act(async () => {
+      latestPlanProps().onPlumbingPlanPointer?.({
+        phase: 'commit',
+        xMeters: fixtureNode.position.x,
+        zMeters: fixtureNode.position.z,
+      });
+    });
+
+    await waitFor(() => {
+      const next = useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']!.plumbingSystem;
+      expect(next.roughIns).toHaveLength(1);
+      const roughIn = next.roughIns[0]!;
+      expect(roughIn.fixtureId).toBe(fixtureNode.fixtureId);
+      expect(next.runs.some((item) => item.id === roughIn.riserRunId && item.elevationMode === 'vertical')).toBe(true);
+      expect(next.fittings.some((item) => item.type === 'closet_bend' && roughIn.fittingIds.includes(item.id))).toBe(true);
+      expect(next.fittings.some((item) => item.type === 'closet_flange' && roughIn.fittingIds.includes(item.id))).toBe(true);
+      expect(next.runs.some((run) => run.startNodeId === fixtureNode.id || run.endNodeId === fixtureNode.id)).toBe(false);
     });
   });
 

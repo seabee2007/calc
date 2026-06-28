@@ -7,6 +7,7 @@ import {
   createCylinderMesh,
   createSphereMesh,
   markPlumbingObject3D,
+  placeObjectBaseAtY,
   type Plumbing3DValidationIssue,
   type TrackGeometry,
 } from './plumbingThreeUtils';
@@ -24,6 +25,20 @@ export const SUPPORTED_PROCEDURAL_PLUMBING_FIXTURE_TYPES = new Set<PlumbingFixtu
   'utility_sink',
   'water_heater',
 ]);
+
+const FLOOR_MOUNTED_PROCEDURAL_PLUMBING_FIXTURE_TYPES = new Set<PlumbingFixtureType>([
+  'toilet',
+  'lavatory',
+  'shower',
+  'tub',
+  'floor_drain',
+  'utility_sink',
+  'water_heater',
+]);
+
+export function isFloorMountedPlumbingFixtureType(type: PlumbingFixtureType): boolean {
+  return FLOOR_MOUNTED_PROCEDURAL_PLUMBING_FIXTURE_TYPES.has(type);
+}
 
 function material(params: { selected?: boolean; materials: PlumbingThreeMaterials }, accent = false): THREE.Material {
   if (params.selected) return params.materials.selected;
@@ -105,6 +120,8 @@ function addWaterHeater(group: THREE.Group, materials: PlumbingThreeMaterials, s
 export function createProceduralPlumbingFixtureMesh(params: {
   fixture: PlumbingFixture;
   position: { x: number; y: number; z: number };
+  finishedFloorY?: number;
+  baseClearanceM?: number;
   materials: PlumbingThreeMaterials;
   selected?: boolean;
   trackGeometry?: TrackGeometry;
@@ -145,6 +162,17 @@ export function createProceduralPlumbingFixtureMesh(params: {
     addUtilitySink(group, params.materials, params.selected, params.trackGeometry);
   } else if (params.fixture.fixtureType === 'water_heater') {
     addWaterHeater(group, params.materials, params.selected, params.trackGeometry);
+  }
+
+  if (isFloorMountedPlumbingFixtureType(params.fixture.fixtureType)) {
+    const alignment = placeObjectBaseAtY(
+      group,
+      Number.isFinite(params.finishedFloorY) ? params.finishedFloorY! : params.position.y,
+      params.baseClearanceM ?? 0.01,
+    );
+    if (alignment) {
+      group.userData.fixtureBaseAlignment = alignment;
+    }
   }
 
   markPlumbingObject3D({

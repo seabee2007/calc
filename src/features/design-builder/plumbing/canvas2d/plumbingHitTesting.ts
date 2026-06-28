@@ -15,6 +15,13 @@ export function hitTestPlumbingSystem(params: {
   toleranceMeters: number;
 }): PlumbingSelection {
   const { system, point, toleranceMeters } = params;
+  for (const roughIn of [...(system.roughIns ?? [])].reverse()) {
+    const node = system.nodes.find((candidate) => candidate.id === roughIn.riserTopNodeId)
+      ?? system.nodes.find((candidate) => candidate.id === roughIn.fixtureNodeId);
+    if (node && Math.hypot(node.position.x - point.x, node.position.z - point.z) <= toleranceMeters * 1.4) {
+      return { kind: 'rough-in', id: roughIn.id };
+    }
+  }
   for (const fitting of [...(system.fittings ?? [])].reverse()) {
     const node = system.nodes.find((candidate) => candidate.id === fitting.nodeId);
     if (node && Math.hypot(node.position.x - point.x, node.position.z - point.z) <= toleranceMeters * 1.5) {

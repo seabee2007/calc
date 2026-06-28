@@ -7,13 +7,19 @@ export type PlumbingThreeMaterials = {
   hotWater: THREE.MeshStandardMaterial;
   sanitary: THREE.MeshStandardMaterial;
   vent: THREE.MeshStandardMaterial;
+  coldWaterFitting: THREE.MeshStandardMaterial;
+  hotWaterFitting: THREE.MeshStandardMaterial;
+  sanitaryFitting: THREE.MeshStandardMaterial;
+  ventFitting: THREE.MeshStandardMaterial;
   fixture: THREE.MeshStandardMaterial;
   fixtureAccent: THREE.MeshStandardMaterial;
   equipment: THREE.MeshStandardMaterial;
   fitting: THREE.MeshStandardMaterial;
+  fittingBand: THREE.MeshStandardMaterial;
   sleeve: THREE.MeshStandardMaterial;
   warning: THREE.MeshStandardMaterial;
   selected: THREE.MeshStandardMaterial;
+  centerline: THREE.LineBasicMaterial;
   label: THREE.SpriteMaterial;
 };
 
@@ -37,10 +43,15 @@ export function createPlumbingThreeMaterials(
     hotWater: standardMaterial(trackMaterial, { color: 0xea580c }),
     sanitary: standardMaterial(trackMaterial, { color: 0x111827 }),
     vent: standardMaterial(trackMaterial, { color: 0x7c3aed }),
+    coldWaterFitting: standardMaterial(trackMaterial, { color: 0x38bdf8 }),
+    hotWaterFitting: standardMaterial(trackMaterial, { color: 0xf87171 }),
+    sanitaryFitting: standardMaterial(trackMaterial, { color: 0x334155 }),
+    ventFitting: standardMaterial(trackMaterial, { color: 0x8b5cf6 }),
     fixture: standardMaterial(trackMaterial, { color: 0xf8fafc }),
     fixtureAccent: standardMaterial(trackMaterial, { color: 0x94a3b8 }),
     equipment: standardMaterial(trackMaterial, { color: 0x334155 }),
     fitting: standardMaterial(trackMaterial, { color: 0x0f172a }),
+    fittingBand: standardMaterial(trackMaterial, { color: 0xe2e8f0 }),
     sleeve: standardMaterial(trackMaterial, {
       color: 0x38bdf8,
       transparent: true,
@@ -50,6 +61,8 @@ export function createPlumbingThreeMaterials(
       color: 0xf59e0b,
       emissive: 0x7c2d12,
       emissiveIntensity: 0.15,
+      transparent: true,
+      opacity: 0.78,
     }),
     selected: standardMaterial(trackMaterial, {
       color: 0x22d3ee,
@@ -58,6 +71,19 @@ export function createPlumbingThreeMaterials(
       transparent: true,
       opacity: 0.94,
     }),
+    centerline: trackMaterial?.(
+      new THREE.LineBasicMaterial({
+        color: 0xf8fafc,
+        transparent: true,
+        opacity: 0.72,
+        depthWrite: false,
+      }),
+    ) ?? new THREE.LineBasicMaterial({
+      color: 0xf8fafc,
+      transparent: true,
+      opacity: 0.72,
+      depthWrite: false,
+    }),
     label: trackMaterial?.(
       new THREE.SpriteMaterial({
         transparent: true,
@@ -65,6 +91,24 @@ export function createPlumbingThreeMaterials(
       }),
     ) ?? new THREE.SpriteMaterial({ transparent: true, depthWrite: false }),
   };
+}
+
+export function materialForPlumbingFittingSystem(
+  system: PlumbingRunSystem | 'multi',
+  materials: PlumbingThreeMaterials,
+): THREE.Material {
+  switch (system) {
+    case 'cold_water':
+      return materials.coldWaterFitting;
+    case 'hot_water':
+      return materials.hotWaterFitting;
+    case 'sanitary':
+      return materials.sanitaryFitting;
+    case 'vent':
+      return materials.ventFitting;
+    default:
+      return materials.fitting;
+  }
 }
 
 export function materialForPlumbingRunSystem(

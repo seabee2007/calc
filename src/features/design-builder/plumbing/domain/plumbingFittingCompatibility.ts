@@ -50,6 +50,8 @@ export const PLUMBING_FITTING_DEFINITIONS: PlumbingFittingDefinition[] = [
   { type: 'trap_arm', label: 'Trap Arm', use: 'trap', systems: ['sanitary'], materials: RIGID_DWV_MATERIALS },
   { type: 'closet_bend', label: 'Closet Bend', use: 'fixture_connection', systems: ['sanitary'], materials: RIGID_DWV_MATERIALS },
   { type: 'closet_flange', label: 'Closet Flange', use: 'fixture_connection', systems: ['sanitary'], materials: RIGID_DWV_MATERIALS },
+  { type: 'floor_drain_body', label: 'Floor Drain Body', use: 'fixture_connection', systems: ['sanitary'], materials: RIGID_DWV_MATERIALS },
+  { type: 'tub_drain', label: 'Tub Drain', use: 'fixture_connection', systems: ['sanitary'], materials: RIGID_DWV_MATERIALS },
   { type: 'test_tee', label: 'Test Tee', use: 'cleanout', systems: ['sanitary'], materials: RIGID_DWV_MATERIALS },
   { type: 'cleanout_tee', label: 'Cleanout Tee', use: 'cleanout', systems: ['sanitary'], materials: RIGID_DWV_MATERIALS },
   { type: 'floor_cleanout', label: 'Floor Cleanout', use: 'cleanout', systems: ['sanitary'], materials: RIGID_DWV_MATERIALS },
@@ -112,4 +114,3 @@ export function commonFittingsForPipe(params: {
     .map((type) => allowed.find((definition) => definition.type === type))
     .filter((definition): definition is PlumbingFittingDefinition => Boolean(definition));
 }
-

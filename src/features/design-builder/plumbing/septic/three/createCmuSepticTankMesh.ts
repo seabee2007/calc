@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { septicOuterDimensions, sideLocalPoint } from '../septicGeometry';
+import { septicTankInletInvertElevation, septicTankOutletInvertElevation } from '../createCmuSepticTank';
 import type { SepticTankModel } from '../septicTypes';
 
 export type CmuSepticTankMeshOptions = {
@@ -90,10 +91,12 @@ export function createCmuSepticTankMesh(
 
   const inletLocal = sideLocalPoint(tank, tank.inletSide);
   const outletLocal = sideLocalPoint(tank, tank.outletSide);
-  group.add(cylinderBetween(options, 'inlet pipe stub', new THREE.Vector3(inletLocal.x - 0.35, wallCenterY + 0.25, inletLocal.z), new THREE.Vector3(inletLocal.x + 0.08, wallCenterY + 0.25, inletLocal.z), g.inletPipeDiameterM / 2, pipe));
-  group.add(cylinderBetween(options, 'outlet pipe stub', new THREE.Vector3(outletLocal.x - 0.08, wallCenterY + 0.17, outletLocal.z), new THREE.Vector3(outletLocal.x + 0.35, wallCenterY + 0.17, outletLocal.z), g.outletPipeDiameterM / 2, pipe));
-  group.add(cylinderBetween(options, 'inlet tee', new THREE.Vector3(inletLocal.x + 0.08, wallCenterY + 0.6, inletLocal.z), new THREE.Vector3(inletLocal.x + 0.08, wallCenterY - 0.25, inletLocal.z), g.inletPipeDiameterM / 2, pipe));
-  group.add(cylinderBetween(options, 'outlet tee', new THREE.Vector3(outletLocal.x - 0.08, wallCenterY + 0.52, outletLocal.z), new THREE.Vector3(outletLocal.x - 0.08, wallCenterY - 0.25, outletLocal.z), g.outletPipeDiameterM / 2, pipe));
+  const inletInvertY = septicTankInletInvertElevation(tank);
+  const outletInvertY = septicTankOutletInvertElevation(tank);
+  group.add(cylinderBetween(options, 'inlet pipe stub', new THREE.Vector3(inletLocal.x - 0.35, inletInvertY, inletLocal.z), new THREE.Vector3(inletLocal.x + 0.08, inletInvertY, inletLocal.z), g.inletPipeDiameterM / 2, pipe));
+  group.add(cylinderBetween(options, 'outlet pipe stub', new THREE.Vector3(outletLocal.x - 0.08, outletInvertY, outletLocal.z), new THREE.Vector3(outletLocal.x + 0.35, outletInvertY, outletLocal.z), g.outletPipeDiameterM / 2, pipe));
+  group.add(cylinderBetween(options, 'inlet tee', new THREE.Vector3(inletLocal.x + 0.08, inletInvertY + 0.35, inletLocal.z), new THREE.Vector3(inletLocal.x + 0.08, inletInvertY - 0.5, inletLocal.z), g.inletPipeDiameterM / 2, pipe));
+  group.add(cylinderBetween(options, 'outlet tee', new THREE.Vector3(outletLocal.x - 0.08, outletInvertY + 0.35, outletLocal.z), new THREE.Vector3(outletLocal.x - 0.08, outletInvertY - 0.5, outletLocal.z), g.outletPipeDiameterM / 2, pipe));
 
   if (tank.showCutaway3d) {
     group.add(box(options, 'liquid level plane', [g.insideLengthM, 0.012, g.insideWidthM], [0, topY - g.topSlabThicknessM - g.freeboardM, 0], liquid));

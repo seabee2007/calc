@@ -4,7 +4,9 @@ import type { ResolvedPlumbingRunPath } from './plumbingElevationResolver';
 import {
   createCylinderBetween,
   diameterInchesToVisualRadiusMeters,
+  fittingSocketLengthMeters,
   markPlumbingObject3D,
+  trimRunPathForFittings,
   vectorFromPoint,
   type TrackGeometry,
 } from './plumbingThreeUtils';
@@ -19,6 +21,9 @@ export function createPipeTubeMesh(params: {
   materials: PlumbingThreeMaterials;
   selected?: boolean;
   trackGeometry?: TrackGeometry;
+  fittingCenters?: THREE.Vector3[];
+  penetrationTargets?: THREE.Vector3[];
+  showCenterline?: boolean;
 }): THREE.Group {
   const group = new THREE.Group();
   group.name = `plumbing_run:${params.run.id}`;
@@ -32,20 +37,48 @@ export function createPipeTubeMesh(params: {
       ? params.materials.warning
       : materialForPlumbingRunSystem(params.run.system, params.materials);
 
-  for (let index = 1; index < params.resolvedPath.points.length; index += 1) {
-    const start = params.resolvedPath.points[index - 1];
-    const end = params.resolvedPath.points[index];
+  const centerlinePoints = params.resolvedPath.points.map(vectorFromPoint);
+  const visibleSegmentPoints = trimRunPathForFittings(
+    centerlinePoints,
+    [],
+    fittingSocketLengthMeters(params.run.diameterInches),
+    params.fittingCenters ?? [],
+  );
+  const pipePenetration = radius * 0.7;
+
+  function shouldPenetrate(point: THREE.Vector3): boolean {
+    return (params.penetrationTargets ?? []).some((target) => target.distanceTo(point) <= Math.max(radius * 1.5, 0.055));
+  }
+
+  for (let index = 1; index < visibleSegmentPoints.length; index += 2) {
+    const start = visibleSegmentPoints[index - 1]?.clone();
+    const end = visibleSegmentPoints[index]?.clone();
     if (!start || !end) continue;
+    const direction = end.clone().sub(start);
+    if (direction.lengthSq() > 0.000001) {
+      direction.normalize();
+      if (shouldPenetrate(start)) start.addScaledVector(direction, -pipePenetration);
+      if (shouldPenetrate(end)) end.addScaledVector(direction, pipePenetration);
+    }
     const mesh = createCylinderBetween({
-      name: `pipe segment ${index}`,
-      start: vectorFromPoint(start),
-      end: vectorFromPoint(end),
+      name: `pipe segment ${(index + 1) / 2}`,
+      start,
+      end,
       radius,
       material,
       trackGeometry: params.trackGeometry,
       radialSegments: 12,
     });
     if (mesh) group.add(mesh);
+  }
+
+  if (params.showCenterline && centerlinePoints.length > 1) {
+    const geometry = params.trackGeometry?.(
+      new THREE.BufferGeometry().setFromPoints(centerlinePoints),
+    ) ?? new THREE.BufferGeometry().setFromPoints(centerlinePoints);
+    const centerline = new THREE.Line(geometry, params.materials.centerline);
+    centerline.name = 'plumbing run centerline';
+    group.add(centerline);
   }
 
   if (group.children.length === 0) {

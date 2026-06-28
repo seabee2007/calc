@@ -1,4 +1,5 @@
 import type { PlumbingNode } from '../plumbingTypes';
+import { IPC_2024_MIN_SEPTIC_SETBACK_FROM_BUILDING_M } from '../domain/ipcDrainageSlope';
 import { calculateSepticCapacity } from './septicCapacity';
 import { pointInsideSepticTankFootprint, septicTankFootprintPolygon } from './septicGeometry';
 import type { SepticPoint2D } from './septicGeometry';
@@ -141,11 +142,11 @@ export function validateSepticTank(
         message: 'Septic tank overlaps the building footprint.',
         ruleSource: 'coordination',
       });
-    } else if (boundsDistance(tankBounds, buildingBounds) < 1.5) {
+    } else if (boundsDistance(tankBounds, buildingBounds) < IPC_2024_MIN_SEPTIC_SETBACK_FROM_BUILDING_M) {
       push({
         severity: 'warning',
         code: 'tank_too_close_to_building_footprint',
-        message: 'Septic tank is close to the building footprint; verify setbacks.',
+        message: 'Septic tank is less than 10 ft / 3.048 m from the building footprint.',
         ruleSource: 'coordination',
       });
     }
@@ -165,4 +166,3 @@ export function validateSepticTank(
   });
   return issues;
 }
-

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import type { PlumbingSelection, PlumbingSystem } from '../plumbingTypes';
 import { createCmuSepticTankMesh } from '../septic/three/createCmuSepticTankMesh';
 import { createPipeTubeMesh } from './createPipeTubeMesh';
+import { createPlumbingRiserMesh } from './createPlumbingRiserMesh';
 import { createProceduralPlumbingEquipmentMesh } from './createProceduralPlumbingEquipmentMesh';
 import { createProceduralPlumbingFittingMesh } from './createProceduralPlumbingFittingMesh';
 import { createProceduralPlumbingFixtureMesh } from './createProceduralPlumbingFixtureMesh';
@@ -12,6 +13,7 @@ import {
   resolvePlumbingFixturePosition,
   resolvePlumbingRunPath,
   type PlumbingElevationDefaults,
+  type ResolvedPlumbingRunPath,
 } from './plumbingElevationResolver';
 import {
   createPlumbingThreeMaterials,
@@ -25,6 +27,7 @@ import {
 } from './plumbingThreeLabels';
 import {
   DEFAULT_PLUMBING_3D_VISIBILITY,
+  alignObjectPortToWorldPoint,
   equipmentVisible,
   fittingVisible,
   fixtureVisible,
@@ -32,6 +35,8 @@ import {
   normalizePlumbing3DVisibility,
   runVisible,
   selectionMatchesPlumbingObject,
+  vectorFromPoint,
+  type ConnectorPort,
   type Plumbing3DValidationIssue,
   type Plumbing3DVisibility,
   type TrackGeometry,
@@ -91,6 +96,69 @@ function addLabelToGroup(params: {
   }));
 }
 
+function fittingCentersForRun(params: {
+  plumbingSystem: PlumbingSystem;
+  resolvedRunPaths: readonly ResolvedPlumbingRunPath[];
+  runId: string;
+  elevationDefaults: PlumbingElevationDefaults;
+}): THREE.Vector3[] {
+  return (params.plumbingSystem.fittings ?? [])
+    .filter((fitting) => fitting.connectedRunIds.includes(params.runId))
+    .map((fitting) => resolvePlumbingFittingPosition({
+      system: params.plumbingSystem,
+      fitting,
+      defaults: params.elevationDefaults,
+      resolvedRunPaths: params.resolvedRunPaths,
+    }).position)
+    .map((position) => new THREE.Vector3(position.x, position.y, position.z));
+}
+
+function equipmentConnectionPointForRun(params: {
+  plumbingSystem: PlumbingSystem;
+  resolvedRunPath: ResolvedPlumbingRunPath;
+  runId: string;
+}): THREE.Vector3[] {
+  const run = params.plumbingSystem.runs.find((candidate) => candidate.id === params.runId);
+  if (!run) return [];
+  const equipmentNodeIds = new Set(
+    params.plumbingSystem.equipment
+      .filter((equipment) =>
+        equipment.equipmentType === 'distribution_box' ||
+        equipment.equipmentType === 'building_drain_exit' ||
+        equipment.equipmentType === 'cleanout')
+      .flatMap((equipment) => equipment.connectionNodeIds),
+  );
+  const points: THREE.Vector3[] = [];
+  if (equipmentNodeIds.has(run.startNodeId) && params.resolvedRunPath.points[0]) {
+    points.push(vectorFromPoint(params.resolvedRunPath.points[0]));
+  }
+  if (equipmentNodeIds.has(run.endNodeId) && params.resolvedRunPath.points[params.resolvedRunPath.points.length - 1]) {
+    points.push(vectorFromPoint(params.resolvedRunPath.points[params.resolvedRunPath.points.length - 1]!));
+  }
+  return points;
+}
+
+function resolvedPipeConnectionPointForEquipment(params: {
+  plumbingSystem: PlumbingSystem;
+  equipmentNodeIds: readonly string[];
+  resolvedRunPaths: readonly ResolvedPlumbingRunPath[];
+}): THREE.Vector3 | null {
+  const nodeIds = new Set(params.equipmentNodeIds);
+  const incoming = params.plumbingSystem.runs.find((run) => run.system === 'sanitary' && nodeIds.has(run.endNodeId));
+  if (incoming) {
+    const path = params.resolvedRunPaths.find((candidate) => candidate.runId === incoming.id);
+    const point = path?.points[path.points.length - 1];
+    if (point) return vectorFromPoint(point);
+  }
+  const outgoing = params.plumbingSystem.runs.find((run) => run.system === 'sanitary' && nodeIds.has(run.startNodeId));
+  if (outgoing) {
+    const path = params.resolvedRunPaths.find((candidate) => candidate.runId === outgoing.id);
+    const point = path?.points[0];
+    if (point) return vectorFromPoint(point);
+  }
+  return null;
+}
+
 export function buildDesignBuilderViewerPlumbingScene(
   params: DesignBuilderViewerPlumbingSceneParams,
 ): DesignBuilderViewerPlumbingSceneResult {
@@ -109,10 +177,19 @@ export function buildDesignBuilderViewerPlumbingScene(
     return { group, selectableObjects, validationIssues };
   }
 
+  const riserRunIds = new Set((params.plumbingSystem.roughIns ?? []).map((roughIn) => roughIn.riserRunId));
+  const resolvedRunPaths = params.plumbingSystem.runs.map((run) => resolvePlumbingRunPath({
+    system: params.plumbingSystem,
+    run,
+    defaults: elevationDefaults,
+  }));
+  const resolvedRunPathById = new Map(resolvedRunPaths.map((path) => [path.runId, path]));
+
   params.plumbingSystem.runs.forEach((run) => {
+    if (riserRunIds.has(run.id)) return;
     if (!runVisible(run, visibility)) return;
     try {
-      const resolvedPath = resolvePlumbingRunPath({
+      const resolvedPath = resolvedRunPathById.get(run.id) ?? resolvePlumbingRunPath({
         system: params.plumbingSystem,
         run,
         defaults: elevationDefaults,
@@ -124,6 +201,18 @@ export function buildDesignBuilderViewerPlumbingScene(
         materials,
         selected: selectionMatchesPlumbingObject(params.selectedPlumbingObject, 'plumbing_run', run.id),
         trackGeometry: params.trackGeometry,
+        fittingCenters: fittingCentersForRun({
+          plumbingSystem: params.plumbingSystem,
+          resolvedRunPaths,
+          runId: run.id,
+          elevationDefaults,
+        }),
+        penetrationTargets: equipmentConnectionPointForRun({
+          plumbingSystem: params.plumbingSystem,
+          resolvedRunPath: resolvedPath,
+          runId: run.id,
+        }),
+        showCenterline: visibility.showCenterlines,
       });
       group.add(pipeGroup);
       selectableObjects.push(pipeGroup);
@@ -146,6 +235,53 @@ export function buildDesignBuilderViewerPlumbingScene(
     }
   });
 
+  (params.plumbingSystem.roughIns ?? []).forEach((roughIn) => {
+    const run = params.plumbingSystem.runs.find((candidate) => candidate.id === roughIn.riserRunId);
+    if (!run || !runVisible(run, visibility)) return;
+    try {
+      const resolvedPath = resolvedRunPathById.get(run.id) ?? resolvePlumbingRunPath({
+        system: params.plumbingSystem,
+        run,
+        defaults: elevationDefaults,
+      });
+      validationIssues.push(...resolvedPath.validationIssues);
+      const roughInGroup = createPlumbingRiserMesh({
+        roughIn,
+        run,
+        resolvedPath,
+        materials,
+        selected: selectionMatchesPlumbingObject(params.selectedPlumbingObject, 'plumbing_rough_in', roughIn.id),
+        trackGeometry: params.trackGeometry,
+        showCenterline: visibility.showCenterlines,
+        finishedFloorY: elevationDefaults.slabTopElevationM,
+        fittingCenters: fittingCentersForRun({
+          plumbingSystem: params.plumbingSystem,
+          resolvedRunPaths,
+          runId: run.id,
+          elevationDefaults,
+        }),
+      });
+      group.add(roughInGroup);
+      selectableObjects.push(roughInGroup);
+      if (visibility.showLabels && roughIn.labelVisible) {
+        addLabelToGroup({
+          parent: roughInGroup,
+          text: formatPlumbingThreeRunLabel(run),
+          position: labelPoint(resolvedPath.points),
+          trackMaterial: params.trackMaterial,
+        });
+      }
+    } catch (error) {
+      appendIssue(validationIssues, {
+        code: 'plumbing_3d_object_render_failed',
+        objectType: 'plumbing_rough_in',
+        objectId: roughIn.id,
+        severity: 'error',
+        message: error instanceof Error ? error.message : 'Rough-in riser failed to render.',
+      });
+    }
+  });
+
   (params.plumbingSystem.fittings ?? []).forEach((fitting) => {
     if (!fittingVisible(fitting, visibility)) return;
     try {
@@ -153,6 +289,7 @@ export function buildDesignBuilderViewerPlumbingScene(
         system: params.plumbingSystem,
         fitting,
         defaults: elevationDefaults,
+        resolvedRunPaths,
       });
       validationIssues.push(...resolved.validationIssues);
       const fittingScene = createProceduralPlumbingFittingMesh({
@@ -161,11 +298,18 @@ export function buildDesignBuilderViewerPlumbingScene(
         materials,
         selected: selectionMatchesPlumbingObject(params.selectedPlumbingObject, 'plumbing_fitting', fitting.id),
         trackGeometry: params.trackGeometry,
+        runs: params.plumbingSystem.runs,
+        nodes: params.plumbingSystem.nodes,
+        resolvedRunPaths,
+        showCenterline: visibility.showCenterlines,
       });
       validationIssues.push(...fittingScene.validationIssues);
       group.add(fittingScene.group);
       selectableObjects.push(fittingScene.group);
-      if (visibility.showLabels && fitting.labelVisible) {
+      if (
+        visibility.showLabels &&
+        (fitting.labelVisible || selectionMatchesPlumbingObject(params.selectedPlumbingObject, 'plumbing_fitting', fitting.id))
+      ) {
         addLabelToGroup({
           parent: fittingScene.group,
           text: formatPlumbingThreeFittingLabel(fitting),
@@ -194,6 +338,7 @@ export function buildDesignBuilderViewerPlumbingScene(
       const fixtureScene = createProceduralPlumbingFixtureMesh({
         fixture,
         position,
+        finishedFloorY: elevationDefaults.slabTopElevationM,
         materials,
         selected: selectionMatchesPlumbingObject(params.selectedPlumbingObject, 'plumbing_fixture', fixture.id),
         trackGeometry: params.trackGeometry,
@@ -235,6 +380,26 @@ export function buildDesignBuilderViewerPlumbingScene(
         selected: selectionMatchesPlumbingObject(params.selectedPlumbingObject, 'plumbing_equipment', equipment.id),
         trackGeometry: params.trackGeometry,
       });
+      if (equipment.equipmentType === 'distribution_box') {
+        const target = resolvedPipeConnectionPointForEquipment({
+          plumbingSystem: params.plumbingSystem,
+          equipmentNodeIds: equipment.connectionNodeIds,
+          resolvedRunPaths,
+        });
+        const ports = equipmentGroup.userData.ports as ConnectorPort[] | undefined;
+        const port = ports?.find((candidate) => candidate.id === 'pipe_centerline');
+        if (target && port) {
+          const alignment = alignObjectPortToWorldPoint(equipmentGroup, port, target);
+          if (alignment) {
+            equipmentGroup.userData.portAlignment = {
+              portId: port.id,
+              before: alignment.before.toArray(),
+              after: alignment.after.toArray(),
+              target: alignment.target.toArray(),
+            };
+          }
+        }
+      }
       group.add(equipmentGroup);
       selectableObjects.push(equipmentGroup);
       if (visibility.showLabels) {
