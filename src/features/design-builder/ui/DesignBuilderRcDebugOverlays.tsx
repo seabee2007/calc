@@ -17,6 +17,7 @@ type DesignBuilderRcDebugOverlaysProps = {
   visualStyle: DesignVisualStyle;
   showRoofReferencePerimeters: boolean;
   showRoofFramingGuides: boolean;
+  showRoofDebug: boolean;
 };
 
 export function DesignBuilderRcDebugOverlays({
@@ -27,6 +28,7 @@ export function DesignBuilderRcDebugOverlays({
   visualStyle,
   showRoofReferencePerimeters,
   showRoofFramingGuides,
+  showRoofDebug,
 }: DesignBuilderRcDebugOverlaysProps) {
   if (
     !import.meta.env.DEV ||
@@ -78,6 +80,40 @@ export function DesignBuilderRcDebugOverlays({
             <div>Roof Beam Outer Depth: {foundation.roofBeam.depthMeters.toFixed(3)} m</div>
             <div>Eave Overhang: {(roofSystem?.eaveOverhangMeters ?? 0).toFixed(3)} m</div>
             <div>Roof Bearing Source: {roof?.roofBearingSource ?? 'unknown'}</div>
+          </div>
+        </DraggableDebugOverlay>
+      ) : null}
+
+      {showRoofDebug ? (
+        <DraggableDebugOverlay
+          id="roof-debug"
+          title="Roof Debug"
+          titleClassName={roof?.warnings.length ? 'text-amber-300' : 'text-cyan-300'}
+          className={roof?.warnings.length ? 'border-amber-400/60' : 'border-cyan-400/60'}
+        >
+          <div className="space-y-1 border-t border-slate-700 pt-2">
+            <LegendLine colorClassName="bg-green-500" label="Structural bearing perimeter" />
+            <LegendLine colorClassName="bg-cyan-400" label="Cladding perimeter" />
+            <LegendLine colorClassName="bg-yellow-400" label="Structural ridge" />
+            <LegendLine colorClassName="bg-orange-400" label="Cladding ridge" />
+            <LegendLine colorClassName="bg-blue-500" label="Roof top planes" />
+            <LegendLine colorClassName="bg-fuchsia-500" label="Cladding display planes" />
+            <LegendLine colorClassName="bg-red-500" label="Truss stations" />
+            <LegendLine colorClassName="bg-purple-500" label="Purlin endpoints" />
+            <LegendLine colorClassName="bg-white" label="Roof plane normals" />
+            <div className="mt-2 space-y-0.5 border-t border-slate-700 pt-2 font-mono text-[11px]">
+              <div>
+                Planes: {roof?.roofTopPlanes.length ?? 0} / {roof?.claddingDisplayPlanes.length ?? 0}
+              </div>
+              <div>
+                Trusses/Purlins: {roof?.trussPlacements.length ?? 0} / {roof?.purlinPlacements.length ?? 0}
+              </div>
+              {(roof?.warnings ?? []).slice(0, 4).map((warning) => (
+                <div key={`${warning.code}:${warning.message}`} className="text-amber-200">
+                  {warning.code}
+                </div>
+              ))}
+            </div>
           </div>
         </DraggableDebugOverlay>
       ) : null}
@@ -196,6 +232,21 @@ export function DesignBuilderRcDebugOverlays({
         </>
       ) : null}
     </>
+  );
+}
+
+function LegendLine({
+  colorClassName,
+  label,
+}: {
+  colorClassName: string;
+  label: string;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className={`inline-block h-2 w-4 rounded-sm ${colorClassName}`} aria-hidden />
+      <span>{label}</span>
+    </div>
   );
 }
 

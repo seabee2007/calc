@@ -21,6 +21,7 @@ import {
   resolveEvenStations,
   resolveRoofFraming,
   resolveRidgeCapPlacement,
+  selectTopChordForRoofPlane,
   resolveTrussTopChordUpperPoint,
   TRUSS_CHORD_PROFILE_METERS,
   trussMemberLength,
@@ -1000,32 +1001,90 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
     }
   });
 
+  it('selects gable purlin support chords from geometry instead of roof plane id suffixes', () => {
+    const referenceTruss: TrussPlacement = {
+      id: 'reversed-bearing-truss',
+      stationMeters: 0,
+      bearingLeft: { x: 8.95, y: 3.162, z: 4.6 },
+      bearingRight: { x: 2.125, y: 3.162, z: 4.6 },
+      basePlateCenterLeft: { x: 8.95, y: 3.162, z: 4.6 },
+      basePlateCenterRight: { x: 2.125, y: 3.162, z: 4.6 },
+      apex: { x: 5.5375, y: 4.4893, z: 4.6 },
+      ridgeAxis: 'z',
+      planeNormal: { x: 0, y: 0, z: 1 },
+      spanMeters: 6.825,
+      members: [
+        {
+          id: 'reversed-bearing-truss-top-left',
+          memberKind: 'top_chord_left',
+          start: { x: 8.95, y: 3.162, z: 4.6 },
+          end: { x: 5.5375, y: 4.4893, z: 4.6 },
+        },
+        {
+          id: 'reversed-bearing-truss-top-right',
+          memberKind: 'top_chord_right',
+          start: { x: 2.125, y: 3.162, z: 4.6 },
+          end: { x: 5.5375, y: 4.4893, z: 4.6 },
+        },
+      ],
+    };
+    const claddingRidgeStart = { x: 5.5375, y: 4.4893, z: 0.7 };
+    const claddingRidgeEnd = { x: 5.5375, y: 4.4893, z: 8.5 };
+    const misleadingPlane: RoofPlane = {
+      id: 'gable-roof-2',
+      corners: [
+        { x: 8.95, y: 3.162, z: 0.7 },
+        { x: 8.95, y: 3.162, z: 8.5 },
+        claddingRidgeEnd,
+        claddingRidgeStart,
+      ],
+      normal: roofPlaneNormalForTest([
+        { x: 8.95, y: 3.162, z: 0.7 },
+        { x: 8.95, y: 3.162, z: 8.5 },
+        claddingRidgeEnd,
+        claddingRidgeStart,
+      ]),
+    };
+
+    expect(
+      selectTopChordForRoofPlane({
+        plane: misleadingPlane,
+        referenceTruss,
+        claddingRidgeStart,
+        claddingRidgeEnd,
+      })?.memberKind,
+    ).toBe('top_chord_left');
+  });
+
   it('every purlin sits on a truss top chord within tolerance', () => {
     const roof = roofFromGeometry(frameInfillGeometry(createDefaultRoofSystemSettings()));
     const truss = roof.trussPlacements[Math.floor(roof.trussPlacements.length / 2)]!;
     for (const purlin of roof.purlinPlacements) {
       const plane = roof.roofTopPlanes.find((item) => item.id === purlin.slopePlaneId)!;
-      const memberKind = purlin.slopePlaneId.endsWith('-2') || purlin.slopePlaneId.endsWith('-3')
-        ? 'top_chord_right'
-        : 'top_chord_left';
+      const topChord = selectTopChordForRoofPlane({
+        plane,
+        referenceTruss: truss,
+        claddingRidgeStart: roof.claddingRidgeStart!,
+        claddingRidgeEnd: roof.claddingRidgeEnd!,
+      })!;
       const normal = normalizeOutwardRoofNormal(plane.normal);
       const center = {
         x: (purlin.start.x + purlin.end.x) / 2,
         y: (purlin.start.y + purlin.end.y) / 2,
         z: (purlin.start.z + purlin.end.z) / 2,
       };
-      const topChord = supportingTopChordMember(truss, memberKind, center);
+      const supportingTopChord = supportingTopChordMember(truss, topChord.memberKind, center);
       const span = {
-        x: topChord.end.x - topChord.start.x,
-        z: topChord.end.z - topChord.start.z,
+        x: supportingTopChord.end.x - supportingTopChord.start.x,
+        z: supportingTopChord.end.z - supportingTopChord.start.z,
       };
       const spanLenSq = span.x * span.x + span.z * span.z || 1;
-      const toCenter = { x: center.x - topChord.start.x, z: center.z - topChord.start.z };
+      const toCenter = { x: center.x - supportingTopChord.start.x, z: center.z - supportingTopChord.start.z };
       const t = Math.max(0, Math.min(1, (toCenter.x * span.x + toCenter.z * span.z) / spanLenSq));
       const chordCenter = {
-        x: topChord.start.x + span.x * t,
-        y: topChord.start.y + (topChord.end.y - topChord.start.y) * t,
-        z: topChord.start.z + span.z * t,
+        x: supportingTopChord.start.x + span.x * t,
+        y: supportingTopChord.start.y + (supportingTopChord.end.y - supportingTopChord.start.y) * t,
+        z: supportingTopChord.start.z + span.z * t,
       };
       const chordTop = resolveTrussTopChordUpperPoint({ chordCenter, outwardNormal: normal });
       const purlinBottom = {
@@ -1135,16 +1194,20 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
     const roof = roofFromGeometry(frameInfillGeometry(createDefaultRoofSystemSettings()));
     const truss = roof.trussPlacements[Math.floor(roof.trussPlacements.length / 2)]!;
     for (const purlin of roof.purlinPlacements) {
-      const memberKind = purlin.slopePlaneId.endsWith('-2') || purlin.slopePlaneId.endsWith('-3')
-        ? 'top_chord_right'
-        : 'top_chord_left';
+      const plane = roof.roofTopPlanes.find((item) => item.id === purlin.slopePlaneId)!;
+      const selectedTopChord = selectTopChordForRoofPlane({
+        plane,
+        referenceTruss: truss,
+        claddingRidgeStart: roof.claddingRidgeStart!,
+        claddingRidgeEnd: roof.claddingRidgeEnd!,
+      })!;
       const normal = normalizeOutwardRoofNormal(purlin.planeNormal);
       const center = {
         x: (purlin.start.x + purlin.end.x) / 2,
         y: (purlin.start.y + purlin.end.y) / 2,
         z: (purlin.start.z + purlin.end.z) / 2,
       };
-      const topChord = supportingTopChordMember(truss, memberKind, center);
+      const topChord = supportingTopChordMember(truss, selectedTopChord.memberKind, center);
       const span = {
         x: topChord.end.x - topChord.start.x,
         z: topChord.end.z - topChord.start.z,

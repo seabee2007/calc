@@ -1,4 +1,4 @@
-export type DesignBuilderStatusTone = 'info' | 'success' | 'error';
+export type DesignBuilderStatusTone = 'info' | 'success' | 'warning' | 'error';
 
 export type DesignBuilderPageStatus = {
   tone: DesignBuilderStatusTone;
@@ -9,6 +9,9 @@ export function statusClassName(tone: DesignBuilderStatusTone): string {
   const base = 'rounded-xl border px-4 py-3 text-sm';
   if (tone === 'success') {
     return `${base} border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200`;
+  }
+  if (tone === 'warning') {
+    return `${base} border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/50 dark:text-amber-200`;
   }
   if (tone === 'error') {
     return `${base} border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-800 dark:bg-rose-950/50 dark:text-rose-200`;

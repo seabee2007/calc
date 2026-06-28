@@ -38,6 +38,7 @@ export interface DesignBuilderViewerModelParams {
   showClosureWarnings: boolean;
   showRoofReferencePerimeters: boolean;
   showRoofFramingGuides: boolean;
+  showRoofDebug: boolean;
   foundationViewMode: FoundationViewMode;
   visualStyle: DesignVisualStyle;
   roofSystem?: RoofSystemSettings | null;
@@ -70,6 +71,7 @@ export interface DesignBuilderViewerRebuildState {
   currentShowClosureWarnings: boolean;
   currentShowRoofReferencePerimeters: boolean;
   currentShowRoofFramingGuides: boolean;
+  currentShowRoofDebug: boolean;
   currentFoundationViewMode: FoundationViewMode;
   currentVisualStyle: DesignVisualStyle;
   currentRoofSystem?: RoofSystemSettings | null;
@@ -139,6 +141,7 @@ export function createDesignBuilderViewerRebuildState(params: {
     currentShowClosureWarnings: modelParams.showClosureWarnings,
     currentShowRoofReferencePerimeters: modelParams.showRoofReferencePerimeters,
     currentShowRoofFramingGuides: modelParams.showRoofFramingGuides,
+    currentShowRoofDebug: modelParams.showRoofDebug,
     currentFoundationViewMode: modelParams.foundationViewMode,
     currentVisualStyle: modelParams.visualStyle,
     currentRoofSystem: modelParams.roofSystem,

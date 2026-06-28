@@ -50,6 +50,7 @@ export const PURLIN_BOTTOM_INSET_FROM_ROOF_TOP_METERS =
 const TRUSS_VALIDATION_TOLERANCE_METERS = 0.002;
 const PURLIN_ROW_STATION_TOLERANCE = 0.001;
 const MIN_HIP_JACK_LENGTH_METERS = 0.15;
+type PrimaryTopChordKind = 'top_chord_left' | 'top_chord_right';
 
 function vec3(x: number, y: number, z: number): RoofVec3 {
   return { x, y, z };
@@ -645,7 +646,7 @@ function chordCenterAtPlanPoint(member: SteelMemberSegment, point: Pick<RoofVec3
 
 function resolveSplitTopChordCenter(params: {
   members: readonly SteelMemberSegment[];
-  memberKind: 'top_chord_left' | 'top_chord_right';
+  memberKind: PrimaryTopChordKind;
   point: Pick<RoofVec3, 'x' | 'z'>;
 }): RoofVec3 | null {
   const primary = params.members.find((member) => member.memberKind === params.memberKind);
@@ -670,6 +671,93 @@ function resolveSplitTopChordCenter(params: {
     }
   }
   return chordCenterAtPlanPoint(primary, params.point);
+}
+
+function distancePointToMemberPlanSegment(
+  member: SteelMemberSegment,
+  point: Pick<RoofVec3, 'x' | 'z'>,
+): number {
+  const t = planProjectionT(member, point);
+  if (t == null) {
+    return planDistance(point, member.start);
+  }
+  const clampedT = Math.max(0, Math.min(1, t));
+  const projected = lerpVec3(member.start, member.end, clampedT);
+  return planDistance(point, projected);
+}
+
+function topChordPlanDistanceForKind(params: {
+  members: readonly SteelMemberSegment[];
+  memberKind: PrimaryTopChordKind;
+  point: Pick<RoofVec3, 'x' | 'z'>;
+}): number {
+  const primary = params.members.find((member) => member.memberKind === params.memberKind);
+  if (!primary) return Number.POSITIVE_INFINITY;
+  const extension = params.members.find(
+    (member) => member.memberKind === topChordEaveExtensionKind(params.memberKind),
+  );
+  const candidates = extension ? [primary, extension] : [primary];
+  return Math.min(
+    ...candidates.map((member) =>
+      distancePointToMemberPlanSegment(member, params.point),
+    ),
+  );
+}
+
+function isPrimaryTopChord(member: SteelMemberSegment): member is SteelMemberSegment & {
+  memberKind: PrimaryTopChordKind;
+} {
+  return member.memberKind === 'top_chord_left' || member.memberKind === 'top_chord_right';
+}
+
+export function selectTopChordForRoofPlane(params: {
+  plane: RoofPlane;
+  referenceTruss: TrussPlacement;
+  claddingRidgeStart: RoofVec3;
+  claddingRidgeEnd: RoofVec3;
+}): (SteelMemberSegment & { memberKind: PrimaryTopChordKind }) | null {
+  const paired = pairEaveCornersToRidge(
+    eaveCornersForPlane(params.plane),
+    params.claddingRidgeStart,
+    params.claddingRidgeEnd,
+  );
+  if (!paired) return null;
+
+  const eaveMid = {
+    x: (paired.eaveAtStart.x + paired.eaveAtEnd.x) / 2,
+    z: (paired.eaveAtStart.z + paired.eaveAtEnd.z) / 2,
+  };
+  const ridgeMid = {
+    x: (params.claddingRidgeStart.x + params.claddingRidgeEnd.x) / 2,
+    z: (params.claddingRidgeStart.z + params.claddingRidgeEnd.z) / 2,
+  };
+  const samples = [0, 0.25, 0.5, 0.75, 0.95].map((t) => ({
+    x: eaveMid.x + (ridgeMid.x - eaveMid.x) * t,
+    z: eaveMid.z + (ridgeMid.z - eaveMid.z) * t,
+    weight: t === 0 ? 2 : 1,
+  }));
+  const candidates = params.referenceTruss.members.filter(isPrimaryTopChord);
+  if (candidates.length === 0) return null;
+
+  return candidates
+    .map((member) => ({
+      member,
+      score: samples.reduce(
+        (sum, sample) =>
+          sum +
+          topChordPlanDistanceForKind({
+            members: params.referenceTruss.members,
+            memberKind: member.memberKind,
+            point: sample,
+          }) *
+            sample.weight,
+        0,
+      ),
+    }))
+    .sort((left, right) => {
+      if (left.score !== right.score) return left.score - right.score;
+      return left.member.memberKind.localeCompare(right.member.memberKind);
+    })[0]?.member ?? null;
 }
 
 function validateTopChordClearsRoofBeam(params: {
@@ -1220,11 +1308,16 @@ export function resolveTrussSeatedPurlinBottomYOnPlane(params: {
     return null;
   }
   const referenceTruss = params.trussPlacements[Math.floor(params.trussPlacements.length / 2)]!;
-  const topChordKind = topChordMemberKindForPlane(params.plane.id);
-  const topChord = referenceTruss.members.find((member) => member.memberKind === topChordKind);
+  const topChord = selectTopChordForRoofPlane({
+    plane: params.plane,
+    referenceTruss,
+    claddingRidgeStart: params.claddingRidgeStart,
+    claddingRidgeEnd: params.claddingRidgeEnd,
+  });
   if (!topChord) {
     return null;
   }
+  const topChordKind = topChord.memberKind;
   const paired = pairEaveCornersToRidge(
     eaveCornersForPlane(params.plane),
     params.claddingRidgeStart,
@@ -1312,10 +1405,6 @@ export function buildPurlinRowStationFractions(params: {
     rowsPerSlope: deduped.length,
     actualSpacingMeters,
   };
-}
-
-function topChordMemberKindForPlane(planeId: string): 'top_chord_left' | 'top_chord_right' {
-  return planeId.endsWith('-2') || planeId.endsWith('-3') ? 'top_chord_right' : 'top_chord_left';
 }
 
 function rowStationOnSlope(params: {
@@ -1695,9 +1784,14 @@ function resolvePurlinPlacements(params: {
   for (const plane of params.roofTopPlanes) {
     if (plane.corners.length < 3) continue;
     const planeNormal = normalizeOutwardRoofNormal(plane.normal);
-    const memberKind = topChordMemberKindForPlane(plane.id);
-    const topChord = referenceTruss.members.find((member) => member.memberKind === memberKind);
+    const topChord = selectTopChordForRoofPlane({
+      plane,
+      referenceTruss,
+      claddingRidgeStart: params.claddingRidgeStart,
+      claddingRidgeEnd: params.claddingRidgeEnd,
+    });
     if (!topChord) continue;
+    const memberKind = topChord.memberKind;
     const eaveCorners = eaveCornersForPlane(plane);
     const paired = pairEaveCornersToRidge(
       eaveCorners,

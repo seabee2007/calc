@@ -58,6 +58,7 @@ import {
 } from './DesignBuilderViewerCmuInfillScene';
 import { buildDesignBuilderViewerInteriorFinishScene } from './DesignBuilderViewerInteriorFinishScene';
 import { buildDesignBuilderViewerRoofAssemblyScene } from './DesignBuilderViewerRoofAssemblyScene';
+import { buildDesignBuilderViewerRoofDebugScene } from './DesignBuilderViewerRoofDebugScene';
 import { buildDesignBuilderViewerRoofReferenceScene } from './DesignBuilderViewerRoofReferenceScene';
 import { buildDesignBuilderViewerStructuralFrameScene } from './DesignBuilderViewerStructuralFrameScene';
 import { buildDesignBuilderViewerSupplementalScene } from './DesignBuilderViewerSupplementalScene';
@@ -176,6 +177,7 @@ interface DesignBuilderViewerProps {
   showClosureWarnings?: boolean;
   showRoofReferencePerimeters?: boolean;
   showRoofFramingGuides?: boolean;
+  showRoofDebug?: boolean;
   foundationViewMode?: FoundationViewMode;
   visualStyle?: DesignVisualStyle;
   roofSystem?: RoofSystemSettings | null;
@@ -220,6 +222,7 @@ export default function DesignBuilderViewer({
   showClosureWarnings = false,
   showRoofReferencePerimeters = false,
   showRoofFramingGuides = false,
+  showRoofDebug = false,
   foundationViewMode = 'full_model',
   visualStyle = 'technical',
   roofSystem = null,
@@ -270,6 +273,7 @@ export default function DesignBuilderViewer({
     showClosureWarnings,
     showRoofReferencePerimeters,
     showRoofFramingGuides,
+    showRoofDebug,
     foundationViewMode,
     visualStyle,
     roofSystem,
@@ -296,6 +300,7 @@ export default function DesignBuilderViewer({
     showClosureWarnings,
     showRoofReferencePerimeters,
     showRoofFramingGuides,
+    showRoofDebug,
     foundationViewMode,
     visualStyle,
     roofSystem,
@@ -491,6 +496,7 @@ export default function DesignBuilderViewer({
         currentShowClosureWarnings,
         currentShowRoofReferencePerimeters,
         currentShowRoofFramingGuides,
+        currentShowRoofDebug,
         currentFoundationViewMode,
         currentVisualStyle,
         currentRoofSystem,
@@ -664,6 +670,14 @@ export default function DesignBuilderViewer({
           trackMaterial: trackMat,
         });
         if (roofReferenceScene.children.length > 0) root.add(roofReferenceScene);
+        const roofDebugScene = buildDesignBuilderViewerRoofDebugScene({
+          enabled: import.meta.env.DEV && currentShowRoofDebug,
+          resolvedRoof: currentGeometry.resolvedRoofSystem,
+          slabTopMeters: currentSlab.slabThicknessMeters,
+          trackGeometry,
+          trackMaterial: trackMat,
+        });
+        if (roofDebugScene.children.length > 0) root.add(roofDebugScene);
         const roofAssemblyScene = buildDesignBuilderViewerRoofAssemblyScene({
           state: {
             currentGeometry,
@@ -933,7 +947,7 @@ export default function DesignBuilderViewer({
 
   useEffect(() => {
     if (modelLoaded) rebuildModelRef.current?.();
-  }, [designRenderModel, geometryResult, layoutBounds, materialRevision, modelLoaded, placedComponents, plumbing3DVisibility, plumbingSystem, roof, roofDisplayMode, roofLayerVisibility, roofSystem, selectedObjectType, selectedOpeningId, selectedPlumbingObject, selectedSepticTankId, showClosureWarnings, showRoofReferencePerimeters, showRoofFramingGuides, foundationViewMode, showGroutCells, showOpeningLayout, slab, truss, wall, visualStyle]);
+  }, [designRenderModel, geometryResult, layoutBounds, materialRevision, modelLoaded, placedComponents, plumbing3DVisibility, plumbingSystem, roof, roofDisplayMode, roofLayerVisibility, roofSystem, selectedObjectType, selectedOpeningId, selectedPlumbingObject, selectedSepticTankId, showClosureWarnings, showRoofReferencePerimeters, showRoofFramingGuides, showRoofDebug, foundationViewMode, showGroutCells, showOpeningLayout, slab, truss, wall, visualStyle]);
 
   useEffect(() => {
     if (visualStyle === 'material_preview') {

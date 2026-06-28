@@ -102,6 +102,8 @@ export type DesignBuilderCommandBarProps = {
   onShowRoofReferencePerimetersChange: (value: boolean) => void;
   showRoofFramingGuides: boolean;
   onShowRoofFramingGuidesChange: (value: boolean) => void;
+  showRoofDebug: boolean;
+  onShowRoofDebugChange: (value: boolean) => void;
   showRoofPlanHatch: boolean;
   onShowRoofPlanHatchChange: (value: boolean) => void;
   showRoofPlanSlopeArrows: boolean;
@@ -134,6 +136,8 @@ export type DesignBuilderCommandBarProps = {
   onToggleRightPanel: () => void;
   onStartBlankLayout: () => void;
   onSaveDesign: () => void;
+  onCopyRoofDebugSnapshot: () => void;
+  onDownloadRoofDebugSnapshot: () => void;
   busy: boolean;
   canPersist: boolean;
 };
@@ -524,6 +528,8 @@ export function DesignBuilderCommandBar(props: DesignBuilderCommandBarProps) {
           }
           showRoofFramingGuides={props.showRoofFramingGuides}
           onShowRoofFramingGuidesChange={props.onShowRoofFramingGuidesChange}
+          showRoofDebug={props.showRoofDebug}
+          onShowRoofDebugChange={props.onShowRoofDebugChange}
           showRoofPlanHatch={props.showRoofPlanHatch}
           onShowRoofPlanHatchChange={props.onShowRoofPlanHatchChange}
           showRoofPlanSlopeArrows={props.showRoofPlanSlopeArrows}
@@ -586,6 +592,25 @@ export function DesignBuilderCommandBar(props: DesignBuilderCommandBarProps) {
               Repair footprint to exact rectangle
             </CommandMenuAction>
             <div className="my-1 border-t border-slate-200 dark:border-slate-700" />
+            {import.meta.env.DEV && props.isFrameStructureMode ? (
+              <>
+                <CommandMenuAction
+                  onClick={props.onCopyRoofDebugSnapshot}
+                  disabled={!props.modelLoaded}
+                  className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 dark:text-slate-200 dark:hover:bg-slate-800"
+                >
+                  Copy Roof Debug Snapshot
+                </CommandMenuAction>
+                <CommandMenuAction
+                  onClick={props.onDownloadRoofDebugSnapshot}
+                  disabled={!props.modelLoaded}
+                  className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 dark:text-slate-200 dark:hover:bg-slate-800"
+                >
+                  Download Roof Debug Snapshot
+                </CommandMenuAction>
+                <div className="my-1 border-t border-slate-200 dark:border-slate-700" />
+              </>
+            ) : null}
             <CommandMenuAction
               onClick={props.onToggleLeftPanel}
               className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"

@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { resolveDesignBuilderGeometryPipeline } from "../application/designBuilderGeometryPipeline";
-import { createDesignBuilderRoofDebugSnapshot } from "../domain/designBuilderRoofDebugSnapshot";
+import {
+  buildRoofDebugSnapshot,
+  createDesignBuilderRoofDebugSnapshot,
+} from "../domain/designBuilderRoofDebugSnapshot";
 import { createFiveBySixCmuBuildingPreset } from "../domain/designBuilderPreset";
 import { syncPresetFromLayout } from "../domain/layoutWallAdapter";
 import {
@@ -10,7 +13,7 @@ import {
 import { applyAutoFrameLayout } from "../domain/structureActions";
 import { createOutsideFaceRectangleLayout } from "../domain/wallLayoutRules";
 import type { DesignGeometryResult } from "../geometry/designGeometry";
-import type { RoofSystemSettings } from "../types";
+import type { DesignWallLayoutParameters, RoofSystemSettings } from "../types";
 
 type Scenario = {
   label: string;
@@ -67,6 +70,7 @@ function scenarioGeometry(
   geometry: DesignGeometryResult;
   roofSystem: RoofSystemSettings;
   slabTopMeters: number;
+  wallLayout: DesignWallLayoutParameters;
 } {
   const template = createFiveBySixCmuBuildingPreset();
   const layout = createOutsideFaceRectangleLayout({
@@ -101,6 +105,7 @@ function scenarioGeometry(
     }).designGeometryResult,
     roofSystem,
     slabTopMeters: preset.slab.slabThicknessMeters,
+    wallLayout: preset.wallLayout,
   };
 }
 
@@ -108,13 +113,14 @@ describe("createDesignBuilderRoofDebugSnapshot", () => {
   it.each(RECTANGULAR_SCENARIOS)(
     "summarizes complete RC-frame gable roof geometry for $label",
     (scenario) => {
-      const { geometry, roofSystem, slabTopMeters } =
+      const { geometry, roofSystem, slabTopMeters, wallLayout } =
         scenarioGeometry(scenario);
 
       const snapshot = createDesignBuilderRoofDebugSnapshot({
         geometryResult: geometry,
         roofSystem,
         slabTopMeters,
+        wallLayout,
       });
 
       expect(snapshot.sourcePath).toBe("layout_graph");
@@ -149,6 +155,54 @@ describe("createDesignBuilderRoofDebugSnapshot", () => {
       expect(snapshot.counts.roofTopPlanes).toBe(2);
       expect(snapshot.counts.claddingDisplayPlanes).toBe(2);
       expect(snapshot.counts.purlins).toBeGreaterThan(0);
+      expect(snapshot.summary).toMatchObject({
+        supported: true,
+        warningCodes: [],
+        roofPlaneCount: 2,
+        claddingDisplayPlaneCount: 2,
+        trussCount: snapshot.trusses.count,
+        purlinCount: snapshot.counts.purlins,
+        hasNonFiniteGeometry: false,
+        hasFlatCladdingDespitePitch: false,
+      });
+      expect(snapshot.summary.maxPurlinPlaneOffsetM).toBeGreaterThanOrEqual(0);
+      expect(snapshot.summary.maxCladdingOverrunM).toBeGreaterThanOrEqual(0);
+      expect(snapshot.input.wallNodes).toHaveLength(4);
+      expect(snapshot.input.wallSegments).toHaveLength(4);
+      expect(snapshot.input.isStrictRectangle).toBe(true);
+      expect(snapshot.input.segmentLengthsM).toEqual(
+        expect.arrayContaining([scenario.lengthMeters, scenario.widthMeters]),
+      );
+      expect(snapshot.roof.validationIssues).toEqual([]);
+      expect(snapshot.roof.warnings).toEqual([]);
+      expect(snapshot.roof.roofTopPlanes.map((plane) => plane.id)).toEqual(
+        [...snapshot.roof.roofTopPlanes.map((plane) => plane.id)].sort(),
+      );
+      expect(
+        snapshot.roof.claddingDisplayPlanes.map((plane) => plane.id),
+      ).toEqual(
+        [...snapshot.roof.claddingDisplayPlanes.map((plane) => plane.id)].sort(),
+      );
+      expect(snapshot.roof.trussStations).toEqual(
+        [...snapshot.roof.trussStations].sort((left, right) => left - right),
+      );
+      const purlinSortKeys = snapshot.roof.purlinPlacements.map((purlin) => ({
+        slopePlaneId: purlin.slopePlaneId,
+        rowIndex: purlin.rowIndex,
+        id: purlin.id,
+      }));
+      expect(purlinSortKeys).toEqual(
+        [...purlinSortKeys].sort((left, right) => {
+          const planeCompare = left.slopePlaneId.localeCompare(
+            right.slopePlaneId,
+          );
+          if (planeCompare !== 0) return planeCompare;
+          if (left.rowIndex !== right.rowIndex) {
+            return left.rowIndex - right.rowIndex;
+          }
+          return left.id.localeCompare(right.id);
+        }),
+      );
       expect(snapshot.trusses.count).toBeGreaterThan(0);
       expect(snapshot.trusses.bounds?.widthMeters ?? 0).toBeGreaterThan(0);
       expect(snapshot.trusses.bounds?.depthMeters ?? 0).toBeGreaterThan(0);
@@ -190,6 +244,115 @@ describe("createDesignBuilderRoofDebugSnapshot", () => {
     });
   });
 
+  it("keeps buildRoofDebugSnapshot as a compatible alias", () => {
+    const { geometry, roofSystem, slabTopMeters, wallLayout } =
+      scenarioGeometry(RECTANGULAR_SCENARIOS[0]!);
+
+    expect(
+      buildRoofDebugSnapshot({
+        geometryResult: geometry,
+        roofSystem,
+        slabTopMeters,
+        wallLayout,
+      }),
+    ).toEqual(
+      createDesignBuilderRoofDebugSnapshot({
+        geometryResult: geometry,
+        roofSystem,
+        slabTopMeters,
+        wallLayout,
+      }),
+    );
+  });
+
+  it("embeds render-derived scene bounds separately with stable sorting and rounded numbers", () => {
+    const { geometry, roofSystem, slabTopMeters, wallLayout } =
+      scenarioGeometry(RECTANGULAR_SCENARIOS[0]!);
+
+    const snapshot = createDesignBuilderRoofDebugSnapshot({
+      geometryResult: geometry,
+      roofSystem,
+      slabTopMeters,
+      wallLayout,
+      renderSnapshot: {
+        groups: {
+          roofCladdingGroup: {
+            bounds: bounds3d({ minX: 1.123456, maxX: 2.123456 }),
+          },
+          gableEndRoofingClosureGroup: {
+            bounds: bounds3d({ minX: -1.987654, maxX: -0.987654 }),
+          },
+          trussWebGroup: {
+            bounds: bounds3d({ minY: 3.555555, maxY: 4.444444 }),
+          },
+          anchorBoltGroup: {
+            bounds: bounds3d({ minY: 0.111111, maxY: 0.222222 }),
+          },
+          purlinGroup: {
+            bounds: bounds3d({ minZ: 5.333333, maxZ: 6.666666 }),
+          },
+        },
+      },
+    });
+
+    expect(snapshot.scene?.source).toBe("three-render-debug-snapshot");
+    expect(snapshot.scene?.roofCladdingMeshBounds.map((entry) => entry.id)).toEqual([
+      "gableEndRoofingClosureGroup",
+      "roofCladdingGroup",
+    ]);
+    expect(snapshot.scene?.trussMeshBounds.map((entry) => entry.id)).toEqual([
+      "anchorBoltGroup",
+      "trussWebGroup",
+    ]);
+    expect(snapshot.scene?.purlinMeshBounds.map((entry) => entry.id)).toEqual([
+      "purlinGroup",
+    ]);
+    expect(snapshot.scene?.roofCladdingMeshBounds[0]?.minX).toBe(-1.9877);
+    expect(snapshot.scene?.roofCladdingMeshBounds[1]?.maxX).toBe(2.1235);
+    expect(snapshot.scene?.trussMeshBounds[1]?.minY).toBe(3.5556);
+    expect(snapshot.scene?.purlinMeshBounds[0]?.maxZ).toBe(6.6667);
+  });
+
+  it("derives collapsed warning codes from detailed validation issues", () => {
+    const { geometry, roofSystem, slabTopMeters, wallLayout } =
+      scenarioGeometry(RECTANGULAR_SCENARIOS[0]!);
+    const roof = geometry.resolvedRoofSystem!;
+    const firstPurlin = roof.purlinPlacements[0]!;
+    const brokenGeometry: DesignGeometryResult = {
+      ...geometry,
+      resolvedRoofSystem: {
+        ...roof,
+        warnings: [],
+        purlinPlacements: [
+          { ...firstPurlin, slopePlaneId: "missing-plane" },
+          ...roof.purlinPlacements.slice(1),
+        ],
+      },
+    };
+
+    const snapshot = createDesignBuilderRoofDebugSnapshot({
+      geometryResult: brokenGeometry,
+      roofSystem,
+      slabTopMeters,
+      wallLayout,
+    });
+
+    expect(snapshot.summary.warningCodes).toContain("purlin_missing_source_plane");
+    expect(snapshot.roof.warnings).toContainEqual(
+      expect.objectContaining({
+        code: "purlin_missing_source_plane",
+        message: "A purlin references a missing roof plane.",
+      }),
+    );
+    expect(snapshot.roof.validationIssues).toContainEqual(
+      expect.objectContaining({
+        code: "purlin_missing_source_plane",
+        sourceId: firstPurlin.id,
+        details: { slopePlaneId: "missing-plane" },
+      }),
+    );
+  });
+
   it("flags non-finite roof coordinates for broken solver output", () => {
     const { geometry, roofSystem, slabTopMeters } = scenarioGeometry(
       RECTANGULAR_SCENARIOS[0]!,
@@ -219,3 +382,32 @@ describe("createDesignBuilderRoofDebugSnapshot", () => {
     });
   });
 });
+
+function bounds3d(
+  overrides: Partial<{
+    minX: number;
+    maxX: number;
+    minY: number;
+    maxY: number;
+    minZ: number;
+    maxZ: number;
+  }>,
+) {
+  const minX = overrides.minX ?? 0;
+  const maxX = overrides.maxX ?? 1;
+  const minY = overrides.minY ?? 0;
+  const maxY = overrides.maxY ?? 1;
+  const minZ = overrides.minZ ?? 0;
+  const maxZ = overrides.maxZ ?? 1;
+  return {
+    minX,
+    maxX,
+    minY,
+    maxY,
+    minZ,
+    maxZ,
+    widthMeters: maxX - minX,
+    heightMeters: maxY - minY,
+    depthMeters: maxZ - minZ,
+  };
+}

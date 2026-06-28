@@ -31,6 +31,8 @@ type DesignBuilderDisplayMenuProps = {
   onShowRoofReferencePerimetersChange: (checked: boolean) => void;
   showRoofFramingGuides: boolean;
   onShowRoofFramingGuidesChange: (checked: boolean) => void;
+  showRoofDebug: boolean;
+  onShowRoofDebugChange: (checked: boolean) => void;
   showRoofPlanHatch: boolean;
   onShowRoofPlanHatchChange: (checked: boolean) => void;
   showRoofPlanSlopeArrows: boolean;
@@ -70,6 +72,8 @@ export function DesignBuilderDisplayMenu({
   onShowRoofReferencePerimetersChange,
   showRoofFramingGuides,
   onShowRoofFramingGuidesChange,
+  showRoofDebug,
+  onShowRoofDebugChange,
   showRoofPlanHatch,
   onShowRoofPlanHatchChange,
   showRoofPlanSlopeArrows,
@@ -192,6 +196,11 @@ export function DesignBuilderDisplayMenu({
             label="Show Roof Layer Contacts"
             checked={showRoofFramingGuides}
             onChange={onShowRoofFramingGuidesChange}
+          />
+          <ToggleField
+            label="Roof Debug"
+            checked={showRoofDebug}
+            onChange={onShowRoofDebugChange}
           />
         </DisplayMenuCollapsibleSection>
       ) : null}

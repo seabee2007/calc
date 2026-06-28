@@ -44,6 +44,10 @@ import {
   resolveRidgeCapPlacement,
 } from './roofFramingResolver';
 import { validateStrictOrthogonalFootprint } from './wallFootprintValidation';
+import {
+  dedupeDesignWarnings,
+  validateResolvedRoofGeometry,
+} from './roofGeometryValidation';
 import type { SegmentFrame } from '../geometry/designGeometry';
 import { resolveGableEndRoofingClosures } from './gableEndRoofingClosureSolver';
 import { resolveRoofFasciaPlacements } from './roofFasciaSolver';
@@ -1055,20 +1059,6 @@ export function resolveRoofSystem(params: {
           claddingRidgeEnd: displayRidgeEnd,
         })
       : roofDatum.roofTopPlanes.map((plane) => ({ ...plane }));
-  if (
-    fixedRoofPitch.pitchRadians > 0.01 &&
-    claddingDisplayPlanes.some((plane) => {
-      const normalLength = Math.hypot(plane.normal.x, plane.normal.y, plane.normal.z) || 1;
-      return Math.abs(plane.normal.y / normalLength) > 0.999;
-    })
-  ) {
-    warnings.push({
-      code: 'roof_cladding_flat_despite_pitch',
-      message: 'Roof cladding resolved flat even though roof has pitch.',
-      severity: 'review',
-    });
-  }
-
   const ridgeCapRidgeStart =
     (displayRidgeStart ?? claddingRidgeStart) && claddingDisplayPlanes.length > 0
       ? claddingRidgePointOnDisplayPlanes({
@@ -1140,7 +1130,7 @@ export function resolveRoofSystem(params: {
     structuralRidgeEnd: roofDatum.structuralRidgeEnd ?? ridgeEnd,
   });
 
-  return {
+  const resolvedRoofSystem: ResolvedRoofSystem & { roofAssemblyThicknessMeters: number } = {
     supported: true,
     roofType: settings.roofType,
     roofBearingSource: params.bearingSource,
@@ -1188,7 +1178,14 @@ export function resolveRoofSystem(params: {
     gableEndRoofingClosures,
     fasciaPlacements,
     soffitPlacements,
-    warnings,
+    warnings: [],
+  };
+  return {
+    ...resolvedRoofSystem,
+    warnings: dedupeDesignWarnings([
+      ...warnings,
+      ...validateResolvedRoofGeometry(resolvedRoofSystem),
+    ]),
   };
 }
 

@@ -28,6 +28,7 @@ function modelParams(
     showClosureWarnings: false,
     showRoofReferencePerimeters: false,
     showRoofFramingGuides: false,
+    showRoofDebug: false,
     foundationViewMode: 'full_model',
     visualStyle: 'technical',
     roofSystem: null,
@@ -87,6 +88,7 @@ describe('DesignBuilderViewerRebuildState', () => {
       selected: true,
     });
     expect(state.currentLayoutBounds).toBeNull();
+    expect(state.currentShowRoofDebug).toBe(false);
   });
 
   it('enables preview materials and cutaway opacity when applicable', () => {

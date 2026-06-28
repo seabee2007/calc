@@ -141,6 +141,7 @@ import {
   normalizeRoofSystemSettings,
   syncRoofSystemTrussSpacing,
 } from '../domain/roofSystemDefaults';
+import { createDesignBuilderRoofDebugSnapshot } from '../domain/designBuilderRoofDebugSnapshot';
 import { normalizeCmuInfillSystem, normalizeCmuInfillPlasterSettings } from '../domain/infillPlaster';
 import FrameFoundationDimensionsModal from './FrameFoundationDimensionsModal';
 import {
@@ -213,11 +214,15 @@ import { formatDrawWallSnapTargetFeedback } from '../domain/designDrawWallFeedba
 import { snapKeyboardActionForEvent, tolerancePxForPreset } from '../snapping/snapKeyboard';
 import type { SnapSettings, SnapTolerancePreset } from '../snapping/snapTypes';
 import DesignBuilderViewer from './DesignBuilderViewer';
+import { buildDesignBuilderViewerRoofAssemblyScene } from './DesignBuilderViewerRoofAssemblyScene';
+import { createDesignBuilderViewerResources } from './DesignBuilderViewerResources';
+import { createDesignBuilderViewerRoofRenderDebugSnapshot } from './DesignBuilderViewerRoofRenderDebugSnapshot';
 import type { DesignBuilderPlacementPreview } from './DesignBuilderOpeningPreviewScene';
 import { DebugOverlayLayoutProvider } from './DebugOverlayLayoutContext';
 import { DesignBuilderRcDebugOverlays } from './DesignBuilderRcDebugOverlays';
 import { DesignBuilderComponentParameterPanel } from './DesignBuilderComponentParameterPanel';
 import { DesignBuilderCommandBar } from './DesignBuilderCommandBar';
+import { downloadJsonFile } from './downloadJsonFile';
 import { DesignBuilderToolInstructionStrip } from './DesignBuilderToolInstructionStrip';
 import type { DesignBuilderViewerHeightPreset } from './DesignBuilderViewMenu';
 import { DesignBuilderEditableControls } from './DesignBuilderEditableControls';
@@ -609,6 +614,7 @@ export default function DesignBuilderPage({
   const [showClosureWarnings, setShowClosureWarnings] = useState(false);
   const [showRoofReferencePerimeters, setShowRoofReferencePerimeters] = useState(false);
   const [showRoofFramingGuides, setShowRoofFramingGuides] = useState(false);
+  const [showRoofDebug, setShowRoofDebug] = useState(false);
   const [showRoofPlanHatch, setShowRoofPlanHatch] = useState(true);
   const [showRoofPlanSlopeArrows, setShowRoofPlanSlopeArrows] = useState(true);
   const [showRoofPlanDimensions, setShowRoofPlanDimensions] = useState(true);
@@ -4691,6 +4697,74 @@ export default function DesignBuilderPage({
     }
   }
 
+  function buildCurrentRoofDebugSnapshot() {
+    const resources = createDesignBuilderViewerResources();
+    try {
+      const roofAssemblyScene = buildDesignBuilderViewerRoofAssemblyScene({
+        state: {
+          currentGeometry: designGeometryResult,
+          currentSlab: resolvedPreset.slab,
+          currentVisualStyle: visualStyle,
+          currentRoofSystem: activeRoofSystem,
+          currentRoofDisplayMode: roofDisplayMode,
+          currentRoofLayerVisibility: roofLayerVisibility,
+          currentShowRoofFramingGuides: showRoofFramingGuides,
+          usePreviewMaterials: visualStyle === 'material_preview',
+          roofSelected: selectedObjectType === 'gable_roof_system',
+          gableSelected: selectedObjectType === 'gable_end_system',
+        },
+        trackGeometry: resources.trackGeometry,
+        trackMaterial: resources.trackMaterial,
+        makeMaterial: resources.makeMaterial,
+      });
+      const renderSnapshot = createDesignBuilderViewerRoofRenderDebugSnapshot({
+        roofAssemblyScene,
+      });
+      return createDesignBuilderRoofDebugSnapshot({
+        geometryResult: designGeometryResult,
+        roofSystem: activeRoofSystem,
+        slabTopMeters: resolvedPreset.slab.slabThicknessMeters,
+        wallLayout,
+        renderSnapshot,
+      });
+    } finally {
+      resources.disposeTrackedResources();
+    }
+  }
+
+  async function handleCopyRoofDebugSnapshot() {
+    if (!import.meta.env.DEV) return;
+    try {
+      const snapshot = buildCurrentRoofDebugSnapshot();
+      await navigator.clipboard.writeText(JSON.stringify(snapshot, null, 2));
+      setStatus({ tone: 'success', message: 'Roof debug snapshot copied.' });
+    } catch (error) {
+      console.error('Failed to copy roof debug snapshot', error);
+      setStatus({ tone: 'error', message: 'Roof debug snapshot could not be copied.' });
+    }
+  }
+
+  function handleDownloadRoofDebugSnapshot() {
+    if (!import.meta.env.DEV) return;
+    if (!designGeometryResult.resolvedRoofSystem) {
+      setStatus({ tone: 'warning', message: 'No resolved roof is available to download.' });
+      return;
+    }
+    try {
+      const snapshot = buildCurrentRoofDebugSnapshot();
+      const filename = roofDebugSnapshotFilename({
+        timestamp: new Date(),
+        widthMeters: resolvedPreset.wall.widthMeters,
+        lengthMeters: resolvedPreset.wall.lengthMeters,
+      });
+      downloadJsonFile(filename, snapshot);
+      setStatus({ tone: 'success', message: 'Roof debug snapshot downloaded.' });
+    } catch (error) {
+      console.error('Failed to download roof debug snapshot', error);
+      setStatus({ tone: 'error', message: 'Roof debug snapshot could not be downloaded.' });
+    }
+  }
+
   function handleApplyMaterialSelections(payload: MaterialsColorsApplyPayload) {
     const normalized = normalizeDesignMaterialSelection(payload.selections);
     setMaterialSelections(normalized);
@@ -5641,6 +5715,8 @@ export default function DesignBuilderPage({
             onShowRoofReferencePerimetersChange={setShowRoofReferencePerimeters}
             showRoofFramingGuides={showRoofFramingGuides}
             onShowRoofFramingGuidesChange={setShowRoofFramingGuides}
+            showRoofDebug={showRoofDebug}
+            onShowRoofDebugChange={setShowRoofDebug}
             showRoofPlanHatch={showRoofPlanHatch}
             onShowRoofPlanHatchChange={setShowRoofPlanHatch}
             showRoofPlanSlopeArrows={showRoofPlanSlopeArrows}
@@ -5669,6 +5745,8 @@ export default function DesignBuilderPage({
             onToggleRightPanel={toggleRightPanel}
             onStartBlankLayout={() => void handleStartBlankLayout()}
             onSaveDesign={() => void handleSaveDesign()}
+            onCopyRoofDebugSnapshot={() => void handleCopyRoofDebugSnapshot()}
+            onDownloadRoofDebugSnapshot={handleDownloadRoofDebugSnapshot}
             busy={busy}
             canPersist={persistenceContext.canPersist}
           />
@@ -5841,6 +5919,7 @@ export default function DesignBuilderPage({
                 showClosureWarnings={showClosureWarnings}
                 showRoofReferencePerimeters={showRoofReferencePerimeters}
                 showRoofFramingGuides={showRoofFramingGuides}
+                showRoofDebug={showRoofDebug}
                 foundationViewMode={foundationViewMode}
                 visualStyle={visualStyle}
                 roofSystem={activeRoofSystem}
@@ -6794,6 +6873,7 @@ export default function DesignBuilderPage({
               visualStyle={visualStyle}
               showRoofReferencePerimeters={showRoofReferencePerimeters}
               showRoofFramingGuides={showRoofFramingGuides}
+              showRoofDebug={showRoofDebug}
             />
             </DebugOverlayLayoutProvider>
           </div>
@@ -6890,3 +6970,16 @@ export default function DesignBuilderPage({
   );
 }
 
+function roofDebugSnapshotFilename(params: {
+  timestamp: Date;
+  widthMeters: number;
+  lengthMeters: number;
+}): string {
+  const timestamp = params.timestamp.toISOString().replace(/[:.]/g, '-');
+  return `roof-debug-${timestamp}-${formatRoofDebugDimensionMeters(params.widthMeters)}-x-${formatRoofDebugDimensionMeters(params.lengthMeters)}.json`;
+}
+
+function formatRoofDebugDimensionMeters(value: number): string {
+  if (!Number.isFinite(value)) return 'unknownm';
+  return `${Number(value.toFixed(3))}m`;
+}
