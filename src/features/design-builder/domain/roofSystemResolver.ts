@@ -38,6 +38,8 @@ import {
   DEFAULT_RIDGE_CAP_WIDTH_METERS,
   HIP_SHEET_SEAM_WELD_ALLOWANCE_METERS,
   ROOF_SHEET_EAVE_OVERHANG_METERS,
+  resolveGableStructuralHalfRunDistancesFromRidge,
+  resolveGableStructuralHalfRunFromRidge,
   resolveRoofFraming,
   resolveRidgeCapPlacement,
 } from './roofFramingResolver';
@@ -48,6 +50,7 @@ import { resolveRoofFasciaPlacements } from './roofFasciaSolver';
 import { resolveRoofSoffitPlacements } from './roofSoffitSolver';
 
 const ROOF_RENDER_EPSILON_METERS = 0.001;
+const GABLE_HALF_RUN_ASYMMETRY_TOLERANCE_METERS = 0.01;
 
 function vec3(x: number, y: number, z: number): RoofVec3 {
   return { x, y, z };
@@ -772,8 +775,52 @@ export function resolveRoofSystem(params: {
   const roofBeamTopY = params.roofBeamTopElevationMeters;
   const peakY = roofBeamTopY + Math.max(0, settings.peakHeightAboveRoofBeamMeters);
   const isSquare = Math.abs(analysis.lengthMeters - analysis.widthMeters) < 0.05;
-  const bearingHalfRun =
+  const warnings: DesignWarning[] = (params.bearingWarnings ?? []).map((message) => ({
+    code: 'roof_bearing_loop',
+    message,
+    severity: 'review' as const,
+  }));
+  const axisDerivedBearingHalfRun =
     (activeRidgeAxis === 'localX' ? analysis.localZSpanMeters : analysis.localXSpanMeters) / 2;
+  const preliminaryStructuralRidge =
+    settings.roofType === 'gable'
+      ? ridgeEndpointsForAxis({
+          bearing: bearingLoop,
+          ridgeAxis,
+          peakY,
+        })
+      : null;
+  const measuredGableHalfRun =
+    preliminaryStructuralRidge != null
+      ? resolveGableStructuralHalfRunFromRidge({
+          structuralBearing: bearingLoop,
+          structuralRidgeStart: preliminaryStructuralRidge.ridgeStart,
+          structuralRidgeEnd: preliminaryStructuralRidge.ridgeEnd,
+        })
+      : 0;
+  const bearingHalfRun =
+    settings.roofType === 'gable' && measuredGableHalfRun > ROOF_RENDER_EPSILON_METERS
+      ? measuredGableHalfRun
+      : axisDerivedBearingHalfRun;
+  const gableHalfRunDistances =
+    preliminaryStructuralRidge != null
+      ? resolveGableStructuralHalfRunDistancesFromRidge({
+          structuralBearing: bearingLoop,
+          structuralRidgeStart: preliminaryStructuralRidge.ridgeStart,
+          structuralRidgeEnd: preliminaryStructuralRidge.ridgeEnd,
+        })
+      : null;
+  if (
+    gableHalfRunDistances &&
+    Math.abs(gableHalfRunDistances.halfRunA - gableHalfRunDistances.halfRunB) >
+      GABLE_HALF_RUN_ASYMMETRY_TOLERANCE_METERS
+  ) {
+    warnings.push({
+      code: 'gable_half_run_asymmetry',
+      message: `Gable structural half-run differs across bearing edges (${gableHalfRunDistances.halfRunA.toFixed(3)} m vs ${gableHalfRunDistances.halfRunB.toFixed(3)} m).`,
+      severity: 'review',
+    });
+  }
   const rafterRiseMeters = settings.peakHeightAboveRoofBeamMeters;
   const fixedRoofPitch = resolveFixedRoofPitch({
     structuralHalfRunMeters: bearingHalfRun,
@@ -877,11 +924,6 @@ export function resolveRoofSystem(params: {
     return sum;
   }, 0);
 
-  const warnings: DesignWarning[] = (params.bearingWarnings ?? []).map((message) => ({
-    code: 'roof_bearing_loop',
-    message,
-    severity: 'review' as const,
-  }));
   if (settings.roofType === 'gable' && settings.peakHeightAboveRoofBeamMeters <= 0.19) {
     warnings.push({
       code: 'low_peak_gable',

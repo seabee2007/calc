@@ -1,4 +1,5 @@
 import {
+  distancePointToLine2D,
   footprintBounds,
   intersectRayWithSegment2D,
   midpoint2,
@@ -832,7 +833,7 @@ export function buildExteriorRoofBeamBounds(
   };
 }
 
-function spanEdgesPerpendicularToRidge(
+export function spanEdgesPerpendicularToRidge(
   bearing: readonly PlanVec2[],
   ridgeStart: PlanVec2,
   ridgeEnd: PlanVec2,
@@ -863,6 +864,49 @@ function spanEdgesPerpendicularToRidge(
     bearing[oppositeIndex]!,
     bearing[(oppositeIndex + 1) % 4]!,
   ];
+}
+
+export function resolveGableStructuralHalfRunDistancesFromRidge(params: {
+  structuralBearing: readonly PlanVec2[];
+  structuralRidgeStart: RoofVec3;
+  structuralRidgeEnd: RoofVec3;
+}): { halfRunA: number; halfRunB: number } | null {
+  if (params.structuralBearing.length < 4) {
+    return null;
+  }
+  const ridgeStart2 = {
+    x: params.structuralRidgeStart.x,
+    z: params.structuralRidgeStart.z,
+  };
+  const ridgeEnd2 = {
+    x: params.structuralRidgeEnd.x,
+    z: params.structuralRidgeEnd.z,
+  };
+  const [edgeAStart, edgeAEnd, edgeBStart, edgeBEnd] = spanEdgesPerpendicularToRidge(
+    params.structuralBearing,
+    ridgeStart2,
+    ridgeEnd2,
+  );
+  const edgeAMid = midpoint2(edgeAStart, edgeAEnd);
+  const edgeBMid = midpoint2(edgeBStart, edgeBEnd);
+  const halfRunA = distancePointToLine2D(edgeAMid, ridgeStart2, ridgeEnd2);
+  const halfRunB = distancePointToLine2D(edgeBMid, ridgeStart2, ridgeEnd2);
+  if (!Number.isFinite(halfRunA) || !Number.isFinite(halfRunB)) {
+    return null;
+  }
+  return { halfRunA, halfRunB };
+}
+
+export function resolveGableStructuralHalfRunFromRidge(params: {
+  structuralBearing: readonly PlanVec2[];
+  structuralRidgeStart: RoofVec3;
+  structuralRidgeEnd: RoofVec3;
+}): number {
+  const distances = resolveGableStructuralHalfRunDistancesFromRidge(params);
+  if (!distances) {
+    return 0;
+  }
+  return (distances.halfRunA + distances.halfRunB) / 2;
 }
 
 type GableTrussPlacementResult = {

@@ -2,6 +2,12 @@ import type { DesignSnapTarget } from './designSnapRules';
 import type { DesignBuilderSnapMode } from '../types';
 import { formatPlanGridSpacingMeters } from './planGridState';
 
+const STATUS_SEPARATOR = ' · ';
+
+function formatDegrees(value: number): string {
+  return `${Math.round(value)}°`;
+}
+
 export function formatDrawWallStatusChip(params: {
   snapMode: DesignBuilderSnapMode;
   gridSpacingMeters: number;
@@ -17,7 +23,7 @@ export function formatDrawWallStatusChip(params: {
     ) {
       return params.shiftConstraintLabel;
     }
-    return params.shiftConstraintLabel.includes('parallel') ? 'Locked: parallel' : 'Locked: 90 deg';
+    return params.shiftConstraintLabel.includes('parallel') ? 'Locked: parallel' : 'Locked: 90°';
   }
   if (params.snapTarget?.captured && params.snapTarget.type !== 'raw') {
     if (params.snapTarget.label === 'Exact rectangle corner') {
@@ -54,7 +60,7 @@ export function formatDrawWallSnapTargetFeedback(params: {
     parts.push('Free angle');
   } else if (params.snapTarget && params.snapTarget.type !== 'raw') {
     if (params.snapTarget.label === 'Exact rectangle corner') parts.push('Closure: exact rectangle corner');
-    else if (params.snapTarget.label === '90 deg' || params.snapTarget.label?.includes('90')) parts.push('Guide: 90 deg');
+    else if (params.snapTarget.label === '90 deg' || params.snapTarget.label?.includes('90')) parts.push('Guide: 90°');
     else if (params.snapTarget.label === 'Parallel') parts.push('Guide: Parallel');
     else if (params.snapTarget.type === 'cmu_module') parts.push('Snap: CMU module');
     else if (params.snapTarget.type === 'grid') {
@@ -67,7 +73,7 @@ export function formatDrawWallSnapTargetFeedback(params: {
     parts.push(`Length: ${params.lengthMeters.toFixed(2)} m`);
   }
   if (params.angleDegrees != null) {
-    parts.push(`Angle: ${params.angleDegrees.toFixed(0)} deg`);
+    parts.push(`Angle: ${formatDegrees(params.angleDegrees)}`);
   }
-  return parts.length > 0 ? parts.join(' - ') : null;
+  return parts.length > 0 ? parts.join(STATUS_SEPARATOR) : null;
 }

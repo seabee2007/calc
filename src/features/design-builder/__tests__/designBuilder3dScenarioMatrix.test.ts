@@ -14,8 +14,10 @@ import {
   offsetPointAlongRoofNormal,
   PURLIN_PROFILE_DEPTH_METERS,
   PURLIN_TO_SHEET_CLEARANCE_METERS,
+  spanEdgesPerpendicularToRidge,
   TRUSS_CHORD_PROFILE_METERS,
 } from "../domain/roofFramingResolver";
+import { distancePointToLine2D, midpoint2 } from "../domain/roofFootprintSupport";
 import { applyAutoFrameLayout } from "../domain/structureActions";
 import { createOutsideFaceRectangleLayout } from "../domain/wallLayoutRules";
 import type { DesignGeometryResult } from "../geometry/designGeometry";
@@ -26,6 +28,8 @@ type Scenario = {
   lengthMeters: number;
   widthMeters: number;
 };
+
+type ResolvedScenarioRoof = NonNullable<DesignGeometryResult["resolvedRoofSystem"]>;
 
 const RECTANGULAR_SCENARIOS: Scenario[] = [
   { label: "5m x 8m", lengthMeters: 5, widthMeters: 8 },
@@ -132,8 +136,56 @@ function assertPrimaryTopChordSeatedOnStructuralBearing(params: {
   expect(params.member.end.z).toBeCloseTo(params.apex.z, 4);
 }
 
+function roundMeters(value: number): number {
+  return Math.round(value * 1000) / 1000;
+}
+
+function expectedStructuralHalfRunFromRidge(roof: ResolvedScenarioRoof): number {
+  expect(roof.structuralRidgeStart).toBeDefined();
+  expect(roof.structuralRidgeEnd).toBeDefined();
+  const structuralBearing = roof.structuralBearingPerimeter.map((point) => ({
+    x: point.x,
+    z: point.z,
+  }));
+  const ridgeStart2 = {
+    x: roof.structuralRidgeStart!.x,
+    z: roof.structuralRidgeStart!.z,
+  };
+  const ridgeEnd2 = {
+    x: roof.structuralRidgeEnd!.x,
+    z: roof.structuralRidgeEnd!.z,
+  };
+  const [edgeAStart, edgeAEnd, edgeBStart, edgeBEnd] =
+    spanEdgesPerpendicularToRidge(structuralBearing, ridgeStart2, ridgeEnd2);
+  const halfRunA = distancePointToLine2D(
+    midpoint2(edgeAStart, edgeAEnd),
+    ridgeStart2,
+    ridgeEnd2,
+  );
+  const halfRunB = distancePointToLine2D(
+    midpoint2(edgeBStart, edgeBEnd),
+    ridgeStart2,
+    ridgeEnd2,
+  );
+  return (halfRunA + halfRunB) / 2;
+}
+
+function assertGableHalfRunDatum(
+  roof: ResolvedScenarioRoof,
+  roofSystem: RoofSystemSettings,
+) {
+  expect(roof.structuralRafterRunMeters).toBeCloseTo(
+    expectedStructuralHalfRunFromRidge(roof),
+    4,
+  );
+  expect(roof.claddingRafterRunMeters).toBeCloseTo(
+    roof.structuralRafterRunMeters + roofSystem.eaveOverhangMeters,
+    4,
+  );
+}
+
 function assertPurlinsTightToCladdingDisplay(
-  roof: NonNullable<DesignGeometryResult["resolvedRoofSystem"]>,
+  roof: ResolvedScenarioRoof,
 ) {
   const displayPlaneBySourceId = new Map(
     roof.claddingDisplayPlanes.map((plane) => [
@@ -141,17 +193,27 @@ function assertPurlinsTightToCladdingDisplay(
       plane,
     ]),
   );
+  const sourcePlaneById = new Map(
+    roof.roofTopPlanes.map((plane) => [plane.id, plane]),
+  );
   const maxGapMeters = PURLIN_TO_SHEET_CLEARANCE_METERS + 0.012;
   const failures: {
     slopePlaneId: string;
     rowIndex: number;
-    gapMeters: number;
+    expectedPurlinTopToDisplayUndersideGapMeters: number;
+    actualPurlinTopToDisplayUndersideGapMeters: number;
     center: { x: number; z: number };
+    sourceRoofPlaneY: number | null;
+    purlinCenterY: number;
+    purlinTopY: number;
+    claddingDisplayTopY: number;
   }[] = [];
 
   for (const purlin of roof.purlinPlacements) {
     const displayPlane = displayPlaneBySourceId.get(purlin.slopePlaneId);
+    const sourcePlane = sourcePlaneById.get(purlin.slopePlaneId);
     expect(displayPlane).toBeDefined();
+    expect(sourcePlane).toBeDefined();
     const outwardNormal = normalizeOutwardRoofNormal(purlin.planeNormal);
     const center = {
       x: (purlin.start.x + purlin.end.x) / 2,
@@ -169,6 +231,11 @@ function assertPurlinsTightToCladdingDisplay(
       center.z,
     );
     expect(displayTopY).toBeGreaterThan(0);
+    const sourceRoofPlaneY = elevationOnRoofPlaneAtPoint(
+      sourcePlane!,
+      center.x,
+      center.z,
+    );
     const displayUnderside = offsetPointAlongRoofNormal(
       { x: center.x, y: displayTopY!, z: center.z },
       outwardNormal,
@@ -184,11 +251,19 @@ function assertPurlinsTightToCladdingDisplay(
       failures.push({
         slopePlaneId: purlin.slopePlaneId,
         rowIndex: purlin.rowIndex,
-        gapMeters: Math.round(gapMeters * 1000) / 1000,
+        expectedPurlinTopToDisplayUndersideGapMeters: roundMeters(
+          PURLIN_TO_SHEET_CLEARANCE_METERS,
+        ),
+        actualPurlinTopToDisplayUndersideGapMeters: roundMeters(gapMeters),
         center: {
-          x: Math.round(center.x * 1000) / 1000,
-          z: Math.round(center.z * 1000) / 1000,
+          x: roundMeters(center.x),
+          z: roundMeters(center.z),
         },
+        sourceRoofPlaneY:
+          sourceRoofPlaneY == null ? null : roundMeters(sourceRoofPlaneY),
+        purlinCenterY: roundMeters(center.y),
+        purlinTopY: roundMeters(purlinTop.y),
+        claddingDisplayTopY: roundMeters(displayTopY!),
       });
     }
   }
@@ -221,7 +296,8 @@ describe("Design Builder 3D scenario matrix", () => {
   it.each(RECTANGULAR_SCENARIOS)(
     "keeps the gable roof, trusses, gable CMU, and raked caps complete for $label",
     (scenario) => {
-      const geometry = scenarioGeometry(scenario);
+      const roofSystem = gableRoofSystem();
+      const geometry = scenarioGeometry(scenario, roofSystem);
       const roof = geometry.resolvedRoofSystem;
 
       expect(geometry.sourcePath).toBe("layout_graph");
@@ -230,6 +306,7 @@ describe("Design Builder 3D scenario matrix", () => {
       expect(roof?.roofBearingSource).toBe("roof_beam_outer_faces");
       expect(roof?.roofTopPlanes).toHaveLength(2);
       expect(roof?.claddingDisplayPlanes).toHaveLength(2);
+      assertGableHalfRunDatum(roof!, roofSystem);
       expect(roof?.gableEndSegmentIds).toHaveLength(2);
       expect(roof?.gableEnds).toHaveLength(2);
       expect(roof?.roofPeakY ?? 0).toBeGreaterThan(roof?.roofBeamTopY ?? 0);
