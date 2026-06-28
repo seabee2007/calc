@@ -547,6 +547,7 @@ export default function DesignBuilderPage({
   const [plumbingRunDraft, setPlumbingRunDraft] = useState<PlumbingRunDraft | null>(null);
   const [plumbingEquipmentPreview, setPlumbingEquipmentPreview] = useState<PlumbingEquipment | null>(null);
   const [plumbingLegendExpanded, setPlumbingLegendExpanded] = useState(false);
+  const [plumbingFixtureScheduleExpanded, setPlumbingFixtureScheduleExpanded] = useState(true);
   const [selectedPlumbingObject, setSelectedPlumbingObject] = useState<PlumbingSelection | null>(null);
   const [plumbingValidationIssues, setPlumbingValidationIssues] = useState<PlumbingValidationIssue[]>([]);
   const [septicTankPlacementActive, setSepticTankPlacementActive] = useState(false);
@@ -5822,18 +5823,43 @@ export default function DesignBuilderPage({
                 </div>
               </div>
             ) : null}
-            {plumbingPlacementActive && plumbingFixtureSchedule.length > 0 ? (
+            {plumbingPlacementActive && plumbingFixtureSchedule.length > 0 && !plumbingFixtureScheduleExpanded ? (
+              <button
+                type="button"
+                onClick={() => setPlumbingFixtureScheduleExpanded(true)}
+                className="absolute bottom-4 right-[9rem] z-10 rounded-xl border border-slate-700 bg-slate-900/90 px-3 py-2 text-left text-[11px] font-bold text-slate-100 shadow-sm hover:border-cyan-500 hover:text-cyan-100"
+                aria-label="Open fixture schedule"
+              >
+                <div className="text-cyan-200">Fixture Schedule</div>
+                <div className="text-[10px] font-semibold text-slate-400">
+                  {plumbingFixtureSchedule.length} fixture{plumbingFixtureSchedule.length === 1 ? '' : 's'}
+                </div>
+              </button>
+            ) : null}
+            {plumbingPlacementActive && plumbingFixtureSchedule.length > 0 && plumbingFixtureScheduleExpanded ? (
               <div
                 data-plumbing-overlay-panel="true"
                 className="absolute max-h-56 w-[min(420px,calc(100%-1.5rem))] overflow-auto rounded-lg border border-slate-300 bg-white/95 p-3 text-xs text-slate-800 shadow-lg dark:border-slate-700 dark:bg-slate-900/95 dark:text-slate-100"
                 style={plumbingOverlayStyle('schedule')}
               >
                 <div
-                  className="mb-2 cursor-move select-none font-bold text-slate-950 dark:text-white"
+                  className="mb-2 flex cursor-move select-none items-center justify-between gap-3 font-bold text-slate-950 dark:text-white"
                   onPointerDown={(event) => handlePlumbingOverlayDragStart('schedule', event)}
                   title="Drag to move fixture schedule"
                 >
-                  Fixture Schedule
+                  <span>Fixture Schedule</span>
+                  <button
+                    type="button"
+                    onPointerDown={(event) => event.stopPropagation()}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setPlumbingFixtureScheduleExpanded(false);
+                    }}
+                    className="cursor-pointer rounded-md border border-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                    aria-label="Collapse fixture schedule"
+                  >
+                    Hide
+                  </button>
                 </div>
                 <table className="w-full border-collapse text-[11px]">
                   <thead className="text-left text-slate-500 dark:text-slate-400">

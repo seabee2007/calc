@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { DEFAULT_ROOF_LAYER_VISIBILITY } from '../domain/roofSystemDefaults';
@@ -12,6 +12,7 @@ import {
   fitPerspectiveCameraToBounds,
   logDesignFramingDiagnostics,
   reset3dView,
+  type CameraFit3d,
   type DesignLayoutBounds,
 } from '../domain/designLayoutBounds';
 import {
@@ -82,6 +83,68 @@ import {
 } from './DesignBuilderViewerRebuildState';
 
 const CLICK_DRAG_THRESHOLD_PX = 5;
+const PLAN_TO_VIEWER_Z_SCALE = -1;
+
+function planZToViewerZ(z: number): number {
+  return z * PLAN_TO_VIEWER_Z_SCALE;
+}
+
+function viewerZToPlanZ(z: number): number {
+  return z * PLAN_TO_VIEWER_Z_SCALE;
+}
+
+function planCameraZToViewerZ(positionZ: number, targetZ: number): number {
+  return planZToViewerZ(targetZ) + (positionZ - targetZ);
+}
+
+function viewerCameraZToPlanZ(positionZ: number, targetZ: number): number {
+  const planTargetZ = viewerZToPlanZ(targetZ);
+  return planTargetZ + (positionZ - targetZ);
+}
+
+function setCameraFromPlanFit(camera: THREE.PerspectiveCamera, controls: OrbitControls, fit: CameraFit3d): void {
+  controls.target.set(fit.target.x, fit.target.y, planZToViewerZ(fit.target.z));
+  camera.position.set(fit.position.x, fit.position.y, planCameraZToViewerZ(fit.position.z, fit.target.z));
+  camera.near = fit.near;
+  camera.far = fit.far;
+  camera.lookAt(controls.target);
+  camera.updateProjectionMatrix();
+}
+
+function setCameraFromPlanSnapshot(
+  camera: THREE.PerspectiveCamera,
+  controls: OrbitControls,
+  snapshot: DesignBuilderCameraSnapshot,
+): void {
+  controls.target.set(snapshot.target[0], snapshot.target[1], planZToViewerZ(snapshot.target[2]));
+  camera.position.set(
+    snapshot.position[0],
+    snapshot.position[1],
+    planCameraZToViewerZ(snapshot.position[2], snapshot.target[2]),
+  );
+  camera.lookAt(controls.target);
+}
+
+function createPlanCameraSnapshot(camera: THREE.PerspectiveCamera, controls: OrbitControls): DesignBuilderCameraSnapshot {
+  return {
+    position: [
+      camera.position.x,
+      camera.position.y,
+      viewerCameraZToPlanZ(camera.position.z, controls.target.z),
+    ],
+    target: [
+      controls.target.x,
+      controls.target.y,
+      viewerZToPlanZ(controls.target.z),
+    ],
+  };
+}
+
+type ViewerCursorPoint = {
+  x: number;
+  y: number;
+  z: number;
+};
 
 interface DesignBuilderViewerProps {
   modelLoaded: boolean;
@@ -166,6 +229,8 @@ export default function DesignBuilderViewer({
   manualMasonryEnabled = false,
   onManualMasonryPointer,
 }: DesignBuilderViewerProps) {
+  const [cursorPoint, setCursorPoint] = useState<ViewerCursorPoint | null>(null);
+  const [northArrowRotation, setNorthArrowRotation] = useState(0);
   const hostRef = useRef<HTMLDivElement | null>(null);
   const onSelectRef = useRef(onSelectObjectType);
   const onInteractionRef = useRef(onInteraction);
@@ -257,7 +322,12 @@ export default function DesignBuilderViewer({
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(45, 1, DESIGN_CAMERA_NEAR_METERS, DESIGN_CAMERA_FAR_METERS);
-    camera.position.set(7.4, 5.2, 8.2);
+    const initialView = reset3dView();
+    camera.position.set(
+      initialView.position.x,
+      initialView.position.y,
+      planCameraZToViewerZ(initialView.position.z, initialView.target.z),
+    );
     cameraRef.current = camera;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -277,10 +347,10 @@ export default function DesignBuilderViewer({
     controls.zoomSpeed = DESIGN_ORBIT_ZOOM_SPEED;
     controls.minDistance = DESIGN_ORBIT_MIN_DISTANCE_METERS;
     controls.maxDistance = resolveOrbitMaxDistanceMeters(modelParamsRef.current.layoutBounds);
-    controls.target.set(0, 1.6, 0);
+    controls.target.set(initialView.target.x, initialView.target.y, planZToViewerZ(initialView.target.z));
     if (initialCameraSnapshotRef.current) {
-      camera.position.fromArray(initialCameraSnapshotRef.current.position);
-      controls.target.fromArray(initialCameraSnapshotRef.current.target);
+      setCameraFromPlanSnapshot(camera, controls, initialCameraSnapshotRef.current);
+    } else {
       camera.lookAt(controls.target);
     }
     controlsRef.current = controls;
@@ -298,6 +368,8 @@ export default function DesignBuilderViewer({
 
     const root = new THREE.Group();
     const ghostRoot = new THREE.Group();
+    root.scale.z = PLAN_TO_VIEWER_Z_SCALE;
+    ghostRoot.scale.z = PLAN_TO_VIEWER_Z_SCALE;
     scene.add(root, ghostRoot);
 
     const resources = createDesignBuilderViewerResources();
@@ -311,9 +383,11 @@ export default function DesignBuilderViewer({
         modelParamsRef.current.geometryResult?.exteriorFootprint,
       getVisualStyle: () => modelParamsRef.current.visualStyle,
       trackMaterial: resources.trackMaterial,
+      planZToViewerZ,
     });
     const raycaster = new THREE.Raycaster();
     const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+    const groundHitPoint = new THREE.Vector3();
     const selectable: THREE.Object3D[] = [];
     const wallPickables: THREE.Object3D[] = [];
     const sceneRegistry = createDesignBuilderViewerSceneRegistry({
@@ -334,6 +408,47 @@ export default function DesignBuilderViewer({
     function clearGhost() {
       resources.clearGhostRoot(ghostRoot);
     }
+
+    const updateCursorPoint = (event: PointerEvent) => {
+      const rect = renderer.domElement.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0) {
+        setCursorPoint(null);
+        return;
+      }
+      const pointer = new THREE.Vector2(
+        ((event.clientX - rect.left) / rect.width) * 2 - 1,
+        -(((event.clientY - rect.top) / rect.height) * 2 - 1),
+      );
+      raycaster.setFromCamera(pointer, camera);
+      const objectHit = raycaster.intersectObjects([...selectable, ...wallPickables], true)
+        .find((hit) => hit.object.visible);
+      const hitPoint = objectHit?.point ?? raycaster.ray.intersectPlane(groundPlane, groundHitPoint);
+      setCursorPoint(
+        hitPoint
+          ? {
+              x: hitPoint.x,
+              y: hitPoint.y,
+              z: viewerZToPlanZ(hitPoint.z),
+            }
+          : null,
+      );
+    };
+
+    const clearCursorPoint = () => {
+      setCursorPoint(null);
+    };
+
+    const updateNorthArrowRotation = () => {
+      camera.updateMatrixWorld();
+      const targetScreen = controls.target.clone().project(camera);
+      const northPoint = controls.target.clone();
+      northPoint.z += planZToViewerZ(1);
+      const northScreen = northPoint.project(camera);
+      const dx = northScreen.x - targetScreen.x;
+      const dy = northScreen.y - targetScreen.y;
+      if (!Number.isFinite(dx) || !Number.isFinite(dy) || Math.hypot(dx, dy) < 0.0001) return;
+      setNorthArrowRotation(THREE.MathUtils.radToDeg(Math.atan2(dx, dy)));
+    };
 
     function updateGhost() {
       clearGhost();
@@ -727,15 +842,14 @@ export default function DesignBuilderViewer({
       renderer.render(scene, camera);
     };
     animate();
+    updateNorthArrowRotation();
 
     const emitCameraSnapshot = () => {
       onUserCameraChangeRef.current?.();
-      onCameraSnapshotRef.current?.({
-        position: camera.position.toArray() as [number, number, number],
-        target: controls.target.toArray() as [number, number, number],
-      });
+      onCameraSnapshotRef.current?.(createPlanCameraSnapshot(camera, controls));
     };
     controls.addEventListener('end', emitCameraSnapshot);
+    controls.addEventListener('change', updateNorthArrowRotation);
 
     const viewerPickers = createDesignBuilderViewerPickers({
       element: renderer.domElement,
@@ -747,6 +861,8 @@ export default function DesignBuilderViewer({
       getSegmentFrames: () => modelParamsRef.current.geometryResult?.wallCmuLayout?.segmentFrames ?? [],
       groundPlane,
       debug: import.meta.env.DEV,
+      displayPointToPlanPoint: (point) => ({ x: point.x, z: viewerZToPlanZ(point.z) }),
+      displayDirectionToPlanDirection: (direction) => ({ x: direction.x, z: viewerZToPlanZ(direction.z) }),
     });
 
     const interactionController = createDesignBuilderViewerInteractionController({
@@ -776,19 +892,24 @@ export default function DesignBuilderViewer({
     });
 
     renderer.domElement.addEventListener('pointerdown', interactionController.handlePointerDown);
+    renderer.domElement.addEventListener('pointermove', updateCursorPoint);
     renderer.domElement.addEventListener('pointermove', interactionController.handlePointerMove);
     renderer.domElement.addEventListener('pointerup', interactionController.handlePointerUp);
+    renderer.domElement.addEventListener('pointerleave', clearCursorPoint);
     renderer.domElement.addEventListener('contextmenu', interactionController.handleContextMenu);
     window.addEventListener('keydown', interactionController.handleKeyDown);
 
     return () => {
       cancelAnimationFrame(frame);
       renderer.domElement.removeEventListener('pointerdown', interactionController.handlePointerDown);
+      renderer.domElement.removeEventListener('pointermove', updateCursorPoint);
       renderer.domElement.removeEventListener('pointermove', interactionController.handlePointerMove);
       renderer.domElement.removeEventListener('pointerup', interactionController.handlePointerUp);
+      renderer.domElement.removeEventListener('pointerleave', clearCursorPoint);
       renderer.domElement.removeEventListener('contextmenu', interactionController.handleContextMenu);
       window.removeEventListener('keydown', interactionController.handleKeyDown);
       controls.removeEventListener('end', emitCameraSnapshot);
+      controls.removeEventListener('change', updateNorthArrowRotation);
       observer.disconnect();
       themeObserver.disconnect();
       unsubscribeMaterialDiagnostics();
@@ -843,23 +964,15 @@ export default function DesignBuilderViewer({
             padding: 1.2,
           })
         : reset3dView();
-    controls.target.set(fit.target.x, fit.target.y, fit.target.z);
-    camera.position.set(fit.position.x, fit.position.y, fit.position.z);
-    camera.near = fit.near;
-    camera.far = fit.far;
-    camera.lookAt(controls.target);
-    camera.updateProjectionMatrix();
+    setCameraFromPlanFit(camera, controls, fit);
     controls.update();
     logDesignFramingDiagnostics({
       mode: '3d',
       bounds: layoutBounds,
       cameraTargetX: controls.target.x,
-      cameraTargetZ: controls.target.z,
+      cameraTargetZ: viewerZToPlanZ(controls.target.z),
     });
-    onCameraSnapshotRef.current?.({
-      position: camera.position.toArray() as [number, number, number],
-      target: controls.target.toArray() as [number, number, number],
-    });
+    onCameraSnapshotRef.current?.(createPlanCameraSnapshot(camera, controls));
   }, [layoutBounds, viewCommand]);
 
   const toolHint =
@@ -888,11 +1001,41 @@ export default function DesignBuilderViewer({
         </div>
       ) : null}
       {modelLoaded && showGroutCells ? (
-        <div className="pointer-events-none absolute bottom-4 left-4 rounded-lg border border-slate-200 bg-white/90 px-3 py-2 text-[11px] text-slate-700 shadow-sm dark:border-slate-700 dark:bg-slate-900/90 dark:text-slate-200">
+        <div className="pointer-events-none absolute bottom-24 left-4 rounded-lg border border-slate-200 bg-white/90 px-3 py-2 text-[11px] text-slate-700 shadow-sm dark:border-slate-700 dark:bg-slate-900/90 dark:text-slate-200">
           <div className="font-semibold">Grout / reinforced cells</div>
           <div className="mt-1 flex items-center gap-2"><span className="inline-block h-2.5 w-2.5 rounded-sm bg-stone-400/80" /> Core / closure grout fill</div>
           <div className="mt-1 flex items-center gap-2"><span className="inline-block h-2.5 w-2.5 rounded-sm bg-slate-400/80" /> Precast lintel (always visible)</div>
         </div>
+      ) : null}
+      {modelLoaded ? (
+        <>
+          <div className="pointer-events-none absolute bottom-3 right-3 rounded-xl border border-slate-700 bg-slate-900/90 px-2.5 py-2 text-[11px] font-bold text-slate-100 shadow-sm" aria-label="3D orientation north">
+            <div className="flex items-center gap-2">
+              <svg
+                width="28"
+                height="34"
+                viewBox="0 0 28 34"
+                aria-hidden
+                style={{ transform: `rotate(${northArrowRotation}deg)` }}
+                className="origin-center transition-transform duration-75"
+              >
+                <path d="M14 3 L22 17 H16 V31 H12 V17 H6 Z" fill="#22d3ee" />
+                <path d="M14 31 H24" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+              <div>
+                <div>N</div>
+                <div className="text-[10px] font-semibold text-slate-400">North</div>
+              </div>
+            </div>
+          </div>
+          <div className="pointer-events-none absolute bottom-3 left-3 max-w-[calc(100%-8rem)] rounded-xl border border-slate-700 bg-slate-900/90 px-3 py-2 text-[11px] font-bold text-slate-100 shadow-sm" aria-label="3D coordinate widget">
+            <div className="text-cyan-200">Plan Coordinates</div>
+            <div className="font-mono text-slate-200">
+              X {cursorPoint ? cursorPoint.x.toFixed(2) : '0.00'} m / Y {cursorPoint ? cursorPoint.y.toFixed(2) : '0.00'} m / Z {cursorPoint ? cursorPoint.z.toFixed(2) : '0.00'} m
+            </div>
+            <div className="text-[10px] font-semibold text-slate-400">East / Elev. / North</div>
+          </div>
+        </>
       ) : null}
     </div>
   );

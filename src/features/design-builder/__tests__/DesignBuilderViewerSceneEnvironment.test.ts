@@ -71,6 +71,26 @@ describe('DesignBuilderViewerSceneEnvironment', () => {
     environment.dispose();
   });
 
+  it('can frame grid and floor with plan north mirrored into viewer space', () => {
+    const scene = new THREE.Scene();
+    const environment = createDesignBuilderViewerSceneEnvironment({
+      scene,
+      initialBounds: null,
+      getLayoutBounds: () => bounds,
+      getVisualStyle: () => 'technical',
+      trackMaterial: () => undefined,
+      isDarkMode: () => false,
+      planZToViewerZ: (z) => -z,
+    });
+
+    environment.applySceneFraming(bounds);
+
+    expect(environment.floorMesh.position.x).toBeCloseTo(5, 6);
+    expect(environment.floorMesh.position.z).toBeCloseTo(-5, 6);
+
+    environment.dispose();
+  });
+
   it('keeps grade elevation near the slab and cuts site ground out under the footprint', () => {
     const scene = new THREE.Scene();
     const environment = createDesignBuilderViewerSceneEnvironment({

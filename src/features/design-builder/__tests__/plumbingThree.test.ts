@@ -122,6 +122,11 @@ function objectBounds(object: THREE.Object3D): THREE.Box3 {
   return new THREE.Box3().setFromObject(object);
 }
 
+function worldPosition(object: THREE.Object3D): THREE.Vector3 {
+  object.updateWorldMatrix(true, false);
+  return object.getWorldPosition(new THREE.Vector3());
+}
+
 function meshByName(group: THREE.Object3D, name: string): THREE.Mesh {
   let found: THREE.Mesh | null = null;
   group.traverse((object) => {
@@ -278,6 +283,44 @@ describe('Design Builder procedural plumbing 3D', () => {
       position: { x: 0, y: 0, z: 0 },
       materials,
     }).group).has('water heater cylinder body')).toBe(true);
+  });
+
+  it('matches 2D plan symbol orientation for procedural fixture bodies', () => {
+    const materials = createPlumbingThreeMaterials();
+    const basePosition = { x: 4, y: 0, z: 6 };
+    const fixtureSystem = addFixtureToPlumbingSystem({
+      system: createDefaultPlumbingSystem(),
+      fixtureType: 'toilet',
+      position: basePosition,
+      rotationRadians: 0,
+      idSeed: 'wc-symbol-orientation',
+    });
+    const group = createProceduralPlumbingFixtureMesh({
+      fixture: fixtureSystem.fixtures[0]!,
+      position: basePosition,
+      materials,
+    }).group;
+    group.updateMatrixWorld(true);
+
+    expect(worldPosition(meshByName(group, 'WC rear tank')).z).toBeGreaterThan(group.position.z);
+    expect(worldPosition(meshByName(group, 'WC sanitary outlet marker')).z).toBeLessThan(group.position.z);
+
+    const rotatedSystem = addFixtureToPlumbingSystem({
+      system: createDefaultPlumbingSystem(),
+      fixtureType: 'toilet',
+      position: basePosition,
+      rotationRadians: Math.PI / 2,
+      idSeed: 'wc-symbol-rotated',
+    });
+    const rotatedGroup = createProceduralPlumbingFixtureMesh({
+      fixture: rotatedSystem.fixtures[0]!,
+      position: basePosition,
+      materials,
+    }).group;
+    rotatedGroup.updateMatrixWorld(true);
+
+    expect(worldPosition(meshByName(rotatedGroup, 'WC rear tank')).x).toBeGreaterThan(rotatedGroup.position.x);
+    expect(worldPosition(meshByName(rotatedGroup, 'WC sanitary outlet marker')).x).toBeLessThan(rotatedGroup.position.x);
   });
 
   it('aligns floor-mounted fixture mesh bottoms to the finished floor instead of the pipe elevation', () => {

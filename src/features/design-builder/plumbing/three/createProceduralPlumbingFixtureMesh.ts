@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import type { PlumbingFixture, PlumbingFixtureType } from '../plumbingTypes';
 import {
   addLocalPipe,
-  applyPlanRotation,
   createBoxMesh,
   createCylinderMesh,
   createSphereMesh,
@@ -45,50 +44,78 @@ function material(params: { selected?: boolean; materials: PlumbingThreeMaterial
   return accent ? params.materials.fixtureAccent : params.materials.fixture;
 }
 
+type FixtureSymbolPoint = [number, number, number];
+
+function planSymbolPosition(x: number, y: number, symbolY: number): FixtureSymbolPoint {
+  return [x, y, -symbolY];
+}
+
+function addPlanSymbolPipe(params: {
+  group: THREE.Group;
+  name: string;
+  start: FixtureSymbolPoint;
+  end: FixtureSymbolPoint;
+  radius: number;
+  material: THREE.Material;
+  trackGeometry?: TrackGeometry;
+  radialSegments?: number;
+}): THREE.Mesh | null {
+  return addLocalPipe({
+    ...params,
+    start: planSymbolPosition(...params.start),
+    end: planSymbolPosition(...params.end),
+  });
+}
+
+function applyPlanSymbolRotation(group: THREE.Object3D, rotationRadians: number | undefined): void {
+  // SVG plan symbols rotate in screen space; after mapping symbol Y to plan Z, the same sign matches the 2D canvas.
+  group.rotation.y = Number.isFinite(rotationRadians) ? (rotationRadians ?? 0) : 0;
+}
+
 function addToilet(group: THREE.Group, materials: PlumbingThreeMaterials, selected: boolean | undefined, trackGeometry?: TrackGeometry): void {
-  group.add(createBoxMesh({ name: 'WC base block', size: [0.34, 0.12, 0.42], position: [0, 0.06, 0.06], material: material({ selected, materials }), trackGeometry }));
-  const bowl = createCylinderMesh({ name: 'WC bowl', radiusTop: 0.18, radiusBottom: 0.15, height: 0.18, position: [0, 0.22, 0.06], material: material({ selected, materials }), trackGeometry, radialSegments: 18 });
+  group.add(createBoxMesh({ name: 'WC base block', size: [0.34, 0.12, 0.42], position: planSymbolPosition(0, 0.06, 0.06), material: material({ selected, materials }), trackGeometry }));
+  const bowl = createCylinderMesh({ name: 'WC bowl', radiusTop: 0.18, radiusBottom: 0.15, height: 0.18, position: planSymbolPosition(0, 0.22, 0.06), material: material({ selected, materials }), trackGeometry, radialSegments: 18 });
   bowl.scale.z = 1.28;
   group.add(bowl);
-  group.add(createBoxMesh({ name: 'WC rear tank', size: [0.42, 0.28, 0.14], position: [0, 0.34, -0.25], material: material({ selected, materials }), trackGeometry }));
-  group.add(createCylinderMesh({ name: 'WC sanitary outlet marker', radiusTop: 0.055, height: 0.025, position: [0, 0.018, 0.24], material: material({ selected, materials }, true), trackGeometry }));
+  group.add(createBoxMesh({ name: 'WC rear tank', size: [0.42, 0.28, 0.14], position: planSymbolPosition(0, 0.34, -0.25), material: material({ selected, materials }), trackGeometry }));
+  group.add(createCylinderMesh({ name: 'WC sanitary outlet marker', radiusTop: 0.055, height: 0.025, position: planSymbolPosition(0, 0.018, 0.24), material: material({ selected, materials }, true), trackGeometry }));
 }
 
 function addLavatory(group: THREE.Group, materials: PlumbingThreeMaterials, selected: boolean | undefined, trackGeometry?: TrackGeometry): void {
   group.add(createBoxMesh({ name: 'lavatory counter', size: [0.58, 0.08, 0.46], position: [0, 0.82, 0], material: material({ selected, materials }), trackGeometry }));
-  const basin = createCylinderMesh({ name: 'lavatory basin depression', radiusTop: 0.16, radiusBottom: 0.13, height: 0.035, position: [0, 0.87, 0.03], material: material({ selected, materials }, true), trackGeometry, radialSegments: 18 });
+  const basin = createCylinderMesh({ name: 'lavatory basin depression', radiusTop: 0.16, radiusBottom: 0.13, height: 0.035, position: planSymbolPosition(0, 0.87, 0.03), material: material({ selected, materials }, true), trackGeometry, radialSegments: 18 });
   basin.scale.z = 0.75;
   group.add(basin);
   group.add(createBoxMesh({ name: 'lavatory vanity box', size: [0.5, 0.72, 0.38], position: [0, 0.38, 0], material: material({ selected, materials }), trackGeometry }));
-  group.add(createSphereMesh({ name: 'lavatory faucet marker', radius: 0.035, position: [0, 0.92, -0.12], material: material({ selected, materials }, true), trackGeometry }));
+  group.add(createSphereMesh({ name: 'lavatory faucet marker', radius: 0.035, position: planSymbolPosition(0, 0.92, -0.12), material: material({ selected, materials }, true), trackGeometry }));
 }
 
 function addShower(group: THREE.Group, materials: PlumbingThreeMaterials, selected: boolean | undefined, trackGeometry?: TrackGeometry): void {
   group.add(createBoxMesh({ name: 'shower pan', size: [0.9, 0.06, 0.9], position: [0, 0.03, 0], material: material({ selected, materials }), trackGeometry }));
   group.add(createCylinderMesh({ name: 'shower drain disk', radiusTop: 0.055, height: 0.012, position: [0, 0.07, 0], material: material({ selected, materials }, true), trackGeometry }));
-  addLocalPipe({ group, name: 'shower riser marker', start: [0.34, 0.2, -0.38], end: [0.34, 1.9, -0.38], radius: 0.014, material: material({ selected, materials }, true), trackGeometry });
-  group.add(createSphereMesh({ name: 'shower head marker', radius: 0.035, position: [0.34, 1.88, -0.35], material: material({ selected, materials }, true), trackGeometry }));
+  addPlanSymbolPipe({ group, name: 'shower riser marker', start: [0.34, 0.2, -0.38], end: [0.34, 1.9, -0.38], radius: 0.014, material: material({ selected, materials }, true), trackGeometry });
+  group.add(createSphereMesh({ name: 'shower head marker', radius: 0.035, position: planSymbolPosition(0.34, 1.88, -0.35), material: material({ selected, materials }, true), trackGeometry }));
 }
 
 function addTub(group: THREE.Group, materials: PlumbingThreeMaterials, selected: boolean | undefined, trackGeometry?: TrackGeometry): void {
   group.add(createBoxMesh({ name: 'tub shell', size: [0.78, 0.36, 1.54], position: [0, 0.18, 0], material: material({ selected, materials }), trackGeometry }));
-  group.add(createBoxMesh({ name: 'tub inner basin', size: [0.62, 0.05, 1.22], position: [0, 0.38, 0.08], material: material({ selected, materials }, true), trackGeometry }));
-  group.add(createCylinderMesh({ name: 'tub drain disk', radiusTop: 0.05, height: 0.012, position: [0, 0.405, 0.55], material: material({ selected, materials }, true), trackGeometry }));
-  group.add(createSphereMesh({ name: 'tub faucet marker', radius: 0.04, position: [0, 0.48, -0.6], material: material({ selected, materials }, true), trackGeometry }));
+  group.add(createBoxMesh({ name: 'tub inner basin', size: [0.62, 0.05, 1.22], position: planSymbolPosition(0, 0.38, 0.08), material: material({ selected, materials }, true), trackGeometry }));
+  group.add(createCylinderMesh({ name: 'tub drain disk', radiusTop: 0.05, height: 0.012, position: planSymbolPosition(0, 0.405, 0.55), material: material({ selected, materials }, true), trackGeometry }));
+  group.add(createSphereMesh({ name: 'tub faucet marker', radius: 0.04, position: planSymbolPosition(0, 0.48, -0.6), material: material({ selected, materials }, true), trackGeometry }));
 }
 
 function addKitchenSink(group: THREE.Group, materials: PlumbingThreeMaterials, selected: boolean | undefined, trackGeometry?: TrackGeometry): void {
   group.add(createBoxMesh({ name: 'kitchen sink counter', size: [0.92, 0.08, 0.58], position: [0, 0.9, 0], material: material({ selected, materials }), trackGeometry }));
-  group.add(createBoxMesh({ name: 'kitchen sink left basin', size: [0.31, 0.05, 0.36], position: [-0.17, 0.94, 0.03], material: material({ selected, materials }, true), trackGeometry }));
-  group.add(createBoxMesh({ name: 'kitchen sink right basin', size: [0.31, 0.05, 0.36], position: [0.17, 0.94, 0.03], material: material({ selected, materials }, true), trackGeometry }));
-  group.add(createSphereMesh({ name: 'kitchen sink faucet marker', radius: 0.035, position: [0, 0.99, -0.18], material: material({ selected, materials }, true), trackGeometry }));
+  group.add(createBoxMesh({ name: 'kitchen sink left basin', size: [0.31, 0.05, 0.36], position: planSymbolPosition(-0.17, 0.94, 0.03), material: material({ selected, materials }, true), trackGeometry }));
+  group.add(createBoxMesh({ name: 'kitchen sink right basin', size: [0.31, 0.05, 0.36], position: planSymbolPosition(0.17, 0.94, 0.03), material: material({ selected, materials }, true), trackGeometry }));
+  group.add(createSphereMesh({ name: 'kitchen sink faucet marker', radius: 0.035, position: planSymbolPosition(0, 0.99, -0.18), material: material({ selected, materials }, true), trackGeometry }));
 }
 
 function addLaundryBox(group: THREE.Group, materials: PlumbingThreeMaterials, selected: boolean | undefined, trackGeometry?: TrackGeometry): void {
-  group.add(createBoxMesh({ name: 'laundry recessed box', size: [0.46, 0.32, 0.08], position: [0, 1.15, -0.02], material: material({ selected, materials }), trackGeometry }));
-  group.add(createSphereMesh({ name: 'laundry cold connection dot', radius: 0.025, position: [-0.11, 1.16, 0.04], material: materials.coldWater, trackGeometry }));
-  group.add(createSphereMesh({ name: 'laundry hot connection dot', radius: 0.025, position: [0.11, 1.16, 0.04], material: materials.hotWater, trackGeometry }));
-  addLocalPipe({ group, name: 'laundry drain standpipe stub', start: [0, 0.25, 0.04], end: [0, 1.0, 0.04], radius: 0.025, material: material({ selected, materials }, true), trackGeometry });
+  group.add(createBoxMesh({ name: 'laundry recessed box', size: [0.46, 0.32, 0.08], position: planSymbolPosition(0, 1.15, -0.02), material: material({ selected, materials }), trackGeometry }));
+  group.add(createSphereMesh({ name: 'laundry cold connection dot', radius: 0.025, position: planSymbolPosition(-0.11, 1.16, 0.04), material: materials.coldWater, trackGeometry }));
+  group.add(createSphereMesh({ name: 'laundry hot connection dot', radius: 0.025, position: planSymbolPosition(0.11, 1.16, 0.04), material: materials.hotWater, trackGeometry }));
+  addPlanSymbolPipe({ group, name: 'laundry drain standpipe stub', start: [0, 0.25, 0.04], end: [0, 1.0, 0.04], radius: 0.025, material: material({ selected, materials }, true), trackGeometry });
 }
 
 function addFloorDrain(group: THREE.Group, materials: PlumbingThreeMaterials, selected: boolean | undefined, trackGeometry?: TrackGeometry): void {
@@ -105,15 +132,15 @@ function addHoseBib(group: THREE.Group, materials: PlumbingThreeMaterials, selec
 function addUtilitySink(group: THREE.Group, materials: PlumbingThreeMaterials, selected: boolean | undefined, trackGeometry?: TrackGeometry): void {
   group.add(createBoxMesh({ name: 'utility sink deep basin', size: [0.66, 0.32, 0.56], position: [0, 0.68, 0], material: material({ selected, materials }), trackGeometry }));
   group.add(createBoxMesh({ name: 'utility sink support box', size: [0.54, 0.55, 0.44], position: [0, 0.32, 0], material: material({ selected, materials }, true), trackGeometry }));
-  group.add(createSphereMesh({ name: 'utility sink faucet marker', radius: 0.035, position: [0, 0.88, -0.2], material: material({ selected, materials }, true), trackGeometry }));
+  group.add(createSphereMesh({ name: 'utility sink faucet marker', radius: 0.035, position: planSymbolPosition(0, 0.88, -0.2), material: material({ selected, materials }, true), trackGeometry }));
 }
 
 function addWaterHeater(group: THREE.Group, materials: PlumbingThreeMaterials, selected: boolean | undefined, trackGeometry?: TrackGeometry): void {
   group.add(createCylinderMesh({ name: 'water heater cylinder body', radiusTop: 0.28, height: 1.18, position: [0, 0.59, 0], material: material({ selected, materials }), trackGeometry, radialSegments: 24 }));
   group.add(createCylinderMesh({ name: 'water heater top cap', radiusTop: 0.28, height: 0.035, position: [0, 1.19, 0], material: material({ selected, materials }, true), trackGeometry, radialSegments: 24 }));
   group.add(createCylinderMesh({ name: 'water heater bottom cap', radiusTop: 0.28, height: 0.035, position: [0, 0.02, 0], material: material({ selected, materials }, true), trackGeometry, radialSegments: 24 }));
-  group.add(createSphereMesh({ name: 'water heater cold inlet marker', radius: 0.03, position: [-0.12, 1.24, -0.05], material: materials.coldWater, trackGeometry }));
-  group.add(createSphereMesh({ name: 'water heater hot outlet marker', radius: 0.03, position: [0.12, 1.24, -0.05], material: materials.hotWater, trackGeometry }));
+  group.add(createSphereMesh({ name: 'water heater cold inlet marker', radius: 0.03, position: planSymbolPosition(-0.12, 1.24, -0.05), material: materials.coldWater, trackGeometry }));
+  group.add(createSphereMesh({ name: 'water heater hot outlet marker', radius: 0.03, position: planSymbolPosition(0.12, 1.24, -0.05), material: materials.hotWater, trackGeometry }));
   group.add(createSphereMesh({ name: 'water heater drain valve marker', radius: 0.025, position: [0.24, 0.18, 0], material: material({ selected, materials }, true), trackGeometry }));
 }
 
@@ -129,7 +156,7 @@ export function createProceduralPlumbingFixtureMesh(params: {
   const group = new THREE.Group();
   group.name = `plumbing_fixture:${params.fixture.id}`;
   group.position.set(params.position.x, params.position.y, params.position.z);
-  applyPlanRotation(group, params.fixture.rotationRadians);
+  applyPlanSymbolRotation(group, params.fixture.rotationRadians);
   group.userData.fixtureType = params.fixture.fixtureType;
   const validationIssues: Plumbing3DValidationIssue[] = [];
 

@@ -106,29 +106,37 @@ export function createDesignBuilderViewerSceneEnvironment(params: {
   getVisualStyle: () => DesignVisualStyle;
   trackMaterial: (material: THREE.Material) => void;
   isDarkMode?: () => boolean;
+  planZToViewerZ?: (z: number) => number;
 }): DesignBuilderViewerSceneEnvironment {
   const isDarkMode = params.isDarkMode ?? isDesignBuilderDarkMode;
+  const planZToViewerZ = params.planZToViewerZ ?? ((z: number) => z);
+  const getViewerGroundExclusionPolygon = () =>
+    params.getGroundExclusionPolygon?.()?.map((point) => ({
+      x: point.x,
+      z: planZToViewerZ(point.z),
+    }));
   const initialGridLayout = resolveSceneGridLayout(params.initialBounds);
+  const initialCenterZ = planZToViewerZ(initialGridLayout.centerZ);
   let grid = new THREE.GridHelper(
     initialGridLayout.gridSize,
     initialGridLayout.gridDivisions,
   );
-  grid.position.set(initialGridLayout.centerX, 0, initialGridLayout.centerZ);
+  grid.position.set(initialGridLayout.centerX, 0, initialCenterZ);
   params.scene.add(grid);
 
   const floorMesh = new THREE.Mesh(
     createSiteGroundGeometry({
       centerX: initialGridLayout.centerX,
-      centerZ: initialGridLayout.centerZ,
+      centerZ: initialCenterZ,
       gridSize: initialGridLayout.gridSize,
-      exclusionPolygon: params.getGroundExclusionPolygon?.(),
+      exclusionPolygon: getViewerGroundExclusionPolygon(),
     }),
   );
   floorMesh.rotation.x = -Math.PI / 2;
   floorMesh.position.set(
     initialGridLayout.centerX,
     DEFAULT_SITE_GROUND_Y_METERS,
-    initialGridLayout.centerZ,
+    initialCenterZ,
   );
   params.scene.add(floorMesh);
 
@@ -161,6 +169,7 @@ export function createDesignBuilderViewerSceneEnvironment(params: {
 
   const applySceneFraming = (bounds: DesignLayoutBounds | null) => {
     const layout = resolveSceneGridLayout(bounds);
+    const viewerCenterZ = planZToViewerZ(layout.centerZ);
     if (
       Math.abs(activeGridSize - layout.gridSize) > 0.01 ||
       activeGridDivisions !== layout.gridDivisions
@@ -174,14 +183,14 @@ export function createDesignBuilderViewerSceneEnvironment(params: {
       params.scene.add(grid);
       applyTheme();
     }
-    grid.position.set(layout.centerX, 0, layout.centerZ);
-    floorMesh.position.set(layout.centerX, DEFAULT_SITE_GROUND_Y_METERS, layout.centerZ);
+    grid.position.set(layout.centerX, 0, viewerCenterZ);
+    floorMesh.position.set(layout.centerX, DEFAULT_SITE_GROUND_Y_METERS, viewerCenterZ);
     floorMesh.geometry.dispose();
     floorMesh.geometry = createSiteGroundGeometry({
       centerX: layout.centerX,
-      centerZ: layout.centerZ,
+      centerZ: viewerCenterZ,
       gridSize: layout.gridSize,
-      exclusionPolygon: params.getGroundExclusionPolygon?.(),
+      exclusionPolygon: getViewerGroundExclusionPolygon(),
     });
     refreshSiteGroundMaterial();
   };

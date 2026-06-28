@@ -669,6 +669,12 @@ describe('DesignBuilderPage', () => {
     await waitFor(() => {
       expect(useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']?.plumbingSystem.fixtures).toHaveLength(1);
     });
+    fireEvent.click(screen.getByRole('button', { name: /collapse fixture schedule/i }));
+    expect(screen.getByRole('button', { name: /open fixture schedule/i })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /open fixture schedule/i }));
+    expect(screen.getByRole('button', { name: /collapse fixture schedule/i })).toBeInTheDocument();
+
     fireEvent.click(screen.getByRole('button', { name: /open plumbing legend/i }));
     expect(screen.getByText(/cold water supply/i)).toBeInTheDocument();
     expect(screen.getByText(/sanitary waste line/i)).toBeInTheDocument();

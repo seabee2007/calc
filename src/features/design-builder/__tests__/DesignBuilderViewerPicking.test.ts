@@ -114,6 +114,28 @@ describe('DesignBuilderViewerPicking', () => {
     expect(debugLog).toHaveBeenCalledWith(expect.stringContaining('Host wall: segment-1'));
   });
 
+  it('converts mirrored display wall hits back to plan coordinates', () => {
+    const frame = segmentFrame();
+    const wallMesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1));
+    wallMesh.userData.isWallPickable = true;
+    wallMesh.userData.wallSegmentId = frame.segmentId;
+
+    const pick = resolveWallPickFromIntersections({
+      intersections: [intersection(wallMesh, 1, new THREE.Vector3(1.5, 1, 2))],
+      viewDirection: { x: 0, z: -1 },
+      segmentFrames: [frame],
+      wall: { lengthMeters: 6, widthMeters: 5 },
+      displayPointToPlanPoint: (point) => ({ x: point.x, z: -point.z }),
+      displayDirectionToPlanDirection: (direction) => ({ x: direction.x, z: -direction.z }),
+    });
+
+    expect(pick).toMatchObject({
+      wallSegmentId: 'segment-1',
+      positionAlongSegment: 4.5,
+      hitPoint: { x: 1.5, y: 1, z: -2 },
+    });
+  });
+
   it('resolves legacy face wall picks to offsets', () => {
     const wallMesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1));
     wallMesh.userData.isWallPickable = true;
@@ -140,5 +162,19 @@ describe('DesignBuilderViewerPicking', () => {
     );
 
     expect(resolveManualBrushPointFromRay({ ray })).toEqual({ x: 2, z: -3 });
+  });
+
+  it('converts mirrored manual brush ground points back to plan coordinates', () => {
+    const ray = new THREE.Ray(
+      new THREE.Vector3(2, 5, 3),
+      new THREE.Vector3(0, -1, 0),
+    );
+
+    expect(
+      resolveManualBrushPointFromRay({
+        ray,
+        displayPointToPlanPoint: (point) => ({ x: point.x, z: -point.z }),
+      }),
+    ).toEqual({ x: 2, z: -3 });
   });
 });

@@ -32,6 +32,11 @@ export type DesignBuilderViewerSelectablePick = {
   data: DesignBuilderViewerSelectableData;
 };
 
+export type DesignBuilderViewerPlanTransform = {
+  displayPointToPlanPoint?: (point: { x: number; z: number }) => { x: number; z: number };
+  displayDirectionToPlanDirection?: (direction: { x: number; z: number }) => { x: number; z: number };
+};
+
 export function setPointerFromDesignViewerEvent(params: {
   event: PointerEvent;
   element: HTMLElement;
@@ -85,7 +90,10 @@ export function resolveWallPickFromIntersections(params: {
   segmentFrames: readonly SegmentFrame[];
   wall: Pick<CmuWallSystemParameters, 'lengthMeters' | 'widthMeters'>;
   debugLog?: (message: string) => void;
-}): DesignBuilderViewerWallPick | null {
+} & DesignBuilderViewerPlanTransform): DesignBuilderViewerWallPick | null {
+  const displayPointToPlanPoint = params.displayPointToPlanPoint ?? ((point: { x: number; z: number }) => point);
+  const displayDirectionToPlanDirection = params.displayDirectionToPlanDirection ?? ((direction: { x: number; z: number }) => direction);
+  const planViewDirection = displayDirectionToPlanDirection(params.viewDirection);
   const frameById = buildSegmentFrameMap(params.segmentFrames);
   const candidates = params.intersections
     .filter((hit) => hit.object.userData.isWallPickable)
@@ -93,8 +101,8 @@ export function resolveWallPickFromIntersections(params: {
       const wallSegmentId = hit.object.userData.wallSegmentId as string | undefined;
       const frame = wallSegmentId ? frameById.get(wallSegmentId) : null;
       const facing = frame
-        ? frame.outwardNormal.x * -params.viewDirection.x +
-            frame.outwardNormal.z * -params.viewDirection.z >
+        ? frame.outwardNormal.x * -planViewDirection.x +
+            frame.outwardNormal.z * -planViewDirection.z >
           0.05
         : true;
       return { hit, wallSegmentId, frame, facing };
@@ -105,10 +113,11 @@ export function resolveWallPickFromIntersections(params: {
   const best = candidates[0];
   if (!best) return null;
   const point = best.hit.point;
+  const planPoint = displayPointToPlanPoint(point);
 
   if (best.wallSegmentId && best.frame) {
     const positionAlongSegment = projectPointToSegmentStation(
-      { x: point.x, z: point.z },
+      planPoint,
       best.frame,
     );
     params.debugLog?.(
@@ -117,7 +126,7 @@ export function resolveWallPickFromIntersections(params: {
     return {
       wallSegmentId: best.wallSegmentId,
       positionAlongSegment,
-      hitPoint: { x: point.x, y: point.y, z: point.z },
+      hitPoint: { x: planPoint.x, y: point.y, z: planPoint.z },
     };
   }
 
@@ -125,19 +134,20 @@ export function resolveWallPickFromIntersections(params: {
   const wallFace = best.hit.object.userData.wallFace as WallOpeningParameters['wallFace'];
   const offsetMeters =
     wallFace === 'north' || wallFace === 'south'
-      ? point.x + params.wall.lengthMeters / 2
-      : point.z + params.wall.widthMeters / 2;
-  return { wallFace, offsetMeters, hitPoint: { x: point.x, y: point.y, z: point.z } };
+      ? planPoint.x + params.wall.lengthMeters / 2
+      : planPoint.z + params.wall.widthMeters / 2;
+  return { wallFace, offsetMeters, hitPoint: { x: planPoint.x, y: point.y, z: planPoint.z } };
 }
 
 export function resolveManualBrushPointFromRay(params: {
   ray: THREE.Ray;
   groundPlane?: THREE.Plane;
-}): { x: number; z: number } | null {
+} & Pick<DesignBuilderViewerPlanTransform, 'displayPointToPlanPoint'>): { x: number; z: number } | null {
   const hit = new THREE.Vector3();
   const groundPlane = params.groundPlane ?? new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
   if (!params.ray.intersectPlane(groundPlane, hit)) return null;
-  return { x: hit.x, z: hit.z };
+  const planPoint = params.displayPointToPlanPoint?.(hit) ?? hit;
+  return { x: planPoint.x, z: planPoint.z };
 }
 
 export function createDesignBuilderViewerPickers(params: {
@@ -150,7 +160,7 @@ export function createDesignBuilderViewerPickers(params: {
   getSegmentFrames: () => readonly SegmentFrame[];
   groundPlane?: THREE.Plane;
   debug?: boolean;
-}): {
+} & DesignBuilderViewerPlanTransform): {
   pickWall: (event: PointerEvent) => DesignBuilderViewerWallPick | null;
   pickSelectable: (event: PointerEvent) => DesignBuilderViewerSelectablePick | null;
   pickManualBrushPoint: (event: PointerEvent) => { x: number; z: number } | null;
@@ -173,6 +183,8 @@ export function createDesignBuilderViewerPickers(params: {
         segmentFrames: params.getSegmentFrames(),
         wall: params.getWall(),
         debugLog: params.debug ? (message) => console.debug(message) : undefined,
+        displayPointToPlanPoint: params.displayPointToPlanPoint,
+        displayDirectionToPlanDirection: params.displayDirectionToPlanDirection,
       });
     },
     pickSelectable: (event) => {
@@ -186,6 +198,7 @@ export function createDesignBuilderViewerPickers(params: {
       return resolveManualBrushPointFromRay({
         ray: params.raycaster.ray,
         groundPlane: params.groundPlane,
+        displayPointToPlanPoint: params.displayPointToPlanPoint,
       });
     },
   };
