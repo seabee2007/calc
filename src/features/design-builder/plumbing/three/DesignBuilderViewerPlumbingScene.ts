@@ -1,10 +1,21 @@
 import * as THREE from 'three';
 import type { PlumbingSelection, PlumbingSystem } from '../plumbingTypes';
+import {
+  getRenderableSolvedPlumbingFittings,
+  isLegacyAutoSolvedSanitaryCoupling,
+  solvePlumbingModel,
+  type SolvedPipePiece,
+  type SolvedPlumbingFitting,
+  type SolvedPlumbingModel,
+} from '../domain/plumbingModelSolver';
 import { createCmuSepticTankMesh } from '../septic/three/createCmuSepticTankMesh';
 import { createPipeTubeMesh } from './createPipeTubeMesh';
 import { createPlumbingRiserMesh } from './createPlumbingRiserMesh';
 import { createProceduralPlumbingEquipmentMesh } from './createProceduralPlumbingEquipmentMesh';
-import { createProceduralPlumbingFittingMesh } from './createProceduralPlumbingFittingMesh';
+import {
+  createProceduralPlumbingFittingMesh,
+  createProceduralSolvedPlumbingFittingMesh,
+} from './createProceduralPlumbingFittingMesh';
 import { createProceduralPlumbingFixtureMesh } from './createProceduralPlumbingFixtureMesh';
 import {
   defaultPlumbingElevationDefaults,
@@ -17,6 +28,7 @@ import {
 } from './plumbingElevationResolver';
 import {
   createPlumbingThreeMaterials,
+  materialForPlumbingRunSystem,
 } from './plumbingThreeMaterials';
 import {
   createPlumbingTextLabel,
@@ -28,6 +40,8 @@ import {
 import {
   DEFAULT_PLUMBING_3D_VISIBILITY,
   alignObjectPortToWorldPoint,
+  createCylinderBetween,
+  diameterInchesToVisualRadiusMeters,
   equipmentVisible,
   fittingVisible,
   fixtureVisible,
@@ -159,6 +173,123 @@ function resolvedPipeConnectionPointForEquipment(params: {
   return null;
 }
 
+function mapSolvedIssueTo3D(issue: SolvedPlumbingModel['validationIssues'][number]): Plumbing3DValidationIssue {
+  return {
+    code: 'solved_plumbing_model_issue',
+    severity: issue.severity === 'error' ? 'error' : 'warning',
+    objectType: issue.objectKind === 'run'
+      ? 'plumbing_run'
+      : issue.objectKind === 'fitting'
+        ? 'plumbing_fitting'
+        : issue.objectKind === 'equipment'
+          ? 'plumbing_equipment'
+          : undefined,
+    objectId: issue.objectId,
+    message: issue.message,
+  };
+}
+
+function createSolvedPipePiecesGroup(params: {
+  runId: string;
+  system: PlumbingSystem;
+  pieces: readonly SolvedPipePiece[];
+  materials: ReturnType<typeof createPlumbingThreeMaterials>;
+  selected: boolean;
+  trackGeometry?: TrackGeometry;
+  showCenterline?: boolean;
+}): THREE.Group {
+  const run = params.system.runs.find((candidate) => candidate.id === params.runId);
+  const group = new THREE.Group();
+  group.name = `plumbing_run:${params.runId}`;
+  group.userData.system = run?.system ?? 'sanitary';
+  group.userData.elevationMode = run?.elevationMode ?? 'under_slab';
+  const material = params.selected
+    ? params.materials.selected
+    : run
+      ? materialForPlumbingRunSystem(run.system, params.materials)
+      : params.materials.sanitary;
+
+  params.pieces.forEach((piece, index) => {
+    const start = vectorFromPoint(piece.start);
+    const end = vectorFromPoint(piece.end);
+    const mesh = createCylinderBetween({
+      name: `pipe segment ${index + 1}`,
+      start,
+      end,
+      radius: diameterInchesToVisualRadiusMeters(piece.diameterInches),
+      material,
+      trackGeometry: params.trackGeometry,
+      radialSegments: 12,
+    });
+    if (mesh) {
+      mesh.userData.solvedPipePieceId = piece.id;
+      group.add(mesh);
+    }
+    if (params.showCenterline) {
+      const geometry = params.trackGeometry?.(
+        new THREE.BufferGeometry().setFromPoints([start, end]),
+      ) ?? new THREE.BufferGeometry().setFromPoints([start, end]);
+      const centerline = new THREE.Line(geometry, params.materials.centerline);
+      centerline.name = index === 0 ? 'plumbing run centerline' : `plumbing run centerline ${index + 1}`;
+      group.add(centerline);
+    }
+  });
+
+  if (group.children.length === 0) {
+    const point = params.pieces[0]?.start ?? { x: 0, y: 0, z: 0 };
+    const marker = new THREE.Mesh(
+      params.trackGeometry?.(new THREE.SphereGeometry(0.05, 12, 8)) ?? new THREE.SphereGeometry(0.05, 12, 8),
+      params.materials.warning,
+    );
+    marker.name = 'invalid solved pipe marker';
+    marker.position.set(point.x, point.y, point.z);
+    group.add(marker);
+  }
+
+  return markPlumbingObject3D({
+    group,
+    objectType: 'plumbing_run',
+    objectId: params.runId,
+    selectionPriority: 74,
+  }) as THREE.Group;
+}
+
+function createSolvedFittingPortMarkers(params: {
+  fittings: readonly SolvedPlumbingFitting[];
+  materials: ReturnType<typeof createPlumbingThreeMaterials>;
+  trackGeometry?: TrackGeometry;
+}): THREE.Group {
+  const group = new THREE.Group();
+  group.name = 'plumbing_solved_fitting_ports';
+  params.fittings.forEach((fitting) => {
+    fitting.ports.forEach((port) => {
+      const center = vectorFromPoint(port.center);
+      const direction = new THREE.Vector3(port.direction.x, port.direction.y, port.direction.z);
+      if (direction.lengthSq() <= 0.000001) direction.set(1, 0, 0);
+      direction.normalize();
+      const marker = new THREE.Mesh(
+        params.trackGeometry?.(new THREE.SphereGeometry(port.id === 'branch' ? 0.045 : 0.032, 10, 8)) ??
+          new THREE.SphereGeometry(port.id === 'branch' ? 0.045 : 0.032, 10, 8),
+        port.id === 'branch' ? params.materials.warning : params.materials.centerline,
+      );
+      marker.name = `solved fitting port:${fitting.id}:${port.id}`;
+      marker.position.copy(center);
+      group.add(marker);
+      const axis = createCylinderBetween({
+        name: `solved fitting port direction:${fitting.id}:${port.id}`,
+        start: center,
+        end: center.clone().addScaledVector(direction, 0.18),
+        radius: 0.008,
+        material: port.id === 'branch' ? params.materials.warning : params.materials.centerline,
+        trackGeometry: params.trackGeometry,
+        radialSegments: 8,
+      });
+      if (axis) group.add(axis);
+    });
+  });
+  return group;
+}
+
 export function buildDesignBuilderViewerPlumbingScene(
   params: DesignBuilderViewerPlumbingSceneParams,
 ): DesignBuilderViewerPlumbingSceneResult {
@@ -178,6 +309,15 @@ export function buildDesignBuilderViewerPlumbingScene(
   }
 
   const riserRunIds = new Set((params.plumbingSystem.roughIns ?? []).map((roughIn) => roughIn.riserRunId));
+  const solvedModel = solvePlumbingModel(params.plumbingSystem, { elevationDefaults });
+  const visibleSolvedFittings = getRenderableSolvedPlumbingFittings(solvedModel);
+  validationIssues.push(...solvedModel.validationIssues.map(mapSolvedIssueTo3D));
+  const solvedPipePiecesByRunId = new Map<string, SolvedPipePiece[]>();
+  solvedModel.pipePieces.forEach((piece) => {
+    const pieces = solvedPipePiecesByRunId.get(piece.sourceRunId) ?? [];
+    pieces.push(piece);
+    solvedPipePiecesByRunId.set(piece.sourceRunId, pieces);
+  });
   const resolvedRunPaths = params.plumbingSystem.runs.map((run) => resolvePlumbingRunPath({
     system: params.plumbingSystem,
     run,
@@ -189,6 +329,29 @@ export function buildDesignBuilderViewerPlumbingScene(
     if (riserRunIds.has(run.id)) return;
     if (!runVisible(run, visibility)) return;
     try {
+      if (run.system === 'sanitary' && run.elevationMode === 'under_slab') {
+        const solvedPieces = solvedPipePiecesByRunId.get(run.id) ?? [];
+        const pipeGroup = createSolvedPipePiecesGroup({
+          runId: run.id,
+          system: params.plumbingSystem,
+          pieces: solvedPieces,
+          materials,
+          selected: selectionMatchesPlumbingObject(params.selectedPlumbingObject, 'plumbing_run', run.id),
+          trackGeometry: params.trackGeometry,
+          showCenterline: visibility.showCenterlines,
+        });
+        group.add(pipeGroup);
+        selectableObjects.push(pipeGroup);
+        if (visibility.showLabels && run.labelVisible && solvedPieces.length > 0) {
+          addLabelToGroup({
+            parent: pipeGroup,
+            text: formatPlumbingThreeRunLabel(run),
+            position: labelPoint(solvedPieces.flatMap((piece) => [piece.start, piece.end])),
+            trackMaterial: params.trackMaterial,
+          });
+        }
+        return;
+      }
       const resolvedPath = resolvedRunPathById.get(run.id) ?? resolvePlumbingRunPath({
         system: params.plumbingSystem,
         run,
@@ -234,6 +397,51 @@ export function buildDesignBuilderViewerPlumbingScene(
       });
     }
   });
+
+  visibleSolvedFittings.forEach((fitting) => {
+    if (!visibility.showPlumbing || !visibility.showFittings || !visibility.showDrain) return;
+    if (!visibility.showUnderground) return;
+    try {
+      const fittingScene = createProceduralSolvedPlumbingFittingMesh({
+        fitting,
+        materials,
+        selected: selectionMatchesPlumbingObject(
+          params.selectedPlumbingObject,
+          'plumbing_fitting',
+          fitting.sourceFittingId ?? fitting.id,
+        ),
+        trackGeometry: params.trackGeometry,
+        showCenterline: visibility.showCenterlines,
+      });
+      validationIssues.push(...fittingScene.validationIssues);
+      group.add(fittingScene.group);
+      selectableObjects.push(fittingScene.group);
+      if (visibility.showLabels) {
+        addLabelToGroup({
+          parent: fittingScene.group,
+          text: fitting.type.replace(/_/g, ' '),
+          position: new THREE.Vector3(0, 0.22, 0),
+          trackMaterial: params.trackMaterial,
+        });
+      }
+    } catch (error) {
+      appendIssue(validationIssues, {
+        code: 'plumbing_3d_object_render_failed',
+        objectType: 'plumbing_fitting',
+        objectId: fitting.sourceFittingId ?? fitting.id,
+        severity: 'error',
+        message: error instanceof Error ? error.message : 'Solved fitting failed to render.',
+      });
+    }
+  });
+
+  if (visibility.showSolvedFittingPorts && visibleSolvedFittings.length > 0) {
+    group.add(createSolvedFittingPortMarkers({
+      fittings: visibleSolvedFittings,
+      materials,
+      trackGeometry: params.trackGeometry,
+    }));
+  }
 
   (params.plumbingSystem.roughIns ?? []).forEach((roughIn) => {
     const run = params.plumbingSystem.runs.find((candidate) => candidate.id === roughIn.riserRunId);
@@ -283,6 +491,12 @@ export function buildDesignBuilderViewerPlumbingScene(
   });
 
   (params.plumbingSystem.fittings ?? []).forEach((fitting) => {
+    if (
+      solvedModel.consumedPersistedFittingIds.has(fitting.id) ||
+      isLegacyAutoSolvedSanitaryCoupling(fitting)
+    ) {
+      return;
+    }
     if (!fittingVisible(fitting, visibility)) return;
     try {
       const resolved = resolvePlumbingFittingPosition({
@@ -381,13 +595,22 @@ export function buildDesignBuilderViewerPlumbingScene(
         trackGeometry: params.trackGeometry,
       });
       if (equipment.equipmentType === 'distribution_box') {
-        const target = resolvedPipeConnectionPointForEquipment({
-          plumbingSystem: params.plumbingSystem,
-          equipmentNodeIds: equipment.connectionNodeIds,
-          resolvedRunPaths,
-        });
+        const solvedConnection = solvedModel.equipment.find((connection) =>
+          connection.equipmentId === equipment.id &&
+          connection.portId === 'inlet') ??
+          solvedModel.equipment.find((connection) =>
+            connection.equipmentId === equipment.id &&
+            connection.portId === 'outlet');
+        const targetPoint = solvedConnection?.position;
+        const target = targetPoint
+          ? vectorFromPoint(targetPoint)
+          : resolvedPipeConnectionPointForEquipment({
+            plumbingSystem: params.plumbingSystem,
+            equipmentNodeIds: equipment.connectionNodeIds,
+            resolvedRunPaths,
+          });
         const ports = equipmentGroup.userData.ports as ConnectorPort[] | undefined;
-        const port = ports?.find((candidate) => candidate.id === 'pipe_centerline');
+        const port = ports?.find((candidate) => candidate.id === (solvedConnection?.portId ?? 'inlet'));
         if (target && port) {
           const alignment = alignObjectPortToWorldPoint(equipmentGroup, port, target);
           if (alignment) {

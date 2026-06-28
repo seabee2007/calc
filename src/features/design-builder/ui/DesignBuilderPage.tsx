@@ -555,6 +555,7 @@ export default function DesignBuilderPage({
   const [annotations, setAnnotations] = useState<DesignAnnotation[]>(
     () => storedSession?.annotations ?? [],
   );
+  const [selectedAnnotationId, setSelectedAnnotationId] = useState<string | null>(null);
   const [selectedComponentId, setSelectedComponentId] = useState<string | null>(null);
   const [unitSystem, setUnitSystem] = useState<DesignUnitSystem>(() => storedSession?.unitSystem ?? 'metric');
   const [selectedObjectType, setSelectedObjectType] = useState<DesignObjectType | null>(
@@ -706,6 +707,7 @@ export default function DesignBuilderPage({
       setObjects(storedSession.objects);
       setPlacedComponents(storedSession.placedComponents ?? []);
       setAnnotations(storedSession.annotations ?? []);
+      setSelectedAnnotationId(null);
       setSelectedComponentId(null);
       setSelectedSepticTankId(null);
       setSepticTankPlacementActive(false);
@@ -1431,6 +1433,7 @@ export default function DesignBuilderPage({
       relatedComponents.push(footerWithReference);
     }
     setPlacedComponents((current) => [...current, placedComponent, ...relatedComponents]);
+    setSelectedAnnotationId(null);
     setSelectedComponentId(placedComponent.id);
     setSelectedSegmentId(null);
     setSelectedNodeId(null);
@@ -1731,6 +1734,7 @@ export default function DesignBuilderPage({
   }
 
   function selectObjectTreeObjectType(objectType: DesignObjectType) {
+    setSelectedAnnotationId(null);
     setSelectedObjectType(objectType);
     setSelectedSegmentId(null);
     setSelectedNodeId(null);
@@ -1742,6 +1746,7 @@ export default function DesignBuilderPage({
   }
 
   function selectObjectTreeSegment(segmentId: string) {
+    setSelectedAnnotationId(null);
     setSelectedSegmentId(segmentId);
     setSelectedObjectType(null);
     setSelectedOpeningId(null);
@@ -1751,6 +1756,7 @@ export default function DesignBuilderPage({
   }
 
   function selectObjectTreeOpening(openingId: string, objectType: 'door_opening' | 'window_opening') {
+    setSelectedAnnotationId(null);
     setSelectedOpeningId(openingId);
     setSelectedObjectType(objectType);
     setSelectedSegmentId(null);
@@ -1760,6 +1766,7 @@ export default function DesignBuilderPage({
   }
 
   function selectObjectTreeSepticTank(tankId: string) {
+    setSelectedAnnotationId(null);
     setSelectedSepticTankId(tankId);
     setSelectedObjectType(null);
     setSelectedOpeningId(null);
@@ -1767,6 +1774,37 @@ export default function DesignBuilderPage({
     setSelectedNodeId(null);
     setSelectedComponentId(null);
     setPlacementPreview(null);
+  }
+
+  function selectAnnotation(annotationId: string) {
+    const annotation = annotations.find((item) => item.id === annotationId);
+    if (annotation?.type !== 'dimension') return;
+    setSelectedAnnotationId(annotationId);
+    setSelectedObjectType(null);
+    setSelectedOpeningId(null);
+    setSelectedSegmentId(null);
+    setSelectedNodeId(null);
+    setSelectedComponentId(null);
+    setSelectedSepticTankId(null);
+    setSelectedPlumbingObject(null);
+    setPlacementPreview(null);
+  }
+
+  function deleteAnnotation(annotationId: string) {
+    const annotation = annotations.find((item) => item.id === annotationId);
+    if (annotation?.type !== 'dimension') return;
+    setAnnotations((current) => current.filter((annotation) => annotation.id !== annotationId));
+    setSelectedAnnotationId((current) => (current === annotationId ? null : current));
+    setSaveState('unsaved');
+    setChangedAfterCommit(true);
+    setStatus({ tone: 'success', message: 'Dimension removed.' });
+  }
+
+  function handleAnnotationCreate(annotation: DesignAnnotation) {
+    setAnnotations((current) => [...current, annotation]);
+    setSelectedAnnotationId(annotation.type === 'dimension' ? annotation.id : null);
+    setSaveState('unsaved');
+    setChangedAfterCommit(true);
   }
 
   function issueViewCommand(action: 'fit' | 'reset' | 'grid_scale', spacingMeters?: number) {
@@ -3069,6 +3107,7 @@ export default function DesignBuilderPage({
       else if (node?.equipmentId) nextSelection = { kind: 'equipment', id: node.equipmentId };
       else if (node?.septicTankId) nextSelection = { kind: 'septic-tank', id: node.septicTankId };
     }
+    setSelectedAnnotationId(null);
     setSelectedPlumbingObject(nextSelection.kind === 'none' ? null : nextSelection);
     setSelectedObjectType(null);
     setSelectedOpeningId(null);
@@ -3536,6 +3575,17 @@ export default function DesignBuilderPage({
       return;
     }
 
+    if (event.kind === 'annotation_select' && event.annotationId) {
+      selectAnnotation(event.annotationId);
+      return;
+    }
+
+    if (event.kind === 'annotation_delete' && event.annotationId) {
+      if (event.phase !== 'commit') return;
+      deleteAnnotation(event.annotationId);
+      return;
+    }
+
     const moduleLength = cmuModule.moduleLengthMeters;
     const layout = wallLayout;
     const snapLayout = {
@@ -3704,6 +3754,7 @@ export default function DesignBuilderPage({
     }
 
     if (event.kind === 'component_select' && event.componentId) {
+      setSelectedAnnotationId(null);
       setSelectedComponentId(event.componentId);
       setSelectedSepticTankId(null);
       setSelectedSegmentId(null);
@@ -3754,6 +3805,7 @@ export default function DesignBuilderPage({
         });
       });
       setDraftPlanEnd(null);
+      setSelectedAnnotationId(null);
       setSelectedComponentId(event.componentId);
       setSaveState('unsaved');
       setChangedAfterCommit(true);
@@ -3762,6 +3814,7 @@ export default function DesignBuilderPage({
     }
 
     if (event.kind === 'select_node' && event.nodeId) {
+      setSelectedAnnotationId(null);
       setSelectedNodeId(event.nodeId);
       setSelectedSegmentId(null);
       setSelectedOpeningId(null);
@@ -3806,6 +3859,7 @@ export default function DesignBuilderPage({
       }
       if (openingHit && (toolMode === 'select' || toolMode === 'move_opening')) {
         if (event.phase !== 'commit') return;
+        setSelectedAnnotationId(null);
         setSelectedOpeningId(openingHit.openingId);
         setSelectedSegmentId(null);
         setSelectedNodeId(null);
@@ -3822,6 +3876,7 @@ export default function DesignBuilderPage({
         if (toolMode === 'select' || toolMode === 'delete') clearSelection();
         return;
       }
+      setSelectedAnnotationId(null);
       setSelectedSegmentId(hit.segment.id);
       setSelectedNodeId(null);
       setSelectedOpeningId(null);
@@ -4063,7 +4118,7 @@ export default function DesignBuilderPage({
           setToolMode('select');
           return;
         }
-        if (selectedSegmentId || selectedNodeId || selectedOpeningId || selectedComponentId || selectedSepticTankId || selectedObjectType) {
+        if (selectedSegmentId || selectedNodeId || selectedOpeningId || selectedComponentId || selectedSepticTankId || selectedObjectType || selectedAnnotationId) {
           event.preventDefault();
           event.stopPropagation();
           event.stopImmediatePropagation();
@@ -4090,6 +4145,12 @@ export default function DesignBuilderPage({
         return;
       }
 
+      if ((event.key === 'Delete' || event.key === 'Backspace') && selectedAnnotationId) {
+        event.preventDefault();
+        deleteAnnotation(selectedAnnotationId);
+        return;
+      }
+
       if (
         (event.key === 'Delete' || event.key === 'Backspace') &&
         ((selectedPlumbingObject && selectedPlumbingObject.kind !== 'none') || selectedSepticTankId)
@@ -4103,10 +4164,12 @@ export default function DesignBuilderPage({
   }, [
     active2DView,
     activePlumbingToolMode,
+    annotations,
     modelLoaded,
     plumbingRunDraft,
     plumbingSystem,
     selectedComponentId,
+    selectedAnnotationId,
     selectedObjectType,
     selectedOpeningId,
     selectedNodeId,
@@ -4141,6 +4204,7 @@ export default function DesignBuilderPage({
           clearSelection();
           break;
         case 'select_object':
+          setSelectedAnnotationId(null);
           setSelectedObjectType(event.objectType ?? null);
           setSelectedOpeningId(null);
           setSelectedSegmentId(null);
@@ -4151,6 +4215,7 @@ export default function DesignBuilderPage({
           break;
         case 'select_opening':
           if (event.openingId) {
+            setSelectedAnnotationId(null);
             setSelectedOpeningId(event.openingId);
             setSelectedSegmentId(null);
             setSelectedNodeId(null);
@@ -4872,6 +4937,7 @@ export default function DesignBuilderPage({
   }
 
   function clearSelection() {
+    setSelectedAnnotationId(null);
     setSelectedObjectType(null);
     setSelectedOpeningId(null);
     setSelectedSegmentId(null);
@@ -5007,6 +5073,7 @@ export default function DesignBuilderPage({
     setPlacedComponents([]);
     setPlumbingSystem(createDefaultPlumbingSystem());
     setAnnotations([]);
+    setSelectedAnnotationId(null);
     setSelectedComponentId(null);
     dispatchComponentPlacement({ type: 'reset', activeView: 'plan' });
     setPersistedQuantityItems([]);
@@ -5523,6 +5590,7 @@ export default function DesignBuilderPage({
                   showReferenceLines: showRoofPlanReferenceLines,
                 }}
                 selectedObjectType={selectedObjectType}
+                selectedAnnotationId={selectedAnnotationId}
                 drawingStyleMode={twoDDrawingStyle}
                 active2DView={active2DView}
                 annotations={annotations}
@@ -5547,7 +5615,7 @@ export default function DesignBuilderPage({
                 onPlumbingSelect={handlePlumbingSelect}
                 onSepticTankPointer={handleSepticTankPointer}
                 onSepticTankSelect={selectObjectTreeSepticTank}
-                onAnnotationCreate={(annotation) => setAnnotations((current) => [...current, annotation])}
+                onAnnotationCreate={handleAnnotationCreate}
                 onInteraction={handlePlanInteraction}
               />
             ) : viewMode === '2d' && active2DView === 'elevation-view' ? (

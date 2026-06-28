@@ -12,6 +12,7 @@ import {
   isFittingAllowedForMaterial,
   isFittingAllowedForSystem,
 } from './plumbingFittingCompatibility';
+import { solvePlumbingModel } from './plumbingModelSolver';
 import type {
   PlumbingMaterial,
   PlumbingPoint3D,
@@ -873,6 +874,15 @@ export function validatePlumbingSystem(
         }
       }
     });
+  });
+
+  const solverIssues = solvePlumbingModel(system).validationIssues;
+  const existingIssueKeys = new Set(issues.map((item) => `${item.code}|${item.objectKind}|${item.objectId ?? ''}`));
+  solverIssues.forEach((solverIssue) => {
+    const key = `${solverIssue.code}|${solverIssue.objectKind}|${solverIssue.objectId ?? ''}`;
+    if (existingIssueKeys.has(key)) return;
+    existingIssueKeys.add(key);
+    issues.push(solverIssue);
   });
 
   return issues;

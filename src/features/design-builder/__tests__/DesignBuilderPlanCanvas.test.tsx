@@ -1194,6 +1194,99 @@ describe('DesignBuilderPlanCanvas', () => {
     expect(permanentStrokes).not.toContain('#38bdf8');
   });
 
+  it('highlights a selected saved dimension annotation', () => {
+    const annotation = {
+      id: 'dimension-a',
+      type: 'dimension' as const,
+      viewType: 'foundation-plan' as const,
+      points: {
+        start: { x: 0, z: 0 },
+        end: { x: 1, z: 0 },
+      },
+      offsetPoint: { x: 0.5, z: 0.5 },
+      dimensionKind: 'horizontal' as const,
+      measuredValue: 1,
+      unit: 'm' as const,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    };
+
+    const { container } = render(
+      <DesignBuilderPlanCanvas
+        layout={createEmptyWallLayout()}
+        toolMode="select"
+        viewport={{ centerX: 0, centerZ: 0, zoom: 100 }}
+        drawingStyleMode="architectural"
+        annotations={[annotation]}
+        selectedAnnotationId="dimension-a"
+        onInteraction={vi.fn()}
+      />,
+    );
+
+    const selectedDimension = container.querySelector('[data-dimension-id="dimension-a"]');
+    expect(selectedDimension).toHaveAttribute('data-dimension-selected', 'true');
+    const strokes = Array.from(selectedDimension?.querySelectorAll('line') ?? [])
+      .map((line) => line.getAttribute('stroke'));
+    expect(strokes).toContain('#0891b2');
+  });
+
+  it('selects and deletes saved dimension annotations from dimension line hits', () => {
+    const annotation = {
+      id: 'dimension-a',
+      type: 'dimension' as const,
+      viewType: 'foundation-plan' as const,
+      points: {
+        start: { x: 0, z: 0 },
+        end: { x: 1, z: 0 },
+      },
+      offsetPoint: { x: 0.5, z: 0.5 },
+      dimensionKind: 'horizontal' as const,
+      measuredValue: 1,
+      unit: 'm' as const,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    };
+    const onInteraction = vi.fn();
+    const { rerender } = render(
+      <DesignBuilderPlanCanvas
+        layout={createEmptyWallLayout()}
+        toolMode="select"
+        viewport={{ centerX: 0, centerZ: 0, zoom: 100 }}
+        annotations={[annotation]}
+        onInteraction={onInteraction}
+      />,
+    );
+
+    const svg = screen.getByLabelText(/design builder wall layout plan view/i) as SVGSVGElement;
+    mockPlanSurface(svg);
+    fireEvent.pointerDown(svg, { button: 0, clientX: 450, clientY: 150 });
+
+    expect(onInteraction).toHaveBeenCalledWith(expect.objectContaining({
+      kind: 'annotation_select',
+      annotationId: 'dimension-a',
+      phase: 'commit',
+    }));
+
+    onInteraction.mockClear();
+    rerender(
+      <DesignBuilderPlanCanvas
+        layout={createEmptyWallLayout()}
+        toolMode="delete"
+        viewport={{ centerX: 0, centerZ: 0, zoom: 100 }}
+        annotations={[annotation]}
+        onInteraction={onInteraction}
+      />,
+    );
+
+    fireEvent.pointerDown(svg, { button: 0, clientX: 450, clientY: 150 });
+
+    expect(onInteraction).toHaveBeenCalledWith(expect.objectContaining({
+      kind: 'annotation_delete',
+      annotationId: 'dimension-a',
+      phase: 'commit',
+    }));
+  });
+
   it('creates and renders an angle annotation from the three-click workflow', () => {
     const layout = createEmptyWallLayout({
       nodes: [

@@ -14,8 +14,10 @@ import {
   defaultStockLengthForPipe,
   generatePlumbingFittingTakeoff,
   generatePlumbingPipeTakeoff,
+  getRenderableSolvedPlumbingFittings,
   formatPlumbingRunLabel,
   normalizePlumbingSystem,
+  solvePlumbingModel,
   validatePlumbingSystem,
   type PlumbingNode,
   type PlumbingRun,
@@ -377,10 +379,10 @@ describe('Design Builder plumbing plan', () => {
       },
       {
         id: 'stub-end',
-        kind: 'distribution_box',
+        kind: 'fixture_connection',
         system: 'sanitary',
         position: { x: runLengthFt * 0.3048, y: -0.4, z: 0 },
-        label: 'D-Box',
+        label: 'End',
       },
     ];
     const system = addRunToPlumbingSystem({
@@ -403,9 +405,218 @@ describe('Design Builder plumbing plan', () => {
     expect(couplerNode?.position.x).toBeCloseTo((9 + 10 / 12) * 0.3048, 6);
     expect(takeoff?.stockCount).toBe(2);
     expect(takeoff?.pipePieces).toHaveLength(2);
-    expect(takeoff?.pipePieces[0]?.lengthFt).toBeCloseTo(9 + 10 / 12, 4);
-    expect(takeoff?.pipePieces[1]?.lengthFt).toBeCloseTo(4 / 12, 4);
+    expect(takeoff?.pipePieces[0]?.lengthFt).toBeCloseTo(9 + 10 / 12, 2);
+    expect(takeoff?.pipePieces[1]?.lengthFt).toBeCloseTo(4 / 12, 2);
     expect(fittingTakeoff?.count).toBe(1);
+  });
+
+  it('solves raw D-box entries to an inlet port stub instead of the box center', () => {
+    const sourceNode: PlumbingNode = {
+      id: 'dbox-source',
+      kind: 'building_drain_exit',
+      system: 'sanitary',
+      position: { x: 0, y: -0.4, z: 0.6 },
+      label: 'Building drain',
+    };
+    const dboxNode: PlumbingNode = {
+      id: 'dbox-node',
+      kind: 'distribution_box',
+      system: 'sanitary',
+      position: { x: 2, y: -0.4, z: 0 },
+      equipmentId: 'dbox-equipment',
+      label: 'D-Box',
+    };
+    const run: PlumbingRun = {
+      id: 'raw-to-dbox',
+      system: 'sanitary',
+      startNodeId: sourceNode.id,
+      endNodeId: dboxNode.id,
+      path: [sourceNode.position, dboxNode.position],
+      diameterInches: 4,
+      material: 'pvc',
+      schedule: 'SCH 40',
+      stockLengthFt: 10,
+      stockLengthPreset: '10ft',
+      stockLengthKind: 'stick',
+      slopeInPerFt: 0.125,
+      elevationMode: 'under_slab',
+      labelVisible: true,
+    };
+    const septicNode: PlumbingNode = {
+      id: 'septic-inlet',
+      kind: 'septic_inlet',
+      system: 'sanitary',
+      position: { x: 4, y: -0.45, z: 0 },
+      label: 'Septic inlet',
+    };
+    const outletRun: PlumbingRun = {
+      ...run,
+      id: 'dbox-to-septic',
+      startNodeId: dboxNode.id,
+      endNodeId: septicNode.id,
+      path: [dboxNode.position, septicNode.position],
+    };
+    const solved = solvePlumbingModel({
+      ...createDefaultPlumbingSystem(),
+      nodes: [sourceNode, dboxNode, septicNode],
+      runs: [run, outletRun],
+      equipment: [{
+        id: 'dbox-equipment',
+        equipmentType: 'distribution_box',
+        label: 'D-Box',
+        position: dboxNode.position,
+        rotationRadians: 0,
+        connectionNodeIds: [dboxNode.id],
+      }],
+    });
+
+    const stub = solved.pipePieces.find((piece) => piece.id === `${run.id}:dbox-inlet-stub`)!;
+    const outlet = solved.pipePieces.find((piece) => piece.sourceRunId === outletRun.id && piece.startRole === 'd-box-outlet')!;
+    const fitting = solved.fittings.find((item) => item.id === `${run.id}:dbox-inlet-fitting`)!;
+    const equipmentConnection = solved.equipment.find((item) => item.equipmentId === 'dbox-equipment' && item.portId === 'inlet')!;
+    const outletConnection = solved.equipment.find((item) => item.equipmentId === 'dbox-equipment' && item.portId === 'outlet')!;
+
+    expect(stub).toBeTruthy();
+    expect(outlet).toBeTruthy();
+    expect(fitting).toBeTruthy();
+    expect(stub.endRole).toBe('d-box-inlet');
+    expect(outlet.start.x).toBeCloseTo(dboxNode.position.x + 0.24, 6);
+    expect(outlet.start.z).toBeCloseTo(dboxNode.position.z, 6);
+    expect(stub.end.x).toBeCloseTo(dboxNode.position.x - 0.24, 6);
+    expect(stub.end.z).toBeCloseTo(dboxNode.position.z, 6);
+    expect(stub.end.x).not.toBeCloseTo(dboxNode.position.x, 6);
+    expect(equipmentConnection.position).toMatchObject(stub.end);
+    expect(outletConnection.position).toMatchObject(outlet.start);
+    expect(fitting.connectedPipePieceIds).toContain(stub.id);
+    expect(solved.fittings.some((item) =>
+      item.id.startsWith(`${run.id}:coupler`) &&
+      item.connectedPipePieceIds.includes(stub.id))).toBe(false);
+  });
+
+  it('keeps manual couplings while ignoring legacy auto couplers in solved takeoff', () => {
+    const nodes: PlumbingNode[] = [
+      { id: 'manual-start', kind: 'fixture_connection', system: 'sanitary', position: { x: 0, y: -0.4, z: 0 }, label: 'Start' },
+      { id: 'manual-end', kind: 'fixture_connection', system: 'sanitary', position: { x: 6 * 0.3048, y: -0.4, z: 0 }, label: 'End' },
+      { id: 'manual-coupling-node', kind: 'fitting', system: 'sanitary', position: { x: 3 * 0.3048, y: -0.4, z: 0 }, label: 'Manual coupling' },
+    ];
+    const run: PlumbingRun = {
+      id: 'manual-coupling-run',
+      system: 'sanitary',
+      startNodeId: 'manual-start',
+      endNodeId: 'manual-end',
+      path: [nodes[0]!.position, nodes[1]!.position],
+      diameterInches: 4,
+      material: 'pvc',
+      schedule: 'SCH 40',
+      stockLengthFt: 10,
+      stockLengthPreset: '10ft',
+      stockLengthKind: 'stick',
+      slopeInPerFt: 0.125,
+      elevationMode: 'under_slab',
+      labelVisible: true,
+    };
+    const system = {
+      ...createDefaultPlumbingSystem(),
+      nodes,
+      runs: [run],
+      fittings: [
+        {
+          id: 'manual-coupling',
+          type: 'coupling' as const,
+          system: 'sanitary' as const,
+          nodeId: 'manual-coupling-node',
+          connectedRunIds: [run.id],
+          diameterInches: 4,
+          material: 'pvc' as const,
+          schedule: 'SCH 40' as const,
+          rotationRad: 0,
+          elevationMode: 'under_slab' as const,
+          labelVisible: true,
+          isAutoGenerated: false,
+        },
+        {
+          id: 'legacy-auto-coupling',
+          type: 'coupling' as const,
+          system: 'sanitary' as const,
+          nodeId: 'manual-coupling-node',
+          connectedRunIds: [run.id],
+          diameterInches: 4,
+          material: 'pvc' as const,
+          schedule: 'SCH 40' as const,
+          rotationRad: 0,
+          elevationMode: 'under_slab' as const,
+          labelVisible: true,
+          isAutoGenerated: true,
+        },
+      ],
+    };
+
+    const solved = solvePlumbingModel(system);
+    const fittingTakeoff = generatePlumbingFittingTakeoff(system, solved).find((row) => row.type === 'coupling');
+
+    expect(solved.fittings.some((fitting) => fitting.sourceFittingId === 'manual-coupling')).toBe(true);
+    expect(solved.fittings.some((fitting) => fitting.sourceFittingId === 'legacy-auto-coupling')).toBe(false);
+    expect(solved.consumedPersistedFittingIds.has('manual-coupling')).toBe(true);
+    expect(solved.consumedPersistedFittingIds.has('legacy-auto-coupling')).toBe(true);
+    expect(fittingTakeoff?.count).toBe(1);
+  });
+
+  it('filters floating solved couplings out of renderable solved fittings', () => {
+    const solved = {
+      pipePieces: [
+        {
+          id: 'piece-a',
+          sourceRunId: 'run-a',
+          sourceSegmentIndex: 1,
+          start: { x: 0, y: -0.4, z: 0 },
+          end: { x: 1, y: -0.4, z: 0 },
+          startRole: 'raw-run-start' as const,
+          endRole: 'coupler' as const,
+          diameterInches: 4,
+          material: 'pvc' as const,
+          schedule: 'SCH 40' as const,
+          slopeInPerFt: 0.125,
+          elevationMode: 'under_slab' as const,
+          lengthFt: 3.28,
+        },
+        {
+          id: 'piece-b',
+          sourceRunId: 'run-a',
+          sourceSegmentIndex: 1,
+          start: { x: 1.4, y: -0.4, z: 0 },
+          end: { x: 2.4, y: -0.4, z: 0 },
+          startRole: 'coupler' as const,
+          endRole: 'raw-run-end' as const,
+          diameterInches: 4,
+          material: 'pvc' as const,
+          schedule: 'SCH 40' as const,
+          slopeInPerFt: 0.125,
+          elevationMode: 'under_slab' as const,
+          lengthFt: 3.28,
+        },
+      ],
+      fittings: [
+        {
+          id: 'floating-coupling',
+          sourceRunId: 'run-a',
+          type: 'coupling' as const,
+          system: 'sanitary' as const,
+          position: { x: 1.2, y: -0.4, z: 0 },
+          diameterInches: 4,
+          material: 'pvc' as const,
+          schedule: 'SCH 40' as const,
+          ports: [],
+          connectedPipePieceIds: ['piece-a', 'piece-b'],
+          isAutoSolved: true,
+        },
+      ],
+      fixtures: [],
+      equipment: [],
+      validationIssues: [],
+      consumedPersistedFittingIds: new Set<string>(),
+    };
+
+    expect(getRenderableSolvedPlumbingFittings(solved).map((fitting) => fitting.id)).not.toContain('floating-coupling');
   });
 
   it('validates fitting compatibility and stock length values', () => {

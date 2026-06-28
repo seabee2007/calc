@@ -34,7 +34,8 @@ export type Plumbing3DValidationCode =
   | 'fixture_missing_required_node'
   | 'fixture_missing_procedural_renderer'
   | 'fitting_type_missing_procedural_renderer'
-  | 'fitting_direction_unresolved';
+  | 'fitting_direction_unresolved'
+  | 'solved_plumbing_model_issue';
 
 export type Plumbing3DValidationIssue = {
   code: Plumbing3DValidationCode;
@@ -55,6 +56,7 @@ export type Plumbing3DVisibility = {
   showUnderground: boolean;
   showLabels: boolean;
   showCenterlines: boolean;
+  showSolvedFittingPorts: boolean;
 };
 
 export type Plumbing3DPlacementMode =
@@ -82,6 +84,7 @@ export const DEFAULT_PLUMBING_3D_VISIBILITY: Plumbing3DVisibility = {
   showUnderground: true,
   showLabels: true,
   showCenterlines: false,
+  showSolvedFittingPorts: false,
 };
 
 export function normalizePlumbing3DVisibility(
@@ -98,7 +101,7 @@ export type TrackMaterial = <T extends THREE.Material>(material: T) => T;
 
 export type PlumbingFittingDirection = {
   runId: string;
-  run: PlumbingRun;
+  run?: PlumbingRun;
   direction: THREE.Vector3;
   center?: THREE.Vector3;
   routePointIndex?: number;

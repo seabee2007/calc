@@ -303,7 +303,12 @@ export type PlumbingValidationIssue = {
     | 'distribution_box_missing_septic_outlet'
     | 'septic_missing_distribution_box'
     | 'septic_direct_connection_without_distribution_box'
-    | 'septic_multiple_inlet_lines';
+    | 'septic_multiple_inlet_lines'
+    | 'manual_fitting_not_on_solved_route'
+    | 'solved_pipe_endpoint_missing'
+    | 'solved_coupler_min_stub_violation'
+    | 'solved_coupling_not_contiguous'
+    | 'solved_dbox_inlet_not_port_aligned';
   message: string;
   objectKind: 'fixture' | 'run' | 'node' | 'fitting' | 'rough-in' | 'equipment' | 'foundation' | 'septic-tank' | 'system';
   objectId?: string;

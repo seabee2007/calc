@@ -224,6 +224,50 @@ function pointInPlanPolygon(point: { x: number; z: number }, polygon: Array<{ x:
   return inside;
 }
 
+function distanceToPlanSegment(point: { x: number; z: number }, start: { x: number; z: number }, end: { x: number; z: number }): number {
+  const dx = end.x - start.x;
+  const dz = end.z - start.z;
+  const lengthSquared = dx * dx + dz * dz;
+  if (lengthSquared <= 0.000001) return Math.hypot(point.x - start.x, point.z - start.z);
+  const t = Math.max(0, Math.min(1, ((point.x - start.x) * dx + (point.z - start.z) * dz) / lengthSquared));
+  const projected = {
+    x: start.x + dx * t,
+    z: start.z + dz * t,
+  };
+  return Math.hypot(point.x - projected.x, point.z - projected.z);
+}
+
+function resolveDimensionPlanGeometry(annotation: DesignDimensionAnnotation): {
+  start: { x: number; z: number };
+  end: { x: number; z: number };
+  dimensionStart: { x: number; z: number };
+  dimensionEnd: { x: number; z: number };
+} | null {
+  const start = annotation.points.start;
+  const end = annotation.points.end;
+  const offset = annotation.offsetPoint;
+  let dimensionStart = { ...start };
+  let dimensionEnd = { ...end };
+  if (annotation.dimensionKind === 'horizontal') {
+    dimensionStart = { x: start.x, z: offset.z };
+    dimensionEnd = { x: end.x, z: offset.z };
+  } else if (annotation.dimensionKind === 'vertical') {
+    dimensionStart = { x: offset.x, z: start.z };
+    dimensionEnd = { x: offset.x, z: end.z };
+  } else {
+    const dx = end.x - start.x;
+    const dz = end.z - start.z;
+    const length = Math.hypot(dx, dz);
+    if (length <= 0.000001) return null;
+    const normal = { x: -dz / length, z: dx / length };
+    const midpoint = { x: (start.x + end.x) / 2, z: (start.z + end.z) / 2 };
+    const offsetDistance = (offset.x - midpoint.x) * normal.x + (offset.z - midpoint.z) * normal.z;
+    dimensionStart = { x: start.x + normal.x * offsetDistance, z: start.z + normal.z * offsetDistance };
+    dimensionEnd = { x: end.x + normal.x * offsetDistance, z: end.z + normal.z * offsetDistance };
+  }
+  return { start, end, dimensionStart, dimensionEnd };
+}
+
 function roofPitchLabel(roof: ResolvedRoofSystem): string | null {
   if (!Number.isFinite(roof.roofRunMeters) || !Number.isFinite(roof.roofRiseMeters) || roof.roofRunMeters <= 0) return null;
   const risePer12 = (roof.roofRiseMeters / roof.roofRunMeters) * 12;
@@ -345,6 +389,7 @@ interface DesignBuilderPlanCanvasProps {
   resolvedRoofSystem?: ResolvedRoofSystem | null;
   roofPlanDisplay?: RoofPlanDisplayOptions;
   selectedObjectType?: import('../types').DesignObjectType | null;
+  selectedAnnotationId?: string | null;
   drawingStyleMode?: Design2dDrawingStyleMode;
   active2DView?: Design2DViewType;
   annotations?: readonly DesignAnnotation[];
@@ -413,6 +458,7 @@ export default function DesignBuilderPlanCanvas({
     showReferenceLines: true,
   },
   selectedObjectType = null,
+  selectedAnnotationId = null,
   drawingStyleMode = 'architectural',
   active2DView = 'foundation-plan',
   annotations = [],
@@ -1099,6 +1145,38 @@ export default function DesignBuilderPlanCanvas({
     return (Math.acos(Math.max(-1, Math.min(1, dot))) * 180) / Math.PI;
   }, []);
 
+  const visibleDimensionAnnotations = useMemo(
+    () =>
+      annotations
+        .filter((annotation): annotation is DesignDimensionAnnotation => annotation.type === 'dimension' && annotation.viewType === active2DView)
+        .filter((annotation) => {
+          if (!isRoofPlanView || roofPlanPerimeter.length < 3) return true;
+          return !pointInPlanPolygon(annotation.offsetPoint, roofPlanPerimeter);
+        }),
+    [active2DView, annotations, isRoofPlanView, roofPlanPerimeter],
+  );
+
+  const hitTestDimensionAnnotation = useCallback(
+    (point: { x: number; z: number }): DesignDimensionAnnotation | null => {
+      const toleranceMeters = Math.max(0.08, 10 / Math.max(1, viewport.zoom));
+      for (let index = visibleDimensionAnnotations.length - 1; index >= 0; index -= 1) {
+        const annotation = visibleDimensionAnnotations[index]!;
+        const geometry = resolveDimensionPlanGeometry(annotation);
+        if (!geometry) continue;
+        const segments = [
+          { start: geometry.dimensionStart, end: geometry.dimensionEnd },
+          { start: geometry.start, end: geometry.dimensionStart },
+          { start: geometry.end, end: geometry.dimensionEnd },
+        ];
+        if (segments.some((segment) => distanceToPlanSegment(point, segment.start, segment.end) <= toleranceMeters)) {
+          return annotation;
+        }
+      }
+      return null;
+    },
+    [viewport.zoom, visibleDimensionAnnotations],
+  );
+
   const cancelColumnDrag = useCallback(() => {
     const activeDrag = columnDragStateRef.current;
     if (!activeDrag) return;
@@ -1522,6 +1600,20 @@ export default function DesignBuilderPlanCanvas({
           return;
         }
       }
+      const hitDimension = hitTestDimensionAnnotation(point);
+      if (hitDimension) {
+        event.preventDefault();
+        event.stopPropagation();
+        onInteraction({
+          kind: toolMode === 'delete' ? 'annotation_delete' : 'annotation_select',
+          toolMode,
+          phase: 'commit',
+          annotationId: hitDimension.id,
+          planX: point.x,
+          planZ: point.z,
+        });
+        return;
+      }
       const hitComponent = hitTestPlanComponent(point);
       if (hitComponent) {
         event.preventDefault();
@@ -1836,13 +1928,17 @@ export default function DesignBuilderPlanCanvas({
     kind: DesignDimensionAnnotation['dimensionKind'];
     label?: string;
     preview?: boolean;
+    selected?: boolean;
   }) => {
     const start = planToSurfacePoint(params.start);
     const end = planToSurfacePoint(params.end);
     const offset = planToSurfacePoint(params.offsetPoint);
     const measured = measuredDimensionValue(params.start, params.end, params.kind);
-    const color = params.preview ? previewStroke : drawingStyle.lineStroke;
-    const referenceColor = params.preview ? previewStroke : drawingStyle.referenceStroke;
+    const selectedStroke = '#0891b2';
+    const color = params.preview ? previewStroke : params.selected ? selectedStroke : drawingStyle.lineStroke;
+    const referenceColor = params.preview ? previewStroke : params.selected ? selectedStroke : drawingStyle.referenceStroke;
+    const dimensionStrokeWidth = params.preview ? 1.8 : params.selected ? 2 : 1.1;
+    const referenceStrokeWidth = params.preview ? 1.2 : params.selected ? 1.1 : 0.8;
     const label = params.label ?? `${measured.toFixed(2)} m`;
     let d1 = { x: start.sx, y: start.sy };
     let d2 = { x: end.sx, y: end.sy };
@@ -1866,17 +1962,23 @@ export default function DesignBuilderPlanCanvas({
     const textX = (d1.x + d2.x) / 2;
     const textY = (d1.y + d2.y) / 2 - 6;
     return (
-      <g key={params.id} pointerEvents="none" data-canvas-layer={params.preview ? 'active-dimension-preview' : 'permanent-dimensions'} data-dimension-id={params.id}>
-        <line x1={start.sx} y1={start.sy} x2={d1.x} y2={d1.y} stroke={referenceColor} strokeWidth={params.preview ? 1.2 : 0.8} strokeDasharray={params.preview ? '4 3' : undefined} />
-        <line x1={end.sx} y1={end.sy} x2={d2.x} y2={d2.y} stroke={referenceColor} strokeWidth={params.preview ? 1.2 : 0.8} strokeDasharray={params.preview ? '4 3' : undefined} />
-        <line x1={d1.x} y1={d1.y} x2={d2.x} y2={d2.y} stroke={color} strokeWidth={params.preview ? 1.8 : 1.1} />
-        <line x1={d1.x - tick} y1={d1.y + tick} x2={d1.x + tick} y2={d1.y - tick} stroke={color} strokeWidth={params.preview ? 1.8 : 1.1} />
-        <line x1={d2.x - tick} y1={d2.y + tick} x2={d2.x + tick} y2={d2.y - tick} stroke={color} strokeWidth={params.preview ? 1.8 : 1.1} />
+      <g
+        key={params.id}
+        pointerEvents="none"
+        data-canvas-layer={params.preview ? 'active-dimension-preview' : 'permanent-dimensions'}
+        data-dimension-id={params.id}
+        data-dimension-selected={params.selected ? 'true' : undefined}
+      >
+        <line x1={start.sx} y1={start.sy} x2={d1.x} y2={d1.y} stroke={referenceColor} strokeWidth={referenceStrokeWidth} strokeDasharray={params.preview ? '4 3' : undefined} />
+        <line x1={end.sx} y1={end.sy} x2={d2.x} y2={d2.y} stroke={referenceColor} strokeWidth={referenceStrokeWidth} strokeDasharray={params.preview ? '4 3' : undefined} />
+        <line x1={d1.x} y1={d1.y} x2={d2.x} y2={d2.y} stroke={color} strokeWidth={dimensionStrokeWidth} />
+        <line x1={d1.x - tick} y1={d1.y + tick} x2={d1.x + tick} y2={d1.y - tick} stroke={color} strokeWidth={dimensionStrokeWidth} />
+        <line x1={d2.x - tick} y1={d2.y + tick} x2={d2.x + tick} y2={d2.y - tick} stroke={color} strokeWidth={dimensionStrokeWidth} />
         <text
           x={textX}
           y={textY}
           textAnchor="middle"
-          fill={params.preview ? previewStroke : drawingStyle.textFill}
+          fill={params.preview ? previewStroke : params.selected ? selectedStroke : drawingStyle.textFill}
           fontSize={10}
           fontWeight={700}
           paintOrder="stroke"
@@ -1889,12 +1991,7 @@ export default function DesignBuilderPlanCanvas({
     );
   };
 
-  const renderedDimensionAnnotations = annotations
-    .filter((annotation): annotation is DesignDimensionAnnotation => annotation.type === 'dimension' && annotation.viewType === active2DView)
-    .filter((annotation) => {
-      if (!isRoofPlanView || roofPlanPerimeter.length < 3) return true;
-      return !pointInPlanPolygon(annotation.offsetPoint, roofPlanPerimeter);
-    })
+  const renderedDimensionAnnotations = visibleDimensionAnnotations
     .map((annotation) =>
       renderDimensionGraphic({
         id: annotation.id,
@@ -1903,6 +2000,7 @@ export default function DesignBuilderPlanCanvas({
         offsetPoint: annotation.offsetPoint,
         kind: annotation.dimensionKind,
         label: annotation.labelOverride,
+        selected: annotation.id === selectedAnnotationId,
       }),
     );
 

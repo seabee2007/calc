@@ -1341,6 +1341,8 @@ export type DesignBuilderInteractionKind =
   | "component_delete"
   | "component_move"
   | "select_plumbing"
+  | "annotation_select"
+  | "annotation_delete"
   | "place_commit"
   | "draw_point"
   | "draw_preview"
@@ -1361,6 +1363,7 @@ export interface DesignBuilderInteractionEvent {
   openingType?: WallOpeningParameters["type"];
   componentType?: DesignComponentType;
   componentId?: string;
+  annotationId?: string;
   objectType?: DesignObjectType;
   plumbingSelection?: PlumbingSelection;
   widthMeters?: number;

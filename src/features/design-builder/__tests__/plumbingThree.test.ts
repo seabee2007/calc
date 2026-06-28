@@ -16,7 +16,10 @@ import { buildDesignBuilderViewerPlumbingScene } from '../plumbing/three/DesignB
 import { createPipeTubeMesh } from '../plumbing/three/createPipeTubeMesh';
 import { createPlumbingRiserMesh } from '../plumbing/three/createPlumbingRiserMesh';
 import { createProceduralPlumbingEquipmentMesh } from '../plumbing/three/createProceduralPlumbingEquipmentMesh';
-import { createProceduralPlumbingFittingMesh } from '../plumbing/three/createProceduralPlumbingFittingMesh';
+import {
+  createProceduralPlumbingFittingMesh,
+  createProceduralSolvedPlumbingFittingMesh,
+} from '../plumbing/three/createProceduralPlumbingFittingMesh';
 import { createProceduralPlumbingFixtureMesh } from '../plumbing/three/createProceduralPlumbingFixtureMesh';
 import { createPlumbingThreeMaterials } from '../plumbing/three/plumbingThreeMaterials';
 import {
@@ -350,7 +353,7 @@ describe('Design Builder procedural plumbing 3D', () => {
     expect(objectBounds(group).min.y).toBeCloseTo(0.27, 6);
   });
 
-  it('aligns distribution boxes by pipe connector centerline instead of floor elevation', () => {
+  it('aligns distribution boxes by inlet port instead of floor elevation', () => {
     const materials = createPlumbingThreeMaterials();
     const equipment = {
       id: 'd-box-equipment',
@@ -366,7 +369,7 @@ describe('Design Builder procedural plumbing 3D', () => {
       elevationDefaults: defaultPlumbingElevationDefaults,
       materials,
     });
-    const port = (equipmentGroup.userData.ports as ConnectorPort[]).find((candidate) => candidate.id === 'pipe_centerline')!;
+    const port = (equipmentGroup.userData.ports as ConnectorPort[]).find((candidate) => candidate.id === 'inlet')!;
     const target = new THREE.Vector3(2, -0.72, 1);
     const alignment = alignObjectPortToWorldPoint(equipmentGroup, port, target);
     const finalPort = port.localPosition.clone().applyMatrix4(equipmentGroup.matrixWorld);
@@ -380,7 +383,7 @@ describe('Design Builder procedural plumbing 3D', () => {
     expect(finalPort.z).toBeCloseTo(target.z, 6);
   });
 
-  it('places D-box scene geometry on the resolved sloped pipe endpoint and lets pipes penetrate the box', () => {
+  it('places D-box scene geometry on the solved inlet port without rendering a raw diagonal through the box', () => {
     const dBoxNode: PlumbingNode = {
       id: 'd-box-node',
       kind: 'distribution_box',
@@ -401,7 +404,7 @@ describe('Design Builder procedural plumbing 3D', () => {
       startNodeId: sourceNode.id,
       endNodeId: dBoxNode.id,
       path: [sourceNode.position, dBoxNode.position],
-      elevationMode: 'user_defined',
+      elevationMode: 'under_slab',
       diameterInches: 4,
       slopeInPerFt: 0.125,
     });
@@ -424,19 +427,56 @@ describe('Design Builder procedural plumbing 3D', () => {
       elevationDefaults: {
         slabTopElevationM: 0.15,
         slabThicknessM: 0.15,
+        sanitaryUnderSlabCoverM: 0.72,
       },
     });
     const dBoxGroup = scene.group.children.find((child) => child.name === 'plumbing_equipment:d-box-equipment')!;
     const pipeGroup = scene.group.children.find((child) => child.name === 'plumbing_run:to-d-box')!;
-    const port = (dBoxGroup.userData.ports as ConnectorPort[]).find((candidate) => candidate.id === 'pipe_centerline')!;
+    const port = (dBoxGroup.userData.ports as ConnectorPort[]).find((candidate) => candidate.id === 'inlet')!;
     const finalPort = port.localPosition.clone().applyMatrix4(dBoxGroup.matrixWorld);
     const pipe = meshByName(pipeGroup, 'pipe segment 1');
     const pipeEndpoints = cylinderEndpoints(pipe).sort((a, b) => a.x - b.x);
 
-    expect(finalPort.y).toBeCloseTo(dBoxNode.position.y, 6);
+    expect(finalPort.y).toBeCloseTo(dBoxGroup.userData.portAlignment.target[1], 6);
     expect(dBoxGroup.position.y).not.toBeCloseTo(0.15, 6);
-    expect(dBoxGroup.userData.portAlignment.target[1]).toBeCloseTo(dBoxNode.position.y, 6);
-    expect(pipeEndpoints[1]!.x).toBeGreaterThan(dBoxNode.position.x);
+    expect(dBoxGroup.userData.portAlignment.target[1]).toBeLessThan(dBoxNode.position.y);
+    expect(finalPort.x).toBeLessThan(dBoxNode.position.x);
+    expect(pipeEndpoints.some((point) => point.x > dBoxNode.position.x)).toBe(false);
+  });
+
+  it('suppresses legacy auto-generated sanitary couplings when solved couplings render', () => {
+    const nodes: PlumbingNode[] = [
+      { id: 'stick-start', kind: 'fixture_connection', system: 'sanitary', position: { x: 0, y: -0.4, z: 0 }, label: 'Start' },
+      { id: 'stick-end', kind: 'fixture_connection', system: 'sanitary', position: { x: 34 * 0.3048, y: -0.4, z: 0 }, label: 'End' },
+    ];
+    const system = addRunToPlumbingSystem({
+      system: { ...createDefaultPlumbingSystem(), nodes },
+      systemType: 'sanitary',
+      startNodeId: 'stick-start',
+      endNodeId: 'stick-end',
+      diameterInches: 4,
+      material: 'pvc',
+      stockLengthFt: 10,
+      stockLengthPreset: 'custom',
+      stockLengthKind: 'stick',
+      slopeInPerFt: 0.125,
+    });
+    const scene = buildDesignBuilderViewerPlumbingScene({
+      plumbingSystem: system,
+      visibility: { showLabels: true },
+    });
+    const couplingGroups = scene.group.children.filter((child) =>
+      child.name.startsWith('plumbing_fitting:') &&
+      child.userData.fittingType === 'coupling');
+    const couplingLabels: string[] = [];
+    scene.group.traverse((object) => {
+      if (object.name === 'plumbing label coupling') couplingLabels.push(object.name);
+    });
+
+    expect(system.fittings.filter((item) => item.type === 'coupling' && item.isAutoGenerated)).toHaveLength(3);
+    expect(couplingGroups).toHaveLength(3);
+    expect(couplingGroups.every((child) => Boolean(child.userData.solvedFittingId))).toBe(true);
+    expect(couplingLabels).toHaveLength(3);
   });
 
   it('creates required procedural fitting parts', () => {
@@ -507,6 +547,57 @@ describe('Design Builder procedural plumbing 3D', () => {
     }).group;
     expect(groupObjectNames(selected).has('fitting selection ring')).toBe(true);
     expect(groupHasSphereGeometry(selected)).toBe(false);
+  });
+
+  it('renders solved sanitary wyes from explicit angled branch ports', () => {
+    const branchDirection = new THREE.Vector3(1, 0, 1).normalize();
+    const wye = createProceduralSolvedPlumbingFittingMesh({
+      fitting: {
+        id: 'solved-wye',
+        sourceFittingId: 'persisted-wye',
+        type: 'wye',
+        system: 'sanitary',
+        position: { x: 0, y: -0.4, z: 0 },
+        diameterInches: 3,
+        secondaryDiameterInches: 1.5,
+        material: 'pvc',
+        schedule: 'SCH 40',
+        connectedPipePieceIds: ['main-in', 'main-out', 'branch'],
+        ports: [
+          {
+            id: 'run_in',
+            pipePieceId: 'main-in',
+            center: { x: 0, y: -0.4, z: 0 },
+            direction: { x: -1, y: 0, z: 0 },
+            diameterInches: 3,
+          },
+          {
+            id: 'run_out',
+            pipePieceId: 'main-out',
+            center: { x: 0, y: -0.4, z: 0 },
+            direction: { x: 1, y: 0, z: 0 },
+            diameterInches: 3,
+          },
+          {
+            id: 'branch',
+            pipePieceId: 'branch',
+            center: { x: 0, y: -0.4, z: 0 },
+            direction: { x: branchDirection.x, y: 0, z: branchDirection.z },
+            diameterInches: 1.5,
+          },
+        ],
+        isAutoSolved: false,
+      },
+      materials: createPlumbingThreeMaterials(),
+    }).group;
+    const main = meshByName(wye, 'wye main sleeve');
+    const branch = meshByName(wye, 'wye angled branch sleeve');
+
+    expect(Math.abs(cylinderAxis(main).dot(new THREE.Vector3(1, 0, 0)))).toBeGreaterThan(0.999);
+    expect(Math.abs(cylinderAxis(branch).dot(branchDirection))).toBeGreaterThan(0.999);
+    expect(Math.abs(cylinderAxis(branch).dot(new THREE.Vector3(0, 0, 1)))).toBeLessThan(0.95);
+    expect((branch.geometry as THREE.CylinderGeometry).parameters.radiusTop)
+      .toBeLessThan((main.geometry as THREE.CylinderGeometry).parameters.radiusTop);
   });
 
   it('fits coupling sleeves on the resolved centerline and trims pipe meshes into the socket', () => {
@@ -798,7 +889,7 @@ describe('Design Builder procedural plumbing 3D', () => {
     expect(scene.group.children.filter((child) => child.name === `plumbing_run:${riserRun.id}`)).toHaveLength(0);
   });
 
-  it('renders WC sanitary rough-ins with a curved closet bend and trimmed riser/branch pipes', () => {
+  it('renders WC sanitary rough-ins with a curved closet bend and solved riser/branch pipe ports', () => {
     const withFixture = addFixtureToPlumbingSystem({
       system: createDefaultPlumbingSystem(),
       fixtureType: 'toilet',
@@ -848,7 +939,7 @@ describe('Design Builder procedural plumbing 3D', () => {
       'closet bend drain socket',
     ]));
     expect(riserEndpoints[0]!.y).toBeGreaterThan(bottomNode.position.y);
-    expect(branchEndpoints[0]!.distanceTo(new THREE.Vector3(bottomNode.position.x, bottomNode.position.y, bottomNode.position.z))).toBeGreaterThan(0.1);
+    expect(branchEndpoints[0]!.distanceTo(new THREE.Vector3(bottomNode.position.x, branchEndpoints[0]!.y, bottomNode.position.z))).toBeLessThan(0.02);
     expect(result.system.fittings.some((fitting) => fitting.type === 'closet_bend' && roughIn.fittingIds.includes(fitting.id))).toBe(true);
   });
 

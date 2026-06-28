@@ -7,6 +7,7 @@ export * from './septic';
 export * from './domain/plumbingFittingCompatibility';
 export * from './domain/plumbingFittingGeneration';
 export * from './domain/plumbingFixtureRoughIns';
+export * from './domain/plumbingModelSolver';
 export * from './domain/plumbingRiserGeneration';
 export * from './domain/ipcDrainageSlope';
 export * from './domain/plumbingStockLengths';

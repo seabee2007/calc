@@ -161,6 +161,7 @@ export function DesignBuilderDisplayMenu({
             ['showUnderground', 'Show Underground'],
             ['showLabels', 'Show Labels'],
             ...(import.meta.env.DEV ? [['showCenterlines', 'Show Plumbing Centerlines'] as const] : []),
+            ...(import.meta.env.DEV ? [['showSolvedFittingPorts', 'Show Solved Fitting Ports'] as const] : []),
           ] as const
         ).map(([key, label]) => (
           <label key={key} className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 hover:bg-slate-50 dark:hover:bg-slate-800">
