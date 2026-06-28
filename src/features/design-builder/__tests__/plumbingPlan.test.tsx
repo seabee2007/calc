@@ -5,7 +5,9 @@ import {
   addRunToPlumbingSystem,
   buildPlumbingLegend,
   createDefaultPlumbingSystem,
+  defaultPipeScheduleForMaterial,
   formatPlumbingRunLabel,
+  normalizePlumbingSystem,
   validatePlumbingSystem,
 } from '../plumbing';
 import { buildPlumbingFixtureSchedule } from '../plumbing/plumbingDefaults';
@@ -61,6 +63,42 @@ describe('Design Builder plumbing plan', () => {
     expect(system.runs[0]!.path).toHaveLength(3);
     expect(system.runs[0]!.path[1]).toMatchObject({ x: 2, z: -1 });
     expect(formatPlumbingRunLabel(system.runs[0]!)).toBe('3" SS @ 0.25"/FT');
+  });
+
+  it('applies and normalizes pipe schedule defaults by material', () => {
+    expect(defaultPipeScheduleForMaterial('pvc')).toBe('SCH 40');
+    expect(defaultPipeScheduleForMaterial('pex')).toBe('N/A');
+
+    const normalized = normalizePlumbingSystem({
+      ...createDefaultPlumbingSystem(),
+      runs: [
+        {
+          id: 'old-pvc',
+          system: 'sanitary',
+          startNodeId: 'a',
+          endNodeId: 'b',
+          path: [],
+          diameterInches: 3,
+          material: 'pvc',
+          elevationMode: 'under_slab',
+          labelVisible: true,
+        },
+        {
+          id: 'old-pex',
+          system: 'cold_water',
+          startNodeId: 'c',
+          endNodeId: 'd',
+          path: [],
+          diameterInches: 0.75,
+          material: 'pex',
+          elevationMode: 'in_wall',
+          labelVisible: true,
+        },
+      ],
+    });
+
+    expect(normalized.runs[0]?.schedule).toBe('SCH 40');
+    expect(normalized.runs[1]?.schedule).toBe('N/A');
   });
 
   it('generates fixture schedule and legend from actual plumbing model objects', () => {

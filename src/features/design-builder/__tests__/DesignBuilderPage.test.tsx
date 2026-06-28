@@ -49,7 +49,9 @@ vi.mock('../ui/DesignBuilderPlanCanvas', () => ({
     toolMode?: string;
     onComponentPointer?: (event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number }) => void;
     onSepticTankPointer?: (event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number; rotationRad: number }) => void;
-    onPlumbingSelect?: (selection: { kind: 'none' } | { kind: 'fixture'; id: string } | { kind: 'run'; id: string } | { kind: 'node'; id: string } | { kind: 'equipment'; id: string } | { kind: 'septic-tank'; id: string }) => void;
+    onPlumbingPlanPointer?: (event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number; shiftHeld?: boolean }) => void;
+    onPlumbingSelect?: (selection: { kind: 'none' } | { kind: 'fixture'; id: string } | { kind: 'run'; id: string } | { kind: 'run-route-point'; runId: string; pointIndex: number } | { kind: 'node'; id: string } | { kind: 'equipment'; id: string } | { kind: 'septic-tank'; id: string }) => void;
+    plumbingFixtureRotationRad?: number;
     placedComponents?: unknown[];
     designRenderModel?: { rcComponents?: Array<{ type?: string; system?: string; position?: { x?: number; z?: number } }> };
     componentPreview?: unknown;
@@ -153,7 +155,9 @@ function latestPlanProps() {
     toolMode?: string;
     onComponentPointer?: (event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number }) => void;
     onSepticTankPointer?: (event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number; rotationRad: number }) => void;
-    onPlumbingSelect?: (selection: { kind: 'none' } | { kind: 'fixture'; id: string } | { kind: 'run'; id: string } | { kind: 'node'; id: string } | { kind: 'equipment'; id: string } | { kind: 'septic-tank'; id: string }) => void;
+    onPlumbingPlanPointer?: (event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number; shiftHeld?: boolean }) => void;
+    onPlumbingSelect?: (selection: { kind: 'none' } | { kind: 'fixture'; id: string } | { kind: 'run'; id: string } | { kind: 'run-route-point'; runId: string; pointIndex: number } | { kind: 'node'; id: string } | { kind: 'equipment'; id: string } | { kind: 'septic-tank'; id: string }) => void;
+    plumbingFixtureRotationRad?: number;
     placedComponents?: unknown[];
     designRenderModel?: { rcComponents?: Array<{ type?: string; system?: string; position?: { x?: number; z?: number } }> };
     componentPreview?: unknown;
@@ -657,7 +661,7 @@ describe('DesignBuilderPage', () => {
     });
   });
 
-  it('rotates the selected plumbing fixture by 90 degrees from the command bar', async () => {
+  it('rotates the selected plumbing fixture by 90 degrees from the plumbing inspector', async () => {
     seedLoadedDesignBuilderTemplate();
     render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
     await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
@@ -679,8 +683,11 @@ describe('DesignBuilderPage', () => {
       latestPlanProps().onPlumbingSelect?.({ kind: 'fixture', id: fixtureId });
     });
 
-    const rotateClockwise = screen.getByRole('button', { name: /^rotate selected fixture clockwise 90 degrees$/i });
-    const rotateCounterClockwise = screen.getByRole('button', { name: /^rotate selected fixture counterclockwise 90 degrees$/i });
+    const commandBar = within(screen.getByRole('toolbar', { name: /design builder command bar/i }));
+    expect(commandBar.queryByRole('button', { name: /rotate selected fixture/i })).not.toBeInTheDocument();
+
+    const rotateClockwise = screen.getByRole('button', { name: /^rotate fixture clockwise 90 degrees$/i });
+    const rotateCounterClockwise = screen.getByRole('button', { name: /^rotate fixture counterclockwise 90 degrees$/i });
     await waitFor(() => expect(rotateClockwise).toBeEnabled());
 
     fireEvent.click(rotateClockwise);
@@ -693,6 +700,245 @@ describe('DesignBuilderPage', () => {
     await waitFor(() => {
       const fixture = useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']?.plumbingSystem.fixtures[0];
       expect(fixture?.rotationRadians).toBeCloseTo(0);
+    });
+  });
+
+  it('shows plumbing fixture context row and fixture defaults inspector', async () => {
+    seedLoadedDesignBuilderTemplate();
+    render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
+    await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
+
+    fireEvent.click(screen.getByRole('button', { name: /switch to 2d view/i }));
+    fireEvent.click(screen.getByRole('button', { name: /switch to plumbing drawing/i }));
+
+    fireEvent.click(screen.getByRole('button', { name: /^fixture$/i }));
+
+    expect(screen.getByText(/^Fixture Defaults$/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^WC$/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Lav$/i })).toBeInTheDocument();
+    expect(screen.queryByLabelText(/^rotation$/i)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^rotate fixture preview clockwise 90 degrees$/i })).toBeInTheDocument();
+    expect(screen.getByText(/Fixture Tool - WC selected - Press R to rotate - Click to place/i)).toBeInTheDocument();
+  });
+
+  it('rotates plumbing fixture preview before placement from the inspector and R key', async () => {
+    seedLoadedDesignBuilderTemplate();
+    render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
+    await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
+
+    fireEvent.click(screen.getByRole('button', { name: /switch to 2d view/i }));
+    fireEvent.click(screen.getByRole('button', { name: /switch to plumbing drawing/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^fixture$/i }));
+
+    fireEvent.click(screen.getByRole('button', { name: /^rotate fixture preview clockwise 90 degrees$/i }));
+    await waitFor(() => expect(latestPlanProps().plumbingFixtureRotationRad).toBeCloseTo(Math.PI / 2));
+
+    fireEvent.keyDown(window, { key: 'r' });
+    await waitFor(() => expect(latestPlanProps().plumbingFixtureRotationRad).toBeCloseTo(Math.PI));
+
+    await act(async () => {
+      latestPlanProps().onPlumbingFixturePointer?.({ phase: 'commit', xMeters: 1, zMeters: 1 });
+    });
+
+    await waitFor(() => {
+      const fixture = useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']?.plumbingSystem.fixtures[0];
+      expect(fixture?.rotationRadians).toBeCloseTo(Math.PI);
+    });
+  });
+
+  it('shows plumbing pipe context row and pipe defaults inspector', async () => {
+    seedLoadedDesignBuilderTemplate();
+    render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
+    await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
+
+    fireEvent.click(screen.getByRole('button', { name: /switch to 2d view/i }));
+    fireEvent.click(screen.getByRole('button', { name: /switch to plumbing drawing/i }));
+
+    fireEvent.click(screen.getByRole('button', { name: /^pipe$/i }));
+
+    expect(screen.getByText(/^Pipe Defaults$/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Sanitary$/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Vent$/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Cold Water$/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Hot Water$/i })).toBeInTheDocument();
+    expect(screen.getByDisplayValue('SCH 40')).toBeInTheDocument();
+    expect(screen.getByText(/Pipe Tool - Sanitary - Click start node, route points, then end node - Shift snaps angle - Esc finishes/i)).toBeInTheDocument();
+  });
+
+  it('shift-snaps plumbing run points and finishes the visible draft on Escape', async () => {
+    seedLoadedDesignBuilderTemplate();
+    render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
+    await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
+
+    fireEvent.click(screen.getByRole('button', { name: /switch to 2d view/i }));
+    fireEvent.click(screen.getByRole('button', { name: /switch to plumbing drawing/i }));
+
+    await act(async () => {
+      latestPlanProps().onPlumbingFixturePointer?.({ phase: 'commit', xMeters: 1, zMeters: 1 });
+    });
+    await waitFor(() => {
+      expect(useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']?.plumbingSystem.fixtures).toHaveLength(1);
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /^pipe$/i }));
+    const startNode = useDesignBuilderSessionStore
+      .getState()
+      .sessions['project-1:estimate-1']!
+      .plumbingSystem.nodes.find((node) => node.system === 'sanitary' && node.fixtureId);
+    expect(startNode).toBeTruthy();
+
+    await act(async () => {
+      latestPlanProps().onPlumbingPlanPointer?.({
+        phase: 'commit',
+        xMeters: startNode!.position.x,
+        zMeters: startNode!.position.z,
+      });
+    });
+
+    await act(async () => {
+      latestPlanProps().onPlumbingPlanPointer?.({
+        phase: 'commit',
+        xMeters: startNode!.position.x + 1,
+        zMeters: startNode!.position.z + 0.58,
+        shiftHeld: true,
+      });
+    });
+    await waitFor(() => {
+      const draft = useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']?.plumbingSystem.runs;
+      expect(draft).toHaveLength(0);
+    });
+
+    fireEvent.keyDown(window, { key: 'Escape' });
+
+    await waitFor(() => {
+      const run = useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']?.plumbingSystem.runs[0];
+      expect(run).toBeTruthy();
+      expect(run).toMatchObject({
+        system: 'sanitary',
+        diameterInches: 3,
+        material: 'pvc',
+        schedule: 'SCH 40',
+        slopeInPerFt: 0.25,
+        labelVisible: true,
+      });
+      const end = run!.path.at(-1)!;
+      const angle = ((Math.atan2(end.z - startNode!.position.z, end.x - startNode!.position.x) * 180) / Math.PI + 360) % 360;
+      expect(angle).toBeCloseTo(30, 0);
+    });
+  });
+
+  it('edits selected plumbing pipe properties from the inspector', async () => {
+    seedLoadedDesignBuilderTemplate();
+    render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
+    await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
+
+    fireEvent.click(screen.getByRole('button', { name: /switch to 2d view/i }));
+    fireEvent.click(screen.getByRole('button', { name: /switch to plumbing drawing/i }));
+
+    await act(async () => {
+      latestPlanProps().onPlumbingFixturePointer?.({ phase: 'commit', xMeters: 1, zMeters: 1 });
+    });
+    await waitFor(() => {
+      expect(useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']?.plumbingSystem.fixtures).toHaveLength(1);
+    });
+    await act(async () => {
+      latestPlanProps().onPlumbingFixturePointer?.({ phase: 'commit', xMeters: 3, zMeters: 1 });
+    });
+    await waitFor(() => {
+      expect(useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']?.plumbingSystem.fixtures).toHaveLength(2);
+    });
+
+    const session = useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']!;
+    const sanitaryNodes = session.plumbingSystem.nodes.filter((node) => node.system === 'sanitary' && node.fixtureId);
+    expect(sanitaryNodes).toHaveLength(2);
+
+    fireEvent.click(screen.getByRole('button', { name: /^pipe$/i }));
+    await act(async () => {
+      latestPlanProps().onPlumbingPlanPointer?.({
+        phase: 'commit',
+        xMeters: sanitaryNodes[0]!.position.x,
+        zMeters: sanitaryNodes[0]!.position.z,
+      });
+    });
+    await act(async () => {
+      latestPlanProps().onPlumbingPlanPointer?.({
+        phase: 'commit',
+        xMeters: sanitaryNodes[1]!.position.x,
+        zMeters: sanitaryNodes[1]!.position.z,
+      });
+    });
+
+    await waitFor(() => {
+      expect(useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']?.plumbingSystem.runs).toHaveLength(1);
+    });
+    const runId = useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']!.plumbingSystem.runs[0]!.id;
+
+    await act(async () => {
+      latestPlanProps().onPlumbingSelect?.({ kind: 'run', id: runId });
+    });
+
+    expect(screen.getByText(/^Pipe Properties$/i)).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText(/diameter in\./i), { target: { value: '4' } });
+    fireEvent.change(screen.getByLabelText(/^schedule$/i), { target: { value: 'SCH 80' } });
+    fireEvent.change(screen.getByLabelText(/slope in\/ft/i), { target: { value: '0.125' } });
+    fireEvent.click(screen.getByLabelText(/show label/i));
+
+    await waitFor(() => {
+      const run = useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']?.plumbingSystem.runs[0];
+      expect(run).toMatchObject({
+        diameterInches: 4,
+        schedule: 'SCH 80',
+        slopeInPerFt: 0.125,
+        labelVisible: false,
+      });
+    });
+  });
+
+  it('deletes selected plumbing equipment and septic tanks from the inspector', async () => {
+    seedLoadedDesignBuilderTemplate();
+    render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
+    await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
+
+    fireEvent.click(screen.getByRole('button', { name: /switch to 2d view/i }));
+    fireEvent.click(screen.getByRole('button', { name: /switch to plumbing drawing/i }));
+
+    fireEvent.click(screen.getByRole('button', { name: /^cleanout$/i }));
+    await act(async () => {
+      latestPlanProps().onPlumbingPlanPointer?.({ phase: 'commit', xMeters: 1, zMeters: 1 });
+    });
+    await waitFor(() => {
+      expect(useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']?.plumbingSystem.equipment).toHaveLength(1);
+    });
+    const equipmentId = useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']!.plumbingSystem.equipment[0]!.id;
+
+    await act(async () => {
+      latestPlanProps().onPlumbingSelect?.({ kind: 'equipment', id: equipmentId });
+    });
+    expect(screen.getByText(/^Equipment Properties$/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /^delete$/i }));
+    await waitFor(() => {
+      expect(useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']?.plumbingSystem.equipment).toHaveLength(0);
+    });
+
+    openMenuByKind('components');
+    chooseCommandMenuItem(/^CMU Septic Tank$/i);
+    await waitFor(() => expect(latestPlanProps().septicTankPlacementActive).toBe(true));
+    await act(async () => {
+      latestPlanProps().onSepticTankPointer?.({
+        phase: 'commit',
+        xMeters: 2,
+        zMeters: 2,
+        rotationRad: 0,
+      });
+    });
+    await waitFor(() => {
+      expect(useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']?.plumbingSystem.septicTanks).toHaveLength(1);
+    });
+
+    expect(screen.getByText(/^Septic Tank$/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /^delete$/i }));
+    await waitFor(() => {
+      expect(useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']?.plumbingSystem.septicTanks).toHaveLength(0);
     });
   });
 

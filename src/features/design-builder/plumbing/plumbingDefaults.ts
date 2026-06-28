@@ -4,6 +4,7 @@ import type {
   PlumbingFixtureScheduleRow,
   PlumbingFixtureType,
   PlumbingMaterial,
+  PlumbingPipeSchedule,
   PlumbingEquipment,
   PlumbingEquipmentType,
   PlumbingNode,
@@ -22,6 +23,12 @@ export const DEFAULT_PLUMBING_SETTINGS: PlumbingSettings = {
   defaultWasteVentMaterial: 'pvc',
   fixtureMarkCounters: {},
 };
+
+export function defaultPipeScheduleForMaterial(material: PlumbingMaterial): PlumbingPipeSchedule {
+  return material === 'pvc' || material === 'abs' || material === 'cpvc' || material === 'cast_iron'
+    ? 'SCH 40'
+    : 'N/A';
+}
 
 export function createDefaultPlumbingSystem(): PlumbingSystem {
   return {
@@ -155,6 +162,9 @@ export function createPlumbingRun(params: {
   diameterInches?: number | null;
   slopeInPerFt?: number;
   material?: PlumbingMaterial;
+  schedule?: PlumbingPipeSchedule;
+  elevationMode?: PlumbingRun['elevationMode'];
+  labelVisible?: boolean;
   idSeed?: string;
 }): PlumbingRun | null {
   const startNode = params.system.nodes.find((node) => node.id === params.startNodeId);
@@ -172,9 +182,10 @@ export function createPlumbingRun(params: {
     path: [startNode.position, ...(params.routePoints ?? []), endNode.position],
     diameterInches: params.diameterInches ?? null,
     material: params.material ?? defaultMaterial,
+    schedule: params.schedule ?? defaultPipeScheduleForMaterial(params.material ?? defaultMaterial),
     slopeInPerFt: params.slopeInPerFt,
-    elevationMode: params.systemType === 'sanitary' ? 'under_slab' : 'in_wall',
-    labelVisible: true,
+    elevationMode: params.elevationMode ?? (params.systemType === 'sanitary' ? 'under_slab' : 'in_wall'),
+    labelVisible: params.labelVisible ?? true,
   };
 }
 
@@ -186,6 +197,10 @@ export function addRunToPlumbingSystem(params: {
   routePoints?: PlumbingPoint3D[];
   diameterInches?: number | null;
   slopeInPerFt?: number;
+  material?: PlumbingMaterial;
+  schedule?: PlumbingPipeSchedule;
+  elevationMode?: PlumbingRun['elevationMode'];
+  labelVisible?: boolean;
   idSeed?: string;
 }): PlumbingSystem {
   const run = createPlumbingRun(params);

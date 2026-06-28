@@ -363,7 +363,7 @@ interface DesignBuilderPlanCanvasProps {
   helperMeasurements?: readonly HelperMeasurement[];
   onComponentPointer?: (event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number }) => void;
   onPlumbingFixturePointer?: (event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number; rotationRad?: number }) => void;
-  onPlumbingPlanPointer?: (event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number }) => void;
+  onPlumbingPlanPointer?: (event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number; shiftHeld?: boolean }) => void;
   onPlumbingSelect?: (selection: PlumbingSelection) => void;
   onSepticTankPointer?: (event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number; rotationRad: number }) => void;
   onSepticTankSelect?: (tankId: string) => void;
@@ -1243,7 +1243,7 @@ export default function DesignBuilderPlanCanvas({
       return;
     }
     if (isPlumbingPlanView && activePlumbingToolMode !== 'select' && activePlumbingToolMode !== 'label' && activePlumbingToolMode !== 'validate') {
-      onPlumbingPlanPointer?.({ phase: 'preview', xMeters: point.x, zMeters: point.z });
+      onPlumbingPlanPointer?.({ phase: 'preview', xMeters: point.x, zMeters: point.z, shiftHeld: event.shiftKey });
       return;
     }
     if (toolMode === 'place_component') {
@@ -1360,7 +1360,7 @@ export default function DesignBuilderPlanCanvas({
     if (isPlumbingPlanView && activePlumbingToolMode !== 'select' && activePlumbingToolMode !== 'label' && activePlumbingToolMode !== 'validate') {
       event.preventDefault();
       event.stopPropagation();
-      onPlumbingPlanPointer?.({ phase: 'commit', xMeters: point.x, zMeters: point.z });
+      onPlumbingPlanPointer?.({ phase: 'commit', xMeters: point.x, zMeters: point.z, shiftHeld: event.shiftKey });
       return;
     }
     if (toolMode === 'place_component') {

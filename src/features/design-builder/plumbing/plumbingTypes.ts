@@ -59,6 +59,11 @@ export type PlumbingMaterial =
   | 'cast_iron'
   | 'other';
 
+export type PlumbingPipeSchedule =
+  | 'SCH 40'
+  | 'SCH 80'
+  | 'N/A';
+
 export type PlumbingElevationMode =
   | 'under_slab'
   | 'in_wall'
@@ -110,6 +115,7 @@ export type PlumbingRun = {
   path: PlumbingPoint3D[];
   diameterInches: number | null;
   material: PlumbingMaterial;
+  schedule?: PlumbingPipeSchedule;
   slopeInPerFt?: number;
   elevationMode: PlumbingElevationMode;
   labelVisible: boolean;

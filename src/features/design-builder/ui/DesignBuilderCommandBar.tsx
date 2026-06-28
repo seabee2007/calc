@@ -1,6 +1,5 @@
 import { DESIGN_BUILDER_COPY } from "../domain/designBuilderCopy";
 import type { DesignComponentDefinition } from "../domain/designComponentRegistry";
-import { RotateCcw, RotateCw } from "lucide-react";
 import { PLAN_GRID_SCALE_PRESETS } from "../domain/pointerPlanMapping";
 import type {
   BuildingSystemMode,
@@ -123,9 +122,6 @@ export type DesignBuilderCommandBarProps = {
   undoTitle: string;
   redoLabel: string;
   redoTitle: string;
-  onRotateSelectedFixtureCounterClockwise: () => void;
-  onRotateSelectedFixtureClockwise: () => void;
-  canRotateSelectedFixture: boolean;
   onToggleLeftPanel: () => void;
   onToggleRightPanel: () => void;
   onStartBlankLayout: () => void;
@@ -567,27 +563,6 @@ export function DesignBuilderCommandBar(props: DesignBuilderCommandBarProps) {
         >
           Redo
         </button>
-        <button
-          type="button"
-          onClick={props.onRotateSelectedFixtureCounterClockwise}
-          disabled={!props.canRotateSelectedFixture}
-          aria-label="Rotate selected fixture counterclockwise 90 degrees"
-          title="Rotate selected fixture counterclockwise 90 degrees"
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 disabled:opacity-40 dark:text-slate-300 dark:hover:bg-slate-800"
-        >
-          <RotateCcw className="h-4 w-4" aria-hidden="true" />
-        </button>
-        <button
-          type="button"
-          onClick={props.onRotateSelectedFixtureClockwise}
-          disabled={!props.canRotateSelectedFixture}
-          aria-label="Rotate selected fixture clockwise 90 degrees"
-          title="Rotate selected fixture clockwise 90 degrees"
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 disabled:opacity-40 dark:text-slate-300 dark:hover:bg-slate-800"
-        >
-          <RotateCw className="h-4 w-4" aria-hidden="true" />
-        </button>
-
         <div className="ml-auto flex items-center gap-2">
           <DesignBuilderCommandMenu
             menuKind="workspace-actions"

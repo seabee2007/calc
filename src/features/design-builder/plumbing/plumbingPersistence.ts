@@ -1,5 +1,6 @@
 import {
   createDefaultPlumbingSystem,
+  defaultPipeScheduleForMaterial,
   PLUMBING_SYSTEM_SCHEMA_VERSION,
 } from './plumbingDefaults';
 import type {
@@ -8,6 +9,7 @@ import type {
   PlumbingFixture,
   PlumbingFixtureType,
   PlumbingMaterial,
+  PlumbingPipeSchedule,
   PlumbingNode,
   PlumbingRun,
   PlumbingSystem,
@@ -32,6 +34,8 @@ const MATERIALS: PlumbingMaterial[] = [
   'other',
 ];
 
+const PIPE_SCHEDULES: PlumbingPipeSchedule[] = ['SCH 40', 'SCH 80', 'N/A'];
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === 'object');
 }
@@ -46,12 +50,31 @@ function normalizeMaterial(value: unknown, fallback: PlumbingMaterial): Plumbing
   return MATERIALS.includes(value as PlumbingMaterial) ? value as PlumbingMaterial : fallback;
 }
 
+function normalizePipeSchedule(value: unknown, material: PlumbingMaterial): PlumbingPipeSchedule {
+  return PIPE_SCHEDULES.includes(value as PlumbingPipeSchedule)
+    ? value as PlumbingPipeSchedule
+    : defaultPipeScheduleForMaterial(material);
+}
+
 function hasStringId(value: unknown): value is { id: string } {
   return isRecord(value) && typeof value.id === 'string' && value.id.length > 0;
 }
 
 function normalizeArray<T>(value: unknown, guard: (item: unknown) => item is T): T[] {
   return Array.isArray(value) ? value.filter(guard) : [];
+}
+
+function normalizeRuns(value: unknown): PlumbingRun[] {
+  return normalizeArray(value, hasStringId).map((run) => {
+    const raw = run as PlumbingRun & Record<string, unknown>;
+    const material = normalizeMaterial(raw.material, 'pvc');
+    return {
+      ...raw,
+      material,
+      schedule: normalizePipeSchedule(raw.schedule, material),
+      labelVisible: typeof raw.labelVisible === 'boolean' ? raw.labelVisible : true,
+    } as PlumbingRun;
+  });
 }
 
 export function normalizePlumbingSystem(raw: unknown): PlumbingSystem {
@@ -64,7 +87,7 @@ export function normalizePlumbingSystem(raw: unknown): PlumbingSystem {
     codeProfileId,
     fixtures: normalizeArray(raw.fixtures, hasStringId) as PlumbingFixture[],
     nodes: normalizeArray(raw.nodes, hasStringId) as PlumbingNode[],
-    runs: normalizeArray(raw.runs, hasStringId) as PlumbingRun[],
+    runs: normalizeRuns(raw.runs),
     equipment: normalizeArray(raw.equipment, hasStringId) as PlumbingEquipment[],
     septicTanks: normalizeSepticTanks(raw.septicTanks),
     settings: {
