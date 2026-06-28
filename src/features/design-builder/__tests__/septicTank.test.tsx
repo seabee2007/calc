@@ -17,6 +17,8 @@ import {
   hitTestSepticTank,
   IPC_2024_MIN_SEPTIC_SETBACK_FROM_BUILDING_M,
   ipc2024MinimumDrainageSlopeInPerFt,
+  resolveDistributionBoxPorts,
+  resolveSepticTankInletPort,
   septicTankInletInvertElevation,
   validateSepticTank,
   type SepticTankModel,
@@ -67,6 +69,23 @@ describe('CMU septic tank site utility', () => {
       run.endNodeId === result.tank.connectionNodes.inletNodeId &&
       run.system === 'sanitary',
     )).toBe(true);
+    const septicPort = resolveSepticTankInletPort(result.tank);
+    const dboxPorts = resolveDistributionBoxPorts({
+      equipment: distributionBox!,
+      pipeDiameterInches: 4,
+    });
+    const outletDirection = {
+      x: septicPort.center.x - dboxPorts.outlet.center.x,
+      z: septicPort.center.z - dboxPorts.outlet.center.z,
+    };
+    const outletLength = Math.hypot(outletDirection.x, outletDirection.z);
+    expect(outletLength).toBeGreaterThan(0);
+    expect(
+      (outletDirection.x / outletLength) * septicPort.requiredPipeApproachDirection.x +
+      (outletDirection.z / outletLength) * septicPort.requiredPipeApproachDirection.z,
+    ).toBeGreaterThan(0.995);
+    expect(dboxPorts.outlet.direction.x).toBeCloseTo(septicPort.requiredPipeApproachDirection.x, 6);
+    expect(dboxPorts.outlet.direction.z).toBeCloseTo(septicPort.requiredPipeApproachDirection.z, 6);
   });
 
   it('connects an existing sanitary drain into the distribution box before septic', () => {

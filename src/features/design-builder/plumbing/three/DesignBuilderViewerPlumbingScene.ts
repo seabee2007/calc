@@ -73,6 +73,8 @@ export type DesignBuilderViewerPlumbingSceneParams = {
   trackMaterial?: TrackMaterial;
 };
 
+const DBOX_LENGTH_M = 0.48;
+
 function labelPoint(points: readonly { x: number; y: number; z: number }[]): THREE.Vector3 {
   if (points.length === 0) return new THREE.Vector3();
   const total = points.reduce(
@@ -288,6 +290,74 @@ function createSolvedFittingPortMarkers(params: {
     });
   });
   return group;
+}
+
+function rotateDBoxLocalOffset(point: { x: number; y: number; z: number }, rotationRadians: number): THREE.Vector3 {
+  const radians = Number.isFinite(rotationRadians) ? -rotationRadians : 0;
+  const cos = Math.cos(radians);
+  const sin = Math.sin(radians);
+  return new THREE.Vector3(
+    point.x * cos - point.z * sin,
+    point.y,
+    point.x * sin + point.z * cos,
+  );
+}
+
+function dboxPortLocalOffset(portId: string, rotationRadians: number): THREE.Vector3 | null {
+  if (portId === 'inlet') return rotateDBoxLocalOffset({ x: -DBOX_LENGTH_M / 2, y: 0, z: 0 }, rotationRadians);
+  if (portId === 'outlet') return rotateDBoxLocalOffset({ x: DBOX_LENGTH_M / 2, y: 0, z: 0 }, rotationRadians);
+  return null;
+}
+
+function dboxRotationFromSolvedConnections(
+  solvedConnections: SolvedPlumbingModel['equipment'],
+  fallback: number,
+): number {
+  const outletPort = solvedConnections
+    .flatMap((connection) => connection.ports ?? [])
+    .find((port) => port.id === 'outlet');
+  if (outletPort) return Math.atan2(-outletPort.direction.z, outletPort.direction.x);
+
+  const inletPort = solvedConnections
+    .flatMap((connection) => connection.ports ?? [])
+    .find((port) => port.id === 'inlet');
+  if (inletPort) return Math.atan2(inletPort.direction.z, -inletPort.direction.x);
+
+  return fallback;
+}
+
+function solvedDistributionBoxPosition(params: {
+  equipmentId: string;
+  rotationRadians: number;
+  solvedModel: SolvedPlumbingModel;
+  fallback: { x: number; y: number; z: number };
+}): { x: number; y: number; z: number; rotationRadians: number; solvedConnections: SolvedPlumbingModel['equipment'] } {
+  const solvedConnections = params.solvedModel.equipment.filter((connection) =>
+    connection.equipmentId === params.equipmentId &&
+    (connection.portId === 'inlet' || connection.portId === 'outlet'));
+  const rotationRadians = dboxRotationFromSolvedConnections(solvedConnections, params.rotationRadians);
+  const centers = solvedConnections
+    .map((connection) => {
+      const offset = dboxPortLocalOffset(connection.portId, rotationRadians);
+      if (!offset) return null;
+      return new THREE.Vector3(
+        connection.position.x - offset.x,
+        connection.position.y - offset.y,
+        connection.position.z - offset.z,
+      );
+    })
+    .filter((center): center is THREE.Vector3 => Boolean(center));
+  if (centers.length === 0) {
+    return { ...params.fallback, rotationRadians, solvedConnections };
+  }
+  const center = centers.reduce((sum, item) => sum.add(item), new THREE.Vector3()).multiplyScalar(1 / centers.length);
+  return {
+    x: center.x,
+    y: center.y,
+    z: center.z,
+    rotationRadians,
+    solvedConnections,
+  };
 }
 
 export function buildDesignBuilderViewerPlumbingScene(
@@ -582,12 +652,24 @@ export function buildDesignBuilderViewerPlumbingScene(
   params.plumbingSystem.equipment.forEach((equipment) => {
     if (!equipmentVisible(equipment, visibility)) return;
     try {
-      const position = resolvePlumbingEquipmentPosition({
+      const resolvedPosition = resolvePlumbingEquipmentPosition({
         equipment,
         defaults: elevationDefaults,
       });
+      const dboxSolvedPosition = equipment.equipmentType === 'distribution_box'
+        ? solvedDistributionBoxPosition({
+          equipmentId: equipment.id,
+          rotationRadians: equipment.rotationRadians,
+          solvedModel,
+          fallback: resolvedPosition,
+        })
+        : null;
+      const position = dboxSolvedPosition ?? resolvedPosition;
+      const renderEquipment = dboxSolvedPosition
+        ? { ...equipment, rotationRadians: dboxSolvedPosition.rotationRadians }
+        : equipment;
       const equipmentGroup = createProceduralPlumbingEquipmentMesh({
-        equipment,
+        equipment: renderEquipment,
         position,
         elevationDefaults,
         materials,
@@ -595,31 +677,32 @@ export function buildDesignBuilderViewerPlumbingScene(
         trackGeometry: params.trackGeometry,
       });
       if (equipment.equipmentType === 'distribution_box') {
-        const solvedConnection = solvedModel.equipment.find((connection) =>
-          connection.equipmentId === equipment.id &&
-          connection.portId === 'inlet') ??
-          solvedModel.equipment.find((connection) =>
-            connection.equipmentId === equipment.id &&
-            connection.portId === 'outlet');
-        const targetPoint = solvedConnection?.position;
-        const target = targetPoint
-          ? vectorFromPoint(targetPoint)
-          : resolvedPipeConnectionPointForEquipment({
+        if (dboxSolvedPosition && dboxSolvedPosition.solvedConnections.length > 0) {
+          equipmentGroup.userData.portAlignment = {
+            mode: 'solved-equipment-ports',
+            ports: dboxSolvedPosition.solvedConnections.map((connection) => ({
+              portId: connection.portId,
+              target: [connection.position.x, connection.position.y, connection.position.z],
+            })),
+          };
+        } else {
+          const target = resolvedPipeConnectionPointForEquipment({
             plumbingSystem: params.plumbingSystem,
             equipmentNodeIds: equipment.connectionNodeIds,
             resolvedRunPaths,
           });
-        const ports = equipmentGroup.userData.ports as ConnectorPort[] | undefined;
-        const port = ports?.find((candidate) => candidate.id === (solvedConnection?.portId ?? 'inlet'));
-        if (target && port) {
-          const alignment = alignObjectPortToWorldPoint(equipmentGroup, port, target);
-          if (alignment) {
-            equipmentGroup.userData.portAlignment = {
-              portId: port.id,
-              before: alignment.before.toArray(),
-              after: alignment.after.toArray(),
-              target: alignment.target.toArray(),
-            };
+          const ports = equipmentGroup.userData.ports as ConnectorPort[] | undefined;
+          const port = ports?.find((candidate) => candidate.id === 'inlet');
+          if (target && port) {
+            const alignment = alignObjectPortToWorldPoint(equipmentGroup, port, target);
+            if (alignment) {
+              equipmentGroup.userData.portAlignment = {
+                portId: port.id,
+                before: alignment.before.toArray(),
+                after: alignment.after.toArray(),
+                target: alignment.target.toArray(),
+              };
+            }
           }
         }
       }

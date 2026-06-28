@@ -15,6 +15,7 @@ import {
 } from './septicDefaults';
 import { localToWorld, sideLocalPoint } from './septicGeometry';
 import type { SepticPoint2D } from './septicGeometry';
+import { resolveSepticTankInletPort } from './septicPorts';
 import type { SepticCodeProfileId, SepticTankModel, SepticTankSide } from './septicTypes';
 
 function createId(prefix: string, seed?: string): string {
@@ -107,53 +108,58 @@ function adjustedTankForExistingSanitarySlope(system: PlumbingSystem | undefined
   };
 }
 
-function distributionBoxPointForTank(tank: SepticTankModel, buildingFootprint?: readonly SepticPoint2D[]): SepticPoint2D {
-  const inlet = localToWorld(tank, sideLocalPoint(tank, tank.inletSide));
-  const buildingCenter = buildingFootprint && buildingFootprint.length > 0
-    ? boundsCenter(polygonBounds(buildingFootprint))
-    : { x: 0, z: 0 };
-  const towardBuilding = { x: buildingCenter.x - inlet.x, z: buildingCenter.z - inlet.z };
-  const length = Math.hypot(towardBuilding.x, towardBuilding.z);
-  if (length > 0.0001) {
-    return {
-      x: inlet.x + towardBuilding.x / length * 1.2,
-      z: inlet.z + towardBuilding.z / length * 1.2,
-    };
-  }
-  const local = sideLocalPoint(tank, tank.inletSide);
-  const localLength = Math.hypot(local.x, local.z);
-  const outward = localLength > 0.0001 ? { x: local.x / localLength, z: local.z / localLength } : { x: -1, z: 0 };
-  const worldDirection = {
-    x: outward.x * Math.cos(tank.placement.rotationRad) - outward.z * Math.sin(tank.placement.rotationRad),
-    z: outward.x * Math.sin(tank.placement.rotationRad) + outward.z * Math.cos(tank.placement.rotationRad),
+const DISTRIBUTION_BOX_LENGTH_M = 0.48;
+const DEFAULT_DBOX_TO_SEPTIC_OUTLET_PIPE_LENGTH_M = 1.2;
+
+function dboxRotationRadiansForOutletAxis(axis: { x: number; z: number }): number {
+  return Math.atan2(-axis.z, axis.x);
+}
+
+function distributionBoxPlacementForTank(params: {
+  tank: SepticTankModel;
+  slopeInPerFt: number;
+  outletPipeLengthM?: number;
+}): { position: PlumbingNode['position']; rotationRadians: number; outletCenter: PlumbingNode['position'] } {
+  const septicPort = resolveSepticTankInletPort(params.tank);
+  const axis = septicPort.requiredPipeApproachDirection;
+  const outletPipeLengthM = params.outletPipeLengthM ?? DEFAULT_DBOX_TO_SEPTIC_OUTLET_PIPE_LENGTH_M;
+  const outletCenter = {
+    x: septicPort.center.x - axis.x * outletPipeLengthM,
+    y: septicPort.center.y + outletPipeLengthM * (params.slopeInPerFt / 12),
+    z: septicPort.center.z - axis.z * outletPipeLengthM,
   };
   return {
-    x: inlet.x + worldDirection.x * 1.2,
-    z: inlet.z + worldDirection.z * 1.2,
+    outletCenter,
+    position: {
+      x: outletCenter.x - axis.x * (DISTRIBUTION_BOX_LENGTH_M / 2),
+      y: outletCenter.y,
+      z: outletCenter.z - axis.z * (DISTRIBUTION_BOX_LENGTH_M / 2),
+    },
+    rotationRadians: dboxRotationRadiansForOutletAxis(axis),
   };
 }
 
 function createSepticDistributionBox(params: {
   tank: SepticTankModel;
   system: PlumbingSystem;
-  buildingFootprint?: readonly SepticPoint2D[];
 }): { equipment: PlumbingEquipment; node: PlumbingNode; run: PlumbingRun } {
-  const point = distributionBoxPointForTank(params.tank, params.buildingFootprint);
   const inletNodeId = params.tank.connectionNodes.inletNodeId;
   const nodeId = `${params.tank.id}-distribution-box-node`;
   const equipmentId = `${params.tank.id}-distribution-box`;
   const inlet = localToWorld(params.tank, sideLocalPoint(params.tank, params.tank.inletSide));
-  const planLengthMeters = Math.max(0.001, Math.hypot(point.x - inlet.x, point.z - inlet.z));
   const slopeInPerFt = ipc2024MinimumDrainageSlopeInPerFt(4);
   const inletY = septicTankInletInvertElevation(params.tank);
-  const boxY = inletY + planLengthMeters * (slopeInPerFt / 12);
-  const position = { x: point.x, y: boxY, z: point.z };
+  const placement = distributionBoxPlacementForTank({
+    tank: params.tank,
+    slopeInPerFt,
+  });
+  const position = placement.position;
   const equipment: PlumbingEquipment = {
     id: equipmentId,
     equipmentType: 'distribution_box',
     label: 'D-Box',
     position,
-    rotationRadians: params.tank.placement.rotationRad,
+    rotationRadians: placement.rotationRadians,
     connectionNodeIds: [nodeId],
   };
   const node: PlumbingNode = {
@@ -470,7 +476,6 @@ export function addCmuSepticTankToPlumbingSystem(params: {
   const distributionBox = createSepticDistributionBox({
     tank,
     system: params.system,
-    buildingFootprint: params.buildingFootprint,
   });
   const baseSystem: PlumbingSystem = {
     ...params.system,

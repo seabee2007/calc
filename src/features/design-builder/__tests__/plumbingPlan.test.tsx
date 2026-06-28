@@ -17,6 +17,7 @@ import {
   getRenderableSolvedPlumbingFittings,
   formatPlumbingRunLabel,
   normalizePlumbingSystem,
+  resolveSepticTankInletPort,
   solvePlumbingModel,
   validatePlumbingSystem,
   type PlumbingNode,
@@ -410,7 +411,15 @@ describe('Design Builder plumbing plan', () => {
     expect(fittingTakeoff?.count).toBe(1);
   });
 
-  it('solves raw D-box entries to an inlet port stub instead of the box center', () => {
+  it('solves raw D-box entries to an inlet port stub and straight septic inlet pipe', () => {
+    const tank = createCmuSepticTank({
+      centerX: 4,
+      centerZ: 0,
+      idSeed: 'dbox-hard-port',
+    });
+    const septicNodes = createCmuSepticTankNodes(tank);
+    const septicNode = septicNodes.find((node) => node.kind === 'septic_inlet')!;
+    const septicPort = resolveSepticTankInletPort(tank);
     const sourceNode: PlumbingNode = {
       id: 'dbox-source',
       kind: 'building_drain_exit',
@@ -422,8 +431,8 @@ describe('Design Builder plumbing plan', () => {
       id: 'dbox-node',
       kind: 'distribution_box',
       system: 'sanitary',
-      position: { x: 2, y: -0.4, z: 0 },
-      equipmentId: 'dbox-equipment',
+      position: { x: 2, y: -0.4, z: 0.8 },
+      equipmentId: `${tank.id}-distribution-box`,
       label: 'D-Box',
     };
     const run: PlumbingRun = {
@@ -442,26 +451,20 @@ describe('Design Builder plumbing plan', () => {
       elevationMode: 'under_slab',
       labelVisible: true,
     };
-    const septicNode: PlumbingNode = {
-      id: 'septic-inlet',
-      kind: 'septic_inlet',
-      system: 'sanitary',
-      position: { x: 4, y: -0.45, z: 0 },
-      label: 'Septic inlet',
-    };
     const outletRun: PlumbingRun = {
       ...run,
-      id: 'dbox-to-septic',
+      id: `${tank.id}-distribution-box-to-septic-run`,
       startNodeId: dboxNode.id,
       endNodeId: septicNode.id,
       path: [dboxNode.position, septicNode.position],
     };
     const solved = solvePlumbingModel({
       ...createDefaultPlumbingSystem(),
-      nodes: [sourceNode, dboxNode, septicNode],
+      septicTanks: [tank],
+      nodes: [sourceNode, dboxNode, ...septicNodes],
       runs: [run, outletRun],
       equipment: [{
-        id: 'dbox-equipment',
+        id: `${tank.id}-distribution-box`,
         equipmentType: 'distribution_box',
         label: 'D-Box',
         position: dboxNode.position,
@@ -471,26 +474,112 @@ describe('Design Builder plumbing plan', () => {
     });
 
     const stub = solved.pipePieces.find((piece) => piece.id === `${run.id}:dbox-inlet-stub`)!;
-    const outlet = solved.pipePieces.find((piece) => piece.sourceRunId === outletRun.id && piece.startRole === 'd-box-outlet')!;
+    const outlet = solved.pipePieces.find((piece) => piece.id === `${outletRun.id}:dbox-outlet-to-septic-inlet`)!;
     const fitting = solved.fittings.find((item) => item.id === `${run.id}:dbox-inlet-fitting`)!;
-    const equipmentConnection = solved.equipment.find((item) => item.equipmentId === 'dbox-equipment' && item.portId === 'inlet')!;
-    const outletConnection = solved.equipment.find((item) => item.equipmentId === 'dbox-equipment' && item.portId === 'outlet')!;
+    const outletFitting = solved.fittings.find((item) => item.id === `${outletRun.id}:dbox-outlet-fitting`);
+    const equipmentConnection = solved.equipment.find((item) => item.equipmentId === `${tank.id}-distribution-box` && item.portId === 'inlet')!;
+    const outletConnection = solved.equipment.find((item) => item.equipmentId === `${tank.id}-distribution-box` && item.portId === 'outlet')!;
+    const outletPort = outletConnection.ports?.find((port) => port.id === 'outlet')!;
+    const outletDirection = {
+      x: outlet.end.x - outlet.start.x,
+      z: outlet.end.z - outlet.start.z,
+    };
+    const outletLength = Math.hypot(outletDirection.x, outletDirection.z);
+    const normalizedOutletDirection = {
+      x: outletDirection.x / outletLength,
+      z: outletDirection.z / outletLength,
+    };
 
     expect(stub).toBeTruthy();
     expect(outlet).toBeTruthy();
     expect(fitting).toBeTruthy();
+    expect(outletFitting).toBeUndefined();
     expect(stub.endRole).toBe('d-box-inlet');
-    expect(outlet.start.x).toBeCloseTo(dboxNode.position.x + 0.24, 6);
-    expect(outlet.start.z).toBeCloseTo(dboxNode.position.z, 6);
-    expect(stub.end.x).toBeCloseTo(dboxNode.position.x - 0.24, 6);
-    expect(stub.end.z).toBeCloseTo(dboxNode.position.z, 6);
+    expect(outlet.startRole).toBe('d-box-outlet');
+    expect(outlet.endRole).toBe('septic-inlet');
+    expect(outlet.start).toMatchObject(outletPort.center);
+    expect(outlet.end.x).toBeCloseTo(septicPort.center.x, 6);
+    expect(outlet.end.y).toBeCloseTo(septicPort.center.y, 6);
+    expect(outlet.end.z).toBeCloseTo(septicPort.center.z, 6);
+    expect(
+      normalizedOutletDirection.x * septicPort.requiredPipeApproachDirection.x +
+      normalizedOutletDirection.z * septicPort.requiredPipeApproachDirection.z,
+    ).toBeGreaterThan(0.995);
     expect(stub.end.x).not.toBeCloseTo(dboxNode.position.x, 6);
+    expect(stub.end.z).not.toBeCloseTo(dboxNode.position.z, 6);
     expect(equipmentConnection.position).toMatchObject(stub.end);
     expect(outletConnection.position).toMatchObject(outlet.start);
     expect(fitting.connectedPipePieceIds).toContain(stub.id);
     expect(solved.fittings.some((item) =>
       item.id.startsWith(`${run.id}:coupler`) &&
       item.connectedPipePieceIds.includes(stub.id))).toBe(false);
+    expect(solved.validationIssues.map((issue) => issue.code)).toContain('dbox_auto_repositioned_for_septic_inlet');
+    expect(solved.validationIssues.map((issue) => issue.code)).not.toEqual(expect.arrayContaining([
+      'distribution_box_outlet_missing_solved_port',
+      'distribution_box_outlet_pipe_not_port_aligned',
+      'distribution_box_outlet_stub_missing',
+      'distribution_box_outlet_to_septic_gap',
+      'distribution_box_outlet_pipe_enters_body',
+      'septic_inlet_pipe_not_port_aligned',
+      'septic_inlet_pipe_misses_port',
+    ]));
+  });
+
+  it('does not solve an off-axis manual D-box into an angled septic tank inlet', () => {
+    const tank = createCmuSepticTank({
+      centerX: 4,
+      centerZ: 0,
+      idSeed: 'manual-dbox-hard-port',
+    });
+    const septicNodes = createCmuSepticTankNodes(tank);
+    const septicNode = septicNodes.find((node) => node.kind === 'septic_inlet')!;
+    const dboxNode: PlumbingNode = {
+      id: 'manual-dbox-node',
+      kind: 'distribution_box',
+      system: 'sanitary',
+      position: { x: 2, y: -0.4, z: 0.8 },
+      equipmentId: 'manual-dbox-equipment',
+      label: 'D-Box',
+    };
+    const outletRun: PlumbingRun = {
+      id: 'manual-dbox-to-septic',
+      system: 'sanitary',
+      startNodeId: dboxNode.id,
+      endNodeId: septicNode.id,
+      path: [dboxNode.position, septicNode.position],
+      diameterInches: 4,
+      material: 'pvc',
+      schedule: 'SCH 40',
+      stockLengthFt: 10,
+      stockLengthPreset: '10ft',
+      stockLengthKind: 'stick',
+      slopeInPerFt: 0.125,
+      elevationMode: 'under_slab',
+      labelVisible: true,
+    };
+    const solved = solvePlumbingModel({
+      ...createDefaultPlumbingSystem(),
+      septicTanks: [tank],
+      nodes: [dboxNode, ...septicNodes],
+      runs: [outletRun],
+      equipment: [{
+        id: 'manual-dbox-equipment',
+        equipmentType: 'distribution_box',
+        label: 'D-Box',
+        position: dboxNode.position,
+        rotationRadians: 0,
+        connectionNodeIds: [dboxNode.id],
+      }],
+    });
+    const codes = solved.validationIssues.map((issue) => issue.code);
+
+    expect(solved.pipePieces.some((piece) => piece.sourceRunId === outletRun.id)).toBe(false);
+    expect(codes).toEqual(expect.arrayContaining([
+      'dbox_outlet_not_aligned_to_septic_inlet',
+      'septic_inlet_connection_requires_dbox_reposition',
+      'septic_inlet_pipe_not_port_aligned',
+    ]));
+    expect(solved.fittings.some((fitting) => fitting.id === `${outletRun.id}:dbox-outlet-fitting`)).toBe(false);
   });
 
   it('keeps manual couplings while ignoring legacy auto couplers in solved takeoff', () => {

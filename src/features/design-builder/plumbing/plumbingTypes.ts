@@ -308,7 +308,17 @@ export type PlumbingValidationIssue = {
     | 'solved_pipe_endpoint_missing'
     | 'solved_coupler_min_stub_violation'
     | 'solved_coupling_not_contiguous'
-    | 'solved_dbox_inlet_not_port_aligned';
+    | 'solved_dbox_inlet_not_port_aligned'
+    | 'distribution_box_outlet_missing_solved_port'
+    | 'distribution_box_outlet_pipe_not_port_aligned'
+    | 'distribution_box_outlet_stub_missing'
+    | 'distribution_box_outlet_to_septic_gap'
+    | 'distribution_box_outlet_pipe_enters_body'
+    | 'septic_inlet_pipe_not_port_aligned'
+    | 'septic_inlet_pipe_misses_port'
+    | 'septic_inlet_connection_requires_dbox_reposition'
+    | 'dbox_outlet_not_aligned_to_septic_inlet'
+    | 'dbox_auto_repositioned_for_septic_inlet';
   message: string;
   objectKind: 'fixture' | 'run' | 'node' | 'fitting' | 'rough-in' | 'equipment' | 'foundation' | 'septic-tank' | 'system';
   objectId?: string;

@@ -5,8 +5,8 @@ export * from './septicCapacity';
 export * from './septicDefaults';
 export * from './septicGeometry';
 export * from './septicPersistence';
+export * from './septicPorts';
 export * from './septicTakeoff';
 export * from './septicTypes';
 export * from './septicValidation';
 export * from './three/createCmuSepticTankMesh';
-

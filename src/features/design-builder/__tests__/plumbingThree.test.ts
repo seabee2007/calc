@@ -6,6 +6,7 @@ import {
   addRunToPlumbingSystem,
   createOrReplaceFixtureRoughInAssembly,
   createDefaultPlumbingSystem,
+  resolveSepticTankInletPort,
   validatePlumbingSystem,
   type PlumbingFitting,
   type PlumbingNode,
@@ -150,6 +151,18 @@ function cylinderEndpoints(mesh: THREE.Mesh): [THREE.Vector3, THREE.Vector3] {
     mesh.position.clone().addScaledVector(axis, -height / 2),
     mesh.position.clone().addScaledVector(axis, height / 2),
   ];
+}
+
+function closestPipeEndpointDistance(group: THREE.Object3D, target: THREE.Vector3): number {
+  let best = Number.POSITIVE_INFINITY;
+  group.traverse((object) => {
+    if (object instanceof THREE.Mesh && object.name.startsWith('pipe segment')) {
+      cylinderEndpoints(object).forEach((point) => {
+        best = Math.min(best, point.distanceTo(target));
+      });
+    }
+  });
+  return best;
 }
 
 describe('Design Builder procedural plumbing 3D', () => {
@@ -383,15 +396,7 @@ describe('Design Builder procedural plumbing 3D', () => {
     expect(finalPort.z).toBeCloseTo(target.z, 6);
   });
 
-  it('places D-box scene geometry on the solved inlet port without rendering a raw diagonal through the box', () => {
-    const dBoxNode: PlumbingNode = {
-      id: 'd-box-node',
-      kind: 'distribution_box',
-      system: 'sanitary',
-      position: { x: 2, y: -0.72, z: 0 },
-      equipmentId: 'd-box-equipment',
-      label: 'Distribution box',
-    };
+  it('places D-box scene geometry on solved ports and renders septic inlet as a straight hard-port connection', () => {
     const sourceNode: PlumbingNode = {
       id: 'source-node',
       kind: 'building_drain_exit',
@@ -399,27 +404,41 @@ describe('Design Builder procedural plumbing 3D', () => {
       position: { x: 0, y: -0.6, z: 0 },
       label: 'BD',
     };
-    const dBoxRun = run('sanitary', {
-      id: 'to-d-box',
-      startNodeId: sourceNode.id,
-      endNodeId: dBoxNode.id,
-      path: [sourceNode.position, dBoxNode.position],
-      elevationMode: 'under_slab',
-      diameterInches: 4,
-      slopeInPerFt: 0.125,
+    const withTank = addCmuSepticTankToPlumbingSystem({
+      system: { ...createDefaultPlumbingSystem(), nodes: [sourceNode] },
+      centerX: 4,
+      centerZ: 0,
+      idSeed: 'scene-dbox-port',
     });
+    const tank = withTank.tank;
+    const septicPort = resolveSepticTankInletPort(tank);
+    const dBoxNode = withTank.system.nodes.find((node) => node.kind === 'distribution_box')!;
+    const septicNode = withTank.system.nodes.find((node) => node.id === tank.connectionNodes.inletNodeId)!;
+    const dBoxEquipment = withTank.system.equipment.find((equipment) => equipment.equipmentType === 'distribution_box')!;
+    const septicRun = withTank.system.runs.find((candidate) =>
+      candidate.startNodeId === dBoxNode.id &&
+      candidate.endNodeId === septicNode.id)!;
+    const shiftedDBoxPosition = {
+      x: dBoxNode.position.x,
+      y: dBoxNode.position.y,
+      z: dBoxNode.position.z + 0.8,
+    };
+    const replaceDBoxPoint = (point: { x: number; y: number; z: number }) =>
+      Math.hypot(point.x - dBoxNode.position.x, point.z - dBoxNode.position.z) < 0.001
+        ? shiftedDBoxPosition
+        : point;
     const system: PlumbingSystem = {
-      ...createDefaultPlumbingSystem(),
-      nodes: [sourceNode, dBoxNode],
-      runs: [dBoxRun],
-      equipment: [{
-        id: 'd-box-equipment',
-        equipmentType: 'distribution_box',
-        label: 'D-Box',
-        position: { x: dBoxNode.position.x, y: 0, z: dBoxNode.position.z },
-        rotationRadians: 0,
-        connectionNodeIds: [dBoxNode.id],
-      }],
+      ...withTank.system,
+      nodes: withTank.system.nodes.map((node) =>
+        node.id === dBoxNode.id ? { ...node, position: shiftedDBoxPosition } : node),
+      equipment: withTank.system.equipment.map((equipment) =>
+        equipment.id === dBoxEquipment.id
+          ? { ...equipment, position: shiftedDBoxPosition, rotationRadians: 0 }
+          : equipment),
+      runs: withTank.system.runs.map((candidate) =>
+        candidate.id === septicRun.id
+          ? { ...candidate, path: [shiftedDBoxPosition, septicNode.position] }
+          : { ...candidate, path: candidate.path.map(replaceDBoxPoint) }),
     };
     const scene = buildDesignBuilderViewerPlumbingScene({
       plumbingSystem: system,
@@ -430,18 +449,40 @@ describe('Design Builder procedural plumbing 3D', () => {
         sanitaryUnderSlabCoverM: 0.72,
       },
     });
-    const dBoxGroup = scene.group.children.find((child) => child.name === 'plumbing_equipment:d-box-equipment')!;
-    const pipeGroup = scene.group.children.find((child) => child.name === 'plumbing_run:to-d-box')!;
-    const port = (dBoxGroup.userData.ports as ConnectorPort[]).find((candidate) => candidate.id === 'inlet')!;
-    const finalPort = port.localPosition.clone().applyMatrix4(dBoxGroup.matrixWorld);
-    const pipe = meshByName(pipeGroup, 'pipe segment 1');
-    const pipeEndpoints = cylinderEndpoints(pipe).sort((a, b) => a.x - b.x);
+    scene.group.updateMatrixWorld(true);
+    const dBoxGroup = scene.group.children.find((child) => child.name === `plumbing_equipment:${dBoxEquipment.id}`)!;
+    const septicPipeGroup = scene.group.children.find((child) => child.name === `plumbing_run:${septicRun.id}`)!;
+    const inletPort = (dBoxGroup.userData.ports as ConnectorPort[]).find((candidate) => candidate.id === 'inlet')!;
+    const outletPort = (dBoxGroup.userData.ports as ConnectorPort[]).find((candidate) => candidate.id === 'outlet')!;
+    const finalInletPort = inletPort.localPosition.clone().applyMatrix4(dBoxGroup.matrixWorld);
+    const finalOutletPort = outletPort.localPosition.clone().applyMatrix4(dBoxGroup.matrixWorld);
+    const septicInletPort = new THREE.Vector3(septicPort.center.x, septicPort.center.y, septicPort.center.z);
+    const septicPipe = meshByName(septicPipeGroup, 'pipe segment 1');
+    const septicPipeEndpoints = cylinderEndpoints(septicPipe);
+    const startEndpoint = septicPipeEndpoints
+      .slice()
+      .sort((a, b) => a.distanceTo(finalOutletPort) - b.distanceTo(finalOutletPort))[0]!;
+    const endEndpoint = septicPipeEndpoints
+      .slice()
+      .sort((a, b) => a.distanceTo(septicInletPort) - b.distanceTo(septicInletPort))[0]!;
+    const pipeDirection = endEndpoint.clone().sub(startEndpoint).setY(0).normalize();
+    const requiredDirection = new THREE.Vector3(
+      septicPort.requiredPipeApproachDirection.x,
+      0,
+      septicPort.requiredPipeApproachDirection.z,
+    ).normalize();
+    const inletPipeGroups = scene.group.children.filter((child) =>
+      child.name.startsWith('plumbing_run:') && child.name !== `plumbing_run:${septicRun.id}`);
 
-    expect(finalPort.y).toBeCloseTo(dBoxGroup.userData.portAlignment.target[1], 6);
+    expect(dBoxGroup.userData.portAlignment.mode).toBe('solved-equipment-ports');
     expect(dBoxGroup.position.y).not.toBeCloseTo(0.15, 6);
-    expect(dBoxGroup.userData.portAlignment.target[1]).toBeLessThan(dBoxNode.position.y);
-    expect(finalPort.x).toBeLessThan(dBoxNode.position.x);
-    expect(pipeEndpoints.some((point) => point.x > dBoxNode.position.x)).toBe(false);
+    expect(inletPipeGroups.some((child) => closestPipeEndpointDistance(child, finalInletPort) < 0.01)).toBe(true);
+    expect(closestPipeEndpointDistance(septicPipeGroup, finalOutletPort)).toBeLessThan(0.01);
+    expect(closestPipeEndpointDistance(septicPipeGroup, septicInletPort)).toBeLessThan(0.01);
+    expect(startEndpoint.distanceTo(finalOutletPort)).toBeLessThan(0.01);
+    expect(endEndpoint.distanceTo(septicInletPort)).toBeLessThan(0.01);
+    expect(pipeDirection.dot(requiredDirection)).toBeGreaterThan(0.995);
+    expect(scene.group.children.some((child) => child.name === `plumbing_fitting:${septicRun.id}:dbox-outlet-fitting`)).toBe(false);
   });
 
   it('suppresses legacy auto-generated sanitary couplings when solved couplings render', () => {
