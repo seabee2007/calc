@@ -69,10 +69,19 @@ import {
   TRUSS_CHORD_PROFILE_METERS,
 } from '../domain/roofFramingResolver';
 import {
-  getPlumbingFixtureDefinition,
+  createCmuSepticTank,
+  hitTestSepticTank,
+  type PlumbingFixture,
   type PlumbingFixtureType,
+  type PlumbingRunDraft,
+  type PlumbingSelection,
   type PlumbingSystem,
+  type PlumbingToolMode,
+  type PlumbingValidationIssue,
+  type SepticTankModel,
 } from '../plumbing';
+import { DrawPlumbingPlan } from '../plumbing/canvas2d/drawPlumbingPlan';
+import { hitTestPlumbingSystem } from '../plumbing/canvas2d/plumbingHitTesting';
 
 const MIN_SEGMENT_LENGTH_METERS = 0.08;
 const COLUMN_DRAG_THRESHOLD_PX = 4;
@@ -342,10 +351,22 @@ interface DesignBuilderPlanCanvasProps {
   componentPreview?: PlacedDesignComponent | null;
   plumbingSystem?: PlumbingSystem;
   activePlumbingFixtureType?: PlumbingFixtureType | null;
+  activePlumbingToolMode?: PlumbingToolMode;
+  plumbingFixtureRotationRad?: number;
+  plumbingRunDraft?: PlumbingRunDraft | null;
+  selectedPlumbingObject?: PlumbingSelection | null;
+  plumbingValidationIssues?: readonly PlumbingValidationIssue[];
+  septicTankPlacementActive?: boolean;
+  septicTankPlacementRotationRad?: number;
+  selectedSepticTankId?: string | null;
   designRenderModel?: DesignRenderModel;
   helperMeasurements?: readonly HelperMeasurement[];
   onComponentPointer?: (event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number }) => void;
-  onPlumbingFixturePointer?: (event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number }) => void;
+  onPlumbingFixturePointer?: (event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number; rotationRad?: number }) => void;
+  onPlumbingPlanPointer?: (event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number }) => void;
+  onPlumbingSelect?: (selection: PlumbingSelection) => void;
+  onSepticTankPointer?: (event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number; rotationRad: number }) => void;
+  onSepticTankSelect?: (tankId: string) => void;
   onAnnotationCreate?: (annotation: DesignAnnotation) => void;
   onInteraction: (event: DesignBuilderInteractionEvent) => void;
 }
@@ -397,10 +418,21 @@ export default function DesignBuilderPlanCanvas({
   componentPreview = null,
   plumbingSystem,
   activePlumbingFixtureType = null,
+  activePlumbingToolMode = 'select',
+  plumbingFixtureRotationRad = 0,
+  plumbingRunDraft = null,
+  selectedPlumbingObject = null,
+  plumbingValidationIssues = [],
+  septicTankPlacementActive = false,
+  septicTankPlacementRotationRad = 0,
   designRenderModel,
   helperMeasurements = [],
   onComponentPointer,
   onPlumbingFixturePointer,
+  onPlumbingPlanPointer,
+  onPlumbingSelect,
+  onSepticTankPointer,
+  onSepticTankSelect,
   onAnnotationCreate,
   onInteraction,
 }: DesignBuilderPlanCanvasProps) {
@@ -434,7 +466,7 @@ export default function DesignBuilderPlanCanvas({
   const textBackerStroke = architecturalDrawing ? drawingStyle.sheetFill : '#0f172a';
   const isRoofPlanView = active2DView === 'roof-plan';
   const isPlumbingPlanView = active2DView === 'plumbing-plan';
-  const showStructuralPlanGeometry = active2DView === 'foundation-plan' || isPlumbingPlanView;
+  const showStructuralPlanGeometry = active2DView === 'foundation-plan';
   const roofPlanPerimeter = useMemo(() => roofPlanPerimeterPoints(resolvedRoofSystem), [resolvedRoofSystem]);
   const roofPlanBounds = useMemo(() => {
     if (roofPlanPerimeter.length === 0) return null;
@@ -1197,8 +1229,21 @@ export default function DesignBuilderPlanCanvas({
     } else {
       setHoveredOpeningId(null);
     }
+    if (isPlumbingPlanView && septicTankPlacementActive) {
+      onSepticTankPointer?.({
+        phase: 'preview',
+        xMeters: point.x,
+        zMeters: point.z,
+        rotationRad: septicTankPlacementRotationRad,
+      });
+      return;
+    }
     if (isPlumbingPlanView && activePlumbingFixtureType) {
-      onPlumbingFixturePointer?.({ phase: 'preview', xMeters: point.x, zMeters: point.z });
+      onPlumbingFixturePointer?.({ phase: 'preview', xMeters: point.x, zMeters: point.z, rotationRad: plumbingFixtureRotationRad });
+      return;
+    }
+    if (isPlumbingPlanView && activePlumbingToolMode !== 'select' && activePlumbingToolMode !== 'label' && activePlumbingToolMode !== 'validate') {
+      onPlumbingPlanPointer?.({ phase: 'preview', xMeters: point.x, zMeters: point.z });
       return;
     }
     if (toolMode === 'place_component') {
@@ -1293,11 +1338,29 @@ export default function DesignBuilderPlanCanvas({
     const point = screenFromEvent(event);
     if (!point) return;
     setCursorPoint(point);
+    if (isPlumbingPlanView && septicTankPlacementActive) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.currentTarget.setPointerCapture(event.pointerId);
+      onSepticTankPointer?.({
+        phase: 'preview',
+        xMeters: point.x,
+        zMeters: point.z,
+        rotationRad: septicTankPlacementRotationRad,
+      });
+      return;
+    }
     if (isPlumbingPlanView && activePlumbingFixtureType) {
       event.preventDefault();
       event.stopPropagation();
       event.currentTarget.setPointerCapture(event.pointerId);
-      onPlumbingFixturePointer?.({ phase: 'preview', xMeters: point.x, zMeters: point.z });
+      onPlumbingFixturePointer?.({ phase: 'preview', xMeters: point.x, zMeters: point.z, rotationRad: plumbingFixtureRotationRad });
+      return;
+    }
+    if (isPlumbingPlanView && activePlumbingToolMode !== 'select' && activePlumbingToolMode !== 'label' && activePlumbingToolMode !== 'validate') {
+      event.preventDefault();
+      event.stopPropagation();
+      onPlumbingPlanPointer?.({ phase: 'commit', xMeters: point.x, zMeters: point.z });
       return;
     }
     if (toolMode === 'place_component') {
@@ -1435,6 +1498,27 @@ export default function DesignBuilderPlanCanvas({
       return;
     }
     if (toolMode === 'select' || toolMode === 'delete') {
+      if (isPlumbingPlanView && plumbingSystem) {
+        const plumbingHit = hitTestPlumbingSystem({
+          system: plumbingSystem,
+          point,
+          toleranceMeters: Math.max(0.08, 10 / Math.max(1, viewport.zoom)),
+        });
+        if (plumbingHit.kind !== 'none') {
+          event.preventDefault();
+          event.stopPropagation();
+          onPlumbingSelect?.(plumbingHit);
+          return;
+        }
+        const septicHit = hitTestSepticTank(point, plumbingSystem.septicTanks);
+        if (septicHit) {
+          event.preventDefault();
+          event.stopPropagation();
+          onPlumbingSelect?.({ kind: 'septic-tank', id: septicHit.id });
+          onSepticTankSelect?.(septicHit.id);
+          return;
+        }
+      }
       const hitComponent = hitTestPlanComponent(point);
       if (hitComponent) {
         event.preventDefault();
@@ -1581,12 +1665,25 @@ export default function DesignBuilderPlanCanvas({
       onComponentPointer?.({ phase: 'commit', xMeters: point.x, zMeters: point.z });
       return;
     }
+    if (isPlumbingPlanView && septicTankPlacementActive) {
+      const point = screenFromEvent(event);
+      event.currentTarget.releasePointerCapture?.(event.pointerId);
+      if (!point) return;
+      setCursorPoint(point);
+      onSepticTankPointer?.({
+        phase: 'commit',
+        xMeters: point.x,
+        zMeters: point.z,
+        rotationRad: septicTankPlacementRotationRad,
+      });
+      return;
+    }
     if (isPlumbingPlanView && activePlumbingFixtureType) {
       const point = screenFromEvent(event);
       event.currentTarget.releasePointerCapture?.(event.pointerId);
       if (!point) return;
       setCursorPoint(point);
-      onPlumbingFixturePointer?.({ phase: 'commit', xMeters: point.x, zMeters: point.z });
+      onPlumbingFixturePointer?.({ phase: 'commit', xMeters: point.x, zMeters: point.z, rotationRad: plumbingFixtureRotationRad });
       return;
     }
     if (toolMode === 'move_opening' && selectedOpeningId) {
@@ -2615,142 +2712,49 @@ export default function DesignBuilderPlanCanvas({
       toolMode === 'move_wall_node' ||
       selectedNodeId != null);
 
-  const renderPlumbingFixture = (
-    fixture: NonNullable<PlumbingSystem['fixtures'][number]>,
-    preview = false,
-  ) => {
-    const definition = getPlumbingFixtureDefinition(fixture.fixtureType);
-    const center = planToSurfacePoint({ x: fixture.position.x, z: fixture.position.z });
-    const width = Math.max(18, definition.widthMeters * viewport.zoom);
-    const depth = Math.max(18, definition.depthMeters * viewport.zoom);
-    const stroke = preview ? '#22d3ee' : '#0f172a';
-    const fill = preview ? '#cffafe' : '#f8fafc';
-    const labelFill = preview ? '#67e8f9' : '#111827';
-    const commonData = {
-      'data-plumbing-fixture-id': fixture.id,
-      'data-plumbing-fixture-type': fixture.fixtureType,
-      'data-plumbing-fixture-preview': preview ? 'true' : undefined,
-    };
-    const symbol =
-      definition.planSymbol === 'drain' ? (
-        <>
-          <circle cx={center.sx} cy={center.sy} r={Math.max(7, width / 2)} fill={fill} stroke={stroke} strokeWidth={2} />
-          <line x1={center.sx - 7} y1={center.sy - 7} x2={center.sx + 7} y2={center.sy + 7} stroke={stroke} strokeWidth={1.5} />
-          <line x1={center.sx + 7} y1={center.sy - 7} x2={center.sx - 7} y2={center.sy + 7} stroke={stroke} strokeWidth={1.5} />
-        </>
-      ) : definition.planSymbol === 'wc' ? (
-        <>
-          <rect x={center.sx - width / 2} y={center.sy - depth / 2} width={width} height={depth * 0.5} rx={4} fill={fill} stroke={stroke} strokeWidth={2} />
-          <ellipse cx={center.sx} cy={center.sy + depth * 0.18} rx={width * 0.36} ry={depth * 0.25} fill={fill} stroke={stroke} strokeWidth={2} />
-        </>
-      ) : definition.planSymbol === 'heater' ? (
-        <>
-          <circle cx={center.sx} cy={center.sy} r={Math.max(width, depth) / 2} fill={fill} stroke={stroke} strokeWidth={2} />
-          <text x={center.sx} y={center.sy + 4} textAnchor="middle" fill={stroke} fontSize={10} fontWeight={800}>WH</text>
-        </>
-      ) : (
-        <>
-          <rect x={center.sx - width / 2} y={center.sy - depth / 2} width={width} height={depth} rx={4} fill={fill} stroke={stroke} strokeWidth={2} />
-          {definition.planSymbol === 'shower' ? (
-            <>
-              <line x1={center.sx - width / 2} y1={center.sy - depth / 2} x2={center.sx + width / 2} y2={center.sy + depth / 2} stroke={stroke} strokeWidth={1.2} />
-              <line x1={center.sx + width / 2} y1={center.sy - depth / 2} x2={center.sx - width / 2} y2={center.sy + depth / 2} stroke={stroke} strokeWidth={1.2} />
-            </>
-          ) : (
-            <ellipse cx={center.sx} cy={center.sy} rx={width * 0.3} ry={depth * 0.28} fill="none" stroke={stroke} strokeWidth={1.5} />
-          )}
-        </>
-      );
-    return (
-      <g key={preview ? `preview-${fixture.id}` : fixture.id} pointerEvents="none" opacity={preview ? 0.75 : 1} {...commonData}>
-        {symbol}
-        <text
-          x={center.sx}
-          y={center.sy + depth / 2 + 14}
-          textAnchor="middle"
-          fill={labelFill}
-          fontSize={11}
-          fontWeight={800}
-          paintOrder="stroke"
-          stroke={architecturalDrawing ? '#ffffff' : '#0f172a'}
-          strokeWidth={preview ? 3 : 2}
-        >
-          {fixture.mark}
-        </text>
-      </g>
-    );
-  };
-
   const plumbingFixturePreview =
-    isPlumbingPlanView && activePlumbingFixtureType && cursorPoint
-      ? {
+    isPlumbingPlanView && activePlumbingFixtureType && !septicTankPlacementActive && cursorPoint
+      ? ({
           id: 'plumbing-fixture-preview',
           fixtureType: activePlumbingFixtureType,
-          mark: getPlumbingFixtureDefinition(activePlumbingFixtureType).markPrefix,
-          displayName: getPlumbingFixtureDefinition(activePlumbingFixtureType).displayName,
+          mark: 'PREVIEW',
+          displayName: 'Preview fixture',
           position: { x: cursorPoint.x, y: 0, z: cursorPoint.z },
-          rotationRadians: 0,
+          rotationRadians: plumbingFixtureRotationRad,
           connectionNodeIds: {},
-        }
+        } satisfies PlumbingFixture)
+      : null;
+
+  const septicTankPreview: SepticTankModel | null =
+    isPlumbingPlanView && septicTankPlacementActive && cursorPoint
+      ? createCmuSepticTank({
+          centerX: cursorPoint.x,
+          centerZ: cursorPoint.z,
+          rotationRad: septicTankPlacementRotationRad,
+          idSeed: 'preview',
+          now: new Date(0).toISOString(),
+        })
       : null;
 
   const renderPlumbingPlan = () => {
     if (!isPlumbingPlanView || !plumbingSystem) return null;
     return (
-      <g data-canvas-layer="plumbing-plan">
-        {plumbingSystem.runs.map((run) => {
-          const points = run.path.map((point) => planToSurfacePoint(point));
-          if (points.length < 2) return null;
-          const stroke =
-            run.system === 'cold_water'
-              ? '#0284c7'
-              : run.system === 'hot_water'
-                ? '#dc2626'
-                : run.system === 'vent'
-                  ? '#7c3aed'
-                  : '#111827';
-          return (
-            <polyline
-              key={run.id}
-              points={points.map((point) => `${point.sx},${point.sy}`).join(' ')}
-              fill="none"
-              stroke={stroke}
-              strokeWidth={run.system === 'sanitary' ? 3 : 2}
-              strokeDasharray={run.system === 'vent' ? '8 5' : undefined}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              data-plumbing-run-id={run.id}
-              data-plumbing-run-system={run.system}
-            />
-          );
-        })}
-        {plumbingSystem.fixtures.map((fixture) => renderPlumbingFixture(fixture))}
-        {plumbingSystem.nodes.map((node) => {
-          const point = planToSurfacePoint(node.position);
-          const fill =
-            node.system === 'cold_water'
-              ? '#0ea5e9'
-              : node.system === 'hot_water'
-                ? '#ef4444'
-                : node.system === 'vent'
-                  ? '#8b5cf6'
-                  : '#111827';
-          return (
-            <circle
-              key={node.id}
-              cx={point.sx}
-              cy={point.sy}
-              r={3.5}
-              fill={fill}
-              stroke="#ffffff"
-              strokeWidth={1.2}
-              data-plumbing-node-id={node.id}
-              data-plumbing-node-system={node.system}
-            />
-          );
-        })}
-        {plumbingFixturePreview ? renderPlumbingFixture(plumbingFixturePreview, true) : null}
-      </g>
+      <DrawPlumbingPlan
+        layout={layout}
+        planDisplayNodeById={planDisplayNodeById}
+        project={planToSurfacePoint}
+        zoom={viewport.zoom}
+        plumbingSystem={plumbingSystem}
+        foundationPlanBeams={foundationPlanBeams}
+        wallFootings={wallFootings}
+        isolatedFootings={isolatedFootings}
+        frameSystem={frameSystem}
+        fixturePreview={plumbingFixturePreview}
+        septicTankPreview={septicTankPreview}
+        runDraft={plumbingRunDraft}
+        selected={selectedPlumbingObject}
+        validationIssues={plumbingValidationIssues}
+      />
     );
   };
 

@@ -17,7 +17,9 @@ import type {
 } from '../types';
 import type { DesignLayoutBounds } from '../domain/designLayoutBounds';
 import type { HelperMeasurement } from '../domain/designComponentPlacement';
+import type { SegmentFrame } from '../geometry/designGeometry';
 import type { ResolvedInteriorFloorSlab } from '../domain/interiorFloorSlab';
+import { openingCenterStationFromStored } from '../domain/openingPlacementResolver';
 import {
   buildDesignRenderModel,
   coordinateLabelForElevationFace,
@@ -61,6 +63,7 @@ interface DesignBuilderElevationCanvasProps {
   viewCommand?: { id: number; action: 'fit' | 'reset' | 'grid_scale'; spacingMeters?: number } | null;
   frameSystem?: StructuralFrameSystemParameters;
   isolatedFootings?: readonly IsolatedFooting[];
+  segmentFrames?: readonly SegmentFrame[];
   resolvedRoofSystem?: ResolvedRoofSystem | null;
   interiorFloorSlab?: ResolvedInteriorFloorSlab | null;
   floorTileLayout?: ResolvedFloorTileLayout | null;
@@ -105,12 +108,40 @@ function numberValue(value: unknown, fallback: number): number {
   return Number.isFinite(numeric) ? numeric : fallback;
 }
 
-function renderWidthForComponent(component: DesignRenderRcComponent): number {
-  if (component.type === 'tie_beam' || component.type === 'plinth_beam' || component.type === 'roof_beam') {
-    return component.dimensions.length ?? component.dimensions.width;
+function projectionAxisForFace(face: ElevationFace): 'x' | 'z' {
+  return face === 'north' || face === 'south' ? 'x' : 'z';
+}
+
+function isBeamComponent(component: DesignRenderRcComponent): boolean {
+  return component.type === 'tie_beam' || component.type === 'plinth_beam' || component.type === 'roof_beam';
+}
+
+function renderWidthForComponentFace(component: DesignRenderRcComponent, face: ElevationFace): number {
+  const axis = projectionAxisForFace(face);
+  if (component.type === 'column') {
+    return axis === 'x' ? component.dimensions.width : component.dimensions.depth;
   }
-  if (component.type === 'slab') return component.dimensions.length ?? component.dimensions.width;
-  if (component.type === 'footer') return component.dimensions.width;
+  if (component.type === 'footer') {
+    return axis === 'x' ? component.dimensions.width : component.dimensions.length ?? component.dimensions.depth;
+  }
+  if (component.type === 'slab') {
+    return axis === 'x' ? component.dimensions.length ?? component.dimensions.width : component.dimensions.width;
+  }
+  if (isBeamComponent(component)) {
+    const length = component.dimensions.length ?? component.dimensions.width;
+    const width = component.dimensions.width;
+    const elevationFace = component.references.elevationFace;
+    if (component.references.sourceView === 'elevation' && elevationFace) {
+      const lengthAxis = projectionAxisForFace(elevationFace);
+      return axis === lengthAxis ? length : width;
+    }
+    const rotation = component.sourceComponent.viewPlacement.plan?.rotationRadians ?? 0;
+    const cos = Math.cos(rotation);
+    const sin = Math.sin(rotation);
+    const xSpan = Math.abs(length * cos) + Math.abs(width * sin);
+    const zSpan = Math.abs(length * sin) + Math.abs(width * cos);
+    return axis === 'x' ? xSpan : zSpan;
+  }
   return component.dimensions.width;
 }
 
@@ -124,12 +155,51 @@ function addSpan(values: number[], center: number, width: number): void {
   values.push(center - half, center + half);
 }
 
+function segmentDirectionMatchesFace(frame: SegmentFrame, face: ElevationFace): boolean {
+  const axis = projectionAxisForFace(face);
+  return axis === 'x'
+    ? Math.abs(frame.tangent.x) >= Math.abs(frame.tangent.z)
+    : Math.abs(frame.tangent.z) > Math.abs(frame.tangent.x);
+}
+
+function openingProjectionForFace(
+  opening: WallOpeningParameters,
+  face: ElevationFace,
+  frameBySegmentId: ReadonlyMap<string, SegmentFrame>,
+): { station: number; widthMeters: number } | null {
+  const frame = opening.wallSegmentId ? frameBySegmentId.get(opening.wallSegmentId) : null;
+  if (frame) {
+    if (opening.wallFace && opening.wallFace !== face) return null;
+    if (!opening.wallFace && !segmentDirectionMatchesFace(frame, face)) return null;
+    const centerStation = openingCenterStationFromStored(opening);
+    const center = {
+      x: frame.centerlineStart.x + frame.tangent.x * centerStation,
+      z: frame.centerlineStart.z + frame.tangent.z * centerStation,
+    };
+    const widthScale = projectionAxisForFace(face) === 'x'
+      ? Math.abs(frame.tangent.x)
+      : Math.abs(frame.tangent.z);
+    return {
+      station: stationForFace(face, center),
+      widthMeters: Math.max(0.01, opening.widthMeters * widthScale),
+    };
+  }
+
+  if (opening.wallFace && opening.wallFace !== face) return null;
+  if (!opening.wallFace && face !== FRONT_ELEVATION_FACE) return null;
+  return {
+    station: openingCenterStationFromStored(opening),
+    widthMeters: opening.widthMeters,
+  };
+}
+
 function buildElevationBounds(params: {
   face: ElevationFace;
   layoutBounds?: DesignLayoutBounds | null;
   frameSystem?: StructuralFrameSystemParameters;
   isolatedFootings: readonly IsolatedFooting[];
   openings: readonly WallOpeningParameters[];
+  segmentFrames?: readonly SegmentFrame[];
   components: readonly DesignRenderRcComponent[];
   resolvedRoofSystem?: ResolvedRoofSystem | null;
   interiorFloorSlab?: ResolvedInteriorFloorSlab | null;
@@ -138,6 +208,7 @@ function buildElevationBounds(params: {
 }): PlanViewportBounds {
   const stations: number[] = [];
   const elevations: number[] = [0];
+  const frameBySegmentId = new Map((params.segmentFrames ?? []).map((frame) => [frame.segmentId, frame]));
 
   if (params.layoutBounds) {
     stations.push(
@@ -166,18 +237,25 @@ function buildElevationBounds(params: {
   });
 
   params.openings.forEach((opening) => {
-    const station = numberValue(opening.positionAlongSegment ?? opening.offsetMeters, 0);
+    const projection = openingProjectionForFace(opening, params.face, frameBySegmentId);
+    if (!projection) return;
     const sill = numberValue(opening.sillHeightMeters, opening.type === 'door' ? 0 : 0.9);
-    addSpan(stations, station, opening.widthMeters);
+    addSpan(stations, projection.station, projection.widthMeters);
     elevations.push(sill, sill + opening.heightMeters);
   });
 
   params.components.forEach((component) => {
     const station = stationForFace(params.face, component.position);
-    addSpan(stations, station, renderWidthForComponent(component));
+    addSpan(stations, station, renderWidthForComponentFace(component, params.face));
     elevations.push(component.elevations.base, component.elevations.top);
     if (component.footer) {
-      addSpan(stations, station, component.footer.widthMeters);
+      addSpan(
+        stations,
+        station,
+        projectionAxisForFace(params.face) === 'x'
+          ? component.footer.widthMeters
+          : component.footer.lengthMeters,
+      );
       elevations.push(component.footer.bottomElevationMeters, component.footer.topElevationMeters);
     }
   });
@@ -192,8 +270,8 @@ function buildElevationBounds(params: {
     roof.claddingPerimeter.forEach(addRoofPoint);
     roof.roofTopPlanes.forEach((plane) => plane.corners.forEach(addRoofPoint));
     roof.claddingDisplayPlanes.forEach((plane) => plane.corners.forEach(addRoofPoint));
-    roof.ridgeStart && addRoofPoint(roof.ridgeStart);
-    roof.ridgeEnd && addRoofPoint(roof.ridgeEnd);
+    if (roof.ridgeStart) addRoofPoint(roof.ridgeStart);
+    if (roof.ridgeEnd) addRoofPoint(roof.ridgeEnd);
     roof.trussPlacements.forEach((truss) => {
       addRoofPoint(truss.bearingLeft);
       addRoofPoint(truss.bearingRight);
@@ -271,6 +349,7 @@ export default function DesignBuilderElevationCanvas({
   viewCommand = null,
   frameSystem,
   isolatedFootings = [],
+  segmentFrames = [],
   resolvedRoofSystem = null,
   interiorFloorSlab = null,
   floorTileLayout = null,
@@ -327,6 +406,7 @@ export default function DesignBuilderElevationCanvas({
         layoutBounds,
         frameSystem,
         isolatedFootings,
+        segmentFrames,
         openings,
         components: allRenderComponents,
         resolvedRoofSystem,
@@ -334,7 +414,7 @@ export default function DesignBuilderElevationCanvas({
         floorTileLayout,
         plywoodCeilingLayout,
       }),
-    [allRenderComponents, floorTileLayout, frameSystem, interiorFloorSlab, isolatedFootings, layoutBounds, openings, plywoodCeilingLayout, resolvedRoofSystem],
+    [allRenderComponents, floorTileLayout, frameSystem, interiorFloorSlab, isolatedFootings, layoutBounds, openings, plywoodCeilingLayout, resolvedRoofSystem, segmentFrames],
   );
   const sideModelBounds = useMemo(
     () =>
@@ -343,6 +423,7 @@ export default function DesignBuilderElevationCanvas({
         layoutBounds,
         frameSystem,
         isolatedFootings,
+        segmentFrames,
         openings,
         components: allRenderComponents,
         resolvedRoofSystem,
@@ -350,7 +431,11 @@ export default function DesignBuilderElevationCanvas({
         floorTileLayout,
         plywoodCeilingLayout,
       }),
-    [allRenderComponents, floorTileLayout, frameSystem, interiorFloorSlab, isolatedFootings, layoutBounds, openings, plywoodCeilingLayout, resolvedRoofSystem],
+    [allRenderComponents, floorTileLayout, frameSystem, interiorFloorSlab, isolatedFootings, layoutBounds, openings, plywoodCeilingLayout, resolvedRoofSystem, segmentFrames],
+  );
+  const frameBySegmentId = useMemo(
+    () => new Map(segmentFrames.map((frame) => [frame.segmentId, frame])),
+    [segmentFrames],
   );
   const sideElevationStationOffsetMeters = useMemo(() => {
     const frontWidth = Math.max(1, frontModelBounds.maxX - frontModelBounds.minX);
@@ -1120,7 +1205,7 @@ export default function DesignBuilderElevationCanvas({
     stationOffsetMeters = 0,
   ) => {
     const station = stationForFace(face, component.position);
-    const widthMeters = renderWidthForComponent(component);
+    const widthMeters = renderWidthForComponentFace(component, face);
     const heightMeters = componentThicknessForElevation(component);
     const fill = preview ? previewFill : component.type === 'footer' ? (architecturalDrawing ? '#f1f5f9' : '#78716c66') : concreteFill;
     const stroke = preview ? previewStroke : component.type === 'footer' ? mutedStroke : permanentStroke;
@@ -1138,6 +1223,8 @@ export default function DesignBuilderElevationCanvas({
         'data-component-type': component.type,
         'data-component-system': component.system,
         'data-canvas-layer': preview ? 'active-placement-preview' : `component-${component.type}`,
+        'data-elevation-projection': keyPrefix,
+        'data-projected-width-meters': widthMeters.toFixed(3),
       },
     }, stationOffsetMeters);
   };
@@ -1150,12 +1237,20 @@ export default function DesignBuilderElevationCanvas({
   ) => {
     if (component.type !== 'column' || !component.footer) return null;
     const station = stationForFace(face, component.position);
-    return renderRect(`${keyPrefix}-component-footer-${component.id}`, station, component.footer.topElevationMeters, component.footer.widthMeters, component.footer.thicknessMeters, {
+    const projectedWidthMeters = projectionAxisForFace(face) === 'x'
+      ? component.footer.widthMeters
+      : component.footer.lengthMeters;
+    return renderRect(`${keyPrefix}-component-footer-${component.id}`, station, component.footer.topElevationMeters, projectedWidthMeters, component.footer.thicknessMeters, {
       fill: architecturalDrawing ? '#f1f5f9' : '#78716c66',
       stroke: mutedStroke,
       strokeWidth: drawingStyle.weights.light,
       strokeDasharray: '6 4',
-      data: { 'data-canvas-layer': 'footers-foundations', 'data-component-footer-for': component.id },
+      data: {
+        'data-canvas-layer': 'footers-foundations',
+        'data-component-footer-for': component.id,
+        'data-elevation-projection': keyPrefix,
+        'data-projected-width-meters': projectedWidthMeters.toFixed(3),
+      },
     }, stationOffsetMeters);
   };
 
@@ -1362,16 +1457,23 @@ export default function DesignBuilderElevationCanvas({
             { face: FRONT_ELEVATION_FACE, keyPrefix: 'front', stationOffsetMeters: 0 },
             { face: SIDE_ELEVATION_FACE, keyPrefix: 'side', stationOffsetMeters: sideElevationStationOffsetMeters },
           ].flatMap(({ face, keyPrefix, stationOffsetMeters }) => openings.map((opening) => {
-            if (opening.wallFace && opening.wallFace !== face) return null;
-            if (!opening.wallFace && face !== FRONT_ELEVATION_FACE) return null;
-            const station = numberValue(opening.positionAlongSegment ?? opening.offsetMeters, 0);
+            const projection = openingProjectionForFace(opening, face, frameBySegmentId);
+            if (!projection) return null;
             const sill = numberValue(opening.sillHeightMeters, opening.type === 'door' ? 0 : 0.9);
             const top = sill + opening.heightMeters;
-            const point = worldToScreen({ xMeters: station + stationOffsetMeters, zMeters: top });
-            const width = Math.max(8, opening.widthMeters * viewport.zoom);
+            const point = worldToScreen({ xMeters: projection.station + stationOffsetMeters, zMeters: top });
+            const width = Math.max(8, projection.widthMeters * viewport.zoom);
             const height = Math.max(8, opening.heightMeters * viewport.zoom);
             return (
-              <g key={`${keyPrefix}-${opening.id}`} pointerEvents="none" data-opening-type={opening.type}>
+              <g
+                key={`${keyPrefix}-${opening.id}`}
+                pointerEvents="none"
+                data-opening-id={opening.id}
+                data-opening-type={opening.type}
+                data-elevation-projection={keyPrefix}
+                data-opening-station-meters={projection.station.toFixed(3)}
+                data-projected-width-meters={projection.widthMeters.toFixed(3)}
+              >
                 <rect
                   x={point.sx - width / 2}
                   y={point.sy}

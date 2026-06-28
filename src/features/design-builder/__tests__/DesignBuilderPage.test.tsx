@@ -48,11 +48,15 @@ vi.mock('../ui/DesignBuilderPlanCanvas', () => ({
     onManualMasonryPointer?: (event: { kind: 'preview' | 'start' | 'commit' | 'cancel_preview' | 'undo'; planX?: number; planZ?: number }) => void;
     toolMode?: string;
     onComponentPointer?: (event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number }) => void;
+    onSepticTankPointer?: (event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number; rotationRad: number }) => void;
+    onPlumbingSelect?: (selection: { kind: 'none' } | { kind: 'fixture'; id: string } | { kind: 'run'; id: string } | { kind: 'node'; id: string } | { kind: 'equipment'; id: string } | { kind: 'septic-tank'; id: string }) => void;
     placedComponents?: unknown[];
     designRenderModel?: { rcComponents?: Array<{ type?: string; system?: string; position?: { x?: number; z?: number } }> };
     componentPreview?: unknown;
     layout?: { nodes: unknown[]; segments: unknown[] };
     manualMasonry?: { enabled: boolean; runs: MasonryCourseRun[]; preview: unknown };
+    septicTankPlacementActive?: boolean;
+    selectedSepticTankId?: string | null;
   }) => {
     mocks.plan(props);
     return <div data-testid="design-builder-plan">Plan layout</div>;
@@ -148,11 +152,15 @@ function latestPlanProps() {
     onManualMasonryPointer?: (event: { kind: 'preview' | 'start' | 'commit' | 'cancel_preview' | 'undo'; planX?: number; planZ?: number }) => void;
     toolMode?: string;
     onComponentPointer?: (event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number }) => void;
+    onSepticTankPointer?: (event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number; rotationRad: number }) => void;
+    onPlumbingSelect?: (selection: { kind: 'none' } | { kind: 'fixture'; id: string } | { kind: 'run'; id: string } | { kind: 'node'; id: string } | { kind: 'equipment'; id: string } | { kind: 'septic-tank'; id: string }) => void;
     placedComponents?: unknown[];
     designRenderModel?: { rcComponents?: Array<{ type?: string; system?: string; position?: { x?: number; z?: number } }> };
     componentPreview?: unknown;
     layout?: { nodes: unknown[]; segments: unknown[]; isFootprintClosed?: boolean };
     manualMasonry?: { enabled: boolean; runs: MasonryCourseRun[]; preview: unknown };
+    septicTankPlacementActive?: boolean;
+    selectedSepticTankId?: string | null;
   };
 }
 
@@ -604,6 +612,87 @@ describe('DesignBuilderPage', () => {
       type: 'column',
       system: 'reinforced-concrete',
       position: { x: 1.2, z: -0.8 },
+    });
+  });
+
+  it('keeps side panels collapsed while placing and selecting a CMU septic tank', async () => {
+    seedLoadedDesignBuilderTemplate();
+    useDesignBuilderSessionStore.getState().saveSession('project-1:estimate-1', {
+      leftPanelCollapsed: true,
+      rightPanelCollapsed: true,
+    });
+
+    render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
+    await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
+
+    openMenuByKind('components');
+    chooseCommandMenuItem(/^CMU Septic Tank$/i);
+    await waitFor(() => expect(latestPlanProps().septicTankPlacementActive).toBe(true));
+
+    await waitFor(() => {
+      const session = useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1'];
+      expect(session?.leftPanelCollapsed).toBe(true);
+      expect(session?.rightPanelCollapsed).toBe(true);
+    });
+
+    await act(async () => {
+      latestPlanProps().onSepticTankPointer?.({
+        phase: 'commit',
+        xMeters: 1.5,
+        zMeters: 2,
+        rotationRad: 0,
+      });
+    });
+
+    await waitFor(() => {
+      const session = useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1'];
+      expect(session?.plumbingSystem.septicTanks).toHaveLength(1);
+      expect(session?.leftPanelCollapsed).toBe(true);
+      expect(session?.rightPanelCollapsed).toBe(true);
+    });
+    await waitFor(() => {
+      expect(latestPlanProps().selectedSepticTankId).toBe(
+        useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']?.plumbingSystem.septicTanks[0]?.id,
+      );
+    });
+  });
+
+  it('rotates the selected plumbing fixture by 90 degrees from the command bar', async () => {
+    seedLoadedDesignBuilderTemplate();
+    render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
+    await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
+
+    fireEvent.click(screen.getByRole('button', { name: /switch to 2d view/i }));
+    fireEvent.click(screen.getByRole('button', { name: /switch to plumbing drawing/i }));
+
+    await act(async () => {
+      latestPlanProps().onPlumbingFixturePointer?.({ phase: 'commit', xMeters: 1, zMeters: 1 });
+    });
+    await waitFor(() => {
+      expect(useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']?.plumbingSystem.fixtures).toHaveLength(1);
+    });
+    expect(screen.getByText(/cold water supply/i)).toBeInTheDocument();
+    expect(screen.getByText(/sanitary waste line/i)).toBeInTheDocument();
+
+    const fixtureId = useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']!.plumbingSystem.fixtures[0]!.id;
+    await act(async () => {
+      latestPlanProps().onPlumbingSelect?.({ kind: 'fixture', id: fixtureId });
+    });
+
+    const rotateClockwise = screen.getByRole('button', { name: /^rotate selected fixture clockwise 90 degrees$/i });
+    const rotateCounterClockwise = screen.getByRole('button', { name: /^rotate selected fixture counterclockwise 90 degrees$/i });
+    await waitFor(() => expect(rotateClockwise).toBeEnabled());
+
+    fireEvent.click(rotateClockwise);
+    await waitFor(() => {
+      const fixture = useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']?.plumbingSystem.fixtures[0];
+      expect(fixture?.rotationRadians).toBeCloseTo(Math.PI / 2);
+    });
+
+    fireEvent.click(rotateCounterClockwise);
+    await waitFor(() => {
+      const fixture = useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']?.plumbingSystem.fixtures[0];
+      expect(fixture?.rotationRadians).toBeCloseTo(0);
     });
   });
 

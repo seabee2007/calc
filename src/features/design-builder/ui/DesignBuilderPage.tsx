@@ -5,6 +5,7 @@ import {
   useReducer,
   useRef,
   useState,
+  type CSSProperties,
   type PointerEvent as ReactPointerEvent,
 } from 'react';
 import { useAuth } from '../../../hooks/useAuth';
@@ -277,14 +278,31 @@ import {
   snapComponentPlanPoint,
 } from '../domain/designComponentPlacement';
 import {
+  addEquipmentToPlumbingSystem,
   addFixtureToPlumbingSystem,
+  addRunToPlumbingSystem,
+  addCmuSepticTankToPlumbingSystem,
   buildPlumbingFixtureSchedule,
+  buildPlumbingLegend,
   createDefaultPlumbingSystem,
+  createCmuSepticTankNodes,
   getPlumbingFixtureDefinition,
   PLUMBING_FIXTURE_LIBRARY_ORDER,
+  removeFixtureFromPlumbingSystem,
+  removeRunFromPlumbingSystem,
+  updateFixtureRotationInPlumbingSystem,
+  validatePlumbingSystem,
   type PlumbingFixtureType,
+  type PlumbingRunDraft,
+  type PlumbingRunSystem,
+  type PlumbingSelection,
   type PlumbingSystem,
+  type PlumbingToolMode,
+  type PlumbingValidationIssue,
+  type SepticTankModel,
 } from '../plumbing';
+import { findNearestPlumbingNode } from '../plumbing/canvas2d/plumbingSnapPoints';
+import { DesignBuilderSepticTankControls } from './DesignBuilderSepticTankControls';
 
 interface DesignBuilderPageProps {
   projectId: string;
@@ -293,6 +311,46 @@ interface DesignBuilderPageProps {
 }
 
 type ViewerHeightPreset = DesignBuilderViewerHeightPreset;
+type PlumbingOverlayPanelId = 'tools' | 'schedule' | 'properties' | 'legend';
+type PlumbingOverlayPosition = { x: number; y: number };
+
+const PLUMBING_OVERLAY_DEFAULT_STYLES: Record<PlumbingOverlayPanelId, CSSProperties> = {
+  tools: { left: 12, top: 52 },
+  properties: { right: 12, top: 52 },
+  schedule: { right: 12, bottom: 84 },
+  legend: { left: 12, bottom: 16 },
+};
+
+const PLUMBING_LEGEND_ROWS = [
+  {
+    key: 'cold_water',
+    label: 'CW',
+    description: 'Cold water supply and cold-water fixture nodes.',
+    stroke: '#0284c7',
+    dash: undefined,
+  },
+  {
+    key: 'hot_water',
+    label: 'HW',
+    description: 'Hot water supply and hot-water fixture nodes.',
+    stroke: '#dc2626',
+    dash: undefined,
+  },
+  {
+    key: 'sanitary',
+    label: 'SS',
+    description: 'Sanitary waste line. Sanitary runs need diameter and slope.',
+    stroke: '#111827',
+    dash: undefined,
+  },
+  {
+    key: 'vent',
+    label: 'V',
+    description: 'Vent line. Dashed in plan to distinguish from sanitary.',
+    stroke: '#7c3aed',
+    dash: '6 4',
+  },
+] as const;
 
 export default function DesignBuilderPage({
   projectId,
@@ -342,6 +400,14 @@ export default function DesignBuilderPage({
     () => storedSession?.plumbingSystem ?? createDefaultPlumbingSystem(),
   );
   const [activePlumbingFixtureType, setActivePlumbingFixtureType] = useState<PlumbingFixtureType>('toilet');
+  const [activePlumbingToolMode, setActivePlumbingToolMode] = useState<PlumbingToolMode>('fixture');
+  const [plumbingFixtureRotationRad, setPlumbingFixtureRotationRad] = useState(0);
+  const [plumbingRunDraft, setPlumbingRunDraft] = useState<PlumbingRunDraft | null>(null);
+  const [selectedPlumbingObject, setSelectedPlumbingObject] = useState<PlumbingSelection | null>(null);
+  const [plumbingValidationIssues, setPlumbingValidationIssues] = useState<PlumbingValidationIssue[]>([]);
+  const [septicTankPlacementActive, setSepticTankPlacementActive] = useState(false);
+  const [septicTankPlacementRotationRad, setSepticTankPlacementRotationRad] = useState(0);
+  const [selectedSepticTankId, setSelectedSepticTankId] = useState<string | null>(null);
   const [annotations, setAnnotations] = useState<DesignAnnotation[]>(
     () => storedSession?.annotations ?? [],
   );
@@ -432,6 +498,8 @@ export default function DesignBuilderPage({
   );
   const [componentPanelPosition, setComponentPanelPosition] = useState({ x: 18, y: 72 });
   const [componentPanelCollapsed, setComponentPanelCollapsed] = useState(false);
+  const [plumbingOverlayPositions, setPlumbingOverlayPositions] = useState<Partial<Record<PlumbingOverlayPanelId, PlumbingOverlayPosition>>>({});
+  const [activePlumbingOverlayId, setActivePlumbingOverlayId] = useState<PlumbingOverlayPanelId | null>(null);
 
   const [snapMode, setSnapMode] = useState<DesignBuilderSnapMode>(() => storedSession?.snapMode ?? 'grid');
   const [moduleFitMode, setModuleFitMode] = useState<ModuleFitMode>(() => storedSession?.moduleFitMode ?? 'exact');
@@ -492,6 +560,8 @@ export default function DesignBuilderPage({
       setPlacedComponents(storedSession.placedComponents ?? []);
       setAnnotations(storedSession.annotations ?? []);
       setSelectedComponentId(null);
+      setSelectedSepticTankId(null);
+      setSepticTankPlacementActive(false);
       setUnitSystem(storedSession.unitSystem);
       setSelectedObjectType(storedSession.selectedObjectType);
       setSelectedOpeningId(storedSession.selectedOpeningId ?? null);
@@ -573,6 +643,8 @@ export default function DesignBuilderPage({
         setPlumbingSystem(persistedState?.plumbingSystem ?? createDefaultPlumbingSystem());
         setAnnotations(persistedState?.annotations ?? []);
         setSelectedComponentId(null);
+        setSelectedSepticTankId(null);
+        setSepticTankPlacementActive(false);
         setSaveState('saved');
         setLastSaveTime(persistedState?.updatedAt ?? modelResult.data.updatedAt);
         setLastSaveError(null);
@@ -1250,6 +1322,50 @@ export default function DesignBuilderPage({
     window.addEventListener('pointermove', handleMove);
     window.addEventListener('pointerup', cleanup);
   }
+
+  function plumbingOverlayStyle(panelId: PlumbingOverlayPanelId): CSSProperties {
+    const position = plumbingOverlayPositions[panelId];
+    return {
+      ...(position ? { left: position.x, top: position.y } : PLUMBING_OVERLAY_DEFAULT_STYLES[panelId]),
+      zIndex: activePlumbingOverlayId === panelId ? 30 : 10,
+    };
+  }
+
+  function handlePlumbingOverlayDragStart(panelId: PlumbingOverlayPanelId, event: ReactPointerEvent<HTMLDivElement>) {
+    if ((event.target as HTMLElement | null)?.closest('button,input,select,textarea,label')) return;
+    const panel = event.currentTarget.closest('[data-plumbing-overlay-panel="true"]') as HTMLDivElement | null;
+    const container = viewerOverlayContainerRef.current;
+    if (!panel || !container) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const start = { x: event.clientX, y: event.clientY };
+    const panelRect = panel.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    const origin = plumbingOverlayPositions[panelId] ?? {
+      x: panelRect.left - containerRect.left,
+      y: panelRect.top - containerRect.top,
+    };
+    const maxX = Math.max(8, containerRect.width - panelRect.width - 8);
+    const maxY = Math.max(8, containerRect.height - panelRect.height - 8);
+    const previousUserSelect = document.body.style.userSelect;
+    document.body.style.userSelect = 'none';
+    setActivePlumbingOverlayId(panelId);
+    setPlumbingOverlayPositions((current) => ({ ...current, [panelId]: origin }));
+    const handleMove = (moveEvent: PointerEvent) => {
+      const nextX = Math.min(maxX, Math.max(8, origin.x + moveEvent.clientX - start.x));
+      const nextY = Math.min(maxY, Math.max(8, origin.y + moveEvent.clientY - start.y));
+      setPlumbingOverlayPositions((current) => ({ ...current, [panelId]: { x: nextX, y: nextY } }));
+    };
+    const cleanup = () => {
+      document.body.style.userSelect = previousUserSelect;
+      window.removeEventListener('pointermove', handleMove);
+      window.removeEventListener('pointerup', cleanup);
+      setActivePlumbingOverlayId(null);
+    };
+    window.addEventListener('pointermove', handleMove);
+    window.addEventListener('pointerup', cleanup);
+  }
+
   const cmuLayout = designGeometryResult.wallCmuLayout;
   const manualMasonrySummary = useMemo(() => summarizeManualMasonryRuns(manualMasonryRuns), [manualMasonryRuns]);
   const moduleWarnings = useMemo(
@@ -1430,20 +1546,25 @@ export default function DesignBuilderPage({
     modelLoaded,
   ]);
 
-  const selectedObjectLabel = selectedSegmentId
-    ? 'Wall Segment'
-    : selectedObjectType
-      ? OBJECT_TREE_ITEMS.find((item) => item.objectType === selectedObjectType)?.label ?? 'Selected object'
-      : 'Project Masonry Defaults';
-  const linkedPreviewLines = selectedObjectType
-    ? generatedPreview.filter((line) => line.designObjectId === objectIdForType(selectedObjectType, objectIds))
-    : [];
   const selectedWallSegment = selectedSegmentId
     ? wallLayout.segments.find((segment) => segment.id === selectedSegmentId) ?? null
     : null;
   const selectedComponent = selectedComponentId
     ? placedComponents.find((component) => component.id === selectedComponentId) ?? null
     : null;
+  const selectedSepticTank = selectedSepticTankId
+    ? plumbingSystem.septicTanks.find((tank) => tank.id === selectedSepticTankId) ?? null
+    : null;
+  const selectedObjectLabel = selectedSegmentId
+    ? 'Wall Segment'
+    : selectedSepticTank
+      ? 'CMU Septic Tank'
+    : selectedObjectType
+      ? OBJECT_TREE_ITEMS.find((item) => item.objectType === selectedObjectType)?.label ?? 'Selected object'
+      : 'Project Masonry Defaults';
+  const linkedPreviewLines = selectedObjectType
+    ? generatedPreview.filter((line) => line.designObjectId === objectIdForType(selectedObjectType, objectIds))
+    : [];
   const activeSelection: DesignBuilderSelection = selectedSegmentId
     ? { kind: 'wall_segment', id: selectedSegmentId }
     : selectedNodeId
@@ -1463,6 +1584,7 @@ export default function DesignBuilderPage({
     setSelectedObjectType(objectType);
     setSelectedSegmentId(null);
     setSelectedNodeId(null);
+    setSelectedSepticTankId(null);
     setPlacementPreview(null);
     if (objectType !== 'door_opening' && objectType !== 'window_opening') {
       setSelectedOpeningId(null);
@@ -1474,6 +1596,7 @@ export default function DesignBuilderPage({
     setSelectedObjectType(null);
     setSelectedOpeningId(null);
     setSelectedNodeId(null);
+    setSelectedSepticTankId(null);
     setPlacementPreview(null);
   }
 
@@ -1482,6 +1605,17 @@ export default function DesignBuilderPage({
     setSelectedObjectType(objectType);
     setSelectedSegmentId(null);
     setSelectedNodeId(null);
+    setSelectedSepticTankId(null);
+    setPlacementPreview(null);
+  }
+
+  function selectObjectTreeSepticTank(tankId: string) {
+    setSelectedSepticTankId(tankId);
+    setSelectedObjectType(null);
+    setSelectedOpeningId(null);
+    setSelectedSegmentId(null);
+    setSelectedNodeId(null);
+    setSelectedComponentId(null);
     setPlacementPreview(null);
   }
 
@@ -2037,8 +2171,9 @@ export default function DesignBuilderPage({
     setToolMode('select');
   }
 
-  function handlePlumbingFixturePointer(event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number }) {
+  function handlePlumbingFixturePointer(event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number; rotationRad?: number }) {
     if (active2DView !== 'plumbing-plan') return;
+    if (septicTankPlacementActive || activePlumbingToolMode !== 'fixture') return;
     if (event.phase !== 'commit') return;
     const snapPosition = snapComponentPlanPoint({
       point: { xMeters: event.xMeters, zMeters: event.zMeters },
@@ -2051,11 +2186,245 @@ export default function DesignBuilderPage({
         system: current,
         fixtureType: activePlumbingFixtureType,
         position: { x: snapPosition.xMeters, y: 0, z: snapPosition.zMeters },
+        rotationRadians: event.rotationRad ?? plumbingFixtureRotationRad,
       }),
     );
     setSaveState('unsaved');
     setChangedAfterCommit(true);
     setStatus({ tone: 'success', message: `${definition.displayName} placed on plumbing plan.` });
+  }
+
+  function plumbingRunSystemForTool(tool: PlumbingToolMode): PlumbingRunSystem | null {
+    if (tool === 'drain') return 'sanitary';
+    if (tool === 'vent') return 'vent';
+    if (tool === 'cold_water') return 'cold_water';
+    if (tool === 'hot_water') return 'hot_water';
+    return null;
+  }
+
+  function handlePlumbingPlanPointer(event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number }) {
+    if (active2DView !== 'plumbing-plan') return;
+    if (event.phase === 'preview') {
+      if (plumbingRunDraft) {
+        const snapPosition = snapComponentPlanPoint({
+          point: { xMeters: event.xMeters, zMeters: event.zMeters },
+          snapMode,
+          snapSpacingMeters: planSnapSpacingMeters,
+        });
+        setPlumbingRunDraft((current) =>
+          current ? { ...current, previewPoint: { x: snapPosition.xMeters, y: 0, z: snapPosition.zMeters } } : current,
+        );
+      }
+      return;
+    }
+    const snapPosition = snapComponentPlanPoint({
+      point: { xMeters: event.xMeters, zMeters: event.zMeters },
+      snapMode,
+      snapSpacingMeters: planSnapSpacingMeters,
+    });
+    const point = { x: snapPosition.xMeters, y: 0, z: snapPosition.zMeters };
+    const runSystem = plumbingRunSystemForTool(activePlumbingToolMode);
+    if (runSystem) {
+      const node = findNearestPlumbingNode({
+        system: plumbingSystem,
+        point,
+        toleranceMeters: Math.max(0.12, 12 / Math.max(1, planViewport.zoom)),
+        systemFilter: runSystem,
+      });
+      if (!plumbingRunDraft) {
+        if (!node) {
+          setStatus({ tone: 'error', message: 'Start a pipe run on a matching plumbing node.' });
+          return;
+        }
+        setPlumbingRunDraft({ system: runSystem, startNodeId: node.id, routePoints: [], previewPoint: node.position });
+        setStatus({ tone: 'info', message: 'Pipe run started. Click route points, then click a matching node to finish.' });
+        return;
+      }
+      if (node && node.id !== plumbingRunDraft.startNodeId && node.system === plumbingRunDraft.system) {
+        setPlumbingSystem((current) =>
+          addRunToPlumbingSystem({
+            system: current,
+            systemType: plumbingRunDraft.system,
+            startNodeId: plumbingRunDraft.startNodeId,
+            endNodeId: node.id,
+            routePoints: plumbingRunDraft.routePoints,
+          }),
+        );
+        setPlumbingRunDraft(null);
+        setSaveState('unsaved');
+        setChangedAfterCommit(true);
+        setStatus({ tone: 'success', message: 'Pipe run created as a PlumbingRun object.' });
+        return;
+      }
+      setPlumbingRunDraft((current) =>
+        current
+          ? {
+              ...current,
+              routePoints: [...current.routePoints, point],
+              previewPoint: point,
+            }
+          : current,
+      );
+      return;
+    }
+    if (activePlumbingToolMode === 'cleanout' || activePlumbingToolMode === 'valve' || activePlumbingToolMode === 'stack') {
+      const equipmentType =
+        activePlumbingToolMode === 'cleanout'
+          ? 'cleanout'
+          : activePlumbingToolMode === 'valve'
+            ? 'shutoff_valve'
+            : 'combined_stack';
+      setPlumbingSystem((current) =>
+        addEquipmentToPlumbingSystem({
+          system: current,
+          equipmentType,
+          position: point,
+        }),
+      );
+      setSaveState('unsaved');
+      setChangedAfterCommit(true);
+      setStatus({ tone: 'success', message: 'Plumbing equipment placed as a model object.' });
+      return;
+    }
+  }
+
+  function handlePlumbingSelect(selection: PlumbingSelection) {
+    setSelectedPlumbingObject(selection.kind === 'none' ? null : selection);
+    setSelectedObjectType(null);
+    setSelectedOpeningId(null);
+    setSelectedSegmentId(null);
+    setSelectedNodeId(null);
+    setSelectedComponentId(null);
+    if (selection.kind === 'septic-tank') setSelectedSepticTankId(selection.id);
+    else setSelectedSepticTankId(null);
+  }
+
+  function validateCurrentPlumbingSystem() {
+    const issues = validatePlumbingSystem(plumbingSystem, {
+      wallFootings: designGeometryResult.wallFootings,
+      beams: designGeometryResult.frameSystem.beams,
+      isolatedFootings: designGeometryResult.isolatedFootings,
+      columns: designGeometryResult.frameSystem.columns,
+    });
+    setPlumbingValidationIssues(issues);
+    setStatus({
+      tone: issues.some((issue) => issue.severity === 'error') ? 'error' : issues.length > 0 ? 'warning' : 'success',
+      message: issues.length > 0 ? `Plumbing validation found ${issues.length} issue${issues.length === 1 ? '' : 's'}.` : 'Plumbing validation passed.',
+    });
+  }
+
+  function deleteSelectedPlumbingObject() {
+    if (!selectedPlumbingObject || selectedPlumbingObject.kind === 'none') return;
+    if (selectedPlumbingObject.kind === 'fixture') {
+      setPlumbingSystem((current) => removeFixtureFromPlumbingSystem(current, selectedPlumbingObject.id));
+    } else if (selectedPlumbingObject.kind === 'run') {
+      setPlumbingSystem((current) => removeRunFromPlumbingSystem(current, selectedPlumbingObject.id));
+    } else {
+      setStatus({ tone: 'info', message: 'Delete is currently available for plumbing fixtures and pipe runs.' });
+      return;
+    }
+    setSelectedPlumbingObject(null);
+    setSaveState('unsaved');
+    setChangedAfterCommit(true);
+  }
+
+  function rotateSelectedPlumbingFixture(deltaRadians: number) {
+    const fixtureId = selectedPlumbingObject?.kind === 'fixture' ? selectedPlumbingObject.id : null;
+    if (!fixtureId) {
+      setStatus({ tone: 'info', message: 'Select a plumbing fixture before rotating.' });
+      return;
+    }
+    setPlumbingSystem((current) => {
+      const fixture = current.fixtures.find((item) => item.id === fixtureId);
+      if (!fixture) return current;
+      const fullTurn = Math.PI * 2;
+      const rotationRadians = ((fixture.rotationRadians + deltaRadians) % fullTurn + fullTurn) % fullTurn;
+      return updateFixtureRotationInPlumbingSystem({
+        system: current,
+        fixtureId,
+        rotationRadians,
+      });
+    });
+    setSaveState('unsaved');
+    setChangedAfterCommit(true);
+    setStatus({ tone: 'success', message: 'Selected plumbing fixture rotated 90 degrees.' });
+  }
+
+  function handleSepticTankPointer(event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number; rotationRad: number }) {
+    if (active2DView !== 'plumbing-plan') return;
+    if (!septicTankPlacementActive) return;
+    if (event.phase !== 'commit') return;
+    const snapPosition = snapComponentPlanPoint({
+      point: { xMeters: event.xMeters, zMeters: event.zMeters },
+      snapMode,
+      snapSpacingMeters: planSnapSpacingMeters,
+    });
+    const result = addCmuSepticTankToPlumbingSystem({
+      system: plumbingSystem,
+      centerX: snapPosition.xMeters,
+      centerZ: snapPosition.zMeters,
+      rotationRad: event.rotationRad,
+    });
+    setPlumbingSystem(result.system);
+    setSepticTankPlacementActive(false);
+    setToolMode('select');
+    setSelectedObjectType(null);
+    setSelectedOpeningId(null);
+    setSelectedSegmentId(null);
+    setSelectedNodeId(null);
+    setSelectedComponentId(null);
+    setSaveState('unsaved');
+    setChangedAfterCommit(true);
+    setSelectedSepticTankId(result.tank.id);
+    setStatus({ tone: 'success', message: 'CMU septic tank placed as a model-driven site utility.' });
+  }
+
+  function updateSepticTank(tankId: string, updater: (tank: SepticTankModel) => SepticTankModel) {
+    setPlumbingSystem((current) => {
+      const nextTanks = current.septicTanks.map((tank) =>
+        tank.id === tankId ? updater({ ...tank, updatedAt: new Date().toISOString() }) : tank,
+      );
+      const nextTank = nextTanks.find((tank) => tank.id === tankId);
+      const septicNodeIds = new Set([
+        nextTank?.connectionNodes.inletNodeId,
+        nextTank?.connectionNodes.outletNodeId,
+        ...(nextTank?.connectionNodes.cleanoutNodeIds ?? []),
+      ].filter((id): id is string => Boolean(id)));
+      const nextNodes = nextTank
+        ? [
+            ...current.nodes.filter((node) => node.septicTankId !== tankId && !septicNodeIds.has(node.id)),
+            ...createCmuSepticTankNodes(nextTank),
+          ]
+        : current.nodes;
+      return { ...current, septicTanks: nextTanks, nodes: nextNodes };
+    });
+    setSaveState('unsaved');
+    setChangedAfterCommit(true);
+  }
+
+  function updateSelectedSepticTank(tankId: string, patch: Partial<SepticTankModel>) {
+    updateSepticTank(tankId, (tank) => ({ ...tank, ...patch }));
+  }
+
+  function updateSelectedSepticTankPlacement(tankId: string, patch: Partial<SepticTankModel['placement']>) {
+    updateSepticTank(tankId, (tank) => ({
+      ...tank,
+      placement: { ...tank.placement, ...patch },
+    }));
+  }
+
+  function updateSelectedSepticTankDesignBasis(tankId: string, patch: Partial<SepticTankModel['designBasis']>) {
+    updateSepticTank(tankId, (tank) => ({
+      ...tank,
+      designBasis: { ...tank.designBasis, ...patch },
+    }));
+  }
+
+  function updateSelectedSepticTankGeometry(tankId: string, patch: Partial<SepticTankModel['geometry']>) {
+    updateSepticTank(tankId, (tank) => ({
+      ...tank,
+      geometry: { ...tank.geometry, ...patch },
+    }));
   }
 
   function clearTransientPlanCommandState(options?: { switchToSelect?: boolean }) {
@@ -2473,6 +2842,7 @@ export default function DesignBuilderPage({
 
     if (event.kind === 'component_select' && event.componentId) {
       setSelectedComponentId(event.componentId);
+      setSelectedSepticTankId(null);
       setSelectedSegmentId(null);
       setSelectedNodeId(null);
       setSelectedOpeningId(null);
@@ -2690,6 +3060,21 @@ export default function DesignBuilderPage({
       const target = event.target as HTMLElement | null;
       if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) return;
 
+      if (septicTankPlacementActive && event.key.toLowerCase() === 'r') {
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        setSepticTankPlacementRotationRad((current) => current + Math.PI / 2);
+        return;
+      }
+      if (viewMode === '2d' && active2DView === 'plumbing-plan' && activePlumbingToolMode === 'fixture' && event.key.toLowerCase() === 'r') {
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        setPlumbingFixtureRotationRad((current) => current + Math.PI / 2);
+        return;
+      }
+
       const snapAction = snapKeyboardActionForEvent(event);
       if (snapAction) {
         if (
@@ -2772,6 +3157,22 @@ export default function DesignBuilderPage({
           cancelComponentPlacement();
           return;
         }
+        if (septicTankPlacementActive) {
+          event.preventDefault();
+          event.stopPropagation();
+          event.stopImmediatePropagation();
+          setSepticTankPlacementActive(false);
+          setStatus({ tone: 'info', message: 'CMU septic tank placement cancelled.' });
+          return;
+        }
+        if (plumbingRunDraft) {
+          event.preventDefault();
+          event.stopPropagation();
+          event.stopImmediatePropagation();
+          setPlumbingRunDraft(null);
+          setStatus({ tone: 'info', message: 'Pipe run drawing cancelled.' });
+          return;
+        }
         if (placementPreview || toolMode !== 'select') {
           event.preventDefault();
           event.stopPropagation();
@@ -2780,7 +3181,7 @@ export default function DesignBuilderPage({
           setToolMode('select');
           return;
         }
-        if (selectedSegmentId || selectedNodeId || selectedOpeningId || selectedComponentId || selectedObjectType) {
+        if (selectedSegmentId || selectedNodeId || selectedOpeningId || selectedComponentId || selectedSepticTankId || selectedObjectType) {
           event.preventDefault();
           event.stopPropagation();
           event.stopImmediatePropagation();
@@ -2804,11 +3205,34 @@ export default function DesignBuilderPage({
       if ((event.key === 'Delete' || event.key === 'Backspace') && selectedComponentId) {
         event.preventDefault();
         void confirmDeletePlacedComponent(selectedComponentId);
+        return;
+      }
+
+      if ((event.key === 'Delete' || event.key === 'Backspace') && selectedPlumbingObject && selectedPlumbingObject.kind !== 'none') {
+        event.preventDefault();
+        deleteSelectedPlumbingObject();
       }
     };
     window.addEventListener('keydown', handleKeyDown, true);
     return () => window.removeEventListener('keydown', handleKeyDown, true);
-  }, [modelLoaded, selectedComponentId, selectedObjectType, selectedOpeningId, selectedNodeId, selectedSegmentId, toolMode, placementPreview, wallLayout]);
+  }, [
+    active2DView,
+    activePlumbingToolMode,
+    modelLoaded,
+    plumbingRunDraft,
+    selectedComponentId,
+    selectedObjectType,
+    selectedOpeningId,
+    selectedNodeId,
+    selectedPlumbingObject,
+    selectedSegmentId,
+    selectedSepticTankId,
+    septicTankPlacementActive,
+    toolMode,
+    placementPreview,
+    viewMode,
+    wallLayout,
+  ]);
 
   const handleViewerInteraction = (event: DesignBuilderInteractionEvent) => {
       if (!modelLoaded) return;
@@ -2835,6 +3259,7 @@ export default function DesignBuilderPage({
           setSelectedOpeningId(null);
           setSelectedSegmentId(null);
           setSelectedNodeId(null);
+          setSelectedSepticTankId(null);
           setPlacementPreview(null);
           break;
         case 'select_opening':
@@ -3557,6 +3982,8 @@ export default function DesignBuilderPage({
     setSelectedSegmentId(null);
     setSelectedNodeId(null);
     setSelectedComponentId(null);
+    setSelectedSepticTankId(null);
+    setSelectedPlumbingObject(null);
     setPlacementPreview(null);
   }
 
@@ -3583,6 +4010,8 @@ export default function DesignBuilderPage({
 
   function activateToolMode(mode: DesignBuilderToolMode) {
     closeDesignBuilderCommandMenus();
+    setSepticTankPlacementActive(false);
+    setPlumbingRunDraft(null);
     if (mode === 'draw_wall') {
       activateDrawWallTool();
       return;
@@ -3596,6 +4025,20 @@ export default function DesignBuilderPage({
     if (mode === 'select') setPlacementPreview(null);
   }
 
+  function activateCmuSepticTankPlacement() {
+    closeDesignBuilderCommandMenus();
+    clearTransientPlanCommandState();
+    clearSelection();
+    setViewMode('2d');
+    setActive2DDrawingView('plumbing-plan');
+    setToolMode('select');
+    setActivePlumbingToolMode('select');
+    setPlumbingRunDraft(null);
+    setSepticTankPlacementActive(true);
+    setSepticTankPlacementRotationRad(0);
+    setStatus({ tone: 'info', message: 'Place CMU septic tank in top-down plumbing plan. Press R to rotate, Esc to cancel.' });
+  }
+
   async function handleStartBlankLayout() {
     const hasDesignData =
       wallLayout.nodes.length > 0 ||
@@ -3603,6 +4046,7 @@ export default function DesignBuilderPage({
       resolvedPreset.wall.openings.length > 0 ||
       plumbingSystem.fixtures.length > 0 ||
       plumbingSystem.runs.length > 0 ||
+      plumbingSystem.septicTanks.length > 0 ||
       previewLines.length > 0 ||
       persistedQuantityItems.length > 0 ||
       layoutState !== 'blank';
@@ -3844,12 +4288,38 @@ export default function DesignBuilderPage({
         ? 'Drag node - Esc exits'
         : toolMode === 'move_opening'
           ? 'Drag selected opening along wall segment'
+        : septicTankPlacementActive
+          ? 'CMU septic tank placement - Click plan to place - R rotates - Esc cancels'
           : null;
   const activeOpeningTool = toolMode === 'place_door' ? 'door' : toolMode === 'place_window' ? 'window' : null;
   const activeOpeningSettings = activeOpeningTool ? openingToolSettings[activeOpeningTool] : null;
   const closeFootprintEnabled = modelLoaded && !footprintClosed && wallLayout.segments.length >= 3;
   const plumbingFixtureSchedule = buildPlumbingFixtureSchedule(plumbingSystem);
+  const plumbingLegendItems = buildPlumbingLegend(plumbingSystem);
+  const plumbingLegendItemKeys = new Set(plumbingLegendItems.map((item) => item.key));
+  const activePlumbingLegendRows = PLUMBING_LEGEND_ROWS.filter((item) => plumbingLegendItemKeys.has(item.key));
   const plumbingPlacementActive = viewMode === '2d' && active2DView === 'plumbing-plan';
+  const selectedPlumbingFixture =
+    selectedPlumbingObject?.kind === 'fixture'
+      ? plumbingSystem.fixtures.find((fixture) => fixture.id === selectedPlumbingObject.id) ?? null
+      : null;
+  const selectedPlumbingRun =
+    selectedPlumbingObject?.kind === 'run'
+      ? plumbingSystem.runs.find((run) => run.id === selectedPlumbingObject.id) ?? null
+      : null;
+  const plumbingToolOptions: Array<{ mode: PlumbingToolMode; label: string }> = [
+    { mode: 'select', label: 'Select' },
+    { mode: 'fixture', label: 'Fixture' },
+    { mode: 'drain', label: 'Drain' },
+    { mode: 'vent', label: 'Vent' },
+    { mode: 'cold_water', label: 'Cold Water' },
+    { mode: 'hot_water', label: 'Hot Water' },
+    { mode: 'cleanout', label: 'Cleanout' },
+    { mode: 'valve', label: 'Valve' },
+    { mode: 'stack', label: 'Stack' },
+    { mode: 'label', label: 'Label' },
+    { mode: 'validate', label: 'Validate' },
+  ];
 
   return (
     <>
@@ -3896,39 +4366,53 @@ export default function DesignBuilderPage({
             modelLoaded={modelLoaded}
             wallSegments={wallLayout.segments}
             openings={resolvedPreset.wall.openings}
+            septicTanks={plumbingSystem.septicTanks}
             selectedObjectType={selectedObjectType}
             selectedOpeningId={selectedOpeningId}
+            selectedSepticTankId={selectedSepticTankId}
             selectedSegmentId={selectedSegmentId}
             onToggleGroup={toggleObjectTreeGroup}
             onSelectObjectType={selectObjectTreeObjectType}
             onSelectSegment={selectObjectTreeSegment}
             onSelectOpening={selectObjectTreeOpening}
+            onSelectSepticTank={selectObjectTreeSepticTank}
           />
-          <Panel title={selectedObjectType || selectedSegmentId ? `Edit ${selectedObjectLabel}` : selectedObjectLabel}>
-            <DesignBuilderEditableControls
-              selectedObjectType={selectedObjectType}
-              preset={resolvedPreset}
-              designGeometryResult={designGeometryResult}
-              unitSystem={unitSystem}
-              onUnitSystemChange={setUnitSystem}
-              onFootprintChange={updateFootprint}
-              onWallChange={updateWallField}
-              onShowIndividualBlocksChange={updateShowIndividualBlocks}
-              onWallOptionChange={updateWallOption}
-              onBlockModuleChange={updateBlockModuleField}
-              cmuModule={cmuModule}
-              moduleWarnings={moduleWarnings}
-              cmuLayout={cmuLayout}
-              selectedWallSegment={selectedWallSegment}
-              onSlabChange={updateSlabField}
-              onRoofChange={updateRoofField}
-              onTrussSpacingChange={updateTrussSpacing}
-              onStructureFieldChange={updateStructureField}
-              onInfillPlasterChange={updateInfillPlaster}
-              onGableFieldChange={updateGableField}
-              onOpeningChange={updateSelectedOpening}
-              selectedOpeningId={selectedOpeningId}
-            />
+          <Panel title={selectedObjectType || selectedSegmentId || selectedSepticTank ? `Edit ${selectedObjectLabel}` : selectedObjectLabel}>
+            {selectedSepticTank ? (
+              <DesignBuilderSepticTankControls
+                tank={selectedSepticTank}
+                nodes={plumbingSystem.nodes}
+                onTankChange={updateSelectedSepticTank}
+                onPlacementChange={updateSelectedSepticTankPlacement}
+                onDesignBasisChange={updateSelectedSepticTankDesignBasis}
+                onGeometryChange={updateSelectedSepticTankGeometry}
+              />
+            ) : (
+              <DesignBuilderEditableControls
+                selectedObjectType={selectedObjectType}
+                preset={resolvedPreset}
+                designGeometryResult={designGeometryResult}
+                unitSystem={unitSystem}
+                onUnitSystemChange={setUnitSystem}
+                onFootprintChange={updateFootprint}
+                onWallChange={updateWallField}
+                onShowIndividualBlocksChange={updateShowIndividualBlocks}
+                onWallOptionChange={updateWallOption}
+                onBlockModuleChange={updateBlockModuleField}
+                cmuModule={cmuModule}
+                moduleWarnings={moduleWarnings}
+                cmuLayout={cmuLayout}
+                selectedWallSegment={selectedWallSegment}
+                onSlabChange={updateSlabField}
+                onRoofChange={updateRoofField}
+                onTrussSpacingChange={updateTrussSpacing}
+                onStructureFieldChange={updateStructureField}
+                onInfillPlasterChange={updateInfillPlaster}
+                onGableFieldChange={updateGableField}
+                onOpeningChange={updateSelectedOpening}
+                selectedOpeningId={selectedOpeningId}
+              />
+            )}
           </Panel>
 
           <DesignBuilderLinkedQuantitiesPanel linkedPreviewLines={linkedPreviewLines} />
@@ -3944,6 +4428,7 @@ export default function DesignBuilderPage({
             componentDefinitionGroups={componentDefinitionGroups}
             activeComponentType={componentPlacement.activeComponentType}
             onActivateDesignComponent={activateDesignComponent}
+            onActivateCmuSepticTank={activateCmuSepticTankPlacement}
             viewMode={viewMode}
             onViewModeChange={setDesignBuilderViewMode}
             active2DView={active2DView}
@@ -4023,6 +4508,9 @@ export default function DesignBuilderPage({
             undoTitle={nextUndoCommand ? `Undo ${nextUndoCommand.label}` : 'Undo'}
             redoLabel={nextRedoCommand ? `Redo ${nextRedoCommand.label}` : 'Redo'}
             redoTitle={nextRedoCommand ? `Redo ${nextRedoCommand.label}` : 'Redo'}
+            onRotateSelectedFixtureCounterClockwise={() => rotateSelectedPlumbingFixture(-Math.PI / 2)}
+            onRotateSelectedFixtureClockwise={() => rotateSelectedPlumbingFixture(Math.PI / 2)}
+            canRotateSelectedFixture={Boolean(selectedPlumbingFixture)}
             onToggleLeftPanel={toggleLeftPanel}
             onToggleRightPanel={toggleRightPanel}
             onStartBlankLayout={() => void handleStartBlankLayout()}
@@ -4119,12 +4607,24 @@ export default function DesignBuilderPage({
                 annotations={annotations}
                 placedComponents={placedComponents}
                 plumbingSystem={plumbingSystem}
-                activePlumbingFixtureType={plumbingPlacementActive ? activePlumbingFixtureType : null}
+                activePlumbingFixtureType={plumbingPlacementActive && activePlumbingToolMode === 'fixture' && !septicTankPlacementActive ? activePlumbingFixtureType : null}
+                activePlumbingToolMode={activePlumbingToolMode}
+                plumbingFixtureRotationRad={plumbingFixtureRotationRad}
+                plumbingRunDraft={plumbingRunDraft}
+                selectedPlumbingObject={selectedPlumbingObject}
+                plumbingValidationIssues={plumbingValidationIssues}
+                septicTankPlacementActive={plumbingPlacementActive && septicTankPlacementActive}
+                septicTankPlacementRotationRad={septicTankPlacementRotationRad}
+                selectedSepticTankId={selectedSepticTankId}
                 designRenderModel={designRenderModel}
                 componentPreview={componentPlacement.activeView === 'plan' ? componentPlacement.placementPreview : null}
                 helperMeasurements={componentPlacement.activeView === 'plan' ? componentPlacement.helperMeasurements : []}
                 onComponentPointer={handleComponentPointer}
                 onPlumbingFixturePointer={handlePlumbingFixturePointer}
+                onPlumbingPlanPointer={handlePlumbingPlanPointer}
+                onPlumbingSelect={handlePlumbingSelect}
+                onSepticTankPointer={handleSepticTankPointer}
+                onSepticTankSelect={selectObjectTreeSepticTank}
                 onAnnotationCreate={(annotation) => setAnnotations((current) => [...current, annotation])}
                 onInteraction={handlePlanInteraction}
               />
@@ -4136,6 +4636,7 @@ export default function DesignBuilderPage({
                 viewCommand={viewCommand}
                 frameSystem={designGeometryResult.frameSystem}
                 isolatedFootings={designGeometryResult.isolatedFootings}
+                segmentFrames={planSegmentFrames}
                 resolvedRoofSystem={designGeometryResult.resolvedRoofSystem ?? null}
                 interiorFloorSlab={designGeometryResult.interiorFloorSlab ?? null}
                 floorTileLayout={designGeometryResult.floorTileLayout ?? null}
@@ -4164,6 +4665,8 @@ export default function DesignBuilderPage({
                 toolMode={toolMode}
                 placementPreview={placementPreview}
                 placedComponents={placedComponents}
+                plumbingSystem={plumbingSystem}
+                selectedSepticTankId={selectedSepticTankId}
                 designRenderModel={designRenderModel}
                 onInteraction={handleViewerInteraction}
                 onSelectObjectType={setSelectedObjectType}
@@ -4207,11 +4710,27 @@ export default function DesignBuilderPage({
               />
             ) : null}
             {plumbingPlacementActive ? (
-              <div className="absolute left-3 top-12 z-10 w-[min(520px,calc(100%-1.5rem))] rounded-lg border border-slate-300 bg-white/95 p-3 text-xs text-slate-800 shadow-lg dark:border-slate-700 dark:bg-slate-900/95 dark:text-slate-100">
-                <div className="mb-2 flex items-center justify-between gap-3">
+              <div
+                data-plumbing-overlay-panel="true"
+                className="absolute w-[min(620px,calc(100%-1.5rem))] rounded-lg border border-slate-300 bg-white/95 p-3 text-xs text-slate-800 shadow-lg dark:border-slate-700 dark:bg-slate-900/95 dark:text-slate-100"
+                style={plumbingOverlayStyle('tools')}
+              >
+                <div
+                  className="mb-2 flex cursor-move select-none items-center justify-between gap-3 rounded-md"
+                  onPointerDown={(event) => handlePlumbingOverlayDragStart('tools', event)}
+                  title="Drag to move plumbing tools"
+                >
                   <div>
-                    <div className="font-bold text-slate-950 dark:text-white">Plumbing Fixtures</div>
-                    <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400">Click the plan to place a fixture with real connection nodes.</div>
+                    <div className="font-bold text-slate-950 dark:text-white">Plumbing Plan Tools</div>
+                    <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                      {septicTankPlacementActive
+                        ? 'Click the plan to place a model-driven CMU septic tank. Press R to rotate.'
+                        : activePlumbingToolMode === 'fixture'
+                          ? 'Click the plan to place a fixture with real connection nodes. Press R to rotate.'
+                          : plumbingRunDraft
+                            ? 'Click route points, then click a matching node to finish the pipe run.'
+                            : 'Choose a trade tool. Pipes must start and end on plumbing nodes.'}
+                    </div>
                   </div>
                   <select
                     value={plumbingSystem.codeProfileId}
@@ -4234,31 +4753,71 @@ export default function DesignBuilderPage({
                     <option value="custom">Custom</option>
                   </select>
                 </div>
-                <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-5">
-                  {PLUMBING_FIXTURE_LIBRARY_ORDER.map((fixtureType) => {
-                    const definition = getPlumbingFixtureDefinition(fixtureType);
-                    const active = activePlumbingFixtureType === fixtureType;
+                <div className="mb-2 flex flex-wrap gap-1.5">
+                  {plumbingToolOptions.map((tool) => {
+                    const active = activePlumbingToolMode === tool.mode && !septicTankPlacementActive;
                     return (
                       <button
-                        key={fixtureType}
+                        key={tool.mode}
                         type="button"
-                        onClick={() => setActivePlumbingFixtureType(fixtureType)}
-                        className={`rounded-md border px-2 py-1.5 text-left text-[11px] font-bold transition ${
+                        onClick={() => {
+                          if (tool.mode === 'validate') {
+                            setActivePlumbingToolMode(tool.mode);
+                            validateCurrentPlumbingSystem();
+                            return;
+                          }
+                          setSepticTankPlacementActive(false);
+                          setPlumbingRunDraft(null);
+                          setActivePlumbingToolMode(tool.mode);
+                        }}
+                        className={`rounded-md border px-2 py-1.5 text-[11px] font-bold transition ${
                           active
                             ? 'border-cyan-500 bg-cyan-50 text-cyan-800 dark:bg-cyan-950/70 dark:text-cyan-100'
                             : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200'
                         }`}
                       >
-                        {definition.markPrefix} - {definition.displayName}
+                        {tool.label}
                       </button>
                     );
                   })}
                 </div>
+                {activePlumbingToolMode === 'fixture' && !septicTankPlacementActive ? (
+                  <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-5">
+                    {PLUMBING_FIXTURE_LIBRARY_ORDER.map((fixtureType) => {
+                      const definition = getPlumbingFixtureDefinition(fixtureType);
+                      const active = activePlumbingFixtureType === fixtureType;
+                      return (
+                        <button
+                          key={fixtureType}
+                          type="button"
+                          onClick={() => setActivePlumbingFixtureType(fixtureType)}
+                          className={`rounded-md border px-2 py-1.5 text-left text-[11px] font-bold transition ${
+                            active
+                              ? 'border-cyan-500 bg-cyan-50 text-cyan-800 dark:bg-cyan-950/70 dark:text-cyan-100'
+                              : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200'
+                          }`}
+                        >
+                          {definition.markPrefix} - {definition.displayName}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : null}
               </div>
             ) : null}
             {plumbingPlacementActive && plumbingFixtureSchedule.length > 0 ? (
-              <div className="absolute bottom-20 right-3 z-10 max-h-56 w-[min(420px,calc(100%-1.5rem))] overflow-auto rounded-lg border border-slate-300 bg-white/95 p-3 text-xs text-slate-800 shadow-lg dark:border-slate-700 dark:bg-slate-900/95 dark:text-slate-100">
-                <div className="mb-2 font-bold text-slate-950 dark:text-white">Fixture Schedule</div>
+              <div
+                data-plumbing-overlay-panel="true"
+                className="absolute max-h-56 w-[min(420px,calc(100%-1.5rem))] overflow-auto rounded-lg border border-slate-300 bg-white/95 p-3 text-xs text-slate-800 shadow-lg dark:border-slate-700 dark:bg-slate-900/95 dark:text-slate-100"
+                style={plumbingOverlayStyle('schedule')}
+              >
+                <div
+                  className="mb-2 cursor-move select-none font-bold text-slate-950 dark:text-white"
+                  onPointerDown={(event) => handlePlumbingOverlayDragStart('schedule', event)}
+                  title="Drag to move fixture schedule"
+                >
+                  Fixture Schedule
+                </div>
                 <table className="w-full border-collapse text-[11px]">
                   <thead className="text-left text-slate-500 dark:text-slate-400">
                     <tr>
@@ -4283,6 +4842,220 @@ export default function DesignBuilderPage({
                     ))}
                   </tbody>
                 </table>
+              </div>
+            ) : null}
+            {plumbingPlacementActive && (selectedPlumbingFixture || selectedPlumbingRun) ? (
+              <div
+                data-plumbing-overlay-panel="true"
+                className="absolute w-[min(340px,calc(100%-1.5rem))] rounded-lg border border-slate-300 bg-white/95 p-3 text-xs text-slate-800 shadow-lg dark:border-slate-700 dark:bg-slate-900/95 dark:text-slate-100"
+                style={plumbingOverlayStyle('properties')}
+              >
+                <div
+                  className="mb-2 flex cursor-move select-none items-center justify-between gap-3"
+                  onPointerDown={(event) => handlePlumbingOverlayDragStart('properties', event)}
+                  title="Drag to move properties"
+                >
+                  <div className="font-bold text-slate-950 dark:text-white">
+                    {selectedPlumbingFixture ? 'Fixture Properties' : 'Pipe Run Properties'}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={deleteSelectedPlumbingObject}
+                    className="rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-[11px] font-bold text-rose-700 hover:bg-rose-100 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-200"
+                  >
+                    Delete
+                  </button>
+                </div>
+                {selectedPlumbingFixture ? (
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-2 gap-2">
+                      <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                        Type
+                        <div className="mt-1 font-bold text-slate-900 dark:text-white">{selectedPlumbingFixture.displayName}</div>
+                      </label>
+                      <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                        Mark
+                        <input
+                          value={selectedPlumbingFixture.mark}
+                          onChange={(event) => {
+                            const mark = event.target.value;
+                            setPlumbingSystem((current) => ({
+                              ...current,
+                              fixtures: current.fixtures.map((fixture) =>
+                                fixture.id === selectedPlumbingFixture.id ? { ...fixture, mark } : fixture,
+                              ),
+                            }));
+                            setSaveState('unsaved');
+                          }}
+                          className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-bold dark:border-slate-700 dark:bg-slate-950"
+                        />
+                      </label>
+                    </div>
+                    <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                      Rotation
+                      <input
+                        type="number"
+                        value={Math.round(selectedPlumbingFixture.rotationRadians * 180 / Math.PI)}
+                        onChange={(event) => {
+                          const radians = (Number(event.target.value) * Math.PI) / 180;
+                          setPlumbingSystem((current) =>
+                            updateFixtureRotationInPlumbingSystem({
+                              system: current,
+                              fixtureId: selectedPlumbingFixture.id,
+                              rotationRadians: Number.isFinite(radians) ? radians : 0,
+                            }),
+                          );
+                          setSaveState('unsaved');
+                        }}
+                        className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-bold dark:border-slate-700 dark:bg-slate-950"
+                      />
+                    </label>
+                    <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                      Required connections: {Object.entries(selectedPlumbingFixture.connectionNodeIds)
+                        .filter(([, ids]) => (ids?.length ?? 0) > 0)
+                        .map(([system]) => system.replace('_', ' '))
+                        .join(', ')}
+                    </div>
+                  </div>
+                ) : selectedPlumbingRun ? (
+                  <div className="grid grid-cols-2 gap-2">
+                    <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                      System
+                      <div className="mt-1 font-bold text-slate-900 dark:text-white">{selectedPlumbingRun.system.replace('_', ' ')}</div>
+                    </label>
+                    <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                      Diameter in.
+                      <input
+                        type="number"
+                        step="0.25"
+                        value={selectedPlumbingRun.diameterInches ?? ''}
+                        onChange={(event) => {
+                          const value = event.target.value === '' ? null : Number(event.target.value);
+                          setPlumbingSystem((current) => ({
+                            ...current,
+                            runs: current.runs.map((run) =>
+                              run.id === selectedPlumbingRun.id ? { ...run, diameterInches: value } : run,
+                            ),
+                          }));
+                          setSaveState('unsaved');
+                        }}
+                        className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-bold dark:border-slate-700 dark:bg-slate-950"
+                      />
+                    </label>
+                    <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                      Material
+                      <div className="mt-1 font-bold text-slate-900 dark:text-white">{selectedPlumbingRun.material}</div>
+                    </label>
+                    <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                      Slope in/ft
+                      <input
+                        type="number"
+                        step="0.125"
+                        value={selectedPlumbingRun.slopeInPerFt ?? ''}
+                        onChange={(event) => {
+                          const value = event.target.value === '' ? undefined : Number(event.target.value);
+                          setPlumbingSystem((current) => ({
+                            ...current,
+                            runs: current.runs.map((run) =>
+                              run.id === selectedPlumbingRun.id ? { ...run, slopeInPerFt: value } : run,
+                            ),
+                          }));
+                          setSaveState('unsaved');
+                        }}
+                        className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-bold dark:border-slate-700 dark:bg-slate-950"
+                      />
+                    </label>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+            {plumbingPlacementActive && (plumbingValidationIssues.length > 0 || plumbingLegendItems.length > 0) ? (
+              <div
+                data-plumbing-overlay-panel="true"
+                className="absolute max-h-64 w-[min(460px,calc(100%-1.5rem))] overflow-auto rounded-lg border border-slate-300 bg-white/95 p-3 text-xs text-slate-800 shadow-lg dark:border-slate-700 dark:bg-slate-900/95 dark:text-slate-100"
+                style={plumbingOverlayStyle('legend')}
+              >
+                {plumbingLegendItems.length > 0 ? (
+                  <div className="mb-2">
+                    <div
+                      className="mb-2 cursor-move select-none font-bold text-slate-950 dark:text-white"
+                      onPointerDown={(event) => handlePlumbingOverlayDragStart('legend', event)}
+                      title="Drag to move legend"
+                    >
+                      Legend
+                    </div>
+                    <div className="space-y-2">
+                      {activePlumbingLegendRows.map((item) => (
+                        <div key={item.key} className="grid grid-cols-[4.5rem_minmax(0,1fr)] items-center gap-2">
+                          <div className="flex items-center gap-2">
+                            <svg width="36" height="14" viewBox="0 0 36 14" aria-hidden="true">
+                              <line
+                                x1="2"
+                                y1="7"
+                                x2="34"
+                                y2="7"
+                                stroke={item.stroke}
+                                strokeWidth={item.key === 'sanitary' ? 3 : 2}
+                                strokeDasharray={item.dash}
+                                strokeLinecap="round"
+                              />
+                              <circle cx="18" cy="7" r="3.5" fill={item.stroke} stroke="#fff" strokeWidth="1" />
+                            </svg>
+                            <span className="font-bold text-slate-950 dark:text-white">{item.label}</span>
+                          </div>
+                          <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400">{item.description}</div>
+                        </div>
+                      ))}
+                      {plumbingLegendItems.some((item) => item.component === 'cleanout') ? (
+                        <div className="grid grid-cols-[4.5rem_minmax(0,1fr)] items-center gap-2">
+                          <div className="flex items-center gap-2">
+                            <span className="flex h-5 w-9 items-center justify-center rounded-md border border-slate-700 text-[10px] font-black dark:border-slate-300">CO</span>
+                            <span className="font-bold text-slate-950 dark:text-white">CO</span>
+                          </div>
+                          <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400">Cleanout or floor cleanout access point.</div>
+                        </div>
+                      ) : null}
+                      {plumbingLegendItems.some((item) => item.component === 'valve') ? (
+                        <div className="grid grid-cols-[4.5rem_minmax(0,1fr)] items-center gap-2">
+                          <div className="flex items-center gap-2">
+                            <svg width="36" height="14" viewBox="0 0 36 14" aria-hidden="true">
+                              <path d="M10 3 L26 11 M26 3 L10 11" stroke="#0f172a" strokeWidth="2" strokeLinecap="round" />
+                            </svg>
+                            <span className="font-bold text-slate-950 dark:text-white">Valve</span>
+                          </div>
+                          <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400">Shutoff valve or control valve location.</div>
+                        </div>
+                      ) : null}
+                      {plumbingLegendItems.some((item) => item.component === 'stack') ? (
+                        <div className="grid grid-cols-[4.5rem_minmax(0,1fr)] items-center gap-2">
+                          <div className="flex items-center gap-2">
+                            <span className="h-4 w-4 rounded-full border-2 border-slate-900 dark:border-slate-100" aria-hidden="true" />
+                            <span className="font-bold text-slate-950 dark:text-white">Stack</span>
+                          </div>
+                          <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400">Waste, vent, or combined vertical stack.</div>
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                ) : null}
+                {plumbingValidationIssues.length > 0 ? (
+                  <div>
+                    <div
+                      className="mb-1 cursor-move select-none font-bold text-slate-950 dark:text-white"
+                      onPointerDown={(event) => handlePlumbingOverlayDragStart('legend', event)}
+                      title="Drag to move validation"
+                    >
+                      Validation
+                    </div>
+                    <ul className="space-y-1">
+                      {plumbingValidationIssues.slice(0, 8).map((issue) => (
+                        <li key={issue.id} className={issue.severity === 'error' ? 'text-rose-700 dark:text-rose-200' : 'text-amber-700 dark:text-amber-200'}>
+                          {issue.message}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
               </div>
             ) : null}
             {viewMode === '2d' && active2DView === 'foundation-plan' && toolMode === 'draw_wall' ? (

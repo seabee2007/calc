@@ -1,8 +1,10 @@
 import { render } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import DesignBuilderElevationCanvas from '../ui/DesignBuilderElevationCanvas';
-import type { ResolvedFloorTileLayout, ResolvedPlywoodCeilingLayout, ResolvedRoofSystem } from '../types';
+import type { PlacedDesignComponent, ResolvedFloorTileLayout, ResolvedPlywoodCeilingLayout, ResolvedRoofSystem } from '../types';
 import type { ResolvedInteriorFloorSlab } from '../domain/interiorFloorSlab';
+import type { DesignRenderModel } from '../domain/designRenderModel';
+import type { SegmentFrame } from '../geometry/designGeometry';
 
 const layoutBounds = {
   minX: 0,
@@ -357,5 +359,109 @@ describe('DesignBuilderElevationCanvas', () => {
     );
     expect(layerNames.indexOf('ceiling-finishes')).toBeLessThan(layerNames.indexOf('beams-walls'));
     expect(layerNames.indexOf('ceiling-finishes')).toBeLessThan(layerNames.indexOf('columns'));
+  });
+
+  it('uses face-specific RC component extents for front and side elevation projections', () => {
+    const sourceComponent = {
+      id: 'wide-column',
+      type: 'column',
+      division: 'Concrete',
+      category: 'structure',
+      viewPlacement: { plan: { xMeters: 1, zMeters: 1 } },
+      parameters: {},
+      derived: {},
+      metadata: {
+        createdAt: '2026-06-27T00:00:00.000Z',
+        updatedAt: '2026-06-27T00:00:00.000Z',
+      },
+    } as PlacedDesignComponent;
+    const designRenderModel: DesignRenderModel = {
+      rcComponents: [
+        {
+          id: 'wide-column',
+          sourceComponentId: 'wide-column',
+          type: 'column',
+          category: 'structure',
+          system: 'reinforced-concrete',
+          position: { x: 1, y: 0, z: 1 },
+          dimensions: { width: 0.3, depth: 0.9, height: 3 },
+          elevations: { base: 0, top: 3 },
+          references: { sourceView: 'plan' },
+          sourceComponent,
+        },
+      ],
+    };
+
+    const { container } = render(
+      <DesignBuilderElevationCanvas
+        toolMode="select"
+        elevationView={{ face: 'north' }}
+        layoutBounds={layoutBounds}
+        drawingStyleMode="architectural"
+        designRenderModel={designRenderModel}
+        onInteraction={vi.fn()}
+      />,
+    );
+
+    expect(container.querySelector('[data-component-id="wide-column"][data-elevation-projection="front"]')).toHaveAttribute(
+      'data-projected-width-meters',
+      '0.300',
+    );
+    expect(container.querySelector('[data-component-id="wide-column"][data-elevation-projection="side"]')).toHaveAttribute(
+      'data-projected-width-meters',
+      '0.900',
+    );
+  });
+
+  it('projects wall openings from their host segment world station in elevation view', () => {
+    const segmentFrames: SegmentFrame[] = [
+      {
+        segmentId: 'north-wall',
+        start: { x: 10, z: 0 },
+        end: { x: 14, z: 0 },
+        exteriorStart: { x: 10, z: 0 },
+        exteriorEnd: { x: 14, z: 0 },
+        interiorStart: { x: 10, z: 0.2 },
+        interiorEnd: { x: 14, z: 0.2 },
+        centerlineStart: { x: 10, z: 0.1 },
+        centerlineEnd: { x: 14, z: 0.1 },
+        lengthMeters: 4,
+        tangent: { x: 1, z: 0 },
+        inwardNormal: { x: 0, z: 1 },
+        outwardNormal: { x: 0, z: -1 },
+        rotationY: 0,
+        wallHeightMeters: 3,
+        wallThicknessMeters: 0.2,
+      },
+    ];
+
+    const { container } = render(
+      <DesignBuilderElevationCanvas
+        toolMode="select"
+        elevationView={{ face: 'north' }}
+        layoutBounds={layoutBounds}
+        drawingStyleMode="architectural"
+        segmentFrames={segmentFrames}
+        openings={[
+          {
+            id: 'hosted-window',
+            type: 'window',
+            wallFace: 'north',
+            wallSegmentId: 'north-wall',
+            positionAlongSegment: 1,
+            placementUsesCenterStation: true,
+            widthMeters: 0.8,
+            heightMeters: 0.6,
+            sillHeightMeters: 1.2,
+          },
+        ]}
+        onInteraction={vi.fn()}
+      />,
+    );
+
+    expect(container.querySelector('[data-opening-id="hosted-window"]')).toHaveAttribute(
+      'data-opening-station-meters',
+      '11.000',
+    );
   });
 });

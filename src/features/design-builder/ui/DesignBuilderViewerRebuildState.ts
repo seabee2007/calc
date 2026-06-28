@@ -12,6 +12,7 @@ import type {
   ThickenedEdgeSlabParameters,
   DesignVisualStyle,
 } from '../types';
+import type { PlumbingSystem } from '../plumbing';
 import type { DesignLayoutBounds } from '../domain/designLayoutBounds';
 import type { DesignRenderModel } from '../domain/designRenderModel';
 import type { ResolveDesignMaterialOptions } from '../rendering/materials/designMaterialLibrary';
@@ -25,6 +26,8 @@ export interface DesignBuilderViewerModelParams {
   geometryResult?: DesignGeometryResult;
   layoutBounds?: DesignLayoutBounds | null;
   placedComponents?: readonly PlacedDesignComponent[];
+  plumbingSystem?: PlumbingSystem;
+  selectedSepticTankId?: string | null;
   designRenderModel?: DesignRenderModel;
   selectedObjectType: DesignObjectType | null;
   showOpeningLayout: boolean;
@@ -53,6 +56,8 @@ export interface DesignBuilderViewerRebuildState {
   currentGeometry?: DesignGeometryResult;
   currentLayoutBounds: DesignLayoutBounds | null;
   currentPlacedComponents?: readonly PlacedDesignComponent[];
+  currentPlumbingSystem?: PlumbingSystem;
+  currentSelectedSepticTankId?: string | null;
   currentDesignRenderModel?: DesignRenderModel;
   currentSelectedObjectType: DesignObjectType | null;
   currentShowOpeningLayout: boolean;
@@ -118,6 +123,8 @@ export function createDesignBuilderViewerRebuildState(params: {
     currentGeometry: modelParams.geometryResult,
     currentLayoutBounds: modelParams.layoutBounds ?? null,
     currentPlacedComponents: modelParams.placedComponents,
+    currentPlumbingSystem: modelParams.plumbingSystem,
+    currentSelectedSepticTankId: modelParams.selectedSepticTankId ?? null,
     currentDesignRenderModel: modelParams.designRenderModel,
     currentSelectedObjectType: modelParams.selectedObjectType,
     currentShowOpeningLayout: modelParams.showOpeningLayout,

@@ -12,6 +12,7 @@ import type {
   PlumbingRun,
   PlumbingSystem,
 } from './plumbingTypes';
+import { normalizeSepticTanks } from './septic/septicPersistence';
 
 const CODE_PROFILE_IDS: PlumbingCodeProfileId[] = [
   'conceptual',
@@ -65,6 +66,7 @@ export function normalizePlumbingSystem(raw: unknown): PlumbingSystem {
     nodes: normalizeArray(raw.nodes, hasStringId) as PlumbingNode[],
     runs: normalizeArray(raw.runs, hasStringId) as PlumbingRun[],
     equipment: normalizeArray(raw.equipment, hasStringId) as PlumbingEquipment[],
+    septicTanks: normalizeSepticTanks(raw.septicTanks),
     settings: {
       ...fallback.settings,
       ...settings,

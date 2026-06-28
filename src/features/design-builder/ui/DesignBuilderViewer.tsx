@@ -38,6 +38,10 @@ import type {
   PlacedDesignComponent,
 } from '../types';
 import {
+  createCmuSepticTankMesh,
+  type PlumbingSystem,
+} from '../plumbing';
+import {
   ensurePreviewMaterialsLoaded,
   resolveCastConcreteMaterial,
   resolveCmuMaterial,
@@ -90,6 +94,8 @@ interface DesignBuilderViewerProps {
   toolMode?: DesignBuilderToolMode;
   placementPreview?: DesignBuilderPlacementPreview | null;
   placedComponents?: readonly PlacedDesignComponent[];
+  plumbingSystem?: PlumbingSystem;
+  selectedSepticTankId?: string | null;
   designRenderModel?: DesignRenderModel;
   onSelectObjectType: (objectType: DesignObjectType) => void;
   onInteraction?: (event: DesignBuilderInteractionEvent) => void;
@@ -130,6 +136,8 @@ export default function DesignBuilderViewer({
   toolMode = 'select',
   placementPreview = null,
   placedComponents = [],
+  plumbingSystem,
+  selectedSepticTankId = null,
   designRenderModel,
   onSelectObjectType,
   onInteraction,
@@ -180,6 +188,8 @@ export default function DesignBuilderViewer({
     geometryResult,
     layoutBounds,
     placedComponents,
+    plumbingSystem,
+    selectedSepticTankId,
     designRenderModel,
     selectedObjectType,
     showOpeningLayout,
@@ -202,6 +212,8 @@ export default function DesignBuilderViewer({
     geometryResult,
     layoutBounds,
     placedComponents,
+    plumbingSystem,
+    selectedSepticTankId,
     designRenderModel,
     selectedObjectType,
     showOpeningLayout,
@@ -342,6 +354,8 @@ export default function DesignBuilderViewer({
         currentGeometry,
         currentLayoutBounds,
         currentPlacedComponents,
+        currentPlumbingSystem,
+        currentSelectedSepticTankId,
         currentDesignRenderModel,
         currentSelectedObjectType,
         currentShowOpeningLayout,
@@ -398,8 +412,24 @@ export default function DesignBuilderViewer({
         if (supplementalScene.group.children.length > 0) root.add(supplementalScene.group);
       }
 
+      function addSepticSiteUtilities() {
+        const tanks = currentPlumbingSystem?.septicTanks ?? [];
+        if (tanks.length === 0) return;
+        const septicGroup = new THREE.Group();
+        septicGroup.name = 'septicSiteUtilityGroup';
+        tanks.forEach((tank) => {
+          septicGroup.add(createCmuSepticTankMesh(tank, {
+            selected: tank.id === currentSelectedSepticTankId,
+            trackGeometry,
+            trackMaterial: trackMat,
+          }));
+        });
+        root.add(septicGroup);
+      }
+
       if (blankGeometryActive) {
         addSupplementalPlacedComponents();
+        addSepticSiteUtilities();
         clearGhost();
         return;
       }
@@ -649,6 +679,7 @@ export default function DesignBuilderViewer({
       if (currentShowClosureWarnings) root.add(openingSceneGroups.closureWarningGroup);
 
       addSupplementalPlacedComponents();
+      addSepticSiteUtilities();
       refreshSiteGroundMaterial();
       updateGhost();
     }
@@ -763,7 +794,7 @@ export default function DesignBuilderViewer({
 
   useEffect(() => {
     if (modelLoaded) rebuildModelRef.current?.();
-  }, [designRenderModel, geometryResult, layoutBounds, materialRevision, modelLoaded, placedComponents, roof, roofDisplayMode, roofLayerVisibility, roofSystem, selectedObjectType, selectedOpeningId, showClosureWarnings, showRoofReferencePerimeters, showRoofFramingGuides, foundationViewMode, showGroutCells, showOpeningLayout, slab, truss, wall, visualStyle]);
+  }, [designRenderModel, geometryResult, layoutBounds, materialRevision, modelLoaded, placedComponents, plumbingSystem, roof, roofDisplayMode, roofLayerVisibility, roofSystem, selectedObjectType, selectedOpeningId, selectedSepticTankId, showClosureWarnings, showRoofReferencePerimeters, showRoofFramingGuides, foundationViewMode, showGroutCells, showOpeningLayout, slab, truss, wall, visualStyle]);
 
   useEffect(() => {
     if (visualStyle === 'material_preview') {

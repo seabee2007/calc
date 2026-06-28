@@ -1,3 +1,5 @@
+import type { SepticTankModel } from './septic/septicTypes';
+
 export type PlumbingCodeProfileId =
   | 'conceptual'
   | 'guam_ipc_2009'
@@ -10,6 +12,19 @@ export type PlumbingRunSystem =
   | 'hot_water'
   | 'sanitary'
   | 'vent';
+
+export type PlumbingToolMode =
+  | 'select'
+  | 'fixture'
+  | 'drain'
+  | 'vent'
+  | 'cold_water'
+  | 'hot_water'
+  | 'cleanout'
+  | 'valve'
+  | 'stack'
+  | 'label'
+  | 'validate';
 
 export type PlumbingFixtureType =
   | 'toilet'
@@ -30,7 +45,10 @@ export type PlumbingNodeKind =
   | 'building_drain_exit'
   | 'main_service'
   | 'cleanout'
-  | 'valve';
+  | 'valve'
+  | 'septic_inlet'
+  | 'septic_outlet'
+  | 'septic_access';
 
 export type PlumbingMaterial =
   | 'pvc'
@@ -80,6 +98,7 @@ export type PlumbingNode = {
   position: PlumbingPoint3D;
   fixtureId?: string;
   equipmentId?: string;
+  septicTankId?: string;
   label: string;
 };
 
@@ -130,7 +149,54 @@ export type PlumbingSystem = {
   nodes: PlumbingNode[];
   runs: PlumbingRun[];
   equipment: PlumbingEquipment[];
+  septicTanks: SepticTankModel[];
   settings: PlumbingSettings;
+};
+
+export type PlumbingSelection =
+  | { kind: 'fixture'; id: string }
+  | { kind: 'run'; id: string }
+  | { kind: 'run-route-point'; runId: string; pointIndex: number }
+  | { kind: 'node'; id: string }
+  | { kind: 'equipment'; id: string }
+  | { kind: 'septic-tank'; id: string }
+  | { kind: 'none' };
+
+export type PlumbingRunDraft = {
+  system: PlumbingRunSystem;
+  startNodeId: string;
+  routePoints: PlumbingPoint3D[];
+  previewPoint?: PlumbingPoint3D;
+};
+
+export type PlumbingValidationSeverity = 'error' | 'warning';
+
+export type PlumbingValidationIssue = {
+  id: string;
+  severity: PlumbingValidationSeverity;
+  code:
+    | 'fixture_missing_required_node'
+    | 'fixture_missing_required_run'
+    | 'run_missing_diameter'
+    | 'sanitary_run_missing_slope'
+    | 'run_missing_start_node'
+    | 'run_missing_end_node'
+    | 'sanitary_disconnected'
+    | 'vent_disconnected'
+    | 'duplicate_fixture_mark'
+    | 'orphan_node'
+    | 'pipe_crosses_foundation'
+    | 'pipe_crosses_rc_column';
+  message: string;
+  objectKind: 'fixture' | 'run' | 'node' | 'foundation' | 'system';
+  objectId?: string;
+};
+
+export type PlumbingLegendItem = {
+  key: string;
+  label: string;
+  system?: PlumbingRunSystem;
+  component?: 'cleanout' | 'valve' | 'stack';
 };
 
 export type PlumbingFixtureScheduleRow = {

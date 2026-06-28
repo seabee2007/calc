@@ -1,5 +1,6 @@
 import { DESIGN_BUILDER_COPY } from "../domain/designBuilderCopy";
 import type { DesignComponentDefinition } from "../domain/designComponentRegistry";
+import { RotateCcw, RotateCw } from "lucide-react";
 import { PLAN_GRID_SCALE_PRESETS } from "../domain/pointerPlanMapping";
 import type {
   BuildingSystemMode,
@@ -42,6 +43,7 @@ export type DesignBuilderCommandBarProps = {
   componentDefinitionGroups: readonly ComponentDefinitionGroup[];
   activeComponentType: DesignComponentType | null;
   onActivateDesignComponent: (componentType: DesignComponentType) => void;
+  onActivateCmuSepticTank: () => void;
   viewMode: DesignBuilderViewMode;
   onViewModeChange: (mode: DesignBuilderViewMode) => void;
   active2DView: Design2DViewType;
@@ -121,6 +123,9 @@ export type DesignBuilderCommandBarProps = {
   undoTitle: string;
   redoLabel: string;
   redoTitle: string;
+  onRotateSelectedFixtureCounterClockwise: () => void;
+  onRotateSelectedFixtureClockwise: () => void;
+  canRotateSelectedFixture: boolean;
   onToggleLeftPanel: () => void;
   onToggleRightPanel: () => void;
   onStartBlankLayout: () => void;
@@ -209,6 +214,18 @@ export function DesignBuilderCommandBar(props: DesignBuilderCommandBarProps) {
               ))}
             </div>
           ))}
+          <div className="py-1">
+            <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+              Site Utilities
+            </div>
+            <CommandMenuAction
+              onClick={props.onActivateCmuSepticTank}
+              disabled={!props.modelLoaded}
+              className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 dark:text-slate-200 dark:hover:bg-slate-800"
+            >
+              CMU Septic Tank
+            </CommandMenuAction>
+          </div>
         </DesignBuilderCommandMenu>
 
         <DesignBuilderViewModeTabs
@@ -549,6 +566,26 @@ export function DesignBuilderCommandBar(props: DesignBuilderCommandBarProps) {
           className="h-9 rounded-lg px-3 text-xs font-semibold text-slate-600 hover:bg-slate-100 disabled:opacity-40 dark:text-slate-300 dark:hover:bg-slate-800"
         >
           Redo
+        </button>
+        <button
+          type="button"
+          onClick={props.onRotateSelectedFixtureCounterClockwise}
+          disabled={!props.canRotateSelectedFixture}
+          aria-label="Rotate selected fixture counterclockwise 90 degrees"
+          title="Rotate selected fixture counterclockwise 90 degrees"
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 disabled:opacity-40 dark:text-slate-300 dark:hover:bg-slate-800"
+        >
+          <RotateCcw className="h-4 w-4" aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          onClick={props.onRotateSelectedFixtureClockwise}
+          disabled={!props.canRotateSelectedFixture}
+          aria-label="Rotate selected fixture clockwise 90 degrees"
+          title="Rotate selected fixture clockwise 90 degrees"
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 disabled:opacity-40 dark:text-slate-300 dark:hover:bg-slate-800"
+        >
+          <RotateCw className="h-4 w-4" aria-hidden="true" />
         </button>
 
         <div className="ml-auto flex items-center gap-2">

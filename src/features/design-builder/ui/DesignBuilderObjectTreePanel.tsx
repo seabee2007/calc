@@ -3,6 +3,7 @@ import type {
   DesignWallSegment,
   WallOpeningParameters,
 } from '../types';
+import type { SepticTankModel } from '../plumbing';
 import type { ObjectTreeExpansionState } from '../state/designBuilderStore';
 import { OBJECT_TREE_GROUPS } from './DesignBuilderPageMappings';
 import { Panel } from './DesignBuilderPageShell';
@@ -12,13 +13,16 @@ type DesignBuilderObjectTreePanelProps = {
   modelLoaded: boolean;
   wallSegments: DesignWallSegment[];
   openings: WallOpeningParameters[];
+  septicTanks: SepticTankModel[];
   selectedObjectType: DesignObjectType | null;
   selectedOpeningId: string | null;
+  selectedSepticTankId: string | null;
   selectedSegmentId: string | null;
   onToggleGroup: (groupId: string) => void;
   onSelectObjectType: (objectType: DesignObjectType) => void;
   onSelectSegment: (segmentId: string) => void;
   onSelectOpening: (openingId: string, objectType: 'door_opening' | 'window_opening') => void;
+  onSelectSepticTank: (tankId: string) => void;
 };
 
 export function DesignBuilderObjectTreePanel({
@@ -26,13 +30,16 @@ export function DesignBuilderObjectTreePanel({
   modelLoaded,
   wallSegments,
   openings,
+  septicTanks,
   selectedObjectType,
   selectedOpeningId,
+  selectedSepticTankId,
   selectedSegmentId,
   onToggleGroup,
   onSelectObjectType,
   onSelectSegment,
   onSelectOpening,
+  onSelectSepticTank,
 }: DesignBuilderObjectTreePanelProps) {
   return (
     <Panel title="Object Tree">
@@ -113,6 +120,30 @@ export function DesignBuilderObjectTreePanel({
               </span>
               <span className="mt-0.5 block text-xs text-slate-500 dark:text-slate-400">
                 Offset {(opening.positionAlongSegment ?? opening.offsetMeters ?? 0).toFixed(2)}m
+              </span>
+            </button>
+          ))}
+        </div>
+      ) : null}
+      {modelLoaded && septicTanks.length > 0 ? (
+        <div className="mt-2 space-y-1 border-t border-slate-200 pt-2 dark:border-slate-700">
+          <div className="px-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            Site utilities
+          </div>
+          {septicTanks.map((tank) => (
+            <button
+              key={tank.id}
+              type="button"
+              onClick={() => onSelectSepticTank(tank.id)}
+              className={`w-full rounded-lg border px-3 py-2 text-left text-sm transition ${
+                selectedSepticTankId === tank.id
+                  ? 'border-cyan-400 bg-cyan-50 text-cyan-900 dark:border-cyan-600 dark:bg-cyan-950/50 dark:text-cyan-100'
+                  : 'border-slate-200 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800'
+              }`}
+            >
+              <span className="font-medium">{tank.mark} - CMU Septic Tank</span>
+              <span className="mt-0.5 block text-xs text-slate-500 dark:text-slate-400">
+                {tank.designBasis.capacityGallons} gal / {tank.designBasis.bedroomsAssumed}BR assumed
               </span>
             </button>
           ))}
