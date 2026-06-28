@@ -4,6 +4,8 @@ import {
   formatPlumbingRunLabel,
   getPlumbingFixtureDefinition,
   type PlumbingFixture,
+  type PlumbingEquipment,
+  type PlumbingFitting,
   type PlumbingPoint3D,
   type PlumbingRun,
   type PlumbingRunDraft,
@@ -12,6 +14,7 @@ import {
   type PlumbingValidationIssue,
   type SepticTankModel,
 } from '..';
+import { fittingDefinition } from '../domain/plumbingFittingCompatibility';
 import { resolveSegmentDisplayEndpoints } from '../../domain/planOpeningGraphics';
 import type {
   DesignWallLayoutParameters,
@@ -34,6 +37,7 @@ export type DrawPlumbingPlanProps = {
   isolatedFootings: readonly IsolatedFooting[];
   frameSystem?: StructuralFrameSystemParameters;
   fixturePreview?: PlumbingFixture | null;
+  equipmentPreview?: PlumbingEquipment | null;
   septicTankPreview?: SepticTankModel | null;
   runDraft?: PlumbingRunDraft | null;
   selected?: PlumbingSelection | null;
@@ -261,6 +265,111 @@ function renderRun(run: PlumbingRun, project: PlumbingPlanProjector, selected: b
   );
 }
 
+function fittingSymbol(type: PlumbingFitting['type']): string {
+  if (type.includes('wye')) return 'Y';
+  if (type.includes('tee') || type === 'tee' || type === 'reducing_tee') return 'T';
+  if (type.includes('elbow') || type === 'offset_bend') return 'L';
+  if (type.includes('coupling') || type === 'union') return 'C';
+  if (type.includes('valve')) return 'V';
+  if (type.includes('cleanout')) return 'CO';
+  if (type.includes('trap')) return 'P';
+  if (type.includes('flange')) return 'CF';
+  if (type.includes('sleeve')) return 'S';
+  if (type === 'cap' || type === 'plug') return 'X';
+  return 'F';
+}
+
+function renderFitting(
+  fitting: PlumbingFitting,
+  system: PlumbingSystem,
+  project: PlumbingPlanProjector,
+  selected: boolean,
+): ReactNode {
+  const node = system.nodes.find((candidate) => candidate.id === fitting.nodeId);
+  if (!node) return null;
+  const point = project(node.position);
+  const label = fittingSymbol(fitting.type);
+  const stroke = fitting.system === 'multi' ? '#0f172a' : pipeStroke(fitting.system);
+  const definition = fittingDefinition(fitting.type);
+  return (
+    <g
+      key={fitting.id}
+      pointerEvents="none"
+      data-plumbing-fitting-id={fitting.id}
+      data-plumbing-fitting-type={fitting.type}
+      data-plumbing-fitting-selected={selected ? 'true' : undefined}
+    >
+      <rect
+        x={point.sx - (label.length > 1 ? 9 : 6)}
+        y={point.sy - 6}
+        width={label.length > 1 ? 18 : 12}
+        height={12}
+        rx={3}
+        fill="#ffffff"
+        stroke={stroke}
+        strokeWidth={selected ? 2.4 : 1.5}
+      />
+      <text x={point.sx} y={point.sy + 3} textAnchor="middle" fill={stroke} fontSize={label.length > 1 ? 6 : 8} fontWeight={900}>
+        {label}
+      </text>
+      {fitting.labelVisible ? (
+        <title>{definition?.label ?? fitting.type}</title>
+      ) : null}
+    </g>
+  );
+}
+
+function equipmentStroke(equipmentType: PlumbingEquipment['equipmentType']): string {
+  if (equipmentType === 'shutoff_valve' || equipmentType === 'meter' || equipmentType === 'main_service_point') return '#0284c7';
+  if (equipmentType === 'vent_stack' || equipmentType === 'combined_stack' || equipmentType === 'roof_vent_termination') return '#7c3aed';
+  return '#111827';
+}
+
+function renderEquipment(
+  equipment: PlumbingEquipment,
+  project: PlumbingPlanProjector,
+  options: { selected?: boolean; preview?: boolean } = {},
+): ReactNode {
+  const point = project(equipment.position);
+  const selectedEquipment = Boolean(options.selected);
+  const stroke = options.preview ? '#0891b2' : equipmentStroke(equipment.equipmentType);
+  const fill = options.preview ? '#cffafe' : '#ffffff';
+  const label =
+    equipment.equipmentType === 'shutoff_valve'
+      ? 'V'
+      : equipment.equipmentType.includes('stack')
+        ? 'S'
+        : equipment.label;
+  return (
+    <g
+      key={equipment.id}
+      pointerEvents="none"
+      opacity={options.preview ? 0.72 : 1}
+      data-plumbing-equipment-id={equipment.id}
+      data-plumbing-equipment-type={equipment.equipmentType}
+      data-plumbing-equipment-preview={options.preview ? 'true' : undefined}
+    >
+      {equipment.equipmentType === 'shutoff_valve' ? (
+        <>
+          <line x1={point.sx - 9} y1={point.sy} x2={point.sx + 9} y2={point.sy} stroke={stroke} strokeWidth={2} strokeLinecap="round" />
+          <path d={`M ${point.sx - 7} ${point.sy - 6} L ${point.sx} ${point.sy} L ${point.sx - 7} ${point.sy + 6} Z`} fill={fill} stroke={stroke} strokeWidth={1.7} />
+          <path d={`M ${point.sx + 7} ${point.sy - 6} L ${point.sx} ${point.sy} L ${point.sx + 7} ${point.sy + 6} Z`} fill={fill} stroke={stroke} strokeWidth={1.7} />
+        </>
+      ) : equipment.equipmentType.includes('stack') ? (
+        <>
+          <circle cx={point.sx} cy={point.sy} r={selectedEquipment ? 8 : 6.5} fill={fill} stroke={stroke} strokeWidth={selectedEquipment ? 2.4 : 1.8} />
+          <line x1={point.sx} y1={point.sy - 10} x2={point.sx} y2={point.sy + 10} stroke={stroke} strokeWidth={2} strokeLinecap="round" />
+        </>
+      ) : (
+        <circle cx={point.sx} cy={point.sy} r={selectedEquipment ? 8 : 6} fill={fill} stroke={stroke} strokeWidth={selectedEquipment ? 2.4 : 1.8} />
+      )}
+      <text x={point.sx} y={point.sy + 3} textAnchor="middle" fill={stroke} fontSize={label.length > 1 ? 7 : 8} fontWeight={900}>
+        {label}
+      </text>
+    </g>
+  );
+}
+
 export function DrawPlumbingPlan({
   layout,
   planDisplayNodeById,
@@ -272,11 +381,13 @@ export function DrawPlumbingPlan({
   isolatedFootings,
   frameSystem,
   fixturePreview,
+  equipmentPreview,
   septicTankPreview,
   runDraft,
   selected,
   validationIssues = [],
 }: DrawPlumbingPlanProps) {
+  const fittings = plumbingSystem.fittings ?? [];
   const issueRunIds = new Set(validationIssues.filter((issue) => issue.objectKind === 'run' && issue.objectId).map((issue) => issue.objectId!));
   const draftStart = runDraft ? plumbingSystem.nodes.find((node) => node.id === runDraft.startNodeId) : null;
   const draftPoints = draftStart
@@ -377,6 +488,7 @@ export function DrawPlumbingPlan({
       </g>
       {plumbingSystem.septicTanks.map((tank) => renderSepticTank(tank, project, selected?.kind === 'septic-tank' && selected.id === tank.id))}
       {plumbingSystem.runs.map((run) => renderRun(run, project, selected?.kind === 'run' && selected.id === run.id, issueRunIds))}
+      {fittings.map((fitting) => renderFitting(fitting, plumbingSystem, project, selected?.kind === 'fitting' && selected.id === fitting.id))}
       {draftPoints.length >= 2 ? (
         <polyline
           points={pointsToPolyline(draftPoints, project)}
@@ -393,32 +505,36 @@ export function DrawPlumbingPlan({
       {plumbingSystem.fixtures.map((fixture) =>
         renderFixture(fixture, project, zoom, { selected: selected?.kind === 'fixture' && selected.id === fixture.id }),
       )}
-      {plumbingSystem.equipment.map((equipment) => {
-        const point = project(equipment.position);
-        const selectedEquipment = selected?.kind === 'equipment' && selected.id === equipment.id;
-        return (
-          <g key={equipment.id} pointerEvents="none" data-plumbing-equipment-id={equipment.id} data-plumbing-equipment-type={equipment.equipmentType}>
-            <circle cx={point.sx} cy={point.sy} r={selectedEquipment ? 8 : 6} fill="#ffffff" stroke="#0f172a" strokeWidth={selectedEquipment ? 2.4 : 1.8} />
-            <text x={point.sx} y={point.sy + 3} textAnchor="middle" fill="#0f172a" fontSize={8} fontWeight={900}>{equipment.label}</text>
-          </g>
-        );
-      })}
+      {plumbingSystem.equipment.map((equipment) =>
+        renderEquipment(equipment, project, { selected: selected?.kind === 'equipment' && selected.id === equipment.id }),
+      )}
+      {equipmentPreview ? renderEquipment(equipmentPreview, project, { preview: true }) : null}
       {plumbingSystem.nodes.map((node) => {
         const point = project(node.position);
         const selectedNode = selected?.kind === 'node' && selected.id === node.id;
+        const fittingLabel = fittings.some((fitting) => fitting.nodeId === node.id)
+          ? null
+          : node.kind === 'wye'
+            ? 'Y'
+            : node.kind === 'fitting'
+              ? 'T'
+              : null;
         return (
-          <circle
-            key={node.id}
-            cx={point.sx}
-            cy={point.sy}
-            r={selectedNode ? 5 : 3.5}
-            fill={pipeStroke(node.system)}
-            stroke="#ffffff"
-            strokeWidth={selectedNode ? 2 : 1.2}
-            pointerEvents="none"
-            data-plumbing-node-id={node.id}
-            data-plumbing-node-system={node.system}
-          />
+          <g key={node.id} pointerEvents="none" data-plumbing-node-id={node.id} data-plumbing-node-system={node.system} data-plumbing-node-kind={node.kind}>
+            <circle
+              cx={point.sx}
+              cy={point.sy}
+              r={selectedNode ? 5 : fittingLabel ? 5 : 3.5}
+              fill={fittingLabel ? '#ffffff' : pipeStroke(node.system)}
+              stroke={pipeStroke(node.system)}
+              strokeWidth={selectedNode ? 2 : 1.4}
+            />
+            {fittingLabel ? (
+              <text x={point.sx} y={point.sy + 3} textAnchor="middle" fill={pipeStroke(node.system)} fontSize={7} fontWeight={900}>
+                {fittingLabel}
+              </text>
+            ) : null}
+          </g>
         );
       })}
       {fixturePreview ? renderFixture(fixturePreview, project, zoom, { preview: true }) : null}

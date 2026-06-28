@@ -1,9 +1,15 @@
 import type {
+  PipeStockLengthKind,
+  PipeStockLengthPreset,
   PlumbingLegendItem,
+  PlumbingMaterial,
+  PlumbingPipeSchedule,
+  PlumbingPoint3D,
   PlumbingRun,
   PlumbingRunSystem,
   PlumbingSystem,
 } from '../plumbingTypes';
+import type { PlumbingFitting, PlumbingFittingType } from '../plumbingFittingTypes';
 
 const SYSTEM_LABELS: Record<PlumbingRunSystem, string> = {
   cold_water: 'CW',
@@ -75,4 +81,112 @@ export function buildPlumbingFixtureScheduleRows(system: PlumbingSystem) {
       zMeters: fixture.position.z,
     }))
     .sort((a, b) => a.mark.localeCompare(b.mark, undefined, { numeric: true }));
+}
+
+export type PlumbingPipeTakeoffRow = {
+  id: string;
+  system: PlumbingRunSystem;
+  material: PlumbingMaterial;
+  schedule?: PlumbingPipeSchedule;
+  diameterInches: number | null;
+  stockLengthFt: number;
+  stockLengthPreset: PipeStockLengthPreset;
+  stockLengthKind: PipeStockLengthKind;
+  totalLengthFt: number;
+  stockCount: number;
+  wasteFt: number;
+};
+
+export type PlumbingFittingTakeoffRow = {
+  id: string;
+  type: PlumbingFittingType;
+  system: PlumbingFitting['system'];
+  material: PlumbingMaterial;
+  schedule?: PlumbingPipeSchedule;
+  diameterInches: number | null;
+  count: number;
+};
+
+function distanceMeters(a: PlumbingPoint3D, b: PlumbingPoint3D): number {
+  return Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
+}
+
+export function plumbingRunLengthMeters(run: PlumbingRun): number {
+  let total = 0;
+  for (let index = 1; index < run.path.length; index += 1) {
+    const previous = run.path[index - 1];
+    const current = run.path[index];
+    if (previous && current) total += distanceMeters(previous, current);
+  }
+  return total;
+}
+
+export function plumbingRunLengthFt(run: PlumbingRun): number {
+  return plumbingRunLengthMeters(run) * 3.280839895;
+}
+
+export function generatePlumbingPipeTakeoff(system: PlumbingSystem): PlumbingPipeTakeoffRow[] {
+  const rows = new Map<string, PlumbingPipeTakeoffRow>();
+  system.runs.forEach((run) => {
+    const stockLengthFt = run.stockLengthFt > 0 ? run.stockLengthFt : 0;
+    const key = [
+      run.system,
+      run.material,
+      run.schedule ?? '',
+      run.diameterInches ?? '',
+      stockLengthFt,
+      run.stockLengthKind,
+    ].join('|');
+    const totalLengthFt = plumbingRunLengthFt(run);
+    const existing = rows.get(key);
+    if (existing) {
+      existing.totalLengthFt += totalLengthFt;
+      existing.stockCount = stockLengthFt > 0 ? Math.ceil(existing.totalLengthFt / stockLengthFt) : 0;
+      existing.wasteFt = existing.stockCount * stockLengthFt - existing.totalLengthFt;
+      return;
+    }
+    const stockCount = stockLengthFt > 0 ? Math.ceil(totalLengthFt / stockLengthFt) : 0;
+    rows.set(key, {
+      id: key,
+      system: run.system,
+      material: run.material,
+      schedule: run.schedule,
+      diameterInches: run.diameterInches,
+      stockLengthFt,
+      stockLengthPreset: run.stockLengthPreset,
+      stockLengthKind: run.stockLengthKind,
+      totalLengthFt,
+      stockCount,
+      wasteFt: stockCount * stockLengthFt - totalLengthFt,
+    });
+  });
+  return [...rows.values()];
+}
+
+export function generatePlumbingFittingTakeoff(system: PlumbingSystem): PlumbingFittingTakeoffRow[] {
+  const rows = new Map<string, PlumbingFittingTakeoffRow>();
+  (system.fittings ?? []).forEach((fitting) => {
+    const key = [
+      fitting.system,
+      fitting.material,
+      fitting.schedule ?? '',
+      fitting.diameterInches ?? '',
+      fitting.type,
+    ].join('|');
+    const existing = rows.get(key);
+    if (existing) {
+      existing.count += 1;
+      return;
+    }
+    rows.set(key, {
+      id: key,
+      type: fitting.type,
+      system: fitting.system,
+      material: fitting.material,
+      schedule: fitting.schedule,
+      diameterInches: fitting.diameterInches,
+      count: 1,
+    });
+  });
+  return [...rows.values()];
 }

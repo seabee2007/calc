@@ -1,5 +1,10 @@
 import { getPlumbingFixtureDefinition } from '../plumbingFixtureLibrary';
+import {
+  isFittingAllowedForMaterial,
+  isFittingAllowedForSystem,
+} from './plumbingFittingCompatibility';
 import type {
+  PlumbingMaterial,
   PlumbingPoint3D,
   PlumbingRun,
   PlumbingSystem,
@@ -97,6 +102,10 @@ function runTouchesAnyNode(run: PlumbingRun, nodeIds: Set<string>): boolean {
   return nodeIds.has(run.startNodeId) || nodeIds.has(run.endNodeId);
 }
 
+function requiresSchedule(material: PlumbingMaterial): boolean {
+  return material === 'pvc' || material === 'abs' || material === 'cpvc' || material === 'cast_iron';
+}
+
 export function validatePlumbingSystem(
   system: PlumbingSystem,
   context: PlumbingValidationContext = {},
@@ -175,6 +184,77 @@ export function validatePlumbingSystem(
         message: 'Sanitary run is missing slope.',
       }));
     }
+    if (run.stockLengthFt == null || !Number.isFinite(run.stockLengthFt)) {
+      issues.push(issue({
+        severity: 'warning',
+        code: 'run_missing_stock_length',
+        objectKind: 'run',
+        objectId: run.id,
+        message: 'Pipe run is missing stock length.',
+      }));
+    } else if (run.stockLengthFt <= 0) {
+      issues.push(issue({
+        severity: 'warning',
+        code: 'invalid_stock_length',
+        objectKind: 'run',
+        objectId: run.id,
+        message: 'Pipe run stock length must be greater than 0.',
+      }));
+    }
+  });
+
+  (system.fittings ?? []).forEach((fitting) => {
+    if (fitting.system !== 'multi' && !isFittingAllowedForSystem(fitting.type, fitting.system)) {
+      issues.push(issue({
+        severity: 'warning',
+        code: 'invalid_fitting_for_system',
+        objectKind: 'fitting',
+        objectId: fitting.id,
+        message: `${fitting.type.replace(/_/g, ' ')} is not valid for ${fitting.system.replace('_', ' ')} piping.`,
+      }));
+    }
+    if (!isFittingAllowedForMaterial(fitting.type, fitting.material)) {
+      issues.push(issue({
+        severity: 'warning',
+        code: 'invalid_fitting_for_material',
+        objectKind: 'fitting',
+        objectId: fitting.id,
+        message: `${fitting.type.replace(/_/g, ' ')} is not valid for ${fitting.material}.`,
+      }));
+    }
+    if (fitting.diameterInches == null || !Number.isFinite(fitting.diameterInches)) {
+      issues.push(issue({
+        severity: 'warning',
+        code: 'fitting_missing_diameter',
+        objectKind: 'fitting',
+        objectId: fitting.id,
+        message: 'Fitting is missing diameter.',
+      }));
+    }
+    if (requiresSchedule(fitting.material) && !fitting.schedule) {
+      issues.push(issue({
+        severity: 'warning',
+        code: 'fitting_missing_schedule',
+        objectKind: 'fitting',
+        objectId: fitting.id,
+        message: 'Rigid pipe fitting is missing schedule.',
+      }));
+    }
+    const connectedRuns = fitting.connectedRunIds
+      .map((runId) => system.runs.find((run) => run.id === runId))
+      .filter((run): run is PlumbingRun => Boolean(run));
+    if (
+      fitting.diameterInches != null &&
+      connectedRuns.some((run) => run.diameterInches != null && run.diameterInches !== fitting.diameterInches && run.diameterInches !== fitting.secondaryDiameterInches)
+    ) {
+      issues.push(issue({
+        severity: 'warning',
+        code: 'fitting_diameter_mismatch',
+        objectKind: 'fitting',
+        objectId: fitting.id,
+        message: 'Fitting diameter does not match connected pipe run diameter.',
+      }));
+    }
   });
 
   const sanitaryExitNodes = new Set(
@@ -240,7 +320,7 @@ export function validatePlumbingSystem(
       (node.fixtureId && system.fixtures.some((fixture) => fixture.id === node.fixtureId)) ||
       (node.equipmentId && system.equipment.some((equipment) => equipment.id === node.equipmentId)) ||
       (node.septicTankId && system.septicTanks.some((tank) => tank.id === node.septicTankId));
-    if (!owned && !['building_drain_exit', 'main_service', 'stack', 'cleanout', 'valve'].includes(node.kind)) {
+    if (!owned && !['building_drain_exit', 'main_service', 'stack', 'cleanout', 'valve', 'fitting', 'wye'].includes(node.kind)) {
       issues.push(issue({
         severity: 'warning',
         code: 'orphan_node',

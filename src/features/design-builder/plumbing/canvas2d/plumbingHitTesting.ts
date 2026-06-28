@@ -15,6 +15,12 @@ export function hitTestPlumbingSystem(params: {
   toleranceMeters: number;
 }): PlumbingSelection {
   const { system, point, toleranceMeters } = params;
+  for (const fitting of [...(system.fittings ?? [])].reverse()) {
+    const node = system.nodes.find((candidate) => candidate.id === fitting.nodeId);
+    if (node && Math.hypot(node.position.x - point.x, node.position.z - point.z) <= toleranceMeters * 1.5) {
+      return { kind: 'fitting', id: fitting.id };
+    }
+  }
   for (const equipment of [...system.equipment].reverse()) {
     if (Math.hypot(equipment.position.x - point.x, equipment.position.z - point.z) <= toleranceMeters * 1.35) {
       return { kind: 'equipment', id: equipment.id };

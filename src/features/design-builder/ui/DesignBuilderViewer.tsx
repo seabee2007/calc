@@ -427,9 +427,53 @@ export default function DesignBuilderViewer({
         root.add(septicGroup);
       }
 
+      function addPlumbingFittingPlaceholders() {
+        const fittings = currentPlumbingSystem?.fittings ?? [];
+        const nodes = currentPlumbingSystem?.nodes ?? [];
+        if (fittings.length === 0) return;
+        const group = new THREE.Group();
+        group.name = 'plumbingFittingPlaceholderGroup';
+        const material = new THREE.MeshStandardMaterial({
+          color: 0x0f172a,
+          roughness: 0.6,
+          metalness: 0.05,
+        });
+        trackMat(material);
+        const sleeveMaterial = new THREE.MeshStandardMaterial({
+          color: 0x38bdf8,
+          transparent: true,
+          opacity: 0.28,
+          roughness: 0.5,
+        });
+        trackMat(sleeveMaterial);
+        fittings.forEach((fitting) => {
+          const node = nodes.find((candidate) => candidate.id === fitting.nodeId);
+          if (!node) return;
+          const y =
+            fitting.elevationMode === 'overhead'
+              ? currentWall.heightMeters + currentSlab.slabThicknessMeters
+              : fitting.elevationMode === 'in_wall'
+                ? currentSlab.slabThicknessMeters + 0.7
+                : currentSlab.slabThicknessMeters + 0.08;
+          const geometry = fitting.type.includes('sleeve')
+            ? new THREE.CylinderGeometry(0.07, 0.07, 0.35, 16)
+            : fitting.type.includes('valve')
+              ? new THREE.BoxGeometry(0.18, 0.12, 0.12)
+              : new THREE.SphereGeometry(0.075, 16, 12);
+          trackGeometry(geometry);
+          const mesh = new THREE.Mesh(geometry, fitting.type.includes('sleeve') ? sleeveMaterial : material);
+          mesh.name = `plumbing fitting ${fitting.type}`;
+          mesh.position.set(node.position.x, y, node.position.z);
+          mesh.userData.plumbingFittingId = fitting.id;
+          group.add(mesh);
+        });
+        if (group.children.length > 0) root.add(group);
+      }
+
       if (blankGeometryActive) {
         addSupplementalPlacedComponents();
         addSepticSiteUtilities();
+        addPlumbingFittingPlaceholders();
         clearGhost();
         return;
       }
@@ -680,6 +724,7 @@ export default function DesignBuilderViewer({
 
       addSupplementalPlacedComponents();
       addSepticSiteUtilities();
+      addPlumbingFittingPlaceholders();
       refreshSiteGroundMaterial();
       updateGhost();
     }

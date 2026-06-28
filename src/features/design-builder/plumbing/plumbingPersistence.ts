@@ -3,7 +3,16 @@ import {
   defaultPipeScheduleForMaterial,
   PLUMBING_SYSTEM_SCHEMA_VERSION,
 } from './plumbingDefaults';
+import { defaultStockLengthForPipe, stockLengthOptionForPreset } from './domain/plumbingStockLengths';
+import {
+  fittingDefinition,
+  isFittingAllowedForMaterial,
+  isFittingAllowedForSystem,
+} from './domain/plumbingFittingCompatibility';
+import type { PlumbingFitting, PlumbingFittingType } from './plumbingFittingTypes';
 import type {
+  PipeStockLengthKind,
+  PipeStockLengthPreset,
   PlumbingCodeProfileId,
   PlumbingEquipment,
   PlumbingFixture,
@@ -35,6 +44,20 @@ const MATERIALS: PlumbingMaterial[] = [
 ];
 
 const PIPE_SCHEDULES: PlumbingPipeSchedule[] = ['SCH 40', 'SCH 80', 'N/A'];
+const STOCK_LENGTH_PRESETS: PipeStockLengthPreset[] = [
+  '2ft',
+  '5ft',
+  '10ft',
+  '20ft',
+  '10ft_stick',
+  '20ft_stick',
+  '100ft_coil',
+  '300ft_coil',
+  '500ft_coil',
+  '1000ft_coil',
+  'custom',
+];
+const STOCK_LENGTH_KINDS: PipeStockLengthKind[] = ['stick', 'coil', 'custom'];
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === 'object');
@@ -56,6 +79,16 @@ function normalizePipeSchedule(value: unknown, material: PlumbingMaterial): Plum
     : defaultPipeScheduleForMaterial(material);
 }
 
+function normalizeStockLengthPreset(value: unknown, material: PlumbingMaterial): PipeStockLengthPreset | null {
+  if (!STOCK_LENGTH_PRESETS.includes(value as PipeStockLengthPreset)) return null;
+  const preset = value as PipeStockLengthPreset;
+  return preset === 'custom' || stockLengthOptionForPreset(material, preset) ? preset : null;
+}
+
+function normalizeStockLengthKind(value: unknown, fallback: PipeStockLengthKind): PipeStockLengthKind {
+  return STOCK_LENGTH_KINDS.includes(value as PipeStockLengthKind) ? value as PipeStockLengthKind : fallback;
+}
+
 function hasStringId(value: unknown): value is { id: string } {
   return isRecord(value) && typeof value.id === 'string' && value.id.length > 0;
 }
@@ -68,12 +101,69 @@ function normalizeRuns(value: unknown): PlumbingRun[] {
   return normalizeArray(value, hasStringId).map((run) => {
     const raw = run as PlumbingRun & Record<string, unknown>;
     const material = normalizeMaterial(raw.material, 'pvc');
+    const system = raw.system === 'cold_water' || raw.system === 'hot_water' || raw.system === 'sanitary' || raw.system === 'vent'
+      ? raw.system
+      : 'sanitary';
+    const stockDefaults = defaultStockLengthForPipe({ material, system });
+    const stockLengthPreset = normalizeStockLengthPreset(raw.stockLengthPreset, material) ?? stockDefaults.stockLengthPreset;
+    const option = stockLengthOptionForPreset(material, stockLengthPreset);
+    const stockLengthFt =
+      typeof raw.stockLengthFt === 'number' && Number.isFinite(raw.stockLengthFt) && raw.stockLengthFt > 0
+        ? raw.stockLengthFt
+        : option?.lengthFt ?? stockDefaults.stockLengthFt;
+    const stockLengthKind = normalizeStockLengthKind(raw.stockLengthKind, option?.kind ?? stockDefaults.stockLengthKind);
     return {
       ...raw,
+      system,
       material,
       schedule: normalizePipeSchedule(raw.schedule, material),
+      stockLengthFt,
+      stockLengthPreset,
+      stockLengthKind,
       labelVisible: typeof raw.labelVisible === 'boolean' ? raw.labelVisible : true,
     } as PlumbingRun;
+  });
+}
+
+function normalizeFittings(value: unknown): PlumbingFitting[] {
+  return normalizeArray(value, hasStringId).flatMap((fitting) => {
+    const raw = fitting as PlumbingFitting & Record<string, unknown>;
+    const type = raw.type as PlumbingFittingType;
+    if (!fittingDefinition(type)) return [];
+    const material = normalizeMaterial(raw.material, 'pvc');
+    const system =
+      raw.system === 'cold_water' || raw.system === 'hot_water' || raw.system === 'sanitary' || raw.system === 'vent'
+        ? raw.system
+        : 'multi';
+    if (system !== 'multi' && (!isFittingAllowedForSystem(type, system) || !isFittingAllowedForMaterial(type, material))) {
+      return [];
+    }
+    return [{
+      ...raw,
+      type,
+      system,
+      connectedRunIds: Array.isArray(raw.connectedRunIds)
+        ? raw.connectedRunIds.filter((id): id is string => typeof id === 'string')
+        : [],
+      diameterInches: typeof raw.diameterInches === 'number' && Number.isFinite(raw.diameterInches) ? raw.diameterInches : null,
+      secondaryDiameterInches:
+        typeof raw.secondaryDiameterInches === 'number' && Number.isFinite(raw.secondaryDiameterInches)
+          ? raw.secondaryDiameterInches
+          : undefined,
+      material,
+      schedule: normalizePipeSchedule(raw.schedule, material),
+      rotationRad: typeof raw.rotationRad === 'number' && Number.isFinite(raw.rotationRad) ? raw.rotationRad : 0,
+      elevationMode:
+        raw.elevationMode === 'under_slab' ||
+        raw.elevationMode === 'in_wall' ||
+        raw.elevationMode === 'overhead' ||
+        raw.elevationMode === 'vertical' ||
+        raw.elevationMode === 'user_defined'
+          ? raw.elevationMode
+          : 'in_wall',
+      labelVisible: typeof raw.labelVisible === 'boolean' ? raw.labelVisible : true,
+      isAutoGenerated: typeof raw.isAutoGenerated === 'boolean' ? raw.isAutoGenerated : false,
+    }];
   });
 }
 
@@ -88,6 +178,7 @@ export function normalizePlumbingSystem(raw: unknown): PlumbingSystem {
     fixtures: normalizeArray(raw.fixtures, hasStringId) as PlumbingFixture[],
     nodes: normalizeArray(raw.nodes, hasStringId) as PlumbingNode[],
     runs: normalizeRuns(raw.runs),
+    fittings: normalizeFittings(raw.fittings),
     equipment: normalizeArray(raw.equipment, hasStringId) as PlumbingEquipment[],
     septicTanks: normalizeSepticTanks(raw.septicTanks),
     settings: {

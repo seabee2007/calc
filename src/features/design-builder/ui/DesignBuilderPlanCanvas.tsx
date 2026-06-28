@@ -71,6 +71,7 @@ import {
 import {
   createCmuSepticTank,
   hitTestSepticTank,
+  type PlumbingEquipment,
   type PlumbingFixture,
   type PlumbingFixtureType,
   type PlumbingRunDraft,
@@ -351,6 +352,7 @@ interface DesignBuilderPlanCanvasProps {
   componentPreview?: PlacedDesignComponent | null;
   plumbingSystem?: PlumbingSystem;
   activePlumbingFixtureType?: PlumbingFixtureType | null;
+  plumbingEquipmentPreview?: PlumbingEquipment | null;
   activePlumbingToolMode?: PlumbingToolMode;
   plumbingFixtureRotationRad?: number;
   plumbingRunDraft?: PlumbingRunDraft | null;
@@ -418,6 +420,7 @@ export default function DesignBuilderPlanCanvas({
   componentPreview = null,
   plumbingSystem,
   activePlumbingFixtureType = null,
+  plumbingEquipmentPreview = null,
   activePlumbingToolMode = 'select',
   plumbingFixtureRotationRad = 0,
   plumbingRunDraft = null,
@@ -2750,6 +2753,7 @@ export default function DesignBuilderPlanCanvas({
         isolatedFootings={isolatedFootings}
         frameSystem={frameSystem}
         fixturePreview={plumbingFixturePreview}
+        equipmentPreview={plumbingEquipmentPreview}
         septicTankPreview={septicTankPreview}
         runDraft={plumbingRunDraft}
         selected={selectedPlumbingObject}

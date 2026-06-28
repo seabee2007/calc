@@ -9,6 +9,40 @@ export type PlumbingSnapPoint = {
   pointIndex?: number;
 };
 
+export type PlumbingRunSegmentSnap = {
+  run: PlumbingRun;
+  runId: string;
+  segmentIndex: number;
+  point: PlumbingPoint3D;
+  distanceMeters: number;
+};
+
+function projectPointToSegment(
+  point: { x: number; z: number },
+  a: PlumbingPoint3D,
+  b: PlumbingPoint3D,
+): { point: PlumbingPoint3D; distanceMeters: number } {
+  const dx = b.x - a.x;
+  const dz = b.z - a.z;
+  const lenSq = dx * dx + dz * dz;
+  if (lenSq <= 0) {
+    return {
+      point: a,
+      distanceMeters: Math.hypot(point.x - a.x, point.z - a.z),
+    };
+  }
+  const t = Math.max(0, Math.min(1, ((point.x - a.x) * dx + (point.z - a.z) * dz) / lenSq));
+  const projected = {
+    x: a.x + t * dx,
+    y: a.y + ((b.y ?? 0) - (a.y ?? 0)) * t,
+    z: a.z + t * dz,
+  };
+  return {
+    point: projected,
+    distanceMeters: Math.hypot(point.x - projected.x, point.z - projected.z),
+  };
+}
+
 export function collectPlumbingSnapPoints(system: PlumbingSystem): PlumbingSnapPoint[] {
   const points: PlumbingSnapPoint[] = [];
   system.nodes.forEach((node) => {
@@ -45,4 +79,35 @@ export function findNearestPlumbingNode(params: {
     if (!best || distance < best.distance) best = { node, distance };
   });
   return best?.node ?? null;
+}
+
+export function findNearestPlumbingRunSegment(params: {
+  system: PlumbingSystem;
+  point: { x: number; z: number };
+  toleranceMeters: number;
+  systemFilter?: PlumbingRun['system'];
+  excludeRunIds?: ReadonlySet<string>;
+}): PlumbingRunSegmentSnap | null {
+  let best: PlumbingRunSegmentSnap | null = null;
+  params.system.runs.forEach((run) => {
+    if (params.systemFilter && run.system !== params.systemFilter) return;
+    if (params.excludeRunIds?.has(run.id)) return;
+    for (let index = 1; index < run.path.length; index += 1) {
+      const previous = run.path[index - 1];
+      const current = run.path[index];
+      if (!previous || !current) continue;
+      const projected = projectPointToSegment(params.point, previous, current);
+      if (projected.distanceMeters > params.toleranceMeters) continue;
+      if (!best || projected.distanceMeters < best.distanceMeters) {
+        best = {
+          run,
+          runId: run.id,
+          segmentIndex: index,
+          point: projected.point,
+          distanceMeters: projected.distanceMeters,
+        };
+      }
+    }
+  });
+  return best;
 }

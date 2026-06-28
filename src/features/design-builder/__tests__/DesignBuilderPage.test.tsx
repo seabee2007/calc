@@ -50,7 +50,7 @@ vi.mock('../ui/DesignBuilderPlanCanvas', () => ({
     onComponentPointer?: (event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number }) => void;
     onSepticTankPointer?: (event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number; rotationRad: number }) => void;
     onPlumbingPlanPointer?: (event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number; shiftHeld?: boolean }) => void;
-    onPlumbingSelect?: (selection: { kind: 'none' } | { kind: 'fixture'; id: string } | { kind: 'run'; id: string } | { kind: 'run-route-point'; runId: string; pointIndex: number } | { kind: 'node'; id: string } | { kind: 'equipment'; id: string } | { kind: 'septic-tank'; id: string }) => void;
+    onPlumbingSelect?: (selection: { kind: 'none' } | { kind: 'fixture'; id: string } | { kind: 'run'; id: string } | { kind: 'run-route-point'; runId: string; pointIndex: number } | { kind: 'fitting'; id: string } | { kind: 'node'; id: string } | { kind: 'equipment'; id: string } | { kind: 'septic-tank'; id: string }) => void;
     plumbingFixtureRotationRad?: number;
     placedComponents?: unknown[];
     designRenderModel?: { rcComponents?: Array<{ type?: string; system?: string; position?: { x?: number; z?: number } }> };
@@ -156,7 +156,7 @@ function latestPlanProps() {
     onComponentPointer?: (event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number }) => void;
     onSepticTankPointer?: (event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number; rotationRad: number }) => void;
     onPlumbingPlanPointer?: (event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number; shiftHeld?: boolean }) => void;
-    onPlumbingSelect?: (selection: { kind: 'none' } | { kind: 'fixture'; id: string } | { kind: 'run'; id: string } | { kind: 'run-route-point'; runId: string; pointIndex: number } | { kind: 'node'; id: string } | { kind: 'equipment'; id: string } | { kind: 'septic-tank'; id: string }) => void;
+    onPlumbingSelect?: (selection: { kind: 'none' } | { kind: 'fixture'; id: string } | { kind: 'run'; id: string } | { kind: 'run-route-point'; runId: string; pointIndex: number } | { kind: 'fitting'; id: string } | { kind: 'node'; id: string } | { kind: 'equipment'; id: string } | { kind: 'septic-tank'; id: string }) => void;
     plumbingFixtureRotationRad?: number;
     placedComponents?: unknown[];
     designRenderModel?: { rcComponents?: Array<{ type?: string; system?: string; position?: { x?: number; z?: number } }> };
@@ -762,7 +762,17 @@ describe('DesignBuilderPage', () => {
     expect(screen.getByRole('button', { name: /^Cold Water$/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /^Hot Water$/i })).toBeInTheDocument();
     expect(screen.getByDisplayValue('SCH 40')).toBeInTheDocument();
+    expect(screen.getByLabelText(/pipe length/i)).toBeInTheDocument();
+    expect(screen.getByDisplayValue('10 ft stick')).toBeInTheDocument();
     expect(screen.getByText(/Pipe Tool - Sanitary - Click start node, route points, then end node - Shift snaps angle - Esc finishes/i)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /^Cold Water$/i }));
+    expect(screen.getByDisplayValue('100 ft coil')).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: /^10 ft stick$/i })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: /^20 ft stick$/i })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: /^300 ft coil$/i })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: /^1000 ft coil$/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Drop Ear Elbow/i })).toBeInTheDocument();
   });
 
   it('shift-snaps plumbing run points and finishes the visible draft on Escape', async () => {
@@ -803,6 +813,14 @@ describe('DesignBuilderPage', () => {
         shiftHeld: true,
       });
     });
+    await act(async () => {
+      latestPlanProps().onPlumbingPlanPointer?.({
+        phase: 'preview',
+        xMeters: startNode!.position.x + 2,
+        zMeters: startNode!.position.z + 1.16,
+        shiftHeld: true,
+      });
+    });
     await waitFor(() => {
       const draft = useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']?.plumbingSystem.runs;
       expect(draft).toHaveLength(0);
@@ -821,9 +839,90 @@ describe('DesignBuilderPage', () => {
         slopeInPerFt: 0.25,
         labelVisible: true,
       });
+      expect(run!.path).toHaveLength(3);
       const end = run!.path.at(-1)!;
+      expect(end.x).toBeGreaterThan(startNode!.position.x + 1.5);
       const angle = ((Math.atan2(end.z - startNode!.position.z, end.x - startNode!.position.x) * 180) / Math.PI + 360) % 360;
       expect(angle).toBeCloseTo(30, 0);
+    });
+  });
+
+  it('snaps sanitary branches to existing pipe runs with a wye fitting', async () => {
+    seedLoadedDesignBuilderTemplate();
+    render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
+    await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
+
+    fireEvent.click(screen.getByRole('button', { name: /switch to 2d view/i }));
+    fireEvent.click(screen.getByRole('button', { name: /switch to plumbing drawing/i }));
+
+    await act(async () => {
+      latestPlanProps().onPlumbingFixturePointer?.({ phase: 'commit', xMeters: 1, zMeters: 1 });
+    });
+    await waitFor(() => {
+      expect(useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']?.plumbingSystem.fixtures).toHaveLength(1);
+    });
+    await act(async () => {
+      latestPlanProps().onPlumbingFixturePointer?.({ phase: 'commit', xMeters: 1, zMeters: 3 });
+    });
+    await waitFor(() => {
+      expect(useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']?.plumbingSystem.fixtures).toHaveLength(2);
+    });
+
+    const sanitaryNodes = useDesignBuilderSessionStore
+      .getState()
+      .sessions['project-1:estimate-1']!
+      .plumbingSystem.nodes.filter((node) => node.system === 'sanitary' && node.fixtureId)
+      .sort((a, b) => a.position.z - b.position.z);
+    const mainStart = sanitaryNodes[0]!;
+    const branchStart = sanitaryNodes[1]!;
+    const mainEnd = { x: mainStart.position.x + 4, z: mainStart.position.z };
+    const branchTieIn = { x: mainStart.position.x + 2, z: mainStart.position.z };
+
+    fireEvent.click(screen.getByRole('button', { name: /^pipe$/i }));
+    await act(async () => {
+      latestPlanProps().onPlumbingPlanPointer?.({
+        phase: 'commit',
+        xMeters: mainStart.position.x,
+        zMeters: mainStart.position.z,
+      });
+    });
+    await act(async () => {
+      latestPlanProps().onPlumbingPlanPointer?.({
+        phase: 'preview',
+        xMeters: mainEnd.x,
+        zMeters: mainEnd.z,
+      });
+    });
+    fireEvent.keyDown(window, { key: 'Escape' });
+    await waitFor(() => {
+      expect(useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']?.plumbingSystem.runs).toHaveLength(1);
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /^pipe$/i }));
+    await act(async () => {
+      latestPlanProps().onPlumbingPlanPointer?.({
+        phase: 'commit',
+        xMeters: branchStart.position.x,
+        zMeters: branchStart.position.z,
+      });
+    });
+    await act(async () => {
+      latestPlanProps().onPlumbingPlanPointer?.({
+        phase: 'commit',
+        xMeters: branchTieIn.x,
+        zMeters: branchTieIn.z + 0.03,
+      });
+    });
+
+    await waitFor(() => {
+      const plumbingSystem = useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']!.plumbingSystem;
+      const wye = plumbingSystem.nodes.find((node) => node.kind === 'wye');
+      expect(wye).toBeTruthy();
+      expect(Math.hypot(wye!.position.x - branchTieIn.x, wye!.position.z - branchTieIn.z)).toBeLessThan(0.05);
+      expect(plumbingSystem.runs).toHaveLength(3);
+      expect(plumbingSystem.runs.some((run) => run.startNodeId === branchStart.id && run.endNodeId === wye?.id)).toBe(true);
+      expect(plumbingSystem.runs.filter((run) => run.startNodeId === wye?.id || run.endNodeId === wye?.id)).toHaveLength(3);
+      expect(plumbingSystem.fittings.some((fitting) => fitting.type === 'wye' && fitting.nodeId === wye?.id)).toBe(true);
     });
   });
 
@@ -902,9 +1001,42 @@ describe('DesignBuilderPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /switch to 2d view/i }));
     fireEvent.click(screen.getByRole('button', { name: /switch to plumbing drawing/i }));
 
-    fireEvent.click(screen.getByRole('button', { name: /^cleanout$/i }));
     await act(async () => {
-      latestPlanProps().onPlumbingPlanPointer?.({ phase: 'commit', xMeters: 1, zMeters: 1 });
+      latestPlanProps().onPlumbingFixturePointer?.({ phase: 'commit', xMeters: 0, zMeters: 0 });
+      latestPlanProps().onPlumbingFixturePointer?.({ phase: 'commit', xMeters: 3, zMeters: 0 });
+    });
+    let plumbingSystem = useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']!.plumbingSystem;
+    let sanitaryNodes = plumbingSystem.nodes.filter((node) => node.system === 'sanitary');
+    expect(sanitaryNodes.length).toBeGreaterThanOrEqual(2);
+
+    fireEvent.click(screen.getByRole('button', { name: /^pipe$/i }));
+    await act(async () => {
+      latestPlanProps().onPlumbingPlanPointer?.({
+        phase: 'commit',
+        xMeters: sanitaryNodes[0]!.position.x,
+        zMeters: sanitaryNodes[0]!.position.z,
+      });
+    });
+    await act(async () => {
+      latestPlanProps().onPlumbingPlanPointer?.({
+        phase: 'commit',
+        xMeters: sanitaryNodes[1]!.position.x,
+        zMeters: sanitaryNodes[1]!.position.z,
+      });
+    });
+    await waitFor(() => {
+      expect(useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']?.plumbingSystem.runs).toHaveLength(1);
+    });
+    plumbingSystem = useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']!.plumbingSystem;
+    sanitaryNodes = plumbingSystem.nodes.filter((node) => node.system === 'sanitary');
+    const midpoint = {
+      x: (sanitaryNodes[0]!.position.x + sanitaryNodes[1]!.position.x) / 2,
+      z: (sanitaryNodes[0]!.position.z + sanitaryNodes[1]!.position.z) / 2,
+    };
+
+    fireEvent.change(screen.getByLabelText(/plumbing action menu/i), { target: { value: 'cleanout' } });
+    await act(async () => {
+      latestPlanProps().onPlumbingPlanPointer?.({ phase: 'commit', xMeters: midpoint.x, zMeters: midpoint.z });
     });
     await waitFor(() => {
       expect(useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']?.plumbingSystem.equipment).toHaveLength(1);

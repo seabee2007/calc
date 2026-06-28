@@ -1,4 +1,5 @@
 import type { SepticTankModel } from './septic/septicTypes';
+import type { PlumbingFitting } from './plumbingFittingTypes';
 
 export type PlumbingCodeProfileId =
   | 'conceptual'
@@ -41,6 +42,8 @@ export type PlumbingFixtureType =
 export type PlumbingNodeKind =
   | 'fixture_connection'
   | 'equipment_connection'
+  | 'fitting'
+  | 'wye'
   | 'stack'
   | 'building_drain_exit'
   | 'main_service'
@@ -63,6 +66,21 @@ export type PlumbingPipeSchedule =
   | 'SCH 40'
   | 'SCH 80'
   | 'N/A';
+
+export type PipeStockLengthPreset =
+  | '2ft'
+  | '5ft'
+  | '10ft'
+  | '20ft'
+  | '10ft_stick'
+  | '20ft_stick'
+  | '100ft_coil'
+  | '300ft_coil'
+  | '500ft_coil'
+  | '1000ft_coil'
+  | 'custom';
+
+export type PipeStockLengthKind = 'stick' | 'coil' | 'custom';
 
 export type PlumbingElevationMode =
   | 'under_slab'
@@ -116,6 +134,9 @@ export type PlumbingRun = {
   diameterInches: number | null;
   material: PlumbingMaterial;
   schedule?: PlumbingPipeSchedule;
+  stockLengthFt: number;
+  stockLengthPreset: PipeStockLengthPreset;
+  stockLengthKind: PipeStockLengthKind;
   slopeInPerFt?: number;
   elevationMode: PlumbingElevationMode;
   labelVisible: boolean;
@@ -154,6 +175,7 @@ export type PlumbingSystem = {
   fixtures: PlumbingFixture[];
   nodes: PlumbingNode[];
   runs: PlumbingRun[];
+  fittings: PlumbingFitting[];
   equipment: PlumbingEquipment[];
   septicTanks: SepticTankModel[];
   settings: PlumbingSettings;
@@ -163,6 +185,7 @@ export type PlumbingSelection =
   | { kind: 'fixture'; id: string }
   | { kind: 'run'; id: string }
   | { kind: 'run-route-point'; runId: string; pointIndex: number }
+  | { kind: 'fitting'; id: string }
   | { kind: 'node'; id: string }
   | { kind: 'equipment'; id: string }
   | { kind: 'septic-tank'; id: string }
@@ -173,6 +196,9 @@ export type PlumbingRunDraft = {
   startNodeId: string;
   routePoints: PlumbingPoint3D[];
   previewPoint?: PlumbingPoint3D;
+  previewSnap?:
+    | { kind: 'node'; nodeId: string }
+    | { kind: 'run-segment'; runId: string; segmentIndex: number; point: PlumbingPoint3D };
 };
 
 export type PlumbingValidationSeverity = 'error' | 'warning';
@@ -192,9 +218,16 @@ export type PlumbingValidationIssue = {
     | 'duplicate_fixture_mark'
     | 'orphan_node'
     | 'pipe_crosses_foundation'
-    | 'pipe_crosses_rc_column';
+    | 'pipe_crosses_rc_column'
+    | 'run_missing_stock_length'
+    | 'invalid_stock_length'
+    | 'invalid_fitting_for_system'
+    | 'invalid_fitting_for_material'
+    | 'fitting_missing_diameter'
+    | 'fitting_diameter_mismatch'
+    | 'fitting_missing_schedule';
   message: string;
-  objectKind: 'fixture' | 'run' | 'node' | 'foundation' | 'system';
+  objectKind: 'fixture' | 'run' | 'node' | 'fitting' | 'foundation' | 'system';
   objectId?: string;
 };
 
