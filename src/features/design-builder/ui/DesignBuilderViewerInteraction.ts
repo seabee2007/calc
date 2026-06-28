@@ -200,6 +200,14 @@ export function createDesignBuilderViewerInteractionController(params: {
       });
       return;
     }
+    if (pick?.data.plumbingSelection) {
+      params.emitInteraction({
+        kind: 'select_plumbing',
+        toolMode: mode,
+        plumbingSelection: pick.data.plumbingSelection,
+      });
+      return;
+    }
     const objectType = pick?.data.designObjectType;
     if (objectType) {
       params.selectObjectType(objectType);

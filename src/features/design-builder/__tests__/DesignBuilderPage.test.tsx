@@ -349,15 +349,9 @@ describe('DesignBuilderPage', () => {
     fireEvent.pointerDown(document.body);
     await waitFor(() => expect(openCommandMenus()).toHaveLength(0));
 
-    openMenuByKind('view');
-    expect(screen.getByRole('menuitem', { name: /fit height/i })).toBeInTheDocument();
-    expect(screen.getByRole('menuitem', { name: /60%/i })).toBeInTheDocument();
-    expect(screen.getByRole('menuitem', { name: /80%/i })).toBeInTheDocument();
-    expect(screen.getByRole('menuitem', { name: /full height/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^view$/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^display$/i })).toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: /^fit$/i }).length).toBeGreaterThan(0);
-    expect(screen.getByRole('menuitem', { name: /reset view/i })).toBeInTheDocument();
-    fireEvent.pointerDown(document.body);
-    await waitFor(() => expect(openCommandMenus()).toHaveLength(0));
 
     openMenuByKind('workspace-actions');
     fireEvent.click(screen.getByRole('menuitem', { name: /^tools$/i }));
@@ -675,6 +669,7 @@ describe('DesignBuilderPage', () => {
     await waitFor(() => {
       expect(useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']?.plumbingSystem.fixtures).toHaveLength(1);
     });
+    fireEvent.click(screen.getByRole('button', { name: /open plumbing legend/i }));
     expect(screen.getByText(/cold water supply/i)).toBeInTheDocument();
     expect(screen.getByText(/sanitary waste line/i)).toBeInTheDocument();
 
@@ -1642,7 +1637,7 @@ describe('DesignBuilderPage', () => {
     fireEvent.pointerDown(document.body);
     await waitFor(() => expect(openCommandMenus()).toHaveLength(0));
 
-    openMenuByKind('view');
+    openDisplayMenu();
     expect(openCommandMenus()).toHaveLength(1);
     fireEvent.keyDown(window, { key: 'Escape' });
     await waitFor(() => expect(openCommandMenus()).toHaveLength(0));

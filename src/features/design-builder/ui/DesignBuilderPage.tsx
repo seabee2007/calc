@@ -321,6 +321,9 @@ import {
   type PlumbingSystem,
   type PlumbingToolMode,
   type PlumbingValidationIssue,
+  DEFAULT_PLUMBING_3D_VISIBILITY,
+  normalizePlumbing3DVisibility,
+  type Plumbing3DVisibility,
   type SepticTankModel,
 } from '../plumbing';
 import {
@@ -539,6 +542,7 @@ export default function DesignBuilderPage({
   const [plumbingFixtureRotationRad, setPlumbingFixtureRotationRad] = useState(0);
   const [plumbingRunDraft, setPlumbingRunDraft] = useState<PlumbingRunDraft | null>(null);
   const [plumbingEquipmentPreview, setPlumbingEquipmentPreview] = useState<PlumbingEquipment | null>(null);
+  const [plumbingLegendExpanded, setPlumbingLegendExpanded] = useState(false);
   const [selectedPlumbingObject, setSelectedPlumbingObject] = useState<PlumbingSelection | null>(null);
   const [plumbingValidationIssues, setPlumbingValidationIssues] = useState<PlumbingValidationIssue[]>([]);
   const [septicTankPlacementActive, setSepticTankPlacementActive] = useState(false);
@@ -614,6 +618,9 @@ export default function DesignBuilderPage({
   const [roofDisplayMode, setRoofDisplayMode] = useState<RoofDisplayMode>('full_roof');
   const [roofLayerVisibility, setRoofLayerVisibility] = useState<RoofLayerVisibility>(
     DEFAULT_ROOF_LAYER_VISIBILITY,
+  );
+  const [plumbing3DVisibility, setPlumbing3DVisibility] = useState<Plumbing3DVisibility>(
+    DEFAULT_PLUMBING_3D_VISIBILITY,
   );
   const [frameFoundationModalOpen, setFrameFoundationModalOpen] = useState(false);
   const [structureModalRoofDraft, setStructureModalRoofDraft] = useState<RoofSystemSettings | null>(null);
@@ -804,6 +811,9 @@ export default function DesignBuilderPage({
         if (persistedState?.displayPreferences?.visualStyle) {
           setVisualStyle(persistedState.displayPreferences.visualStyle as DesignVisualStyle);
         }
+        setPlumbing3DVisibility(
+          normalizePlumbing3DVisibility(persistedState?.displayPreferences?.plumbing3DVisibility),
+        );
         const loadedMaterialSelections = normalizeDesignMaterialSelection(
           persistedState?.displayPreferences?.materialSelections,
         );
@@ -3985,6 +3995,7 @@ export default function DesignBuilderPage({
           setSelectedOpeningId(null);
           setSelectedSegmentId(null);
           setSelectedNodeId(null);
+          setSelectedPlumbingObject(null);
           setSelectedSepticTankId(null);
           setPlacementPreview(null);
           break;
@@ -3993,10 +4004,17 @@ export default function DesignBuilderPage({
             setSelectedOpeningId(event.openingId);
             setSelectedSegmentId(null);
             setSelectedNodeId(null);
+            setSelectedPlumbingObject(null);
+            setSelectedSepticTankId(null);
             const opening = wall.openings.find((item) => item.id === event.openingId);
             if (opening) {
               setSelectedObjectType(opening.type === 'door' ? 'door_opening' : 'window_opening');
             }
+          }
+          break;
+        case 'select_plumbing':
+          if (event.plumbingSelection) {
+            handlePlumbingSelect(event.plumbingSelection);
           }
           break;
         case 'wall_pick':
@@ -4249,6 +4267,7 @@ export default function DesignBuilderPage({
         roofDisplayMode,
         foundationViewMode,
         visualStyle,
+        plumbing3DVisibility,
         materialSelections,
       }, placedComponents, annotations, plumbingSystem);
       const metadataResult = await updateDesignModelMetadata(activeModel.id, metadata);
@@ -5245,6 +5264,8 @@ export default function DesignBuilderPage({
             onRoofDisplayModeChange={setRoofDisplayMode}
             roofLayerVisibility={roofLayerVisibility}
             onRoofLayerVisibilityChange={setRoofLayerVisibility}
+            plumbing3DVisibility={plumbing3DVisibility}
+            onPlumbing3DVisibilityChange={setPlumbing3DVisibility}
             onUndo={handleUndoDesign}
             onRedo={handleRedoDesign}
             canUndo={canUndoDesignHistory(designHistory)}
@@ -5409,6 +5430,8 @@ export default function DesignBuilderPage({
                 placementPreview={placementPreview}
                 placedComponents={placedComponents}
                 plumbingSystem={plumbingSystem}
+                selectedPlumbingObject={selectedPlumbingObject}
+                plumbing3DVisibility={plumbing3DVisibility}
                 selectedSepticTankId={selectedSepticTankId}
                 designRenderModel={designRenderModel}
                 onInteraction={handleViewerInteraction}
@@ -6156,7 +6179,22 @@ export default function DesignBuilderPage({
                 )}
               </div>
             ) : null}
-            {plumbingPlacementActive && (plumbingValidationIssues.length > 0 || plumbingLegendItems.length > 0) ? (
+            {plumbingPlacementActive && (plumbingValidationIssues.length > 0 || plumbingLegendItems.length > 0) && !plumbingLegendExpanded ? (
+              <button
+                type="button"
+                onClick={() => setPlumbingLegendExpanded(true)}
+                className="absolute bottom-4 left-[13.25rem] z-10 rounded-xl border border-slate-700 bg-slate-900/90 px-3 py-2 text-left text-[11px] font-bold text-slate-100 shadow-sm hover:border-cyan-500 hover:text-cyan-100"
+                aria-label="Open plumbing legend"
+              >
+                <div className="text-cyan-200">Legend</div>
+                <div className="text-[10px] font-semibold text-slate-400">
+                  {plumbingValidationIssues.length > 0
+                    ? `${plumbingValidationIssues.length} validation`
+                    : `${plumbingLegendItems.length} item${plumbingLegendItems.length === 1 ? '' : 's'}`}
+                </div>
+              </button>
+            ) : null}
+            {plumbingPlacementActive && (plumbingValidationIssues.length > 0 || plumbingLegendItems.length > 0) && plumbingLegendExpanded ? (
               <div
                 data-plumbing-overlay-panel="true"
                 className="absolute max-h-64 w-[min(460px,calc(100%-1.5rem))] overflow-auto rounded-lg border border-slate-300 bg-white/95 p-3 text-xs text-slate-800 shadow-lg dark:border-slate-700 dark:bg-slate-900/95 dark:text-slate-100"
@@ -6165,11 +6203,23 @@ export default function DesignBuilderPage({
                 {plumbingLegendItems.length > 0 ? (
                   <div className="mb-2">
                     <div
-                      className="mb-2 cursor-move select-none font-bold text-slate-950 dark:text-white"
+                      className="mb-2 flex cursor-move select-none items-center justify-between gap-3 font-bold text-slate-950 dark:text-white"
                       onPointerDown={(event) => handlePlumbingOverlayDragStart('legend', event)}
                       title="Drag to move legend"
                     >
-                      Legend
+                      <span>Legend</span>
+                      <button
+                        type="button"
+                        onPointerDown={(event) => event.stopPropagation()}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setPlumbingLegendExpanded(false);
+                        }}
+                        className="cursor-pointer rounded-md border border-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                        aria-label="Collapse plumbing legend"
+                      >
+                        Hide
+                      </button>
                     </div>
                     <div className="space-y-2">
                       {activePlumbingLegendRows.map((item) => (
@@ -6228,11 +6278,25 @@ export default function DesignBuilderPage({
                 {plumbingValidationIssues.length > 0 ? (
                   <div>
                     <div
-                      className="mb-1 cursor-move select-none font-bold text-slate-950 dark:text-white"
+                      className="mb-1 flex cursor-move select-none items-center justify-between gap-3 font-bold text-slate-950 dark:text-white"
                       onPointerDown={(event) => handlePlumbingOverlayDragStart('legend', event)}
                       title="Drag to move validation"
                     >
-                      Validation
+                      <span>Validation</span>
+                      {plumbingLegendItems.length === 0 ? (
+                        <button
+                          type="button"
+                          onPointerDown={(event) => event.stopPropagation()}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setPlumbingLegendExpanded(false);
+                          }}
+                          className="cursor-pointer rounded-md border border-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                          aria-label="Collapse plumbing legend"
+                        >
+                          Hide
+                        </button>
+                      ) : null}
                     </div>
                     <ul className="space-y-1">
                       {plumbingValidationIssues.slice(0, 8).map((issue) => (

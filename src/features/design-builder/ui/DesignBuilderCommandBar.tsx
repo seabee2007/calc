@@ -15,6 +15,7 @@ import type {
   RoofDisplayMode,
   RoofLayerVisibility,
 } from "../types";
+import type { Plumbing3DVisibility } from "../plumbing";
 import type { SnapTolerancePreset } from "../snapping/snapTypes";
 import {
   CommandMenuAction,
@@ -22,7 +23,6 @@ import {
 } from "./DesignBuilderCommandMenu";
 import { DesignBuilderDisplayMenu } from "./DesignBuilderDisplayMenu";
 import type { DesignBuilderViewerHeightPreset } from "./DesignBuilderViewMenu";
-import { DesignBuilderViewMenu } from "./DesignBuilderViewMenu";
 import {
   DesignBuilder2DViewTabs,
   DesignBuilderViewModeTabs,
@@ -113,7 +113,13 @@ export type DesignBuilderCommandBarProps = {
   roofDisplayMode: RoofDisplayMode;
   onRoofDisplayModeChange: (value: RoofDisplayMode) => void;
   roofLayerVisibility: RoofLayerVisibility;
-  onRoofLayerVisibilityChange: (value: RoofLayerVisibility) => void;
+  onRoofLayerVisibilityChange: (
+    updater: (current: RoofLayerVisibility) => RoofLayerVisibility,
+  ) => void;
+  plumbing3DVisibility: Plumbing3DVisibility;
+  onPlumbing3DVisibilityChange: (
+    updater: (current: Plumbing3DVisibility) => Plumbing3DVisibility,
+  ) => void;
   onUndo: () => void;
   onRedo: () => void;
   canUndo: boolean;
@@ -497,15 +503,6 @@ export function DesignBuilderCommandBar(props: DesignBuilderCommandBarProps) {
           </button>
         </DesignBuilderCommandMenu>
 
-        <DesignBuilderViewMenu
-          onFitView={props.onFitView}
-          onResetView={props.onResetView}
-          onApplyViewerHeightPreset={props.onApplyViewerHeightPreset}
-          onCloseFootprint={props.onCloseFootprint}
-          closeFootprintEnabled={props.closeFootprintEnabled}
-          onHelp={props.onHelp}
-        />
-
         <DesignBuilderDisplayMenu
           buildingSystemMode={props.buildingSystemMode}
           showOpeningLayout={props.showOpeningLayout}
@@ -541,6 +538,8 @@ export function DesignBuilderCommandBar(props: DesignBuilderCommandBarProps) {
           onRoofDisplayModeChange={props.onRoofDisplayModeChange}
           roofLayerVisibility={props.roofLayerVisibility}
           onRoofLayerVisibilityChange={props.onRoofLayerVisibilityChange}
+          plumbing3DVisibility={props.plumbing3DVisibility}
+          onPlumbing3DVisibilityChange={props.onPlumbing3DVisibilityChange}
         />
 
         <button

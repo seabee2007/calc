@@ -12,7 +12,8 @@ import type {
   ThickenedEdgeSlabParameters,
   DesignVisualStyle,
 } from '../types';
-import type { PlumbingSystem } from '../plumbing';
+import type { PlumbingSelection, PlumbingSystem } from '../plumbing';
+import type { Plumbing3DVisibility } from '../plumbing/three/plumbingThreeUtils';
 import type { DesignLayoutBounds } from '../domain/designLayoutBounds';
 import type { DesignRenderModel } from '../domain/designRenderModel';
 import type { ResolveDesignMaterialOptions } from '../rendering/materials/designMaterialLibrary';
@@ -27,6 +28,8 @@ export interface DesignBuilderViewerModelParams {
   layoutBounds?: DesignLayoutBounds | null;
   placedComponents?: readonly PlacedDesignComponent[];
   plumbingSystem?: PlumbingSystem;
+  selectedPlumbingObject?: PlumbingSelection | null;
+  plumbing3DVisibility?: Plumbing3DVisibility;
   selectedSepticTankId?: string | null;
   designRenderModel?: DesignRenderModel;
   selectedObjectType: DesignObjectType | null;
@@ -57,6 +60,8 @@ export interface DesignBuilderViewerRebuildState {
   currentLayoutBounds: DesignLayoutBounds | null;
   currentPlacedComponents?: readonly PlacedDesignComponent[];
   currentPlumbingSystem?: PlumbingSystem;
+  currentSelectedPlumbingObject?: PlumbingSelection | null;
+  currentPlumbing3DVisibility?: Plumbing3DVisibility;
   currentSelectedSepticTankId?: string | null;
   currentDesignRenderModel?: DesignRenderModel;
   currentSelectedObjectType: DesignObjectType | null;
@@ -124,6 +129,8 @@ export function createDesignBuilderViewerRebuildState(params: {
     currentLayoutBounds: modelParams.layoutBounds ?? null,
     currentPlacedComponents: modelParams.placedComponents,
     currentPlumbingSystem: modelParams.plumbingSystem,
+    currentSelectedPlumbingObject: modelParams.selectedPlumbingObject ?? null,
+    currentPlumbing3DVisibility: modelParams.plumbing3DVisibility,
     currentSelectedSepticTankId: modelParams.selectedSepticTankId ?? null,
     currentDesignRenderModel: modelParams.designRenderModel,
     currentSelectedObjectType: modelParams.selectedObjectType,

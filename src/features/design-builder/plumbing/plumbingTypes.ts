@@ -225,9 +225,18 @@ export type PlumbingValidationIssue = {
     | 'invalid_fitting_for_material'
     | 'fitting_missing_diameter'
     | 'fitting_diameter_mismatch'
-    | 'fitting_missing_schedule';
+    | 'fitting_missing_schedule'
+    | 'sanitary_run_slopes_wrong_direction'
+    | 'under_slab_pipe_above_slab'
+    | 'pipe_below_grade_missing_elevation_mode'
+    | 'vent_does_not_rise_through_roof'
+    | 'user_defined_run_missing_elevation'
+    | 'sharp_bend_missing_fitting'
+    | 'pipe_crosses_footing_without_sleeve'
+    | 'fixture_missing_procedural_renderer'
+    | 'fitting_type_missing_procedural_renderer';
   message: string;
-  objectKind: 'fixture' | 'run' | 'node' | 'fitting' | 'foundation' | 'system';
+  objectKind: 'fixture' | 'run' | 'node' | 'fitting' | 'equipment' | 'foundation' | 'system';
   objectId?: string;
 };
 

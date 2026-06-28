@@ -1,4 +1,7 @@
 import { getPlumbingFixtureDefinition } from '../plumbingFixtureLibrary';
+import { SUPPORTED_PROCEDURAL_PLUMBING_FITTING_TYPES } from '../three/createProceduralPlumbingFittingMesh';
+import { SUPPORTED_PROCEDURAL_PLUMBING_FIXTURE_TYPES } from '../three/createProceduralPlumbingFixtureMesh';
+import { defaultPlumbingElevationDefaults } from '../three/plumbingElevationResolver';
 import {
   isFittingAllowedForMaterial,
   isFittingAllowedForSystem,
@@ -102,6 +105,26 @@ function runTouchesAnyNode(run: PlumbingRun, nodeIds: Set<string>): boolean {
   return nodeIds.has(run.startNodeId) || nodeIds.has(run.endNodeId);
 }
 
+function hasSleeveFitting(system: PlumbingSystem, run: PlumbingRun): boolean {
+  return (system.fittings ?? []).some((fitting) =>
+    fitting.connectedRunIds.includes(run.id) &&
+    (fitting.type === 'pipe_sleeve' || fitting.type === 'footing_sleeve' || fitting.type === 'wall_sleeve'),
+  );
+}
+
+function hasFittingForRunBend(system: PlumbingSystem, run: PlumbingRun): boolean {
+  return (system.fittings ?? []).some((fitting) => fitting.connectedRunIds.includes(run.id));
+}
+
+function bendDegrees(a: PlumbingPoint3D, b: PlumbingPoint3D, c: PlumbingPoint3D): number {
+  const v1 = { x: a.x - b.x, z: a.z - b.z };
+  const v2 = { x: c.x - b.x, z: c.z - b.z };
+  const dot = v1.x * v2.x + v1.z * v2.z;
+  const mag = Math.hypot(v1.x, v1.z) * Math.hypot(v2.x, v2.z);
+  if (mag <= 0) return 180;
+  return Math.acos(Math.max(-1, Math.min(1, dot / mag))) * 180 / Math.PI;
+}
+
 function requiresSchedule(material: PlumbingMaterial): boolean {
   return material === 'pvc' || material === 'abs' || material === 'cpvc' || material === 'cast_iron';
 }
@@ -122,6 +145,15 @@ export function validatePlumbingSystem(
 
   system.fixtures.forEach((fixture) => {
     const definition = getPlumbingFixtureDefinition(fixture.fixtureType);
+    if (!SUPPORTED_PROCEDURAL_PLUMBING_FIXTURE_TYPES.has(fixture.fixtureType)) {
+      issues.push(issue({
+        severity: 'warning',
+        code: 'fixture_missing_procedural_renderer',
+        objectKind: 'fixture',
+        objectId: fixture.id,
+        message: `${fixture.displayName} does not have a procedural 3D renderer.`,
+      }));
+    }
     definition.connections.forEach((connection) => {
       const nodeIdsForSystem = fixture.connectionNodeIds[connection.system] ?? [];
       const existingNodes = nodeIdsForSystem.filter((nodeId) => nodeIds.has(nodeId));
@@ -184,6 +216,82 @@ export function validatePlumbingSystem(
         message: 'Sanitary run is missing slope.',
       }));
     }
+    if (run.system === 'sanitary' && run.slopeInPerFt != null && Number.isFinite(run.slopeInPerFt) && run.slopeInPerFt <= 0) {
+      issues.push(issue({
+        severity: 'warning',
+        code: 'sanitary_run_slopes_wrong_direction',
+        objectKind: 'run',
+        objectId: run.id,
+        message: 'Sanitary run slope must fall from start node toward end node.',
+      }));
+    }
+    if (run.elevationMode === 'under_slab' && run.path.some((point) => Number.isFinite(point.y) && point.y > defaultPlumbingElevationDefaults.slabTopElevationM)) {
+      issues.push(issue({
+        severity: 'warning',
+        code: 'under_slab_pipe_above_slab',
+        objectKind: 'run',
+        objectId: run.id,
+        message: 'Under-slab pipe has a point above slab top.',
+      }));
+    }
+    if (
+      run.elevationMode !== 'under_slab' &&
+      run.elevationMode !== 'user_defined' &&
+      run.path.some((point) => Number.isFinite(point.y) && point.y < defaultPlumbingElevationDefaults.gradeElevationM)
+    ) {
+      issues.push(issue({
+        severity: 'warning',
+        code: 'pipe_below_grade_missing_elevation_mode',
+        objectKind: 'run',
+        objectId: run.id,
+        message: 'Pipe is below grade but is not marked as under-slab or user-defined.',
+      }));
+    }
+    if (
+      run.elevationMode === 'user_defined' &&
+      run.path.some((point) => !Number.isFinite(point.y))
+    ) {
+      issues.push(issue({
+        severity: 'warning',
+        code: 'user_defined_run_missing_elevation',
+        objectKind: 'run',
+        objectId: run.id,
+        message: 'User-defined pipe run is missing explicit point elevations.',
+      }));
+    }
+    if (
+      run.system === 'vent' &&
+      run.path.length > 0 &&
+      run.elevationMode !== 'vertical' &&
+      Math.max(...run.path.map((point) => Number.isFinite(point.y) ? point.y : 0)) <
+        defaultPlumbingElevationDefaults.roofElevationM + defaultPlumbingElevationDefaults.ventThroughRoofExtensionM
+    ) {
+      issues.push(issue({
+        severity: 'warning',
+        code: 'vent_does_not_rise_through_roof',
+        objectKind: 'run',
+        objectId: run.id,
+        message: 'Vent run does not rise through the roof in 3D.',
+      }));
+    }
+    if (run.path.length > 2 && !hasFittingForRunBend(system, run)) {
+      for (let index = 1; index < run.path.length - 1; index += 1) {
+        const previous = run.path[index - 1];
+        const current = run.path[index];
+        const next = run.path[index + 1];
+        if (!previous || !current || !next) continue;
+        if (Math.abs(180 - bendDegrees(previous, current, next)) > 10) {
+          issues.push(issue({
+            severity: 'warning',
+            code: 'sharp_bend_missing_fitting',
+            objectKind: 'run',
+            objectId: run.id,
+            message: 'Pipe run has a sharp bend without a fitting.',
+          }));
+          break;
+        }
+      }
+    }
     if (run.stockLengthFt == null || !Number.isFinite(run.stockLengthFt)) {
       issues.push(issue({
         severity: 'warning',
@@ -204,6 +312,15 @@ export function validatePlumbingSystem(
   });
 
   (system.fittings ?? []).forEach((fitting) => {
+    if (!SUPPORTED_PROCEDURAL_PLUMBING_FITTING_TYPES.has(fitting.type)) {
+      issues.push(issue({
+        severity: 'warning',
+        code: 'fitting_type_missing_procedural_renderer',
+        objectKind: 'fitting',
+        objectId: fitting.id,
+        message: `${fitting.type.replace(/_/g, ' ')} does not have a procedural 3D renderer.`,
+      }));
+    }
     if (fitting.system !== 'multi' && !isFittingAllowedForSystem(fitting.type, fitting.system)) {
       issues.push(issue({
         severity: 'warning',
@@ -369,6 +486,15 @@ export function validatePlumbingSystem(
           objectId: run.id,
           message: 'Pipe run crosses a footing or beam coordination layer.',
         }));
+        if (!hasSleeveFitting(system, run)) {
+          issues.push(issue({
+            severity: 'warning',
+            code: 'pipe_crosses_footing_without_sleeve',
+            objectKind: 'run',
+            objectId: run.id,
+            message: 'Pipe run crosses a footing or beam without a sleeve fitting.',
+          }));
+        }
       }
     });
   });

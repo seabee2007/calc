@@ -37,10 +37,12 @@ import type {
   RoofSystemSettings,
   PlacedDesignComponent,
 } from '../types';
+import type { PlumbingSelection, PlumbingSystem } from '../plumbing';
+import { buildDesignBuilderViewerPlumbingScene } from '../plumbing/three/DesignBuilderViewerPlumbingScene';
 import {
-  createCmuSepticTankMesh,
-  type PlumbingSystem,
-} from '../plumbing';
+  DEFAULT_PLUMBING_3D_VISIBILITY,
+  type Plumbing3DVisibility,
+} from '../plumbing/three/plumbingThreeUtils';
 import {
   ensurePreviewMaterialsLoaded,
   resolveCastConcreteMaterial,
@@ -95,6 +97,8 @@ interface DesignBuilderViewerProps {
   placementPreview?: DesignBuilderPlacementPreview | null;
   placedComponents?: readonly PlacedDesignComponent[];
   plumbingSystem?: PlumbingSystem;
+  selectedPlumbingObject?: PlumbingSelection | null;
+  plumbing3DVisibility?: Plumbing3DVisibility;
   selectedSepticTankId?: string | null;
   designRenderModel?: DesignRenderModel;
   onSelectObjectType: (objectType: DesignObjectType) => void;
@@ -137,6 +141,8 @@ export default function DesignBuilderViewer({
   placementPreview = null,
   placedComponents = [],
   plumbingSystem,
+  selectedPlumbingObject = null,
+  plumbing3DVisibility = DEFAULT_PLUMBING_3D_VISIBILITY,
   selectedSepticTankId = null,
   designRenderModel,
   onSelectObjectType,
@@ -189,6 +195,8 @@ export default function DesignBuilderViewer({
     layoutBounds,
     placedComponents,
     plumbingSystem,
+    selectedPlumbingObject,
+    plumbing3DVisibility,
     selectedSepticTankId,
     designRenderModel,
     selectedObjectType,
@@ -213,6 +221,8 @@ export default function DesignBuilderViewer({
     layoutBounds,
     placedComponents,
     plumbingSystem,
+    selectedPlumbingObject,
+    plumbing3DVisibility,
     selectedSepticTankId,
     designRenderModel,
     selectedObjectType,
@@ -351,10 +361,13 @@ export default function DesignBuilderViewer({
       const {
         currentWall,
         currentSlab,
+        currentRoof,
         currentGeometry,
         currentLayoutBounds,
         currentPlacedComponents,
         currentPlumbingSystem,
+        currentSelectedPlumbingObject,
+        currentPlumbing3DVisibility,
         currentSelectedSepticTankId,
         currentDesignRenderModel,
         currentSelectedObjectType,
@@ -412,68 +425,27 @@ export default function DesignBuilderViewer({
         if (supplementalScene.group.children.length > 0) root.add(supplementalScene.group);
       }
 
-      function addSepticSiteUtilities() {
-        const tanks = currentPlumbingSystem?.septicTanks ?? [];
-        if (tanks.length === 0) return;
-        const septicGroup = new THREE.Group();
-        septicGroup.name = 'septicSiteUtilityGroup';
-        tanks.forEach((tank) => {
-          septicGroup.add(createCmuSepticTankMesh(tank, {
-            selected: tank.id === currentSelectedSepticTankId,
-            trackGeometry,
-            trackMaterial: trackMat,
-          }));
+      function addPlumbingScene() {
+        if (!currentPlumbingSystem) return;
+        const plumbingScene = buildDesignBuilderViewerPlumbingScene({
+          plumbingSystem: currentPlumbingSystem,
+          selectedPlumbingObject: currentSelectedPlumbingObject,
+          selectedSepticTankId: currentSelectedSepticTankId,
+          visibility: currentPlumbing3DVisibility,
+          elevationDefaults: {
+            ceilingElevationM: currentWall.heightMeters,
+            roofElevationM: Math.max(currentWall.heightMeters + 0.3, currentRoof.widthMeters / 2 * currentRoof.pitchRisePerRun + currentWall.heightMeters),
+          },
+          trackGeometry,
+          trackMaterial: trackMat,
         });
-        root.add(septicGroup);
-      }
-
-      function addPlumbingFittingPlaceholders() {
-        const fittings = currentPlumbingSystem?.fittings ?? [];
-        const nodes = currentPlumbingSystem?.nodes ?? [];
-        if (fittings.length === 0) return;
-        const group = new THREE.Group();
-        group.name = 'plumbingFittingPlaceholderGroup';
-        const material = new THREE.MeshStandardMaterial({
-          color: 0x0f172a,
-          roughness: 0.6,
-          metalness: 0.05,
-        });
-        trackMat(material);
-        const sleeveMaterial = new THREE.MeshStandardMaterial({
-          color: 0x38bdf8,
-          transparent: true,
-          opacity: 0.28,
-          roughness: 0.5,
-        });
-        trackMat(sleeveMaterial);
-        fittings.forEach((fitting) => {
-          const node = nodes.find((candidate) => candidate.id === fitting.nodeId);
-          if (!node) return;
-          const y =
-            fitting.elevationMode === 'overhead'
-              ? currentWall.heightMeters + currentSlab.slabThicknessMeters
-              : fitting.elevationMode === 'in_wall'
-                ? currentSlab.slabThicknessMeters + 0.7
-                : currentSlab.slabThicknessMeters + 0.08;
-          const geometry = fitting.type.includes('sleeve')
-            ? new THREE.CylinderGeometry(0.07, 0.07, 0.35, 16)
-            : fitting.type.includes('valve')
-              ? new THREE.BoxGeometry(0.18, 0.12, 0.12)
-              : new THREE.SphereGeometry(0.075, 16, 12);
-          trackGeometry(geometry);
-          const mesh = new THREE.Mesh(geometry, fitting.type.includes('sleeve') ? sleeveMaterial : material);
-          mesh.name = `plumbing fitting ${fitting.type}`;
-          mesh.position.set(node.position.x, y, node.position.z);
-          mesh.userData.plumbingFittingId = fitting.id;
-          group.add(mesh);
-        });
-        if (group.children.length > 0) root.add(group);
+        sceneRegistry.registerSelectables(plumbingScene.selectableObjects);
+        if (plumbingScene.group.children.length > 0) root.add(plumbingScene.group);
       }
 
       if (blankGeometryActive) {
         addSupplementalPlacedComponents();
-        addSepticSiteUtilities();
-        addPlumbingFittingPlaceholders();
+        addPlumbingScene();
         clearGhost();
         return;
       }
@@ -723,8 +695,7 @@ export default function DesignBuilderViewer({
       if (currentShowClosureWarnings) root.add(openingSceneGroups.closureWarningGroup);
 
       addSupplementalPlacedComponents();
-      addSepticSiteUtilities();
-      addPlumbingFittingPlaceholders();
+      addPlumbingScene();
       refreshSiteGroundMaterial();
       updateGhost();
     }
@@ -839,7 +810,7 @@ export default function DesignBuilderViewer({
 
   useEffect(() => {
     if (modelLoaded) rebuildModelRef.current?.();
-  }, [designRenderModel, geometryResult, layoutBounds, materialRevision, modelLoaded, placedComponents, plumbingSystem, roof, roofDisplayMode, roofLayerVisibility, roofSystem, selectedObjectType, selectedOpeningId, selectedSepticTankId, showClosureWarnings, showRoofReferencePerimeters, showRoofFramingGuides, foundationViewMode, showGroutCells, showOpeningLayout, slab, truss, wall, visualStyle]);
+  }, [designRenderModel, geometryResult, layoutBounds, materialRevision, modelLoaded, placedComponents, plumbing3DVisibility, plumbingSystem, roof, roofDisplayMode, roofLayerVisibility, roofSystem, selectedObjectType, selectedOpeningId, selectedPlumbingObject, selectedSepticTankId, showClosureWarnings, showRoofReferencePerimeters, showRoofFramingGuides, foundationViewMode, showGroutCells, showOpeningLayout, slab, truss, wall, visualStyle]);
 
   useEffect(() => {
     if (visualStyle === 'material_preview') {

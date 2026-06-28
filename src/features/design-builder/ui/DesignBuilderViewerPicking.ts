@@ -10,6 +10,7 @@ import type {
   DesignObjectType,
   WallOpeningParameters,
 } from '../types';
+import type { PlumbingSelection } from '../plumbing';
 
 export type DesignBuilderViewerWallPick = {
   wallFace?: NonNullable<WallOpeningParameters['wallFace']>;
@@ -20,8 +21,9 @@ export type DesignBuilderViewerWallPick = {
 };
 
 export type DesignBuilderViewerSelectableData = {
-  designObjectType: DesignObjectType;
+  designObjectType?: DesignObjectType;
   openingId?: string;
+  plumbingSelection?: PlumbingSelection;
   selectionPriority?: number;
 };
 
@@ -45,7 +47,10 @@ export function resolveSelectableDataForObject(
 ): DesignBuilderViewerSelectableData | null {
   let current: THREE.Object3D | null = object;
   while (current) {
-    if (current.userData.selectable && current.userData.designObjectType) {
+    if (
+      current.userData.selectable &&
+      (current.userData.designObjectType || current.userData.plumbingSelection)
+    ) {
       return current.userData as DesignBuilderViewerSelectableData;
     }
     current = current.parent;

@@ -240,6 +240,26 @@ describe('DesignBuilderViewerInteraction', () => {
     expect(harness.interactions.at(-1)).toMatchObject({ kind: 'clear_selection' });
   });
 
+  it('emits model-backed plumbing selection events on click', () => {
+    const harness = createHarness();
+    harness.setToolMode('select');
+    harness.setSelectablePick({
+      data: {
+        plumbingSelection: { kind: 'fixture', id: 'fixture-1' },
+      },
+    });
+
+    harness.controller.handlePointerDown(pointerEvent({ clientX: 1, clientY: 1 }));
+    harness.controller.handlePointerUp(pointerEvent({ clientX: 1, clientY: 1 }));
+
+    expect(harness.interactions.at(-1)).toEqual({
+      kind: 'select_plumbing',
+      toolMode: 'select',
+      plumbingSelection: { kind: 'fixture', id: 'fixture-1' },
+    });
+    expect(harness.selectedObjectTypes).toEqual([]);
+  });
+
   it('handles manual masonry brush start, preview, commit, undo, and cancel', () => {
     const harness = createHarness();
     harness.setManualMasonryEnabled(true);

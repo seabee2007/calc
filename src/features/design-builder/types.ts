@@ -1,3 +1,5 @@
+import type { PlumbingSelection } from './plumbing/plumbingTypes';
+
 export type DesignUnitSystem = "metric" | "imperial";
 export type DesignModelType = "cmu_building" | "frame_cmu_building";
 export type DesignModelStatus = "draft" | "ready_for_estimate" | "committed";
@@ -1338,6 +1340,7 @@ export type DesignBuilderInteractionKind =
   | "component_select"
   | "component_delete"
   | "component_move"
+  | "select_plumbing"
   | "place_commit"
   | "draw_point"
   | "draw_preview"
@@ -1359,6 +1362,7 @@ export interface DesignBuilderInteractionEvent {
   componentType?: DesignComponentType;
   componentId?: string;
   objectType?: DesignObjectType;
+  plumbingSelection?: PlumbingSelection;
   widthMeters?: number;
   heightMeters?: number;
   sillHeightMeters?: number;

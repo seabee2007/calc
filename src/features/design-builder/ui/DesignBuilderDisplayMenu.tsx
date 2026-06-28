@@ -8,6 +8,7 @@ import type {
   RoofDisplayMode,
   RoofLayerVisibility,
 } from '../types';
+import type { Plumbing3DVisibility } from '../plumbing/three/plumbingThreeUtils';
 import {
   CommandMenuAction,
   DesignBuilderCommandMenu,
@@ -46,6 +47,10 @@ type DesignBuilderDisplayMenuProps = {
   onRoofLayerVisibilityChange: (
     updater: (current: RoofLayerVisibility) => RoofLayerVisibility,
   ) => void;
+  plumbing3DVisibility: Plumbing3DVisibility;
+  onPlumbing3DVisibilityChange: (
+    updater: (current: Plumbing3DVisibility) => Plumbing3DVisibility,
+  ) => void;
 };
 
 export function DesignBuilderDisplayMenu({
@@ -79,6 +84,8 @@ export function DesignBuilderDisplayMenu({
   onRoofDisplayModeChange,
   roofLayerVisibility,
   onRoofLayerVisibilityChange,
+  plumbing3DVisibility,
+  onPlumbing3DVisibilityChange,
 }: DesignBuilderDisplayMenuProps) {
   const isRcFrame = buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill';
 
@@ -138,6 +145,37 @@ export function DesignBuilderDisplayMenu({
             label={label}
             onChange={() => onTwoDDrawingStyleChange(mode)}
           />
+        ))}
+      </DisplayMenuCollapsibleSection>
+
+      <DisplayMenuCollapsibleSection id="display-plumbing-3d" title="Plumbing 3D">
+        {(
+          [
+            ['showPlumbing', 'Show Plumbing'],
+            ['showFixtures', 'Show Fixtures'],
+            ['showFittings', 'Show Fittings'],
+            ['showDrain', 'Show Drain'],
+            ['showVent', 'Show Vent'],
+            ['showColdWater', 'Show Cold Water'],
+            ['showHotWater', 'Show Hot Water'],
+            ['showUnderground', 'Show Underground'],
+            ['showLabels', 'Show Labels'],
+          ] as const
+        ).map(([key, label]) => (
+          <label key={key} className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 hover:bg-slate-50 dark:hover:bg-slate-800">
+            <input
+              type="checkbox"
+              checked={plumbing3DVisibility[key]}
+              onChange={(event) => {
+                const checked = event.currentTarget.checked;
+                onPlumbing3DVisibilityChange((current) => ({
+                  ...current,
+                  [key]: checked,
+                }));
+              }}
+            />
+            <span>{label}</span>
+          </label>
         ))}
       </DisplayMenuCollapsibleSection>
 

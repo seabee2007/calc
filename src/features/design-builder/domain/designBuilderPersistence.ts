@@ -10,6 +10,7 @@ import {
 import { normalizeCmuInfillSystem } from './infillPlaster';
 import {
   createDefaultPlumbingSystem,
+  type Plumbing3DVisibility,
   normalizePlumbingSystem,
   type PlumbingSystem,
 } from '../plumbing';
@@ -57,6 +58,7 @@ export type PersistedDesignBuilderState = {
     foundationViewMode?: string;
     visualStyle?: string;
     twoDDrawingStyle?: string;
+    plumbing3DVisibility?: Partial<Plumbing3DVisibility>;
       materialSelections?: {
       cmuMaterialId?: string;
       mortarMaterialId?: string;
