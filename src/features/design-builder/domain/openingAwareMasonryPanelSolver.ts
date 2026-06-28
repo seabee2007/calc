@@ -65,8 +65,16 @@ function partitionCourseEndpointTrimMeters(
   courseIndex: number,
 ): number {
   if (!endpoint) return 0;
+  return partitionCourseEndpointOwnsCorner(endpoint, courseIndex) ? 0 : endpoint.trimMeters;
+}
+
+function partitionCourseEndpointOwnsCorner(
+  endpoint: PartitionWallCourseJoinTrim['start'] | PartitionWallCourseJoinTrim['end'],
+  courseIndex: number,
+): boolean {
+  if (!endpoint) return false;
   const courseParity = (courseIndex % 2) as 0 | 1;
-  return courseParity === endpoint.ownerCourseParity ? 0 : endpoint.trimMeters;
+  return courseParity === endpoint.ownerCourseParity;
 }
 
 export type OpeningAwareMasonryPanelResult = {
@@ -410,6 +418,14 @@ export function solveOpeningAwareMasonryPanel(params: {
       params.partitionWallCourseJoinTrim?.end,
       absoluteCourseIndex,
     );
+    const ownsPartitionJoinStart = partitionCourseEndpointOwnsCorner(
+      params.partitionWallCourseJoinTrim?.start,
+      absoluteCourseIndex,
+    );
+    const ownsPartitionJoinEnd = partitionCourseEndpointOwnsCorner(
+      params.partitionWallCourseJoinTrim?.end,
+      absoluteCourseIndex,
+    );
     const coursePanelStartStationMeters =
       params.panelStartStationMeters + courseStartTrimMeters;
     const coursePanelEndStationMeters =
@@ -474,26 +490,30 @@ export function solveOpeningAwareMasonryPanel(params: {
         const touchesPartitionJoinEnd =
           params.partitionWallCourseJoinTrim?.end != null &&
           Math.abs(segment.endAlongMeters - coursePanelEndStationMeters) <= 0.001;
+        const startCornerExtensionMeters =
+          touchesPartitionJoinStart && ownsPartitionJoinStart
+            ? params.partitionWallCourseJoinTrim?.start?.trimMeters ?? 0
+            : 0;
+        const endCornerExtensionMeters =
+          touchesPartitionJoinEnd && ownsPartitionJoinEnd
+            ? params.partitionWallCourseJoinTrim?.end?.trimMeters ?? 0
+            : 0;
         const actualLengthMeters =
           touchesPartitionJoinStart || touchesPartitionJoinEnd
-            ? nominalLengthMeters
+            ? nominalLengthMeters + startCornerExtensionMeters + endCornerExtensionMeters
             : actualLengthForOpeningSegment(segment, clippedBlock.actualLengthMeters);
-        const placementCenterStationMeters =
-          touchesPartitionJoinStart && !touchesPartitionJoinEnd
-            ? segment.startAlongMeters + actualLengthMeters / 2
-            : touchesPartitionJoinEnd && !touchesPartitionJoinStart
-              ? segment.endAlongMeters - actualLengthMeters / 2
-              : undefined;
+        const placementStationMeters = segment.startAlongMeters - startCornerExtensionMeters;
+        const placementNominalLengthMeters =
+          nominalLengthMeters + startCornerExtensionMeters + endCornerExtensionMeters;
 
         const block = blockFromPanelUnit({
           panel: params.panel,
           frame: params.frame,
           courseIndex: absoluteCourseIndex,
           moduleIndex,
-          stationMeters: segment.startAlongMeters,
-          nominalLengthMeters,
+          stationMeters: placementStationMeters,
+          nominalLengthMeters: placementNominalLengthMeters,
           actualLengthMeters,
-          placementCenterStationMeters,
           courseBottomElevationMeters,
           physicalHeightMeters,
           blockType,

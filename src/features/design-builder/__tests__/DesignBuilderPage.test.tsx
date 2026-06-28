@@ -689,6 +689,37 @@ describe('DesignBuilderPage', () => {
     expect(latestPlanProps().layout?.segments).toHaveLength(3);
   });
 
+  it('clears Draw Wall command state when switching tools and starts clean on return', async () => {
+    seedLoadedDesignBuilderTemplate();
+    render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
+    await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
+    chooseNewLayout();
+    await waitFor(() => expect(latestPlanProps().layout?.segments).toHaveLength(0));
+    clickDrawWall();
+
+    await act(async () => {
+      latestPlanProps().onInteraction?.({ kind: 'draw_point', toolMode: 'draw_wall', planX: 0, planZ: 0 });
+    });
+    await act(async () => {
+      latestPlanProps().onInteraction?.({ kind: 'draw_point', toolMode: 'draw_wall', planX: 5, planZ: 0 });
+    });
+    await waitFor(() => expect(latestPlanProps().layout?.segments).toHaveLength(1));
+
+    selectToolMode(/^select$/i);
+    await waitFor(() => expect(latestPlanProps().toolMode).toBe('select'));
+    clickDrawWall();
+    await waitFor(() => expect(latestPlanProps().toolMode).toBe('draw_wall'));
+
+    await act(async () => {
+      latestPlanProps().onInteraction?.({ kind: 'draw_point', toolMode: 'draw_wall', planX: 2, planZ: 2, altHeld: true });
+    });
+
+    await waitFor(() => {
+      expect(latestPlanProps().layout?.segments).toHaveLength(1);
+      expect(latestPlanProps().layout?.nodes).toHaveLength(3);
+    });
+  });
+
   it('uses Arden confirm for opening and segment delete flows', async () => {
     seedLoadedDesignBuilderTemplate();
     render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);

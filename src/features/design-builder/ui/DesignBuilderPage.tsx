@@ -204,6 +204,8 @@ import {
 } from '../domain/pointerPlanMapping';
 import { buildLayoutFramingKey } from '../domain/designLayoutBounds';
 import { formatDrawWallSnapTargetFeedback } from '../domain/designDrawWallFeedback';
+import { snapKeyboardActionForEvent, tolerancePxForPreset } from '../snapping/snapKeyboard';
+import type { SnapSettings, SnapTolerancePreset } from '../snapping/snapTypes';
 import DesignBuilderViewer from './DesignBuilderViewer';
 import type { DesignBuilderPlacementPreview } from './DesignBuilderOpeningPreviewScene';
 import { DebugOverlayLayoutProvider } from './DebugOverlayLayoutContext';
@@ -420,6 +422,17 @@ export default function DesignBuilderPage({
 
   const [snapMode, setSnapMode] = useState<DesignBuilderSnapMode>(() => storedSession?.snapMode ?? 'grid');
   const [moduleFitMode, setModuleFitMode] = useState<ModuleFitMode>(() => storedSession?.moduleFitMode ?? 'exact');
+  const [objectSnapEnabled, setObjectSnapEnabled] = useState(true);
+  const [endpointSnapEnabled, setEndpointSnapEnabled] = useState(true);
+  const [midpointSnapEnabled, setMidpointSnapEnabled] = useState(true);
+  const [intersectionSnapEnabled, setIntersectionSnapEnabled] = useState(true);
+  const [nearestSnapEnabled, setNearestSnapEnabled] = useState(false);
+  const [perpendicularSnapEnabled, setPerpendicularSnapEnabled] = useState(true);
+  const [polarTrackingEnabled, setPolarTrackingEnabled] = useState(true);
+  const [snapTolerancePreset, setSnapTolerancePreset] = useState<SnapTolerancePreset>('normal');
+  const [snapCycleIndex, setSnapCycleIndex] = useState(0);
+  const [horizontalSnapLock, setHorizontalSnapLock] = useState(false);
+  const [verticalSnapLock, setVerticalSnapLock] = useState(false);
   const [designHistory, setDesignHistory] = useState<DesignHistoryState>(() => createDesignHistoryState());
   const [activeDrawNodeId, setActiveDrawNodeId] = useState<string | null>(null);
   const [drawStartNodeId, setDrawStartNodeId] = useState<string | null>(null);
@@ -2004,6 +2017,11 @@ export default function DesignBuilderPage({
   }
 
   function cancelPlanDraw() {
+    clearTransientPlanCommandState();
+    setToolMode('select');
+  }
+
+  function clearTransientPlanCommandState(options?: { switchToSelect?: boolean }) {
     setDraftPlanEnd(null);
     setDraftSnapTarget(null);
     setDrawWallConstraintLabel(null);
@@ -2014,7 +2032,10 @@ export default function DesignBuilderPage({
     setSegmentLengthInput('');
     setActiveDrawNodeId(null);
     setDrawStartNodeId(null);
-    setToolMode('select');
+    setSnapCycleIndex(0);
+    setHorizontalSnapLock(false);
+    setVerticalSnapLock(false);
+    if (options?.switchToSelect) setToolMode('select');
   }
 
   async function confirmDeleteWallSegment(segmentId: string) {
@@ -2332,7 +2353,7 @@ export default function DesignBuilderPage({
       const currentActiveDrawNodeId =
         activeDrawNodeId && layout.nodes.some((node) => node.id === activeDrawNodeId)
           ? activeDrawNodeId
-          : resolveActiveDrawNodeId(layout);
+          : null;
       const snapTarget = resolveActivePlanSnap(rawPoint, {
         includeDrawContext: true,
         shiftHeld: event.shiftHeld,
@@ -2631,6 +2652,67 @@ export default function DesignBuilderPage({
     const handleKeyDown = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
       if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) return;
+
+      const snapAction = snapKeyboardActionForEvent(event);
+      if (snapAction) {
+        if (
+          snapAction.kind === 'toggle-object-snap' ||
+          snapAction.kind === 'toggle-grid-snap' ||
+          snapAction.kind === 'toggle-ortho' ||
+          snapAction.kind === 'toggle-polar' ||
+          snapAction.kind === 'cycle-candidate' ||
+          snapAction.kind === 'toggle-object-type' ||
+          snapAction.kind === 'horizontal-lock' ||
+          snapAction.kind === 'vertical-lock'
+        ) {
+          event.preventDefault();
+          event.stopPropagation();
+          event.stopImmediatePropagation();
+        }
+        if (snapAction.kind === 'toggle-object-snap') {
+          setObjectSnapEnabled((current) => !current);
+          return;
+        }
+        if (snapAction.kind === 'toggle-grid-snap') {
+          setSnapMode((current) => (current === 'grid' ? 'off' : 'grid'));
+          return;
+        }
+        if (snapAction.kind === 'toggle-ortho') {
+          toggleOrthogonalGuides();
+          return;
+        }
+        if (snapAction.kind === 'toggle-polar') {
+          setPolarTrackingEnabled((current) => !current);
+          return;
+        }
+        if (snapAction.kind === 'cycle-candidate') {
+          setSnapCycleIndex((current) => current + 1);
+          return;
+        }
+        if (snapAction.kind === 'toggle-object-type') {
+          if (snapAction.key === 'endpoint') setEndpointSnapEnabled((current) => !current);
+          if (snapAction.key === 'midpoint') setMidpointSnapEnabled((current) => !current);
+          if (snapAction.key === 'intersection') setIntersectionSnapEnabled((current) => !current);
+          if (snapAction.key === 'nearest') setNearestSnapEnabled((current) => !current);
+          if (snapAction.key === 'perpendicular') setPerpendicularSnapEnabled((current) => !current);
+          return;
+        }
+        if (snapAction.kind === 'horizontal-lock') {
+          setHorizontalSnapLock((current) => !current);
+          setVerticalSnapLock(false);
+          return;
+        }
+        if (snapAction.kind === 'vertical-lock') {
+          setVerticalSnapLock((current) => !current);
+          setHorizontalSnapLock(false);
+          return;
+        }
+        if (snapAction.kind === 'finish-command' && toolMode === 'draw_wall') {
+          event.preventDefault();
+          clearTransientPlanCommandState({ switchToSelect: true });
+          return;
+        }
+      }
 
       if (event.key === 'Escape') {
         if (closeDesignBuilderCommandMenus()) {
@@ -3445,20 +3527,7 @@ export default function DesignBuilderPage({
   function activateDrawWallTool() {
     closeDesignBuilderCommandMenus();
     ensureDrawWallOrthogonalDefault();
-    const shellComplete =
-      wallLayout.isFootprintClosed || detectClosedFootprint(wallLayout);
-    if (shellComplete && wallLayout.segments.length > 0) {
-      setActiveDrawNodeId(null);
-      setDrawStartNodeId(null);
-      setDraftPlanEnd(null);
-      setDraftSnapTarget(null);
-      setDrawWallConstraintLabel(null);
-      setDrawWallPreviewMetrics(null);
-      setOrthogonalClosureAssist(null);
-      setClosureCornerSnap(null);
-      lastSnapTargetRef.current = null;
-      setSegmentLengthInput('');
-    }
+    clearTransientPlanCommandState();
     setToolMode('draw_wall');
     setActive2DDrawingView('foundation-plan');
   }
@@ -3469,6 +3538,7 @@ export default function DesignBuilderPage({
       activateDrawWallTool();
       return;
     }
+    if (toolMode === 'draw_wall') clearTransientPlanCommandState();
     setToolMode(mode);
     if ((mode === 'place_dimension' || mode === 'place_angle') && (viewMode !== '2d' || active2DView === 'elevation-view')) {
       setActive2DDrawingView('foundation-plan');
@@ -3681,6 +3751,25 @@ export default function DesignBuilderPage({
   const activeBuildingSystemMode = resolvedPreset.buildingSystemMode;
   const isFrameStructureMode = activeBuildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill';
   const structureMenuLabel = 'Settings';
+  const snapSettings: SnapSettings = {
+    snapMode,
+    gridSpacingMeters: planSnapSpacingMeters,
+    moduleLengthMeters: cmuModule.moduleLengthMeters,
+    tolerancePx: tolerancePxForPreset(snapTolerancePreset),
+    tolerancePreset: snapTolerancePreset,
+    objectSnap: {
+      enabled: objectSnapEnabled,
+      endpoint: endpointSnapEnabled,
+      midpoint: midpointSnapEnabled,
+      intersection: intersectionSnapEnabled,
+      nearest: nearestSnapEnabled,
+      perpendicular: perpendicularSnapEnabled,
+      extension: false,
+    },
+    orthogonal: wallLayout.orthogonalLock,
+    polar: polarTrackingEnabled,
+    polarAnglesDegrees: [0, 15, 30, 45, 60, 90, 120, 135, 150, 180, 210, 225, 240, 270, 300, 315, 330],
+  };
   const drawWallInstruction = DESIGN_BUILDER_COPY.hints.drawWall;
   const drawWallSnapFeedback = formatDrawWallSnapTargetFeedback({
     snapTarget: draftSnapTarget,
@@ -3814,6 +3903,22 @@ export default function DesignBuilderPage({
             onSnapModeChange={setSnapMode}
             orthogonalGuidesEnabled={wallLayout.orthogonalLock}
             onToggleOrthogonalGuides={toggleOrthogonalGuides}
+            objectSnapEnabled={objectSnapEnabled}
+            onObjectSnapEnabledChange={setObjectSnapEnabled}
+            endpointSnapEnabled={endpointSnapEnabled}
+            onEndpointSnapEnabledChange={setEndpointSnapEnabled}
+            midpointSnapEnabled={midpointSnapEnabled}
+            onMidpointSnapEnabledChange={setMidpointSnapEnabled}
+            intersectionSnapEnabled={intersectionSnapEnabled}
+            onIntersectionSnapEnabledChange={setIntersectionSnapEnabled}
+            nearestSnapEnabled={nearestSnapEnabled}
+            onNearestSnapEnabledChange={setNearestSnapEnabled}
+            perpendicularSnapEnabled={perpendicularSnapEnabled}
+            onPerpendicularSnapEnabledChange={setPerpendicularSnapEnabled}
+            polarTrackingEnabled={polarTrackingEnabled}
+            onPolarTrackingEnabledChange={setPolarTrackingEnabled}
+            snapTolerancePreset={snapTolerancePreset}
+            onSnapTolerancePresetChange={setSnapTolerancePreset}
             gridSpacingMeters={wallLayout.gridSpacingMeters}
             onApplyGridScalePreset={applyGridScalePreset}
             moduleFitMode={moduleFitMode}
@@ -3932,6 +4037,10 @@ export default function DesignBuilderPage({
                 selectedOpeningId={selectedOpeningId}
                 selectedComponentId={selectedComponentId}
                 snapTarget={draftSnapTarget}
+                snapSettings={snapSettings}
+                snapCycleIndex={snapCycleIndex}
+                horizontalSnapLock={horizontalSnapLock}
+                verticalSnapLock={verticalSnapLock}
                 shiftConstraintLabel={drawWallConstraintLabel}
                 previewMetrics={drawWallPreviewMetrics}
                 orthogonalClosureAssist={orthogonalClosureAssist}

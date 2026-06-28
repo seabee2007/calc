@@ -3202,7 +3202,7 @@ export function buildCmuCoursePlans(params: {
     moduleLengthMeters: params.moduleLength,
     actualFullLengthMeters: params.actualFullLength,
     mortarJointMeters: Math.max(0, params.moduleLength - params.actualFullLength),
-    cornerSetbackMeters: runningBond ? params.moduleLength / 2 : 0,
+    cornerSetbackMeters: runningBond ? Math.max(0, params.wallThicknessMeters ?? 0) / 2 : 0,
     minimumCutLengthMeters: params.moduleLength / 4,
   };
   const structuralWarnings: CmuStructuralWarning[] = [];

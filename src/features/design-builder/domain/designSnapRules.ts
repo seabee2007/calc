@@ -38,6 +38,26 @@ export function resolveDesignSnapPoint(params: {
   };
   previousSnap?: DesignSnapTarget | null;
 }): DesignSnapTarget {
+  return resolveDesignSnapPointLegacy(params);
+}
+
+function resolveDesignSnapPointLegacy(params: {
+  layout: DesignWallLayoutParameters;
+  point: { x: number; z: number };
+  snapMode: DesignBuilderSnapMode;
+  moduleLengthMeters?: number;
+  pixelsPerMeter?: number;
+  altHeld?: boolean;
+  segmentFrames?: readonly SegmentFrame[];
+  drawContext?: {
+    activeNodeId?: string | null;
+    drawStartNodeId?: string | null;
+    orthogonalLock?: boolean;
+    shiftHeld?: boolean;
+    closureCornerCandidate?: { x: number; z: number } | null;
+  };
+  previousSnap?: DesignSnapTarget | null;
+}): DesignSnapTarget {
   if (params.altHeld) {
     return {
       type: 'raw',

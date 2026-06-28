@@ -553,20 +553,25 @@ describe("RC frame foundation — plinth / roof / tie beams", () => {
 
     expect(incomingFooting).toBeDefined();
     expect(outgoingFooting).toBeDefined();
+    const expectedFootingJoinMeters = incomingFooting!.widthMeters / 2;
     expect(incomingFooting!.endPoint.x).toBeCloseTo(
-      incomingFrame.centerlineEnd.x,
+      incomingFrame.centerlineEnd.x +
+        incomingFrame.tangent.x * expectedFootingJoinMeters,
       6,
     );
     expect(incomingFooting!.endPoint.z).toBeCloseTo(
-      incomingFrame.centerlineEnd.z,
+      incomingFrame.centerlineEnd.z +
+        incomingFrame.tangent.z * expectedFootingJoinMeters,
       6,
     );
     expect(outgoingFooting!.startPoint.x).toBeCloseTo(
-      outgoingFrame.centerlineStart.x,
+      outgoingFrame.centerlineStart.x +
+        outgoingFrame.tangent.x * expectedFootingJoinMeters,
       6,
     );
     expect(outgoingFooting!.startPoint.z).toBeCloseTo(
-      outgoingFrame.centerlineStart.z,
+      outgoingFrame.centerlineStart.z +
+        outgoingFrame.tangent.z * expectedFootingJoinMeters,
       6,
     );
 
@@ -621,13 +626,18 @@ describe("RC frame foundation — plinth / roof / tie beams", () => {
       secondAboveGradeCourseIndex,
     );
 
-    expect(incomingEvenCourse.end).toBeCloseTo(incomingFrame.lengthMeters, 6);
+    expect(incomingEvenCourse.start).toBeCloseTo(0, 6);
+    expect(incomingOddCourse.start).toBeCloseTo(0, 6);
+    expect(incomingEvenCourse.end).toBeCloseTo(
+      incomingFrame.lengthMeters + expectedTrimMeters,
+      6,
+    );
     expect(incomingOddCourse.end).toBeCloseTo(
       incomingFrame.lengthMeters - expectedTrimMeters,
       6,
     );
     expect(outgoingEvenCourse.start).toBeCloseTo(expectedTrimMeters, 6);
-    expect(outgoingOddCourse.start).toBeCloseTo(0, 6);
+    expect(outgoingOddCourse.start).toBeCloseTo(-expectedTrimMeters, 6);
   });
 
   it("does not duplicate footings at shared corner columns", () => {

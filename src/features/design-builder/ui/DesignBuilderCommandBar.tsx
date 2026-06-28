@@ -15,6 +15,7 @@ import type {
   RoofDisplayMode,
   RoofLayerVisibility,
 } from "../types";
+import type { SnapTolerancePreset } from "../snapping/snapTypes";
 import {
   CommandMenuAction,
   DesignBuilderCommandMenu,
@@ -55,6 +56,22 @@ export type DesignBuilderCommandBarProps = {
   onSnapModeChange: (mode: DesignBuilderSnapMode) => void;
   orthogonalGuidesEnabled: boolean;
   onToggleOrthogonalGuides: () => void;
+  objectSnapEnabled: boolean;
+  onObjectSnapEnabledChange: (value: boolean) => void;
+  endpointSnapEnabled: boolean;
+  onEndpointSnapEnabledChange: (value: boolean) => void;
+  midpointSnapEnabled: boolean;
+  onMidpointSnapEnabledChange: (value: boolean) => void;
+  intersectionSnapEnabled: boolean;
+  onIntersectionSnapEnabledChange: (value: boolean) => void;
+  nearestSnapEnabled: boolean;
+  onNearestSnapEnabledChange: (value: boolean) => void;
+  perpendicularSnapEnabled: boolean;
+  onPerpendicularSnapEnabledChange: (value: boolean) => void;
+  polarTrackingEnabled: boolean;
+  onPolarTrackingEnabledChange: (value: boolean) => void;
+  snapTolerancePreset: SnapTolerancePreset;
+  onSnapTolerancePresetChange: (preset: SnapTolerancePreset) => void;
   gridSpacingMeters: number;
   onApplyGridScalePreset: (spacingMeters: number) => void;
   moduleFitMode: ModuleFitMode;
@@ -321,6 +338,72 @@ export function DesignBuilderCommandBar(props: DesignBuilderCommandBarProps) {
               {props.orthogonalGuidesEnabled ? "On" : "Off"}
             </span>
           </button>
+          <button
+            type="button"
+            onClick={() => props.onPolarTrackingEnabledChange(!props.polarTrackingEnabled)}
+            className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800"
+          >
+            <span className="text-slate-700 dark:text-slate-200">Polar tracking</span>
+            <span className={props.polarTrackingEnabled ? "font-bold text-cyan-600 dark:text-cyan-300" : "text-slate-400"}>
+              {props.polarTrackingEnabled ? "On" : "Off"}
+            </span>
+          </button>
+          <div className="my-1 border-t border-slate-200 dark:border-slate-700" />
+          <button
+            type="button"
+            onClick={() => props.onObjectSnapEnabledChange(!props.objectSnapEnabled)}
+            className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800"
+          >
+            <span className="text-slate-700 dark:text-slate-200">Object Snap</span>
+            <span className={props.objectSnapEnabled ? "font-bold text-cyan-600 dark:text-cyan-300" : "text-slate-400"}>
+              {props.objectSnapEnabled ? "On" : "Off"}
+            </span>
+          </button>
+          <div className={`grid grid-cols-2 gap-1 px-1 ${props.objectSnapEnabled ? "" : "opacity-50"}`}>
+            {[
+              ["Endpoint", props.endpointSnapEnabled, props.onEndpointSnapEnabledChange],
+              ["Midpoint", props.midpointSnapEnabled, props.onMidpointSnapEnabledChange],
+              ["Intersection", props.intersectionSnapEnabled, props.onIntersectionSnapEnabledChange],
+              ["Nearest", props.nearestSnapEnabled, props.onNearestSnapEnabledChange],
+              ["Perpendicular", props.perpendicularSnapEnabled, props.onPerpendicularSnapEnabledChange],
+            ].map(([label, enabled, onChange]) => (
+              <button
+                key={label as string}
+                type="button"
+                disabled={!props.objectSnapEnabled}
+                onClick={() => (onChange as (value: boolean) => void)(!(enabled as boolean))}
+                className={`rounded-lg px-2 py-1.5 text-left text-xs font-semibold disabled:cursor-not-allowed ${
+                  enabled
+                    ? "bg-cyan-600 text-white"
+                    : "text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                }`}
+              >
+                {label as string}
+              </button>
+            ))}
+          </div>
+          <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+            Tolerance
+          </div>
+          <div className="grid grid-cols-3 gap-1 px-1">
+            {(["low", "normal", "high"] as SnapTolerancePreset[]).map((preset) => (
+              <button
+                key={preset}
+                type="button"
+                onClick={() => props.onSnapTolerancePresetChange(preset)}
+                className={`rounded-lg px-2 py-1.5 text-left text-xs font-semibold ${
+                  props.snapTolerancePreset === preset
+                    ? "bg-cyan-600 text-white"
+                    : "text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                }`}
+              >
+                {preset[0]!.toUpperCase() + preset.slice(1)}
+              </button>
+            ))}
+          </div>
+          <p className="px-3 py-1 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
+            F3 object snap · F7 grid · F8 ortho · F10 polar · Alt disables snap · Tab cycles targets.
+          </p>
           <div className={props.snapMode === "grid" ? "" : "opacity-50"}>
             <div className="my-1 border-t border-slate-200 dark:border-slate-700" />
             <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400">

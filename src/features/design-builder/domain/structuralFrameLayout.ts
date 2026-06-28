@@ -253,6 +253,91 @@ function wallFootingIdForSegment(segmentId: string): string {
   return `wall-footing-${segmentId}`;
 }
 
+type PartitionFootingEndpointAdjustments = {
+  startMeters: number;
+  endMeters: number;
+};
+
+type PartitionFootingSegmentRef = {
+  segment: DesignWallLayoutParameters["segments"][number];
+  index: number;
+};
+
+function directionFromNodeForSegment(
+  segment: DesignWallLayoutParameters["segments"][number],
+  nodeId: string,
+  nodesById: Map<string, { x: number; z: number }>,
+): { x: number; z: number } | null {
+  const start = nodesById.get(segment.startNodeId);
+  const end = nodesById.get(segment.endNodeId);
+  if (!start || !end) return null;
+  const dx = end.x - start.x;
+  const dz = end.z - start.z;
+  const length = Math.hypot(dx, dz);
+  if (length <= 0) return null;
+  return segment.startNodeId === nodeId
+    ? { x: dx / length, z: dz / length }
+    : { x: -dx / length, z: -dz / length };
+}
+
+function isStraightThroughPartitionFootingJoint(params: {
+  refs: readonly PartitionFootingSegmentRef[];
+  nodeId: string;
+  nodesById: Map<string, { x: number; z: number }>;
+}): boolean {
+  if (params.refs.length !== 2) return false;
+  const directions = params.refs
+    .map((ref) => directionFromNodeForSegment(ref.segment, params.nodeId, params.nodesById))
+    .filter((direction): direction is { x: number; z: number } => direction != null);
+  if (directions.length !== 2) return false;
+  const dot = directions[0]!.x * directions[1]!.x + directions[0]!.z * directions[1]!.z;
+  return dot < -0.95;
+}
+
+function resolvePartitionFootingEndpointAdjustments(params: {
+  layout: DesignWallLayoutParameters;
+  segmentFrames: readonly SegmentFrame[];
+  footingWidthBySegmentId: ReadonlyMap<string, number>;
+}): Map<string, PartitionFootingEndpointAdjustments> {
+  const adjustments = new Map<string, PartitionFootingEndpointAdjustments>();
+  const nodesById = new Map(params.layout.nodes.map((node) => [node.id, { x: node.x, z: node.z }]));
+  const refsByNodeId = new Map<string, PartitionFootingSegmentRef[]>();
+  const frameIds = new Set(params.segmentFrames.map((frame) => frame.segmentId));
+
+  params.layout.segments.forEach((segment, index) => {
+    if (segment.wallRole !== "partition" || !frameIds.has(segment.id)) return;
+    const ref = { segment, index };
+    refsByNodeId.set(segment.startNodeId, [...(refsByNodeId.get(segment.startNodeId) ?? []), ref]);
+    refsByNodeId.set(segment.endNodeId, [...(refsByNodeId.get(segment.endNodeId) ?? []), ref]);
+  });
+
+  refsByNodeId.forEach((refs, nodeId) => {
+    if (refs.length < 2) return;
+    if (isStraightThroughPartitionFootingJoint({ refs, nodeId, nodesById })) return;
+
+    const orderedRefs = [...refs].sort((a, b) => a.index - b.index);
+    const owner =
+      orderedRefs.find((ref) => ref.segment.endNodeId === nodeId) ??
+      orderedRefs[0];
+    if (!owner) return;
+
+    orderedRefs.forEach((ref) => {
+      const halfFootingWidth = Math.max(0, (params.footingWidthBySegmentId.get(ref.segment.id) ?? 0) / 2);
+      if (halfFootingWidth <= 0) return;
+      const current = adjustments.get(ref.segment.id) ?? { startMeters: 0, endMeters: 0 };
+      const ownsJoint = ref.segment.id === owner.segment.id;
+      if (ref.segment.startNodeId === nodeId) {
+        current.startMeters = ownsJoint ? -halfFootingWidth : halfFootingWidth;
+      } else {
+        current.endMeters = ownsJoint ? halfFootingWidth : -halfFootingWidth;
+      }
+      adjustments.set(ref.segment.id, current);
+    });
+  });
+
+  return adjustments;
+}
+
 function createWallFootingsForPartitionSegments(params: {
   layout: DesignWallLayoutParameters;
   segmentFrames: SegmentFrame[];
@@ -267,20 +352,41 @@ function createWallFootingsForPartitionSegments(params: {
     params.topOfPlinthBeamY - Math.max(0, settings.dropBelowPlinthBeamMeters) / 2;
   const thicknessMeters = Math.max(0.1, settings.thicknessMeters);
   const bottomElevationMeters = topElevationMeters - thicknessMeters;
+  const footingWidthBySegmentId = new Map(
+    params.segmentFrames.map((frame) => [
+      frame.segmentId,
+      Math.max(0.1, frame.wallThicknessMeters * 2),
+    ]),
+  );
+  const endpointAdjustments = resolvePartitionFootingEndpointAdjustments({
+    layout: params.layout,
+    segmentFrames: params.segmentFrames,
+    footingWidthBySegmentId,
+  });
 
   return params.segmentFrames.flatMap((frame) => {
     const segment = segmentById.get(frame.segmentId);
     if (!segment) return [];
     if (segment.wallRole !== "partition") return [];
     if (frame.lengthMeters <= 0.05) return [];
+    const widthMeters = footingWidthBySegmentId.get(frame.segmentId) ?? Math.max(0.1, frame.wallThicknessMeters * 2);
+    const adjustments = endpointAdjustments.get(frame.segmentId) ?? { startMeters: 0, endMeters: 0 };
+    const startPoint = {
+      x: frame.centerlineStart.x + frame.tangent.x * adjustments.startMeters,
+      z: frame.centerlineStart.z + frame.tangent.z * adjustments.startMeters,
+    };
+    const endPoint = {
+      x: frame.centerlineEnd.x + frame.tangent.x * adjustments.endMeters,
+      z: frame.centerlineEnd.z + frame.tangent.z * adjustments.endMeters,
+    };
 
     return [{
       id: wallFootingIdForSegment(segment.id),
       name: `Wall Footing ${segment.id}`,
       hostSegmentId: segment.id,
-      startPoint: { ...frame.centerlineStart },
-      endPoint: { ...frame.centerlineEnd },
-      widthMeters: Math.max(0.1, frame.wallThicknessMeters * 2),
+      startPoint,
+      endPoint,
+      widthMeters,
       thicknessMeters,
       topElevationMeters,
       bottomElevationMeters,

@@ -22,6 +22,8 @@ import {
   type DesignRenderRcComponent,
 } from '../domain/designRenderModel';
 import type { DesignSnapTarget } from '../domain/designSnapRules';
+import { resolveSnap } from '../snapping/snapEngine';
+import type { PlanPoint, SnapGeometry, SnapResult, SnapSettings } from '../snapping/snapTypes';
 import type { SegmentFrame } from '../geometry/designGeometry';
 import type { ResolvedOpeningPlacement } from '../domain/openingPlacementResolver';
 import {
@@ -148,6 +150,7 @@ type DimensionSnapPoint = {
   point: { x: number; z: number };
   type: string;
   componentId?: string;
+  snapResult?: SnapResult;
 };
 
 type DimensionDraftState =
@@ -233,6 +236,10 @@ interface DesignBuilderPlanCanvasProps {
   openingItems?: readonly PlanOpeningCanvasItem[];
   openingPreview?: PlanOpeningCanvasPreview | null;
   snapTarget?: DesignSnapTarget | null;
+  snapSettings?: SnapSettings;
+  snapCycleIndex?: number;
+  horizontalSnapLock?: boolean;
+  verticalSnapLock?: boolean;
   shiftConstraintLabel?: string | null;
   previewMetrics?: { lengthMeters: number; angleDegrees: number } | null;
   orthogonalClosureAssist?: OrthogonalClosureAssist | null;
@@ -276,6 +283,10 @@ export default function DesignBuilderPlanCanvas({
   openingItems = [],
   openingPreview = null,
   snapTarget = null,
+  snapSettings,
+  snapCycleIndex = 0,
+  horizontalSnapLock = false,
+  verticalSnapLock = false,
   shiftConstraintLabel = null,
   previewMetrics = null,
   orthogonalClosureAssist = null,
@@ -812,30 +823,115 @@ export default function DesignBuilderPlanCanvas({
     wallFootings,
   ]);
 
-  const resolveDimensionSnap = useCallback(
-    (point: { x: number; z: number }): DimensionSnapPoint => {
-      const toleranceMeters = Math.max(0.12, 18 / Math.max(1, viewport.zoom));
-      let best: { candidate: DimensionSnapPoint; distance: number } | null = null;
-      dimensionSnapPoints.forEach((candidate) => {
-        const distance = Math.hypot(candidate.point.x - point.x, candidate.point.z - point.z);
-        if (distance <= toleranceMeters && (!best || distance < best.distance)) {
-          best = { candidate, distance };
-        }
+  const snapGeometry = useMemo<SnapGeometry>(() => {
+    const points = dimensionSnapPoints.map((candidate) => ({
+      id: candidate.componentId ?? candidate.type,
+      point: candidate.point,
+      snapType: candidate.type.includes('midpoint') || candidate.type.includes('center') ? 'midpoint' as const : 'endpoint' as const,
+      label: candidate.type.includes('midpoint') || candidate.type.includes('center') ? 'Midpoint' : 'Endpoint',
+    }));
+    const segments = layout.segments.flatMap((segment) => {
+      const endpoints = resolveSegmentDisplayEndpoints({ segment, layout, planDisplayNodeById });
+      if (!endpoints) return [];
+      return [{
+        id: segment.id,
+        start: endpoints.displayStart,
+        end: endpoints.displayEnd,
+      }];
+    });
+    if (isRoofPlanView && roofPlanPerimeter.length > 1) {
+      roofPlanPerimeter.forEach((point, index) => {
+        const next = roofPlanPerimeter[(index + 1) % roofPlanPerimeter.length];
+        if (!next) return;
+        segments.push({ id: `roof-edge-${index}`, start: point, end: next });
       });
-      if (best) return best.candidate;
-      if (snapMode !== 'off') {
-        const spacing = Math.max(0.001, snapSpacingMeters ?? layout.gridSpacingMeters);
-        return {
-          point: {
-            x: Math.round(point.x / spacing) * spacing,
-            z: Math.round(point.z / spacing) * spacing,
-          },
-          type: 'grid-intersection',
-        };
-      }
-      return { point, type: 'free-point' };
+    }
+    return { points, segments };
+  }, [dimensionSnapPoints, isRoofPlanView, layout, planDisplayNodeById, roofPlanPerimeter]);
+
+  const resolvePrecisionSnap = useCallback(
+    (
+      point: PlanPoint,
+      options?: {
+        altHeld?: boolean;
+        shiftHeld?: boolean;
+        basePoint?: PlanPoint | null;
+      },
+    ): SnapResult => {
+      const rawScreen = controller.planToScreenPoint(point);
+      return resolveSnap({
+        rawWorldPoint: point,
+        rawScreenPoint: rawScreen,
+        planToScreenPoint: controller.planToScreenPoint,
+        currentToolMode: toolMode,
+        commandState: { basePoint: options?.basePoint ?? null },
+        geometry: snapGeometry,
+        settings: {
+          ...(snapSettings ?? {
+            snapMode,
+            gridSpacingMeters: snapSpacingMeters ?? layout.gridSpacingMeters,
+            tolerancePx: 12,
+            tolerancePreset: 'normal' as const,
+            objectSnap: {
+              enabled: true,
+              endpoint: true,
+              midpoint: true,
+              intersection: true,
+              nearest: false,
+              perpendicular: true,
+              extension: false,
+            },
+            orthogonal: false,
+            polar: true,
+            polarAnglesDegrees: [0, 15, 30, 45, 60, 90, 120, 135, 150, 180, 210, 225, 240, 270, 300, 315, 330],
+          }),
+          snapMode,
+          gridSpacingMeters: snapSpacingMeters ?? layout.gridSpacingMeters,
+        },
+        keyboard: {
+          altHeld: options?.altHeld,
+          shiftHeld: options?.shiftHeld,
+          tabCycleIndex: snapCycleIndex,
+          horizontalLock: horizontalSnapLock,
+          verticalLock: verticalSnapLock,
+        },
+      });
     },
-    [dimensionSnapPoints, layout.gridSpacingMeters, snapMode, snapSpacingMeters, viewport.zoom],
+    [
+      controller.planToScreenPoint,
+      horizontalSnapLock,
+      layout.gridSpacingMeters,
+      snapCycleIndex,
+      snapGeometry,
+      snapMode,
+      snapSettings,
+      snapSpacingMeters,
+      toolMode,
+      verticalSnapLock,
+    ],
+  );
+
+  const dimensionSnapFromResult = useCallback((result: SnapResult): DimensionSnapPoint => {
+    const existing = dimensionSnapPoints.find((candidate) =>
+      Math.hypot(candidate.point.x - result.worldPoint.x, candidate.point.z - result.worldPoint.z) <= 0.001 &&
+      (!result.sourceId || candidate.componentId === result.sourceId || candidate.type === result.sourceId)
+    );
+    return {
+      point: result.worldPoint,
+      type: existing?.type ?? (result.snapped ? result.snapType : 'free-point'),
+      componentId: existing?.componentId ?? result.sourceId,
+      snapResult: result,
+    };
+  }, [dimensionSnapPoints]);
+
+  const resolveDimensionSnap = useCallback(
+    (
+      point: { x: number; z: number },
+      options?: { altHeld?: boolean; shiftHeld?: boolean; basePoint?: PlanPoint | null },
+    ): DimensionSnapPoint => {
+      return dimensionSnapFromResult(resolvePrecisionSnap(point, options));
+    },
+    [dimensionSnapFromResult, resolvePrecisionSnap],
   );
 
   const inferDimensionKind = useCallback((start: { x: number; z: number }, end: { x: number; z: number }): DesignDimensionAnnotation['dimensionKind'] => {
@@ -1004,10 +1100,19 @@ export default function DesignBuilderPlanCanvas({
       return;
     }
     if (toolMode === 'place_dimension' || toolMode === 'place_angle') {
-      const snapped = resolveDimensionSnap(point);
+      const snapped = resolveDimensionSnap(point, {
+        altHeld: event.altKey,
+        shiftHeld: event.shiftKey,
+        basePoint:
+          dimensionDraft?.step === 'offset'
+            ? dimensionDraft.end.point
+            : angleDraft?.step === 'end'
+              ? angleDraft.vertex.point
+              : null,
+      });
       setDimensionSnap(snapped);
       if (dimensionDraft?.step === 'offset') {
-        setDimensionDraft({ ...dimensionDraft, offsetPoint: point });
+        setDimensionDraft({ ...dimensionDraft, offsetPoint: event.altKey ? point : snapped.point });
       }
       if (toolMode === 'place_angle' && angleDraft?.step === 'end') {
         setAngleDraft({ ...angleDraft, previewEnd: snapped });
@@ -1015,12 +1120,18 @@ export default function DesignBuilderPlanCanvas({
       return;
     }
     if (toolMode === 'draw_wall') {
+      const activeNode = activeNodeId ? layout.nodes.find((node) => node.id === activeNodeId) : null;
+      const snapped = resolvePrecisionSnap(point, {
+        altHeld: event.altKey,
+        shiftHeld: event.shiftKey,
+        basePoint: activeNode ?? null,
+      });
       onInteraction({
         kind: 'draw_preview',
         toolMode,
         phase: 'preview',
-        planX: point.x,
-        planZ: point.z,
+        planX: snapped.worldPoint.x,
+        planZ: snapped.worldPoint.z,
         nodeId: activeNodeId ?? undefined,
         shiftHeld: event.shiftKey,
         altHeld: event.altKey,
@@ -1085,7 +1196,11 @@ export default function DesignBuilderPlanCanvas({
     if (toolMode === 'place_dimension') {
       event.preventDefault();
       event.stopPropagation();
-      const snapped = resolveDimensionSnap(point);
+      const snapped = resolveDimensionSnap(point, {
+        altHeld: event.altKey,
+        shiftHeld: event.shiftKey,
+        basePoint: dimensionDraft?.step === 'offset' ? dimensionDraft.end.point : null,
+      });
       setDimensionSnap(snapped);
       if (!dimensionDraft) {
         setDimensionDraft({ step: 'start', start: snapped });
@@ -1096,7 +1211,7 @@ export default function DesignBuilderPlanCanvas({
           step: 'offset',
           start: dimensionDraft.start,
           end: snapped,
-          offsetPoint: point,
+          offsetPoint: event.altKey ? point : snapped.point,
         });
         return;
       }
@@ -1110,7 +1225,7 @@ export default function DesignBuilderPlanCanvas({
           start: dimensionDraft.start.point,
           end: dimensionDraft.end.point,
         },
-        offsetPoint: point,
+        offsetPoint: event.altKey ? point : snapped.point,
         dimensionKind: kind,
         measuredValue: measuredDimensionValue(dimensionDraft.start.point, dimensionDraft.end.point, kind),
         unit: 'm',
@@ -1130,7 +1245,11 @@ export default function DesignBuilderPlanCanvas({
     if (toolMode === 'place_angle') {
       event.preventDefault();
       event.stopPropagation();
-      const snapped = resolveDimensionSnap(point);
+      const snapped = resolveDimensionSnap(point, {
+        altHeld: event.altKey,
+        shiftHeld: event.shiftKey,
+        basePoint: angleDraft?.step === 'end' ? angleDraft.vertex.point : null,
+      });
       setDimensionSnap(snapped);
       if (!angleDraft) {
         setAngleDraft({ step: 'vertex', start: snapped });
@@ -1169,12 +1288,18 @@ export default function DesignBuilderPlanCanvas({
       return;
     }
     if (toolMode === 'draw_wall') {
+      const activeNode = activeNodeId ? layout.nodes.find((node) => node.id === activeNodeId) : null;
+      const snapped = resolvePrecisionSnap(point, {
+        altHeld: event.altKey,
+        shiftHeld: event.shiftKey,
+        basePoint: activeNode ?? null,
+      });
       onInteraction({
         kind: 'draw_point',
         toolMode,
         phase: event.detail === 2 ? 'commit' : 'commit',
-        planX: point.x,
-        planZ: point.z,
+        planX: snapped.worldPoint.x,
+        planZ: snapped.worldPoint.z,
         nodeId: activeNodeId ?? undefined,
         shiftHeld: event.shiftKey,
         altHeld: event.altKey,
@@ -3038,19 +3163,44 @@ export default function DesignBuilderPlanCanvas({
         {(toolMode === 'place_dimension' || toolMode === 'place_angle') && dimensionSnap ? (
           (() => {
             const point = planToSurfacePoint(dimensionSnap.point);
+            const label = dimensionSnap.snapResult?.label ?? dimensionSnap.type;
+            const markerType = dimensionSnap.snapResult?.snapType ?? 'none';
             return (
-              <circle
-                cx={point.sx}
-                cy={point.sy}
-                r={4}
-                fill="none"
-                stroke={previewStroke}
-                strokeWidth={1.8}
-                pointerEvents="none"
-                data-canvas-layer="handles-control-points"
-                data-dimension-snap-marker={dimensionSnap.type}
-                data-angle-snap-marker={toolMode === 'place_angle' ? dimensionSnap.type : undefined}
-              />
+              <g pointerEvents="none" data-canvas-layer="handles-control-points">
+                {markerType === 'endpoint' ? (
+                  <rect x={point.sx - 4} y={point.sy - 4} width={8} height={8} fill="none" stroke={previewStroke} strokeWidth={1.8} />
+                ) : markerType === 'midpoint' ? (
+                  <path d={`M ${point.sx} ${point.sy - 5} L ${point.sx + 5} ${point.sy + 4} L ${point.sx - 5} ${point.sy + 4} Z`} fill="none" stroke={previewStroke} strokeWidth={1.8} />
+                ) : markerType === 'intersection' ? (
+                  <>
+                    <line x1={point.sx - 5} y1={point.sy - 5} x2={point.sx + 5} y2={point.sy + 5} stroke={previewStroke} strokeWidth={1.8} />
+                    <line x1={point.sx + 5} y1={point.sy - 5} x2={point.sx - 5} y2={point.sy + 5} stroke={previewStroke} strokeWidth={1.8} />
+                  </>
+                ) : (
+                  <circle cx={point.sx} cy={point.sy} r={4} fill="none" stroke={previewStroke} strokeWidth={1.8} />
+                )}
+                <text
+                  x={point.sx + 8}
+                  y={point.sy - 8}
+                  fill={previewStroke}
+                  fontSize={11}
+                  fontWeight={700}
+                  paintOrder="stroke"
+                  stroke={textBackerStroke}
+                  strokeWidth={3}
+                  data-snap-label="true"
+                >
+                  {label}
+                </text>
+                <circle
+                  cx={point.sx}
+                  cy={point.sy}
+                  r={0}
+                  fill="none"
+                  data-dimension-snap-marker={dimensionSnap.type}
+                  data-angle-snap-marker={toolMode === 'place_angle' ? dimensionSnap.type : undefined}
+                />
+              </g>
             );
           })()
         ) : null}

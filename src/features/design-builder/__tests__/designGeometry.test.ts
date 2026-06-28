@@ -730,7 +730,10 @@ describe("Design Builder generated geometry", () => {
 
     expect(firstStart(running, 0)).toBeCloseTo(0, 2);
     expect(firstNonZeroStart(running, 0)).toBeCloseTo(moduleLength, 1);
-    expect(firstStart(running, 1)).toBeCloseTo(moduleLength / 2, 1);
+    expect(firstStart(running, 1)).toBeCloseTo(
+      preset.wall.wallThicknessMeters / 2,
+      1,
+    );
     expect(firstNonZeroStart(stacked, 0)).toBeCloseTo(moduleLength, 1);
     expect(firstNonZeroStart(stacked, 1)).toBeCloseTo(moduleLength, 1);
   });
@@ -821,7 +824,7 @@ describe("Design Builder generated geometry", () => {
     ).toBe(true);
     expect(courseZero[0].ownerSegmentId).not.toBe(courseOne[0].ownerSegmentId);
     expect(courseZero[0].buttingStartTrim).toBeCloseTo(
-      (preset.wall.blockModule?.moduleLengthMeters ?? 0.4) / 2,
+      preset.wall.wallThicknessMeters / 2,
       6,
     );
   });
@@ -1327,18 +1330,20 @@ describe("Design Builder generated geometry", () => {
       0,
     );
     courseZeroCuts.forEach((cut) => {
+      expect(cut.kind).toBe("cut_block");
+      expect(cut.source).toBe("wall_run");
+    });
+    [...new Set(courseZeroCuts.map((cut) => cut.segmentId))].forEach((segmentId) => {
       const segmentBlocks = geometry.blockInstances.filter(
         (block) =>
-          block.segmentId === cut.segmentId && block.course === cut.course,
+          block.segmentId === segmentId && block.course === 0,
       );
       const ordered = [...segmentBlocks].sort(
         (a, b) => (a.stationMeters ?? 0) - (b.stationMeters ?? 0),
       );
-      expect(cut.kind).toBe("cut_block");
-      expect(cut.source).toBe("wall_run");
-      expect(ordered.filter((block) => block.blockType === "cut")).toHaveLength(
-        1,
-      );
+      const cuts = ordered.filter((block) => block.blockType === "cut");
+      expect(cuts.length).toBeGreaterThan(0);
+      expect(cuts.length).toBeLessThanOrEqual(2);
     });
   });
 
@@ -1516,6 +1521,18 @@ describe("Design Builder generated geometry", () => {
         const startSetBack = plan.startStationMeters > 0;
         const endSetBack = plan.endStationMeters < length;
         expect(startSetBack === endSetBack).toBe(false);
+        expect(
+          Math.min(
+            plan.startStationMeters,
+            length - plan.endStationMeters,
+          ),
+        ).toBeCloseTo(0, 6);
+        expect(
+          Math.max(
+            plan.startStationMeters,
+            length - plan.endStationMeters,
+          ),
+        ).toBeCloseTo(preset.wall.wallThicknessMeters / 2, 6);
       });
     });
   });
