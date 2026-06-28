@@ -35,6 +35,11 @@ import {
 } from '../geometry/designGeometry';
 import { buildFrameInfillEstimatePreview, metersToFeet } from '../quantity/designQuantityFormulas';
 import {
+  feetToMeters,
+  selectTrussWebProfileForSpan,
+  type TrussWebProfileId,
+} from '../domain/trussWebProfiles';
+import {
   buildPurlinMesh,
   buildRoofCladdingRenderPlanes,
   buildSteelTrussMemberMeshes,
@@ -96,6 +101,36 @@ function hipRoofSystem(overrides: Partial<RoofSystemSettings> = {}): RoofSystemS
     gable: { ...createDefaultRoofSystemSettings().gable, enabled: false, rakedConcreteCapEnabled: false },
     ...overrides,
   };
+}
+
+function gableRoofSystemWithSteelTrusses(
+  steelTrussOverrides: Partial<RoofSystemSettings['steelTrusses']> = {},
+): RoofSystemSettings {
+  const defaults = createDefaultRoofSystemSettings();
+  return {
+    ...defaults,
+    roofType: 'gable',
+    supportSystem: 'steel_trusses',
+    ridgeDirection: 'along_longest_axis',
+    steelTrusses: {
+      ...defaults.steelTrusses,
+      ...steelTrussOverrides,
+    },
+  };
+}
+
+function roofForApproximateTrussSpanFt(
+  spanFt: number,
+  steelTrussOverrides: Partial<RoofSystemSettings['steelTrusses']> = {},
+) {
+  const widthMeters = feetToMeters(spanFt);
+  const lengthMeters = Math.max(widthMeters + 3, 12);
+  return roofFromGeometry(
+    frameInfillGeometry(
+      gableRoofSystemWithSteelTrusses(steelTrussOverrides),
+      rectangularLayout(lengthMeters, widthMeters),
+    ),
+  );
 }
 
 function minCladdingEaveSurfaceY(roof: ReturnType<typeof roofFromGeometry>): number {
@@ -264,6 +299,97 @@ function supportingTopChordMember(
 describe('Roof framing — trusses, purlins, corrugated metal', () => {
   const preset = applyAutoFrameLayout(createFiveBySixCmuBuildingPreset());
 
+  it('selects truss web profiles at deterministic span boundaries', () => {
+    const cases: Array<{ spanFt: number; profileId: TrussWebProfileId; warningCode?: string }> = [
+      { spanFt: 16, profileId: 'king_post' },
+      { spanFt: 16.01, profileId: 'queen_post' },
+      { spanFt: 24, profileId: 'queen_post' },
+      { spanFt: 24.01, profileId: 'fink' },
+      { spanFt: 36, profileId: 'fink' },
+      { spanFt: 36.01, profileId: 'howe' },
+      { spanFt: 44, profileId: 'howe' },
+      { spanFt: 44.01, profileId: 'double_fink' },
+      { spanFt: 60, profileId: 'double_fink' },
+      { spanFt: 60.01, profileId: 'triple_fink' },
+      { spanFt: 80.01, profileId: 'triple_fink', warningCode: 'truss_span_requires_engineering_review' },
+    ];
+
+    for (const testCase of cases) {
+      const selection = selectTrussWebProfileForSpan({
+        spanMeters: feetToMeters(testCase.spanFt),
+      });
+      expect(selection.profileId).toBe(testCase.profileId);
+      expect(selection.warningCode).toBe(testCase.warningCode);
+    }
+  });
+
+  it('small spans select King Post web layout', () => {
+    const roof = roofForApproximateTrussSpanFt(12);
+    const truss = roof.trussPlacements[0]!;
+    expect(truss.webProfileId).toBe('king_post');
+    expect(truss.webProfileLabel).toBe('King Post');
+    expect(metersToFeet(truss.spanMeters ?? 0)).toBeLessThanOrEqual(16);
+    expect(truss.members.filter((member) => member.memberKind === 'vertical_web')).toHaveLength(1);
+    expect(truss.members.filter((member) => member.memberKind === 'diagonal_web')).toHaveLength(0);
+  });
+
+  it('medium spans select Fink web layout', () => {
+    const roof = roofForApproximateTrussSpanFt(30);
+    const truss = roof.trussPlacements[0]!;
+    expect(truss.webProfileId).toBe('fink');
+    expect(truss.members.filter((member) => member.memberKind === 'diagonal_web')).toHaveLength(4);
+    expect(truss.members.some((member) => member.id === `${truss.id}-web-left-outer`)).toBe(true);
+  });
+
+  it('long spans select Double Fink with more web members than Fink', () => {
+    const fink = roofForApproximateTrussSpanFt(30).trussPlacements[0]!;
+    const roof = roofForApproximateTrussSpanFt(50);
+    const truss = roof.trussPlacements[0]!;
+    const finkWebMembers = fink.members.filter(
+      (member) => member.memberKind === 'vertical_web' || member.memberKind === 'diagonal_web',
+    );
+    const doubleFinkWebMembers = truss.members.filter(
+      (member) => member.memberKind === 'vertical_web' || member.memberKind === 'diagonal_web',
+    );
+    expect(truss.webProfileId).toBe('double_fink');
+    expect(doubleFinkWebMembers.length).toBeGreaterThan(finkWebMembers.length);
+  });
+
+  it('very long spans render Triple Fink and warn for engineering review', () => {
+    const roof = roofForApproximateTrussSpanFt(82);
+    expect(roof.trussPlacements[0]?.webProfileId).toBe('triple_fink');
+    expect(roof.warnings.some((warning) => warning.code === 'truss_span_requires_engineering_review')).toBe(true);
+  });
+
+  it('manual truss web profile override selects Howe', () => {
+    const roof = roofForApproximateTrussSpanFt(30, {
+      webProfileMode: 'manual',
+      manualWebProfileId: 'howe',
+    });
+    const truss = roof.trussPlacements[0]!;
+    expect(truss.webProfileId).toBe('howe');
+    expect(truss.members.some((member) => member.id === `${truss.id}-howe-vertical-center`)).toBe(true);
+  });
+
+  it('manual truss web profile out of range emits a review warning', () => {
+    const roof = roofForApproximateTrussSpanFt(50, {
+      webProfileMode: 'manual',
+      manualWebProfileId: 'king_post',
+    });
+    expect(roof.trussPlacements[0]?.webProfileId).toBe('king_post');
+    expect(roof.warnings.some((warning) => warning.code === 'truss_web_profile_manual_out_of_range')).toBe(true);
+  });
+
+  it('manual truss web profile mode without a selected profile warns and falls back to auto', () => {
+    const roof = roofForApproximateTrussSpanFt(30, {
+      webProfileMode: 'manual',
+      manualWebProfileId: undefined,
+    });
+    expect(roof.trussPlacements[0]?.webProfileId).toBe('fink');
+    expect(roof.warnings.some((warning) => warning.code === 'truss_web_profile_missing')).toBe(true);
+    expect(roof.warnings.some((warning) => warning.code === 'truss_web_profile_member_layout_empty')).toBe(false);
+  });
+
   it('every gable truss has two top chords and one bottom chord', () => {
     const roof = roofFromGeometry(frameInfillGeometry(createDefaultRoofSystemSettings()));
     expect(roof.trussPlacements.length).toBeGreaterThanOrEqual(2);
@@ -275,8 +401,9 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
   });
 
   it('truss web members are mirrored about the truss centerline', () => {
-    const roof = roofFromGeometry(frameInfillGeometry(createDefaultRoofSystemSettings()));
+    const roof = roofForApproximateTrussSpanFt(30);
     for (const truss of roof.trussPlacements) {
+      expect(truss.webProfileId).toBe('fink');
       const diagonals = truss.members.filter((member) => member.memberKind === 'diagonal_web');
       const verticals = truss.members.filter((member) => member.memberKind === 'vertical_web');
       expect(diagonals).toHaveLength(4);
@@ -1921,8 +2048,27 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
     });
     const plates = preview.find((line) => line.id === 'truss-base-plates');
     const bolts = preview.find((line) => line.id === 'truss-anchor-bolts');
+    const trusses = preview.find((line) => line.id === 'steel-trusses');
+    const chordsAndWeb = preview.find((line) => line.id === 'steel-truss-chords-web');
     expect(plates?.quantity).toBe(roof.trussCount * 2);
     expect(bolts?.quantity).toBe(roof.trussCount * 2 * settings.steelTrusses.anchorBoltsPerBearing);
+    expect(trusses?.description).toContain('Steel');
+    expect(trusses?.description).toContain('span');
+    expect(chordsAndWeb?.parameterSnapshot).toEqual(
+      expect.objectContaining({
+        chordLengthMeters: expect.any(Number),
+        webLengthMeters: expect.any(Number),
+        webProfileId: expect.any(String),
+      }),
+    );
+    expect(
+      (chordsAndWeb?.parameterSnapshot as { chordLengthMeters?: number; webLengthMeters?: number } | undefined)
+        ?.chordLengthMeters,
+    ).toBeGreaterThan(0);
+    expect(
+      (chordsAndWeb?.parameterSnapshot as { chordLengthMeters?: number; webLengthMeters?: number } | undefined)
+        ?.webLengthMeters,
+    ).toBeGreaterThan(0);
   });
 
   it('even truss station spacing matches formula', () => {

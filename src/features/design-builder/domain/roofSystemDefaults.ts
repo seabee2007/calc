@@ -1,5 +1,6 @@
 import type { RoofLayerVisibility, RoofSystemSettings, RoofSupportStyle } from '../types';
 import { DEFAULT_ROOF_TO_MASONRY_CLEARANCE_METERS } from './structuralFrameDefaults';
+import { isTrussWebProfileId } from './trussWebProfiles';
 
 export const DEFAULT_ROOF_LAYER_VISIBILITY: RoofLayerVisibility = {
   roofCladding: true,
@@ -27,6 +28,8 @@ export function createDefaultRoofSystemSettings(): RoofSystemSettings {
       maxSpacingMeters: 2.4,
       hipInteriorTrussCount: 0,
       profileLabel: 'Conceptual steel truss',
+      webProfileMode: 'auto_by_span',
+      manualWebProfileId: undefined,
       webSteelAllowanceFactor: 0.35,
       basePlateEnabled: true,
       basePlateWidthMeters: 0.2,
@@ -102,6 +105,11 @@ export function normalizeRoofSystemSettings(
   const hipInteriorTrussCount = Number.isFinite(rawHipInteriorTrussCount)
     ? Math.max(0, Math.round(rawHipInteriorTrussCount))
     : defaults.steelTrusses.hipInteriorTrussCount;
+  const webProfileMode =
+    steelTrussesInput.webProfileMode === 'manual' ? 'manual' : defaults.steelTrusses.webProfileMode;
+  const manualWebProfileId = isTrussWebProfileId(steelTrussesInput.manualWebProfileId)
+    ? steelTrussesInput.manualWebProfileId
+    : undefined;
   const fasciaInput: Partial<RoofSystemSettings['fascia']> = input.fascia ?? {};
   const rawFasciaBottomExtension =
     fasciaInput.bottomExtensionBelowFrameMeters ?? defaults.fascia.bottomExtensionBelowFrameMeters;
@@ -115,7 +123,13 @@ export function normalizeRoofSystemSettings(
     eaveOverhangMeters,
     gableEndOverhangMeters,
     supportSystem: resolvedSupportSystem,
-    steelTrusses: { ...defaults.steelTrusses, ...steelTrussesInput, hipInteriorTrussCount },
+    steelTrusses: {
+      ...defaults.steelTrusses,
+      ...steelTrussesInput,
+      hipInteriorTrussCount,
+      webProfileMode,
+      manualWebProfileId,
+    },
     purlins: { ...defaults.purlins, ...input.purlins },
     corrugatedMetal: { ...defaults.corrugatedMetal, ...input.corrugatedMetal },
     fascia: {

@@ -118,7 +118,7 @@ describe('orthogonalClosureAssist', () => {
     expect(assist?.firstNode).toEqual({ id: 'a', x: 10, z: 20 });
   });
 
-  it('captures the rectangle corner with shift while leaving free pointer movement without shift', () => {
+  it('captures the rectangle corner without requiring shift', () => {
     const layout = buildThreeSides({ a: { x: 0, z: 0 }, b: { x: 5, z: 0 }, c: { x: 5, z: 4 } });
     const activeNodeId = layout.segments[1].endNodeId;
     const corner = resolveOrthogonalCornerPoint({ layout, activeNodeId });
@@ -149,9 +149,11 @@ describe('orthogonalClosureAssist', () => {
       },
     });
 
-    expect(withoutShift.type).toBe('raw');
+    expect(withoutShift.type).toBe('guide');
+    expect(withoutShift.label).toBe('Exact rectangle corner');
+    expect(withoutShift.point).toEqual(corner);
     expect(withShift.type).toBe('guide');
-    expect(withShift.label).toBe('Rectangle corner');
+    expect(withShift.label).toBe('Exact rectangle corner');
     expect(withShift.point).toEqual(corner);
   });
 

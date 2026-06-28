@@ -9,6 +9,7 @@ import {
 
 export const SNAP_CAPTURE_RADIUS_PX = NODE_CAPTURE_RADIUS_PX;
 export const SNAP_RELEASE_RADIUS_PX = 26;
+export const EXACT_RECTANGLE_CORNER_SNAP_LABEL = 'Exact rectangle corner';
 
 export type DesignSnapTarget = {
   type: 'node' | 'endpoint' | 'line' | 'cmu_module' | 'grid' | 'raw' | 'guide';
@@ -75,6 +76,22 @@ function resolveDesignSnapPointLegacy(params: {
   const snapNodeById = buildSnapNodeById(params.layout, params.segmentFrames);
   const candidates: DesignSnapTarget[] = [];
 
+  if (params.drawContext?.orthogonalLock && params.drawContext.closureCornerCandidate) {
+    const corner = params.drawContext.closureCornerCandidate;
+    const distanceMeters = distance(params.point, corner);
+    if (distanceMeters <= guideCaptureMeters) {
+      candidates.push({
+        type: 'guide',
+        point: corner,
+        distancePx: distanceMeters * pixelsPerMeter,
+        priority: 0,
+        label: EXACT_RECTANGLE_CORNER_SNAP_LABEL,
+        valid: true,
+        captured: true,
+      });
+    }
+  }
+
   if (
     params.previousSnap &&
     params.previousSnap.type !== 'raw' &&
@@ -105,20 +122,6 @@ function resolveDesignSnapPointLegacy(params: {
 
   const endpointSnap = findNearestEndpointSnap(params.layout, params.point, captureMeters, pixelsPerMeter, snapNodeById);
   if (endpointSnap) candidates.push(endpointSnap);
-
-  if (params.drawContext?.shiftHeld && params.drawContext.closureCornerCandidate) {
-    const corner = params.drawContext.closureCornerCandidate;
-    const distanceMeters = distance(params.point, corner);
-    candidates.push({
-      type: 'guide',
-      point: corner,
-      distancePx: distanceMeters * pixelsPerMeter,
-      priority: 1,
-      label: 'Rectangle corner',
-      valid: true,
-      captured: distanceMeters * pixelsPerMeter <= guideCaptureMeters,
-    });
-  }
 
   const perpendicularGuideSnap = findPreviousSegmentPerpendicularSnap({
     layout: params.layout,
@@ -244,7 +247,6 @@ function findPreviousSegmentPerpendicularSnap(params: {
   const activeNodeId = params.drawContext?.activeNodeId;
   if (!params.drawContext?.orthogonalLock || !activeNodeId) return null;
   if (params.drawContext.shiftHeld) return null;
-  if (params.drawContext.closureCornerCandidate) return null;
   const activeNode = params.layout.nodes.find((node) => node.id === activeNodeId);
   if (!activeNode) return null;
 

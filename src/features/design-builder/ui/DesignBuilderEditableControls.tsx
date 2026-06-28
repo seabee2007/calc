@@ -10,6 +10,7 @@ import type { ModuleFitReport } from '../domain/moduleFitReport';
 import type { DesignGeometryResult } from '../geometry/designGeometry';
 import { generateCmuLayout } from '../geometry/designGeometry';
 import { cubicMetersToCubicYards } from '../quantity/designQuantityFormulas';
+import { metersToFeet } from '../domain/trussWebProfiles';
 import type {
   BuildingSystemMode,
   CmuInfillPlasterSettings,
@@ -383,6 +384,7 @@ export function DesignBuilderEditableControls({
   }
 
   if (selectedObjectType === 'steel_truss_system') {
+    const truss = designGeometryResult.resolvedRoofSystem?.trussPlacements[0];
     return (
       <div className="space-y-3">
         <NumberField
@@ -391,7 +393,17 @@ export function DesignBuilderEditableControls({
           suffix="m"
           onChange={onTrussSpacingChange}
         />
-        <SelectField label="Type" value="steel_preview" onChange={() => undefined} options={[{ value: 'steel_preview', label: 'Steel truss preview' }]} />
+        <SelectField
+          label="Type"
+          value="steel_preview"
+          onChange={() => undefined}
+          options={[{ value: 'steel_preview', label: truss?.webProfileLabel ?? 'Steel truss preview' }]}
+        />
+        {truss?.spanMeters != null ? (
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Span {truss.spanMeters.toFixed(2)} m / {metersToFeet(truss.spanMeters).toFixed(1)} ft
+          </p>
+        ) : null}
       </div>
     );
   }

@@ -10,9 +10,19 @@ export function formatDrawWallStatusChip(params: {
   snapTarget?: DesignSnapTarget | null;
 }): string {
   if (params.shiftConstraintLabel) {
-    return params.shiftConstraintLabel.includes('parallel') ? 'Locked: parallel' : 'Locked: 90°';
+    if (
+      params.shiftConstraintLabel.startsWith('Closure:') ||
+      params.shiftConstraintLabel.startsWith('Typed length') ||
+      params.shiftConstraintLabel.startsWith('Current segment:')
+    ) {
+      return params.shiftConstraintLabel;
+    }
+    return params.shiftConstraintLabel.includes('parallel') ? 'Locked: parallel' : 'Locked: 90 deg';
   }
   if (params.snapTarget?.captured && params.snapTarget.type !== 'raw') {
+    if (params.snapTarget.label === 'Exact rectangle corner') {
+      return 'Closure: exact rectangle corner';
+    }
     if (params.snapTarget.type === 'grid') {
       return `Snap: Grid ${formatPlanGridSpacingMeters(params.gridSpacingMeters)}`;
     }
@@ -43,7 +53,8 @@ export function formatDrawWallSnapTargetFeedback(params: {
   } else if (params.snapMode === 'off' && (!params.snapTarget || params.snapTarget.type === 'raw')) {
     parts.push('Free angle');
   } else if (params.snapTarget && params.snapTarget.type !== 'raw') {
-    if (params.snapTarget.label === '90°') parts.push('Guide: 90°');
+    if (params.snapTarget.label === 'Exact rectangle corner') parts.push('Closure: exact rectangle corner');
+    else if (params.snapTarget.label === '90 deg' || params.snapTarget.label?.includes('90')) parts.push('Guide: 90 deg');
     else if (params.snapTarget.label === 'Parallel') parts.push('Guide: Parallel');
     else if (params.snapTarget.type === 'cmu_module') parts.push('Snap: CMU module');
     else if (params.snapTarget.type === 'grid') {
@@ -56,7 +67,7 @@ export function formatDrawWallSnapTargetFeedback(params: {
     parts.push(`Length: ${params.lengthMeters.toFixed(2)} m`);
   }
   if (params.angleDegrees != null) {
-    parts.push(`Angle: ${params.angleDegrees.toFixed(0)}°`);
+    parts.push(`Angle: ${params.angleDegrees.toFixed(0)} deg`);
   }
-  return parts.length > 0 ? parts.join(' · ') : null;
+  return parts.length > 0 ? parts.join(' - ') : null;
 }

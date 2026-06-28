@@ -41,6 +41,7 @@ import {
   resolveRoofFraming,
   resolveRidgeCapPlacement,
 } from './roofFramingResolver';
+import { validateStrictOrthogonalFootprint } from './wallFootprintValidation';
 import type { SegmentFrame } from '../geometry/designGeometry';
 import { resolveGableEndRoofingClosures } from './gableEndRoofingClosureSolver';
 import { resolveRoofFasciaPlacements } from './roofFasciaSolver';
@@ -670,6 +671,7 @@ export function resolveRoofSystem(params: {
     exteriorFootprint: rawBearingLoop,
     exteriorSegmentIds: params.exteriorSegmentIds,
   });
+  const strictFootprintWarnings = analysis.supported ? validateStrictOrthogonalFootprint(params.layout) : [];
   const bearingLoop = analysis.supported
     ? analysis.bearingCorners.map((point) => ({ ...point }))
     : rawBearingLoop;
@@ -754,12 +756,14 @@ export function resolveRoofSystem(params: {
     warnings: [],
   };
 
-  if (!settings.enabled || !analysis.supported) {
+  if (!settings.enabled || !analysis.supported || strictFootprintWarnings.length > 0) {
     return {
       ...empty,
-      warnings: analysis.supported
+      warnings: !settings.enabled
         ? []
-        : [{ code: 'unsupported_footprint', message: UNSUPPORTED_ROOF_FOOTPRINT_MESSAGE, severity: 'review' }],
+        : strictFootprintWarnings.length > 0
+          ? strictFootprintWarnings
+          : [{ code: 'unsupported_footprint', message: UNSUPPORTED_ROOF_FOOTPRINT_MESSAGE, severity: 'review' }],
     };
   }
 

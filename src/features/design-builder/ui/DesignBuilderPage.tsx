@@ -26,6 +26,7 @@ import {
 import { normalizeOpeningsHeadAlignment } from '../domain/openingDefaults';
 import { DESIGN_BUILDER_COPY } from '../domain/designBuilderCopy';
 import { resolveDesignSnapPoint, type DesignSnapTarget } from '../domain/designSnapRules';
+import { resolveWallDrawPoint } from '../domain/wallDrawPointResolver';
 import { useConfirm } from '../../../contexts/ConfirmContext';
 import {
   applyOpeningSegmentPatch,
@@ -69,7 +70,6 @@ import {
   createBlankWallLayout,
   createWallLayoutId,
   deleteWallSegment,
-  detectClosedFootprint,
   deriveExteriorBounds,
   moveWallNode,
   projectExactSegmentLength,
@@ -84,6 +84,10 @@ import {
   GUIDE_CAPTURE_RADIUS_PX,
   type OrthogonalClosureAssist,
 } from '../domain/wallLayoutRules';
+import {
+  repairFootprintToExactOrthogonalRectangle,
+  validateStrictOrthogonalFootprint,
+} from '../domain/wallFootprintValidation';
 import {
   canRedoDesignHistory,
   canUndoDesignHistory,
@@ -301,7 +305,6 @@ import {
   fittingDefinition,
   getPlumbingFixtureDefinition,
   normalizePlumbingSystem,
-  type PlumbingFitting,
   type PlumbingFittingType,
   type PlumbingFixtureRoughInAssembly,
   PLUMBING_FIXTURE_LIBRARY_ORDER,
@@ -1027,6 +1030,11 @@ export default function DesignBuilderPage({
   const nextUndoCommand = peekUndoDesignCommand(designHistory);
   const nextRedoCommand = peekRedoDesignCommand(designHistory);
   const footprintClosed = canGenerateSlabAndRoof(wallLayout);
+  const strictFootprintWarnings = useMemo(() => validateStrictOrthogonalFootprint(wallLayout), [wallLayout]);
+  const repairableOrthogonalFootprint = useMemo(
+    () => (strictFootprintWarnings.length > 0 ? repairFootprintToExactOrthogonalRectangle(wallLayout) : null),
+    [strictFootprintWarnings.length, wallLayout],
+  );
   const effectiveWall = useMemo(
     () =>
       syncWallBlockModuleFromScalars({
@@ -1523,8 +1531,14 @@ export default function DesignBuilderPage({
   const cmuLayout = designGeometryResult.wallCmuLayout;
   const manualMasonrySummary = useMemo(() => summarizeManualMasonryRuns(manualMasonryRuns), [manualMasonryRuns]);
   const moduleWarnings = useMemo(
-    () => [...new Set([...designGeometryResult.wallCmuLayout.warnings, ...validateCmuOpenings(effectiveWall)])],
-    [designGeometryResult.wallCmuLayout.warnings, effectiveWall],
+    () => [
+      ...new Set([
+        ...designGeometryResult.wallCmuLayout.warnings,
+        ...validateCmuOpenings(effectiveWall),
+        ...strictFootprintWarnings.map((warning) => warning.message),
+      ]),
+    ],
+    [designGeometryResult.wallCmuLayout.warnings, effectiveWall, strictFootprintWarnings],
   );
 
   const isRcFrameBuilding =
@@ -2353,6 +2367,27 @@ export default function DesignBuilderPage({
     setDraftPlanEnd(null);
     if (!hasUserAdjustedPlanViewRef.current) issueViewCommand('fit');
     pending3dFitRef.current = true;
+  }
+
+  function handleRepairFootprintToExactRectangle() {
+    const repaired = repairFootprintToExactOrthogonalRectangle(wallLayout);
+    if (!repaired) {
+      setStatus({
+        tone: 'info',
+        message: 'This footprint is not a repairable four-sided rectangle.',
+      });
+      return;
+    }
+    commitWallLayout(repaired, 'Repair footprint to exact rectangle', 'wall_move');
+    setDraftPlanEnd(null);
+    setOrthogonalClosureAssist(null);
+    setClosureCornerSnap(null);
+    if (!hasUserAdjustedPlanViewRef.current) issueViewCommand('fit');
+    pending3dFitRef.current = true;
+    setStatus({
+      tone: 'success',
+      message: 'Footprint repaired to an exact orthogonal rectangle.',
+    });
   }
 
   function cancelPlanDraw() {
@@ -3559,6 +3594,34 @@ export default function DesignBuilderPage({
     return { point: snapTarget.point, constraintLabel: null };
   }
 
+  function resolveActiveWallDrawPoint(
+    rawPoint: { x: number; z: number },
+    options?: {
+      activeNodeId?: string | null;
+      shiftHeld?: boolean;
+      altHeld?: boolean;
+      exactLengthMeters?: number;
+    },
+  ) {
+    const resolved = resolveWallDrawPoint({
+      layout: wallLayout,
+      activeNodeId: options?.activeNodeId ?? null,
+      rawPoint,
+      snapMode,
+      moduleLengthMeters: cmuModule.moduleLengthMeters,
+      pixelsPerMeter: planViewport.zoom,
+      shiftHeld: options?.shiftHeld,
+      altHeld: options?.altHeld,
+      exactLengthMeters: options?.exactLengthMeters,
+      moduleFitMode,
+      previousSnap: lastSnapTargetRef.current,
+      segmentFrames: planSegmentFrames,
+    });
+    lastSnapTargetRef.current = resolved.snapTarget;
+    setDraftSnapTarget(resolved.snapTarget);
+    return resolved;
+  }
+
   const handlePlanInteraction = (event: DesignBuilderInteractionEvent) => {
     if (!modelLoaded) return;
 
@@ -3595,11 +3658,111 @@ export default function DesignBuilderPage({
       snapToModule: snapMode === 'cmu_module',
     };
 
+    if (event.kind === 'draw_preview' && event.planX != null && event.planZ != null) {
+      const currentActiveDrawNodeId =
+        activeDrawNodeId && layout.nodes.some((node) => node.id === activeDrawNodeId)
+          ? activeDrawNodeId
+          : resolveActiveDrawNodeId(layout);
+      const exactLength = segmentLengthInput ? Number(segmentLengthInput) : undefined;
+      const resolved = resolveActiveWallDrawPoint(
+        { x: event.planX, z: event.planZ },
+        {
+          activeNodeId: currentActiveDrawNodeId,
+          shiftHeld: event.shiftHeld,
+          altHeld: event.altHeld,
+          exactLengthMeters: exactLength,
+        },
+      );
+      setDraftPlanEnd(resolved.point);
+      setDrawWallConstraintLabel(resolved.constraintLabel);
+      setDrawWallPreviewMetrics(currentActiveDrawNodeId ? resolved.metrics : null);
+      const assist =
+        currentActiveDrawNodeId && layout.orthogonalLock
+          ? resolveOrthogonalClosureAssist({
+              layout,
+              activeNodeId: currentActiveDrawNodeId,
+              candidatePoint: resolved.point,
+            })
+          : null;
+      setOrthogonalClosureAssist(assist?.isEligible ? assist : null);
+      setClosureCornerSnap(
+        resolved.closure && resolved.closure.rawDistancePx <= GUIDE_CAPTURE_RADIUS_PX
+          ? { point: resolved.closure.exactCorner, captured: resolved.closure.captured }
+          : null,
+      );
+      return;
+    }
+
+    if (event.kind === 'draw_point' && event.planX != null && event.planZ != null) {
+      const exactLength = segmentLengthInput ? Number(segmentLengthInput) : undefined;
+      const currentActiveDrawNodeId =
+        activeDrawNodeId && layout.nodes.some((node) => node.id === activeDrawNodeId)
+          ? activeDrawNodeId
+          : null;
+      const resolved = resolveActiveWallDrawPoint(
+        { x: event.planX, z: event.planZ },
+        {
+          activeNodeId: currentActiveDrawNodeId,
+          shiftHeld: event.shiftHeld,
+          altHeld: event.altHeld,
+          exactLengthMeters: exactLength,
+        },
+      );
+      const point = resolved.point;
+      if (!currentActiveDrawNodeId) {
+        const snappedNodeId =
+          (resolved.snapTarget.type === 'node' || resolved.snapTarget.type === 'endpoint') &&
+          resolved.snapTarget.sourceId
+            ? resolved.snapTarget.sourceId
+            : null;
+        if (snappedNodeId) {
+          setActiveDrawNodeId(snappedNodeId);
+          setDrawStartNodeId(snappedNodeId);
+          setDraftPlanEnd(null);
+          return;
+        }
+        const nodeId = createWallLayoutId('node');
+        const next = {
+          ...layout,
+          nodes: [...layout.nodes, { id: nodeId, x: point.x, z: point.z }],
+        };
+        mutateWallLayoutSilent(next);
+        setActiveDrawNodeId(nodeId);
+        setDrawStartNodeId(nodeId);
+        setDraftPlanEnd(null);
+        return;
+      }
+      const next = addWallSegment(layout, currentActiveDrawNodeId, point.x, point.z, {
+        exactLengthMeters: resolved.closure?.captured ? undefined : exactLength,
+        wallHeightMeters: layout.defaultWallHeightMeters,
+        wallRole: drawWallRole,
+      });
+      commitWallLayout(next, 'Draw wall', 'wall_add');
+      if (layout.segments.length === 0 && !hasUserAdjustedPlanViewRef.current) {
+        issueViewCommand('fit');
+        pending3dFitRef.current = true;
+      }
+      setActiveDrawNodeId(resolveActiveDrawNodeId(next));
+      if (resolved.snapTarget.type === 'line') {
+        setStatus({ tone: 'info', message: 'Line snap selected. Segment split coming later.' });
+      }
+      setDraftPlanEnd(null);
+      setDrawWallConstraintLabel(null);
+      setDrawWallPreviewMetrics(null);
+      setOrthogonalClosureAssist(null);
+      setClosureCornerSnap(null);
+      setDraftSnapTarget(null);
+      lastSnapTargetRef.current = null;
+      setSegmentLengthInput('');
+      return;
+    }
+
     if (event.kind === 'draw_preview' && event.planX != null && event.planZ != null && activeDrawNodeId) {
       const currentActiveDrawNodeId =
         layout.nodes.some((node) => node.id === activeDrawNodeId)
           ? activeDrawNodeId
           : resolveActiveDrawNodeId(layout);
+      if (!currentActiveDrawNodeId) return;
       const start = layout.nodes.find((node) => node.id === currentActiveDrawNodeId);
       if (!start) return;
       const rawPoint = { x: event.planX, z: event.planZ };
@@ -5459,6 +5622,8 @@ export default function DesignBuilderPage({
             onApplyViewerHeightPreset={applyViewerHeightPreset}
             onCloseFootprint={() => void handleCloseFootprint()}
             closeFootprintEnabled={closeFootprintEnabled}
+            onRepairFootprintToExactRectangle={handleRepairFootprintToExactRectangle}
+            repairFootprintEnabled={Boolean(repairableOrthogonalFootprint)}
             onHelp={() => setStatus({ tone: 'info', message: DESIGN_BUILDER_COPY.hints.help })}
             buildingSystemMode={resolvedPreset.buildingSystemMode}
             showOpeningLayout={showOpeningLayout}

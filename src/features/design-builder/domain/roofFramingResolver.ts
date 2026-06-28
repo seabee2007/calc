@@ -11,6 +11,11 @@ import {
   projectCladdingEaveFromStructuralBearing,
   sideEaveTrussRowStationFraction,
 } from './roofOverhangSupport';
+import {
+  selectTrussWebProfileForSpan,
+  type TrussWebProfileId,
+  type TrussWebProfileMode,
+} from './trussWebProfiles';
 import type {
   DesignWarning,
   ExteriorRoofBeamBounds,
@@ -313,6 +318,200 @@ function buildFinkWebMembers(
   ];
 }
 
+function buildKingPostWebMembers(
+  trussId: string,
+  leftBearing: RoofVec3,
+  rightBearing: RoofVec3,
+  apex: RoofVec3,
+): SteelMemberSegment[] {
+  const center = lerpVec3(leftBearing, rightBearing, 0.5);
+  return [
+    {
+      id: `${trussId}-king-post`,
+      memberKind: 'vertical_web',
+      start: center,
+      end: apex,
+    },
+  ];
+}
+
+function buildQueenPostWebMembers(
+  trussId: string,
+  leftBearing: RoofVec3,
+  rightBearing: RoofVec3,
+  apex: RoofVec3,
+): SteelMemberSegment[] {
+  const b1 = lerpVec3(leftBearing, rightBearing, 1 / 3);
+  const b2 = lerpVec3(leftBearing, rightBearing, 2 / 3);
+  const t1 = lerpVec3(leftBearing, apex, 2 / 3);
+  const t2 = lerpVec3(rightBearing, apex, 2 / 3);
+  return [
+    { id: `${trussId}-queen-post-left`, memberKind: 'vertical_web', start: b1, end: t1 },
+    { id: `${trussId}-queen-post-right`, memberKind: 'vertical_web', start: b2, end: t2 },
+    { id: `${trussId}-queen-web-left`, memberKind: 'diagonal_web', start: b1, end: apex },
+    { id: `${trussId}-queen-web-right`, memberKind: 'diagonal_web', start: b2, end: apex },
+  ];
+}
+
+function buildHoweWebMembers(
+  trussId: string,
+  leftBearing: RoofVec3,
+  rightBearing: RoofVec3,
+  apex: RoofVec3,
+): SteelMemberSegment[] {
+  const b25 = lerpVec3(leftBearing, rightBearing, 0.25);
+  const b50 = lerpVec3(leftBearing, rightBearing, 0.5);
+  const b75 = lerpVec3(leftBearing, rightBearing, 0.75);
+  const t25 = lerpVec3(leftBearing, apex, 0.5);
+  const t75 = lerpVec3(rightBearing, apex, 0.5);
+  return [
+    { id: `${trussId}-howe-vertical-left`, memberKind: 'vertical_web', start: b25, end: t25 },
+    { id: `${trussId}-howe-vertical-center`, memberKind: 'vertical_web', start: b50, end: apex },
+    { id: `${trussId}-howe-vertical-right`, memberKind: 'vertical_web', start: b75, end: t75 },
+    { id: `${trussId}-howe-diag-left`, memberKind: 'diagonal_web', start: b25, end: apex },
+    { id: `${trussId}-howe-diag-right`, memberKind: 'diagonal_web', start: b75, end: apex },
+  ];
+}
+
+function buildDoubleFinkWebMembers(
+  trussId: string,
+  leftBearing: RoofVec3,
+  rightBearing: RoofVec3,
+  apex: RoofVec3,
+): SteelMemberSegment[] {
+  const b = (t: number) => lerpVec3(leftBearing, rightBearing, t);
+  const lt = (t: number) => lerpVec3(leftBearing, apex, t);
+  const rt = (t: number) => lerpVec3(rightBearing, apex, t);
+  return [
+    { id: `${trussId}-df-vertical-center`, memberKind: 'vertical_web', start: b(0.5), end: apex },
+    { id: `${trussId}-df-left-post`, memberKind: 'vertical_web', start: b(0.25), end: lt(0.55) },
+    { id: `${trussId}-df-right-post`, memberKind: 'vertical_web', start: b(0.75), end: rt(0.55) },
+    { id: `${trussId}-df-left-diag-1`, memberKind: 'diagonal_web', start: b(0.125), end: lt(0.55) },
+    { id: `${trussId}-df-left-diag-2`, memberKind: 'diagonal_web', start: b(0.375), end: lt(0.55) },
+    { id: `${trussId}-df-right-diag-1`, memberKind: 'diagonal_web', start: b(0.625), end: rt(0.55) },
+    { id: `${trussId}-df-right-diag-2`, memberKind: 'diagonal_web', start: b(0.875), end: rt(0.55) },
+    { id: `${trussId}-df-left-to-apex`, memberKind: 'diagonal_web', start: b(0.375), end: apex },
+    { id: `${trussId}-df-right-to-apex`, memberKind: 'diagonal_web', start: b(0.625), end: apex },
+  ];
+}
+
+function buildDoubleHoweWebMembers(
+  trussId: string,
+  leftBearing: RoofVec3,
+  rightBearing: RoofVec3,
+  apex: RoofVec3,
+): SteelMemberSegment[] {
+  const b = (t: number) => lerpVec3(leftBearing, rightBearing, t);
+  const lt = (t: number) => lerpVec3(leftBearing, apex, t);
+  const rt = (t: number) => lerpVec3(rightBearing, apex, t);
+  return [
+    { id: `${trussId}-dh-center-post`, memberKind: 'vertical_web', start: b(0.5), end: apex },
+    { id: `${trussId}-dh-left-post-outer`, memberKind: 'vertical_web', start: b(0.2), end: lt(0.4) },
+    { id: `${trussId}-dh-left-post-inner`, memberKind: 'vertical_web', start: b(0.35), end: lt(0.7) },
+    { id: `${trussId}-dh-right-post-inner`, memberKind: 'vertical_web', start: b(0.65), end: rt(0.7) },
+    { id: `${trussId}-dh-right-post-outer`, memberKind: 'vertical_web', start: b(0.8), end: rt(0.4) },
+    { id: `${trussId}-dh-left-diag-outer-1`, memberKind: 'diagonal_web', start: b(0.1), end: lt(0.4) },
+    { id: `${trussId}-dh-left-diag-outer-2`, memberKind: 'diagonal_web', start: b(0.3), end: lt(0.4) },
+    { id: `${trussId}-dh-left-diag-inner-1`, memberKind: 'diagonal_web', start: b(0.3), end: lt(0.7) },
+    { id: `${trussId}-dh-left-diag-inner-2`, memberKind: 'diagonal_web', start: b(0.45), end: lt(0.7) },
+    { id: `${trussId}-dh-left-to-apex`, memberKind: 'diagonal_web', start: b(0.45), end: apex },
+    { id: `${trussId}-dh-right-diag-outer-1`, memberKind: 'diagonal_web', start: b(0.9), end: rt(0.4) },
+    { id: `${trussId}-dh-right-diag-outer-2`, memberKind: 'diagonal_web', start: b(0.7), end: rt(0.4) },
+    { id: `${trussId}-dh-right-diag-inner-1`, memberKind: 'diagonal_web', start: b(0.7), end: rt(0.7) },
+    { id: `${trussId}-dh-right-diag-inner-2`, memberKind: 'diagonal_web', start: b(0.55), end: rt(0.7) },
+    { id: `${trussId}-dh-right-to-apex`, memberKind: 'diagonal_web', start: b(0.55), end: apex },
+  ];
+}
+
+function mirrorAcrossCenter(point: RoofVec3, leftBearing: RoofVec3, rightBearing: RoofVec3): RoofVec3 {
+  const center = lerpVec3(leftBearing, rightBearing, 0.5);
+  return {
+    x: center.x * 2 - point.x,
+    y: point.y,
+    z: center.z * 2 - point.z,
+  };
+}
+
+function buildTripleFinkWebMembers(
+  trussId: string,
+  leftBearing: RoofVec3,
+  rightBearing: RoofVec3,
+  apex: RoofVec3,
+): SteelMemberSegment[] {
+  const members: SteelMemberSegment[] = [];
+  const b = (t: number) => lerpVec3(leftBearing, rightBearing, t);
+  const lt = (t: number) => lerpVec3(leftBearing, apex, t);
+
+  members.push({
+    id: `${trussId}-tf-center-post`,
+    memberKind: 'vertical_web',
+    start: b(0.5),
+    end: apex,
+  });
+
+  const leftPanels = [
+    { bottom: 0.125, top: lt(0.35) },
+    { bottom: 0.25, top: lt(0.55) },
+    { bottom: 0.375, top: lt(0.75) },
+  ];
+
+  leftPanels.forEach((panel, index) => {
+    members.push({
+      id: `${trussId}-tf-left-post-${index + 1}`,
+      memberKind: 'vertical_web',
+      start: b(panel.bottom),
+      end: panel.top,
+    });
+  });
+
+  members.push(
+    { id: `${trussId}-tf-left-diag-1`, memberKind: 'diagonal_web', start: b(0.0625), end: leftPanels[0]!.top },
+    { id: `${trussId}-tf-left-diag-2`, memberKind: 'diagonal_web', start: b(0.1875), end: leftPanels[0]!.top },
+    { id: `${trussId}-tf-left-diag-3`, memberKind: 'diagonal_web', start: b(0.1875), end: leftPanels[1]!.top },
+    { id: `${trussId}-tf-left-diag-4`, memberKind: 'diagonal_web', start: b(0.3125), end: leftPanels[1]!.top },
+    { id: `${trussId}-tf-left-diag-5`, memberKind: 'diagonal_web', start: b(0.3125), end: leftPanels[2]!.top },
+    { id: `${trussId}-tf-left-diag-6`, memberKind: 'diagonal_web', start: b(0.4375), end: leftPanels[2]!.top },
+    { id: `${trussId}-tf-left-to-apex`, memberKind: 'diagonal_web', start: b(0.4375), end: apex },
+  );
+
+  const mirrored = members
+    .filter((member) => member.id.includes('-left-'))
+    .map((member) => ({
+      ...member,
+      id: member.id.replace('-left-', '-right-'),
+      start: mirrorAcrossCenter(member.start, leftBearing, rightBearing),
+      end: member.end === apex ? apex : mirrorAcrossCenter(member.end, leftBearing, rightBearing),
+    }));
+
+  return [...members, ...mirrored];
+}
+
+function buildTrussWebMembers(params: {
+  trussId: string;
+  profileId: TrussWebProfileId;
+  leftBearing: RoofVec3;
+  rightBearing: RoofVec3;
+  apex: RoofVec3;
+}): SteelMemberSegment[] {
+  switch (params.profileId) {
+    case 'king_post':
+      return buildKingPostWebMembers(params.trussId, params.leftBearing, params.rightBearing, params.apex);
+    case 'queen_post':
+      return buildQueenPostWebMembers(params.trussId, params.leftBearing, params.rightBearing, params.apex);
+    case 'howe':
+      return buildHoweWebMembers(params.trussId, params.leftBearing, params.rightBearing, params.apex);
+    case 'double_fink':
+      return buildDoubleFinkWebMembers(params.trussId, params.leftBearing, params.rightBearing, params.apex);
+    case 'double_howe':
+      return buildDoubleHoweWebMembers(params.trussId, params.leftBearing, params.rightBearing, params.apex);
+    case 'triple_fink':
+      return buildTripleFinkWebMembers(params.trussId, params.leftBearing, params.rightBearing, params.apex);
+    case 'fink':
+    default:
+      return buildFinkWebMembers(params.trussId, params.leftBearing, params.rightBearing, params.apex);
+  }
+}
+
 function pointOnChordSlopeAtPlanPoint(
   chordStart: RoofVec3,
   chordEnd: RoofVec3,
@@ -336,6 +535,7 @@ function buildPrimaryTrussMembers(
   leftBearing: RoofVec3,
   rightBearing: RoofVec3,
   apex: RoofVec3,
+  webMembers: SteelMemberSegment[],
   leftCladdingEave?: RoofVec3,
   rightCladdingEave?: RoofVec3,
   leftBearingTopCenter?: RoofVec3,
@@ -362,7 +562,7 @@ function buildPrimaryTrussMembers(
       start: leftBearing,
       end: rightBearing,
     },
-    ...buildFinkWebMembers(trussId, leftBearing, rightBearing, apex),
+    ...webMembers,
   ];
 
   if (leftCladdingEave && length3(sub3(leftCladdingEave, resolvedLeftBearingTop)) > TRUSS_VALIDATION_TOLERANCE_METERS) {
@@ -682,6 +882,8 @@ function resolveGableTrussPlacements(params: {
   sideEaveOverhangMeters: number;
   basePlateCenterInsetMeters: number;
   fixedRoofSlope: number;
+  webProfileMode: TrussWebProfileMode;
+  manualWebProfileId?: TrussWebProfileId;
 }): GableTrussPlacementResult {
   const {
     bearing,
@@ -695,6 +897,8 @@ function resolveGableTrussPlacements(params: {
     sideEaveOverhangMeters,
     basePlateCenterInsetMeters,
     fixedRoofSlope,
+    webProfileMode,
+    manualWebProfileId,
   } = params;
   const bearingY = roofBeamTopY + basePlateThicknessMeters;
   const bearingCenterY = bearingY + TRUSS_CHORD_PROFILE_METERS / 2;
@@ -816,11 +1020,53 @@ function resolveGableTrussPlacements(params: {
         : undefined;
     const trussId = `truss-${index}`;
     const planeNormal = buildTrussPlaneNormal(bearingLeft, bearingRight, apex);
+    const spanMeters = Math.hypot(
+      bearingRight.x - bearingLeft.x,
+      bearingRight.z - bearingLeft.z,
+    );
+    const webProfile = selectTrussWebProfileForSpan({
+      spanMeters,
+      mode: webProfileMode,
+      manualProfileId: manualWebProfileId,
+    });
+    if (webProfile.warning) {
+      warnings.push({
+        code: webProfile.warningCode ?? 'truss_web_profile_missing',
+        message: webProfile.warning,
+        severity: 'review',
+      });
+    }
+    if (webProfile.spanFt > 80 && webProfile.warningCode !== 'truss_span_requires_engineering_review') {
+      warnings.push({
+        code: 'truss_span_requires_engineering_review',
+        message: `Truss span ${webProfile.spanFt.toFixed(1)} ft exceeds the conceptual range. Engineering review required.`,
+        severity: 'review',
+      });
+    }
+    const webMembers = buildTrussWebMembers({
+      trussId,
+      profileId: webProfile.profileId,
+      leftBearing: leftTrussBearing,
+      rightBearing: rightTrussBearing,
+      apex,
+    });
+    if (
+      webMembers.length === 0 ||
+      (webProfile.profileId === 'king_post' &&
+        webMembers.filter((member) => member.memberKind === 'vertical_web').length !== 1)
+    ) {
+      warnings.push({
+        code: 'truss_web_profile_member_layout_empty',
+        message: `Web profile ${webProfile.label} did not generate the expected web member layout.`,
+        severity: 'review',
+      });
+    }
     const members = buildPrimaryTrussMembers(
       trussId,
       leftTrussBearing,
       rightTrussBearing,
       apex,
+      webMembers,
       leftCladdingEave,
       rightCladdingEave,
       leftTopChordBearingCenter,
@@ -836,6 +1082,9 @@ function resolveGableTrussPlacements(params: {
       apex,
       ridgeAxis: worldRidgeAxis,
       planeNormal,
+      webProfileId: webProfile.profileId,
+      webProfileLabel: webProfile.label,
+      spanMeters,
       members,
     };
     validateTrussPlacement(placement, roofBeamTopY, basePlateThicknessMeters);
@@ -1969,6 +2218,8 @@ export function resolveRoofFraming(params: {
           ? params.settings.steelTrusses.basePlateLengthMeters / 2
           : 0,
         fixedRoofSlope: params.fixedRoofSlope,
+        webProfileMode: params.settings.steelTrusses.webProfileMode,
+        manualWebProfileId: params.settings.steelTrusses.manualWebProfileId,
       });
       framingWarnings.push(...trussPlacementResult.warnings);
       trussPlacements = trussPlacementResult.placements;

@@ -35,6 +35,11 @@ import { totalRoofFasciaLengthMeters } from "../domain/roofFasciaSolver";
 import { totalRoofSoffitAreaSquareMeters } from "../domain/roofSoffitSolver";
 import { resolveRoofSystem } from "../domain/roofSystemResolver";
 import { resolveOuterRoofBeamBearingLoop } from "../domain/roofFootprintSupport";
+import {
+  metersToFeet,
+  TRUSS_WEB_PROFILE_RULES,
+  type TrussWebProfileId,
+} from "../domain/trussWebProfiles";
 import { reconcileStructuralFrameWithFoundation } from "../domain/structuralFrameLayout";
 import {
   getExteriorPerimeterSegmentIds,
@@ -349,6 +354,24 @@ export default function FrameFoundationDimensionsModal({
       }),
     [autoGenerateFrameLayout, foundationDraft, preset],
   );
+  const representativeTruss = resolvedRoof.supported ? resolvedRoof.trussPlacements[0] : undefined;
+  const representativeTrussSpanMeters =
+    representativeTruss?.spanMeters ??
+    (representativeTruss
+      ? Math.hypot(
+          representativeTruss.bearingRight.x - representativeTruss.bearingLeft.x,
+          representativeTruss.bearingRight.z - representativeTruss.bearingLeft.z,
+        )
+      : undefined);
+  const trussWebWarning = resolvedRoof.supported
+    ? resolvedRoof.warnings.find(
+        (warning) =>
+          warning.code === "truss_span_requires_engineering_review" ||
+          warning.code === "truss_web_profile_manual_out_of_range" ||
+          warning.code === "truss_web_profile_missing" ||
+          warning.code === "truss_web_profile_member_layout_empty",
+      )
+    : undefined;
 
   const fieldErrors = useMemo(() => {
     const errors: Record<string, string> = {};
@@ -1128,6 +1151,65 @@ export default function FrameFoundationDimensionsModal({
                     })
                   }
                 />
+                <div className={MODAL_INFO_PANEL}>
+                  <div className={`mb-2 font-semibold uppercase tracking-wide ${TEXT_MUTED}`}>
+                    Truss Span Tool
+                  </div>
+                  <div>
+                    Truss Span:{" "}
+                    {representativeTrussSpanMeters != null
+                      ? `${representativeTrussSpanMeters.toFixed(2)} m / ${metersToFeet(representativeTrussSpanMeters).toFixed(1)} ft`
+                      : "No trusses resolved"}
+                  </div>
+                  <div>
+                    Selected Web: {representativeTruss?.webProfileLabel ?? "Not resolved"}
+                  </div>
+                  <label className="mt-3 block text-sm">
+                    <span className={FORM_LABEL}>Web Profile Mode</span>
+                    <select
+                      value={roofDraft.steelTrusses.webProfileMode}
+                      onChange={(event) => {
+                        const mode = event.currentTarget.value as RoofSystemSettings["steelTrusses"]["webProfileMode"];
+                        patchSteelTrusses({
+                          webProfileMode: mode,
+                          manualWebProfileId:
+                            mode === "manual"
+                              ? roofDraft.steelTrusses.manualWebProfileId ??
+                                representativeTruss?.webProfileId ??
+                                "fink"
+                              : roofDraft.steelTrusses.manualWebProfileId,
+                        });
+                      }}
+                      className={MODAL_FIELD_CONTROL}
+                    >
+                      <option value="auto_by_span">Auto by Span</option>
+                      <option value="manual">Manual</option>
+                    </select>
+                  </label>
+                  {roofDraft.steelTrusses.webProfileMode === "manual" ? (
+                    <label className="mt-3 block text-sm">
+                      <span className={FORM_LABEL}>Manual Web Profile</span>
+                      <select
+                        value={roofDraft.steelTrusses.manualWebProfileId ?? "fink"}
+                        onChange={(event) =>
+                          patchSteelTrusses({
+                            manualWebProfileId: event.currentTarget.value as TrussWebProfileId,
+                          })
+                        }
+                        className={MODAL_FIELD_CONTROL}
+                      >
+                        {TRUSS_WEB_PROFILE_RULES.map((rule) => (
+                          <option key={rule.profileId} value={rule.profileId}>
+                            {rule.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  ) : null}
+                  {trussWebWarning ? (
+                    <p className={`mt-3 text-xs ${TEXT_WARNING}`}>{trussWebWarning.message}</p>
+                  ) : null}
+                </div>
                 <ToggleRow
                   label="Base Plates Enabled"
                   checked={roofDraft.steelTrusses.basePlateEnabled}

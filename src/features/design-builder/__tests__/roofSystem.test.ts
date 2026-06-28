@@ -362,6 +362,27 @@ describe("Roof system — hip, gable, raked cap", () => {
     expect(normalized.soffit.enabled).toBe(true);
   });
 
+  it("normalizes missing truss web profile settings to auto mode", () => {
+    const defaults = createDefaultRoofSystemSettings();
+    const legacy = normalizeRoofSystemSettings({
+      steelTrusses: {
+        enabled: true,
+        maxSpacingMeters: defaults.steelTrusses.maxSpacingMeters,
+        hipInteriorTrussCount: defaults.steelTrusses.hipInteriorTrussCount,
+        profileLabel: defaults.steelTrusses.profileLabel,
+        webSteelAllowanceFactor: defaults.steelTrusses.webSteelAllowanceFactor,
+        basePlateEnabled: defaults.steelTrusses.basePlateEnabled,
+        basePlateWidthMeters: defaults.steelTrusses.basePlateWidthMeters,
+        basePlateLengthMeters: defaults.steelTrusses.basePlateLengthMeters,
+        basePlateThicknessMeters: defaults.steelTrusses.basePlateThicknessMeters,
+        anchorBoltsPerBearing: defaults.steelTrusses.anchorBoltsPerBearing,
+      } as RoofSystemSettings["steelTrusses"],
+    });
+
+    expect(legacy.steelTrusses.webProfileMode).toBe("auto_by_span");
+    expect(legacy.steelTrusses.manualWebProfileId).toBeUndefined();
+  });
+
   it("resolves boxed soffit panels around gable overhangs by default", () => {
     const geometry = frameInfillGeometry(gableRoofSystem());
     const roof = geometry.resolvedRoofSystem!;
@@ -1561,6 +1582,39 @@ describe("Roof system — hip, gable, raked cap", () => {
       ),
     ).toBe(true);
     expect(roof.roofTopPlanes.length).toBe(0);
+  });
+
+  it("blocks rectangular roof generation for a skewed closed footprint", () => {
+    const layout = {
+      ...createOutsideFaceRectangleLayout({ lengthMeters: 6, widthMeters: 5 }),
+    };
+    const nw = layout.nodes[3]!;
+    layout.nodes = layout.nodes.map((node) =>
+      node.id === nw.id ? { ...node, z: node.z - 0.01 } : node,
+    );
+    const bearing = layout.nodes.map((node) => ({ x: node.x, z: node.z }));
+
+    const roof = resolveRoofSystem({
+      layout,
+      wallExteriorFootprint: bearing,
+      structuralBearingPerimeter: bearing,
+      bearingSource: "wall_exterior_fallback",
+      roofSystem: createDefaultRoofSystemSettings(),
+      roofBeamTopElevationMeters: 2.8,
+    });
+
+    expect(roof.supported).toBe(false);
+    expect(
+      roof.warnings.some((warning) =>
+        [
+          "closed_footprint_non_orthogonal",
+          "opposite_wall_lengths_mismatch",
+          "opposite_wall_not_parallel",
+          "closure_corner_not_exact",
+        ].includes(warning.code),
+      ),
+    ).toBe(true);
+    expect(roof.roofTopPlanes).toHaveLength(0);
   });
 });
 

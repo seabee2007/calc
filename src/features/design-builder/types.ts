@@ -1,4 +1,5 @@
 import type { PlumbingSelection } from './plumbing/plumbingTypes';
+import type { TrussWebProfileId, TrussWebProfileMode } from './domain/trussWebProfiles';
 
 export type DesignUnitSystem = "metric" | "imperial";
 export type DesignModelType = "cmu_building" | "frame_cmu_building";
@@ -866,6 +867,8 @@ export interface RoofSystemSettings {
     maxSpacingMeters: number;
     hipInteriorTrussCount: number;
     profileLabel: string;
+    webProfileMode: TrussWebProfileMode;
+    manualWebProfileId?: TrussWebProfileId;
     webSteelAllowanceFactor: number;
     basePlateEnabled: boolean;
     basePlateWidthMeters: number;
@@ -961,6 +964,9 @@ export type TrussPlacement = {
   /** World-axis classification of the ridge direction for this truss plane. */
   ridgeAxis: "x" | "z";
   planeNormal: RoofVec3;
+  webProfileId?: TrussWebProfileId;
+  webProfileLabel?: string;
+  spanMeters?: number;
   members: SteelMemberSegment[];
 };
 

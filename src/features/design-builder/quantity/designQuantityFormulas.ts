@@ -6,6 +6,7 @@ import type {
   PurlinPlacement,
   SteelTrussSystemParameters,
   ThickenedEdgeSlabParameters,
+  TrussPlacement,
   WallOpeningParameters,
 } from '../types';
 import { generateCmuLayout } from '../geometry/designGeometry';
@@ -161,6 +162,40 @@ export function cubicMetersToCubicYards(cubicMeters: number): number {
 
 function segmentLengthMeters(start: { x: number; y: number; z: number }, end: { x: number; y: number; z: number }): number {
   return Math.hypot(end.x - start.x, end.y - start.y, end.z - start.z);
+}
+
+function isTrussChordMemberKind(kind: string): boolean {
+  return (
+    kind === 'top_chord_left' ||
+    kind === 'top_chord_right' ||
+    kind === 'bottom_chord' ||
+    kind === 'top_chord_left_eave_extension' ||
+    kind === 'top_chord_right_eave_extension'
+  );
+}
+
+function isTrussWebMemberKind(kind: string): boolean {
+  return kind === 'vertical_web' || kind === 'diagonal_web';
+}
+
+function summarizeTrussMemberLengths(trusses: readonly TrussPlacement[]): {
+  chordLengthMeters: number;
+  webLengthMeters: number;
+} {
+  return trusses.reduce(
+    (summary, truss) => {
+      for (const member of truss.members) {
+        const lengthMeters = segmentLengthMeters(member.start, member.end);
+        if (isTrussChordMemberKind(member.memberKind)) {
+          summary.chordLengthMeters += lengthMeters;
+        } else if (isTrussWebMemberKind(member.memberKind)) {
+          summary.webLengthMeters += lengthMeters;
+        }
+      }
+      return summary;
+    },
+    { chordLengthMeters: 0, webLengthMeters: 0 },
+  );
 }
 
 function sumPurlinLengthMeters(purlins: readonly PurlinPlacement[]): number {
@@ -943,6 +978,13 @@ export function buildFrameInfillEstimatePreview(input: FrameInfillQuantityInput)
   const purlinLinearMeters = sumPurlinLengthMeters(resolvedRoof?.purlinPlacements ?? []);
   const fasciaLinearMeters = totalRoofFasciaLengthMeters(resolvedRoof?.fasciaPlacements ?? []);
   const soffitAreaSquareMeters = totalRoofSoffitAreaSquareMeters(resolvedRoof?.soffitPlacements ?? []);
+  const trussMemberSummary = summarizeTrussMemberLengths(resolvedRoof?.trussPlacements ?? []);
+  const representativeTruss = resolvedRoof?.trussPlacements[0];
+  const representativeTrussSpanFt =
+    representativeTruss?.spanMeters != null ? metersToFeet(representativeTruss.spanMeters) : undefined;
+  const representativeTrussProfileLabel = representativeTruss?.webProfileLabel ?? 'Conceptual';
+  const webAllowanceLengthMeters =
+    trussMemberSummary.webLengthMeters * roofSettings.steelTrusses.webSteelAllowanceFactor;
   const plasterPlacements = resolveInfillPlasterPanelPlacements({
     infillSystem: input.geometryResult.infillSystem ?? input.infillSystem,
     panelBounds: input.geometryResult.resolvedInfillPanelBounds ?? [],
@@ -1242,13 +1284,20 @@ export function buildFrameInfillEstimatePreview(input: FrameInfillQuantityInput)
                   designModelId: input.designModelId,
                   designObjectId: input.trussObjectId,
                   quantityType: 'steel_roof_truss_count',
-                  description: 'Steel trusses by spacing',
+                  description:
+                    representativeTrussSpanFt != null
+                      ? `Steel ${representativeTrussProfileLabel} trusses, ${representativeTrussSpanFt.toFixed(1)} ft span`
+                      : 'Steel trusses by spacing',
                   quantity: resolvedRoof.trussCount,
                   unit: 'EA',
                   formula: 'max(2, ceil(building_length / max_spacing) + 1)',
                   parameterSnapshot: {
                     trussCount: resolvedRoof.trussCount,
                     actualTrussSpacingMeters: resolvedRoof.actualTrussSpacingMeters,
+                    webProfileId: representativeTruss?.webProfileId,
+                    webProfileLabel: representativeTruss?.webProfileLabel,
+                    spanMeters: representativeTruss?.spanMeters,
+                    spanFt: representativeTrussSpanFt,
                     trussObjectId: input.trussObjectId,
                     ...metaBase,
                   },
@@ -1262,26 +1311,25 @@ export function buildFrameInfillEstimatePreview(input: FrameInfillQuantityInput)
                   designModelId: input.designModelId,
                   designObjectId: input.trussObjectId,
                   quantityType: 'steel_truss_chords_web_allowance',
-                  description: 'Steel Truss Chords and Web Allowance',
+                  description: 'Steel Truss Chords, Web Members, and Web Allowance',
                   quantity: roundQuantity(
                     metersToFeet(
-                      (resolvedRoof.roofMemberReferenceLengthMeters * 2 +
-                        (resolvedRoof.exteriorRoofBeamBounds.depthMeters >=
-                        resolvedRoof.exteriorRoofBeamBounds.widthMeters
-                          ? resolvedRoof.exteriorRoofBeamBounds.widthMeters
-                          : resolvedRoof.exteriorRoofBeamBounds.depthMeters) +
-                        resolvedRoof.roofMemberReferenceLengthMeters *
-                          2 *
-                          roofSettings.steelTrusses.webSteelAllowanceFactor) *
-                        resolvedRoof.trussCount,
+                      trussMemberSummary.chordLengthMeters +
+                        trussMemberSummary.webLengthMeters +
+                        webAllowanceLengthMeters,
                     ),
                     2,
                   ),
                   unit: 'LF',
-                  formula: '(top_chords + bottom_chord + web_allowance) * truss_count',
+                  formula: 'sum(generated_chord_members + generated_web_members * (1 + web_allowance_factor))',
                   parameterSnapshot: {
                     webSteelAllowanceFactor: roofSettings.steelTrusses.webSteelAllowanceFactor,
+                    chordLengthMeters: trussMemberSummary.chordLengthMeters,
+                    webLengthMeters: trussMemberSummary.webLengthMeters,
+                    webAllowanceLengthMeters,
                     trussCount: resolvedRoof.trussCount,
+                    webProfileId: representativeTruss?.webProfileId,
+                    webProfileLabel: representativeTruss?.webProfileLabel,
                     ...metaBase,
                   },
                   source: 'parametric_design_builder',
