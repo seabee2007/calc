@@ -186,7 +186,10 @@ export function buildDesignBuilderViewerRoofAssemblyScene(params: {
     );
   }
 
-  if (visibility.showSteelTrusses && resolvedRoof.roofType === 'gable' && roofSystem.steelTrusses.enabled) {
+  const hasResolvedSteelTrusses =
+    roofSystem.steelTrusses.enabled && resolvedRoof.trussPlacements.length > 0;
+
+  if (visibility.showSteelTrusses && hasResolvedSteelTrusses) {
     const steelMaterials =
       state.usePreviewMaterials && !debugGuides
         ? {

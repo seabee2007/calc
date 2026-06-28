@@ -723,19 +723,19 @@ export function selectTopChordForRoofPlane(params: {
   );
   if (!paired) return null;
 
-  const eaveMid = {
-    x: (paired.eaveAtStart.x + paired.eaveAtEnd.x) / 2,
-    z: (paired.eaveAtStart.z + paired.eaveAtEnd.z) / 2,
-  };
-  const ridgeMid = {
-    x: (params.claddingRidgeStart.x + params.claddingRidgeEnd.x) / 2,
-    z: (params.claddingRidgeStart.z + params.claddingRidgeEnd.z) / 2,
-  };
-  const samples = [0, 0.25, 0.5, 0.75, 0.95].map((t) => ({
-    x: eaveMid.x + (ridgeMid.x - eaveMid.x) * t,
-    z: eaveMid.z + (ridgeMid.z - eaveMid.z) * t,
-    weight: t === 0 ? 2 : 1,
-  }));
+  const rowSamples = [0, 0.25, 0.5, 0.75, 0.95];
+  const samples = rowSamples.flatMap((t) => [
+    {
+      x: paired.eaveAtStart.x + (params.claddingRidgeStart.x - paired.eaveAtStart.x) * t,
+      z: paired.eaveAtStart.z + (params.claddingRidgeStart.z - paired.eaveAtStart.z) * t,
+      weight: t === 0 ? 2 : 1,
+    },
+    {
+      x: paired.eaveAtEnd.x + (params.claddingRidgeEnd.x - paired.eaveAtEnd.x) * t,
+      z: paired.eaveAtEnd.z + (params.claddingRidgeEnd.z - paired.eaveAtEnd.z) * t,
+      weight: t === 0 ? 2 : 1,
+    },
+  ]);
   const candidates = params.referenceTruss.members.filter(isPrimaryTopChord);
   if (candidates.length === 0) return null;
 
@@ -1938,18 +1938,439 @@ function addHipFramingMember(
   }
 }
 
+type HipTrussPlacementResult = GableTrussPlacementResult & {
+  actualSpacingMeters: number;
+  stations: number[];
+};
+
+function dedupeSortedStations(stations: readonly number[]): number[] {
+  const sorted = [...stations]
+    .filter((station) => Number.isFinite(station))
+    .sort((left, right) => left - right);
+  const deduped: number[] = [];
+  for (const station of sorted) {
+    if (
+      deduped.length === 0 ||
+      Math.abs(station - deduped[deduped.length - 1]!) > TRUSS_VALIDATION_TOLERANCE_METERS * 5
+    ) {
+      deduped.push(station);
+    }
+  }
+  return deduped;
+}
+
+function maxAdjacentStationSpacing(stations: readonly number[]): number {
+  if (stations.length < 2) return 0;
+  let maxSpacing = 0;
+  for (let index = 1; index < stations.length; index += 1) {
+    maxSpacing = Math.max(maxSpacing, stations[index]! - stations[index - 1]!);
+  }
+  return maxSpacing;
+}
+
+function resolveSideHitsAtRidgePoint(params: {
+  ridgePoint: PlanVec2;
+  perpUnit: PlanVec2;
+  edges: readonly { start: PlanVec2; end: PlanVec2 }[];
+}): PlanVec2[] {
+  return params.edges
+    .map((side, sideIndex) =>
+      intersectRayWithSegment2D(
+        params.ridgePoint,
+        sideIndex === 0 ? params.perpUnit : scale2(params.perpUnit, -1),
+        side.start,
+        side.end,
+      ) ??
+      intersectRayWithSegment2D(
+        params.ridgePoint,
+        sideIndex === 0 ? scale2(params.perpUnit, -1) : params.perpUnit,
+        side.start,
+        side.end,
+      ),
+    )
+    .filter((point): point is PlanVec2 => point != null);
+}
+
+function resolveHipTrussPlacements(params: {
+  structuralBearing: readonly PlanVec2[];
+  claddingBearing: readonly PlanVec2[];
+  ridgeStart?: RoofVec3;
+  ridgeEnd?: RoofVec3;
+  roofBeamTopY: number;
+  peakY: number;
+  claddingEaveY: number;
+  basePlateThicknessMeters: number;
+  maxSpacingMeters: number;
+  basePlateCenterInsetMeters: number;
+  trussEndInsetMeters: number;
+  fixedRoofSlope: number;
+  hipInteriorTrussCount: number;
+  webProfileMode: TrussWebProfileMode;
+  manualWebProfileId?: TrussWebProfileId;
+}): HipTrussPlacementResult {
+  const placements: TrussPlacement[] = [];
+  const warnings: DesignWarning[] = [];
+
+  if (
+    !params.ridgeStart ||
+    !params.ridgeEnd ||
+    params.structuralBearing.length !== 4 ||
+    params.claddingBearing.length !== 4
+  ) {
+    warnings.push({
+      code: 'hip_truss_station_missing',
+      message: 'Skipped hip trusses because the hip roof structural ridge or bearing perimeter is incomplete.',
+      severity: 'review',
+    });
+    return { placements, warnings, actualSpacingMeters: 0, stations: [] };
+  }
+
+  const ridgeStart = params.ridgeStart;
+  const ridgeEnd = params.ridgeEnd;
+  const ridgeStart2 = { x: ridgeStart.x, z: ridgeStart.z };
+  const ridgeEnd2 = { x: ridgeEnd.x, z: ridgeEnd.z };
+  const ridgeLength = planDistance(ridgeStart2, ridgeEnd2);
+  if (ridgeLength <= TRUSS_VALIDATION_TOLERANCE_METERS) {
+    warnings.push({
+      code: 'hip_truss_station_missing',
+      message: 'Skipped hip trusses because the hip roof structural ridge length could not be resolved.',
+      severity: 'review',
+    });
+    return { placements, warnings, actualSpacingMeters: 0, stations: [] };
+  }
+
+  const ridgeUnit = normalize2(sub2(ridgeEnd2, ridgeStart2));
+  const perpUnit = normalize2({ x: -ridgeUnit.z, z: ridgeUnit.x });
+  const worldRidgeAxis = ridgeAxisWorld(ridgeStart, ridgeEnd);
+  const trussResolution = resolveInsetEndStations(
+    ridgeLength,
+    params.maxSpacingMeters,
+    params.trussEndInsetMeters,
+  );
+  const manualInteriorCount = Number.isFinite(params.hipInteriorTrussCount)
+    ? Math.max(0, Math.round(params.hipInteriorTrussCount))
+    : 0;
+  const manualStations = Array.from({ length: manualInteriorCount }, (_, index) =>
+    (ridgeLength * (index + 1)) / (manualInteriorCount + 1),
+  );
+  const stations = dedupeSortedStations([...trussResolution.stations, ...manualStations]);
+  const actualSpacingMeters = maxAdjacentStationSpacing(stations);
+  if (stations.length === 0) {
+    warnings.push({
+      code: 'hip_truss_station_missing',
+      message: 'No valid hip truss stations were resolved along the structural ridge.',
+      severity: 'review',
+    });
+  }
+  if (actualSpacingMeters > params.maxSpacingMeters + TRUSS_VALIDATION_TOLERANCE_METERS) {
+    warnings.push({
+      code: 'hip_truss_spacing_exceeds_max',
+      message: `Hip truss spacing ${actualSpacingMeters.toFixed(3)} m exceeds the configured maximum spacing ${params.maxSpacingMeters.toFixed(3)} m.`,
+      severity: 'review',
+    });
+  }
+
+  const structuralSides = spanEdgesPerpendicularToRidge(params.structuralBearing, ridgeStart2, ridgeEnd2);
+  const claddingSides = spanEdgesPerpendicularToRidge(params.claddingBearing, ridgeStart2, ridgeEnd2);
+  const structuralSideEdges = [
+    { start: structuralSides[0], end: structuralSides[1] },
+    { start: structuralSides[2], end: structuralSides[3] },
+  ];
+  const claddingSideEdges = [
+    { start: claddingSides[0], end: claddingSides[1] },
+    { start: claddingSides[2], end: claddingSides[3] },
+  ];
+  const bearingY = params.roofBeamTopY + params.basePlateThicknessMeters;
+  const bearingCenterY = bearingY + TRUSS_CHORD_PROFILE_METERS / 2;
+
+  stations.forEach((station) => {
+    if (station < -TRUSS_VALIDATION_TOLERANCE_METERS || station > ridgeLength + TRUSS_VALIDATION_TOLERANCE_METERS) {
+      warnings.push({
+        code: 'hip_truss_station_missing',
+        message: `Skipped hip truss station ${station.toFixed(3)} m because it is outside the structural ridge length.`,
+        severity: 'review',
+      });
+      return;
+    }
+
+    const ridgeT = ridgeLength <= TRUSS_VALIDATION_TOLERANCE_METERS ? 0 : station / ridgeLength;
+    const ridgePoint2 = lerp2(ridgeStart2, ridgeEnd2, ridgeT);
+    const structuralHits = resolveSideHitsAtRidgePoint({
+      ridgePoint: ridgePoint2,
+      perpUnit,
+      edges: structuralSideEdges,
+    });
+    if (structuralHits.length !== 2) {
+      warnings.push({
+        code: 'hip_truss_local_span_invalid',
+        message: `Skipped hip truss station ${station.toFixed(3)} m because bearing intersections could not be resolved.`,
+        severity: 'review',
+      });
+      return;
+    }
+
+    const bearingLeft2 = structuralHits[0]!;
+    const bearingRight2 = structuralHits[1]!;
+    const spanMeters = planDistance(bearingLeft2, bearingRight2);
+    if (spanMeters <= MIN_HIP_JACK_LENGTH_METERS) {
+      warnings.push({
+        code: 'hip_truss_local_span_invalid',
+        message: `Skipped hip truss station ${station.toFixed(3)} m because its local span is too short.`,
+        severity: 'review',
+      });
+      return;
+    }
+
+    const claddingHits = resolveSideHitsAtRidgePoint({
+      ridgePoint: ridgePoint2,
+      perpUnit,
+      edges: claddingSideEdges,
+    });
+    const bearingLeft = toVec3(bearingLeft2, bearingY);
+    const bearingRight = toVec3(bearingRight2, bearingY);
+    const leftTrussBearing = vec3(bearingLeft2.x, bearingCenterY, bearingLeft2.z);
+    const rightTrussBearing = vec3(bearingRight2.x, bearingCenterY, bearingRight2.z);
+    const basePlateCenterLeft = toVec3(
+      insetPlanPointToward(bearingLeft2, ridgePoint2, params.basePlateCenterInsetMeters),
+      bearingY,
+    );
+    const basePlateCenterRight = toVec3(
+      insetPlanPointToward(bearingRight2, ridgePoint2, params.basePlateCenterInsetMeters),
+      bearingY,
+    );
+    const apexY = Math.max(
+      params.peakY,
+      leftTrussBearing.y + params.fixedRoofSlope * planDistance(leftTrussBearing, ridgePoint2),
+      rightTrussBearing.y + params.fixedRoofSlope * planDistance(rightTrussBearing, ridgePoint2),
+    );
+    const apex = vec3(ridgePoint2.x, apexY, ridgePoint2.z);
+    const trussId = `hip-truss-${placements.length}`;
+    const webProfile = selectTrussWebProfileForSpan({
+      spanMeters,
+      mode: params.webProfileMode,
+      manualProfileId: params.manualWebProfileId,
+    });
+    if (webProfile.warning) {
+      warnings.push({
+        code: webProfile.warningCode === 'truss_web_profile_missing'
+          ? 'hip_truss_web_profile_missing'
+          : (webProfile.warningCode ?? 'hip_truss_web_profile_missing'),
+        message: webProfile.warning,
+        severity: 'review',
+      });
+    }
+    if (webProfile.spanFt > 80 && webProfile.warningCode !== 'truss_span_requires_engineering_review') {
+      warnings.push({
+        code: 'truss_span_requires_engineering_review',
+        message: `Hip truss span ${webProfile.spanFt.toFixed(1)} ft exceeds the conceptual range. Engineering review required.`,
+        severity: 'review',
+      });
+    }
+
+    const webMembers = buildTrussWebMembers({
+      trussId,
+      profileId: webProfile.profileId,
+      leftBearing: leftTrussBearing,
+      rightBearing: rightTrussBearing,
+      apex,
+    });
+    if (webMembers.length === 0) {
+      warnings.push({
+        code: 'hip_truss_web_profile_missing',
+        message: `Hip truss web profile ${webProfile.label} did not generate a web member layout.`,
+        severity: 'review',
+      });
+    }
+
+    const leftCladdingEave =
+      claddingHits[0] && planDistance(claddingHits[0], bearingLeft2) > TRUSS_VALIDATION_TOLERANCE_METERS
+        ? toVec3(claddingHits[0], params.claddingEaveY)
+        : undefined;
+    const rightCladdingEave =
+      claddingHits[1] && planDistance(claddingHits[1], bearingRight2) > TRUSS_VALIDATION_TOLERANCE_METERS
+        ? toVec3(claddingHits[1], params.claddingEaveY)
+        : undefined;
+    const members = buildPrimaryTrussMembers(
+      trussId,
+      leftTrussBearing,
+      rightTrussBearing,
+      apex,
+      webMembers,
+      leftCladdingEave,
+      rightCladdingEave,
+      leftTrussBearing,
+      rightTrussBearing,
+    );
+    const placement: TrussPlacement = {
+      id: trussId,
+      stationMeters: station,
+      bearingLeft,
+      bearingRight,
+      basePlateCenterLeft,
+      basePlateCenterRight,
+      apex,
+      ridgeAxis: worldRidgeAxis,
+      planeNormal: buildTrussPlaneNormal(bearingLeft, bearingRight, apex),
+      webProfileId: webProfile.profileId,
+      webProfileLabel: webProfile.label,
+      spanMeters,
+      members,
+    };
+
+    try {
+      validateTrussPlacement(placement, params.roofBeamTopY, params.basePlateThicknessMeters);
+      placements.push(placement);
+    } catch (error) {
+      warnings.push({
+        code: 'hip_truss_local_span_invalid',
+        message:
+          error instanceof Error
+            ? `Skipped hip truss station ${station.toFixed(3)} m: ${error.message}`
+            : `Skipped hip truss station ${station.toFixed(3)} m because it failed validation.`,
+        severity: 'review',
+      });
+    }
+  });
+
+  if (placements.length === 0) {
+    warnings.push({
+      code: 'hip_truss_station_missing',
+      message: 'No hip truss placements were generated for the resolved hip roof.',
+      severity: 'review',
+    });
+  }
+
+  return {
+    placements,
+    warnings,
+    actualSpacingMeters: maxAdjacentStationSpacing(placements.map((placement) => placement.stationMeters)),
+    stations: placements.map((placement) => placement.stationMeters),
+  };
+}
+
+function resolveHipJackRafters(params: {
+  roofTopPlanes: readonly RoofPlane[];
+  claddingBearing: readonly PlanVec2[];
+  ridgeStart?: RoofVec3;
+  ridgeEnd?: RoofVec3;
+  maxSpacingMeters: number;
+  claddingEaveY: number;
+}): HipFramingMember[] {
+  const members: HipFramingMember[] = [];
+  if (!params.ridgeStart || !params.ridgeEnd || params.claddingBearing.length !== 4) {
+    return members;
+  }
+
+  const addJack = (member: Omit<HipFramingMember, 'lengthMeters' | 'source'>) => {
+    const duplicate = members.some(
+      (existing) =>
+        existing.slopePlaneId === member.slopePlaneId &&
+        planDistance(existing.start, member.start) < 0.01 &&
+        planDistance(existing.end, member.end) < 0.01,
+    );
+    if (!duplicate) {
+      addHipFramingMember(members, member);
+    }
+  };
+
+  for (const plane of params.roofTopPlanes.filter((item) => item.corners.length === 3)) {
+    const paired = pairPlaneEaveToHighCorners(plane);
+    if (!paired) continue;
+    const eaveA = { x: paired.eaveA.x, z: paired.eaveA.z };
+    const eaveB = { x: paired.eaveB.x, z: paired.eaveB.z };
+    const high = paired.highA;
+    const high2 = { x: high.x, z: high.z };
+    const eaveLength = planDistance(eaveA, eaveB);
+    if (eaveLength <= MIN_HIP_JACK_LENGTH_METERS) continue;
+    const inward = normalize2(sub2(high2, midpoint2(eaveA, eaveB)));
+    for (const station of stationsAlongSegment(eaveLength, params.maxSpacingMeters, false)) {
+      const eavePoint = lerp2(eaveA, eaveB, station / eaveLength);
+      const hitA = intersectRayWithSegment2D(eavePoint, inward, eaveA, high2);
+      const hitB = intersectRayWithSegment2D(eavePoint, inward, eaveB, high2);
+      const hit = [hitA, hitB]
+        .filter((point): point is PlanVec2 => point != null)
+        .sort((left, right) => planDistance(left, eavePoint) - planDistance(right, eavePoint))[0];
+      if (!hit) continue;
+      const hipStart = hit === hitA ? eaveA : eaveB;
+      const end = interpolateRoofMemberPoint(toVec3(hipStart, params.claddingEaveY), high, hit);
+      addJack({
+        id: `hip-jack-end-${plane.id}-${station.toFixed(3)}`,
+        start: hipMemberCenterlinePoint(toVec3(eavePoint, params.claddingEaveY)),
+        end: hipMemberCenterlinePoint(end),
+        memberKind: 'jack',
+        slopePlaneId: plane.id,
+      });
+    }
+  }
+
+  for (const plane of params.roofTopPlanes.filter((item) => item.corners.length === 4)) {
+    const paired = pairPlaneEaveToHighCorners(plane);
+    if (!paired) continue;
+    const eaveA = { x: paired.eaveA.x, z: paired.eaveA.z };
+    const eaveB = { x: paired.eaveB.x, z: paired.eaveB.z };
+    const highA = { x: paired.highA.x, z: paired.highA.z };
+    const highB = { x: paired.highB.x, z: paired.highB.z };
+    const eaveLength = planDistance(eaveA, eaveB);
+    if (eaveLength <= MIN_HIP_JACK_LENGTH_METERS) continue;
+    const eaveUnit = normalize2(sub2(eaveB, eaveA));
+    const highAStation = Math.max(0, Math.min(eaveLength, dot2(sub2(highA, eaveA), eaveUnit)));
+    const highBStation = Math.max(0, Math.min(eaveLength, dot2(sub2(highB, eaveA), eaveUnit)));
+    const startHip =
+      highAStation <= highBStation
+        ? { corner: eaveA, high: paired.highA, station: highAStation }
+        : { corner: eaveB, high: paired.highB, station: highBStation };
+    const endHip =
+      highAStation <= highBStation
+        ? { corner: eaveB, high: paired.highB, station: highBStation }
+        : { corner: eaveA, high: paired.highA, station: highAStation };
+    const highMid = midpoint2(highA, highB);
+    const inward = normalize2(sub2(highMid, midpoint2(eaveA, eaveB)));
+    const intervals = [
+      { from: 0, to: Math.min(highAStation, highBStation), hip: startHip, label: 'start' },
+      { from: Math.max(highAStation, highBStation), to: eaveLength, hip: endHip, label: 'end' },
+    ];
+
+    for (const interval of intervals) {
+      const intervalLength = interval.to - interval.from;
+      if (intervalLength <= MIN_HIP_JACK_LENGTH_METERS) continue;
+      for (const localStation of stationsAlongSegment(intervalLength, params.maxSpacingMeters, false)) {
+        const station = interval.from + localStation;
+        const eavePoint = lerp2(eaveA, eaveB, station / eaveLength);
+        const hipHigh2 = { x: interval.hip.high.x, z: interval.hip.high.z };
+        const hit = intersectRayWithSegment2D(eavePoint, inward, interval.hip.corner, hipHigh2);
+        if (!hit) continue;
+        const end = interpolateRoofMemberPoint(
+          toVec3(interval.hip.corner, params.claddingEaveY),
+          interval.hip.high,
+          hit,
+        );
+        addJack({
+          id: `hip-jack-side-${plane.id}-${interval.label}-${station.toFixed(3)}`,
+          start: hipMemberCenterlinePoint(toVec3(eavePoint, params.claddingEaveY)),
+          end: hipMemberCenterlinePoint(end),
+          memberKind: 'jack',
+          slopePlaneId: plane.id,
+        });
+      }
+    }
+  }
+
+  return members;
+}
+
 function resolveHipFramingMembers(params: {
   structuralBearing: readonly PlanVec2[];
   claddingBearing: readonly PlanVec2[];
+  roofTopPlanes: readonly RoofPlane[];
   roofBeamTopY: number;
   claddingEaveY: number;
   maxSpacingMeters: number;
   hipInteriorTrussCount: number;
+  includeLegacySupportFrames: boolean;
   ridgeStart?: RoofVec3;
   ridgeEnd?: RoofVec3;
   peakPoint?: RoofVec3;
 }): HipFramingMember[] {
-  const structuralEaveY = params.roofBeamTopY;
   const framingEaveY = params.claddingEaveY;
   const framingCorners = params.claddingBearing.map((point) => toVec3(point, framingEaveY));
   const members: HipFramingMember[] = [];
@@ -1980,7 +2401,6 @@ function resolveHipFramingMembers(params: {
     return members;
   }
   const ridgeUnit = normalize2(ridgeVector);
-  const ridgeMid = midpoint2(ridgeStart2, ridgeEnd2);
 
   addHipFramingMember(members, {
     id: 'hip-ridge',
@@ -2000,11 +2420,6 @@ function resolveHipFramingMembers(params: {
     });
   }
 
-  const [structuralSideAStart, structuralSideAEnd, structuralSideBStart, structuralSideBEnd] = spanEdgesPerpendicularToRidge(
-    params.structuralBearing,
-    ridgeStart2,
-    ridgeEnd2,
-  );
   const [sideAStart, sideAEnd, sideBStart, sideBEnd] = spanEdgesPerpendicularToRidge(
     params.claddingBearing,
     ridgeStart2,
@@ -2014,10 +2429,6 @@ function resolveHipFramingMembers(params: {
     { start: sideAStart, end: sideAEnd, id: 'a' },
     { start: sideBStart, end: sideBEnd, id: 'b' },
   ];
-  const structuralSideEdges = [
-    { start: structuralSideAStart, end: structuralSideAEnd, id: 'a' },
-    { start: structuralSideBStart, end: structuralSideBEnd, id: 'b' },
-  ];
   const hipInteriorTrussCount = Number.isFinite(params.hipInteriorTrussCount)
     ? Math.max(0, Math.round(params.hipInteriorTrussCount))
     : 0;
@@ -2025,8 +2436,7 @@ function resolveHipFramingMembers(params: {
   const perpUnit = normalize2({ x: -ridgeUnit.z, z: ridgeUnit.x });
   const addRidgeSupportFrame = (frameId: string, ridgePoint: RoofVec3) => {
     const ridgePoint2 = { x: ridgePoint.x, z: ridgePoint.z };
-    const sideBearingPoints = (edges: typeof sideEdges) =>
-      edges
+    const eaveBearings = sideEdges
       .map((side, sideIndex) =>
         intersectRayWithSegment2D(
           ridgePoint2,
@@ -2042,11 +2452,7 @@ function resolveHipFramingMembers(params: {
         ),
       )
       .filter((point): point is PlanVec2 => point != null);
-    const structuralBearings = sideBearingPoints(structuralSideEdges);
-    const eaveBearings = sideBearingPoints(sideEdges);
-    if (structuralBearings.length !== 2 || eaveBearings.length !== 2) return;
-    const left = hipMemberCenterlinePoint(toVec3(structuralBearings[0]!, structuralEaveY));
-    const right = hipMemberCenterlinePoint(toVec3(structuralBearings[1]!, structuralEaveY));
+    if (eaveBearings.length !== 2) return;
     const leftTopChordStart = hipMemberCenterlinePoint(toVec3(eaveBearings[0]!, framingEaveY));
     const rightTopChordStart = hipMemberCenterlinePoint(toVec3(eaveBearings[1]!, framingEaveY));
     const apex = hipMemberCenterlinePoint(ridgePoint);
@@ -2063,198 +2469,35 @@ function resolveHipFramingMembers(params: {
       memberKind: 'ridge_end_frame',
     });
     addHipFramingMember(members, {
-      id: `${frameId}-bottom`,
-      start: left,
-      end: right,
-      memberKind: 'ridge_end_frame_bottom',
-    });
-    addHipFramingMember(members, {
       id: `${frameId}-web`,
-      start: lerpVec3(left, right, 0.5),
+      start: lerpVec3(leftTopChordStart, rightTopChordStart, 0.5),
       end: apex,
       memberKind: 'ridge_end_frame_web',
     });
   };
 
-  const commonStations = stationsAlongSegment(ridgeLength, params.maxSpacingMeters, false);
-  for (const station of commonStations) {
-    const ridgePoint2 = add2(ridgeStart2, scale2(ridgeUnit, station));
-    const ridgePoint = {
-      x: ridgePoint2.x,
-      y: ridgeStart.y + (ridgeEnd.y - ridgeStart.y) * (station / ridgeLength),
-      z: ridgePoint2.z,
-    };
-    for (const [sideIndex, side] of sideEdges.entries()) {
-      const sidePoint2 =
-        intersectRayWithSegment2D(ridgePoint2, sideIndex === 0 ? perpUnit : scale2(perpUnit, -1), side.start, side.end) ??
-        intersectRayWithSegment2D(ridgePoint2, sideIndex === 0 ? scale2(perpUnit, -1) : perpUnit, side.start, side.end);
-      if (!sidePoint2) continue;
-      addHipFramingMember(members, {
-        id: `hip-common-${side.id}-${station.toFixed(3)}`,
-        start: hipMemberCenterlinePoint(toVec3(sidePoint2, framingEaveY)),
-        end: hipMemberCenterlinePoint(ridgePoint),
-        memberKind: 'common',
-      });
+  if (params.includeLegacySupportFrames) {
+    for (const [endIndex, ridgePoint] of ridgeEnds.entries()) {
+      const frameId = endIndex === 0 ? 'start' : 'end';
+      addRidgeSupportFrame(`hip-ridge-end-frame-${frameId}`, ridgePoint);
+    }
+
+    for (let index = 1; index <= hipInteriorTrussCount; index += 1) {
+      const fraction = index / (hipInteriorTrussCount + 1);
+      addRidgeSupportFrame(`hip-ridge-interior-frame-${index}`, lerpVec3(ridgeStart, ridgeEnd, fraction));
     }
   }
 
-  for (const [endIndex, ridgePoint] of ridgeEnds.entries()) {
-    const frameId = endIndex === 0 ? 'start' : 'end';
-    addRidgeSupportFrame(`hip-ridge-end-frame-${frameId}`, ridgePoint);
-  }
-
-  for (let index = 1; index <= hipInteriorTrussCount; index += 1) {
-    const fraction = index / (hipInteriorTrussCount + 1);
-    addRidgeSupportFrame(`hip-ridge-interior-frame-${index}`, lerpVec3(ridgeStart, ridgeEnd, fraction));
-  }
-
-  const sideJackSupportPoints = ridgeEnds.flatMap((ridgePoint) => {
-    const ridgePoint2 = { x: ridgePoint.x, z: ridgePoint.z };
-    const jackStartPointGroups = [1 / 3, 2 / 3].map((fraction) => sideEdges.map((side) => {
-      const sideLength = length2(sub2(side.end, side.start));
-      const sideUnit = normalize2(sub2(side.end, side.start));
-      const projectedRidgeStation = dot2(sub2(ridgePoint2, side.start), sideUnit);
-      const nearestEndStation =
-        planDistance(side.start, ridgePoint2) <= planDistance(side.end, ridgePoint2)
-          ? 0
-          : sideLength;
-      const jackStartStation = nearestEndStation + (projectedRidgeStation - nearestEndStation) * fraction;
-      return lerp2(side.start, side.end, jackStartStation / sideLength);
-    }));
-    return jackStartPointGroups.map((jackStartPoints) => ({
-      x: jackStartPoints.reduce((sum, point) => sum + point.x, 0) / Math.max(1, jackStartPoints.length),
-      z: jackStartPoints.reduce((sum, point) => sum + point.z, 0) / Math.max(1, jackStartPoints.length),
-    }));
-  });
-
-  for (const [supportIndex, supportPoint] of sideJackSupportPoints.entries()) {
-    const sideBearings = structuralSideEdges
-      .map((side, sideIndex) =>
-        intersectRayWithSegment2D(
-          supportPoint,
-          sideIndex === 0 ? perpUnit : scale2(perpUnit, -1),
-          side.start,
-          side.end,
-        ) ??
-        intersectRayWithSegment2D(
-          supportPoint,
-          sideIndex === 0 ? scale2(perpUnit, -1) : perpUnit,
-          side.start,
-          side.end,
-        ),
-      )
-      .filter((point): point is PlanVec2 => point != null);
-    if (sideBearings.length !== 2) continue;
-    addHipFramingMember(members, {
-      id: `hip-jack-bottom-chord-${supportIndex}`,
-      start: hipMemberCenterlinePoint(toVec3(sideBearings[0]!, structuralEaveY)),
-      end: hipMemberCenterlinePoint(toVec3(sideBearings[1]!, structuralEaveY)),
-      memberKind: 'hip_jack_bottom_chord',
-    });
-  }
-
-  for (const side of sideEdges) {
-    const sideLength = length2(sub2(side.end, side.start));
-    const sideUnit = normalize2(sub2(side.end, side.start));
-    const sideMid = midpoint2(side.start, side.end);
-    const inward = normalize2(sub2(ridgeMid, sideMid));
-    const sideJackStations = ridgeEnds.map((ridgePoint) => {
-      const ridgePoint2 = { x: ridgePoint.x, z: ridgePoint.z };
-      const projectedRidgeStation = dot2(sub2(ridgePoint2, side.start), sideUnit);
-      const nearestEndStation =
-        planDistance(side.start, ridgePoint2) <= planDistance(side.end, ridgePoint2)
-          ? 0
-          : sideLength;
-      return nearestEndStation + (projectedRidgeStation - nearestEndStation) / 3;
-    });
-    for (const station of sideJackStations.sort((a, b) => a - b)) {
-      const eavePoint = lerp2(side.start, side.end, station / sideLength);
-      const ridgeStation = dot2(sub2(eavePoint, ridgeStart2), ridgeUnit);
-      if (ridgeStation >= -0.05 && ridgeStation <= ridgeLength + 0.05) {
-        continue;
-      }
-      const targetRidge = ridgeStation < 0 ? ridgeStart : ridgeEnd;
-      const targetRidge2 = { x: targetRidge.x, z: targetRidge.z };
-      const sideCorner = planDistance(side.start, targetRidge2) <= planDistance(side.end, targetRidge2)
-        ? side.start
-        : side.end;
-      const intersection = intersectRayWithSegment2D(eavePoint, inward, sideCorner, targetRidge2);
-      if (!intersection) continue;
-      const corner3 = toVec3(sideCorner, framingEaveY);
-      const end = interpolateRoofMemberPoint(corner3, targetRidge, intersection);
-      addHipFramingMember(members, {
-        id: `hip-jack-long-${side.id}-${station.toFixed(3)}`,
-        start: hipMemberCenterlinePoint(toVec3(eavePoint, framingEaveY)),
-        end: hipMemberCenterlinePoint(end),
-        memberKind: 'jack',
-      });
-    }
-  }
-
-  for (const [endIndex, ridgePoint] of ridgeEnds.entries()) {
-    const ridgePoint2 = { x: ridgePoint.x, z: ridgePoint.z };
-    const endCorners = params.claddingBearing
-      .map((corner) => ({ corner, distance: planDistance(corner, ridgePoint2) }))
-      .sort((a, b) => a.distance - b.distance)
-      .slice(0, 2)
-      .map((entry) => entry.corner);
-    const [edgeStart, edgeEnd] = endCorners;
-    if (!edgeStart || !edgeEnd) continue;
-    const edgeLength = length2(sub2(edgeEnd, edgeStart));
-    const inward = normalize2(sub2(ridgePoint2, midpoint2(edgeStart, edgeEnd)));
-    const frameId = endIndex === 0 ? 'start' : 'end';
-    const hipSideJackStations = [edgeLength / 6, edgeLength / 2, (edgeLength * 5) / 6];
-    for (const station of stationsAlongSegment(edgeLength, params.maxSpacingMeters, false, hipSideJackStations)) {
-      const eavePoint = lerp2(edgeStart, edgeEnd, station / edgeLength);
-      const hipA = { start: edgeStart, end: ridgePoint2 };
-      const hipB = { start: edgeEnd, end: ridgePoint2 };
-      const hitA = intersectRayWithSegment2D(eavePoint, inward, hipA.start, hipA.end);
-      const hitB = intersectRayWithSegment2D(eavePoint, inward, hipB.start, hipB.end);
-      const hit = [hitA, hitB]
-        .filter((point): point is PlanVec2 => point != null)
-        .sort((a, b) => length2(sub2(a, eavePoint)) - length2(sub2(b, eavePoint)))[0];
-      if (!hit) continue;
-      const hipStart = hit === hitA ? edgeStart : edgeEnd;
-      const hitsRidgePoint = planDistance(hit, ridgePoint2) < 0.01;
-      const isOuterHipSideJack =
-        station < edgeLength / 4 ||
-        station > (edgeLength * 3) / 4;
-      const end = interpolateRoofMemberPoint(toVec3(hipStart, framingEaveY), ridgePoint, hit);
-      const lowerSideEdge = sideEdges.find(
-        (side) =>
-          planDistance(side.start, hipStart) < 0.01 ||
-          planDistance(side.end, hipStart) < 0.01,
-      );
-      const lowerStart = (() => {
-        if (!lowerSideEdge) {
-          return eavePoint;
-        }
-        const sideInward = normalize2(sub2(ridgeMid, midpoint2(lowerSideEdge.start, lowerSideEdge.end)));
-        return (
-          intersectRayWithSegment2D(
-            hit,
-            scale2(sideInward, -1),
-            lowerSideEdge.start,
-            lowerSideEdge.end,
-          ) ?? eavePoint
-        );
-      })();
-      if (lowerSideEdge && !hitsRidgePoint && !isOuterHipSideJack) {
-        addHipFramingMember(members, {
-          id: `hip-corner-support-${frameId}-${station.toFixed(3)}`,
-          start: hipMemberCenterlinePoint(toVec3(lowerStart, framingEaveY)),
-          end: hipMemberCenterlinePoint(end),
-          memberKind: 'hip_corner_support',
-        });
-      }
-      addHipFramingMember(members, {
-        id: `hip-jack-end-${frameId}-${station.toFixed(3)}`,
-        start: hipMemberCenterlinePoint(toVec3(eavePoint, framingEaveY)),
-        end: hipMemberCenterlinePoint(end),
-        memberKind: 'jack',
-      });
-    }
-  }
+  members.push(
+    ...resolveHipJackRafters({
+      roofTopPlanes: params.roofTopPlanes,
+      claddingBearing: params.claddingBearing,
+      ridgeStart,
+      ridgeEnd,
+      maxSpacingMeters: params.maxSpacingMeters,
+      claddingEaveY: params.claddingEaveY,
+    }),
+  );
 
   return members;
 }
@@ -2365,17 +2608,56 @@ export function resolveRoofFraming(params: {
       trussCount = trussPlacements.length;
     }
   } else if (params.settings.roofType === 'hip') {
+    const claddingEaveY = claddingEaveElevationMeters({
+      structuralEaveY: params.roofBeamTopY,
+      fixedSlope: params.fixedRoofSlope,
+      sideEaveOverhangMeters: params.sideEaveOverhangMeters,
+    });
+    if (
+      params.settings.steelTrusses.enabled &&
+      !params.peakPoint &&
+      structuralRidgeStart &&
+      structuralRidgeEnd
+    ) {
+      const hipTrussPlacementResult = resolveHipTrussPlacements({
+        structuralBearing: params.structuralBearingPerimeter,
+        claddingBearing: params.claddingPerimeter,
+        ridgeStart: structuralRidgeStart,
+        ridgeEnd: structuralRidgeEnd,
+        roofBeamTopY: params.roofBeamTopY,
+        peakY: params.peakY,
+        claddingEaveY,
+        basePlateThicknessMeters: params.settings.steelTrusses.basePlateEnabled
+          ? params.settings.steelTrusses.basePlateThicknessMeters
+          : 0,
+        maxSpacingMeters: params.settings.steelTrusses.maxSpacingMeters,
+        basePlateCenterInsetMeters: params.settings.steelTrusses.basePlateEnabled
+          ? params.settings.steelTrusses.basePlateLengthMeters / 2
+          : 0,
+        trussEndInsetMeters: params.settings.steelTrusses.basePlateEnabled
+          ? params.settings.steelTrusses.basePlateWidthMeters / 2
+          : 0,
+        fixedRoofSlope: params.fixedRoofSlope,
+        hipInteriorTrussCount: params.settings.steelTrusses.hipInteriorTrussCount,
+        webProfileMode: params.settings.steelTrusses.webProfileMode,
+        manualWebProfileId: params.settings.steelTrusses.manualWebProfileId,
+      });
+      framingWarnings.push(...hipTrussPlacementResult.warnings);
+      trussPlacements = hipTrussPlacementResult.placements;
+      trussStations = hipTrussPlacementResult.stations;
+      actualTrussSpacingMeters = hipTrussPlacementResult.actualSpacingMeters;
+      trussCount = trussPlacements.length;
+    }
+
     hipFramingMembers = resolveHipFramingMembers({
       structuralBearing: params.structuralBearingPerimeter,
       claddingBearing: params.claddingPerimeter,
+      roofTopPlanes: params.roofTopPlanes,
       roofBeamTopY: params.roofBeamTopY,
-      claddingEaveY: claddingEaveElevationMeters({
-        structuralEaveY: params.roofBeamTopY,
-        fixedSlope: params.fixedRoofSlope,
-        sideEaveOverhangMeters: params.sideEaveOverhangMeters,
-      }),
+      claddingEaveY,
       maxSpacingMeters: params.settings.steelTrusses.maxSpacingMeters,
       hipInteriorTrussCount: params.settings.steelTrusses.hipInteriorTrussCount,
+      includeLegacySupportFrames: trussPlacements.length === 0,
       ridgeStart: structuralRidgeStart,
       ridgeEnd: structuralRidgeEnd,
       peakPoint: params.peakPoint,

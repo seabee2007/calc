@@ -42,15 +42,42 @@ function gableRoofSystem(): RoofSystemSettings {
   });
 }
 
-function sceneGeometry(): {
+function hipRoofSystem(): RoofSystemSettings {
+  const defaults = createDefaultRoofSystemSettings();
+  return normalizeRoofSystemSettings({
+    ...defaults,
+    roofType: 'hip',
+    supportSystem: 'steel_hip_framing',
+    ridgeDirection: 'along_longest_axis',
+    eaveOverhangMeters: 0.3,
+    gable: {
+      ...defaults.gable,
+      enabled: false,
+      rakedConcreteCapEnabled: false,
+    },
+    purlins: {
+      ...defaults.purlins,
+      enabled: true,
+    },
+    steelTrusses: {
+      ...defaults.steelTrusses,
+      enabled: true,
+    },
+  });
+}
+
+function sceneGeometry(
+  roofSystem = gableRoofSystem(),
+  dimensions: { lengthMeters: number; widthMeters: number } = { lengthMeters: 8, widthMeters: 5 },
+): {
   geometry: DesignGeometryResult;
   roofSystem: RoofSystemSettings;
   preset: ReturnType<typeof createFiveBySixCmuBuildingPreset>;
 } {
   const template = createFiveBySixCmuBuildingPreset();
   const layout = createOutsideFaceRectangleLayout({
-    lengthMeters: 8,
-    widthMeters: 5,
+    lengthMeters: dimensions.lengthMeters,
+    widthMeters: dimensions.widthMeters,
     wallHeightMeters: 2.8,
     wallThicknessMeters: 0.2,
   });
@@ -66,7 +93,6 @@ function sceneGeometry(): {
     layout,
   );
   const preset = applyAutoFrameLayout(synced);
-  const roofSystem = gableRoofSystem();
   return {
     geometry: resolveDesignBuilderGeometryPipeline({
       wallLayout: preset.wallLayout,
@@ -260,6 +286,55 @@ describe('DesignBuilderViewerRoofAssemblyScene', () => {
       makeMaterial: resources.makeMaterial,
     });
     expect(resolvedFramingSignature(state.currentGeometry!)).toBe(before);
+
+    resources.disposeTrackedResources();
+  });
+
+  it('renders resolved hip truss placements through steel truss scene groups', () => {
+    const { geometry, roofSystem, preset } = sceneGeometry(
+      hipRoofSystem(),
+      { lengthMeters: 14, widthMeters: 6 },
+    );
+    const roof = geometry.resolvedRoofSystem!;
+    expect(roof.roofType).toBe('hip');
+    expect(roof.trussCount).toBeGreaterThan(0);
+    expect(roof.trussPlacements.every((truss) => truss.id.startsWith('hip-truss-'))).toBe(true);
+    expect(roof.hipFramingMembers.length).toBeGreaterThan(0);
+    expect(roofSystem.steelTrusses.basePlateEnabled).toBe(true);
+    expect(roofSystem.steelTrusses.anchorBoltsPerBearing).toBeGreaterThan(0);
+
+    const resources = createDesignBuilderViewerResources();
+    const scene = buildDesignBuilderViewerRoofAssemblyScene({
+      state: roofAssemblyState({
+        currentGeometry: geometry,
+        currentSlab: preset.slab,
+        currentRoofSystem: roofSystem,
+        currentRoofDisplayMode: 'steel_framing_only',
+        currentRoofLayerVisibility: roofLayerVisibility({
+          steelTrusses: true,
+          purlins: false,
+        }),
+      }),
+      trackGeometry: resources.trackGeometry,
+      trackMaterial: resources.trackMaterial,
+      makeMaterial: resources.makeMaterial,
+    });
+    const groups = new Map(scene.groups.map((group) => [group.name, group]));
+    const trussChordGroup = groups.get('trussChordGroup');
+    const trussWebGroup = groups.get('trussWebGroup');
+    const basePlateGroup = groups.get('basePlateGroup');
+    const anchorBoltGroup = groups.get('anchorBoltGroup');
+
+    expect(trussChordGroup).toBeDefined();
+    expect(trussWebGroup).toBeDefined();
+    expect(basePlateGroup).toBeDefined();
+    expect(anchorBoltGroup).toBeDefined();
+    expect(meshCount(trussChordGroup!)).toBeGreaterThan(roof.hipFramingMembers.length);
+    expect(meshCount(trussWebGroup!)).toBeGreaterThan(0);
+    expect(meshCount(basePlateGroup!)).toBe(roof.trussCount * 2);
+    expect(meshCount(anchorBoltGroup!)).toBe(
+      roof.trussCount * 2 * roofSystem.steelTrusses.anchorBoltsPerBearing,
+    );
 
     resources.disposeTrackedResources();
   });

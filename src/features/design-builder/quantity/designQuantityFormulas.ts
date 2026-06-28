@@ -1277,7 +1277,7 @@ export function buildFrameInfillEstimatePreview(input: FrameInfillQuantityInput)
             divisionCode: '06',
             divisionName: 'Wood, Plastics & Composites',
           },
-          ...(resolvedRoof.roofType === 'gable' && roofSettings.steelTrusses.enabled
+          ...(resolvedRoof.trussCount > 0 && roofSettings.steelTrusses.enabled
             ? [
                 {
                   id: 'steel-trusses',

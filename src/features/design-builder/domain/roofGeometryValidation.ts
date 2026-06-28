@@ -15,6 +15,7 @@ import {
   offsetPointAlongRoofNormal,
   PURLIN_PROFILE_DEPTH_METERS,
   PURLIN_TO_SHEET_CLEARANCE_METERS,
+  TRUSS_CHORD_PROFILE_METERS,
   trussMemberLength,
 } from './roofFramingResolver';
 
@@ -28,6 +29,9 @@ export type RoofGeometryWarningCode =
   | 'truss_station_out_of_ridge_range'
   | 'truss_bearing_collapsed_to_ridge'
   | 'truss_top_chord_unreasonable_length'
+  | 'hip_jack_rafter_missing'
+  | 'hip_jack_rafter_off_roof_plane'
+  | 'hip_jack_rafter_does_not_hit_hip'
   | 'purlin_missing_source_plane'
   | 'purlin_endpoint_outside_roof_plane'
   | 'purlin_to_cladding_underside_gap_invalid'
@@ -42,6 +46,7 @@ export type RoofGeometryValidationIssue = {
     | 'cladding_display_plane'
     | 'ridge'
     | 'truss'
+    | 'hip_member'
     | 'purlin'
     | 'roof';
   sourceId?: string;
@@ -69,6 +74,8 @@ const PURLIN_GAP_TOLERANCE_METERS = 0.01;
 const CLADDING_OVERRUN_TOLERANCE_METERS = 0.35;
 const PITCH_MISMATCH_TOLERANCE_RADIANS = 0.08;
 const RIDGE_ON_PLANE_TOLERANCE_METERS = 0.02;
+const HIP_JACK_PLANE_TOLERANCE_METERS = 0.05;
+const HIP_JACK_HIT_TOLERANCE_METERS = 0.05;
 
 export function collectResolvedRoofGeometryIssues(
   resolved: ResolvedRoofSystem,
@@ -192,6 +199,8 @@ export function collectResolvedRoofGeometryIssues(
   for (const truss of resolved.trussPlacements) {
     validateTrussPlacementGeometry(resolved, truss, issues);
   }
+
+  validateHipJackGeometry(resolved, sourcePlaneById, issues);
 
   for (const purlin of resolved.purlinPlacements) {
     const sourcePlane = sourcePlaneById.get(purlin.slopePlaneId);
@@ -427,6 +436,16 @@ function messageForIssueGroup(code: RoofGeometryWarningCode, count: number): str
       return count === 1
         ? 'A truss top chord length exceeds the expected roof span.'
         : `${count} truss top chord lengths exceed the expected roof span.`;
+    case 'hip_jack_rafter_missing':
+      return 'A rectangular hip roof is missing generated hip jack rafters.';
+    case 'hip_jack_rafter_off_roof_plane':
+      return count === 1
+        ? 'A hip jack rafter is outside its assigned roof plane.'
+        : `${count} hip jack rafters are outside their assigned roof planes.`;
+    case 'hip_jack_rafter_does_not_hit_hip':
+      return count === 1
+        ? 'A hip jack rafter does not terminate on a hip rafter.'
+        : `${count} hip jack rafters do not terminate on hip rafters.`;
     case 'purlin_missing_source_plane':
       return count === 1
         ? 'A purlin references a missing roof plane.'
@@ -571,6 +590,104 @@ function validateTrussPlacementGeometry(
 
 function isTopChordMember(member: SteelMemberSegment): boolean {
   return member.memberKind === 'top_chord_left' || member.memberKind === 'top_chord_right';
+}
+
+function validateHipJackGeometry(
+  resolved: ResolvedRoofSystem,
+  sourcePlaneById: ReadonlyMap<string, RoofPlane>,
+  issues: RoofGeometryValidationIssue[],
+): void {
+  if (resolved.roofType !== 'hip') return;
+
+  const jacks = resolved.hipFramingMembers.filter((member) => member.memberKind === 'jack');
+  const hipRafters = resolved.hipFramingMembers.filter((member) => member.memberKind === 'hip');
+  const hasRectangularHip =
+    resolved.structuralRidgeStart != null &&
+    resolved.structuralRidgeEnd != null &&
+    resolved.roofTopPlanes.some((plane) => plane.corners.length === 3) &&
+    resolved.roofTopPlanes.some((plane) => plane.corners.length === 4);
+
+  if (hasRectangularHip && jacks.length === 0) {
+    issues.push({
+      code: 'hip_jack_rafter_missing',
+      message: 'Rectangular hip roof did not generate hip jack rafters.',
+      severity: 'review',
+      sourceKind: 'roof',
+    });
+    return;
+  }
+
+  for (const jack of jacks) {
+    const plane = jack.slopePlaneId ? sourcePlaneById.get(jack.slopePlaneId) : undefined;
+    if (!plane) {
+      issues.push({
+        code: 'hip_jack_rafter_off_roof_plane',
+        message: 'Hip jack rafter references a missing roof plane.',
+        severity: 'review',
+        sourceKind: 'hip_member',
+        sourceId: jack.id,
+        details: { slopePlaneId: jack.slopePlaneId ?? null },
+      });
+    } else if (!hipJackStaysOnRoofPlane(jack, plane)) {
+      issues.push({
+        code: 'hip_jack_rafter_off_roof_plane',
+        message: 'Hip jack rafter endpoint is outside its assigned roof plane or elevation.',
+        severity: 'review',
+        sourceKind: 'hip_member',
+        sourceId: jack.id,
+        details: { slopePlaneId: jack.slopePlaneId ?? null },
+      });
+    }
+
+    const hitsHip = hipRafters.some(
+      (hip) => distancePointToSegmentPlan(jack.end, hip.start, hip.end) <= HIP_JACK_HIT_TOLERANCE_METERS,
+    );
+    if (!hitsHip) {
+      issues.push({
+        code: 'hip_jack_rafter_does_not_hit_hip',
+        message: 'Hip jack rafter endpoint does not land on a hip rafter.',
+        severity: 'review',
+        sourceKind: 'hip_member',
+        sourceId: jack.id,
+      });
+    }
+  }
+}
+
+function hipJackStaysOnRoofPlane(
+  jack: { start: RoofVec3; end: RoofVec3 },
+  plane: RoofPlane,
+): boolean {
+  for (const endpoint of [jack.start, jack.end]) {
+    if (!pointInRoofPlaneFootprint(plane, endpoint, FOOTPRINT_CONTAINMENT_TOLERANCE_METERS)) {
+      return false;
+    }
+    const surfaceY = elevationOnRoofPlaneAtPoint(plane, endpoint.x, endpoint.z);
+    if (surfaceY == null) {
+      return false;
+    }
+    const expectedCenterY = surfaceY + TRUSS_CHORD_PROFILE_METERS / 2;
+    if (Math.abs(endpoint.y - expectedCenterY) > HIP_JACK_PLANE_TOLERANCE_METERS) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function distancePointToSegmentPlan(
+  point: Pick<RoofVec3, 'x' | 'z'>,
+  start: Pick<RoofVec3, 'x' | 'z'>,
+  end: Pick<RoofVec3, 'x' | 'z'>,
+): number {
+  const dx = end.x - start.x;
+  const dz = end.z - start.z;
+  const lenSq = dx * dx + dz * dz;
+  if (lenSq <= 1e-9) {
+    return Math.hypot(point.x - start.x, point.z - start.z);
+  }
+  const t = Math.max(0, Math.min(1, ((point.x - start.x) * dx + (point.z - start.z) * dz) / lenSq));
+  const projected = { x: start.x + dx * t, z: start.z + dz * t };
+  return Math.hypot(point.x - projected.x, point.z - projected.z);
 }
 
 function trussRidgePoint(
