@@ -5,6 +5,7 @@ import { createDefaultRoofSystemSettings } from '../domain/roofSystemDefaults';
 import { deriveDesignSceneBounds } from '../domain/designSceneBounds';
 import { createOutsideFaceRectangleLayout } from '../domain/wallLayoutRules';
 import {
+  buildCladdingDisplayPlanes,
   buildPurlinRowStationFractions,
   CORRUGATED_SHEET_DISPLAY_THICKNESS_METERS,
   distanceAlongRoofNormal,
@@ -18,6 +19,7 @@ import {
   PURLIN_TO_CHORD_CLEARANCE_METERS,
   PURLIN_TO_SHEET_CLEARANCE_METERS,
   resolveEvenStations,
+  resolveRoofFraming,
   resolveRidgeCapPlacement,
   resolveTrussTopChordUpperPoint,
   TRUSS_CHORD_PROFILE_METERS,
@@ -44,7 +46,7 @@ import {
   memberWorldEndpoints,
   resolveRoofPlaneEavePair,
 } from '../geometry/roofRenderingGeometry';
-import type { RoofSystemSettings, SteelMemberSegment, TrussPlacement } from '../types';
+import type { RoofPlane, RoofSystemSettings, RoofVec3, SteelMemberSegment, TrussPlacement } from '../types';
 import * as THREE from 'three';
 
 function frameInfillGeometry(roofSystem: RoofSystemSettings, layout?: import('../types').DesignWallLayoutParameters) {
@@ -130,6 +132,22 @@ function triangleArea3d(
   const ab = new THREE.Vector3(b.x - a.x, b.y - a.y, b.z - a.z);
   const ac = new THREE.Vector3(c.x - a.x, c.y - a.y, c.z - a.z);
   return ab.cross(ac).length() / 2;
+}
+
+function roofPlaneNormalForTest(corners: readonly RoofVec3[]): RoofVec3 {
+  const ab = new THREE.Vector3(
+    corners[1]!.x - corners[0]!.x,
+    corners[1]!.y - corners[0]!.y,
+    corners[1]!.z - corners[0]!.z,
+  );
+  const ac = new THREE.Vector3(
+    corners[2]!.x - corners[0]!.x,
+    corners[2]!.y - corners[0]!.y,
+    corners[2]!.z - corners[0]!.z,
+  );
+  const normal = ab.cross(ac).normalize();
+  if (normal.y < 0) normal.multiplyScalar(-1);
+  return { x: normal.x, y: normal.y, z: normal.z };
 }
 
 function roofPlaneArea3d(plane: { corners: { x: number; y: number; z: number }[] }): number {
@@ -325,6 +343,277 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
     for (const truss of roof.trussPlacements) {
       expect(truss.apex.y).toBeGreaterThanOrEqual(roof.roofPeakY);
       expect(truss.apex.y).toBeLessThan(roof.ridgeCapPlacement!.start.y);
+    }
+  });
+
+  it('keeps a 7m by 10m gable roof on one solved pitched datum', () => {
+    const defaults = createDefaultRoofSystemSettings();
+    const settings: RoofSystemSettings = {
+      ...defaults,
+      roofType: 'gable',
+      ridgeDirection: 'along_longest_axis',
+      eaveOverhangMeters: 0.3,
+      gableEndOverhangMeters: 0.3,
+      corrugatedMetal: { ...defaults.corrugatedMetal, enabled: true },
+      purlins: { ...defaults.purlins, enabled: true },
+      steelTrusses: { ...defaults.steelTrusses, enabled: true },
+    };
+    const roof = roofFromGeometry(frameInfillGeometry(settings, rectangularLayout(10, 7)));
+
+    expect(roof.trussPlacements.length).toBeGreaterThanOrEqual(2);
+    expect(roof.trussStations[0]).toBeGreaterThanOrEqual(0);
+    expect(roof.trussStations.at(-1)!).toBeLessThanOrEqual(roof.structuralRidgeLengthMeters + 0.01);
+    expect(roof.warnings.some((warning) => warning.code === 'truss_bearing_intersection_failed')).toBe(false);
+
+    const basePlateThickness = settings.steelTrusses.basePlateEnabled
+      ? settings.steelTrusses.basePlateThicknessMeters
+      : 0;
+    const bearingCenterY = roof.roofBeamTopY + basePlateThickness + TRUSS_CHORD_PROFILE_METERS / 2;
+    const maxExpectedTopChordLength =
+      Math.hypot(roof.structuralRafterRunMeters, roof.roofPeakY - bearingCenterY) +
+      settings.eaveOverhangMeters +
+      0.25;
+    for (const truss of roof.trussPlacements) {
+      for (const member of truss.members.filter((entry) => entry.memberKind.includes('top_chord'))) {
+        expect(trussMemberLength(member)).toBeLessThanOrEqual(maxExpectedTopChordLength);
+      }
+    }
+
+    expect(roof.purlinPlacements.length).toBeGreaterThan(0);
+    for (const purlin of roof.purlinPlacements) {
+      expect(purlinLength(purlin)).toBeLessThanOrEqual(roof.claddingRidgeLengthMeters + 0.1);
+      const sourcePlane = roof.roofTopPlanes.find((plane) => plane.id === purlin.slopePlaneId);
+      expect(sourcePlane).toBeDefined();
+      for (const endpoint of [purlin.start, purlin.end]) {
+        expect(elevationOnRoofPlaneAtPoint(sourcePlane!, endpoint.x, endpoint.z)).not.toBeNull();
+      }
+    }
+
+    expect(roof.claddingDisplayPlanes.length).toBeGreaterThan(0);
+    for (const plane of roof.claddingDisplayPlanes) {
+      const normalLength = Math.hypot(plane.normal.x, plane.normal.y, plane.normal.z) || 1;
+      expect(Math.abs(plane.normal.y / normalLength)).toBeLessThan(0.999);
+      expect(Math.max(...plane.corners.map((corner) => corner.y))).toBeGreaterThan(
+        Math.min(...plane.corners.map((corner) => corner.y)) + 0.05,
+      );
+      for (const corner of plane.corners) {
+        expect(Number.isFinite(corner.x)).toBe(true);
+        expect(Number.isFinite(corner.y)).toBe(true);
+        expect(Number.isFinite(corner.z)).toBe(true);
+      }
+    }
+  });
+
+  it('uses structural ridge length, not footprint analysis span, for gable truss stations', () => {
+    const defaults = createDefaultRoofSystemSettings();
+    const settings: RoofSystemSettings = {
+      ...defaults,
+      roofType: 'gable',
+      purlins: { ...defaults.purlins, enabled: false },
+      steelTrusses: {
+        ...defaults.steelTrusses,
+        enabled: true,
+        basePlateEnabled: false,
+      },
+    };
+    const bearing = [
+      { x: -4, z: -2 },
+      { x: 4, z: -2 },
+      { x: 4, z: 2 },
+      { x: -4, z: 2 },
+    ];
+    const structuralRidgeStart = { x: -4, y: 3.8, z: 0 };
+    const structuralRidgeEnd = { x: 4, y: 3.8, z: 0 };
+    const framing = resolveRoofFraming({
+      settings,
+      analysis: {
+        supported: true,
+        lengthMeters: 12,
+        widthMeters: 4,
+        minX: -6,
+        maxX: 6,
+        minZ: -2,
+        maxZ: 2,
+        centerX: 0,
+        centerZ: 0,
+        localX: { x: 1, z: 0 },
+        localZ: { x: 0, z: 1 },
+        bearingCorners: bearing,
+        localXSegmentIds: [],
+        localZSegmentIds: [],
+        localXSpanMeters: 12,
+        localZSpanMeters: 4,
+        axisXSegmentIds: [],
+        axisZSegmentIds: [],
+      },
+      structuralBearingPerimeter: bearing,
+      claddingPerimeter: bearing,
+      ridgeAxis: 'localX',
+      roofBeamTopY: 2.8,
+      peakY: 3.8,
+      structuralRidgeStart,
+      structuralRidgeEnd,
+      claddingRidgeStart: structuralRidgeStart,
+      claddingRidgeEnd: structuralRidgeEnd,
+      roofTopPlanes: [],
+      rafterLengthMeters: Math.hypot(2, 1),
+      claddingRafterLengthMeters: Math.hypot(2, 1),
+      rafterRunMeters: 2,
+      structuralHalfRunMeters: 2,
+      sideEaveOverhangMeters: 0,
+      fixedRoofSlope: 0.5,
+      ridgeLengthMeters: 8,
+    });
+
+    expect(framing.trussStations.at(-1)).toBeCloseTo(8, 6);
+    expect(framing.trussStations.at(-1)!).toBeLessThanOrEqual(8);
+    expect(framing.framingWarnings).toHaveLength(0);
+  });
+
+  it('skips gable trusses when bearing intersections cannot be resolved', () => {
+    const defaults = createDefaultRoofSystemSettings();
+    const settings: RoofSystemSettings = {
+      ...defaults,
+      roofType: 'gable',
+      purlins: { ...defaults.purlins, enabled: false },
+      steelTrusses: {
+        ...defaults.steelTrusses,
+        enabled: true,
+        basePlateEnabled: false,
+      },
+    };
+    const bearing = [
+      { x: -4, z: -2 },
+      { x: 4, z: -2 },
+      { x: 4, z: 2 },
+      { x: -4, z: 2 },
+    ];
+    const structuralRidgeStart = { x: -6, y: 3.8, z: 0 };
+    const structuralRidgeEnd = { x: 6, y: 3.8, z: 0 };
+    const framing = resolveRoofFraming({
+      settings,
+      analysis: {
+        supported: true,
+        lengthMeters: 12,
+        widthMeters: 4,
+        minX: -6,
+        maxX: 6,
+        minZ: -2,
+        maxZ: 2,
+        centerX: 0,
+        centerZ: 0,
+        localX: { x: 1, z: 0 },
+        localZ: { x: 0, z: 1 },
+        bearingCorners: bearing,
+        localXSegmentIds: [],
+        localZSegmentIds: [],
+        localXSpanMeters: 12,
+        localZSpanMeters: 4,
+        axisXSegmentIds: [],
+        axisZSegmentIds: [],
+      },
+      structuralBearingPerimeter: bearing,
+      claddingPerimeter: bearing,
+      ridgeAxis: 'localX',
+      roofBeamTopY: 2.8,
+      peakY: 3.8,
+      structuralRidgeStart,
+      structuralRidgeEnd,
+      claddingRidgeStart: structuralRidgeStart,
+      claddingRidgeEnd: structuralRidgeEnd,
+      roofTopPlanes: [],
+      rafterLengthMeters: Math.hypot(2, 1),
+      claddingRafterLengthMeters: Math.hypot(2, 1),
+      rafterRunMeters: 2,
+      structuralHalfRunMeters: 2,
+      sideEaveOverhangMeters: 0,
+      fixedRoofSlope: 0.5,
+      ridgeLengthMeters: 12,
+    });
+
+    expect(framing.framingWarnings.some((warning) => warning.code === 'truss_bearing_intersection_failed')).toBe(true);
+    expect(framing.trussPlacements.length).toBeGreaterThan(0);
+    expect(framing.trussPlacements.length).toBeLessThan(6);
+    for (const truss of framing.trussPlacements) {
+      expect(Math.hypot(truss.bearingLeft.x - truss.apex.x, truss.bearingLeft.z - truss.apex.z)).toBeGreaterThan(0.1);
+      expect(Math.hypot(truss.bearingRight.x - truss.apex.x, truss.bearingRight.z - truss.apex.z)).toBeGreaterThan(0.1);
+    }
+  });
+
+  it('projects cladding ridge corners without throwing when display plane elevation falls back by corner index', () => {
+    const structuralCorners: RoofVec3[] = [
+      { x: -5, y: 2.5, z: -2 },
+      { x: 5, y: 2.5, z: -2 },
+      { x: 5, y: 3.8, z: 0 },
+      { x: -5, y: 3.8, z: 0 },
+    ];
+    const structuralPlane: RoofPlane = {
+      id: 'gable-roof-0',
+      corners: structuralCorners,
+      normal: roofPlaneNormalForTest(structuralCorners),
+    };
+    const footprintPlane: RoofPlane = {
+      ...structuralPlane,
+      normal: { x: 1, y: 0, z: 0 },
+    };
+    let displayPlanes: RoofPlane[] = [];
+
+    expect(() => {
+      displayPlanes = buildCladdingDisplayPlanes({
+        structuralPlanes: [structuralPlane],
+        footprintPlanes: [footprintPlane],
+        trussPlacements: [],
+        purlinPlacements: [
+          {
+            id: 'gable-roof-0-purlin-0',
+            slopePlaneId: 'gable-roof-0',
+            rowIndex: 0,
+            start: { x: -5, y: 2.7, z: -1.7 },
+            end: { x: 5, y: 2.7, z: -1.7 },
+            planeNormal: structuralPlane.normal,
+          },
+          {
+            id: 'gable-roof-0-purlin-1',
+            slopePlaneId: 'gable-roof-0',
+            rowIndex: 1,
+            start: { x: -5, y: 3.7, z: -0.1 },
+            end: { x: 5, y: 3.7, z: -0.1 },
+            planeNormal: structuralPlane.normal,
+          },
+        ],
+        peakY: 3.8,
+        claddingRidgeStart: { x: -5, y: 3.8, z: 0 },
+        claddingRidgeEnd: { x: 5, y: 3.8, z: 0 },
+      });
+    }).not.toThrow();
+
+    expect(displayPlanes).toHaveLength(1);
+    for (const corner of displayPlanes[0]!.corners) {
+      expect(Number.isFinite(corner.x)).toBe(true);
+      expect(Number.isFinite(corner.y)).toBe(true);
+      expect(Number.isFinite(corner.z)).toBe(true);
+    }
+  });
+
+  it('keeps cladding pitched on the solved roof datum when purlins are disabled', () => {
+    const defaults = createDefaultRoofSystemSettings();
+    const settings: RoofSystemSettings = {
+      ...defaults,
+      roofType: 'gable',
+      ridgeDirection: 'along_longest_axis',
+      corrugatedMetal: { ...defaults.corrugatedMetal, enabled: true },
+      purlins: { ...defaults.purlins, enabled: false },
+    };
+    const roof = roofFromGeometry(frameInfillGeometry(settings, rectangularLayout(10, 7)));
+
+    expect(roof.purlinPlacements).toHaveLength(0);
+    expect(roof.claddingDisplayPlanes.length).toBeGreaterThan(0);
+    for (const plane of roof.claddingDisplayPlanes) {
+      const normalLength = Math.hypot(plane.normal.x, plane.normal.y, plane.normal.z) || 1;
+      expect(Math.abs(plane.normal.y / normalLength)).toBeLessThan(0.999);
+      expect(Math.max(...plane.corners.map((corner) => corner.y))).toBeGreaterThan(
+        Math.min(...plane.corners.map((corner) => corner.y)) + 0.05,
+      );
     }
   });
 

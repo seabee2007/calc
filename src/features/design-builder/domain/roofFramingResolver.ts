@@ -12,6 +12,7 @@ import {
   sideEaveTrussRowStationFraction,
 } from './roofOverhangSupport';
 import type {
+  DesignWarning,
   ExteriorRoofBeamBounds,
   HipFramingMember,
   PurlinPlacement,
@@ -664,6 +665,11 @@ function spanEdgesPerpendicularToRidge(
   ];
 }
 
+type GableTrussPlacementResult = {
+  placements: TrussPlacement[];
+  warnings: DesignWarning[];
+};
+
 function resolveGableTrussPlacements(params: {
   bearing: readonly PlanVec2[];
   ridgeStart: RoofVec3;
@@ -676,7 +682,7 @@ function resolveGableTrussPlacements(params: {
   sideEaveOverhangMeters: number;
   basePlateCenterInsetMeters: number;
   fixedRoofSlope: number;
-}): TrussPlacement[] {
+}): GableTrussPlacementResult {
   const {
     bearing,
     ridgeStart,
@@ -707,18 +713,43 @@ function resolveGableTrussPlacements(params: {
     ridgeStart2,
     ridgeEnd2,
   );
+  const placements: TrussPlacement[] = [];
+  const warnings: DesignWarning[] = [];
+  const maxExpectedTopChordLength =
+    Math.hypot(structuralHalfRunMeters, peakY - bearingCenterY) + sideEaveOverhangMeters + 0.25;
 
-  return stations.map((station, index) => {
+  stations.forEach((station, index) => {
+    if (station < -TRUSS_VALIDATION_TOLERANCE_METERS || station > ridgeLength + TRUSS_VALIDATION_TOLERANCE_METERS) {
+      warnings.push({
+        code: 'truss_station_outside_structural_ridge',
+        message: `Skipped truss station ${station.toFixed(3)} m because it is outside the structural ridge length.`,
+        severity: 'review',
+      });
+      return;
+    }
     const t = ridgeLength <= 0.001 ? 0 : station / ridgeLength;
     const ridgePoint2 = lerp2(ridgeStart2, ridgeEnd2, t);
-    const bearingLeft2 =
+    const bearingLeftHit =
       intersectRayWithSegment2D(ridgePoint2, perp, edgeAStart, edgeAEnd) ??
-      intersectRayWithSegment2D(ridgePoint2, { x: -perp.x, z: -perp.z }, edgeAStart, edgeAEnd) ??
-      ridgePoint2;
-    const bearingRight2 =
+      intersectRayWithSegment2D(ridgePoint2, { x: -perp.x, z: -perp.z }, edgeAStart, edgeAEnd);
+    const bearingRightHit =
       intersectRayWithSegment2D(ridgePoint2, { x: -perp.x, z: -perp.z }, edgeBStart, edgeBEnd) ??
-      intersectRayWithSegment2D(ridgePoint2, perp, edgeBStart, edgeBEnd) ??
-      ridgePoint2;
+      intersectRayWithSegment2D(ridgePoint2, perp, edgeBStart, edgeBEnd);
+    if (
+      !bearingLeftHit ||
+      !bearingRightHit ||
+      planDistance(bearingLeftHit, ridgePoint2) <= TRUSS_VALIDATION_TOLERANCE_METERS ||
+      planDistance(bearingRightHit, ridgePoint2) <= TRUSS_VALIDATION_TOLERANCE_METERS
+    ) {
+      warnings.push({
+        code: 'truss_bearing_intersection_failed',
+        message: `Skipped truss station ${station.toFixed(3)} m because bearing intersections could not be resolved.`,
+        severity: 'review',
+      });
+      return;
+    }
+    const bearingLeft2 = bearingLeftHit;
+    const bearingRight2 = bearingRightHit;
 
     const bearingLeft = toVec3(bearingLeft2, bearingY);
     const bearingRight = toVec3(bearingRight2, bearingY);
@@ -808,8 +839,19 @@ function resolveGableTrussPlacements(params: {
       members,
     };
     validateTrussPlacement(placement, roofBeamTopY, basePlateThicknessMeters);
-    return placement;
+    const hasUnreasonableTopChord = members.some(
+      (member) => member.memberKind.includes('top_chord') && trussMemberLength(member) > maxExpectedTopChordLength,
+    );
+    if (hasUnreasonableTopChord) {
+      warnings.push({
+        code: 'truss_top_chord_unreasonable_length',
+        message: 'Truss top chord length exceeds expected roof span.',
+        severity: 'review',
+      });
+    }
+    placements.push(placement);
   });
+  return { placements, warnings };
 }
 
 export function insetPointBelowRoofSurface(
@@ -1137,14 +1179,6 @@ export function buildCladdingDisplayPlanes(params: {
     if (planePurlins.length === 0) {
       return { ...footprintPlane };
     }
-    const purlinDisplayPlane = plane.id.startsWith('gable-roof')
-      ? buildCladdingDisplayPlaneFromPurlins({
-          id: plane.id,
-          planePurlins,
-          planeNormal,
-          displayThicknessMeters,
-        })
-      : null;
     const offsets = planePurlins
       .map((purlin) => {
         const center = {
@@ -1171,7 +1205,7 @@ export function buildCladdingDisplayPlanes(params: {
       return { ...footprintPlane };
     }
     const offset = offsets[offsets.length - 1]!;
-    const displayPlane = purlinDisplayPlane ?? offsetRoofPlaneAlongNormal(plane, offset);
+    const displayPlane = offsetRoofPlaneAlongNormal(footprintPlane, offset);
     const projectToDisplayPlane = (corner: RoofVec3): RoofVec3 => ({
       x: corner.x,
       y:
@@ -1190,7 +1224,7 @@ export function buildCladdingDisplayPlanes(params: {
         : null;
     const corners =
       paired && params.claddingRidgeStart && params.claddingRidgeEnd
-        ? footprintPlane.corners.map((corner) => {
+        ? footprintPlane.corners.map((corner, index) => {
             const rowT = rowStationOnSlope({
               point: corner,
               eaveAtStart: paired.eaveAtStart,
@@ -1230,38 +1264,6 @@ export function buildCladdingDisplayPlanes(params: {
         sourcePlanes: params.structuralPlanes,
         displayPlanes,
     });
-}
-
-function buildCladdingDisplayPlaneFromPurlins(params: {
-  id: string;
-  planePurlins: readonly PurlinPlacement[];
-  planeNormal: RoofVec3;
-  displayThicknessMeters: number;
-}): RoofPlane | null {
-  if (params.planePurlins.length < 2) return null;
-  const sorted = [...params.planePurlins].sort((a, b) => a.rowIndex - b.rowIndex);
-  const low = sorted[0]!;
-  const high = sorted[sorted.length - 1]!;
-  const sheetOffset =
-    PURLIN_PROFILE_DEPTH_METERS / 2 +
-    PURLIN_TO_SHEET_CLEARANCE_METERS +
-    params.displayThicknessMeters;
-  const lowStart = offsetPointAlongRoofNormal(low.start, params.planeNormal, sheetOffset);
-  const lowEnd = offsetPointAlongRoofNormal(low.end, params.planeNormal, sheetOffset);
-  const highEnd = offsetPointAlongRoofNormal(high.end, params.planeNormal, sheetOffset);
-  const highStart = offsetPointAlongRoofNormal(high.start, params.planeNormal, sheetOffset);
-  const corners = [lowStart, lowEnd, highEnd, highStart];
-  if (
-    planDistance(lowStart, lowEnd) < 0.05 ||
-    Math.max(planDistance(lowStart, highStart), planDistance(lowEnd, highEnd)) < 0.05
-  ) {
-    return null;
-  }
-  return {
-    id: `${params.id}-purlin-cladding-top`,
-    corners,
-    normal: roofPlaneNormalFromCorners(corners, params.planeNormal),
-  };
 }
 
 function pairPlaneEaveToHighCorners(plane: RoofPlane): {
@@ -1906,19 +1908,18 @@ export function resolveRoofFraming(params: {
   | 'actualPurlinSpacingMeters'
   | 'purlinPlacements'
   | 'hipFramingMembers'
-> {
+> & { framingWarnings: DesignWarning[] } {
   const bounds = buildExteriorRoofBeamBounds(
     params.structuralBearingPerimeter,
     params.roofBeamTopY,
     params.analysis,
   );
-  const buildingLengthMeters =
-    params.ridgeAxis === 'localX' ? params.analysis.localXSpanMeters : params.analysis.localZSpanMeters;
 
   const structuralRidgeStart = params.structuralRidgeStart ?? params.ridgeStart;
   const structuralRidgeEnd = params.structuralRidgeEnd ?? params.ridgeEnd;
   const claddingRidgeStart = params.claddingRidgeStart ?? params.ridgeStart;
   const claddingRidgeEnd = params.claddingRidgeEnd ?? params.ridgeEnd;
+  const framingWarnings: DesignWarning[] = [];
 
   let trussCount = 0;
   let actualTrussSpacingMeters = 0;
@@ -1932,34 +1933,48 @@ export function resolveRoofFraming(params: {
     structuralRidgeStart &&
     structuralRidgeEnd
   ) {
+    const structuralRidgeLengthMeters = Math.hypot(
+      structuralRidgeEnd.x - structuralRidgeStart.x,
+      structuralRidgeEnd.z - structuralRidgeStart.z,
+    );
     const trussEndInsetMeters = params.settings.steelTrusses.basePlateEnabled
       ? params.settings.steelTrusses.basePlateWidthMeters / 2
       : 0;
-    const trussResolution = resolveInsetEndStations(
-      buildingLengthMeters,
-      params.settings.steelTrusses.maxSpacingMeters,
-      trussEndInsetMeters,
-    );
-    trussCount = trussResolution.count;
-    actualTrussSpacingMeters = trussResolution.actualSpacingMeters;
-    trussStations = trussResolution.stations;
-    trussPlacements = resolveGableTrussPlacements({
-      bearing: params.structuralBearingPerimeter,
-      ridgeStart: structuralRidgeStart,
-      ridgeEnd: structuralRidgeEnd,
-      peakY: params.peakY,
-      roofBeamTopY: params.roofBeamTopY,
-      basePlateThicknessMeters: params.settings.steelTrusses.basePlateEnabled
-        ? params.settings.steelTrusses.basePlateThicknessMeters
-        : 0,
-      stations: trussStations,
-      structuralHalfRunMeters: params.structuralHalfRunMeters,
-      sideEaveOverhangMeters: params.sideEaveOverhangMeters,
-      basePlateCenterInsetMeters: params.settings.steelTrusses.basePlateEnabled
-        ? params.settings.steelTrusses.basePlateLengthMeters / 2
-        : 0,
-      fixedRoofSlope: params.fixedRoofSlope,
-    });
+    if (structuralRidgeLengthMeters <= TRUSS_VALIDATION_TOLERANCE_METERS) {
+      framingWarnings.push({
+        code: 'truss_structural_ridge_unresolved',
+        message: 'Skipped steel trusses because the structural ridge length could not be resolved.',
+        severity: 'review',
+      });
+    } else {
+      const trussResolution = resolveInsetEndStations(
+        structuralRidgeLengthMeters,
+        params.settings.steelTrusses.maxSpacingMeters,
+        trussEndInsetMeters,
+      );
+      actualTrussSpacingMeters = trussResolution.actualSpacingMeters;
+      const trussPlacementResult = resolveGableTrussPlacements({
+        bearing: params.structuralBearingPerimeter,
+        ridgeStart: structuralRidgeStart,
+        ridgeEnd: structuralRidgeEnd,
+        peakY: params.peakY,
+        roofBeamTopY: params.roofBeamTopY,
+        basePlateThicknessMeters: params.settings.steelTrusses.basePlateEnabled
+          ? params.settings.steelTrusses.basePlateThicknessMeters
+          : 0,
+        stations: trussResolution.stations,
+        structuralHalfRunMeters: params.structuralHalfRunMeters,
+        sideEaveOverhangMeters: params.sideEaveOverhangMeters,
+        basePlateCenterInsetMeters: params.settings.steelTrusses.basePlateEnabled
+          ? params.settings.steelTrusses.basePlateLengthMeters / 2
+          : 0,
+        fixedRoofSlope: params.fixedRoofSlope,
+      });
+      framingWarnings.push(...trussPlacementResult.warnings);
+      trussPlacements = trussPlacementResult.placements;
+      trussStations = trussPlacements.map((placement) => placement.stationMeters);
+      trussCount = trussPlacements.length;
+    }
   } else if (params.settings.roofType === 'hip') {
     hipFramingMembers = resolveHipFramingMembers({
       structuralBearing: params.structuralBearingPerimeter,
@@ -2008,6 +2023,7 @@ export function resolveRoofFraming(params: {
     actualPurlinSpacingMeters,
     purlinPlacements,
     hipFramingMembers,
+    framingWarnings,
   };
 }
 

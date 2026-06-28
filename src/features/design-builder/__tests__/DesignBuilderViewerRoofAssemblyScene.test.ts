@@ -127,6 +127,29 @@ function meshCount(object: THREE.Object3D): number {
   return count;
 }
 
+function resolvedFramingSignature(geometry: DesignGeometryResult): string {
+  const roof = geometry.resolvedRoofSystem!;
+  return JSON.stringify({
+    trusses: roof.trussPlacements.map((truss) => ({
+      stationMeters: truss.stationMeters,
+      bearingLeft: truss.bearingLeft,
+      bearingRight: truss.bearingRight,
+      apex: truss.apex,
+      members: truss.members.map((member) => ({
+        memberKind: member.memberKind,
+        start: member.start,
+        end: member.end,
+      })),
+    })),
+    purlins: roof.purlinPlacements.map((purlin) => ({
+      slopePlaneId: purlin.slopePlaneId,
+      rowIndex: purlin.rowIndex,
+      start: purlin.start,
+      end: purlin.end,
+    })),
+  });
+}
+
 describe('DesignBuilderViewerRoofAssemblyScene', () => {
   it('resolves roof visibility by display mode and layer toggles', () => {
     expect(
@@ -202,6 +225,41 @@ describe('DesignBuilderViewerRoofAssemblyScene', () => {
       expect(selectable.userData.designObjectType).toBe('gable_roof_system');
       expect(selectable.userData.selectionPriority).toBe(20);
     }
+
+    resources.disposeTrackedResources();
+  });
+
+  it('does not mutate resolved trusses or purlins when roof cladding visibility changes', () => {
+    const resources = createDesignBuilderViewerResources();
+    const state = roofAssemblyState({
+      currentRoofDisplayMode: 'roof_cladding_only',
+      currentRoofLayerVisibility: roofLayerVisibility({
+        roofCladding: true,
+      }),
+    });
+    const before = resolvedFramingSignature(state.currentGeometry!);
+
+    buildDesignBuilderViewerRoofAssemblyScene({
+      state: {
+        ...state,
+        currentRoofLayerVisibility: {
+          ...state.currentRoofLayerVisibility,
+          roofCladding: false,
+        },
+      },
+      trackGeometry: resources.trackGeometry,
+      trackMaterial: resources.trackMaterial,
+      makeMaterial: resources.makeMaterial,
+    });
+    expect(resolvedFramingSignature(state.currentGeometry!)).toBe(before);
+
+    buildDesignBuilderViewerRoofAssemblyScene({
+      state,
+      trackGeometry: resources.trackGeometry,
+      trackMaterial: resources.trackMaterial,
+      makeMaterial: resources.makeMaterial,
+    });
+    expect(resolvedFramingSignature(state.currentGeometry!)).toBe(before);
 
     resources.disposeTrackedResources();
   });
