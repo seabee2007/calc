@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { resolveSceneGridLayout, type DesignLayoutBounds } from '../domain/designLayoutBounds';
 import { resolveSiteGroundMaterial } from '../rendering/materials/designMaterialLibrary';
+import { ensureAoUv2 } from '../rendering/materials/designRenderingUv';
 import type { DesignVisualStyle } from '../types';
 
 const DEFAULT_SITE_GROUND_Y_METERS = -0.004;
@@ -30,7 +31,23 @@ function expandedGroundExclusionPolygon(
   });
 }
 
-function createSiteGroundGeometry(params: {
+function applySiteGroundUvs(geometry: THREE.BufferGeometry, gridSize: number): void {
+  const positions = geometry.getAttribute('position');
+  if (!positions) return;
+
+  const halfSize = gridSize / 2;
+  const uvs: number[] = [];
+  for (let index = 0; index < positions.count; index += 1) {
+    uvs.push(
+      (positions.getX(index) + halfSize) / gridSize,
+      (positions.getY(index) + halfSize) / gridSize,
+    );
+  }
+  geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+  ensureAoUv2(geometry);
+}
+
+export function createSiteGroundGeometry(params: {
   centerX: number;
   centerZ: number;
   gridSize: number;
@@ -38,7 +55,9 @@ function createSiteGroundGeometry(params: {
 }): THREE.BufferGeometry {
   const exclusionPolygon = params.exclusionPolygon;
   if (!exclusionPolygon || exclusionPolygon.length < 3) {
-    return new THREE.PlaneGeometry(params.gridSize, params.gridSize);
+    const geometry = new THREE.PlaneGeometry(params.gridSize, params.gridSize);
+    applySiteGroundUvs(geometry, params.gridSize);
+    return geometry;
   }
 
   const halfSize = params.gridSize / 2;
@@ -62,7 +81,9 @@ function createSiteGroundGeometry(params: {
   hole.closePath();
   shape.holes.push(hole);
 
-  return new THREE.ShapeGeometry(shape);
+  const geometry = new THREE.ShapeGeometry(shape);
+  applySiteGroundUvs(geometry, params.gridSize);
+  return geometry;
 }
 
 export function isDesignBuilderDarkMode(): boolean {

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
 import {
   createDesignBuilderViewerSceneEnvironment,
+  createSiteGroundGeometry,
   isDesignBuilderDarkMode,
 } from '../ui/DesignBuilderViewerSceneEnvironment';
 
@@ -93,6 +94,42 @@ describe('DesignBuilderViewerSceneEnvironment', () => {
     expect(environment.floorMesh.geometry.type).toBe('ShapeGeometry');
 
     environment.dispose();
+  });
+
+  it('keeps site ground UVs normalized when excluding the building footprint', () => {
+    const geometry = createSiteGroundGeometry({
+      centerX: 0,
+      centerZ: 0,
+      gridSize: 30,
+      exclusionPolygon: [
+        { x: -3, z: -2 },
+        { x: 3, z: -2 },
+        { x: 3, z: 2 },
+        { x: -3, z: 2 },
+      ],
+    });
+
+    const uv = geometry.getAttribute('uv');
+    const uv2 = geometry.getAttribute('uv2');
+    expect(uv).toBeTruthy();
+    expect(uv2).toBeTruthy();
+    expect(uv.count).toBe(uv2.count);
+
+    let minU = Number.POSITIVE_INFINITY;
+    let maxU = Number.NEGATIVE_INFINITY;
+    let minV = Number.POSITIVE_INFINITY;
+    let maxV = Number.NEGATIVE_INFINITY;
+    for (let index = 0; index < uv.count; index += 1) {
+      minU = Math.min(minU, uv.getX(index));
+      maxU = Math.max(maxU, uv.getX(index));
+      minV = Math.min(minV, uv.getY(index));
+      maxV = Math.max(maxV, uv.getY(index));
+    }
+
+    expect(minU).toBeCloseTo(0, 6);
+    expect(maxU).toBeCloseTo(1, 6);
+    expect(minV).toBeCloseTo(0, 6);
+    expect(maxV).toBeCloseTo(1, 6);
   });
 
   it('reads dark mode from the document root', () => {
