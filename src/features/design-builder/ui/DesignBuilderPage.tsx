@@ -276,6 +276,15 @@ import {
   resolvePlanHelperMeasurements,
   snapComponentPlanPoint,
 } from '../domain/designComponentPlacement';
+import {
+  addFixtureToPlumbingSystem,
+  buildPlumbingFixtureSchedule,
+  createDefaultPlumbingSystem,
+  getPlumbingFixtureDefinition,
+  PLUMBING_FIXTURE_LIBRARY_ORDER,
+  type PlumbingFixtureType,
+  type PlumbingSystem,
+} from '../plumbing';
 
 interface DesignBuilderPageProps {
   projectId: string;
@@ -329,6 +338,10 @@ export default function DesignBuilderPage({
   const [placedComponents, setPlacedComponents] = useState<PlacedDesignComponent[]>(
     () => storedSession?.placedComponents ?? [],
   );
+  const [plumbingSystem, setPlumbingSystem] = useState<PlumbingSystem>(
+    () => storedSession?.plumbingSystem ?? createDefaultPlumbingSystem(),
+  );
+  const [activePlumbingFixtureType, setActivePlumbingFixtureType] = useState<PlumbingFixtureType>('toilet');
   const [annotations, setAnnotations] = useState<DesignAnnotation[]>(
     () => storedSession?.annotations ?? [],
   );
@@ -557,6 +570,7 @@ export default function DesignBuilderPage({
         setLayoutState(nextPreset.wallLayout.segments.length > 0 ? 'editing' : 'blank');
         setManualMasonryRuns(nextPreset.wall.manualMasonryCourseRuns ?? []);
         setPlacedComponents(persistedState?.placedComponents ?? []);
+        setPlumbingSystem(persistedState?.plumbingSystem ?? createDefaultPlumbingSystem());
         setAnnotations(persistedState?.annotations ?? []);
         setSelectedComponentId(null);
         setSaveState('saved');
@@ -609,6 +623,7 @@ export default function DesignBuilderPage({
       designModel,
       objects,
       placedComponents,
+      plumbingSystem,
       annotations,
       unitSystem,
       selectedObjectType,
@@ -646,6 +661,7 @@ export default function DesignBuilderPage({
     modelLoaded,
     objects,
     placedComponents,
+    plumbingSystem,
     persistedQuantityItems,
     planViewport,
     preset,
@@ -2021,6 +2037,27 @@ export default function DesignBuilderPage({
     setToolMode('select');
   }
 
+  function handlePlumbingFixturePointer(event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number }) {
+    if (active2DView !== 'plumbing-plan') return;
+    if (event.phase !== 'commit') return;
+    const snapPosition = snapComponentPlanPoint({
+      point: { xMeters: event.xMeters, zMeters: event.zMeters },
+      snapMode,
+      snapSpacingMeters: planSnapSpacingMeters,
+    });
+    const definition = getPlumbingFixtureDefinition(activePlumbingFixtureType);
+    setPlumbingSystem((current) =>
+      addFixtureToPlumbingSystem({
+        system: current,
+        fixtureType: activePlumbingFixtureType,
+        position: { x: snapPosition.xMeters, y: 0, z: snapPosition.zMeters },
+      }),
+    );
+    setSaveState('unsaved');
+    setChangedAfterCommit(true);
+    setStatus({ tone: 'success', message: `${definition.displayName} placed on plumbing plan.` });
+  }
+
   function clearTransientPlanCommandState(options?: { switchToSelect?: boolean }) {
     setDraftPlanEnd(null);
     setDraftSnapTarget(null);
@@ -3062,7 +3099,7 @@ export default function DesignBuilderPage({
         foundationViewMode,
         visualStyle,
         materialSelections,
-      }, placedComponents, annotations);
+      }, placedComponents, annotations, plumbingSystem);
       const metadataResult = await updateDesignModelMetadata(activeModel.id, metadata);
       if (metadataResult.error || !metadataResult.data) {
         throw new Error(metadataResult.error ?? 'Could not save design metadata.');
@@ -3109,7 +3146,19 @@ export default function DesignBuilderPage({
     const normalized = normalizeDesignMaterialSelection(payload.selections);
     setMaterialSelections(normalized);
     const nextPlasterFinish = finishForPlasterMaterialId(normalized.plasterMaterialId);
-    if (
+    if (payload.plaster && resolvedPreset.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill') {
+      applyPresetPatch(
+        (current) => ({
+          ...current,
+          infillSystem: {
+            ...normalizeCmuInfillSystem(current.infillSystem),
+            plaster: normalizeCmuInfillPlasterSettings(payload.plaster),
+          },
+        }),
+        'Edit plaster finish',
+        'masonry_settings_update',
+      );
+    } else if (
       resolvedPreset.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill' &&
       nextPlasterFinish &&
       normalizeCmuInfillSystem(resolvedPreset.infillSystem).plaster.finish !== nextPlasterFinish
@@ -3552,6 +3601,8 @@ export default function DesignBuilderPage({
       wallLayout.nodes.length > 0 ||
       wallLayout.segments.length > 0 ||
       resolvedPreset.wall.openings.length > 0 ||
+      plumbingSystem.fixtures.length > 0 ||
+      plumbingSystem.runs.length > 0 ||
       previewLines.length > 0 ||
       persistedQuantityItems.length > 0 ||
       layoutState !== 'blank';
@@ -3615,6 +3666,7 @@ export default function DesignBuilderPage({
     setObjectTreeExpanded(DEFAULT_OBJECT_TREE_EXPANSION);
     setPreviewLines([]);
     setPlacedComponents([]);
+    setPlumbingSystem(createDefaultPlumbingSystem());
     setAnnotations([]);
     setSelectedComponentId(null);
     dispatchComponentPlacement({ type: 'reset', activeView: 'plan' });
@@ -3657,6 +3709,7 @@ export default function DesignBuilderPage({
       selectedObjectType: null,
       selectedOpeningId: null,
       placedComponents: [],
+      plumbingSystem: createDefaultPlumbingSystem(),
       previewLines: [],
       persistedQuantityItems: [],
       toolMode: 'select',
@@ -3795,6 +3848,8 @@ export default function DesignBuilderPage({
   const activeOpeningTool = toolMode === 'place_door' ? 'door' : toolMode === 'place_window' ? 'window' : null;
   const activeOpeningSettings = activeOpeningTool ? openingToolSettings[activeOpeningTool] : null;
   const closeFootprintEnabled = modelLoaded && !footprintClosed && wallLayout.segments.length >= 3;
+  const plumbingFixtureSchedule = buildPlumbingFixtureSchedule(plumbingSystem);
+  const plumbingPlacementActive = viewMode === '2d' && active2DView === 'plumbing-plan';
 
   return (
     <>
@@ -4063,10 +4118,13 @@ export default function DesignBuilderPage({
                 active2DView={active2DView}
                 annotations={annotations}
                 placedComponents={placedComponents}
+                plumbingSystem={plumbingSystem}
+                activePlumbingFixtureType={plumbingPlacementActive ? activePlumbingFixtureType : null}
                 designRenderModel={designRenderModel}
                 componentPreview={componentPlacement.activeView === 'plan' ? componentPlacement.placementPreview : null}
                 helperMeasurements={componentPlacement.activeView === 'plan' ? componentPlacement.helperMeasurements : []}
                 onComponentPointer={handleComponentPointer}
+                onPlumbingFixturePointer={handlePlumbingFixturePointer}
                 onAnnotationCreate={(annotation) => setAnnotations((current) => [...current, annotation])}
                 onInteraction={handlePlanInteraction}
               />
@@ -4147,6 +4205,85 @@ export default function DesignBuilderPage({
                 onCancel={cancelComponentPlacement}
                 onParameterChange={handleComponentParameterChange}
               />
+            ) : null}
+            {plumbingPlacementActive ? (
+              <div className="absolute left-3 top-12 z-10 w-[min(520px,calc(100%-1.5rem))] rounded-lg border border-slate-300 bg-white/95 p-3 text-xs text-slate-800 shadow-lg dark:border-slate-700 dark:bg-slate-900/95 dark:text-slate-100">
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <div>
+                    <div className="font-bold text-slate-950 dark:text-white">Plumbing Fixtures</div>
+                    <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400">Click the plan to place a fixture with real connection nodes.</div>
+                  </div>
+                  <select
+                    value={plumbingSystem.codeProfileId}
+                    onChange={(event) => {
+                      const codeProfileId = event.target.value as PlumbingSystem['codeProfileId'];
+                      setPlumbingSystem((current) => ({
+                        ...current,
+                        codeProfileId,
+                        settings: { ...current.settings, codeProfileId },
+                      }));
+                      setSaveState('unsaved');
+                    }}
+                    className="rounded-md border border-slate-300 bg-white px-2 py-1 text-[11px] font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+                    aria-label="Plumbing code profile"
+                  >
+                    <option value="conceptual">Conceptual</option>
+                    <option value="guam_ipc_2009">Guam IPC 2009</option>
+                    <option value="ipc_2024">IPC 2024</option>
+                    <option value="upc_placeholder">UPC placeholder</option>
+                    <option value="custom">Custom</option>
+                  </select>
+                </div>
+                <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-5">
+                  {PLUMBING_FIXTURE_LIBRARY_ORDER.map((fixtureType) => {
+                    const definition = getPlumbingFixtureDefinition(fixtureType);
+                    const active = activePlumbingFixtureType === fixtureType;
+                    return (
+                      <button
+                        key={fixtureType}
+                        type="button"
+                        onClick={() => setActivePlumbingFixtureType(fixtureType)}
+                        className={`rounded-md border px-2 py-1.5 text-left text-[11px] font-bold transition ${
+                          active
+                            ? 'border-cyan-500 bg-cyan-50 text-cyan-800 dark:bg-cyan-950/70 dark:text-cyan-100'
+                            : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200'
+                        }`}
+                      >
+                        {definition.markPrefix} - {definition.displayName}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : null}
+            {plumbingPlacementActive && plumbingFixtureSchedule.length > 0 ? (
+              <div className="absolute bottom-20 right-3 z-10 max-h-56 w-[min(420px,calc(100%-1.5rem))] overflow-auto rounded-lg border border-slate-300 bg-white/95 p-3 text-xs text-slate-800 shadow-lg dark:border-slate-700 dark:bg-slate-900/95 dark:text-slate-100">
+                <div className="mb-2 font-bold text-slate-950 dark:text-white">Fixture Schedule</div>
+                <table className="w-full border-collapse text-[11px]">
+                  <thead className="text-left text-slate-500 dark:text-slate-400">
+                    <tr>
+                      <th className="border-b border-slate-200 py-1 dark:border-slate-700">Mark</th>
+                      <th className="border-b border-slate-200 py-1 dark:border-slate-700">Fixture</th>
+                      <th className="border-b border-slate-200 py-1 text-center dark:border-slate-700">CW</th>
+                      <th className="border-b border-slate-200 py-1 text-center dark:border-slate-700">HW</th>
+                      <th className="border-b border-slate-200 py-1 text-center dark:border-slate-700">SS</th>
+                      <th className="border-b border-slate-200 py-1 text-center dark:border-slate-700">V</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {plumbingFixtureSchedule.map((row) => (
+                      <tr key={row.fixtureId}>
+                        <td className="py-1 font-bold">{row.mark}</td>
+                        <td className="py-1">{row.displayName}</td>
+                        <td className="py-1 text-center">{row.coldWater ? 'Y' : '-'}</td>
+                        <td className="py-1 text-center">{row.hotWater ? 'Y' : '-'}</td>
+                        <td className="py-1 text-center">{row.sanitary ? 'Y' : '-'}</td>
+                        <td className="py-1 text-center">{row.vent ? 'Y' : '-'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             ) : null}
             {viewMode === '2d' && active2DView === 'foundation-plan' && toolMode === 'draw_wall' ? (
               <div className="pointer-events-none absolute left-3 top-12 z-10 space-y-1 rounded-xl border border-amber-400/60 bg-slate-900/95 px-3 py-2 text-xs font-medium text-amber-100 shadow-lg">
@@ -4237,6 +4374,7 @@ export default function DesignBuilderPage({
       isOpen={materialsModal.open}
       scope={materialsModal.scope}
       appliedSelections={materialSelections}
+      appliedPlaster={normalizeCmuInfillSystem(resolvedPreset.infillSystem).plaster}
       appliedFloorTileFinish={
         normalizeRcFrameFoundationSettings(resolvedPreset.foundationSettings).floorTileFinish
       }

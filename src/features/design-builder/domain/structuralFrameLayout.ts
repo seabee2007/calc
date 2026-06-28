@@ -263,6 +263,17 @@ type PartitionFootingSegmentRef = {
   index: number;
 };
 
+const PARTITION_WALL_FOOTING_WIDTH_MULTIPLIER = 3;
+const PARTITION_WALL_FOOTING_MIN_WIDTH_METERS = 0.6;
+const PARTITION_WALL_FOOTING_THICKNESS_METERS = 0.15;
+
+function partitionWallFootingWidthMeters(wallThicknessMeters: number): number {
+  return Math.max(
+    PARTITION_WALL_FOOTING_MIN_WIDTH_METERS,
+    wallThicknessMeters * PARTITION_WALL_FOOTING_WIDTH_MULTIPLIER,
+  );
+}
+
 function directionFromNodeForSegment(
   segment: DesignWallLayoutParameters["segments"][number],
   nodeId: string,
@@ -350,12 +361,12 @@ function createWallFootingsForPartitionSegments(params: {
   const segmentById = new Map(params.layout.segments.map((segment) => [segment.id, segment]));
   const topElevationMeters =
     params.topOfPlinthBeamY - Math.max(0, settings.dropBelowPlinthBeamMeters) / 2;
-  const thicknessMeters = Math.max(0.1, settings.thicknessMeters);
+  const thicknessMeters = PARTITION_WALL_FOOTING_THICKNESS_METERS;
   const bottomElevationMeters = topElevationMeters - thicknessMeters;
   const footingWidthBySegmentId = new Map(
     params.segmentFrames.map((frame) => [
       frame.segmentId,
-      Math.max(0.1, frame.wallThicknessMeters * 2),
+      partitionWallFootingWidthMeters(frame.wallThicknessMeters),
     ]),
   );
   const endpointAdjustments = resolvePartitionFootingEndpointAdjustments({
@@ -369,7 +380,9 @@ function createWallFootingsForPartitionSegments(params: {
     if (!segment) return [];
     if (segment.wallRole !== "partition") return [];
     if (frame.lengthMeters <= 0.05) return [];
-    const widthMeters = footingWidthBySegmentId.get(frame.segmentId) ?? Math.max(0.1, frame.wallThicknessMeters * 2);
+    const widthMeters =
+      footingWidthBySegmentId.get(frame.segmentId) ??
+      partitionWallFootingWidthMeters(frame.wallThicknessMeters);
     const adjustments = endpointAdjustments.get(frame.segmentId) ?? { startMeters: 0, endMeters: 0 };
     const startPoint = {
       x: frame.centerlineStart.x + frame.tangent.x * adjustments.startMeters,

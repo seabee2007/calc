@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { CmuBuildingPreset } from '../domain/designBuilderPreset';
+import { createDefaultPlumbingSystem, type PlumbingSystem } from '../plumbing';
 import type {
   DesignBuilderElevationViewState,
   DesignBuilderCameraSnapshot,
@@ -58,6 +59,7 @@ export interface DesignBuilderSessionState {
   designModel: DesignModel | null;
   objects: DesignModelObject[];
   placedComponents: PlacedDesignComponent[];
+  plumbingSystem: PlumbingSystem;
   annotations: DesignAnnotation[];
   unitSystem: DesignUnitSystem;
   selectedObjectType: DesignObjectType | null;
@@ -130,6 +132,7 @@ export const useDesignBuilderSessionStore = create<DesignBuilderSessionStore>((s
         designModel: null,
         objects: [],
         placedComponents: [],
+        plumbingSystem: createDefaultPlumbingSystem(),
         annotations: [],
         unitSystem: 'metric',
         selectedObjectType: null,

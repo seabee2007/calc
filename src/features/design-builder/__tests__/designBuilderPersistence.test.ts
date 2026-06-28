@@ -15,6 +15,11 @@ import {
   validateDesignBuilderPersistenceContext,
 } from '../domain/designBuilderPersistence';
 import type { DesignModel, DesignModelObject } from '../types';
+import {
+  addFixtureToPlumbingSystem,
+  buildPlumbingFixtureSchedule,
+  createDefaultPlumbingSystem,
+} from '../plumbing';
 
 function rcPreset() {
   return applyAutoFrameLayout(createFiveBySixCmuBuildingPreset());
@@ -225,10 +230,11 @@ describe('designBuilderPersistence', () => {
       buildingSystemMode: preset.buildingSystemMode,
     };
     const migrated = migratePersistedDesignBuilderState(raw);
-    expect(migrated?.schemaVersion).toBe(2);
+    expect(migrated?.schemaVersion).toBe(3);
     expect(migrated?.rcFrameFoundation.isolatedFootings.widthMeters).toBe(1.1);
     expect(migrated?.openings.find((opening) => opening.type === 'window')?.sillHeightMeters).toBeCloseTo(1.2, 6);
     expect(migrated?.placedComponents).toEqual([]);
+    expect(migrated?.plumbingSystem.fixtures).toEqual([]);
     expect(migrated?.displayPreferences?.elevationView?.face).toBe('north');
   });
 
@@ -301,7 +307,7 @@ describe('designBuilderPersistence', () => {
       elevationView: { face: 'east' },
     }, [], [annotation]);
     const nested = metadata.designBuilderState as ReturnType<typeof serializePersistedDesignBuilderState>;
-    expect(nested.schemaVersion).toBe(2);
+    expect(nested.schemaVersion).toBe(3);
     expect(nested.displayPreferences?.activeView).toBe('2d');
     expect(nested.displayPreferences?.active2DView).toBe('elevation-view');
     expect(nested.displayPreferences?.elevationView?.face).toBe('east');
@@ -310,5 +316,67 @@ describe('designBuilderPersistence', () => {
     expect(migratePersistedDesignBuilderState(nested)?.annotations).toEqual([annotation]);
     expect(nested.rcFrameFoundation).toBeDefined();
     expect(nested.roofSystem).toBeDefined();
+    expect(nested.plumbingSystem).toBeDefined();
+  });
+
+  it('places plumbing fixtures as model objects with connection nodes', () => {
+    const system = addFixtureToPlumbingSystem({
+      system: createDefaultPlumbingSystem(),
+      fixtureType: 'lavatory',
+      position: { x: 2, y: 0, z: 3 },
+      idSeed: 'test-lav',
+    });
+
+    expect(system.fixtures).toHaveLength(1);
+    expect(system.nodes).toHaveLength(4);
+    expect(system.fixtures[0]?.connectionNodeIds.cold_water).toHaveLength(1);
+    expect(system.fixtures[0]?.connectionNodeIds.hot_water).toHaveLength(1);
+    expect(system.fixtures[0]?.connectionNodeIds.sanitary).toHaveLength(1);
+    expect(system.fixtures[0]?.connectionNodeIds.vent).toHaveLength(1);
+    expect(system.nodes.every((node) => node.fixtureId === system.fixtures[0]?.id)).toBe(true);
+  });
+
+  it('generates fixture schedule rows from actual plumbing fixtures', () => {
+    const withToilet = addFixtureToPlumbingSystem({
+      system: createDefaultPlumbingSystem(),
+      fixtureType: 'toilet',
+      position: { x: 1, y: 0, z: 1 },
+      idSeed: 'test-wc',
+    });
+    const withHoseBib = addFixtureToPlumbingSystem({
+      system: withToilet,
+      fixtureType: 'hose_bib',
+      position: { x: 4, y: 0, z: 1 },
+      idSeed: 'test-hb',
+    });
+
+    const schedule = buildPlumbingFixtureSchedule(withHoseBib);
+
+    expect(schedule).toHaveLength(2);
+    expect(schedule.find((row) => row.mark === 'WC-1')?.sanitary).toBe(true);
+    expect(schedule.find((row) => row.mark === 'HB-1')?.coldWater).toBe(true);
+    expect(schedule.find((row) => row.mark === 'HB-1')?.hotWater).toBe(false);
+  });
+
+  it('round trips plumbing system through persisted design metadata', () => {
+    const preset = rcPreset();
+    const plumbingSystem = addFixtureToPlumbingSystem({
+      system: createDefaultPlumbingSystem(),
+      fixtureType: 'kitchen_sink',
+      position: { x: 2.5, y: 0, z: 1.5 },
+      idSeed: 'test-ks',
+    });
+    const serialized = serializePersistedDesignBuilderState(
+      preset,
+      undefined,
+      [],
+      [],
+      plumbingSystem,
+    );
+    const migrated = migratePersistedDesignBuilderState(serialized);
+
+    expect(migrated?.plumbingSystem.fixtures).toHaveLength(1);
+    expect(migrated?.plumbingSystem.nodes).toHaveLength(4);
+    expect(migrated?.plumbingSystem.fixtures[0]?.mark).toBe('KS-1');
   });
 });

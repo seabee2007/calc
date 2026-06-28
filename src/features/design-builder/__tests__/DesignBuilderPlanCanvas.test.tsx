@@ -108,6 +108,34 @@ function createColumnDragFixture() {
         topElevationMeters: 0.3,
         source: 'auto_frame_layout',
       },
+      {
+        id: 'tie-beam-a-b',
+        name: 'Tie Beam A-B',
+        kind: 'tie_beam',
+        startColumnId: 'column-a',
+        endColumnId: 'column-b',
+        startPoint: { x: 0, y: 1.2, z: 0 },
+        endPoint: { x: 4, y: 1.2, z: 0 },
+        widthMeters: 0.2,
+        depthMeters: 0.25,
+        baseElevationMeters: 1,
+        topElevationMeters: 1.25,
+        source: 'auto_frame_layout',
+      },
+      {
+        id: 'roof-beam-a-b',
+        name: 'Roof Beam A-B',
+        kind: 'roof_beam',
+        startColumnId: 'column-a',
+        endColumnId: 'column-b',
+        startPoint: { x: 0, y: 2.8, z: 0 },
+        endPoint: { x: 4, y: 2.8, z: 0 },
+        widthMeters: 0.2,
+        depthMeters: 0.25,
+        baseElevationMeters: 2.55,
+        topElevationMeters: 2.8,
+        source: 'auto_frame_layout',
+      },
     ],
   } as const;
   const isolatedFootings = [
@@ -1052,6 +1080,8 @@ describe('DesignBuilderPlanCanvas', () => {
     expect(beam?.tagName.toLowerCase()).toBe('polygon');
     expect(beam?.getAttribute('fill')).toBe('none');
     expect(beam?.getAttribute('stroke')).toBe('#111827');
+    expect(container.querySelector('[data-foundation-beam-id="tie-beam-a-b"]')).toBeFalsy();
+    expect(container.querySelector('[data-foundation-beam-id="roof-beam-a-b"]')).toBeFalsy();
   });
 
   it('selects generated columns from their footing footprint and highlights the footing with the column', () => {

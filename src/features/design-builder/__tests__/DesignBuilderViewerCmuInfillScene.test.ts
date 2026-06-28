@@ -241,7 +241,7 @@ describe('DesignBuilderViewerCmuInfillScene', () => {
     expect(scene.mortarDiagnostics).toBeNull();
   });
 
-  it('does not cover individual CMU blocks with material-preview plaster', () => {
+  it('renders plaster on CMU infill panels while individual block mode is active', () => {
     const resources = createDesignBuilderViewerResources();
     const bounds = infillPanelBounds();
     const state = cmuInfillState({
@@ -284,7 +284,8 @@ describe('DesignBuilderViewerCmuInfillScene', () => {
     });
 
     expect(scene.groups.find((group) => group.name === 'cmuBlockInstanceGroup')).toBeDefined();
-    expect(scene.groups.find((group) => group.name === 'plasterGroup')).toBeUndefined();
+    expect(scene.groups.find((group) => group.name === 'infillWallProxyGroup')).toBeUndefined();
+    expect(scene.groups.find((group) => group.name === 'plasterGroup')).toBeDefined();
 
     resources.disposeTrackedResources();
   });

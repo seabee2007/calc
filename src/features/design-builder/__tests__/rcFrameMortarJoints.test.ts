@@ -54,7 +54,7 @@ describe('RC frame CMU mortar head joints', () => {
     expect(diagnostics.headJointCount).toBeGreaterThan(0);
     expect(diagnostics.zeroGapFallbackCount).toBeGreaterThan(0);
     expect(instances.filter((instance) => instance.kind === 'head' && instance.valid).length).toBe(
-      diagnostics.headJointCount,
+      diagnostics.headJointCount * 2,
     );
   });
 
@@ -98,6 +98,25 @@ describe('RC frame CMU mortar head joints', () => {
     const infillBlocks = rcInfillBlocks(geometry.wallCmuLayout.blocks);
     const keys = new Set(infillBlocks.filter(shouldParticipateInMortar).map(courseGroupKey));
     expect(keys.size).toBeGreaterThan(infillBlocks.length / 20);
+  });
+
+  it('does not merge top-closure below-grade rows with above-grade rows at the same course index', () => {
+    const geometry = frameGeometry();
+    const groupedElevations = new Map<string, Set<number>>();
+
+    rcInfillBlocks(geometry.wallCmuLayout.blocks)
+      .filter(shouldParticipateInMortar)
+      .forEach((block) => {
+        const key = courseGroupKey(block);
+        const elevations = groupedElevations.get(key) ?? new Set<number>();
+        elevations.add(Number(block.y.toFixed(3)));
+        groupedElevations.set(key, elevations);
+      });
+
+    const mixedElevationGroups = [...groupedElevations.values()].filter(
+      (elevations) => elevations.size > 1,
+    );
+    expect(mixedElevationGroups).toHaveLength(0);
   });
 
   it('does not create head joints across separate bays with opening-sized gaps', () => {
@@ -172,6 +191,55 @@ describe('RC frame CMU mortar head joints', () => {
     });
 
     expect(diagnostics.bedJointCount).toBeGreaterThan(0);
+  });
+
+  it('keeps bed joints out of the actual door void while adding jamb-edge head joints', () => {
+    const geometry = frameGeometry();
+    const door = geometry.wallCmuLayout.roughOpenings.find(
+      (opening) => opening.type === 'door' && opening.actualStartAlongMeters > opening.roughStartAlongMeters + 0.01,
+    );
+    expect(door).toBeDefined();
+
+    const segmentFrame = geometry.wallCmuLayout.segmentFrames?.find(
+      (frame) => frame.segmentId === door!.wallSegmentId,
+    );
+    expect(segmentFrame).toBeDefined();
+
+    const aboveGradeDoorSegmentBlocks = geometry.wallCmuLayout.blocks.filter(
+      (block) =>
+        block.segmentId === door!.wallSegmentId &&
+        block.source !== 'below_grade_rc_infill' &&
+        block.infillBand !== 'below_grade',
+    );
+    const { instances } = generateMortarJointInstances({
+      blocks: aboveGradeDoorSegmentBlocks,
+      mortarJointMeters: 0.01,
+      defaultBlockDepthMeters: 0.19,
+      defaultBlockHeightMeters: 0.19,
+    });
+    const stationOf = (instance: { x: number; z: number }) =>
+      (instance.x - segmentFrame!.centerlineStart.x) * segmentFrame!.tangent.x +
+      (instance.z - segmentFrame!.centerlineStart.z) * segmentFrame!.tangent.z;
+
+    const bedJointsInsideActualDoorHeight = instances
+      .filter((instance) => instance.kind === 'bed' && instance.valid && instance.y < door!.actualTopMeters - 0.001)
+      .filter((instance) => {
+        const centerStation = stationOf(instance);
+        const start = centerStation - instance.scaleX / 2;
+        const end = centerStation + instance.scaleX / 2;
+        return end > door!.actualStartAlongMeters + 0.001 && start < door!.actualEndAlongMeters - 0.001;
+      });
+    expect(bedJointsInsideActualDoorHeight).toHaveLength(0);
+
+    const jambHeadJointStations = instances
+      .filter((instance) => instance.kind === 'head' && instance.valid && instance.y < door!.actualTopMeters)
+      .map((instance) => stationOf(instance));
+    expect(jambHeadJointStations.some((station) => Math.abs(station - (door!.actualStartAlongMeters - 0.005)) < 0.002)).toBe(
+      true,
+    );
+    expect(jambHeadJointStations.some((station) => Math.abs(station - (door!.actualEndAlongMeters + 0.005)) < 0.002)).toBe(
+      true,
+    );
   });
 
   it('uses host wall tangent for rotated segment head joints', () => {

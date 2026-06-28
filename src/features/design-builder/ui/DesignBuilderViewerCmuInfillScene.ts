@@ -195,7 +195,7 @@ export function buildDesignBuilderViewerCmuInfillScene(params: {
     if (infillWallProxyGroup.children.length > 0) groups.push(infillWallProxyGroup);
   }
 
-  if (params.showCmuInfill && !state.currentWall.showIndividualBlocks) {
+  if (params.showCmuInfill) {
     const exteriorSegmentIds = new Set(
       (geometry.resolvedFootprint?.orderedPerimeterSegments ?? []).map(
         (segment) => segment.segmentId,

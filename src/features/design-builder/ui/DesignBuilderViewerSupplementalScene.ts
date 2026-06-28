@@ -1,11 +1,9 @@
 import * as THREE from 'three';
-import { TOP_OF_PLINTH_BEAM_Y } from '../domain/foundationElevations';
 import { buildDesignRenderModel } from '../domain/designRenderModel';
 import { buildSupplementalRcComponentSceneGroup } from './DesignBuilderSupplementalStructureScene';
 import {
   collectStructuralFrameSelectables,
   resolveRcConcreteMaterial,
-  resolveRcPlasterMaterial,
   type MakeMaterial,
   type TrackGeometry,
   type TrackMaterial,
@@ -76,29 +74,16 @@ export function buildDesignBuilderViewerSupplementalScene(params: {
         roughness: 0.82,
     },
   });
-  const supplementalPlaster = state.currentGeometry?.infillSystem?.plaster;
-  const useSupplementalPlasterFinish =
-    state.currentFoundationViewMode !== 'structural_frame_only' &&
-    Boolean(supplementalPlaster?.enabled);
-  const supplementalPlasterFinish = supplementalPlaster?.finish ?? 'textured';
-  const supplementalPlinthTopElevationMeters =
-    state.currentGeometry?.frameSystem?.beams.find((beam) => beam.kind === 'plinth_beam')
-      ?.topElevationMeters ?? TOP_OF_PLINTH_BEAM_Y;
-  const resolveSupplementalPlasterMaterial = (selected: boolean) =>
-    resolveRcPlasterMaterial({ ...materialContext, selected }, {
-      plasterFinish: supplementalPlasterFinish,
-    });
-
   const group = buildSupplementalRcComponentSceneGroup({
     renderModel: supplementalRenderModel,
     slabTopMeters: state.currentSlab.slabThicknessMeters,
-    useSupplementalPlasterFinish,
-    supplementalPlinthTopElevationMeters,
+    useSupplementalPlasterFinish: false,
+    supplementalPlinthTopElevationMeters: 0,
     materials: {
       structural: structuralMaterial,
       footing: footingMaterial,
       beam: beamMaterial,
-      createPlaster: () => resolveSupplementalPlasterMaterial(state.frameSelected),
+      createPlaster: () => structuralMaterial,
     },
     trackGeometry: params.trackGeometry,
   });

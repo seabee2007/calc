@@ -8,6 +8,11 @@ import {
   syncRoofSystemTrussSpacing,
 } from './roofSystemDefaults';
 import { normalizeCmuInfillSystem } from './infillPlaster';
+import {
+  createDefaultPlumbingSystem,
+  normalizePlumbingSystem,
+  type PlumbingSystem,
+} from '../plumbing';
 import type {
   BuildingSystemMode,
   Design2DViewType,
@@ -23,7 +28,7 @@ import type {
   WallOpeningParameters,
 } from '../types';
 
-export const PERSISTED_DESIGN_BUILDER_SCHEMA_VERSION = 2;
+export const PERSISTED_DESIGN_BUILDER_SCHEMA_VERSION = 3;
 
 export type DesignBuilderPersistenceMode = 'project_bound' | 'standalone_demo';
 
@@ -43,6 +48,7 @@ export type PersistedDesignBuilderState = {
   roofSystem: RoofSystemSettings;
   wallLayout: DesignWallLayoutParameters;
   openings: WallOpeningParameters[];
+  plumbingSystem: PlumbingSystem;
   displayPreferences?: {
     activeView?: DesignBuilderStoredViewMode;
     active2DView?: Design2DViewType;
@@ -98,6 +104,7 @@ export function serializePersistedDesignBuilderState(
   displayPreferences?: PersistedDesignBuilderState['displayPreferences'],
   placedComponents: PlacedDesignComponent[] = [],
   annotations: DesignAnnotation[] = [],
+  plumbingSystem: PlumbingSystem = createDefaultPlumbingSystem(),
 ): PersistedDesignBuilderState {
   return {
     schemaVersion: PERSISTED_DESIGN_BUILDER_SCHEMA_VERSION,
@@ -106,6 +113,7 @@ export function serializePersistedDesignBuilderState(
     roofSystem: normalizeRoofSystemSettings(preset.roofSystem ?? createDefaultRoofSystemSettings()),
     wallLayout: structuredClone(preset.wallLayout),
     openings: structuredClone(preset.wall.openings),
+    plumbingSystem: normalizePlumbingSystem(plumbingSystem),
     displayPreferences,
     placedComponents: structuredClone(placedComponents),
     annotations: structuredClone(annotations),
@@ -186,6 +194,7 @@ export function migratePersistedDesignBuilderState(
     roofSystem: normalizeRoofSystemSettings(raw.roofSystem),
     wallLayout: structuredClone(raw.wallLayout ?? createBlankCmuBuildingPreset().wallLayout),
     openings: normalizeOpeningsHeadAlignment(structuredClone(raw.openings ?? [])),
+    plumbingSystem: normalizePlumbingSystem(raw.plumbingSystem),
     displayPreferences: raw.displayPreferences
         ? {
           ...raw.displayPreferences,
@@ -272,11 +281,18 @@ export function designModelMetadataWithPersistedState(
   displayPreferences?: PersistedDesignBuilderState['displayPreferences'],
   placedComponents: PlacedDesignComponent[] = [],
   annotations: DesignAnnotation[] = [],
+  plumbingSystem: PlumbingSystem = createDefaultPlumbingSystem(),
 ): Record<string, unknown> {
   return {
     ...model.metadata,
     source: 'parametric_design_builder',
-    designBuilderState: serializePersistedDesignBuilderState(preset, displayPreferences, placedComponents, annotations),
+    designBuilderState: serializePersistedDesignBuilderState(
+      preset,
+      displayPreferences,
+      placedComponents,
+      annotations,
+      plumbingSystem,
+    ),
   };
 }
 

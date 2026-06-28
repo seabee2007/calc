@@ -6,6 +6,7 @@ import {
   buildPlanOpeningGeometry,
   buildPlanStripSnapPoints,
   buildSegmentFaceSnapPoints,
+  buildSegmentPlanFootprint,
   buildWallRunsExcludingRoughOpenings,
   openingColorState,
   pickOpeningAtPlanPoint,
@@ -413,6 +414,31 @@ describe('planOpeningGraphics', () => {
       expect(zs[3]).toBeCloseTo(3, 6);
     });
 
+    it('applies wall footprint endpoint adjustments along the segment centerline', () => {
+      const frame = frames[0]!;
+      const startAdjustment = 0.12;
+      const endAdjustment = -0.08;
+      const footprint = buildSegmentPlanFootprint(frame, {
+        startMeters: startAdjustment,
+        endMeters: endAdjustment,
+      });
+
+      expect(footprint).not.toBeNull();
+      const adjustedStartCenter = {
+        x: (footprint!.faceA.start.x + footprint!.faceB.start.x) / 2,
+        z: (footprint!.faceA.start.z + footprint!.faceB.start.z) / 2,
+      };
+      const adjustedEndCenter = {
+        x: (footprint!.faceA.end.x + footprint!.faceB.end.x) / 2,
+        z: (footprint!.faceA.end.z + footprint!.faceB.end.z) / 2,
+      };
+
+      expect(adjustedStartCenter.x).toBeCloseTo(frame.centerlineStart.x + frame.tangent.x * startAdjustment, 6);
+      expect(adjustedStartCenter.z).toBeCloseTo(frame.centerlineStart.z + frame.tangent.z * startAdjustment, 6);
+      expect(adjustedEndCenter.x).toBeCloseTo(frame.centerlineEnd.x + frame.tangent.x * endAdjustment, 6);
+      expect(adjustedEndCenter.z).toBeCloseTo(frame.centerlineEnd.z + frame.tangent.z * endAdjustment, 6);
+    });
+
     it('keeps centerline rectangle corners on one canonical centerline display point', () => {
       const layout = {
         ...createOutsideFaceRectangleLayout({ lengthMeters: 6, widthMeters: 5 }),
@@ -472,11 +498,4 @@ function dot(a: { x: number; z: number }, b: { x: number; z: number }): number {
 function normalize(vector: { x: number; z: number }): { x: number; z: number } {
   const length = Math.hypot(vector.x, vector.z) || 1;
   return { x: vector.x / length, z: vector.z / length };
-}
-
-function inwardOffset(
-  point: { x: number; z: number },
-  origin: { x: number; z: number },
-): { x: number; z: number } {
-  return { x: point.x - origin.x, z: point.z - origin.z };
 }

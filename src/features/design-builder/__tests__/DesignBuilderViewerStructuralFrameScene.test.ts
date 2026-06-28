@@ -146,6 +146,39 @@ describe('DesignBuilderViewerStructuralFrameScene', () => {
     resources.disposeTrackedResources();
   });
 
+  it('keeps structural columns concrete when CMU infill plaster is enabled', () => {
+    const resources = createDesignBuilderViewerResources();
+
+    const scene = buildDesignBuilderViewerStructuralFrameScene({
+      state: structuralState({
+        currentGeometry: geometryResult({
+          infillSystem: {
+            kind: 'cmu_infill_system',
+            panels: [],
+            plaster: {
+              enabled: true,
+              finish: 'textured',
+              profileLabel: '3-coat plaster',
+              interiorEnabled: true,
+              interiorFinish: 'smooth',
+              interiorProfileLabel: '3-coat plaster',
+            },
+          },
+        }),
+      }),
+      showCmuInfill: true,
+      trackGeometry: resources.trackGeometry,
+      trackMaterial: resources.trackMaterial,
+      makeMaterial: resources.makeMaterial,
+    });
+
+    expect(scene.group.getObjectByName('structuralColumn:column-1:plaster')).toBeUndefined();
+    const column = meshByName(scene.group, 'structuralColumn:column-1');
+    expect((column.material as THREE.MeshStandardMaterial).color.getHex()).toBe(0x9ca3af);
+
+    resources.disposeTrackedResources();
+  });
+
   it('returns an empty scene when no frame, slab, or footing geometry is present', () => {
     const resources = createDesignBuilderViewerResources();
 

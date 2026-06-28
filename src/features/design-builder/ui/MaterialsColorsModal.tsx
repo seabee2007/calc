@@ -11,7 +11,12 @@ import {
   resolvePlywoodCeilingSettings,
 } from '../domain/plywoodCeilingCatalog';
 import { resolvePlywoodCeilingLayout } from '../domain/plywoodCeilingLayout';
+import {
+  DEFAULT_CMU_INFILL_PLASTER,
+  normalizeCmuInfillPlasterSettings,
+} from '../domain/infillPlaster';
 import type {
+  CmuInfillPlasterSettings,
   InteriorFloorTileSettings,
   PlywoodCeilingSettings,
   ResolvedFloorTileLayout,
@@ -36,6 +41,7 @@ export type MaterialsFinishesScope = 'all' | 'interior' | 'exterior';
 
 export type MaterialsColorsApplyPayload = {
   selections: DesignMaterialSelection;
+  plaster?: CmuInfillPlasterSettings;
   floorTileFinish?: InteriorFloorTileSettings;
   plywoodCeiling?: PlywoodCeilingSettings;
 };
@@ -44,6 +50,7 @@ export type MaterialsColorsModalProps = {
   isOpen: boolean;
   scope?: MaterialsFinishesScope;
   appliedSelections: DesignMaterialSelection;
+  appliedPlaster?: CmuInfillPlasterSettings;
   appliedFloorTileFinish?: InteriorFloorTileSettings;
   appliedPlywoodCeiling?: PlywoodCeilingSettings;
   interiorFloorSlabEnabled?: boolean;
@@ -97,14 +104,6 @@ const CATEGORY_CONFIG: readonly CategoryConfig[] = [
     title: 'Mortar Joints',
     tintPresets: MORTAR_TINT_PRESETS,
     tintField: 'mortarTintId',
-  },
-  {
-    id: 'plaster',
-    scope: 'interior',
-    category: 'plaster_finish',
-    title: 'Plaster Finish',
-    tintPresets: PLASTER_TINT_PRESETS,
-    tintField: 'plasterTintId',
   },
   { id: 'cast-concrete', scope: 'interior', category: 'cast_concrete', title: 'Cast Concrete' },
   {
@@ -210,6 +209,20 @@ function plywoodCeilingSettingsEqual(
     left.staggerOffsetMeters === right.staggerOffsetMeters &&
     left.panelGapMeters === right.panelGapMeters &&
     left.wasteFactor === right.wasteFactor
+  );
+}
+
+function plasterSettingsEqual(
+  left: CmuInfillPlasterSettings,
+  right: CmuInfillPlasterSettings,
+): boolean {
+  return (
+    left.enabled === right.enabled &&
+    left.finish === right.finish &&
+    left.profileLabel === right.profileLabel &&
+    left.interiorEnabled === right.interiorEnabled &&
+    left.interiorFinish === right.interiorFinish &&
+    left.interiorProfileLabel === right.interiorProfileLabel
   );
 }
 
@@ -334,6 +347,119 @@ function CategorySection({
           />
         </div>
       ) : null}
+    </section>
+  );
+}
+
+function plasterMaterialIdForFinish(finish: CmuInfillPlasterSettings['finish']): DesignMaterialSelection['plasterMaterialId'] {
+  return finish === 'smooth' ? 'smooth-3-coat-plaster' : 'textured-3-coat-plaster';
+}
+
+function finishForPlasterMaterialId(materialId: DesignMaterialSelection['plasterMaterialId']): CmuInfillPlasterSettings['finish'] {
+  return materialId === 'smooth-3-coat-plaster' ? 'smooth' : 'textured';
+}
+
+function PlasterFinishSection({
+  scope,
+  selections,
+  plasterDraft,
+  onChangeMaterial,
+  onChangeTint,
+  onChangePlaster,
+}: {
+  scope: Exclude<MaterialsFinishesScope, 'all'>;
+  selections: DesignMaterialSelection;
+  plasterDraft: CmuInfillPlasterSettings;
+  onChangeMaterial: (field: MaterialSelectionField, materialId: string) => void;
+  onChangeTint: (field: CategoryConfig['tintField'], tintId: string) => void;
+  onChangePlaster: (patch: Partial<CmuInfillPlasterSettings>) => void;
+}) {
+  const exterior = scope === 'exterior';
+  const enabled = exterior ? plasterDraft.enabled : plasterDraft.interiorEnabled;
+  const finish = exterior ? plasterDraft.finish : plasterDraft.interiorFinish;
+  const sideLabel = exterior ? 'Exterior Plaster' : 'Interior Plaster';
+  const finishOptions = getMaterialOptionsForCategory('plaster_finish');
+  const selectedPlasterMaterialId = plasterMaterialIdForFinish(finish);
+
+  function updateFinish(nextFinish: CmuInfillPlasterSettings['finish']) {
+    onChangeMaterial('plasterMaterialId', plasterMaterialIdForFinish(nextFinish));
+    onChangePlaster(exterior ? { finish: nextFinish } : { interiorFinish: nextFinish });
+  }
+
+  return (
+    <section className="space-y-4 md:col-span-2">
+      <div>
+        <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">{sideLabel}</h3>
+        <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+          3-coat CMU plaster finish. Enabled plaster is included as Division 09 estimate area.
+        </p>
+      </div>
+
+      <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
+        <input
+          type="checkbox"
+          checked={enabled}
+          onChange={(event) =>
+            onChangePlaster(exterior ? { enabled: event.target.checked } : { interiorEnabled: event.target.checked })
+          }
+        />
+        {exterior ? 'Enable exterior plaster' : 'Enable interior plaster'}
+      </label>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        {(['smooth', 'textured'] as const).map((option) => {
+          const selected = finish === option;
+          return (
+            <button
+              key={option}
+              type="button"
+              disabled={!enabled}
+              onClick={() => updateFinish(option)}
+              className={`rounded-lg border px-3 py-2 text-left transition ${
+                selected
+                  ? 'border-cyan-500 bg-cyan-50 dark:border-cyan-400 dark:bg-cyan-950/40'
+                  : 'border-slate-200 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800/80'
+              } disabled:cursor-not-allowed disabled:opacity-50`}
+            >
+              <span className="block text-sm font-semibold text-slate-900 dark:text-slate-100">
+                {option === 'smooth' ? 'Smooth' : 'Rough'}
+              </span>
+              <span className="mt-0.5 block text-xs text-slate-500 dark:text-slate-400">
+                {option === 'smooth' ? 'Smooth finish coat texture' : 'Textured rough finish coat'}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        {finishOptions.map((option) => (
+          <MaterialOptionRow
+            key={option.id}
+            option={option}
+            selected={option.id === selectedPlasterMaterialId}
+            onSelect={() => {
+              onChangeMaterial('plasterMaterialId', option.id);
+              onChangePlaster(
+                exterior
+                  ? { finish: finishForPlasterMaterialId(option.id) }
+                  : { interiorFinish: finishForPlasterMaterialId(option.id) },
+              );
+            }}
+          />
+        ))}
+      </div>
+
+      <div className="space-y-2 border-t border-slate-200 pt-3 dark:border-slate-700">
+        <div className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+          Plaster Color
+        </div>
+        <TintSwatches
+          presets={PLASTER_TINT_PRESETS}
+          selectedId={selections.plasterTintId}
+          onSelect={(tintId) => onChangeTint('plasterTintId', tintId)}
+        />
+      </div>
     </section>
   );
 }
@@ -613,6 +739,7 @@ export default function MaterialsColorsModal({
   isOpen,
   scope = 'all',
   appliedSelections,
+  appliedPlaster,
   appliedFloorTileFinish,
   appliedPlywoodCeiling,
   interiorFloorSlabEnabled = true,
@@ -626,6 +753,9 @@ export default function MaterialsColorsModal({
   const [draft, setDraft] = useState<DesignMaterialSelection>(() =>
     normalizeDesignMaterialSelection(appliedSelections),
   );
+  const [plasterDraft, setPlasterDraft] = useState<CmuInfillPlasterSettings>(() =>
+    normalizeCmuInfillPlasterSettings(appliedPlaster),
+  );
   const [floorTileDraft, setFloorTileDraft] = useState<InteriorFloorTileSettings>(() =>
     resolveInteriorFloorTileSettings(appliedFloorTileFinish),
   );
@@ -634,18 +764,24 @@ export default function MaterialsColorsModal({
   );
   const visibleCategories = useMemo(() => categoryConfigsForScope(scope), [scope]);
   const modalCopy = MODAL_COPY[scope];
+  const showExteriorPlasterSection = scope === 'exterior' || scope === 'all';
+  const showInteriorPlasterSection = scope === 'interior' || scope === 'all';
   const showFloorTileSection = scope === 'interior' || scope === 'all';
   const showPlywoodCeilingSection = scope === 'interior' || scope === 'all';
 
   useEffect(() => {
     if (!isOpen) return;
     setDraft(normalizeDesignMaterialSelection(appliedSelections));
+    setPlasterDraft(normalizeCmuInfillPlasterSettings(appliedPlaster));
     setFloorTileDraft(resolveInteriorFloorTileSettings(appliedFloorTileFinish));
     setPlywoodCeilingDraft(resolvePlywoodCeilingSettings(appliedPlywoodCeiling));
-  }, [appliedFloorTileFinish, appliedPlywoodCeiling, appliedSelections, isOpen]);
+  }, [appliedFloorTileFinish, appliedPlaster, appliedPlywoodCeiling, appliedSelections, isOpen]);
 
   const hasChanges = useMemo(() => {
     const selectionChanged = !designMaterialSelectionsEqual(draft, appliedSelections);
+    const plasterChanged =
+      (showExteriorPlasterSection || showInteriorPlasterSection) &&
+      !plasterSettingsEqual(plasterDraft, normalizeCmuInfillPlasterSettings(appliedPlaster));
     const floorTileChanged =
       showFloorTileSection &&
       !floorTileSettingsEqual(
@@ -658,15 +794,19 @@ export default function MaterialsColorsModal({
         plywoodCeilingDraft,
         resolvePlywoodCeilingSettings(appliedPlywoodCeiling),
       );
-    return selectionChanged || floorTileChanged || plywoodCeilingChanged;
+    return selectionChanged || plasterChanged || floorTileChanged || plywoodCeilingChanged;
   }, [
     appliedFloorTileFinish,
+    appliedPlaster,
     appliedPlywoodCeiling,
     appliedSelections,
     draft,
     floorTileDraft,
+    plasterDraft,
     plywoodCeilingDraft,
+    showExteriorPlasterSection,
     showFloorTileSection,
+    showInteriorPlasterSection,
     showPlywoodCeilingSection,
   ]);
 
@@ -677,6 +817,10 @@ export default function MaterialsColorsModal({
   function updateTint(field: CategoryConfig['tintField'], tintId: string) {
     if (!field) return;
     setDraft((current) => normalizeDesignMaterialSelection({ ...current, [field]: tintId }));
+  }
+
+  function updatePlaster(patch: Partial<CmuInfillPlasterSettings>) {
+    setPlasterDraft((current) => normalizeCmuInfillPlasterSettings({ ...current, ...patch }));
   }
 
   function updateFloorTile(patch: Partial<InteriorFloorTileSettings>) {
@@ -707,6 +851,7 @@ export default function MaterialsColorsModal({
             type="button"
             onClick={() => {
               setDraft(normalizeDesignMaterialSelection(DEFAULT_DESIGN_MATERIAL_SELECTION));
+              setPlasterDraft(normalizeCmuInfillPlasterSettings(DEFAULT_CMU_INFILL_PLASTER));
               setFloorTileDraft(resolveInteriorFloorTileSettings(undefined));
               setPlywoodCeilingDraft(resolvePlywoodCeilingSettings(undefined));
             }}
@@ -720,6 +865,9 @@ export default function MaterialsColorsModal({
             onClick={() =>
               onApply({
                 selections: normalizeDesignMaterialSelection(draft),
+                plaster: showExteriorPlasterSection || showInteriorPlasterSection
+                  ? normalizeCmuInfillPlasterSettings(plasterDraft)
+                  : undefined,
                 floorTileFinish: showFloorTileSection
                   ? resolveInteriorFloorTileSettings(floorTileDraft)
                   : undefined,
@@ -736,6 +884,26 @@ export default function MaterialsColorsModal({
       }
     >
       <div className="grid gap-6 md:grid-cols-2">
+        {showExteriorPlasterSection ? (
+          <PlasterFinishSection
+            scope="exterior"
+            selections={draft}
+            plasterDraft={plasterDraft}
+            onChangeMaterial={updateMaterial}
+            onChangeTint={updateTint}
+            onChangePlaster={updatePlaster}
+          />
+        ) : null}
+        {showInteriorPlasterSection ? (
+          <PlasterFinishSection
+            scope="interior"
+            selections={draft}
+            plasterDraft={plasterDraft}
+            onChangeMaterial={updateMaterial}
+            onChangeTint={updateTint}
+            onChangePlaster={updatePlaster}
+          />
+        ) : null}
         {showPlywoodCeilingSection ? (
           <PlywoodCeilingSection
             plywoodCeilingDraft={plywoodCeilingDraft}

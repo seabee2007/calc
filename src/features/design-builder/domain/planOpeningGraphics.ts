@@ -22,6 +22,11 @@ export type PlanWallFootprint = {
   faceB: { start: PlanPoint; end: PlanPoint };
 };
 
+export type SegmentPlanFootprintEndpointAdjustments = {
+  startMeters?: number;
+  endMeters?: number;
+};
+
 export type PlanOpeningGeometry = {
   hostSegmentId: string;
   center: { x: number; z: number };
@@ -123,16 +128,31 @@ export function buildSegmentFaceSnapPoints(frame: SegmentFrame): PlanSnapPoint[]
   ];
 }
 
-export function buildSegmentPlanFootprint(frame: SegmentFrame): PlanWallFootprint | null {
-  const start = frame.centerlineStart;
-  const end = frame.centerlineEnd;
-  const length = Math.hypot(end.x - start.x, end.z - start.z);
+export function buildSegmentPlanFootprint(
+  frame: SegmentFrame,
+  endpointAdjustments: SegmentPlanFootprintEndpointAdjustments = {},
+): PlanWallFootprint | null {
+  const rawStart = frame.centerlineStart;
+  const rawEnd = frame.centerlineEnd;
+  const length = Math.hypot(rawEnd.x - rawStart.x, rawEnd.z - rawStart.z);
   if (length <= 0.001) return null;
 
+  const tangent = {
+    x: (rawEnd.x - rawStart.x) / length,
+    z: (rawEnd.z - rawStart.z) / length,
+  };
+  const start = {
+    x: rawStart.x + tangent.x * (endpointAdjustments.startMeters ?? 0),
+    z: rawStart.z + tangent.z * (endpointAdjustments.startMeters ?? 0),
+  };
+  const end = {
+    x: rawEnd.x + tangent.x * (endpointAdjustments.endMeters ?? 0),
+    z: rawEnd.z + tangent.z * (endpointAdjustments.endMeters ?? 0),
+  };
   const halfThickness = Math.max(0, frame.wallThicknessMeters / 2);
   const normal = Math.hypot(frame.inwardNormal.x, frame.inwardNormal.z) > 0.001
     ? frame.inwardNormal
-    : { x: -(end.z - start.z) / length, z: (end.x - start.x) / length };
+    : { x: -tangent.z, z: tangent.x };
   const faceAStart = {
     x: start.x + normal.x * halfThickness,
     z: start.z + normal.z * halfThickness,

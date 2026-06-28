@@ -63,8 +63,34 @@ describe('DesignBuilderViewerSceneEnvironment', () => {
     environment.applySceneFraming(bounds);
 
     expect(environment.floorMesh.position.x).toBeCloseTo(5, 6);
+    expect(environment.floorMesh.position.y).toBeCloseTo(-0.004, 6);
     expect(environment.floorMesh.position.z).toBeCloseTo(5, 6);
     expect((scene.background as THREE.Color).getHex()).toBe(0xf8fafc);
+
+    environment.dispose();
+  });
+
+  it('keeps grade elevation near the slab and cuts site ground out under the footprint', () => {
+    const scene = new THREE.Scene();
+    const environment = createDesignBuilderViewerSceneEnvironment({
+      scene,
+      initialBounds: null,
+      getLayoutBounds: () => bounds,
+      getGroundExclusionPolygon: () => [
+        { x: -2, z: -1 },
+        { x: 2, z: -1 },
+        { x: 2, z: 1 },
+        { x: -2, z: 1 },
+      ],
+      getVisualStyle: () => 'technical',
+      trackMaterial: () => undefined,
+      isDarkMode: () => false,
+    });
+
+    environment.applySceneFraming(bounds);
+
+    expect(environment.floorMesh.position.y).toBeCloseTo(-0.004, 6);
+    expect(environment.floorMesh.geometry.type).toBe('ShapeGeometry');
 
     environment.dispose();
   });

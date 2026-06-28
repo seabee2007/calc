@@ -1,6 +1,7 @@
 import type { CmuBlockInstance } from '../../geometry/designGeometry';
 
 export const MORTAR_FACE_RECESS_METERS = 0.002;
+export const MORTAR_SURFACE_THICKNESS_METERS = 0.006;
 export const MIN_MORTAR_JOINT_METERS = 0.001;
 export const JOINT_EPSILON_METERS = 0.002;
 
@@ -65,6 +66,10 @@ function wallTangent(rotationY: number): { x: number; z: number } {
   return { x: Math.cos(rotationY), z: -Math.sin(rotationY) };
 }
 
+function wallDepthAxis(rotationY: number): { x: number; z: number } {
+  return { x: Math.sin(rotationY), z: Math.cos(rotationY) };
+}
+
 function resolveBlockSpan(block: CmuBlockInstance): { start: number; end: number } {
   const start = block.startAlongMeters ?? block.stationMeters ?? 0;
   const end =
@@ -98,6 +103,7 @@ function positionAtStation(
 }
 
 function deriveMortarInfillBand(block: CmuBlockInstance): MortarInfillBand {
+  if (block.infillBand) return block.infillBand;
   if (block.source === 'gable_end_solver') return 'gable';
   if (block.source === 'below_grade_rc_infill') return 'below_grade';
   if (
@@ -108,7 +114,7 @@ function deriveMortarInfillBand(block: CmuBlockInstance): MortarInfillBand {
     return 'above_grade';
   }
 
-  return block.infillBand ?? 'main';
+  return 'main';
 }
 
 export function courseGroupKey(block: CmuBlockInstance): string {
@@ -188,6 +194,62 @@ function createHeadJointInstance(params: {
   };
 }
 
+function createOpeningEdgeHeadJointInstance(params: {
+  block: CmuBlockInstance;
+  edge: 'start' | 'end';
+  rotationY: number;
+  jointWidth: number;
+  mortarDepth: number;
+  defaultBlockHeightMeters: number;
+}): MortarJointInstance {
+  const span = resolveBlockSpan(params.block);
+  const halfJointWidth = Math.max(MIN_MORTAR_JOINT_METERS, params.jointWidth) / 2;
+  const centerStation =
+    params.edge === 'start'
+      ? span.start + halfJointWidth
+      : span.end - halfJointWidth;
+  return {
+    kind: 'head',
+    ...positionAtStation(params.block, centerStation, params.block.y),
+    rotationY: params.rotationY,
+    scaleX: Math.max(MIN_MORTAR_JOINT_METERS, params.jointWidth),
+    scaleY: resolveBlockHeight(params.block, params.defaultBlockHeightMeters),
+    scaleZ: params.mortarDepth,
+    valid: true,
+  };
+}
+
+function openingEdgeAtRunStart(block: CmuBlockInstance): boolean {
+  return block.nearOpeningId != null && block.adjacentTo === 'rough_opening_end';
+}
+
+function openingEdgeAtRunEnd(block: CmuBlockInstance): boolean {
+  return block.nearOpeningId != null && block.adjacentTo === 'rough_opening_start';
+}
+
+function mortarSurfaceDepth(blockDepthMeters: number): number {
+  return Math.max(
+    MIN_MORTAR_JOINT_METERS,
+    Math.min(MORTAR_SURFACE_THICKNESS_METERS, Math.max(MIN_MORTAR_JOINT_METERS, blockDepthMeters / 3)),
+  );
+}
+
+function faceMortarInstances(instance: MortarJointInstance, blockDepthMeters: number): MortarJointInstance[] {
+  const surfaceDepth = mortarSurfaceDepth(blockDepthMeters);
+  const faceOffset = Math.max(0, blockDepthMeters / 2 - MORTAR_FACE_RECESS_METERS - surfaceDepth / 2);
+  if (faceOffset <= JOINT_EPSILON_METERS) {
+    return [{ ...instance, scaleZ: surfaceDepth }];
+  }
+
+  const depthAxis = wallDepthAxis(instance.rotationY);
+  return [-faceOffset, faceOffset].map((offset) => ({
+    ...instance,
+    x: instance.x + depthAxis.x * offset,
+    z: instance.z + depthAxis.z * offset,
+    scaleZ: surfaceDepth,
+  }));
+}
+
 export function generateMortarJointInstances(
   params: GenerateMortarJointInstancesParams,
 ): { instances: MortarJointInstance[]; diagnostics: MortarJointDiagnostics } {
@@ -245,36 +307,44 @@ export function generateMortarJointInstances(
 
         if (actualGapMeters < -JOINT_EPSILON_METERS) {
           invalidJointCount += 1;
-          instances.push({
-            kind: 'head',
-            ...positionAtStation(previous, (gapStart + gapEnd) / 2, (previous.y + next.y) / 2),
-            rotationY,
-            scaleX: Math.max(MIN_MORTAR_JOINT_METERS, Math.abs(actualGapMeters)),
-            scaleY: Math.max(
-              MIN_MORTAR_JOINT_METERS,
-              Math.min(
-                resolveBlockHeight(previous, defaultBlockHeightMeters),
-                resolveBlockHeight(next, defaultBlockHeightMeters),
-              ),
+          instances.push(
+            ...faceMortarInstances(
+              {
+                kind: 'head',
+                ...positionAtStation(previous, (gapStart + gapEnd) / 2, (previous.y + next.y) / 2),
+                rotationY,
+                scaleX: Math.max(MIN_MORTAR_JOINT_METERS, Math.abs(actualGapMeters)),
+                scaleY: Math.max(
+                  MIN_MORTAR_JOINT_METERS,
+                  Math.min(
+                    resolveBlockHeight(previous, defaultBlockHeightMeters),
+                    resolveBlockHeight(next, defaultBlockHeightMeters),
+                  ),
+                ),
+                scaleZ: mortarDepth,
+                valid: false,
+              },
+              blockDepth,
             ),
-            scaleZ: mortarDepth,
-            valid: false,
-          });
+          );
           continue;
         }
 
         if (Math.abs(actualGapMeters) <= JOINT_EPSILON_METERS) {
           instances.push(
-            createHeadJointInstance({
-              previous,
-              next,
-              rotationY,
-              centerStation: gapStart,
-              jointWidth: mortarJointMeters,
-              mortarDepth,
-              defaultBlockHeightMeters,
-              zeroGapFallback: true,
-            }),
+            ...faceMortarInstances(
+              createHeadJointInstance({
+                previous,
+                next,
+                rotationY,
+                centerStation: gapStart,
+                jointWidth: mortarJointMeters,
+                mortarDepth,
+                defaultBlockHeightMeters,
+                zeroGapFallback: true,
+              }),
+              blockDepth,
+            ),
           );
           headJointCount += 1;
           zeroGapFallbackCount += 1;
@@ -287,38 +357,87 @@ export function generateMortarJointInstances(
         }
 
         instances.push(
-          createHeadJointInstance({
-            previous,
-            next,
-            rotationY,
-            centerStation: (gapStart + gapEnd) / 2,
-            jointWidth: actualGapMeters,
-            mortarDepth,
-            defaultBlockHeightMeters,
-          }),
+          ...faceMortarInstances(
+            createHeadJointInstance({
+              previous,
+              next,
+              rotationY,
+              centerStation: (gapStart + gapEnd) / 2,
+              jointWidth: actualGapMeters,
+              mortarDepth,
+              defaultBlockHeightMeters,
+            }),
+            blockDepth,
+          ),
         );
         headJointCount += 1;
       }
 
-      const runStart = resolveBlockSpan(run[0]).start;
-      const runEnd = resolveBlockSpan(run[run.length - 1]).end;
-      const runLength = runEnd - runStart;
+      const runStartBlock = run[0];
+      const runEndBlock = run[run.length - 1];
+      if (openingEdgeAtRunStart(runStartBlock)) {
+        instances.push(
+          ...faceMortarInstances(
+            createOpeningEdgeHeadJointInstance({
+              block: runStartBlock,
+              edge: 'start',
+              rotationY,
+              jointWidth: mortarJointMeters,
+              mortarDepth,
+              defaultBlockHeightMeters,
+            }),
+            blockDepth,
+          ),
+        );
+        headJointCount += 1;
+      }
+      if (openingEdgeAtRunEnd(runEndBlock)) {
+        instances.push(
+          ...faceMortarInstances(
+            createOpeningEdgeHeadJointInstance({
+              block: runEndBlock,
+              edge: 'end',
+              rotationY,
+              jointWidth: mortarJointMeters,
+              mortarDepth,
+              defaultBlockHeightMeters,
+            }),
+            blockDepth,
+          ),
+        );
+        headJointCount += 1;
+      }
+
+      const untrimmedRunStart = resolveBlockSpan(runStartBlock).start;
+      const untrimmedRunEnd = resolveBlockSpan(runEndBlock).end;
+      const bedRunStart = openingEdgeAtRunStart(runStartBlock)
+        ? untrimmedRunStart + mortarJointMeters
+        : untrimmedRunStart;
+      const bedRunEnd = openingEdgeAtRunEnd(runEndBlock)
+        ? untrimmedRunEnd - mortarJointMeters
+        : untrimmedRunEnd;
+      const runLength = bedRunEnd - bedRunStart;
       if (runLength <= MIN_MORTAR_JOINT_METERS) return;
 
-      const bedReference = run[0];
+      const bedReference = runStartBlock;
       const bedHeight = resolveBlockHeight(bedReference, defaultBlockHeightMeters);
       const bedBottomY = bedReference.y - bedHeight / 2;
       const bedCenterY = bedBottomY - mortarJointMeters / 2;
 
-      instances.push({
-        kind: 'bed',
-        ...positionAtStation(bedReference, (runStart + runEnd) / 2, bedCenterY),
-        rotationY,
-        scaleX: runLength,
-        scaleY: mortarJointMeters,
-        scaleZ: mortarDepth,
-        valid: true,
-      });
+      instances.push(
+        ...faceMortarInstances(
+          {
+            kind: 'bed',
+            ...positionAtStation(bedReference, (bedRunStart + bedRunEnd) / 2, bedCenterY),
+            rotationY,
+            scaleX: runLength,
+            scaleY: mortarJointMeters,
+            scaleZ: mortarDepth,
+            valid: true,
+          },
+          blockDepth,
+        ),
+      );
       bedJointCount += 1;
     });
   });

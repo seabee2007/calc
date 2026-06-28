@@ -283,6 +283,10 @@ export default function DesignBuilderViewer({
       scene,
       initialBounds: modelParamsRef.current.layoutBounds ?? null,
       getLayoutBounds: () => modelParamsRef.current.layoutBounds ?? null,
+      getGroundExclusionPolygon: () =>
+        modelParamsRef.current.geometryResult?.resolvedFootprint
+          ?.exteriorFacePolygon ??
+        modelParamsRef.current.geometryResult?.exteriorFootprint,
       getVisualStyle: () => modelParamsRef.current.visualStyle,
       trackMaterial: resources.trackMaterial,
     });

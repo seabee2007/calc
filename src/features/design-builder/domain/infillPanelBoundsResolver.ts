@@ -584,7 +584,8 @@ function segmentBelowGradeElevations(params: {
   wallHeightMeters: number;
   foundation?: RcFrameFoundationSettings;
   wallFootingTopMeters?: number;
-}): { bottomSupportTopMeters: number; plinthBeamBottomMeters: number } | null {
+  topSupportBottomMeters?: number;
+}): { bottomSupportTopMeters: number; topSupportBottomMeters: number } | null {
   const foundation = params.foundation
     ? normalizeRcFrameFoundationSettings(params.foundation)
     : null;
@@ -613,10 +614,12 @@ function segmentBelowGradeElevations(params: {
   if (tieBeamTopMeters == null || plinthBeamBottomMeters == null) return null;
 
   const bottomSupportTopMeters = params.wallFootingTopMeters ?? tieBeamTopMeters;
-  const clearHeightMeters = plinthBeamBottomMeters - bottomSupportTopMeters;
+  const topSupportBottomMeters =
+    params.topSupportBottomMeters ?? plinthBeamBottomMeters;
+  const clearHeightMeters = topSupportBottomMeters - bottomSupportTopMeters;
   if (clearHeightMeters <= 0.05) return null;
 
-  return { bottomSupportTopMeters, plinthBeamBottomMeters };
+  return { bottomSupportTopMeters, topSupportBottomMeters };
 }
 
 function belowGradeInfillCenterlineOffset(frame: SegmentFrame): number {
@@ -655,7 +658,7 @@ export function resolveBelowGradeInfillPanelBoundsForSegment(params: {
   });
   if (!belowGradeElevations) return null;
 
-  const { bottomSupportTopMeters, plinthBeamBottomMeters } = belowGradeElevations;
+  const { bottomSupportTopMeters, topSupportBottomMeters } = belowGradeElevations;
   const infillCenterlineInwardOffsetMeters =
     belowGradeInfillCenterlineOffset(params.frame);
 
@@ -664,8 +667,8 @@ export function resolveBelowGradeInfillPanelBoundsForSegment(params: {
     panelId: params.panelId,
     infillCenterlineInwardOffsetMeters,
     bottomElevationMeters: bottomSupportTopMeters,
-    topElevationMeters: plinthBeamBottomMeters,
-    clearHeightMeters: plinthBeamBottomMeters - bottomSupportTopMeters,
+    topElevationMeters: topSupportBottomMeters,
+    clearHeightMeters: topSupportBottomMeters - bottomSupportTopMeters,
     hostWallCenterlineStart: {
       ...aboveGrade.hostWallCenterlineStart,
       y: bottomSupportTopMeters,
@@ -715,12 +718,26 @@ export function resolveBelowGradeInfillPanelBoundsForLayout(params: {
       columns: params.columns,
       beams: params.beams,
     });
+    const foundationElevations = params.foundation
+      ? resolveFoundationElevations({
+          foundation: params.foundation,
+          wallHeightMeters: segment.wallHeightMeters,
+        })
+      : null;
+    const partitionTopSupportBottomMeters =
+      segment.wallRole === "partition" &&
+      foundationElevations &&
+      foundationElevations.interiorFloorSlabThicknessMeters > 0
+        ? foundationElevations.interiorFloorSlabTopY -
+          foundationElevations.interiorFloorSlabThicknessMeters
+        : undefined;
     const belowGradeElevations = segmentBelowGradeElevations({
       beams: params.beams,
       segmentId: segment.id,
       wallHeightMeters: segment.wallHeightMeters,
       foundation: params.foundation,
       wallFootingTopMeters: wallFootingBySegmentId.get(segment.id)?.topElevationMeters,
+      topSupportBottomMeters: partitionTopSupportBottomMeters,
     });
     if (!belowGradeElevations) return;
     const bottomSupportTopMeters = belowGradeElevations.bottomSupportTopMeters;
@@ -731,9 +748,9 @@ export function resolveBelowGradeInfillPanelBoundsForLayout(params: {
         ...aboveGrade,
         infillCenterlineInwardOffsetMeters,
         bottomElevationMeters: bottomSupportTopMeters,
-        topElevationMeters: belowGradeElevations.plinthBeamBottomMeters,
+        topElevationMeters: belowGradeElevations.topSupportBottomMeters,
         clearHeightMeters:
-          belowGradeElevations.plinthBeamBottomMeters -
+          belowGradeElevations.topSupportBottomMeters -
           bottomSupportTopMeters,
         hostWallCenterlineStart: {
           ...aboveGrade.hostWallCenterlineStart,

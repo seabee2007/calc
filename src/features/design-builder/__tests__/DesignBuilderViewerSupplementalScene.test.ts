@@ -114,6 +114,50 @@ describe('DesignBuilderViewerSupplementalScene', () => {
     resources.disposeTrackedResources();
   });
 
+  it('does not apply CMU infill plaster to supplemental RC columns', () => {
+    const resources = createDesignBuilderViewerResources();
+    const renderModel: DesignRenderModel = {
+      rcComponents: [
+        rcComponent({
+          id: 'column-1',
+          type: 'column',
+          position: { x: 1, y: 0, z: 2 },
+          dimensions: { width: 0.3, depth: 0.35, height: 2.8 },
+          elevations: { base: 0, top: 2.8 },
+        }),
+      ],
+    };
+
+    const scene = buildDesignBuilderViewerSupplementalScene({
+      state: supplementalState({
+        currentDesignRenderModel: renderModel,
+        currentGeometry: {
+          infillSystem: {
+            kind: 'cmu_infill_system',
+            panels: [],
+            plaster: {
+              enabled: true,
+              finish: 'textured',
+              profileLabel: '3-coat plaster',
+              interiorEnabled: true,
+              interiorFinish: 'smooth',
+              interiorProfileLabel: '3-coat plaster',
+            },
+          },
+        } as DesignBuilderViewerSupplementalState['currentGeometry'],
+      }),
+      trackGeometry: resources.trackGeometry,
+      trackMaterial: resources.trackMaterial,
+      makeMaterial: resources.makeMaterial,
+    });
+
+    expect(scene.group.getObjectByName('supplementalColumn:column-1:plaster')).toBeUndefined();
+    const column = meshByName(scene.group, 'supplementalColumn:column-1');
+    expect((column.material as THREE.MeshStandardMaterial).color.getHex()).toBe(0xcbd5e1);
+
+    resources.disposeTrackedResources();
+  });
+
   it('returns an empty scene when there are no supplemental components', () => {
     const resources = createDesignBuilderViewerResources();
 

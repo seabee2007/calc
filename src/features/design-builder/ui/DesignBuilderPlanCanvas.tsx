@@ -36,6 +36,7 @@ import {
   hitTestPlanOpeningGeometry,
   resolvePlanWallRunEndpoints,
   resolveSegmentDisplayEndpoints,
+  type SegmentPlanFootprintEndpointAdjustments,
 } from '../domain/planOpeningGraphics';
 import {
   PlanOpeningSymbol,
@@ -67,6 +68,11 @@ import {
   PURLIN_PROFILE_WIDTH_METERS,
   TRUSS_CHORD_PROFILE_METERS,
 } from '../domain/roofFramingResolver';
+import {
+  getPlumbingFixtureDefinition,
+  type PlumbingFixtureType,
+  type PlumbingSystem,
+} from '../plumbing';
 
 const MIN_SEGMENT_LENGTH_METERS = 0.08;
 const COLUMN_DRAG_THRESHOLD_PX = 4;
@@ -215,6 +221,85 @@ function roofPitchLabel(roof: ResolvedRoofSystem): string | null {
   return `${risePer12.toFixed(1)}:12`;
 }
 
+type PartitionWallFootprintSegmentRef = {
+  segment: DesignWallLayoutParameters['segments'][number];
+  index: number;
+};
+
+function directionFromNodeForPartitionSegment(
+  segment: DesignWallLayoutParameters['segments'][number],
+  nodeId: string,
+  nodesById: ReadonlyMap<string, { x: number; z: number }>,
+): { x: number; z: number } | null {
+  const start = nodesById.get(segment.startNodeId);
+  const end = nodesById.get(segment.endNodeId);
+  if (!start || !end) return null;
+  const dx = end.x - start.x;
+  const dz = end.z - start.z;
+  const length = Math.hypot(dx, dz);
+  if (length <= 0.001) return null;
+  return segment.startNodeId === nodeId
+    ? { x: dx / length, z: dz / length }
+    : { x: -dx / length, z: -dz / length };
+}
+
+function isStraightThroughPartitionWallJoint(params: {
+  refs: readonly PartitionWallFootprintSegmentRef[];
+  nodeId: string;
+  nodesById: ReadonlyMap<string, { x: number; z: number }>;
+}): boolean {
+  if (params.refs.length !== 2) return false;
+  const directions = params.refs
+    .map((ref) => directionFromNodeForPartitionSegment(ref.segment, params.nodeId, params.nodesById))
+    .filter((direction): direction is { x: number; z: number } => direction != null);
+  if (directions.length !== 2) return false;
+  const dot = directions[0]!.x * directions[1]!.x + directions[0]!.z * directions[1]!.z;
+  return dot < -0.95;
+}
+
+function resolvePartitionWallFootprintEndpointAdjustments(params: {
+  layout: DesignWallLayoutParameters;
+  framesBySegmentId: ReadonlyMap<string, SegmentFrame>;
+}): Map<string, SegmentPlanFootprintEndpointAdjustments> {
+  const adjustments = new Map<string, SegmentPlanFootprintEndpointAdjustments>();
+  const nodesById = new Map(params.layout.nodes.map((node) => [node.id, { x: node.x, z: node.z }]));
+  const refsByNodeId = new Map<string, PartitionWallFootprintSegmentRef[]>();
+
+  params.layout.segments.forEach((segment, index) => {
+    if (segment.wallRole !== 'partition' || !params.framesBySegmentId.has(segment.id)) return;
+    const ref = { segment, index };
+    refsByNodeId.set(segment.startNodeId, [...(refsByNodeId.get(segment.startNodeId) ?? []), ref]);
+    refsByNodeId.set(segment.endNodeId, [...(refsByNodeId.get(segment.endNodeId) ?? []), ref]);
+  });
+
+  refsByNodeId.forEach((refs, nodeId) => {
+    if (refs.length < 2) return;
+    if (isStraightThroughPartitionWallJoint({ refs, nodeId, nodesById })) return;
+
+    const orderedRefs = [...refs].sort((a, b) => a.index - b.index);
+    const owner =
+      orderedRefs.find((ref) => ref.segment.endNodeId === nodeId) ??
+      orderedRefs[0];
+    if (!owner) return;
+
+    orderedRefs.forEach((ref) => {
+      const frame = params.framesBySegmentId.get(ref.segment.id);
+      const halfWallThickness = Math.max(0, (frame?.wallThicknessMeters ?? 0) / 2);
+      if (halfWallThickness <= 0) return;
+      const current = adjustments.get(ref.segment.id) ?? {};
+      const ownsJoint = ref.segment.id === owner.segment.id;
+      if (ref.segment.startNodeId === nodeId) {
+        current.startMeters = ownsJoint ? -halfWallThickness : halfWallThickness;
+      } else {
+        current.endMeters = ownsJoint ? halfWallThickness : -halfWallThickness;
+      }
+      adjustments.set(ref.segment.id, current);
+    });
+  });
+
+  return adjustments;
+}
+
 interface DesignBuilderPlanCanvasProps {
   layout: DesignWallLayoutParameters;
   toolMode: DesignBuilderToolMode;
@@ -255,9 +340,12 @@ interface DesignBuilderPlanCanvasProps {
   annotations?: readonly DesignAnnotation[];
   placedComponents?: readonly PlacedDesignComponent[];
   componentPreview?: PlacedDesignComponent | null;
+  plumbingSystem?: PlumbingSystem;
+  activePlumbingFixtureType?: PlumbingFixtureType | null;
   designRenderModel?: DesignRenderModel;
   helperMeasurements?: readonly HelperMeasurement[];
   onComponentPointer?: (event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number }) => void;
+  onPlumbingFixturePointer?: (event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number }) => void;
   onAnnotationCreate?: (annotation: DesignAnnotation) => void;
   onInteraction: (event: DesignBuilderInteractionEvent) => void;
 }
@@ -307,9 +395,12 @@ export default function DesignBuilderPlanCanvas({
   annotations = [],
   placedComponents = [],
   componentPreview = null,
+  plumbingSystem,
+  activePlumbingFixtureType = null,
   designRenderModel,
   helperMeasurements = [],
   onComponentPointer,
+  onPlumbingFixturePointer,
   onAnnotationCreate,
   onInteraction,
 }: DesignBuilderPlanCanvasProps) {
@@ -342,7 +433,8 @@ export default function DesignBuilderPlanCanvas({
   const previewFill = drawingStyle.previewFill;
   const textBackerStroke = architecturalDrawing ? drawingStyle.sheetFill : '#0f172a';
   const isRoofPlanView = active2DView === 'roof-plan';
-  const showStructuralPlanGeometry = active2DView === 'foundation-plan';
+  const isPlumbingPlanView = active2DView === 'plumbing-plan';
+  const showStructuralPlanGeometry = active2DView === 'foundation-plan' || isPlumbingPlanView;
   const roofPlanPerimeter = useMemo(() => roofPlanPerimeterPoints(resolvedRoofSystem), [resolvedRoofSystem]);
   const roofPlanBounds = useMemo(() => {
     if (roofPlanPerimeter.length === 0) return null;
@@ -366,6 +458,16 @@ export default function DesignBuilderPlanCanvas({
   const framesBySegmentId = useMemo(
     () => new Map(segmentFrames.map((frame) => [frame.segmentId, frame])),
     [segmentFrames],
+  );
+
+  const partitionWallFootprintEndpointAdjustmentsBySegmentId = useMemo(
+    () => resolvePartitionWallFootprintEndpointAdjustments({ layout, framesBySegmentId }),
+    [framesBySegmentId, layout],
+  );
+
+  const foundationPlanBeams = useMemo(
+    () => (frameSystem?.beams ?? []).filter((beam) => beam.kind === 'plinth_beam' || beam.kind === 'grade_beam'),
+    [frameSystem?.beams],
   );
 
   const planDisplayNodeById = useMemo(
@@ -1095,6 +1197,10 @@ export default function DesignBuilderPlanCanvas({
     } else {
       setHoveredOpeningId(null);
     }
+    if (isPlumbingPlanView && activePlumbingFixtureType) {
+      onPlumbingFixturePointer?.({ phase: 'preview', xMeters: point.x, zMeters: point.z });
+      return;
+    }
     if (toolMode === 'place_component') {
       onComponentPointer?.({ phase: 'preview', xMeters: point.x, zMeters: point.z });
       return;
@@ -1187,6 +1293,13 @@ export default function DesignBuilderPlanCanvas({
     const point = screenFromEvent(event);
     if (!point) return;
     setCursorPoint(point);
+    if (isPlumbingPlanView && activePlumbingFixtureType) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.currentTarget.setPointerCapture(event.pointerId);
+      onPlumbingFixturePointer?.({ phase: 'preview', xMeters: point.x, zMeters: point.z });
+      return;
+    }
     if (toolMode === 'place_component') {
       componentPointerIdRef.current = event.pointerId;
       event.currentTarget.setPointerCapture(event.pointerId);
@@ -1466,6 +1579,14 @@ export default function DesignBuilderPlanCanvas({
       if (!point) return;
       setCursorPoint(point);
       onComponentPointer?.({ phase: 'commit', xMeters: point.x, zMeters: point.z });
+      return;
+    }
+    if (isPlumbingPlanView && activePlumbingFixtureType) {
+      const point = screenFromEvent(event);
+      event.currentTarget.releasePointerCapture?.(event.pointerId);
+      if (!point) return;
+      setCursorPoint(point);
+      onPlumbingFixturePointer?.({ phase: 'commit', xMeters: point.x, zMeters: point.z });
       return;
     }
     if (toolMode === 'move_opening' && selectedOpeningId) {
@@ -2494,6 +2615,145 @@ export default function DesignBuilderPlanCanvas({
       toolMode === 'move_wall_node' ||
       selectedNodeId != null);
 
+  const renderPlumbingFixture = (
+    fixture: NonNullable<PlumbingSystem['fixtures'][number]>,
+    preview = false,
+  ) => {
+    const definition = getPlumbingFixtureDefinition(fixture.fixtureType);
+    const center = planToSurfacePoint({ x: fixture.position.x, z: fixture.position.z });
+    const width = Math.max(18, definition.widthMeters * viewport.zoom);
+    const depth = Math.max(18, definition.depthMeters * viewport.zoom);
+    const stroke = preview ? '#22d3ee' : '#0f172a';
+    const fill = preview ? '#cffafe' : '#f8fafc';
+    const labelFill = preview ? '#67e8f9' : '#111827';
+    const commonData = {
+      'data-plumbing-fixture-id': fixture.id,
+      'data-plumbing-fixture-type': fixture.fixtureType,
+      'data-plumbing-fixture-preview': preview ? 'true' : undefined,
+    };
+    const symbol =
+      definition.planSymbol === 'drain' ? (
+        <>
+          <circle cx={center.sx} cy={center.sy} r={Math.max(7, width / 2)} fill={fill} stroke={stroke} strokeWidth={2} />
+          <line x1={center.sx - 7} y1={center.sy - 7} x2={center.sx + 7} y2={center.sy + 7} stroke={stroke} strokeWidth={1.5} />
+          <line x1={center.sx + 7} y1={center.sy - 7} x2={center.sx - 7} y2={center.sy + 7} stroke={stroke} strokeWidth={1.5} />
+        </>
+      ) : definition.planSymbol === 'wc' ? (
+        <>
+          <rect x={center.sx - width / 2} y={center.sy - depth / 2} width={width} height={depth * 0.5} rx={4} fill={fill} stroke={stroke} strokeWidth={2} />
+          <ellipse cx={center.sx} cy={center.sy + depth * 0.18} rx={width * 0.36} ry={depth * 0.25} fill={fill} stroke={stroke} strokeWidth={2} />
+        </>
+      ) : definition.planSymbol === 'heater' ? (
+        <>
+          <circle cx={center.sx} cy={center.sy} r={Math.max(width, depth) / 2} fill={fill} stroke={stroke} strokeWidth={2} />
+          <text x={center.sx} y={center.sy + 4} textAnchor="middle" fill={stroke} fontSize={10} fontWeight={800}>WH</text>
+        </>
+      ) : (
+        <>
+          <rect x={center.sx - width / 2} y={center.sy - depth / 2} width={width} height={depth} rx={4} fill={fill} stroke={stroke} strokeWidth={2} />
+          {definition.planSymbol === 'shower' ? (
+            <>
+              <line x1={center.sx - width / 2} y1={center.sy - depth / 2} x2={center.sx + width / 2} y2={center.sy + depth / 2} stroke={stroke} strokeWidth={1.2} />
+              <line x1={center.sx + width / 2} y1={center.sy - depth / 2} x2={center.sx - width / 2} y2={center.sy + depth / 2} stroke={stroke} strokeWidth={1.2} />
+            </>
+          ) : (
+            <ellipse cx={center.sx} cy={center.sy} rx={width * 0.3} ry={depth * 0.28} fill="none" stroke={stroke} strokeWidth={1.5} />
+          )}
+        </>
+      );
+    return (
+      <g key={preview ? `preview-${fixture.id}` : fixture.id} pointerEvents="none" opacity={preview ? 0.75 : 1} {...commonData}>
+        {symbol}
+        <text
+          x={center.sx}
+          y={center.sy + depth / 2 + 14}
+          textAnchor="middle"
+          fill={labelFill}
+          fontSize={11}
+          fontWeight={800}
+          paintOrder="stroke"
+          stroke={architecturalDrawing ? '#ffffff' : '#0f172a'}
+          strokeWidth={preview ? 3 : 2}
+        >
+          {fixture.mark}
+        </text>
+      </g>
+    );
+  };
+
+  const plumbingFixturePreview =
+    isPlumbingPlanView && activePlumbingFixtureType && cursorPoint
+      ? {
+          id: 'plumbing-fixture-preview',
+          fixtureType: activePlumbingFixtureType,
+          mark: getPlumbingFixtureDefinition(activePlumbingFixtureType).markPrefix,
+          displayName: getPlumbingFixtureDefinition(activePlumbingFixtureType).displayName,
+          position: { x: cursorPoint.x, y: 0, z: cursorPoint.z },
+          rotationRadians: 0,
+          connectionNodeIds: {},
+        }
+      : null;
+
+  const renderPlumbingPlan = () => {
+    if (!isPlumbingPlanView || !plumbingSystem) return null;
+    return (
+      <g data-canvas-layer="plumbing-plan">
+        {plumbingSystem.runs.map((run) => {
+          const points = run.path.map((point) => planToSurfacePoint(point));
+          if (points.length < 2) return null;
+          const stroke =
+            run.system === 'cold_water'
+              ? '#0284c7'
+              : run.system === 'hot_water'
+                ? '#dc2626'
+                : run.system === 'vent'
+                  ? '#7c3aed'
+                  : '#111827';
+          return (
+            <polyline
+              key={run.id}
+              points={points.map((point) => `${point.sx},${point.sy}`).join(' ')}
+              fill="none"
+              stroke={stroke}
+              strokeWidth={run.system === 'sanitary' ? 3 : 2}
+              strokeDasharray={run.system === 'vent' ? '8 5' : undefined}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              data-plumbing-run-id={run.id}
+              data-plumbing-run-system={run.system}
+            />
+          );
+        })}
+        {plumbingSystem.fixtures.map((fixture) => renderPlumbingFixture(fixture))}
+        {plumbingSystem.nodes.map((node) => {
+          const point = planToSurfacePoint(node.position);
+          const fill =
+            node.system === 'cold_water'
+              ? '#0ea5e9'
+              : node.system === 'hot_water'
+                ? '#ef4444'
+                : node.system === 'vent'
+                  ? '#8b5cf6'
+                  : '#111827';
+          return (
+            <circle
+              key={node.id}
+              cx={point.sx}
+              cy={point.sy}
+              r={3.5}
+              fill={fill}
+              stroke="#ffffff"
+              strokeWidth={1.2}
+              data-plumbing-node-id={node.id}
+              data-plumbing-node-system={node.system}
+            />
+          );
+        })}
+        {plumbingFixturePreview ? renderPlumbingFixture(plumbingFixturePreview, true) : null}
+      </g>
+    );
+  };
+
   return (
     <div className="relative h-full min-h-[420px] overflow-hidden rounded-2xl border border-slate-200 bg-slate-950 text-slate-100 dark:border-slate-700" data-drawing-style-mode={drawingStyleMode}>
       <div
@@ -2652,7 +2912,10 @@ export default function DesignBuilderPlanCanvas({
           }
           const wallFootprint =
             frame && segment.wallRole === 'partition'
-              ? buildSegmentPlanFootprint(frame)
+              ? buildSegmentPlanFootprint(
+                frame,
+                partitionWallFootprintEndpointAdjustmentsBySegmentId.get(segment.id),
+              )
               : null;
           if (wallFootprint) {
             const footprintPoints = wallFootprint.corners
@@ -2994,15 +3257,8 @@ export default function DesignBuilderPlanCanvas({
             })}
           </>
         ) : null}
-        {showStructuralPlanGeometry ? frameSystem?.beams.map((beam) => {
-            const stroke =
-              beam.kind === 'plinth_beam' || beam.kind === 'grade_beam'
-                ? (architecturalDrawing ? permanentStroke : '#57534e')
-                : beam.kind === 'tie_beam'
-                  ? (architecturalDrawing ? mutedStroke : '#44403c')
-                  : beam.kind === 'roof_beam' || beam.kind === 'ring_beam'
-                    ? (architecturalDrawing ? referenceStroke : '#6b7280')
-                    : (architecturalDrawing ? mutedStroke : '#78716c');
+        {showStructuralPlanGeometry ? foundationPlanBeams.map((beam) => {
+            const stroke = architecturalDrawing ? permanentStroke : '#57534e';
             return renderPlanMaterialStrip(
               beam.id,
               { x: beam.startPoint.x, z: beam.startPoint.z },
@@ -3104,6 +3360,7 @@ export default function DesignBuilderPlanCanvas({
         {showStructuralPlanGeometry ? openingRenderItems.map((item) => (
           <PlanOpeningSymbol key={item.key} item={item} project={planToSurfacePoint} zoom={viewport.zoom} drawingStyle={drawingStyle} />
         )) : null}
+        {renderPlumbingPlan()}
         <g data-canvas-layer="permanent-dimensions">
           {renderedDimensionAnnotations}
           {renderedAngleAnnotations}

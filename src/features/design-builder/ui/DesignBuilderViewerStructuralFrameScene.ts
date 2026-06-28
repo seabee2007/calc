@@ -40,9 +40,7 @@ export function buildDesignBuilderViewerStructuralFrameScene(params: {
   const state = params.state;
   const geometry = state.currentGeometry;
   const frameSystem = geometry.frameSystem;
-  const infillPlaster = geometry.infillSystem?.plaster;
-  const useFramePlasterFinish = params.showCmuInfill && Boolean(infillPlaster?.enabled);
-  const plasterFinish = infillPlaster?.finish ?? 'textured';
+  const plasterFinish = 'textured';
   const materialContext = {
     visualStyle: state.currentVisualStyle,
     selected: state.frameSelected,
@@ -124,7 +122,7 @@ export function buildDesignBuilderViewerStructuralFrameScene(params: {
     interiorFloorSlab,
     interiorFacePolygon: geometry.resolvedFootprint?.interiorFacePolygon,
     slabTopMeters: state.currentSlab.slabThicknessMeters,
-    useFramePlasterFinish,
+    useFramePlasterFinish: false,
     materials: {
       columnConcrete: columnConcreteMaterial,
       beam: beamMaterial,

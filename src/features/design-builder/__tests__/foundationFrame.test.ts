@@ -366,7 +366,7 @@ describe("RC frame foundation — plinth / roof / tie beams", () => {
     ).toBe(true);
   });
 
-  it("creates half-depth strip footings under partition wall segments", () => {
+  it("creates broad shallow strip footings under partition wall segments", () => {
     const partitionPreset = createFiveBySixCmuBuildingPreset();
     const startNode = partitionPreset.wallLayout.nodes[0]!;
     const endNodeId = "partition-end";
@@ -420,8 +420,8 @@ describe("RC frame foundation — plinth / roof / tie beams", () => {
     });
 
     expect(partitionFooting).toBeDefined();
-    expect(partitionFooting!.widthMeters).toBeCloseTo(0.4, 6);
-    expect(partitionFooting!.thicknessMeters).toBeCloseTo(0.3, 6);
+    expect(partitionFooting!.widthMeters).toBeCloseTo(0.6, 6);
+    expect(partitionFooting!.thicknessMeters).toBeCloseTo(0.15, 6);
     expect(partitionFooting!.topElevationMeters).toBeCloseTo(
       partitionElevations.bottomOfPlinthBeamY -
         partitionFoundation.isolatedFootings.dropBelowPlinthBeamMeters / 2,
@@ -438,6 +438,10 @@ describe("RC frame foundation — plinth / roof / tie beams", () => {
       partitionFooting!.topElevationMeters,
       6,
     );
+    expect(partitionBelowGradePanel!.topElevationMeters).toBeCloseTo(
+      partitionGeometry.interiorFloorSlab!.bottomElevationMeters,
+      6,
+    );
     const partitionBelowGradeBounds =
       partitionGeometry.resolvedInfillPanelBounds?.find(
         (bounds) =>
@@ -445,6 +449,10 @@ describe("RC frame foundation — plinth / roof / tie beams", () => {
           bounds.panelId.includes("-below-"),
       );
     expect(partitionBelowGradeBounds).toBeDefined();
+    expect(partitionBelowGradeBounds!.topElevationMeters).toBeCloseTo(
+      partitionGeometry.interiorFloorSlab!.bottomElevationMeters,
+      6,
+    );
     expect(
       partitionBelowGradeBounds!.infillCenterlineInwardOffsetMeters,
     ).toBeCloseTo(0, 6);
