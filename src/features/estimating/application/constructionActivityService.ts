@@ -39,6 +39,12 @@ import {
   type SavedActivityBundle,
 } from '../infrastructure/activityRepository';
 import type { ProjectLaborRate } from '../domain/laborRateTypes';
+import type { ProductionRateLibraryEntry } from '../data/productionRates/productionRateTypes';
+import { SOURCE_DOCUMENT_CODE } from '../data/productionRates/productionRateTypes';
+import {
+  areProductionRateUnitsCompatible,
+  convertQuantityForProductionRateUnit,
+} from './matchQuantityToProductionRates';
 import type { RepositoryResult } from '../infrastructure/estimateDbTypes';
 import {
   instantiateManualConstructionActivity,
@@ -73,6 +79,9 @@ export interface SaveFromProductionRateAssemblyInput {
     rateId: string;
     quantity: number;
     laborRoleId?: string | null;
+    assignmentStatus?: ProjectActivityLineItem['productionRateAssignmentStatus'];
+    matchConfidence?: number | null;
+    matchReason?: string | null;
   }>;
   projectId: string;
   estimateId?: string;
@@ -104,6 +113,23 @@ export interface SaveManualActivityInput {
   sourceTemplateKey?: string;
 }
 
+export type LineItemProductionRateAssignmentUpdate =
+  | {
+      status: 'verified_rate' | 'auto_matched';
+      productionRate: ProductionRateLibraryEntry;
+      matchConfidence?: number | null;
+      matchReason?: string | null;
+    }
+  | {
+      status: 'manual_override';
+      manHoursPerUnit: number;
+      reason: string;
+      sourceNote: string;
+    }
+  | {
+      status: 'unassigned';
+    };
+
 export interface UpdateProjectActivityInput {
   activity: ProjectConstructionActivity;
   lineItems: ProjectActivityLineItem[];
@@ -118,6 +144,7 @@ export interface UpdateProjectActivityInput {
     string,
     { hourlyRate: number; burdenPercent: number; billingRate?: number } | null
   >;
+  lineItemProductionRateAssignments?: Record<string, LineItemProductionRateAssignmentUpdate>;
 }
 
 export interface LoadedProjectActivity {
@@ -131,8 +158,10 @@ export const DUPLICATE_ACTIVITY_CODE_MESSAGE =
 function mapLineItemForSave(
   li: ProjectActivityLineItem,
   projectId: string,
-): Omit<ProjectActivityLineItem, 'id' | 'projectActivityId' | 'createdAt'> {
+  preserveId = false,
+): Omit<ProjectActivityLineItem, 'id' | 'projectActivityId' | 'createdAt'> & { id?: string } {
   return {
+    ...(preserveId ? { id: li.id } : {}),
     projectId,
     productionRateId: li.productionRateId ?? null,
     sourceProductionRateKey: li.sourceProductionRateKey ?? null,
@@ -163,6 +192,11 @@ function mapLineItemForSave(
     billingRateSnapshot: li.billingRateSnapshot ?? 0,
     pricingSource: li.pricingSource ?? 'unset',
     pricingSnapshotAt: li.pricingSnapshotAt ?? null,
+    productionRateAssignmentStatus: li.productionRateAssignmentStatus ?? null,
+    productionRateMatchConfidence: li.productionRateMatchConfidence ?? null,
+    productionRateMatchReason: li.productionRateMatchReason ?? null,
+    manualProductionRateReason: li.manualProductionRateReason ?? null,
+    manualProductionRateSourceNote: li.manualProductionRateSourceNote ?? null,
     sortOrder: li.sortOrder ?? 0,
   };
 }
@@ -206,6 +240,84 @@ function applyPricingUpdates(
   }
 
   return item;
+}
+
+function applyProductionRateAssignment(
+  item: ProjectActivityLineItem,
+  quantity: number,
+  assignment: LineItemProductionRateAssignmentUpdate | undefined,
+): ProjectActivityLineItem {
+  if (!assignment) {
+    return { ...item, quantity };
+  }
+
+  if (assignment.status === 'unassigned') {
+    return {
+      ...item,
+      quantity,
+      productionRateId: null,
+      sourceProductionRateKey: null,
+      sourceProductionRateLabel: null,
+      sourceFigure: null,
+      sourcePage: null,
+      sourcePdfPage: null,
+      sourceDocumentCode: null,
+      manHoursPerUnit: 0,
+      productionRateAssignmentStatus: 'unassigned',
+      productionRateMatchConfidence: null,
+      productionRateMatchReason: null,
+      manualProductionRateReason: null,
+      manualProductionRateSourceNote: null,
+    };
+  }
+
+  if (assignment.status === 'manual_override') {
+    return {
+      ...item,
+      quantity,
+      productionRateId: null,
+      sourceProductionRateKey: null,
+      sourceProductionRateLabel: null,
+      sourceFigure: null,
+      sourcePage: null,
+      sourcePdfPage: null,
+      sourceDocumentCode: null,
+      manHoursPerUnit: assignment.manHoursPerUnit,
+      productionRateAssignmentStatus: 'manual_override',
+      productionRateMatchConfidence: null,
+      productionRateMatchReason: 'Manual MH/unit override',
+      manualProductionRateReason: assignment.reason,
+      manualProductionRateSourceNote: assignment.sourceNote,
+    };
+  }
+
+  const rate = assignment.productionRate;
+  const convertedQuantity = convertQuantityForProductionRateUnit(
+    quantity,
+    item.unit,
+    rate.unitOfMeasure,
+  );
+
+  return {
+    ...item,
+    productionRateId: null,
+    sourceProductionRateKey: rate.id,
+    sourceProductionRateLabel: rate.activityName,
+    sourceFigure: rate.figure,
+    sourcePage: rate.sourcePage,
+    sourcePdfPage: rate.sourcePdfPage ?? null,
+    sourceDocumentCode: SOURCE_DOCUMENT_CODE,
+    name: rate.activityName,
+    description: rate.description ?? rate.activityName,
+    quantity: convertedQuantity,
+    unit: rate.unitOfMeasure,
+    manHoursPerUnit: rate.manHoursPerUnit ?? 0,
+    productionRateAssignmentStatus: assignment.status,
+    productionRateMatchConfidence: assignment.matchConfidence ?? null,
+    productionRateMatchReason: assignment.matchReason ?? 'User verified production-rate assignment.',
+    manualProductionRateReason: null,
+    manualProductionRateSourceNote: null,
+  };
 }
 
 export function isDuplicateProjectActivityCodeError(error: string | null | undefined): boolean {
@@ -328,6 +440,9 @@ export async function instantiateAndSaveFromProductionRateAssembly(
         rate,
         quantity: entry.quantity,
         laborRoleId: entry.laborRoleId,
+        assignmentStatus: entry.assignmentStatus,
+        matchConfidence: entry.matchConfidence,
+        matchReason: entry.matchReason,
       };
     })
     .filter((entry): entry is NonNullable<typeof entry> => entry != null);
@@ -535,20 +650,73 @@ export async function updateProjectConstructionActivity(
     excludeActivityId: input.activity.id,
   });
 
+  for (const item of input.lineItems) {
+    const assignment = input.lineItemProductionRateAssignments?.[item.id];
+    if (!assignment || assignment.status === 'manual_override' || assignment.status === 'unassigned') {
+      continue;
+    }
+    const rate = assignment.productionRate;
+    if (rate.divisionCode !== input.activity.divisionCode) {
+      return {
+        data: null,
+        error: `Selected production rate for "${item.name}" is not in Division ${input.activity.divisionCode}.`,
+      };
+    }
+    if ((rate.manHoursPerUnit ?? 0) <= 0) {
+      return {
+        data: null,
+        error: `Selected production rate for "${item.name}" has no positive MH/unit.`,
+      };
+    }
+    if (!areProductionRateUnitsCompatible(item.unit, rate.unitOfMeasure)) {
+      return {
+        data: null,
+        error: `Selected production rate unit ${rate.unitOfMeasure} is not compatible with ${item.unit} for "${item.name}".`,
+      };
+    }
+  }
+
   let updatedLineItems = input.lineItems.map((item) => {
     const quantity =
       input.lineItemQuantities[item.id] ?? input.lineItemQuantities[item.name] ?? item.quantity;
-    const calculatedManHours = calculateLineItemManHours(
+    const assignedItem = applyProductionRateAssignment(
+      item,
       quantity,
-      item.manHoursPerUnit,
-      item.productionFactor,
+      input.lineItemProductionRateAssignments?.[item.id],
+    );
+    const calculatedManHours = calculateLineItemManHours(
+      assignedItem.quantity,
+      assignedItem.manHoursPerUnit,
+      assignedItem.productionFactor,
     );
     return {
-      ...item,
-      quantity,
+      ...assignedItem,
       calculatedManHours,
     };
   });
+
+  if (input.scheduleEnabled) {
+    const unresolved = updatedLineItems.find(
+      (item) => {
+        const documentedManualOverride =
+          item.productionRateAssignmentStatus === 'manual_override' &&
+          item.manHoursPerUnit > 0 &&
+          Boolean(item.manualProductionRateReason?.trim()) &&
+          Boolean(item.manualProductionRateSourceNote?.trim());
+        return (
+          item.quantity > 0 &&
+          !documentedManualOverride &&
+          (!item.sourceProductionRateKey || item.manHoursPerUnit <= 0)
+        );
+      },
+    );
+    if (unresolved) {
+      return {
+        data: null,
+        error: `Assign a production rate or documented manual override before scheduling "${unresolved.name}".`,
+      };
+    }
+  }
 
   if (input.lineItemLaborRoles || input.lineItemManualRates) {
     updatedLineItems = updatedLineItems.map((item) =>
@@ -596,7 +764,7 @@ export async function updateProjectConstructionActivity(
   };
 
   const lineItemsForSave = updatedLineItems.map((li) =>
-    mapLineItemForSave(li, input.activity.projectId),
+    mapLineItemForSave(li, input.activity.projectId, true),
   );
 
   return saveActivityBundle(finalActivity, lineItemsForSave, input.activity.id);

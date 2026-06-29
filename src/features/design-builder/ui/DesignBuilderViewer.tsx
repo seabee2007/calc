@@ -352,6 +352,9 @@ export default function DesignBuilderViewer({
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio || 1);
+    renderer.domElement.style.display = 'block';
+    renderer.domElement.style.width = '100%';
+    renderer.domElement.style.height = '100%';
     renderer.shadowMap.enabled = true;
     host.appendChild(renderer.domElement);
     rendererRef.current = renderer;
@@ -1073,11 +1076,11 @@ export default function DesignBuilderViewer({
 
   return (
     <div
-      className={`relative overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 shadow-sm dark:border-slate-700 dark:bg-slate-950 ${
-        fitContainer ? 'h-full min-h-0' : 'h-[560px] min-h-[520px]'
+      className={`relative w-full overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 shadow-sm dark:border-slate-700 dark:bg-slate-950 ${
+        fitContainer ? 'h-full min-h-0' : 'h-full min-h-[520px]'
       }`}
     >
-      <div ref={hostRef} className="h-full min-h-0" aria-label="Design Builder generated 3D preview" />
+      <div ref={hostRef} className="h-full min-h-0 w-full" aria-label="Design Builder generated 3D preview" />
       {!modelLoaded ? (
         <div className="absolute inset-0 flex items-center justify-center bg-white/75 p-6 text-center text-sm font-medium text-slate-700 backdrop-blur-sm dark:bg-slate-950/70 dark:text-slate-200">
           Load a CMU template or start a new layout.

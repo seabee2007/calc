@@ -311,7 +311,13 @@ export async function replaceProjectLineItems(
 
     if (lineItems.length === 0) return success([]);
 
-    const rows = lineItems.map(mapProjectLineItemToInsert);
+    const rows = lineItems.map((lineItem) => {
+      const row = mapProjectLineItemToInsert(lineItem);
+      if (lineItem.id) {
+        row.id = lineItem.id;
+      }
+      return row;
+    });
     const { data, error } = await supabase
       .from('project_activity_line_items')
       .insert(rows)
@@ -366,7 +372,9 @@ export interface SavedActivityBundle {
  */
 export async function saveActivityBundle(
   activity: Omit<ProjectConstructionActivity, 'id' | 'createdAt' | 'updatedAt'>,
-  lineItems: Omit<ProjectActivityLineItem, 'id' | 'projectActivityId' | 'createdAt'>[],
+  lineItems: Array<
+    Omit<ProjectActivityLineItem, 'id' | 'projectActivityId' | 'createdAt'> & { id?: string }
+  >,
   activityId?: string,
 ): Promise<RepositoryResult<SavedActivityBundle>> {
   try {
@@ -385,7 +393,7 @@ export async function saveActivityBundle(
 
     const lineItemsWithActivityId: ProjectActivityLineItem[] = lineItems.map((li, i) => ({
       ...li,
-      id: '',
+      id: li.id ?? '',
       projectActivityId: savedActivity.id,
       sortOrder: li.sortOrder ?? i,
       createdAt: '',

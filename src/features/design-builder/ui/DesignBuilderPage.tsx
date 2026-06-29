@@ -11,7 +11,6 @@ import {
 import { RotateCcw, RotateCw } from 'lucide-react';
 import { useAuth } from '../../../hooks/useAuth';
 import {
-  commitDesignEstimatePreview,
   persistDesignEstimatePreview,
 } from '../application/designBuilderToEstimate';
 import {
@@ -229,7 +228,9 @@ import { DesignBuilderEditableControls } from './DesignBuilderEditableControls';
 import {
   DesignBuilderEstimatePanel,
   DesignBuilderLinkedQuantitiesPanel,
+  type EstimatePreviewState,
 } from './DesignBuilderEstimatePanel';
+import DesignBuilderEstimateImportReviewModal from './DesignBuilderEstimateImportReviewModal';
 import { positiveOrFallback } from './designBuilderFormFieldMath';
 import {
   clampNumber,
@@ -343,6 +344,42 @@ import {
   type PlumbingRunSegmentSnap,
 } from '../plumbing/canvas2d/plumbingSnapPoints';
 import { DesignBuilderSepticTankControls } from './DesignBuilderSepticTankControls';
+
+const DESIGN_BUILDER_PREVIEW_DIAGNOSTICS =
+  import.meta.env.DEV && import.meta.env.MODE !== 'test';
+
+function stablePreviewValue(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(stablePreviewValue);
+  }
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>)
+        .sort(([left], [right]) => left.localeCompare(right))
+        .map(([key, entryValue]) => [key, stablePreviewValue(entryValue)]),
+    );
+  }
+  return value;
+}
+
+function estimatePreviewFingerprint(lines: readonly DesignEstimatePreviewLine[]): string {
+  return JSON.stringify(
+    lines
+      .map((line) => ({
+        id: line.id,
+        designObjectId: line.designObjectId,
+        quantityType: line.quantityType,
+        description: line.description,
+        quantity: line.quantity,
+        unit: line.unit,
+        formula: line.formula,
+        parameterSnapshot: stablePreviewValue(line.parameterSnapshot),
+        divisionCode: line.divisionCode,
+        divisionName: line.divisionName,
+      }))
+      .sort((left, right) => left.id.localeCompare(right.id)),
+  );
+}
 
 interface DesignBuilderPageProps {
   projectId: string;
@@ -591,6 +628,21 @@ export default function DesignBuilderPage({
   const [persistedQuantityItems, setPersistedQuantityItems] = useState<DesignQuantityItem[]>(
     () => storedSession?.persistedQuantityItems ?? [],
   );
+  const [estimatePreviewState, setEstimatePreviewState] = useState<EstimatePreviewState>(() =>
+    storedSession?.estimatePreviewFingerprint
+      ? storedSession.persistedQuantityItems.length > 0
+        ? 'saved'
+        : 'local'
+      : 'idle',
+  );
+  const [estimatePreviewSavedAt, setEstimatePreviewSavedAt] = useState<string | null>(
+    () => storedSession?.estimatePreviewSavedAt ?? null,
+  );
+  const [estimatePreviewFingerprintValue, setEstimatePreviewFingerprintValue] = useState<string | null>(
+    () => storedSession?.estimatePreviewFingerprint ?? null,
+  );
+  const [estimatePreviewError, setEstimatePreviewError] = useState<string | null>(null);
+  const [showEstimateImportReview, setShowEstimateImportReview] = useState(false);
   const [status, setStatus] = useState<DesignBuilderPageStatus>(() => ({
     tone: 'info',
     message: persistenceStatusMessage(persistenceContext.mode),
@@ -731,6 +783,16 @@ export default function DesignBuilderPage({
       setChangedAfterCommit(storedSession.changedAfterCommit ?? false);
       setPreviewLines(storedSession.previewLines);
       setPersistedQuantityItems(storedSession.persistedQuantityItems);
+      setEstimatePreviewSavedAt(storedSession.estimatePreviewSavedAt ?? null);
+      setEstimatePreviewFingerprintValue(storedSession.estimatePreviewFingerprint ?? null);
+      setEstimatePreviewState(
+        storedSession.estimatePreviewFingerprint
+          ? storedSession.persistedQuantityItems.length > 0
+            ? 'saved'
+            : 'local'
+          : 'idle',
+      );
+      setEstimatePreviewError(null);
       setLeftPanelCollapsed(storedSession.leftPanelCollapsed);
       setRightPanelCollapsed(storedSession.rightPanelCollapsed);
       if (storedSession.viewerSize) setViewerSize(storedSession.viewerSize);
@@ -874,6 +936,8 @@ export default function DesignBuilderPage({
       objectTreeExpanded,
       previewLines,
       persistedQuantityItems,
+      estimatePreviewSavedAt,
+      estimatePreviewFingerprint: estimatePreviewFingerprintValue,
       leftPanelCollapsed,
       rightPanelCollapsed,
       viewerSize,
@@ -909,6 +973,8 @@ export default function DesignBuilderPage({
     changedAfterCommit,
     viewMode,
     elevationView,
+    estimatePreviewFingerprintValue,
+    estimatePreviewSavedAt,
     snapMode,
     moduleFitMode,
     objectTreeExpanded,
@@ -1211,7 +1277,26 @@ export default function DesignBuilderPage({
       measurementSystem,
     });
   }, [designGeometryResult, designModel?.id, effectiveWall, footprintClosed, measurementSystem, objectIds, resolvedPreset]);
-  const visiblePreviewLines = modelLoaded ? (previewLines.length > 0 ? previewLines : generatedPreview) : [];
+  const currentEstimatePreviewFingerprint = useMemo(
+    () => estimatePreviewFingerprint(generatedPreview),
+    [generatedPreview],
+  );
+  const estimatePreviewIsStale =
+    estimatePreviewState !== 'saving' &&
+    estimatePreviewState !== 'error' &&
+    estimatePreviewFingerprintValue != null &&
+    previewLines.length > 0 &&
+    currentEstimatePreviewFingerprint !== estimatePreviewFingerprintValue;
+  const resolvedEstimatePreviewState: EstimatePreviewState = estimatePreviewIsStale
+    ? 'stale'
+    : estimatePreviewState;
+  const canCommitEstimatePreview =
+    Boolean(designModel) &&
+    resolvedEstimatePreviewState === 'saved' &&
+    previewLines.length > 0 &&
+    persistedQuantityItems.length > 0 &&
+    generatedPreview.length > 0;
+  const visiblePreviewLines = modelLoaded ? generatedPreview : [];
   const cmuModule = useMemo(() => resolveCmuModuleConfig(effectiveWall), [effectiveWall]);
   const planSegmentFrames = useMemo(
     () => designGeometryResult.wallCmuLayout.segmentFrames ?? getSegmentFramesForWallLayout(wallLayout, effectiveWall),
@@ -1854,9 +1939,8 @@ export default function DesignBuilderPage({
   function finalizeMutationAfterCommand() {
     setPersistedQuantityItems((current) => {
       if (current.some((item) => item.estimateLineId)) setChangedAfterCommit(true);
-      return [];
+      return current;
     });
-    setPreviewLines([]);
     if (persistenceContext.canPersist) {
       setSaveState('unsaved');
     }
@@ -5302,6 +5386,10 @@ export default function DesignBuilderPage({
     setSelectedComponentId(null);
     dispatchComponentPlacement({ type: 'reset', activeView: 'plan' });
     setPersistedQuantityItems([]);
+    setEstimatePreviewState('idle');
+    setEstimatePreviewSavedAt(null);
+    setEstimatePreviewFingerprintValue(null);
+    setEstimatePreviewError(null);
     setChangedAfterCommit((current) => current || persistedQuantityItems.some((item) => item.estimateLineId));
     setDesignHistory(createDesignHistoryState());
     recordDesignHistoryCommand('New layout', 'layout_reset', before, after);
@@ -5343,6 +5431,8 @@ export default function DesignBuilderPage({
       plumbingSystem: createDefaultPlumbingSystem(),
       previewLines: [],
       persistedQuantityItems: [],
+      estimatePreviewSavedAt: null,
+      estimatePreviewFingerprint: null,
       toolMode: 'select',
       viewMode: '2d',
       active2DView: 'foundation-plan',
@@ -5353,76 +5443,101 @@ export default function DesignBuilderPage({
   }
 
   async function handleGeneratePreview() {
+    if (DESIGN_BUILDER_PREVIEW_DIAGNOSTICS) {
+      console.info('[DesignBuilder] Estimate Preview clicked', {
+        modelLoaded,
+        designModelId: designModel?.id ?? null,
+        generatedPreviewLineCount: generatedPreview.length,
+        currentPreviewLineCount: previewLines.length,
+        persistedQuantityItemCount: persistedQuantityItems.length,
+      });
+    }
+
     if (!modelLoaded) {
       setStatus({ tone: 'info', message: 'Load a CMU template or create a layout before generating an estimate preview.' });
       return;
     }
     if (generatedPreview.length === 0) {
-      setStatus({ tone: 'error', message: 'No valid generated quantities are available for preview.' });
-      return;
-    }
-
-    if (!designModel) {
-      setPreviewLines(generatedPreview);
-      setStatus({ tone: 'info', message: 'Preview generated locally. Save the model before committing.' });
+      const message = 'No valid generated quantities are available for preview.';
+      setEstimatePreviewState('error');
+      setEstimatePreviewError(message);
+      setStatus({ tone: 'error', message });
       return;
     }
 
     setBusy(true);
-    setStatus({ tone: 'info', message: 'Generating estimate preview...' });
+    setEstimatePreviewState('saving');
+    setEstimatePreviewError(null);
+    setStatus({ tone: 'info', message: 'Saving estimate preview...' });
     try {
+      if (!designModel) {
+        const savedAt = new Date().toISOString();
+        setPreviewLines(generatedPreview);
+        setPersistedQuantityItems([]);
+        setEstimatePreviewState('local');
+        setEstimatePreviewSavedAt(savedAt);
+        setEstimatePreviewFingerprintValue(currentEstimatePreviewFingerprint);
+        setStatus({ tone: 'info', message: 'Preview saved locally. Save the design before committing.' });
+        return;
+      }
+
       const persistResult = await persistDesignEstimatePreview({
         projectId,
         estimateId,
         designModelId: designModel.id,
         lines: generatedPreview,
       });
-      if (persistResult.error || !persistResult.data) {
-        setStatus({ tone: 'error', message: persistResult.error ?? 'Could not save estimate preview.' });
+      if (persistResult.error || !persistResult.data || persistResult.data.length === 0) {
+        const message = persistResult.error ?? 'Could not save estimate preview.';
+        setEstimatePreviewState('error');
+        setEstimatePreviewError(message);
+        setStatus({ tone: 'error', message });
         return;
       }
+      const savedAt = new Date().toISOString();
       setPreviewLines(generatedPreview);
       setPersistedQuantityItems(persistResult.data);
+      setEstimatePreviewState('saved');
+      setEstimatePreviewSavedAt(savedAt);
+      setEstimatePreviewFingerprintValue(currentEstimatePreviewFingerprint);
+      if (DESIGN_BUILDER_PREVIEW_DIAGNOSTICS) {
+        console.info('[DesignBuilder] Estimate Preview saved', {
+          savedQuantityItemCount: persistResult.data.length,
+        });
+      }
       setStatus({
         tone: 'success',
-        message: 'Estimate preview generated. Review quantities before committing to Detailed Estimate.',
+        message: `Preview saved: ${generatedPreview.length} quantities ready to commit.`,
       });
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Unexpected error while saving estimate preview.';
+      if (DESIGN_BUILDER_PREVIEW_DIAGNOSTICS) {
+        console.error('[DesignBuilder] Estimate preview failed', error);
+      }
+      setEstimatePreviewState('error');
+      setEstimatePreviewError(message);
+      setStatus({ tone: 'error', message });
     } finally {
       setBusy(false);
     }
   }
 
   async function handleCommitPreview() {
-    if (!designModel || persistedQuantityItems.length === 0 || previewLines.length === 0 || generatedPreview.length === 0) {
-      setStatus({ tone: 'error', message: 'Generate and save the estimate preview before committing.' });
+    if (!canCommitEstimatePreview) {
+      const message =
+        resolvedEstimatePreviewState === 'stale'
+          ? 'Regenerate the estimate preview before committing.'
+          : !designModel
+            ? 'Save the design before committing the estimate preview.'
+            : 'Save the estimate preview before committing.';
+      setStatus({ tone: 'error', message });
       return;
     }
 
-    setBusy(true);
-    setStatus({ tone: 'info', message: 'Committing Design Builder preview to Detailed Estimate...' });
-    try {
-      const result = await commitDesignEstimatePreview({
-        projectId,
-        estimateId,
-        designModelId: designModel.id,
-        previewLines,
-        persistedQuantityItems,
-        existingActivities: [],
-        projectLaborRates: [],
-      });
-      if (result.error || !result.data) {
-        setStatus({ tone: 'error', message: result.error ?? 'Could not commit estimate preview.' });
-        return;
-      }
-      onEstimateCommitted?.();
-      setChangedAfterCommit(false);
-      setStatus({
-        tone: 'success',
-        message: `Committed ${result.data.committedQuantityItems.length} Design Builder quantities to estimate.`,
-      });
-    } finally {
-      setBusy(false);
-    }
+    setShowEstimateImportReview(true);
   }
 
   const activeToolLabel = toolMode === 'place_component'
@@ -5534,6 +5649,9 @@ export default function DesignBuilderPage({
           : activePlumbingAction === 'select'
             ? 'Select Tool - Click fixtures, pipes, equipment, or septic tanks to inspect'
               : `${[...PLUMBING_PRIMARY_ACTIONS, ...PLUMBING_ACTION_MENU_ITEMS].find((item) => item.action === activePlumbingAction)?.label ?? 'Plumbing'} Tool`;
+  const viewerFrameStyle: CSSProperties | undefined = focusMode
+    ? undefined
+    : { height: `max(${viewerSize.height}px, calc(100dvh - 14rem))` };
 
   return (
     <>
@@ -5775,8 +5893,8 @@ export default function DesignBuilderPage({
           />
           <div
             ref={viewerOverlayContainerRef}
-            className={focusMode ? 'relative min-h-0 flex-1 overflow-hidden' : 'relative overflow-hidden'}
-            style={focusMode ? undefined : { height: viewerSize.height }}
+            className={focusMode ? 'relative min-h-0 flex-1 overflow-hidden' : 'relative min-h-[520px] overflow-hidden'}
+            style={viewerFrameStyle}
           >
             <DebugOverlayLayoutProvider containerRef={viewerOverlayContainerRef}>
             {viewMode === '2d' && active2DView !== 'elevation-view' ? (
@@ -6903,8 +7021,13 @@ export default function DesignBuilderPage({
           visiblePreviewLines={visiblePreviewLines}
           persistenceCanPersist={persistenceContext.canPersist}
           busy={busy}
-          previewLineCount={previewLines.length}
-          generatedPreviewLineCount={generatedPreview.length}
+          estimatePreviewState={resolvedEstimatePreviewState}
+          estimatePreviewSavedAt={estimatePreviewSavedAt}
+          estimatePreviewError={estimatePreviewError}
+          livePreviewLineCount={generatedPreview.length}
+          savedPreviewLineCount={previewLines.length}
+          persistedQuantityItemCount={persistedQuantityItems.length}
+          canCommitPreview={canCommitEstimatePreview}
           moduleWarnings={moduleWarnings}
           onToggleRightPanel={toggleRightPanel}
           onBeginRightPanelResize={beginRightPanelResize}
@@ -6921,6 +7044,30 @@ export default function DesignBuilderPage({
       </div>
     </div>
     </DesignBuilderCommandMenuProvider>
+    {designModel ? (
+      <DesignBuilderEstimateImportReviewModal
+        isOpen={showEstimateImportReview}
+        projectId={projectId}
+        estimateId={estimateId}
+        designModelId={designModel.id}
+        previewLines={previewLines}
+        persistedQuantityItems={persistedQuantityItems}
+        onClose={() => setShowEstimateImportReview(false)}
+        onCommitted={(result) => {
+          onEstimateCommitted?.();
+          setChangedAfterCommit(false);
+          setPersistedQuantityItems((current) =>
+            current.map((item) =>
+              result.committedQuantityItems.find((committedItem) => committedItem.id === item.id) ?? item,
+            ),
+          );
+          setStatus({
+            tone: 'success',
+            message: `Committed ${result.committedQuantityItems.length} Design Builder quantities to estimate.`,
+          });
+        }}
+      />
+    ) : null}
     <FrameFoundationDimensionsModal
       isOpen={frameFoundationModalOpen}
       preset={resolvedPreset}

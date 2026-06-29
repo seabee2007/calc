@@ -171,6 +171,13 @@ export function mapProjectLineItemFromRow(
       (row.pricing_source as ProjectActivityLineItem['pricingSource']) ??
       EMPTY_LABOR_PRICING_SNAPSHOT.pricingSource,
     pricingSnapshotAt: row.pricing_snapshot_at ?? null,
+    productionRateAssignmentStatus:
+      (row.production_rate_assignment_status as ProjectActivityLineItem['productionRateAssignmentStatus']) ??
+      null,
+    productionRateMatchConfidence: row.production_rate_match_confidence ?? null,
+    productionRateMatchReason: row.production_rate_match_reason ?? null,
+    manualProductionRateReason: row.manual_production_rate_reason ?? null,
+    manualProductionRateSourceNote: row.manual_production_rate_source_note ?? null,
     sortOrder: row.sort_order,
     createdAt: row.created_at,
   };
@@ -259,6 +266,11 @@ export function mapProjectLineItemToInsert(
     billing_rate_snapshot: li.billingRateSnapshot ?? 0,
     pricing_source: li.pricingSource ?? 'unset',
     pricing_snapshot_at: li.pricingSnapshotAt ?? null,
+    production_rate_assignment_status: li.productionRateAssignmentStatus ?? null,
+    production_rate_match_confidence: li.productionRateMatchConfidence ?? null,
+    production_rate_match_reason: li.productionRateMatchReason ?? null,
+    manual_production_rate_reason: li.manualProductionRateReason ?? null,
+    manual_production_rate_source_note: li.manualProductionRateSourceNote ?? null,
     sort_order: li.sortOrder ?? 0,
   };
 }

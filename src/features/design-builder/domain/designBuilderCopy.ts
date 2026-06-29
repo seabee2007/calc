@@ -6,7 +6,7 @@ export const DESIGN_BUILDER_COPY = {
     loadTemplate: 'Load CMU Template',
     newLayout: 'New Layout',
     saveDesign: 'Save Design',
-    generatePreview: 'Estimate Preview',
+    generatePreview: 'Save Preview',
     commitEstimate: 'Commit to Estimate',
   },
   hints: {

@@ -22,10 +22,14 @@ export function seedLoadedDesignBuilderTemplate(
   sessionKey = 'project-1:estimate-1',
   options?: { designModel?: DesignModel | null },
 ) {
+  const designModel =
+    options && Object.prototype.hasOwnProperty.call(options, 'designModel')
+      ? options.designModel ?? null
+      : DEFAULT_TEST_DESIGN_MODEL;
   useDesignBuilderSessionStore.getState().saveSession(sessionKey, {
     preset: createFiveBySixCmuBuildingPreset(),
     layoutState: 'demo_loaded',
-    designModel: options?.designModel ?? DEFAULT_TEST_DESIGN_MODEL,
+    designModel,
   });
 }
 

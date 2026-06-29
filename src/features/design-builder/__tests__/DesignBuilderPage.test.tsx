@@ -88,6 +88,23 @@ vi.mock('../ui/MaterialsColorsModal', () => ({
   default: () => null,
 }));
 
+vi.mock('../ui/DesignBuilderEstimateImportReviewModal', () => ({
+  default: (props: {
+    isOpen: boolean;
+    onCommitted: (result: { bundles: unknown[]; committedQuantityItems: Array<{ id: string }> }) => void;
+  }) =>
+    props.isOpen ? (
+      <div role="dialog" aria-label="Review Design Builder Estimate Import">
+        <button
+          type="button"
+          onClick={() => props.onCommitted({ bundles: [], committedQuantityItems: [{ id: 'quantity-1' }] })}
+        >
+          Create Activities
+        </button>
+      </div>
+    ) : null,
+}));
+
 vi.mock('../ui/DraggableDebugOverlay', () => ({
   DraggableDebugOverlay: () => null,
 }));
@@ -221,6 +238,14 @@ function selectViewMode(mode: 'plan' | '3d') {
   if (foundationPlan) fireEvent.click(foundationPlan);
 }
 
+function savePreviewButton(): HTMLButtonElement {
+  return screen.getByRole('button', { name: /save preview|regenerate preview/i });
+}
+
+function commitEstimateButton(): HTMLButtonElement {
+  return screen.getByRole('button', { name: /commit to estimate/i });
+}
+
 function clickDrawWall() {
   selectToolMode(/^draw wall$/i);
 }
@@ -309,7 +334,7 @@ describe('DesignBuilderPage', () => {
     }));
   });
 
-  it('loads the preset, generates an estimate preview, and commits only after confirmation', async () => {
+  it('loads the preset, saves an estimate preview, and commits only after confirmation', async () => {
     const onEstimateCommitted = vi.fn();
     seedLoadedDesignBuilderTemplate();
     render(
@@ -323,15 +348,77 @@ describe('DesignBuilderPage', () => {
     expect(screen.getByTestId('design-builder-viewer')).toBeInTheDocument();
     await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
     expect(mocks.createDesignModel).not.toHaveBeenCalled();
+    expect(commitEstimateButton()).toBeDisabled();
 
-    fireEvent.click(screen.getAllByRole('button', { name: /estimate preview/i }).at(-1)!);
+    fireEvent.click(savePreviewButton());
     await waitFor(() => expect(mocks.persistDesignEstimatePreview).toHaveBeenCalled());
-    expect(screen.getByText(/review quantities before committing/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/ready to commit/i).length).toBeGreaterThan(0);
+    expect(commitEstimateButton()).not.toBeDisabled();
     expect(mocks.commitDesignEstimatePreview).not.toHaveBeenCalled();
 
-    fireEvent.click(screen.getByRole('button', { name: /commit to estimate/i }));
-    await waitFor(() => expect(mocks.commitDesignEstimatePreview).toHaveBeenCalled());
+    fireEvent.click(commitEstimateButton());
+    expect(screen.getByRole('dialog', { name: /review design builder estimate import/i })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /create activities/i }));
     expect(onEstimateCommitted).toHaveBeenCalled();
+  });
+
+  it('shows live preview rows before saving while commit remains disabled', async () => {
+    seedLoadedDesignBuilderTemplate();
+    render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
+
+    await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
+
+    expect(screen.getByText(/live preview/i)).toBeInTheDocument();
+    expect(screen.getByText(/review live quantities/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /show preview rows/i })).toBeInTheDocument();
+    expect(screen.queryAllByText(/calculated from parameters/i)).toHaveLength(0);
+    fireEvent.click(screen.getByRole('button', { name: /show preview rows/i }));
+    expect(screen.getAllByText(/calculated from parameters/i).length).toBeGreaterThan(0);
+    expect(commitEstimateButton()).toBeDisabled();
+    expect(mocks.persistDesignEstimatePreview).not.toHaveBeenCalled();
+  });
+
+  it('keeps commit disabled when preview persistence fails', async () => {
+    mocks.persistDesignEstimatePreview.mockResolvedValueOnce({
+      data: null,
+      error: 'Could not save estimate preview.',
+    });
+    seedLoadedDesignBuilderTemplate();
+    render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
+
+    await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
+    fireEvent.click(savePreviewButton());
+
+    await waitFor(() => expect(screen.getAllByText(/needs attention/i).length).toBeGreaterThan(0));
+    expect(screen.getAllByText(/could not save estimate preview/i).length).toBeGreaterThan(0);
+    expect(commitEstimateButton()).toBeDisabled();
+    expect(mocks.commitDesignEstimatePreview).not.toHaveBeenCalled();
+  });
+
+  it('shows an error state when saving preview throws unexpectedly', async () => {
+    mocks.persistDesignEstimatePreview.mockRejectedValueOnce(new Error('Preview write exploded.'));
+    seedLoadedDesignBuilderTemplate();
+    render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
+
+    await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
+    fireEvent.click(savePreviewButton());
+
+    await waitFor(() => expect(screen.getAllByText(/needs attention/i).length).toBeGreaterThan(0));
+    expect(screen.getAllByText(/preview write exploded/i).length).toBeGreaterThan(0);
+    expect(commitEstimateButton()).toBeDisabled();
+  });
+
+  it('shows local-only preview state when no design model has been saved', async () => {
+    seedLoadedDesignBuilderTemplate('project-1:estimate-1', { designModel: null });
+    render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
+
+    await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
+    fireEvent.click(savePreviewButton());
+
+    await waitFor(() => expect(screen.getAllByText(/local preview/i).length).toBeGreaterThan(0));
+    expect(screen.getByText(/local preview saved in this browser/i)).toBeInTheDocument();
+    expect(mocks.persistDesignEstimatePreview).not.toHaveBeenCalled();
+    expect(commitEstimateButton()).toBeDisabled();
   });
 
   it('exposes 3D Takeoff-style workspace controls without remounting the model for panel toggles', async () => {
@@ -517,6 +604,7 @@ describe('DesignBuilderPage', () => {
     );
     await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
 
+    fireEvent.click(screen.getByRole('button', { name: /show preview rows/i }));
     expect(screen.getAllByRole('button', { name: /wall segments/i }).length).toBeGreaterThan(0);
     expandObjectTreeGroup('Masonry');
     expect(screen.getByRole('button', { name: /cmu walls/i })).toBeInTheDocument();
@@ -1701,20 +1789,23 @@ describe('DesignBuilderPage', () => {
     render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
     await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
 
-    fireEvent.click(screen.getAllByRole('button', { name: /estimate preview/i }).at(-1)!);
+    fireEvent.click(savePreviewButton());
     await waitFor(() => expect(mocks.persistDesignEstimatePreview).toHaveBeenCalled());
+    expect(commitEstimateButton()).not.toBeDisabled();
 
-    latestViewerProps().onInteraction?.({
-      kind: 'place_commit',
-      toolMode: 'place_door',
-      wallFace: 'north',
-      offsetMeters: 1.2,
-      openingType: 'door',
-    });
+    expandObjectTreeGroup('Masonry');
+    fireEvent.click(screen.getByRole('button', { name: /^cmu walls$/i }));
+
+    const wallHeight = screen.getByLabelText(/^wall height$/i);
+    fireEvent.change(wallHeight, { target: { value: '4.2' } });
+    fireEvent.blur(wallHeight);
 
     await waitFor(() => {
+      expect(latestViewerProps().geometryResult?.wallSegments?.[0]?.heightMeters).toBeCloseTo(4.2, 1);
       expect(screen.getByText(/design revision pending/i)).toBeInTheDocument();
     });
+    await waitFor(() => expect(screen.getByText(/out of date/i)).toBeInTheDocument());
+    expect(commitEstimateButton()).toBeDisabled();
     expect(mocks.commitDesignEstimatePreview).not.toHaveBeenCalled();
   });
 

@@ -1,4 +1,5 @@
-import type { PointerEvent as ReactPointerEvent } from 'react';
+import { useState, type PointerEvent as ReactPointerEvent } from 'react';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 import { DESIGN_BUILDER_COPY } from '../domain/designBuilderCopy';
 import type {
   DesignEstimatePreviewLine,
@@ -16,6 +17,88 @@ export type DesignBuilderQuantityCard = {
   unit: string;
   objectType: DesignObjectType;
 };
+
+export type EstimatePreviewState = 'idle' | 'saving' | 'saved' | 'local' | 'stale' | 'error';
+
+function formatPreviewSavedAt(savedAt: string | null): string {
+  if (!savedAt) return '';
+  const date = new Date(savedAt);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+}
+
+function estimatePreviewBadgeClass(state: EstimatePreviewState): string {
+  switch (state) {
+    case 'saved':
+      return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200';
+    case 'saving':
+      return 'bg-cyan-100 text-cyan-800 dark:bg-cyan-950 dark:text-cyan-200';
+    case 'stale':
+      return 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200';
+    case 'error':
+      return 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-200';
+    case 'local':
+      return 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200';
+    default:
+      return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
+  }
+}
+
+function estimatePreviewStatusCopy(params: {
+  state: EstimatePreviewState;
+  livePreviewLineCount: number;
+  savedPreviewLineCount: number;
+  savedAt: string | null;
+  error: string | null;
+  persistenceCanPersist: boolean;
+}): { title: string; badge: string; message: string } {
+  const savedAtLabel = formatPreviewSavedAt(params.savedAt);
+  switch (params.state) {
+    case 'saving':
+      return {
+        title: 'Saving Preview',
+        badge: 'Saving...',
+        message: 'Writing preview quantities...',
+      };
+    case 'saved':
+      return {
+        title: 'Saved Preview',
+        badge: 'Ready to commit',
+        message: `Saved ${params.savedPreviewLineCount} quantities${
+          savedAtLabel ? ` at ${savedAtLabel}` : ''
+        }. Ready to commit.`,
+      };
+    case 'local':
+      return {
+        title: 'Local Preview',
+        badge: 'Local only',
+        message: 'Local preview saved in this browser. Save the design before committing.',
+      };
+    case 'stale':
+      return {
+        title: 'Out of Date',
+        badge: 'Regenerate',
+        message: 'Design quantities changed after the preview was saved. Regenerate before committing.',
+      };
+    case 'error':
+      return {
+        title: 'Needs Attention',
+        badge: 'Error',
+        message: params.error ?? 'Could not save estimate preview.',
+      };
+    default:
+      return {
+        title: params.livePreviewLineCount > 0 ? 'Live Preview' : 'No Preview',
+        badge: params.livePreviewLineCount > 0 ? 'Not saved' : 'No quantities',
+        message:
+          params.livePreviewLineCount > 0
+            ? 'Review live quantities, then save preview before committing.'
+            : params.persistenceCanPersist
+              ? 'Draw walls or load a template to calculate estimate quantities.'
+              : 'Open this tool from a saved Detailed Estimate to save and commit quantities.',
+      };
+  }
+}
 
 export function DesignBuilderLinkedQuantitiesPanel({
   linkedPreviewLines,
@@ -52,8 +135,13 @@ export function DesignBuilderEstimatePanel({
   visiblePreviewLines,
   persistenceCanPersist,
   busy,
-  previewLineCount,
-  generatedPreviewLineCount,
+  estimatePreviewState,
+  estimatePreviewSavedAt,
+  estimatePreviewError,
+  livePreviewLineCount,
+  savedPreviewLineCount,
+  persistedQuantityItemCount,
+  canCommitPreview,
   moduleWarnings,
   onToggleRightPanel,
   onBeginRightPanelResize,
@@ -68,8 +156,13 @@ export function DesignBuilderEstimatePanel({
   visiblePreviewLines: DesignEstimatePreviewLine[];
   persistenceCanPersist: boolean;
   busy: boolean;
-  previewLineCount: number;
-  generatedPreviewLineCount: number;
+  estimatePreviewState: EstimatePreviewState;
+  estimatePreviewSavedAt: string | null;
+  estimatePreviewError: string | null;
+  livePreviewLineCount: number;
+  savedPreviewLineCount: number;
+  persistedQuantityItemCount: number;
+  canCommitPreview: boolean;
   moduleWarnings: string[];
   onToggleRightPanel: () => void;
   onBeginRightPanelResize: (event: ReactPointerEvent<HTMLDivElement>) => void;
@@ -77,6 +170,24 @@ export function DesignBuilderEstimatePanel({
   onGeneratePreview: () => void;
   onCommitPreview: () => void;
 }) {
+  const [previewRowsExpanded, setPreviewRowsExpanded] = useState(false);
+  const statusCopy = estimatePreviewStatusCopy({
+    state: estimatePreviewState,
+    livePreviewLineCount,
+    savedPreviewLineCount,
+    savedAt: estimatePreviewSavedAt,
+    error: estimatePreviewError,
+    persistenceCanPersist,
+  });
+  const generateButtonLabel =
+    estimatePreviewState === 'saving'
+      ? 'Saving Preview...'
+      : estimatePreviewState === 'saved' ||
+          estimatePreviewState === 'stale' ||
+          estimatePreviewState === 'local'
+        ? 'Regenerate Preview'
+        : DESIGN_BUILDER_COPY.actions.generatePreview;
+
   return (
     <>
       <button
@@ -123,54 +234,95 @@ export function DesignBuilderEstimatePanel({
           </div>
         </Panel>
 
-        <Panel title="Estimate Preview - not committed yet">
-          <div className="space-y-2">
-            {visiblePreviewLines.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-slate-300 p-4 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
-                {persistenceCanPersist
-                  ? 'Draw walls or load a template, then generate an estimate preview from the current design parameters.'
-                  : 'Open this tool from a saved Detailed Estimate to generate and commit estimate-ready quantities.'}
+        <Panel title="Estimate Preview">
+          <div className="mb-3 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-700 dark:bg-slate-950/40">
+            <div className="flex items-center justify-between gap-3">
+              <span className="font-semibold text-slate-900 dark:text-slate-100">
+                {statusCopy.title}
+              </span>
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${estimatePreviewBadgeClass(estimatePreviewState)}`}>
+                {statusCopy.badge}
+              </span>
+            </div>
+            <div className="mt-1 text-slate-600 dark:text-slate-400">{statusCopy.message}</div>
+            {persistedQuantityItemCount > 0 ? (
+              <div className="mt-1 text-slate-500 dark:text-slate-500">
+                Saved rows: {persistedQuantityItemCount}
               </div>
             ) : null}
-            {visiblePreviewLines.map((line) => {
-              const objectType = objectTypeForPreviewLine(line);
-              return (
-                <button
-                  key={line.id}
-                  type="button"
-                  onClick={() => onSelectObjectType(objectType)}
-                  className="w-full rounded-xl border border-slate-200 p-3 text-left text-sm transition hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="font-medium">{line.description}</div>
-                    <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200">
-                      Calculated from parameters
-                    </span>
-                  </div>
-                  <div className="mt-1 text-slate-600 dark:text-slate-300">
-                    {line.quantity} {line.unit} - Division {line.divisionCode} {line.divisionName}
-                  </div>
-                  <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                    Source object: {OBJECT_TREE_ITEMS.find((item) => item.objectType === objectType)?.label}
-                  </div>
-                  <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">{line.formula}</div>
-                </button>
-              );
-            })}
           </div>
+          {visiblePreviewLines.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-slate-300 p-4 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
+              {persistenceCanPersist
+                ? 'Draw walls or load a template, then generate an estimate preview from the current design parameters.'
+                : 'Open this tool from a saved Detailed Estimate to generate and commit estimate-ready quantities.'}
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <button
+                type="button"
+                aria-expanded={previewRowsExpanded}
+                onClick={() => setPreviewRowsExpanded((expanded) => !expanded)}
+                className="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-white px-3 py-2 text-left text-sm font-semibold text-slate-700 transition hover:border-cyan-300 hover:text-cyan-800 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-cyan-700 dark:hover:text-cyan-200"
+              >
+                <span className="inline-flex min-w-0 items-center gap-2">
+                  {previewRowsExpanded ? (
+                    <ChevronDown className="h-4 w-4 shrink-0" aria-hidden />
+                  ) : (
+                    <ChevronRight className="h-4 w-4 shrink-0" aria-hidden />
+                  )}
+                  <span className="truncate">
+                    {previewRowsExpanded ? 'Hide preview rows' : 'Show preview rows'}
+                  </span>
+                </span>
+                <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                  {visiblePreviewLines.length} rows
+                </span>
+              </button>
+              {previewRowsExpanded ? (
+                <div className="space-y-2">
+                  {visiblePreviewLines.map((line) => {
+                    const objectType = objectTypeForPreviewLine(line);
+                    return (
+                      <button
+                        key={line.id}
+                        type="button"
+                        onClick={() => onSelectObjectType(objectType)}
+                        className="w-full rounded-xl border border-slate-200 p-3 text-left text-sm transition hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="font-medium">{line.description}</div>
+                          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200">
+                            Calculated from parameters
+                          </span>
+                        </div>
+                        <div className="mt-1 text-slate-600 dark:text-slate-300">
+                          {line.quantity} {line.unit} - Division {line.divisionCode} {line.divisionName}
+                        </div>
+                        <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                          Source object: {OBJECT_TREE_ITEMS.find((item) => item.objectType === objectType)?.label}
+                        </div>
+                        <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">{line.formula}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : null}
+            </div>
+          )}
           <div className="mt-4 grid gap-2">
             <button
               type="button"
               onClick={onGeneratePreview}
-              disabled={busy}
+              disabled={busy || livePreviewLineCount === 0}
               className="rounded-xl border border-cyan-300 px-4 py-2 text-sm font-semibold text-cyan-800 hover:bg-cyan-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-cyan-700 dark:text-cyan-200 dark:hover:bg-cyan-950/60"
             >
-              {DESIGN_BUILDER_COPY.actions.generatePreview}
+              {generateButtonLabel}
             </button>
             <button
               type="button"
               onClick={onCommitPreview}
-              disabled={busy || previewLineCount === 0 || generatedPreviewLineCount === 0}
+              disabled={busy || !canCommitPreview}
               className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-cyan-500 dark:text-slate-950 dark:hover:bg-cyan-400"
             >
               Commit to Estimate

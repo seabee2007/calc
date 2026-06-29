@@ -165,6 +165,11 @@ export interface ProjectActivityLineItemRow {
   billing_rate_snapshot: number;
   pricing_source: string | null;
   pricing_snapshot_at: string | null;
+  production_rate_assignment_status: string | null;
+  production_rate_match_confidence: number | null;
+  production_rate_match_reason: string | null;
+  manual_production_rate_reason: string | null;
+  manual_production_rate_source_note: string | null;
   sort_order: number;
   created_at: string;
 }

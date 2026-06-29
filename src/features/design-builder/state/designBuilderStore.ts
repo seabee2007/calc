@@ -69,6 +69,8 @@ export interface DesignBuilderSessionState {
   masonryToolMode: MasonryToolMode;
   previewLines: DesignEstimatePreviewLine[];
   persistedQuantityItems: DesignQuantityItem[];
+  estimatePreviewSavedAt: string | null;
+  estimatePreviewFingerprint: string | null;
   changedAfterCommit: boolean;
   viewMode: DesignBuilderStoredViewMode;
   active2DView: Design2DViewType;
@@ -142,6 +144,8 @@ export const useDesignBuilderSessionStore = create<DesignBuilderSessionStore>((s
         masonryToolMode: 'full_block',
         previewLines: [],
         persistedQuantityItems: [],
+        estimatePreviewSavedAt: null,
+        estimatePreviewFingerprint: null,
         changedAfterCommit: false,
         viewMode: '3d',
         active2DView: 'foundation-plan',

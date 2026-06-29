@@ -219,6 +219,18 @@ export interface ProjectActivityLineItem {
   billingRateSnapshot: number;
   pricingSource?: 'project_rate' | 'manual' | 'unset';
   pricingSnapshotAt?: string | null;
+  productionRateAssignmentStatus?:
+    | 'unassigned'
+    | 'auto_matched'
+    | 'verified_rate'
+    | 'manual_override'
+    | 'review_required'
+    | 'excluded'
+    | null;
+  productionRateMatchConfidence?: number | null;
+  productionRateMatchReason?: string | null;
+  manualProductionRateReason?: string | null;
+  manualProductionRateSourceNote?: string | null;
   sortOrder?: number;
   createdAt?: string;
 }
@@ -282,10 +294,10 @@ export interface ActivityResourceBase {
 }
 
 /** A material resource attached to a construction activity. */
-export interface ActivityMaterialResource extends ActivityResourceBase {}
+export type ActivityMaterialResource = ActivityResourceBase;
 
 /** An equipment resource attached to a construction activity. */
-export interface ActivityEquipmentResource extends ActivityResourceBase {}
+export type ActivityEquipmentResource = ActivityResourceBase;
 
 /** An item in a company's reusable cost library. */
 export interface CompanyCostLibraryItem {

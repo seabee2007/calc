@@ -155,6 +155,15 @@ export function rollupConstructionActivity(
 
 /** Whether a line item lacks production-rate or man-hour data needed to price labor. */
 export function isLineItemUnpricedForLabor(item: ProjectActivityLineItem): boolean {
+  const hasManualProductionRateOverride =
+    item.productionRateAssignmentStatus === 'manual_override' &&
+    Number.isFinite(item.manHoursPerUnit) &&
+    item.manHoursPerUnit > 0 &&
+    Boolean(item.manualProductionRateReason?.trim()) &&
+    Boolean(item.manualProductionRateSourceNote?.trim());
+
+  if (hasManualProductionRateOverride) return false;
+
   const hasSourceRateKey =
     typeof item.sourceProductionRateKey === 'string' &&
     item.sourceProductionRateKey.trim().length > 0;
@@ -227,6 +236,7 @@ export function hasConstructionActivityEstimateWarnings(
 
 /** Whether a line item type participates in scheduling (always false for activity line items). */
 export function isScheduleActivityLineItem(_item: ProjectActivityLineItem): boolean {
+  void _item;
   return false;
 }
 

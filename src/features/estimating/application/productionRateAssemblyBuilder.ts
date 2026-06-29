@@ -11,7 +11,6 @@ import type {
 } from '../domain/constructionActivityTypes';
 import { EMPTY_LABOR_PRICING_SNAPSHOT } from '../domain/constructionActivityTypes';
 import type { ProjectLaborRate } from '../domain/laborRateTypes';
-import { applyLaborRateToLineItem } from './laborPricingCalculator';
 import {
   applyResolvedLaborRateToLineItem,
   resolveLaborRateForWorkElement,
@@ -64,6 +63,9 @@ export interface ManualDraftLineItemInput {
   quantity: number;
   manHoursPerUnit: number;
   laborRoleId?: string | null;
+  manualProductionRateReason?: string | null;
+  manualProductionRateSourceNote?: string | null;
+  productionRateMatchReason?: string | null;
 }
 
 export interface InstantiateProductionRateAssemblyInput {
@@ -74,6 +76,9 @@ export interface InstantiateProductionRateAssemblyInput {
     rate: ProductionRateLibraryEntry;
     quantity: number;
     laborRoleId?: string | null;
+    assignmentStatus?: ProjectActivityLineItem['productionRateAssignmentStatus'];
+    matchConfidence?: number | null;
+    matchReason?: string | null;
   }>;
   identity: ActivityInstanceIdentityInput;
   assigned: AssignedProjectActivityCode;
@@ -269,6 +274,11 @@ export function createDraftLineItemFromProductionRate(
       equipmentCost: 0,
       subcontractCost: 0,
       totalCost: 0,
+      productionRateAssignmentStatus: 'verified_rate',
+      productionRateMatchConfidence: null,
+      productionRateMatchReason: null,
+      manualProductionRateReason: null,
+      manualProductionRateSourceNote: null,
       sortOrder: options.sortOrder ?? 0,
     },
   };
@@ -447,6 +457,11 @@ export function instantiateProductionRateAssembly(
         equipmentCost: 0,
         subcontractCost: 0,
         totalCost: 0,
+        productionRateAssignmentStatus: entry.assignmentStatus ?? 'verified_rate',
+        productionRateMatchConfidence: entry.matchConfidence ?? null,
+        productionRateMatchReason: entry.matchReason ?? null,
+        manualProductionRateReason: null,
+        manualProductionRateSourceNote: null,
         sortOrder: index + 1,
       };
 
@@ -528,6 +543,14 @@ export function instantiateManualConstructionActivity(
       equipmentCost: 0,
       subcontractCost: 0,
       totalCost: 0,
+      productionRateAssignmentStatus:
+        entry.manualProductionRateReason && entry.manualProductionRateSourceNote
+          ? 'manual_override'
+          : 'unassigned',
+      productionRateMatchConfidence: null,
+      productionRateMatchReason: entry.productionRateMatchReason ?? null,
+      manualProductionRateReason: entry.manualProductionRateReason ?? null,
+      manualProductionRateSourceNote: entry.manualProductionRateSourceNote ?? null,
       sortOrder: index + 1,
     };
 
