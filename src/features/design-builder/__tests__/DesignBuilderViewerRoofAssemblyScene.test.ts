@@ -136,6 +136,7 @@ function roofAssemblyState(
     currentVisualStyle: 'technical',
     currentRoofSystem: roofSystem,
     currentRoofDisplayMode: 'roof_cladding_only',
+    currentFoundationViewMode: 'full_model',
     currentRoofLayerVisibility: roofLayerVisibility({ roofCladding: true }),
     currentShowRoofFramingGuides: false,
     usePreviewMaterials: false,
@@ -251,6 +252,39 @@ describe('DesignBuilderViewerRoofAssemblyScene', () => {
       expect(selectable.userData.designObjectType).toBe('gable_roof_system');
       expect(selectable.userData.selectionPriority).toBe(20);
     }
+
+    resources.disposeTrackedResources();
+  });
+
+  it('hides roof cladding and trim when foundation view is structural frame only', () => {
+    const resources = createDesignBuilderViewerResources();
+    const scene = buildDesignBuilderViewerRoofAssemblyScene({
+      state: roofAssemblyState({
+        currentFoundationViewMode: 'structural_frame_only',
+        currentRoofDisplayMode: 'full_roof',
+        currentRoofLayerVisibility: roofLayerVisibility({
+          roofCladding: true,
+          ridgeCap: true,
+          fascia: true,
+          soffit: true,
+          steelTrusses: true,
+          purlins: true,
+          gableEndCmu: true,
+          rakedConcreteCap: true,
+        }),
+      }),
+      trackGeometry: resources.trackGeometry,
+      trackMaterial: resources.trackMaterial,
+      makeMaterial: resources.makeMaterial,
+    });
+
+    expect(scene.groups.map((group) => group.name)).not.toContain('roofCladdingGroup');
+    expect(scene.groups.map((group) => group.name)).not.toContain('ridgeCapGroup');
+    expect(scene.groups.map((group) => group.name)).not.toContain('fasciaGroup');
+    expect(scene.groups.map((group) => group.name)).not.toContain('soffitGroup');
+    expect(scene.groups.map((group) => group.name)).toEqual(
+      expect.arrayContaining(['trussChordGroup', 'trussWebGroup', 'purlinGroup']),
+    );
 
     resources.disposeTrackedResources();
   });

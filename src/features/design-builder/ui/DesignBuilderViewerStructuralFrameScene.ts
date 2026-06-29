@@ -19,6 +19,7 @@ export type DesignBuilderViewerStructuralFrameState = Omit<
     | 'currentVisualStyle'
     | 'usePreviewMaterials'
     | 'frameSelected'
+    | 'belowGradeCutawayActive'
   >,
   'currentGeometry'
 > & {
@@ -111,7 +112,20 @@ export function buildDesignBuilderViewerStructuralFrameScene(params: {
           technicalOptions: {
             roughness: 0.92,
             metalness: 0.02,
+            ...(state.belowGradeCutawayActive
+              ? {
+                  transparent: true,
+                  opacity: 0.32,
+                  depthWrite: false,
+                }
+              : {}),
           },
+          ...(state.belowGradeCutawayActive
+            ? {
+                transparent: true,
+                opacity: 0.32,
+              }
+            : {}),
         })
       : columnConcreteMaterial;
 
@@ -123,6 +137,7 @@ export function buildDesignBuilderViewerStructuralFrameScene(params: {
     interiorFacePolygon: geometry.resolvedFootprint?.interiorFacePolygon,
     slabTopMeters: state.currentSlab.slabThicknessMeters,
     useFramePlasterFinish: false,
+    hideAbovePlinth: state.belowGradeCutawayActive,
     materials: {
       columnConcrete: columnConcreteMaterial,
       beam: beamMaterial,

@@ -508,6 +508,7 @@ export default function DesignBuilderViewer({
         roofSelected,
         gableSelected,
         cmuCutawayActive,
+        belowGradeCutawayActive,
         cmuOpacity,
         cmuMaterialOptions,
         blankGeometryActive,
@@ -586,12 +587,24 @@ export default function DesignBuilderViewer({
       const footprintSelected = currentSelectedObjectType === 'building_footprint';
       const slabMaterial = usePreviewMaterials
         ? resolveCastConcreteMaterial(
-            { visualStyle: currentVisualStyle, selected: footprintSelected, role: 'structural' },
+            {
+              visualStyle: currentVisualStyle,
+              selected: footprintSelected,
+              role: 'structural',
+              ...(belowGradeCutawayActive ? { transparent: true, opacity: 0.32 } : {}),
+            },
             trackMat,
           )
         : makeMaterial(0x78716c, footprintSelected, {
             roughness: 0.88,
             metalness: 0.05,
+            ...(belowGradeCutawayActive
+              ? {
+                  transparent: true,
+                  opacity: 0.32,
+                  depthWrite: false,
+                }
+              : {}),
           });
       const layoutGraphActive = currentGeometry?.sourcePath === 'layout_graph';
       const legacyPresetActive = !currentGeometry || currentGeometry.sourcePath === 'legacy_preset';
@@ -621,17 +634,20 @@ export default function DesignBuilderViewer({
           );
         }
       }
-      const showCmuInfill = currentFoundationViewMode !== 'structural_frame_only';
+      const showCmuInfill =
+        currentFoundationViewMode !== 'structural_frame_only' && !belowGradeCutawayActive;
       if (layoutGraphActive) {
-        currentGeometry.wallSegments.forEach((segment) => {
-          const pickMesh = new THREE.Mesh(
-            trackGeometry(new THREE.BoxGeometry(segment.lengthMeters, segment.heightMeters, segment.thicknessMeters)),
-            pickMaterial.clone(),
-          );
-          pickMesh.position.set(segment.x, currentSlab.slabThicknessMeters + segment.y, segment.z);
-          pickMesh.rotation.y = segment.rotationY;
-          addWallPickable(pickMesh, { wallSegmentId: segment.segmentId, lengthMeters: segment.lengthMeters });
-        });
+        if (!belowGradeCutawayActive) {
+          currentGeometry.wallSegments.forEach((segment) => {
+            const pickMesh = new THREE.Mesh(
+              trackGeometry(new THREE.BoxGeometry(segment.lengthMeters, segment.heightMeters, segment.thicknessMeters)),
+              pickMaterial.clone(),
+            );
+            pickMesh.position.set(segment.x, currentSlab.slabThicknessMeters + segment.y, segment.z);
+            pickMesh.rotation.y = segment.rotationY;
+            addWallPickable(pickMesh, { wallSegmentId: segment.segmentId, lengthMeters: segment.lengthMeters });
+          });
+        }
 
         const structuralFrameScene = buildDesignBuilderViewerStructuralFrameScene({
           state: {
@@ -640,6 +656,7 @@ export default function DesignBuilderViewer({
             currentVisualStyle,
             usePreviewMaterials,
             frameSelected,
+            belowGradeCutawayActive,
           },
           showCmuInfill,
           trackGeometry,
@@ -648,79 +665,82 @@ export default function DesignBuilderViewer({
         });
         sceneRegistry.registerSelectables(structuralFrameScene.selectableObjects);
         if (structuralFrameScene.group.children.length > 0) root.add(structuralFrameScene.group);
-        const interiorFinishScene = buildDesignBuilderViewerInteriorFinishScene({
-          state: {
-            currentGeometry,
-            currentSlab,
-            currentVisualStyle,
-            usePreviewMaterials,
-            frameSelected,
-          },
-          showCmuInfill,
-          trackGeometry,
-          trackMaterial: trackMat,
-          makeMaterial,
-        });
-        interiorFinishScene.groups.forEach((group) => root.add(group));
-        const roofReferenceScene = buildDesignBuilderViewerRoofReferenceScene({
-          enabled: import.meta.env.DEV && currentShowRoofReferencePerimeters,
-          geometry: currentGeometry,
-          slab: currentSlab,
-          trackGeometry,
-          trackMaterial: trackMat,
-        });
-        if (roofReferenceScene.children.length > 0) root.add(roofReferenceScene);
-        const roofDebugScene = buildDesignBuilderViewerRoofDebugScene({
-          enabled: import.meta.env.DEV && currentShowRoofDebug,
-          resolvedRoof: currentGeometry.resolvedRoofSystem,
-          slabTopMeters: currentSlab.slabThicknessMeters,
-          trackGeometry,
-          trackMaterial: trackMat,
-        });
-        if (roofDebugScene.children.length > 0) root.add(roofDebugScene);
-        const roofAssemblyScene = buildDesignBuilderViewerRoofAssemblyScene({
-          state: {
-            currentGeometry,
-            currentSlab,
-            currentVisualStyle,
-            currentRoofSystem,
-            currentRoofDisplayMode,
-            currentRoofLayerVisibility,
-            currentShowRoofFramingGuides,
-            usePreviewMaterials,
-            roofSelected,
-            gableSelected,
-          },
-          trackGeometry,
-          trackMaterial: trackMat,
-          makeMaterial,
-        });
-        sceneRegistry.registerSelectables(roofAssemblyScene.selectableObjects);
-        roofAssemblyScene.groups.forEach((group) => root.add(group));
+        if (!belowGradeCutawayActive) {
+          const interiorFinishScene = buildDesignBuilderViewerInteriorFinishScene({
+            state: {
+              currentGeometry,
+              currentSlab,
+              currentVisualStyle,
+              usePreviewMaterials,
+              frameSelected,
+            },
+            showCmuInfill,
+            trackGeometry,
+            trackMaterial: trackMat,
+            makeMaterial,
+          });
+          interiorFinishScene.groups.forEach((group) => root.add(group));
+          const roofReferenceScene = buildDesignBuilderViewerRoofReferenceScene({
+            enabled: import.meta.env.DEV && currentShowRoofReferencePerimeters,
+            geometry: currentGeometry,
+            slab: currentSlab,
+            trackGeometry,
+            trackMaterial: trackMat,
+          });
+          if (roofReferenceScene.children.length > 0) root.add(roofReferenceScene);
+          const roofDebugScene = buildDesignBuilderViewerRoofDebugScene({
+            enabled: import.meta.env.DEV && currentShowRoofDebug,
+            resolvedRoof: currentGeometry.resolvedRoofSystem,
+            slabTopMeters: currentSlab.slabThicknessMeters,
+            trackGeometry,
+            trackMaterial: trackMat,
+          });
+          if (roofDebugScene.children.length > 0) root.add(roofDebugScene);
+          const roofAssemblyScene = buildDesignBuilderViewerRoofAssemblyScene({
+            state: {
+              currentGeometry,
+              currentSlab,
+              currentVisualStyle,
+              currentRoofSystem,
+              currentRoofDisplayMode,
+              currentFoundationViewMode,
+              currentRoofLayerVisibility,
+              currentShowRoofFramingGuides,
+              usePreviewMaterials,
+              roofSelected,
+              gableSelected,
+            },
+            trackGeometry,
+            trackMaterial: trackMat,
+            makeMaterial,
+          });
+          sceneRegistry.registerSelectables(roofAssemblyScene.selectableObjects);
+          roofAssemblyScene.groups.forEach((group) => root.add(group));
 
-        const cmuInfillScene = buildDesignBuilderViewerCmuInfillScene({
-          state: {
-            currentGeometry,
-            currentWall,
-            currentSlab,
-            currentSelectedObjectType,
-            currentVisualStyle,
-            currentRoofDisplayMode,
-            currentRoofLayerVisibility,
-            usePreviewMaterials,
-            cmuSelected,
-            cmuCutawayActive,
-            cmuOpacity,
-            cmuMaterialOptions,
-          },
-          cmuLayout,
-          showCmuInfill,
-          trackGeometry,
-          trackMaterial: trackMat,
-          makeMaterial,
-        });
-        sceneRegistry.registerSelectables(cmuInfillScene.selectableObjects);
-        cmuInfillScene.groups.forEach((group) => root.add(group));
+          const cmuInfillScene = buildDesignBuilderViewerCmuInfillScene({
+            state: {
+              currentGeometry,
+              currentWall,
+              currentSlab,
+              currentSelectedObjectType,
+              currentVisualStyle,
+              currentRoofDisplayMode,
+              currentRoofLayerVisibility,
+              usePreviewMaterials,
+              cmuSelected,
+              cmuCutawayActive,
+              cmuOpacity,
+              cmuMaterialOptions,
+            },
+            cmuLayout,
+            showCmuInfill,
+            trackGeometry,
+            trackMaterial: trackMat,
+            makeMaterial,
+          });
+          sceneRegistry.registerSelectables(cmuInfillScene.selectableObjects);
+          cmuInfillScene.groups.forEach((group) => root.add(group));
+        }
       } else if (legacyPresetActive) {
         addLabel(root, 'NORTH WALL', new THREE.Vector3(0, 0.06, -currentWall.widthMeters / 2 - 0.8), 0x0284c7);
         addLabel(root, 'SOUTH WALL', new THREE.Vector3(0, 0.06, currentWall.widthMeters / 2 + 0.8), 0x0284c7);
@@ -785,48 +805,50 @@ export default function DesignBuilderViewer({
         }
       }
 
-      const manualMasonryScene = buildManualMasonrySceneGroup({
-        runs: currentWall.manualMasonryCourseRuns ?? [],
-        wall: currentWall,
-        slabTopMeters: currentSlab.slabThicknessMeters,
-        createMaterial: (_unitType, color) =>
-          usePreviewMaterials
-            ? resolveCmuMaterial(cmuMaterialOptions, trackMat)
-            : makeMaterial(color, cmuSelected),
-        trackGeometry,
-      });
-      sceneRegistry.registerSelectables(manualMasonryScene.selectableObjects);
-      if (manualMasonryScene.group.children.length > 0) root.add(manualMasonryScene.group);
+      if (!belowGradeCutawayActive) {
+        const manualMasonryScene = buildManualMasonrySceneGroup({
+          runs: currentWall.manualMasonryCourseRuns ?? [],
+          wall: currentWall,
+          slabTopMeters: currentSlab.slabThicknessMeters,
+          createMaterial: (_unitType, color) =>
+            usePreviewMaterials
+              ? resolveCmuMaterial(cmuMaterialOptions, trackMat)
+              : makeMaterial(color, cmuSelected),
+          trackGeometry,
+        });
+        sceneRegistry.registerSelectables(manualMasonryScene.selectableObjects);
+        if (manualMasonryScene.group.children.length > 0) root.add(manualMasonryScene.group);
 
-      const openingSceneGroups = buildOpeningSceneGroups({
-        cmuLayout,
-        wall: currentWall,
-        slabTopMeters: currentSlab.slabThicknessMeters,
-        showGroutCells: currentShowGroutCells,
-        showOpeningLayout: currentShowOpeningLayout,
-        showClosureWarnings: currentShowClosureWarnings,
-        selectedOpeningId: selectedOpeningIdRef.current,
-        hoveredOpeningId: hoveredOpeningIdRef.current,
-        resolvedInfillPanelBounds: currentGeometry?.resolvedInfillPanelBounds,
-        trackGeometry,
-        makeMaterial,
-        resolveLintelMaterial: usePreviewMaterials
-          ? () =>
-              resolveCastConcreteMaterial(
-                { visualStyle: currentVisualStyle, selected: false, role: 'structural' },
-                trackMat,
-              )
-          : undefined,
-      });
-      sceneRegistry.registerSelectables(openingSceneGroups.selectableObjects);
-      root.add(openingSceneGroups.lintelGroup);
-      root.add(openingSceneGroups.frameGroup);
-      if (currentShowGroutCells) root.add(openingSceneGroups.groutCellGroup);
-      if (currentShowOpeningLayout) root.add(openingSceneGroups.roughOpeningGuideGroup);
-      if (currentShowClosureWarnings) root.add(openingSceneGroups.closureWarningGroup);
+        const openingSceneGroups = buildOpeningSceneGroups({
+          cmuLayout,
+          wall: currentWall,
+          slabTopMeters: currentSlab.slabThicknessMeters,
+          showGroutCells: currentShowGroutCells,
+          showOpeningLayout: currentShowOpeningLayout,
+          showClosureWarnings: currentShowClosureWarnings,
+          selectedOpeningId: selectedOpeningIdRef.current,
+          hoveredOpeningId: hoveredOpeningIdRef.current,
+          resolvedInfillPanelBounds: currentGeometry?.resolvedInfillPanelBounds,
+          trackGeometry,
+          makeMaterial,
+          resolveLintelMaterial: usePreviewMaterials
+            ? () =>
+                resolveCastConcreteMaterial(
+                  { visualStyle: currentVisualStyle, selected: false, role: 'structural' },
+                  trackMat,
+                )
+            : undefined,
+        });
+        sceneRegistry.registerSelectables(openingSceneGroups.selectableObjects);
+        root.add(openingSceneGroups.lintelGroup);
+        root.add(openingSceneGroups.frameGroup);
+        if (currentShowGroutCells) root.add(openingSceneGroups.groutCellGroup);
+        if (currentShowOpeningLayout) root.add(openingSceneGroups.roughOpeningGuideGroup);
+        if (currentShowClosureWarnings) root.add(openingSceneGroups.closureWarningGroup);
 
-      addSupplementalPlacedComponents();
-      addPlumbingScene();
+        addSupplementalPlacedComponents();
+        addPlumbingScene();
+      }
       refreshSiteGroundMaterial();
       updateGhost();
     }

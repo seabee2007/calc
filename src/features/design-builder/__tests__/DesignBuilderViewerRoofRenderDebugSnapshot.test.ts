@@ -112,6 +112,7 @@ function roofAssemblyState(params: {
     currentVisualStyle: "technical",
     currentRoofSystem: params.roofSystem,
     currentRoofDisplayMode: "full_roof",
+    currentFoundationViewMode: "full_model",
     currentRoofLayerVisibility: DEFAULT_ROOF_LAYER_VISIBILITY,
     currentShowRoofFramingGuides: false,
     usePreviewMaterials: false,

@@ -29,6 +29,8 @@ export function resolveRcConcreteMaterial(
     role?: ResolveCastConcreteMaterialOptions['role'];
     technicalColor: number;
     technicalOptions?: THREE.MeshStandardMaterialParameters;
+    transparent?: boolean;
+    opacity?: number;
   },
 ): THREE.MeshStandardMaterial {
   return context.usePreviewMaterials
@@ -37,6 +39,7 @@ export function resolveRcConcreteMaterial(
           visualStyle: context.visualStyle,
           selected: context.selected,
           role: params.role ?? 'structural',
+          ...(params.transparent ? { transparent: true, opacity: params.opacity } : {}),
         },
         context.trackMaterial,
       )

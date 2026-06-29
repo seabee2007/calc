@@ -104,6 +104,7 @@ function structuralState(
     currentVisualStyle: 'technical',
     usePreviewMaterials: false,
     frameSelected: false,
+    belowGradeCutawayActive: false,
     ...partial,
   };
 }
@@ -199,5 +200,78 @@ describe('DesignBuilderViewerStructuralFrameScene', () => {
     expect(scene.group.children).toHaveLength(0);
     expect(scene.selectableObjects).toHaveLength(0);
     expect(resources.trackedGeometryCount()).toBe(0);
+
+    resources.disposeTrackedResources();
+  });
+
+  it('clips above-plinth frame geometry and makes the interior floor slab translucent in below-grade cutaway', () => {
+    const resources = createDesignBuilderViewerResources();
+    const frame = frameSystem();
+    frame.columns[0] = {
+      ...frame.columns[0],
+      baseElevationMeters: -0.8,
+      topElevationMeters: 2.8,
+      heightMeters: 3.6,
+    };
+    frame.beams = [
+      {
+        ...frame.beams[0],
+        baseElevationMeters: -0.3,
+        topElevationMeters: 0,
+      },
+      {
+        id: 'roof-1',
+        name: 'Roof beam',
+        kind: 'roof_beam',
+        startPoint: { x: -2, y: 0, z: 1 },
+        endPoint: { x: 2, y: 0, z: 1 },
+        widthMeters: 0.2,
+        depthMeters: 0.3,
+        baseElevationMeters: 2.5,
+        topElevationMeters: 2.8,
+        source: 'auto_frame_layout',
+      },
+    ];
+
+    const scene = buildDesignBuilderViewerStructuralFrameScene({
+      state: structuralState({
+        belowGradeCutawayActive: true,
+        currentGeometry: geometryResult({
+          frameSystem: frame,
+          interiorFloorSlab: {
+            enabled: true,
+            thicknessMeters: 0.125,
+            bottomElevationMeters: -0.125,
+            topElevationMeters: 0,
+            areaSquareMeters: 12,
+            volumeCubicMeters: 1.5,
+          },
+          resolvedFootprint: {
+            interiorFacePolygon: [
+              { x: -2, z: -1.5 },
+              { x: 2, z: -1.5 },
+              { x: 2, z: 1.5 },
+              { x: -2, z: 1.5 },
+            ],
+          },
+        } as DesignGeometryResult),
+      }),
+      showCmuInfill: false,
+      trackGeometry: resources.trackGeometry,
+      trackMaterial: resources.trackMaterial,
+      makeMaterial: resources.makeMaterial,
+    });
+
+    expect(scene.group.getObjectByName('structuralBeam:roof-1')).toBeUndefined();
+    expect(scene.group.getObjectByName('structuralColumn:column-1')).toBeUndefined();
+    expect(meshByName(scene.group, 'structuralColumn:column-1:belowPlinth').position.y).toBeCloseTo(-0.275, 6);
+
+    const floorSlab = meshByName(scene.group, 'interiorFloorSlab');
+    const floorSlabMaterial = floorSlab.material as THREE.MeshStandardMaterial;
+    expect(floorSlabMaterial.transparent).toBe(true);
+    expect(floorSlabMaterial.opacity).toBeCloseTo(0.32, 6);
+    expect(floorSlabMaterial.depthWrite).toBe(false);
+
+    resources.disposeTrackedResources();
   });
 });

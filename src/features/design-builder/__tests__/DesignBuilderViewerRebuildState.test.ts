@@ -104,6 +104,7 @@ describe('DesignBuilderViewerRebuildState', () => {
     expect(state.usePreviewMaterials).toBe(true);
     expect(state.frameSelected).toBe(true);
     expect(state.cmuCutawayActive).toBe(true);
+    expect(state.belowGradeCutawayActive).toBe(true);
     expect(state.cmuOpacity).toBeCloseTo(0.35, 6);
     expect(state.cmuMaterialOptions).toEqual({
       visualStyle: 'material_preview',

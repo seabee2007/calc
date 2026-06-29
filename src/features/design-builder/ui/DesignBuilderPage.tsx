@@ -4707,6 +4707,7 @@ export default function DesignBuilderPage({
           currentVisualStyle: visualStyle,
           currentRoofSystem: activeRoofSystem,
           currentRoofDisplayMode: roofDisplayMode,
+          currentFoundationViewMode: foundationViewMode,
           currentRoofLayerVisibility: roofLayerVisibility,
           currentShowRoofFramingGuides: showRoofFramingGuides,
           usePreviewMaterials: visualStyle === 'material_preview',

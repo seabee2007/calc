@@ -71,6 +71,7 @@ export function buildResolvedStructuralFrameSceneGroup(params: {
   interiorFacePolygon?: readonly { x: number; z: number }[];
   slabTopMeters: number;
   useFramePlasterFinish: boolean;
+  hideAbovePlinth?: boolean;
   materials: StructuralFrameSceneMaterials;
   trackGeometry: TrackGeometry;
 }): THREE.Group {
@@ -81,6 +82,29 @@ export function buildResolvedStructuralFrameSceneGroup(params: {
     TOP_OF_PLINTH_BEAM_Y;
 
   params.frameSystem?.columns.forEach((column) => {
+    if (params.hideAbovePlinth) {
+      const clippedTopElevationMeters = Math.min(column.topElevationMeters, plinthTopElevationMeters);
+      if (clippedTopElevationMeters <= column.baseElevationMeters + FOUNDATION_CONTACT_EPSILON_METERS) {
+        return;
+      }
+      const mesh = buildRcElevationBoxMesh({
+        name: `structuralColumn:${column.id}:belowPlinth`,
+        xSizeMeters: column.widthMeters,
+        zSizeMeters: column.depthMeters,
+        bottomElevationMeters: column.baseElevationMeters,
+        topElevationMeters: clippedTopElevationMeters,
+        x: column.position.x,
+        z: column.position.z,
+        slabTopMeters: params.slabTopMeters,
+        material: params.materials.columnConcrete,
+        trackGeometry: params.trackGeometry,
+        minHeightMeters: 0,
+        userData: { structuralElementId: column.id },
+      });
+      group.add(mesh);
+      return;
+    }
+
     if (params.useFramePlasterFinish) {
       const belowPlinthHeight = Math.max(0, plinthTopElevationMeters - column.baseElevationMeters);
       const abovePlinthHeight = Math.max(0, column.topElevationMeters - plinthTopElevationMeters);
@@ -139,6 +163,12 @@ export function buildResolvedStructuralFrameSceneGroup(params: {
   });
 
   params.frameSystem?.beams.forEach((beam) => {
+    if (
+      params.hideAbovePlinth &&
+      beam.topElevationMeters > plinthTopElevationMeters + FOUNDATION_CONTACT_EPSILON_METERS
+    ) {
+      return;
+    }
     const mesh = buildRcBeamMesh({
       name: `structuralBeam:${beam.id}`,
       start: beam.startPoint,

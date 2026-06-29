@@ -83,6 +83,7 @@ export interface DesignBuilderViewerRebuildState {
   roofSelected: boolean;
   gableSelected: boolean;
   cmuCutawayActive: boolean;
+  belowGradeCutawayActive: boolean;
   cmuOpacity: number;
   cmuMaterialOptions: ResolveDesignMaterialOptions;
   blankGeometryActive: boolean;
@@ -120,6 +121,7 @@ export function createDesignBuilderViewerRebuildState(params: {
   const roofSelected = modelParams.selectedObjectType === 'gable_roof_system';
   const gableSelected = modelParams.selectedObjectType === 'gable_end_system';
   const cmuCutawayActive = modelParams.foundationViewMode === 'cutaway_below_grade';
+  const belowGradeCutawayActive = modelParams.foundationViewMode === 'cutaway_below_grade';
   const cmuOpacity = cmuCutawayActive ? 0.35 : usePreviewMaterials ? 1 : 0.9;
   const blankGeometryActive = modelParams.geometryResult?.sourcePath === 'blank';
   return {
@@ -153,6 +155,7 @@ export function createDesignBuilderViewerRebuildState(params: {
     roofSelected,
     gableSelected,
     cmuCutawayActive,
+    belowGradeCutawayActive,
     cmuOpacity,
     cmuMaterialOptions: {
       visualStyle: modelParams.visualStyle,

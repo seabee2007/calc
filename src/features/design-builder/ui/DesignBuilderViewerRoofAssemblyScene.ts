@@ -57,6 +57,7 @@ export type DesignBuilderViewerRoofAssemblyState = Pick<
   | 'currentVisualStyle'
   | 'currentRoofSystem'
   | 'currentRoofDisplayMode'
+  | 'currentFoundationViewMode'
   | 'currentRoofLayerVisibility'
   | 'currentShowRoofFramingGuides'
   | 'usePreviewMaterials'
@@ -120,8 +121,12 @@ export function buildDesignBuilderViewerRoofAssemblyScene(params: {
     return { groups, selectableObjects };
   }
 
+  const effectiveRoofDisplayMode =
+    state.currentFoundationViewMode === 'structural_frame_only'
+      ? 'steel_framing_only'
+      : state.currentRoofDisplayMode;
   const visibility = resolveDesignBuilderRoofAssemblyVisibility({
-    roofDisplayMode: state.currentRoofDisplayMode,
+    roofDisplayMode: effectiveRoofDisplayMode,
     roofLayerVisibility: state.currentRoofLayerVisibility,
   });
   const roofSegmentFrames = geometry.wallCmuLayout?.segmentFrames ?? [];
