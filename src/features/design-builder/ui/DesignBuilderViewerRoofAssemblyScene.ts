@@ -38,6 +38,27 @@ type MakeMaterial = (
   options?: THREE.MeshStandardMaterialParameters,
 ) => THREE.MeshStandardMaterial;
 
+function isObject3D(value: unknown): value is THREE.Object3D {
+  return Boolean(value && typeof value === 'object' && (value as THREE.Object3D).isObject3D === true);
+}
+
+function addObject3D(parent: THREE.Object3D, child: unknown, label: string): void {
+  if (!isObject3D(child)) {
+    if (import.meta.env.DEV) {
+      console.warn(`[DesignBuilderViewerRoofAssemblyScene] Skipped invalid Object3D: ${label}`, child);
+    }
+    return;
+  }
+
+  parent.add(child);
+}
+
+function addGroupChildren(parent: THREE.Object3D, source: THREE.Object3D, label: string): void {
+  [...source.children].forEach((child, index) => {
+    addObject3D(parent, child, `${label} child ${index}`);
+  });
+}
+
 export interface DesignBuilderRoofAssemblyVisibility {
   showRoofCladding: boolean;
   showRoofFraming: boolean;
@@ -62,7 +83,9 @@ export type DesignBuilderViewerRoofAssemblyState = Pick<
   | 'currentShowRoofFramingGuides'
   | 'usePreviewMaterials'
   | 'roofSelected'
+  | 'trussSelected'
   | 'gableSelected'
+  | 'frameSelected'
 >;
 
 export interface DesignBuilderViewerRoofAssemblyScene {
@@ -168,7 +191,7 @@ export function buildDesignBuilderViewerRoofAssemblyScene(params: {
             params.trackMaterial,
           )
         : corrugatedEnabled
-          ? createCorrugatedMetalMaterial()
+          ? createCorrugatedMetalMaterial(state.roofSelected)
           : params.makeMaterial(0x64748b, state.roofSelected, {
               roughness: 0.75,
               opacity: 0.92,
@@ -178,8 +201,9 @@ export function buildDesignBuilderViewerRoofAssemblyScene(params: {
     if (debugGuides || !state.usePreviewMaterials) {
       params.trackMaterial(roofMaterial);
     }
-    roofCladdingGroup.add(
-      ...buildRoofCladdingSceneGroup({
+    addGroupChildren(
+      roofCladdingGroup,
+      buildRoofCladdingSceneGroup({
         resolvedRoof,
         slabTopMeters: state.currentSlab.slabThicknessMeters,
         material: roofMaterial,
@@ -187,7 +211,8 @@ export function buildDesignBuilderViewerRoofAssemblyScene(params: {
         corrugationRepeatPerMeter: roofCladdingUvOptions?.corrugationRepeatPerMeter,
         swapCorrugationAxis: roofCladdingUvOptions?.swapCorrugationAxis,
         trackGeometry: params.trackGeometry,
-      }).children,
+      }),
+      'roof cladding',
     );
   }
 
@@ -199,27 +224,27 @@ export function buildDesignBuilderViewerRoofAssemblyScene(params: {
       state.usePreviewMaterials && !debugGuides
         ? {
             chord: resolveStructuralSteelMaterial(
-              { visualStyle: state.currentVisualStyle, selected: state.roofSelected },
+              { visualStyle: state.currentVisualStyle, selected: state.trussSelected },
               params.trackMaterial,
             ),
             web: resolveStructuralSteelMaterial(
-              { visualStyle: state.currentVisualStyle, selected: state.roofSelected },
+              { visualStyle: state.currentVisualStyle, selected: state.trussSelected },
               params.trackMaterial,
             ),
             plate: resolveStructuralSteelMaterial(
-              { visualStyle: state.currentVisualStyle, selected: state.roofSelected },
+              { visualStyle: state.currentVisualStyle, selected: state.trussSelected },
               params.trackMaterial,
             ),
             bolt: resolveStructuralSteelMaterial(
-              { visualStyle: state.currentVisualStyle, selected: state.roofSelected },
+              { visualStyle: state.currentVisualStyle, selected: state.trussSelected },
               params.trackMaterial,
             ),
             purlin: resolveStructuralSteelMaterial(
-              { visualStyle: state.currentVisualStyle, selected: state.roofSelected },
+              { visualStyle: state.currentVisualStyle, selected: state.trussSelected },
               params.trackMaterial,
             ),
           }
-        : createSteelTrussMaterials();
+        : createSteelTrussMaterials(state.trussSelected);
     if (!state.usePreviewMaterials || debugGuides) {
       params.trackMaterial(steelMaterials.chord);
       params.trackMaterial(steelMaterials.web);
@@ -246,41 +271,43 @@ export function buildDesignBuilderViewerRoofAssemblyScene(params: {
       trackGeometry: params.trackGeometry,
       trackMaterial: params.trackMaterial,
     });
-    trussChordGroup.add(...trussGroups.trussChordGroup.children);
-    trussWebGroup.add(...trussGroups.trussWebGroup.children);
-    basePlateGroup.add(...trussGroups.basePlateGroup.children);
-    anchorBoltGroup.add(...trussGroups.anchorBoltGroup.children);
-    framingGuideGroup.add(...trussGroups.framingGuideGroup.children);
+    addGroupChildren(trussChordGroup, trussGroups.trussChordGroup, 'truss chord');
+    addGroupChildren(trussWebGroup, trussGroups.trussWebGroup, 'truss web');
+    addGroupChildren(basePlateGroup, trussGroups.basePlateGroup, 'truss base plate');
+    addGroupChildren(anchorBoltGroup, trussGroups.anchorBoltGroup, 'truss anchor bolt');
+    addGroupChildren(framingGuideGroup, trussGroups.framingGuideGroup, 'truss framing guide');
   }
 
   if (visibility.showRoofFraming && resolvedRoof.roofType === 'hip') {
     const hipMaterial =
       state.usePreviewMaterials && !debugGuides
         ? resolveStructuralSteelMaterial(
-            { visualStyle: state.currentVisualStyle, selected: state.roofSelected },
+            { visualStyle: state.currentVisualStyle, selected: state.trussSelected },
             params.trackMaterial,
           )
-        : new THREE.MeshStandardMaterial({ color: 0x546e7a, metalness: 0.78, roughness: 0.32 });
+        : createSteelTrussMaterials(state.trussSelected).chord;
     if (!state.usePreviewMaterials || debugGuides) {
       params.trackMaterial(hipMaterial);
     }
-    trussChordGroup.add(
-      ...buildHipFramingSceneGroup({
+    addGroupChildren(
+      trussChordGroup,
+      buildHipFramingSceneGroup({
         resolvedRoof,
         slabTopMeters: state.currentSlab.slabThicknessMeters,
         material: hipMaterial,
         trackGeometry: params.trackGeometry,
-      }).children,
+      }),
+      'hip framing',
     );
   }
 
   if (visibility.showPurlins && roofSystem.purlins.enabled) {
-    const steelMaterials = state.usePreviewMaterials && !debugGuides ? null : createSteelTrussMaterials();
+    const steelMaterials = state.usePreviewMaterials && !debugGuides ? null : createSteelTrussMaterials(state.trussSelected);
     const purlinMaterial = debugGuides
       ? new THREE.MeshStandardMaterial({ color: 0x3b82f6, metalness: 0.5, roughness: 0.45 })
       : state.usePreviewMaterials
         ? resolveStructuralSteelMaterial(
-            { visualStyle: state.currentVisualStyle, selected: state.roofSelected },
+            { visualStyle: state.currentVisualStyle, selected: state.trussSelected },
             params.trackMaterial,
           )
         : steelMaterials!.purlin;
@@ -295,8 +322,8 @@ export function buildDesignBuilderViewerRoofAssemblyScene(params: {
       trackGeometry: params.trackGeometry,
       trackMaterial: params.trackMaterial,
     });
-    purlinGroup.add(...purlinGroups.purlinGroup.children);
-    framingGuideGroup.add(...purlinGroups.framingGuideGroup.children);
+    addGroupChildren(purlinGroup, purlinGroups.purlinGroup, 'purlin');
+    addGroupChildren(framingGuideGroup, purlinGroups.framingGuideGroup, 'purlin framing guide');
   }
 
   if (
@@ -311,17 +338,19 @@ export function buildDesignBuilderViewerRoofAssemblyScene(params: {
             { visualStyle: state.currentVisualStyle, selected: state.roofSelected },
             params.trackMaterial,
           )
-        : createRidgeCapMaterial();
+        : createRidgeCapMaterial(state.roofSelected);
     if (debugGuides || !state.usePreviewMaterials) {
       params.trackMaterial(ridgeCapMaterial);
     }
-    ridgeCapGroup.add(
-      ...buildRidgeCapSceneGroup({
+    addGroupChildren(
+      ridgeCapGroup,
+      buildRidgeCapSceneGroup({
         resolvedRoof,
         slabTopMeters: state.currentSlab.slabThicknessMeters,
         material: ridgeCapMaterial,
         trackGeometry: params.trackGeometry,
-      }).children,
+      }),
+      'ridge cap',
     );
   }
 
@@ -333,19 +362,21 @@ export function buildDesignBuilderViewerRoofAssemblyScene(params: {
             { visualStyle: state.currentVisualStyle, selected: state.roofSelected },
             params.trackMaterial,
           )
-        : createRidgeCapMaterial();
+        : createRidgeCapMaterial(state.roofSelected);
     fasciaMaterial.side = THREE.DoubleSide;
     fasciaMaterial.needsUpdate = true;
     if (debugGuides || !state.usePreviewMaterials) {
       params.trackMaterial(fasciaMaterial);
     }
-    fasciaGroup.add(
-      ...buildFasciaSceneGroup({
+    addGroupChildren(
+      fasciaGroup,
+      buildFasciaSceneGroup({
         resolvedRoof,
         slabTopMeters: state.currentSlab.slabThicknessMeters,
         material: fasciaMaterial,
         trackGeometry: params.trackGeometry,
-      }).children,
+      }),
+      'fascia',
     );
   }
 
@@ -357,19 +388,21 @@ export function buildDesignBuilderViewerRoofAssemblyScene(params: {
             { visualStyle: state.currentVisualStyle, selected: state.roofSelected },
             params.trackMaterial,
           )
-        : createRidgeCapMaterial();
+        : createRidgeCapMaterial(state.roofSelected);
     soffitMaterial.side = THREE.DoubleSide;
     soffitMaterial.needsUpdate = true;
     if (debugGuides || !state.usePreviewMaterials) {
       params.trackMaterial(soffitMaterial);
     }
-    soffitGroup.add(
-      ...buildSoffitSceneGroup({
+    addGroupChildren(
+      soffitGroup,
+      buildSoffitSceneGroup({
         resolvedRoof,
         slabTopMeters: state.currentSlab.slabThicknessMeters,
         material: soffitMaterial,
         trackGeometry: params.trackGeometry,
-      }).children,
+      }),
+      'soffit',
     );
   }
 
@@ -381,13 +414,15 @@ export function buildDesignBuilderViewerRoofAssemblyScene(params: {
     resolvedRoof.claddingRidgeStart &&
     resolvedRoof.claddingRidgeEnd
   ) {
-    framingGuideGroup.add(
-      ...buildGableRidgeGuideSceneGroup({
+    addGroupChildren(
+      framingGuideGroup,
+      buildGableRidgeGuideSceneGroup({
         resolvedRoof,
         slabTopMeters: state.currentSlab.slabThicknessMeters,
         trackGeometry: params.trackGeometry,
         trackMaterial: params.trackMaterial,
-      }).children,
+      }),
+      'gable ridge guide',
     );
   }
 
@@ -396,25 +431,28 @@ export function buildDesignBuilderViewerRoofAssemblyScene(params: {
     visibility.showRakedCap &&
     geometry.rakedCapPlacements?.length
   ) {
+    const rakedCapSelected = state.gableSelected || state.frameSelected;
     const capMaterial = state.usePreviewMaterials
       ? resolveCastConcreteMaterial(
-          { visualStyle: state.currentVisualStyle, selected: state.gableSelected, role: 'structural' },
+          { visualStyle: state.currentVisualStyle, selected: rakedCapSelected, role: 'structural' },
           params.trackMaterial,
         )
-      : createRakedConcreteCapMaterial(state.gableSelected);
+      : createRakedConcreteCapMaterial(rakedCapSelected);
     capMaterial.side = THREE.DoubleSide;
     capMaterial.needsUpdate = true;
     if (!state.usePreviewMaterials) {
       params.trackMaterial(capMaterial);
     }
-    rakedCapGroup.add(
-      ...buildRakedCapSceneGroup({
+    addGroupChildren(
+      rakedCapGroup,
+      buildRakedCapSceneGroup({
         placements: geometry.rakedCapPlacements,
         frameBySegmentId: roofFrameById,
         slabTopMeters: state.currentSlab.slabThicknessMeters,
         material: capMaterial,
         trackGeometry: params.trackGeometry,
-      }).children,
+      }),
+      'raked concrete cap',
     );
   }
 
@@ -433,7 +471,15 @@ export function buildDesignBuilderViewerRoofAssemblyScene(params: {
   ]) {
     if (group.children.length === 0) continue;
     const roofObjectType: DesignObjectType =
-      group === rakedCapGroup ? 'gable_end_system' : 'gable_roof_system';
+      group === rakedCapGroup
+        ? 'gable_end_system'
+        : group === trussChordGroup ||
+            group === trussWebGroup ||
+            group === purlinGroup ||
+            group === basePlateGroup ||
+            group === anchorBoltGroup
+          ? 'steel_truss_system'
+          : 'gable_roof_system';
     const roofSelectionPriority = selectionPriorityForObjectType(roofObjectType);
     group.traverse((child) => {
       if (child instanceof THREE.Mesh || child instanceof THREE.InstancedMesh) {

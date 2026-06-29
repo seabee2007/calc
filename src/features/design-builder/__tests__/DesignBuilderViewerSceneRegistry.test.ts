@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   createDesignBuilderViewerSceneRegistry,
   markDesignBuilderSelectable,
@@ -72,5 +72,35 @@ describe('DesignBuilderViewerSceneRegistry', () => {
     expect(root.children).toHaveLength(0);
     expect(selectableObjects).toHaveLength(0);
     expect(wallPickableObjects).toHaveLength(0);
+  });
+
+  it('skips invalid runtime objects before they reach Three.js add()', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const root = new THREE.Group();
+    const rootAddSpy = vi.spyOn(root, 'add');
+    const selectableObjects: THREE.Object3D[] = [];
+    const wallPickableObjects: THREE.Object3D[] = [];
+    const registry = createDesignBuilderViewerSceneRegistry({
+      root,
+      selectableObjects,
+      wallPickableObjects,
+    });
+
+    const invalid = undefined as unknown as THREE.Object3D;
+
+    registry.addRootObject(invalid);
+    registry.addSelectable(invalid, 'cmu_wall_system');
+    registry.addWallPickable(invalid as THREE.Mesh, { wallFace: 'north' });
+    registry.registerSelectable(invalid);
+    registry.registerSelectables([invalid]);
+
+    expect(root.children).toHaveLength(0);
+    expect(selectableObjects).toHaveLength(0);
+    expect(wallPickableObjects).toHaveLength(0);
+    expect(rootAddSpy).not.toHaveBeenCalled();
+    expect(warnSpy).toHaveBeenCalled();
+
+    warnSpy.mockRestore();
+    rootAddSpy.mockRestore();
   });
 });

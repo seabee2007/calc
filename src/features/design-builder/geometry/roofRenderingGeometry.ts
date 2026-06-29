@@ -149,7 +149,7 @@ export function memberKindMaterialColor(memberKind: SteelMemberKind): number {
   }
 }
 
-export function createCorrugatedMetalMaterial(): THREE.MeshStandardMaterial {
+export function createCorrugatedMetalMaterial(selected = false): THREE.MeshStandardMaterial {
   const canvas = document.createElement('canvas');
   canvas.width = 128;
   canvas.height = 128;
@@ -168,26 +168,46 @@ export function createCorrugatedMetalMaterial(): THREE.MeshStandardMaterial {
   texture.repeat.set(4, 8);
   return new THREE.MeshStandardMaterial({
     map: texture,
-    color: 0xb0bec5,
+    color: selected ? 0x22d3ee : 0xb0bec5,
     metalness: 0.65,
     roughness: 0.35,
     side: THREE.DoubleSide,
+    transparent: selected,
+    opacity: selected ? 0.92 : 1,
+    emissive: selected ? 0x0e7490 : 0x000000,
+    emissiveIntensity: selected ? 0.22 : 0,
   });
 }
 
-export function createSteelTrussMaterials(): {
+export function createSteelTrussMaterials(selected = false): {
   chord: THREE.MeshStandardMaterial;
   web: THREE.MeshStandardMaterial;
   plate: THREE.MeshStandardMaterial;
   bolt: THREE.MeshStandardMaterial;
   purlin: THREE.MeshStandardMaterial;
 } {
+  const selectedOptions = selected
+    ? {
+        color: 0x22d3ee,
+        transparent: true,
+        opacity: 0.92,
+        emissive: 0x0e7490,
+        emissiveIntensity: 0.22,
+      }
+    : null;
+  const material = (color: number, metalness: number, roughness: number) =>
+    new THREE.MeshStandardMaterial({
+      color,
+      metalness,
+      roughness,
+      ...(selectedOptions ?? {}),
+    });
   return {
-    chord: new THREE.MeshStandardMaterial({ color: 0x546e7a, metalness: 0.78, roughness: 0.32 }),
-    web: new THREE.MeshStandardMaterial({ color: 0x455a64, metalness: 0.75, roughness: 0.36 }),
-    plate: new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.82, roughness: 0.3 }),
-    bolt: new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.9, roughness: 0.2 }),
-    purlin: new THREE.MeshStandardMaterial({ color: 0x78909c, metalness: 0.76, roughness: 0.34 }),
+    chord: material(0x546e7a, 0.78, 0.32),
+    web: material(0x455a64, 0.75, 0.36),
+    plate: material(0x334155, 0.82, 0.3),
+    bolt: material(0x1e293b, 0.9, 0.2),
+    purlin: material(0x78909c, 0.76, 0.34),
   };
 }
 
@@ -505,8 +525,16 @@ export function buildTrussPlaneGuide(params: {
   return new THREE.Line(geometry, material);
 }
 
-export function createRidgeCapMaterial(): THREE.MeshStandardMaterial {
-  return new THREE.MeshStandardMaterial({ color: 0x64748b, metalness: 0.72, roughness: 0.34 });
+export function createRidgeCapMaterial(selected = false): THREE.MeshStandardMaterial {
+  return new THREE.MeshStandardMaterial({
+    color: selected ? 0x22d3ee : 0x64748b,
+    metalness: 0.72,
+    roughness: 0.34,
+    transparent: selected,
+    opacity: selected ? 0.92 : 1,
+    emissive: selected ? 0x0e7490 : 0x000000,
+    emissiveIntensity: selected ? 0.22 : 0,
+  });
 }
 
 export function createFasciaTrimGeometry(params: {
@@ -1151,8 +1179,12 @@ export function createRakedCapStripGeometry(
 
 export function createRakedConcreteCapMaterial(selected: boolean): THREE.MeshStandardMaterial {
   return new THREE.MeshStandardMaterial({
-    color: selected ? 0x9ca3af : 0x78716c,
+    color: selected ? 0x22d3ee : 0x78716c,
     metalness: 0.08,
     roughness: 0.88,
+    transparent: selected,
+    opacity: selected ? 0.92 : 1,
+    emissive: selected ? 0x0e7490 : 0x000000,
+    emissiveIntensity: selected ? 0.22 : 0,
   });
 }

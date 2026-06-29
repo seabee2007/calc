@@ -196,6 +196,7 @@ export function buildDesignBuilderViewerCmuInfillScene(params: {
   }
 
   if (params.showCmuInfill) {
+    const fadePlasterForCmuSelection = state.cmuSelected;
     const exteriorSegmentIds = new Set(
       (geometry.resolvedFootprint?.orderedPerimeterSegments ?? []).map(
         (segment) => segment.segmentId,
@@ -214,6 +215,7 @@ export function buildDesignBuilderViewerCmuInfillScene(params: {
               {
                 visualStyle: state.currentVisualStyle,
                 selected: state.currentSelectedObjectType === 'cmu_infill_system',
+                ...(fadePlasterForCmuSelection ? { transparent: true, opacity: 0.28 } : {}),
                 plasterFinish: finish,
               },
               params.trackMaterial,
@@ -223,6 +225,7 @@ export function buildDesignBuilderViewerCmuInfillScene(params: {
               state.currentSelectedObjectType === 'cmu_infill_system',
               {
                 side: THREE.DoubleSide,
+                ...(fadePlasterForCmuSelection ? { transparent: true, opacity: 0.28, depthWrite: false } : {}),
               },
             ),
       trackGeometry: params.trackGeometry,

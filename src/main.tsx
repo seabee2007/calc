@@ -39,7 +39,12 @@ const root = createRoot(rootElement);
 root.render(
   <RootErrorBoundary>
     <StrictMode>
-      <BrowserRouter>
+      <BrowserRouter
+        future={{
+          v7_relativeSplatPath: true,
+          v7_startTransition: true,
+        }}
+      >
         <AuthProvider>
           <AppAccessProvider>
             <SubscriptionProvider>

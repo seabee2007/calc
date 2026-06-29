@@ -81,6 +81,7 @@ export interface DesignBuilderViewerRebuildState {
   frameSelected: boolean;
   cmuSelected: boolean;
   roofSelected: boolean;
+  trussSelected: boolean;
   gableSelected: boolean;
   cmuCutawayActive: boolean;
   belowGradeCutawayActive: boolean;
@@ -119,6 +120,7 @@ export function createDesignBuilderViewerRebuildState(params: {
   const frameSelected = modelParams.selectedObjectType === 'structural_frame_system';
   const cmuSelected = modelParams.selectedObjectType === 'cmu_wall_system';
   const roofSelected = modelParams.selectedObjectType === 'gable_roof_system';
+  const trussSelected = modelParams.selectedObjectType === 'steel_truss_system';
   const gableSelected = modelParams.selectedObjectType === 'gable_end_system';
   const cmuCutawayActive = modelParams.foundationViewMode === 'cutaway_below_grade';
   const belowGradeCutawayActive = modelParams.foundationViewMode === 'cutaway_below_grade';
@@ -153,6 +155,7 @@ export function createDesignBuilderViewerRebuildState(params: {
     frameSelected,
     cmuSelected,
     roofSelected,
+    trussSelected,
     gableSelected,
     cmuCutawayActive,
     belowGradeCutawayActive,

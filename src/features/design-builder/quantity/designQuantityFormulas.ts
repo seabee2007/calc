@@ -30,8 +30,6 @@ import {
 } from '../domain/cmuOpeningRules';
 import {
   applyGroutWaste,
-  computeCellCoreVolumeCubicMeters,
-  resolveCmuCoreGeometry,
 } from '../domain/cmuCoreGeometry';
 import {
   applyMeasurementSystemToPreviewLines,
@@ -41,6 +39,12 @@ import { cubicMetersToCubicFeet } from '../domain/floorTileQuantities';
 import type { ResolvedFloorTileLayout } from '../types';
 
 const SQUARE_METERS_PER_SQUARE_FOOT = 0.09290304;
+const CUBIC_METERS_PER_CUBIC_FOOT = 0.028316846592;
+const CORE_FILL_VOLUME_CUBIC_FEET_BY_BLOCK_DEPTH_INCHES = {
+  6: 0.15,
+  8: 0.25,
+  12: 0.4,
+} as const;
 
 export const CMU_BLOCK_BREAKDOWN_PREVIEW_LINE_IDS = [
   'cmu-standard-blocks',
@@ -74,33 +78,59 @@ export function calculateCmuFullCoreFillVolumeCubicMeters(
   totalBlocks: number,
   wall: CmuWallSystemParameters,
 ): number {
-  const core = resolveCmuCoreGeometry(wall);
-  const perBlockVolume = computeCellCoreVolumeCubicMeters(core);
+  const perBlockVolume = resolveCmuCoreFillVolumePerBlockCubicFeet(wall) * CUBIC_METERS_PER_CUBIC_FOOT;
   const grossVolume = Math.max(0, totalBlocks) * perBlockVolume;
   const wastePercent = Math.max(0, (wall.groutWastePercent ?? 0.1) * 100);
   return applyGroutWaste(grossVolume, wastePercent).netVolumeCubicMeters;
+}
+
+export function resolveCmuCoreFillVolumePerBlockCubicFeet(wall: CmuWallSystemParameters): number {
+  const nominalDepthInches = metersToFeet(wall.blockDepthMeters || wall.wallThicknessMeters) * 12;
+  const depthOptions = Object.keys(CORE_FILL_VOLUME_CUBIC_FEET_BY_BLOCK_DEPTH_INCHES).map(Number);
+  const closestDepth = depthOptions.reduce((closest, depth) =>
+    Math.abs(depth - nominalDepthInches) < Math.abs(closest - nominalDepthInches) ? depth : closest,
+  );
+  return CORE_FILL_VOLUME_CUBIC_FEET_BY_BLOCK_DEPTH_INCHES[
+    closestDepth as keyof typeof CORE_FILL_VOLUME_CUBIC_FEET_BY_BLOCK_DEPTH_INCHES
+  ];
+}
+
+function resolveCmuCoreFillNominalDepthInches(wall: CmuWallSystemParameters): number {
+  const nominalDepthInches = metersToFeet(wall.blockDepthMeters || wall.wallThicknessMeters) * 12;
+  return [6, 8, 12].reduce((closest, depth) =>
+    Math.abs(depth - nominalDepthInches) < Math.abs(closest - nominalDepthInches) ? depth : closest,
+  );
 }
 
 function buildCmuCoreFillGroutPreviewLine(
   input: Pick<CmuBuildingQuantityInput, 'designModelId' | 'wallObjectId' | 'wall'>,
   totalGeneratedBlocks: number,
 ): DesignEstimatePreviewLine {
-  const core = resolveCmuCoreGeometry(input.wall);
-  const volumeCubicMeters = calculateCmuFullCoreFillVolumeCubicMeters(totalGeneratedBlocks, input.wall);
+  const totalBlockCount = resolveCmuOrderBlockQuantity({
+    totalGeneratedBlocks,
+    wasteFactor: input.wall.wasteFactor,
+  });
+  const nominalDepthInches = resolveCmuCoreFillNominalDepthInches(input.wall);
+  const perBlockVolumeCubicFeet = resolveCmuCoreFillVolumePerBlockCubicFeet(input.wall);
+  const volumeCubicMeters = calculateCmuFullCoreFillVolumeCubicMeters(totalBlockCount, input.wall);
+  const totalCubicFeet = volumeCubicMeters / CUBIC_METERS_PER_CUBIC_FOOT;
   return {
     id: 'cmu-core-fill-grout',
     designModelId: input.designModelId,
     designObjectId: input.wallObjectId,
     quantityType: 'cmu_core_fill_grout',
-    description: 'CMU core fill grout (every block)',
+    description: 'Core Fill',
     quantity: roundQuantity(cubicMetersToCubicYards(volumeCubicMeters), 3),
     unit: 'CY',
-    formula: 'total_blocks * cell_core_volume * (1 + grout_waste_percent)',
+    formula: 'total_blocks * volume_per_block * (1 + grout_waste_percent)',
     parameterSnapshot: {
       totalGeneratedBlocks,
-      coreGeometry: core,
+      totalBlockCount,
+      nominalDepthInches,
+      perBlockVolumeCubicFeet,
       groutWastePercent: input.wall.groutWastePercent ?? 0.1,
-      perBlockCoreVolumeCubicMeters: computeCellCoreVolumeCubicMeters(core),
+      totalCubicFeet,
+      bags80Lb: totalCubicFeet / 0.5,
       volumeCubicMeters,
     },
     source: 'parametric_design_builder',

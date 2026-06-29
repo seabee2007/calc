@@ -26,6 +26,7 @@ export type BuildOpeningAssemblyRenderGroupsParams = {
   slabTopMeters: number;
   showGroutCells: boolean;
   showOpeningLayout: boolean;
+  cmuSelected?: boolean;
   selectedOpeningId?: string | null;
   hoveredOpeningId?: string | null;
   trackGeometry: <T extends THREE.BufferGeometry>(geometry: T) => T;
@@ -134,7 +135,7 @@ export function populateOpeningAssemblyRenderGroups(
 
   const lintelMaterial =
     params.resolveLintelMaterial?.() ??
-    params.makeMaterial(LINTEL_RENDER_COLOR, false, { roughness: 0.82, metalness: 0.04 });
+    params.makeMaterial(LINTEL_RENDER_COLOR, params.cmuSelected === true, { roughness: 0.82, metalness: 0.04 });
   const segmentFrameById = new Map(
     (params.cmuLayout.segmentFrames ?? []).map((frame) => [frame.segmentId, frame]),
   );
@@ -176,9 +177,9 @@ export function populateOpeningAssemblyRenderGroups(
 
   if (params.showGroutCells) {
     const core = resolveCmuCoreGeometry(params.wall);
-    const groutMaterial = params.makeMaterial(GROUT_CELL_RENDER_COLOR, false, {
+    const groutMaterial = params.makeMaterial(GROUT_CELL_RENDER_COLOR, params.cmuSelected === true, {
       transparent: true,
-      opacity: 0.78,
+      opacity: params.cmuSelected === true ? 0.92 : 0.78,
       roughness: 0.9,
     });
     params.cmuLayout.groutFillPlacements.forEach((fill) => {

@@ -1,6 +1,10 @@
 import type { AccessResolutionState } from '../services/appAccessService';
 import type { RootAccessKind } from './rootRouteResolver';
 
+function shouldLogAppRoutingDiagnostics(): boolean {
+  return import.meta.env.DEV && import.meta.env.VITE_APP_ROUTING_DIAGNOSTICS === 'true';
+}
+
 export function logAppRoutingRedirect(params: {
   from: string;
   to: string;
@@ -8,7 +12,7 @@ export function logAppRoutingRedirect(params: {
   authSessionResolved: boolean;
   accessResolutionState: AccessResolutionState;
 }): void {
-  if (!import.meta.env.DEV) return;
+  if (!shouldLogAppRoutingDiagnostics()) return;
   console.info('[app-routing]', params);
 }
 
@@ -17,7 +21,7 @@ export function logRouteRedirect(params: {
   to: string;
   reason: string;
 }): void {
-  if (!import.meta.env.DEV) return;
+  if (!shouldLogAppRoutingDiagnostics()) return;
   console.info('[route-redirect]', params);
 }
 
@@ -30,7 +34,7 @@ export function logRootRouteDiagnostics(params: {
   accessLoading: boolean;
   accessResolutionState: AccessResolutionState;
 }): void {
-  if (!import.meta.env.DEV) return;
+  if (!shouldLogAppRoutingDiagnostics()) return;
   console.info('[root-route]', params);
 }
 
@@ -46,7 +50,7 @@ export function logResolvedAppAccessDiagnostics(access: {
   }>;
   defaultRoute: string;
 }): void {
-  if (!import.meta.env.DEV) return;
+  if (!shouldLogAppRoutingDiagnostics()) return;
   console.table({
     userId: access.userId,
     isOwner: access.isOwner,

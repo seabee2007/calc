@@ -1567,11 +1567,6 @@ export default function DesignBuilderPage({
       cmuLayout.openingGrout.actualOpeningAreaSquareMeters,
       measurementSystem,
     );
-    const closureGrout = volumeFromCubicMeters(
-      cmuLayout.openingGrout.closureGroutVolumeCubicMeters,
-      measurementSystem,
-      3,
-    );
     const openingGrout = volumeFromCubicMeters(
       cmuLayout.openingGrout.totalGroutVolumeCubicMeters,
       measurementSystem,
@@ -1620,19 +1615,7 @@ export default function DesignBuilderPage({
         objectType: 'window_opening' as DesignObjectType,
       },
       {
-        label: 'Jamb grouted cells',
-        value: modelLoaded ? cmuLayout.jambGroutCells.length : 0,
-        unit: 'EA',
-        objectType: 'cmu_wall_system' as DesignObjectType,
-      },
-      {
-        label: 'Closure grout volume',
-        value: modelLoaded ? closureGrout.quantity : 0,
-        unit: closureGrout.unit,
-        objectType: 'cmu_wall_system' as DesignObjectType,
-      },
-      {
-        label: 'CMU core fill grout',
+        label: 'Core Fill',
         value: modelLoaded ? (coreFillLine?.quantity ?? 0) : 0,
         unit: coreFillLine?.unit ?? (measurementSystem === 'metric' ? 'M3' : 'CY'),
         objectType: 'cmu_wall_system' as DesignObjectType,
@@ -1701,7 +1684,7 @@ export default function DesignBuilderPage({
         label: 'Raked concrete cap volume',
         value: modelLoaded ? (rakedCapLine?.quantity ?? 0) : 0,
         unit: rakedCapLine?.unit ?? (measurementSystem === 'metric' ? 'M3' : 'CY'),
-        objectType: 'gable_end_system' as DesignObjectType,
+        objectType: 'structural_frame_system' as DesignObjectType,
       },
       {
         label: 'Interior floor slab volume',
@@ -4713,7 +4696,9 @@ export default function DesignBuilderPage({
           currentShowRoofFramingGuides: showRoofFramingGuides,
           usePreviewMaterials: visualStyle === 'material_preview',
           roofSelected: selectedObjectType === 'gable_roof_system',
+          trussSelected: selectedObjectType === 'steel_truss_system',
           gableSelected: selectedObjectType === 'gable_end_system',
+          frameSelected: selectedObjectType === 'structural_frame_system',
         },
         trackGeometry: resources.trackGeometry,
         trackMaterial: resources.trackMaterial,

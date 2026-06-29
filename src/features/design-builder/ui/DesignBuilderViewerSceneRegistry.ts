@@ -44,6 +44,16 @@ export function markDesignBuilderWallPickable(params: {
   return params.mesh;
 }
 
+function isObject3D(value: unknown): value is THREE.Object3D {
+  return Boolean(value && typeof value === 'object' && (value as THREE.Object3D).isObject3D === true);
+}
+
+function warnInvalidObject(label: string, object: unknown): void {
+  if (import.meta.env.DEV) {
+    console.warn(`[DesignBuilderViewerSceneRegistry] Skipped invalid Object3D: ${label}`, object);
+  }
+}
+
 export interface DesignBuilderViewerSceneRegistry {
   addRootObject: (object: THREE.Object3D) => THREE.Object3D;
   addSelectable: (
@@ -70,29 +80,53 @@ export function createDesignBuilderViewerSceneRegistry(params: {
   selectableObjects: THREE.Object3D[];
   wallPickableObjects: THREE.Object3D[];
 }): DesignBuilderViewerSceneRegistry {
+  const addRootObject = (object: THREE.Object3D, label: string): THREE.Object3D => {
+    if (!isObject3D(object)) {
+      warnInvalidObject(label, object);
+      return object;
+    }
+    params.root.add(object);
+    return object;
+  };
+
   return {
     addRootObject: (object) => {
-      params.root.add(object);
-      return object;
+      return addRootObject(object, 'root object');
     },
     addSelectable: (object, objectType, openingId, priority) => {
+      if (!isObject3D(object)) {
+        warnInvalidObject(`selectable ${objectType}`, object);
+        return object;
+      }
       markDesignBuilderSelectable({ object, objectType, openingId, priority });
       params.selectableObjects.push(object);
-      params.root.add(object);
-      return object;
+      return addRootObject(object, `selectable ${objectType}`);
     },
     addWallPickable: (mesh, data) => {
+      if (!isObject3D(mesh)) {
+        warnInvalidObject('wall pickable', mesh);
+        return mesh;
+      }
       markDesignBuilderWallPickable({ mesh, ...data });
       params.wallPickableObjects.push(mesh);
-      params.root.add(mesh);
-      return mesh;
+      return addRootObject(mesh, 'wall pickable');
     },
     registerSelectable: (object) => {
+      if (!isObject3D(object)) {
+        warnInvalidObject('registered selectable', object);
+        return object;
+      }
       params.selectableObjects.push(object);
       return object;
     },
     registerSelectables: (objects) => {
-      params.selectableObjects.push(...objects);
+      objects.forEach((object, index) => {
+        if (!isObject3D(object)) {
+          warnInvalidObject(`registered selectable ${index}`, object);
+          return;
+        }
+        params.selectableObjects.push(object);
+      });
     },
     reset: () => {
       params.root.clear();

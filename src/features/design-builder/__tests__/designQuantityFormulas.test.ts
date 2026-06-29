@@ -12,8 +12,11 @@ import {
   calculateWallNetArea,
   calculateWallOpeningArea,
   calculateWallRoughOpeningArea,
+  resolveCmuCoreFillVolumePerBlockCubicFeet,
   resolveCmuOrderBlockQuantity,
 } from '../quantity/designQuantityFormulas';
+
+const CUBIC_METERS_PER_CUBIC_FOOT = 0.028316846592;
 
 describe('Design Builder quantity formulas', () => {
   it('calculates floor area from normalized meter dimensions', () => {
@@ -193,5 +196,21 @@ describe('Design Builder quantity formulas', () => {
     expect(calculateCmuFullCoreFillVolumeCubicMeters(totalGeneratedBlocks, preset.wall)).toBeGreaterThan(0);
     expect(coreFillLine?.quantity).toBeGreaterThan(0);
     expect(coreFillLine?.quantityType).toBe('cmu_core_fill_grout');
+  });
+
+  it('uses standard per-block core fill volume estimates by CMU depth', () => {
+    const preset = createFiveBySixCmuBuildingPreset();
+    const wall = {
+      ...preset.wall,
+      blockDepthMeters: 0.2032,
+      wallThicknessMeters: 0.2032,
+      groutWastePercent: 0.1,
+    };
+
+    expect(resolveCmuCoreFillVolumePerBlockCubicFeet(wall)).toBe(0.25);
+    expect(calculateCmuFullCoreFillVolumeCubicMeters(100, wall)).toBeCloseTo(
+      100 * 0.25 * 1.1 * CUBIC_METERS_PER_CUBIC_FOOT,
+      6,
+    );
   });
 });

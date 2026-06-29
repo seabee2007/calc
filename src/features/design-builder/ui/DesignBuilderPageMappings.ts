@@ -141,13 +141,29 @@ export function objectIdForType(
 }
 
 export function objectTypeForPreviewLine(line: DesignEstimatePreviewLine): DesignObjectType {
+  if (line.quantityType.startsWith('interior_floor_') || line.id.startsWith('interior-floor-')) {
+    return 'structural_frame_system';
+  }
   if (line.quantityType.includes('slab') || line.id.includes('slab')) return 'thickened_edge_slab';
   if (line.quantityType.includes('raked_concrete_cap') || line.quantityType.includes('gable_end')) {
     return 'gable_end_system';
   }
   if (line.quantityType.startsWith('rc_')) return 'structural_frame_system';
   if (line.quantityType.includes('infill') || line.id.startsWith('infill-')) return 'cmu_infill_system';
-  if (line.quantityType.includes('truss') || line.id.includes('truss')) return 'steel_truss_system';
+  if (
+    line.quantityType.includes('truss') ||
+    line.id.includes('truss') ||
+    line.quantityType.includes('purlin') ||
+    line.id.includes('purlin') ||
+    line.quantityType.includes('anchor_bolt') ||
+    line.id.includes('anchor-bolt') ||
+    line.quantityType.includes('base_plate') ||
+    line.id.includes('base-plate') ||
+    line.quantityType.includes('steel_framing') ||
+    line.quantityType.includes('ridge_end_support_frame')
+  ) {
+    return 'steel_truss_system';
+  }
   if (
     line.quantityType.includes('roof') ||
     line.quantityType.includes('ridge') ||

@@ -136,6 +136,7 @@ export function buildOpeningSceneGroups(params: {
   showGroutCells: boolean;
   showOpeningLayout: boolean;
   showClosureWarnings: boolean;
+  cmuSelected?: boolean;
   selectedOpeningId?: string | null;
   hoveredOpeningId?: string | null;
   resolvedInfillPanelBounds?: readonly ResolvedInfillPanelBounds[];
@@ -150,6 +151,7 @@ export function buildOpeningSceneGroups(params: {
     slabTopMeters: params.slabTopMeters,
     showGroutCells: params.showGroutCells,
     showOpeningLayout: params.showOpeningLayout,
+    cmuSelected: params.cmuSelected,
     selectedOpeningId: params.selectedOpeningId,
     hoveredOpeningId: params.hoveredOpeningId,
     trackGeometry: params.trackGeometry,

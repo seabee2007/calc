@@ -141,6 +141,21 @@ function createPlanCameraSnapshot(camera: THREE.PerspectiveCamera, controls: Orb
   };
 }
 
+function isObject3D(value: unknown): value is THREE.Object3D {
+  return Boolean(value && typeof value === 'object' && (value as THREE.Object3D).isObject3D === true);
+}
+
+function safeAddObject3D(parent: THREE.Object3D, child: unknown, label: string): void {
+  if (!isObject3D(child)) {
+    if (import.meta.env.DEV) {
+      console.warn(`[DesignBuilderViewer] Skipped invalid Object3D: ${label}`, child);
+    }
+    return;
+  }
+
+  parent.add(child);
+}
+
 type ViewerCursorPoint = {
   x: number;
   y: number;
@@ -369,13 +384,15 @@ export default function DesignBuilderViewer({
     const keyLight = new THREE.DirectionalLight(0xffffff, 1);
     keyLight.position.set(6, 8, 5);
     keyLight.castShadow = true;
-    scene.add(ambient, keyLight);
+    safeAddObject3D(scene, ambient, 'ambient light');
+    safeAddObject3D(scene, keyLight, 'key light');
 
     const root = new THREE.Group();
     const ghostRoot = new THREE.Group();
     root.scale.z = PLAN_TO_VIEWER_Z_SCALE;
     ghostRoot.scale.z = PLAN_TO_VIEWER_Z_SCALE;
-    scene.add(root, ghostRoot);
+    safeAddObject3D(scene, root, 'viewer root');
+    safeAddObject3D(scene, ghostRoot, 'viewer ghost root');
 
     const resources = createDesignBuilderViewerResources();
     const sceneEnvironment = createDesignBuilderViewerSceneEnvironment({
@@ -506,6 +523,7 @@ export default function DesignBuilderViewer({
         frameSelected,
         cmuSelected,
         roofSelected,
+        trussSelected,
         gableSelected,
         cmuCutawayActive,
         belowGradeCutawayActive,
@@ -519,6 +537,9 @@ export default function DesignBuilderViewer({
       });
 
       const trackMat = resources.trackMaterial;
+      const addToRoot = (object: unknown, label: string) => {
+        safeAddObject3D(root, object, label);
+      };
 
       sceneRegistry.reset();
       resources.resetTrackedResources();
@@ -544,7 +565,9 @@ export default function DesignBuilderViewer({
           makeMaterial,
         });
         sceneRegistry.registerSelectables(supplementalScene.selectableObjects);
-        if (supplementalScene.group.children.length > 0) root.add(supplementalScene.group);
+        if (supplementalScene.group.children.length > 0) {
+          addToRoot(supplementalScene.group, 'supplemental scene group');
+        }
       }
 
       function addPlumbingScene() {
@@ -564,7 +587,9 @@ export default function DesignBuilderViewer({
           trackMaterial: trackMat,
         });
         sceneRegistry.registerSelectables(plumbingScene.selectableObjects);
-        if (plumbingScene.group.children.length > 0) root.add(plumbingScene.group);
+        if (plumbingScene.group.children.length > 0) {
+          addToRoot(plumbingScene.group, 'plumbing scene group');
+        }
       }
 
       if (blankGeometryActive) {
@@ -664,7 +689,9 @@ export default function DesignBuilderViewer({
           makeMaterial,
         });
         sceneRegistry.registerSelectables(structuralFrameScene.selectableObjects);
-        if (structuralFrameScene.group.children.length > 0) root.add(structuralFrameScene.group);
+        if (structuralFrameScene.group.children.length > 0) {
+          addToRoot(structuralFrameScene.group, 'structural frame scene group');
+        }
         if (!belowGradeCutawayActive) {
           const interiorFinishScene = buildDesignBuilderViewerInteriorFinishScene({
             state: {
@@ -679,7 +706,9 @@ export default function DesignBuilderViewer({
             trackMaterial: trackMat,
             makeMaterial,
           });
-          interiorFinishScene.groups.forEach((group) => root.add(group));
+          interiorFinishScene.groups.forEach((group, index) => {
+            addToRoot(group, `interior finish scene group ${index}`);
+          });
           const roofReferenceScene = buildDesignBuilderViewerRoofReferenceScene({
             enabled: import.meta.env.DEV && currentShowRoofReferencePerimeters,
             geometry: currentGeometry,
@@ -687,7 +716,9 @@ export default function DesignBuilderViewer({
             trackGeometry,
             trackMaterial: trackMat,
           });
-          if (roofReferenceScene.children.length > 0) root.add(roofReferenceScene);
+          if (roofReferenceScene.children.length > 0) {
+            addToRoot(roofReferenceScene, 'roof reference scene group');
+          }
           const roofDebugScene = buildDesignBuilderViewerRoofDebugScene({
             enabled: import.meta.env.DEV && currentShowRoofDebug,
             resolvedRoof: currentGeometry.resolvedRoofSystem,
@@ -695,7 +726,9 @@ export default function DesignBuilderViewer({
             trackGeometry,
             trackMaterial: trackMat,
           });
-          if (roofDebugScene.children.length > 0) root.add(roofDebugScene);
+          if (roofDebugScene.children.length > 0) {
+            addToRoot(roofDebugScene, 'roof debug scene group');
+          }
           const roofAssemblyScene = buildDesignBuilderViewerRoofAssemblyScene({
             state: {
               currentGeometry,
@@ -708,14 +741,18 @@ export default function DesignBuilderViewer({
               currentShowRoofFramingGuides,
               usePreviewMaterials,
               roofSelected,
+              trussSelected,
               gableSelected,
+              frameSelected,
             },
             trackGeometry,
             trackMaterial: trackMat,
             makeMaterial,
           });
           sceneRegistry.registerSelectables(roofAssemblyScene.selectableObjects);
-          roofAssemblyScene.groups.forEach((group) => root.add(group));
+          roofAssemblyScene.groups.forEach((group, index) => {
+            addToRoot(group, `roof assembly scene group ${index}`);
+          });
 
           const cmuInfillScene = buildDesignBuilderViewerCmuInfillScene({
             state: {
@@ -739,7 +776,9 @@ export default function DesignBuilderViewer({
             makeMaterial,
           });
           sceneRegistry.registerSelectables(cmuInfillScene.selectableObjects);
-          cmuInfillScene.groups.forEach((group) => root.add(group));
+          cmuInfillScene.groups.forEach((group, index) => {
+            addToRoot(group, `cmu infill scene group ${index}`);
+          });
         }
       } else if (legacyPresetActive) {
         addLabel(root, 'NORTH WALL', new THREE.Vector3(0, 0.06, -currentWall.widthMeters / 2 - 0.8), 0x0284c7);
@@ -776,7 +815,9 @@ export default function DesignBuilderViewer({
             trackGeometry,
             trackMaterial: trackMat,
           });
-          if (mortarScene.group.children.length > 0) root.add(mortarScene.group);
+          if (mortarScene.group.children.length > 0) {
+            addToRoot(mortarScene.group, 'cmu mortar scene group');
+          }
           const blockModule = resolveCmuModuleConfig(currentWall);
           const blockHeightMeters = blockModule.actualHeightMeters ?? blockModule.moduleHeightMeters;
           const cmuBlockGroup = buildCmuBlockInstanceSceneGroup({
@@ -817,7 +858,9 @@ export default function DesignBuilderViewer({
           trackGeometry,
         });
         sceneRegistry.registerSelectables(manualMasonryScene.selectableObjects);
-        if (manualMasonryScene.group.children.length > 0) root.add(manualMasonryScene.group);
+        if (manualMasonryScene.group.children.length > 0) {
+          addToRoot(manualMasonryScene.group, 'manual masonry scene group');
+        }
 
         const openingSceneGroups = buildOpeningSceneGroups({
           cmuLayout,
@@ -826,6 +869,7 @@ export default function DesignBuilderViewer({
           showGroutCells: currentShowGroutCells,
           showOpeningLayout: currentShowOpeningLayout,
           showClosureWarnings: currentShowClosureWarnings,
+          cmuSelected,
           selectedOpeningId: selectedOpeningIdRef.current,
           hoveredOpeningId: hoveredOpeningIdRef.current,
           resolvedInfillPanelBounds: currentGeometry?.resolvedInfillPanelBounds,
@@ -834,17 +878,23 @@ export default function DesignBuilderViewer({
           resolveLintelMaterial: usePreviewMaterials
             ? () =>
                 resolveCastConcreteMaterial(
-                  { visualStyle: currentVisualStyle, selected: false, role: 'structural' },
+                  { visualStyle: currentVisualStyle, selected: cmuSelected, role: 'structural' },
                   trackMat,
                 )
             : undefined,
         });
         sceneRegistry.registerSelectables(openingSceneGroups.selectableObjects);
-        root.add(openingSceneGroups.lintelGroup);
-        root.add(openingSceneGroups.frameGroup);
-        if (currentShowGroutCells) root.add(openingSceneGroups.groutCellGroup);
-        if (currentShowOpeningLayout) root.add(openingSceneGroups.roughOpeningGuideGroup);
-        if (currentShowClosureWarnings) root.add(openingSceneGroups.closureWarningGroup);
+        addToRoot(openingSceneGroups.lintelGroup, 'opening lintel group');
+        addToRoot(openingSceneGroups.frameGroup, 'opening frame group');
+        if (currentShowGroutCells) {
+          addToRoot(openingSceneGroups.groutCellGroup, 'opening grout cell group');
+        }
+        if (currentShowOpeningLayout) {
+          addToRoot(openingSceneGroups.roughOpeningGuideGroup, 'opening rough opening guide group');
+        }
+        if (currentShowClosureWarnings) {
+          addToRoot(openingSceneGroups.closureWarningGroup, 'opening closure warning group');
+        }
 
         addSupplementalPlacedComponents();
         addPlumbingScene();
