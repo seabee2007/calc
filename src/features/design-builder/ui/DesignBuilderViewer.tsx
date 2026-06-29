@@ -764,6 +764,7 @@ export default function DesignBuilderViewer({
               currentRoofDisplayMode,
               currentRoofLayerVisibility,
               usePreviewMaterials,
+              frameSelected,
               cmuSelected,
               cmuCutawayActive,
               cmuOpacity,

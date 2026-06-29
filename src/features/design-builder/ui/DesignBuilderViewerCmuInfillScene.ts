@@ -37,6 +37,7 @@ export type DesignBuilderViewerCmuInfillState = Pick<
   | 'currentRoofDisplayMode'
   | 'currentRoofLayerVisibility'
   | 'usePreviewMaterials'
+  | 'frameSelected'
   | 'cmuSelected'
   | 'cmuCutawayActive'
   | 'cmuOpacity'
@@ -53,6 +54,9 @@ export interface DesignBuilderViewerCmuInfillScene {
   selectableObjects: THREE.Object3D[];
   mortarDiagnostics: MortarJointDiagnostics | null;
 }
+
+const FRAME_SELECTION_CMU_CONTEXT_OPACITY = 0.32;
+const FRAME_SELECTION_PLASTER_CONTEXT_OPACITY = 0.28;
 
 export function buildDesignBuilderViewerCmuMortarScene(params: {
   blocks: readonly CmuBlockInstance[];
@@ -130,14 +134,26 @@ export function buildDesignBuilderViewerCmuInfillScene(params: {
     roofLayerVisibility: state.currentRoofLayerVisibility,
     blockInstances: geometry.wallCmuLayout.blocks,
   });
+  const fadeCmuForFrameSelection = state.frameSelected && !state.cmuSelected;
+  const effectiveCmuOpacity = fadeCmuForFrameSelection
+    ? FRAME_SELECTION_CMU_CONTEXT_OPACITY
+    : state.cmuOpacity;
+  const effectiveCmuMaterialOptions = fadeCmuForFrameSelection
+    ? {
+        ...state.cmuMaterialOptions,
+        selected: false,
+        transparent: true as const,
+        opacity: effectiveCmuOpacity,
+      }
+    : state.cmuMaterialOptions;
 
   const mortarScene = buildDesignBuilderViewerCmuMortarScene({
     blocks: blockInstances,
     wall: state.currentWall,
     slabTopMeters: state.currentSlab.slabThicknessMeters,
     visualStyle: state.currentVisualStyle,
-    cmuCutawayActive: state.cmuCutawayActive,
-    cmuOpacity: state.cmuOpacity,
+    cmuCutawayActive: state.cmuCutawayActive || fadeCmuForFrameSelection,
+    cmuOpacity: effectiveCmuOpacity,
     debugMode: false,
     trackGeometry: params.trackGeometry,
     trackMaterial: params.trackMaterial,
@@ -154,10 +170,11 @@ export function buildDesignBuilderViewerCmuInfillScene(params: {
       slabTopMeters: state.currentSlab.slabThicknessMeters,
       createMaterial: (blockType) =>
         state.usePreviewMaterials
-          ? resolveCmuMaterial(state.cmuMaterialOptions, params.trackMaterial)
+          ? resolveCmuMaterial(effectiveCmuMaterialOptions, params.trackMaterial)
           : params.makeMaterial(blockColor(blockType), state.cmuSelected, {
-              transparent: state.cmuOpacity < 1,
-              opacity: state.cmuOpacity,
+              transparent: effectiveCmuOpacity < 1,
+              opacity: effectiveCmuOpacity,
+              ...(fadeCmuForFrameSelection ? { depthWrite: false } : {}),
             }),
       trackGeometry: params.trackGeometry,
     });
@@ -175,7 +192,8 @@ export function buildDesignBuilderViewerCmuInfillScene(params: {
       state.currentSelectedObjectType === 'cmu_wall_system',
       {
         transparent: true,
-        opacity: state.cmuOpacity,
+        opacity: effectiveCmuOpacity,
+        ...(fadeCmuForFrameSelection ? { depthWrite: false } : {}),
       },
     );
     const infillWallProxyGroup = buildInfillWallProxySceneGroup({
@@ -196,7 +214,7 @@ export function buildDesignBuilderViewerCmuInfillScene(params: {
   }
 
   if (params.showCmuInfill) {
-    const fadePlasterForCmuSelection = state.cmuSelected;
+    const fadePlasterForCmuSelection = state.cmuSelected || fadeCmuForFrameSelection;
     const exteriorSegmentIds = new Set(
       (geometry.resolvedFootprint?.orderedPerimeterSegments ?? []).map(
         (segment) => segment.segmentId,
@@ -215,7 +233,9 @@ export function buildDesignBuilderViewerCmuInfillScene(params: {
               {
                 visualStyle: state.currentVisualStyle,
                 selected: state.currentSelectedObjectType === 'cmu_infill_system',
-                ...(fadePlasterForCmuSelection ? { transparent: true, opacity: 0.28 } : {}),
+                ...(fadePlasterForCmuSelection
+                  ? { transparent: true, opacity: FRAME_SELECTION_PLASTER_CONTEXT_OPACITY }
+                  : {}),
                 plasterFinish: finish,
               },
               params.trackMaterial,
@@ -225,7 +245,13 @@ export function buildDesignBuilderViewerCmuInfillScene(params: {
               state.currentSelectedObjectType === 'cmu_infill_system',
               {
                 side: THREE.DoubleSide,
-                ...(fadePlasterForCmuSelection ? { transparent: true, opacity: 0.28, depthWrite: false } : {}),
+                ...(fadePlasterForCmuSelection
+                  ? {
+                      transparent: true,
+                      opacity: FRAME_SELECTION_PLASTER_CONTEXT_OPACITY,
+                      depthWrite: false,
+                    }
+                  : {}),
               },
             ),
       trackGeometry: params.trackGeometry,

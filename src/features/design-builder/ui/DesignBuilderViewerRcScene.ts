@@ -23,6 +23,27 @@ export interface RcViewerMaterialContext {
   makeMaterial: MakeMaterial;
 }
 
+const SELECTED_RC_CONCRETE_PREVIEW_OPTIONS = {
+  selectedTransparent: false,
+  selectedOpacity: 1,
+  selectedDepthWrite: true,
+} as const;
+
+function selectedRcConcreteTechnicalOptions(
+  selected: boolean,
+  options?: THREE.MeshStandardMaterialParameters,
+): THREE.MeshStandardMaterialParameters | undefined {
+  if (!selected) {
+    return options;
+  }
+  return {
+    ...options,
+    transparent: false,
+    opacity: 1,
+    depthWrite: true,
+  };
+}
+
 export function resolveRcConcreteMaterial(
   context: RcViewerMaterialContext,
   params: {
@@ -39,11 +60,19 @@ export function resolveRcConcreteMaterial(
           visualStyle: context.visualStyle,
           selected: context.selected,
           role: params.role ?? 'structural',
+          ...(context.selected && !params.transparent ? SELECTED_RC_CONCRETE_PREVIEW_OPTIONS : {}),
           ...(params.transparent ? { transparent: true, opacity: params.opacity } : {}),
         },
         context.trackMaterial,
       )
-    : context.makeMaterial(params.technicalColor, context.selected, params.technicalOptions);
+    : context.makeMaterial(
+        params.technicalColor,
+        context.selected,
+        selectedRcConcreteTechnicalOptions(
+          context.selected && !params.transparent,
+          params.technicalOptions,
+        ),
+      );
 }
 
 export function resolveRcPlasterMaterial(

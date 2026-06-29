@@ -36,6 +36,40 @@ describe('DesignBuilderViewerRcScene', () => {
     resources.disposeTrackedResources();
   });
 
+  it('keeps selected RC concrete opaque in preview and technical material modes', () => {
+    const resources = createDesignBuilderViewerResources();
+    const technicalContext = {
+      visualStyle: 'technical' as const,
+      selected: true,
+      usePreviewMaterials: false,
+      trackMaterial: resources.trackMaterial,
+      makeMaterial: resources.makeMaterial,
+    };
+    const previewContext = {
+      ...technicalContext,
+      visualStyle: 'material_preview' as const,
+      usePreviewMaterials: true,
+    };
+
+    const technical = resolveRcConcreteMaterial(technicalContext, {
+      role: 'structural',
+      technicalColor: 0x78716c,
+    });
+    const preview = resolveRcConcreteMaterial(previewContext, {
+      role: 'beam',
+      technicalColor: 0x57534e,
+    });
+
+    for (const material of [technical, preview]) {
+      expect(material.color.getHex()).toBe(0x22d3ee);
+      expect(material.transparent).toBe(false);
+      expect(material.opacity).toBe(1);
+      expect(material.depthWrite).toBe(true);
+    }
+
+    resources.disposeTrackedResources();
+  });
+
   it('marks structural frame meshes selectable while preserving existing RC priorities when requested', () => {
     const group = new THREE.Group();
     const column = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshBasicMaterial());

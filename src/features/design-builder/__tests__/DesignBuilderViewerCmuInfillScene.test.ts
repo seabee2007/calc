@@ -112,6 +112,7 @@ function cmuInfillState(
     currentRoofDisplayMode: 'full_roof',
     currentRoofLayerVisibility: DEFAULT_ROOF_LAYER_VISIBILITY,
     usePreviewMaterials: false,
+    frameSelected: false,
     cmuSelected: false,
     cmuCutawayActive: false,
     cmuOpacity: 0.9,
@@ -183,6 +184,7 @@ function rcFrameGeometry(params: {
       currentRoofDisplayMode: 'full_roof',
       currentRoofLayerVisibility: DEFAULT_ROOF_LAYER_VISIBILITY,
       usePreviewMaterials: true,
+      frameSelected: false,
       cmuSelected: false,
       cmuCutawayActive: false,
       cmuOpacity: 1,
@@ -286,6 +288,80 @@ describe('DesignBuilderViewerCmuInfillScene', () => {
     expect(scene.groups.find((group) => group.name === 'cmuBlockInstanceGroup')).toBeDefined();
     expect(scene.groups.find((group) => group.name === 'infillWallProxyGroup')).toBeUndefined();
     expect(scene.groups.find((group) => group.name === 'plasterGroup')).toBeDefined();
+
+    resources.disposeTrackedResources();
+  });
+
+  it('fades CMU and plaster context when the structural frame is selected', () => {
+    const resources = createDesignBuilderViewerResources();
+    const bounds = infillPanelBounds();
+    const state = cmuInfillState({
+      currentGeometry: {
+        ...geometryResult([cmuBlock({ id: 'wall-block' })]),
+        infillSystem: {
+          kind: 'cmu_infill_system',
+          panels: [
+            {
+              id: bounds.panelId,
+              hostSegmentId: bounds.hostSegmentId,
+              infillZone: 'above_grade',
+            },
+          ],
+          plaster: {
+            enabled: true,
+            finish: 'textured',
+            profileLabel: '3-coat plaster',
+            interiorEnabled: true,
+            interiorFinish: 'smooth',
+            interiorProfileLabel: '3-coat plaster',
+          },
+        },
+        resolvedInfillPanelBounds: [bounds],
+        resolvedFootprint: {
+          orderedPerimeterSegments: [{ segmentId: bounds.hostSegmentId }],
+        },
+      } as DesignGeometryResult,
+      currentVisualStyle: 'material_preview',
+      usePreviewMaterials: true,
+      frameSelected: true,
+      cmuMaterialOptions: {
+        visualStyle: 'material_preview',
+        selected: false,
+      },
+    });
+
+    const scene = buildDesignBuilderViewerCmuInfillScene({
+      state,
+      cmuLayout: state.currentGeometry!.wallCmuLayout,
+      showCmuInfill: true,
+      trackGeometry: resources.trackGeometry,
+      trackMaterial: resources.trackMaterial,
+      makeMaterial: resources.makeMaterial,
+    });
+
+    const blockGroup = scene.groups.find((group) => group.name === 'cmuBlockInstanceGroup');
+    const plasterGroup = scene.groups.find((group) => group.name === 'plasterGroup');
+    expect(blockGroup).toBeDefined();
+    expect(plasterGroup).toBeDefined();
+
+    const blockMesh = blockGroup!.children.find(
+      (child): child is THREE.InstancedMesh => child instanceof THREE.InstancedMesh,
+    );
+    const plasterMesh = plasterGroup!.children.find(
+      (child): child is THREE.Mesh => child instanceof THREE.Mesh,
+    );
+    expect(blockMesh).toBeDefined();
+    expect(plasterMesh).toBeDefined();
+
+    const blockMaterial = blockMesh!.material as THREE.MeshStandardMaterial;
+    expect(blockMaterial.transparent).toBe(true);
+    expect(blockMaterial.opacity).toBeCloseTo(0.32, 6);
+    expect(blockMaterial.depthWrite).toBe(false);
+
+    const plasterMaterial = plasterMesh!.material as THREE.MeshStandardMaterial;
+    expect(plasterMaterial.transparent).toBe(true);
+    expect(plasterMaterial.opacity).toBeCloseTo(0.28, 6);
+    expect(plasterMaterial.depthWrite).toBe(false);
 
     resources.disposeTrackedResources();
   });

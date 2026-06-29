@@ -115,6 +115,16 @@ function meshByName(group: THREE.Group, name: string): THREE.Mesh {
   return mesh as THREE.Mesh;
 }
 
+function meshNames(group: THREE.Group): string[] {
+  const names: string[] = [];
+  group.traverse((child) => {
+    if (child instanceof THREE.Mesh) {
+      names.push(child.name);
+    }
+  });
+  return names.sort();
+}
+
 describe('DesignBuilderViewerStructuralFrameScene', () => {
   it('builds selectable structural frame and isolated footing scene geometry', () => {
     const resources = createDesignBuilderViewerResources();
@@ -143,6 +153,44 @@ describe('DesignBuilderViewerStructuralFrameScene', () => {
     expect((column.material as THREE.MeshStandardMaterial).color.getHex()).toBe(0x9ca3af);
     expect((beam.material as THREE.MeshStandardMaterial).color.getHex()).toBe(0x57534e);
     expect((footing.material as THREE.MeshStandardMaterial).color.getHex()).toBe(0x78716c);
+
+    resources.disposeTrackedResources();
+  });
+
+  it('keeps selected concrete frame members present and opaque', () => {
+    const resources = createDesignBuilderViewerResources();
+    const baseState = structuralState({
+      currentVisualStyle: 'material_preview',
+      usePreviewMaterials: true,
+    });
+
+    const normalScene = buildDesignBuilderViewerStructuralFrameScene({
+      state: baseState,
+      showCmuInfill: true,
+      trackGeometry: resources.trackGeometry,
+      trackMaterial: resources.trackMaterial,
+      makeMaterial: resources.makeMaterial,
+    });
+    const selectedScene = buildDesignBuilderViewerStructuralFrameScene({
+      state: {
+        ...baseState,
+        frameSelected: true,
+      },
+      showCmuInfill: true,
+      trackGeometry: resources.trackGeometry,
+      trackMaterial: resources.trackMaterial,
+      makeMaterial: resources.makeMaterial,
+    });
+
+    expect(meshNames(selectedScene.group)).toEqual(meshNames(normalScene.group));
+
+    for (const name of meshNames(selectedScene.group)) {
+      const material = meshByName(selectedScene.group, name).material as THREE.MeshStandardMaterial;
+      expect(material.color.getHex()).toBe(0x22d3ee);
+      expect(material.transparent).toBe(false);
+      expect(material.opacity).toBe(1);
+      expect(material.depthWrite).toBe(true);
+    }
 
     resources.disposeTrackedResources();
   });

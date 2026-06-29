@@ -1067,6 +1067,9 @@ export type ResolveDesignMaterialOptions = {
   selected: boolean;
   opacity?: number;
   transparent?: boolean;
+  selectedOpacity?: number;
+  selectedTransparent?: boolean;
+  selectedDepthWrite?: boolean;
 };
 
 export type ResolvePlasterFinishMaterialOptions = ResolveDesignMaterialOptions & {
@@ -1291,12 +1294,13 @@ function finalizeMaterial(
 
   const material = base.clone();
   if (options.selected) {
+    const selectedTransparent = options.selectedTransparent ?? true;
     material.color.setHex(0x22d3ee);
     material.emissive.setHex(0x0e7490);
     material.emissiveIntensity = 0.22;
-    material.transparent = true;
-    material.opacity = 0.92;
-    material.depthWrite = false;
+    material.transparent = selectedTransparent;
+    material.opacity = options.selectedOpacity ?? (selectedTransparent ? 0.92 : 1);
+    material.depthWrite = options.selectedDepthWrite ?? false;
   } else if (needsCutawayClone) {
     material.transparent = true;
     material.opacity = options.opacity ?? 0.35;
