@@ -94,6 +94,40 @@ function rectangularLayout(lengthMeters: number, widthMeters: number): import('.
   });
 }
 
+function translatedRectangularLayout(params: {
+  minX: number;
+  maxX: number;
+  minZ: number;
+  maxZ: number;
+}): import('../types').DesignWallLayoutParameters {
+  const centerX = (params.minX + params.maxX) / 2;
+  const centerZ = (params.minZ + params.maxZ) / 2;
+  const layout = createOutsideFaceRectangleLayout({
+    lengthMeters: params.maxX - params.minX,
+    widthMeters: params.maxZ - params.minZ,
+    wallHeightMeters: 2.8,
+    wallThicknessMeters: 0.2,
+  });
+
+  return {
+    ...layout,
+    nodes: layout.nodes.map((node) => ({
+      ...node,
+      x: node.x + centerX,
+      z: node.z + centerZ,
+    })),
+  };
+}
+
+function hipOverhangRegressionLayout(): import('../types').DesignWallLayoutParameters {
+  return translatedRectangularLayout({
+    minX: 2.8,
+    maxX: 8.909,
+    minZ: 1,
+    maxZ: 11.6,
+  });
+}
+
 function hipRoofSystem(overrides: Partial<RoofSystemSettings> = {}): RoofSystemSettings {
   return {
     ...createDefaultRoofSystemSettings(),
@@ -102,6 +136,24 @@ function hipRoofSystem(overrides: Partial<RoofSystemSettings> = {}): RoofSystemS
     gable: { ...createDefaultRoofSystemSettings().gable, enabled: false, rakedConcreteCapEnabled: false },
     ...overrides,
   };
+}
+
+function hipOverhangRegressionRoofSystem(eaveOverhangMeters: number): RoofSystemSettings {
+  const defaults = createDefaultRoofSystemSettings();
+  return hipRoofSystem({
+    ridgeDirection: 'along_longest_axis',
+    eaveOverhangMeters,
+    gableEndOverhangMeters: 0.3,
+    steelTrusses: {
+      ...defaults.steelTrusses,
+      enabled: true,
+      maxSpacingMeters: 0.6,
+    },
+    purlins: {
+      ...defaults.purlins,
+      enabled: true,
+    },
+  });
 }
 
 function gableRoofSystemWithSteelTrusses(
@@ -146,6 +198,12 @@ function expectPointClose(
   expect(actual.x).toBeCloseTo(expected.x, precision);
   expect(actual.y).toBeCloseTo(expected.y, precision);
   expect(actual.z).toBeCloseTo(expected.z, precision);
+}
+
+function expectFinitePoint(point: { x: number; y: number; z: number }) {
+  expect(Number.isFinite(point.x)).toBe(true);
+  expect(Number.isFinite(point.y)).toBe(true);
+  expect(Number.isFinite(point.z)).toBe(true);
 }
 
 function hipMemberLength(member: { start: { x: number; y: number; z: number }; end: { x: number; y: number; z: number } }): number {
@@ -1534,6 +1592,72 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
     expect(roof.hipFramingMembers.every((member) => member.lengthMeters > 0.15)).toBe(true);
     for (const member of roof.hipFramingMembers) {
       expect(member.lengthMeters).toBeCloseTo(hipMemberLength(member), 6);
+    }
+  });
+
+  it('keeps hip trusses when side eave overhang increases to 1 m', () => {
+    const roofSystem = hipOverhangRegressionRoofSystem(1.0);
+    expect(roofSystem.supportSystem).toBe('steel_hip_framing');
+
+    const roof = roofFromGeometry(frameInfillGeometry(
+      roofSystem,
+      hipOverhangRegressionLayout(),
+    ));
+    const warningCodes = roof.warnings.map((warning) => warning.code);
+
+    expect(roof.roofType).toBe('hip');
+    expect(roof.trussPlacements).toHaveLength(9);
+    expect(roof.trussCount).toBe(9);
+    expect(warningCodes).not.toContain('hip_truss_station_missing');
+    expect(
+      roof.warnings.some((warning) =>
+        warning.message.includes('Eave extension projects inward through Roof Beam or column zone'),
+      ),
+    ).toBe(false);
+
+    for (const truss of roof.trussPlacements) {
+      const memberKinds = new Set(truss.members.map((member) => member.memberKind));
+      expect(memberKinds.has('bottom_chord')).toBe(true);
+      expect(memberKinds.has('top_chord_left')).toBe(true);
+      expect(memberKinds.has('top_chord_right')).toBe(true);
+      expect(
+        truss.members.some(
+          (member) => member.memberKind === 'vertical_web' || member.memberKind === 'diagonal_web',
+        ),
+      ).toBe(true);
+      expectFinitePoint(truss.bearingLeft);
+      expectFinitePoint(truss.bearingRight);
+      expectFinitePoint(truss.apex);
+      expect(truss.spanMeters ?? 0).toBeGreaterThan(0);
+    }
+  });
+
+  it('keeps hip station count and bearing span stable between 0.3 m and 1.0 m eave overhangs', () => {
+    const lowOverhangRoof = roofFromGeometry(frameInfillGeometry(
+      hipOverhangRegressionRoofSystem(0.3),
+      hipOverhangRegressionLayout(),
+    ));
+    const highOverhangRoof = roofFromGeometry(frameInfillGeometry(
+      hipOverhangRegressionRoofSystem(1.0),
+      hipOverhangRegressionLayout(),
+    ));
+    const roundStations = (stations: readonly number[]) =>
+      stations.map((station) => Number(station.toFixed(4)));
+    const bearingSpan = (truss: TrussPlacement) =>
+      Math.hypot(
+        truss.bearingRight.x - truss.bearingLeft.x,
+        truss.bearingRight.z - truss.bearingLeft.z,
+      );
+
+    expect(lowOverhangRoof.trussPlacements).toHaveLength(9);
+    expect(highOverhangRoof.trussPlacements).toHaveLength(lowOverhangRoof.trussPlacements.length);
+    expect(roundStations(highOverhangRoof.trussStations)).toEqual(roundStations(lowOverhangRoof.trussStations));
+    expect(bearingSpan(highOverhangRoof.trussPlacements[0]!)).toBeCloseTo(6.459, 3);
+
+    for (const [index, lowTruss] of lowOverhangRoof.trussPlacements.entries()) {
+      const highTruss = highOverhangRoof.trussPlacements[index]!;
+      expect(bearingSpan(highTruss)).toBeCloseTo(bearingSpan(lowTruss), 6);
+      expect(highTruss.spanMeters ?? 0).toBeCloseTo(lowTruss.spanMeters ?? 0, 6);
     }
   });
 

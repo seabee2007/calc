@@ -779,8 +779,8 @@ function validateTopChordClearsRoofBeam(params: {
 function validateEaveExtensionProjectsOutward(params: {
   member: SteelMemberSegment;
   bearing: RoofVec3;
-  oppositeBearing: RoofVec3;
   structuralTop: RoofVec3;
+  ridgePoint: RoofVec3;
 }): void {
   const memberStartAtBearing = length3(sub3(params.member.start, params.structuralTop)) <= TRUSS_VALIDATION_TOLERANCE_METERS;
   const memberEndAtBearing = length3(sub3(params.member.end, params.structuralTop)) <= TRUSS_VALIDATION_TOLERANCE_METERS;
@@ -789,18 +789,13 @@ function validateEaveExtensionProjectsOutward(params: {
   }
 
   const tail = memberStartAtBearing ? params.member.end : params.member.start;
-  const spanMid = vec3(
-    (params.bearing.x + params.oppositeBearing.x) / 2,
-    (params.bearing.y + params.oppositeBearing.y) / 2,
-    (params.bearing.z + params.oppositeBearing.z) / 2,
-  );
-  const outward = sub3(params.bearing, spanMid);
+  const outward = sub3(params.bearing, params.ridgePoint);
   const outwardPlanLength = Math.hypot(outward.x, outward.z) || 1;
   const outwardUnit = vec3(outward.x / outwardPlanLength, 0, outward.z / outwardPlanLength);
-  const bearingStation =
-    (params.bearing.x - spanMid.x) * outwardUnit.x + (params.bearing.z - spanMid.z) * outwardUnit.z;
-  const tailStation = (tail.x - spanMid.x) * outwardUnit.x + (tail.z - spanMid.z) * outwardUnit.z;
-  if (tailStation <= bearingStation + TRUSS_VALIDATION_TOLERANCE_METERS) {
+  const tailStation =
+    (tail.x - params.bearing.x) * outwardUnit.x +
+    (tail.z - params.bearing.z) * outwardUnit.z;
+  if (tailStation <= TRUSS_VALIDATION_TOLERANCE_METERS) {
     throw new Error('Eave extension projects inward through Roof Beam or column zone.');
   }
 }
@@ -841,8 +836,8 @@ export function validateTrussPlacement(
       validateEaveExtensionProjectsOutward({
         member,
         bearing: placement.bearingLeft,
-        oppositeBearing: placement.bearingRight,
         structuralTop: topChord.start,
+        ridgePoint: placement.apex,
       });
       continue;
     }
@@ -854,8 +849,8 @@ export function validateTrussPlacement(
       validateEaveExtensionProjectsOutward({
         member,
         bearing: placement.bearingRight,
-        oppositeBearing: placement.bearingLeft,
         structuralTop: topChord.start,
+        ridgePoint: placement.apex,
       });
       continue;
     }
@@ -870,6 +865,70 @@ export function validateTrussPlacement(
       throw new Error('Truss member is outside its assigned truss plane');
     }
   }
+}
+
+function isTopChordEaveExtension(member: SteelMemberSegment): boolean {
+  return (
+    member.memberKind === 'top_chord_left_eave_extension' ||
+    member.memberKind === 'top_chord_right_eave_extension'
+  );
+}
+
+function isEaveExtensionValidationError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+  return error.message.includes('eave extension') || error.message.includes('Eave extension');
+}
+
+function validateHipTrussPlacementKeepingStructuralCore(params: {
+  placement: TrussPlacement;
+  roofBeamTopY: number;
+  basePlateThicknessMeters: number;
+}): { placement: TrussPlacement; warnings: DesignWarning[] } {
+  const structuralMembers = params.placement.members.filter(
+    (member) => !isTopChordEaveExtension(member),
+  );
+  const eaveExtensions = params.placement.members.filter(isTopChordEaveExtension);
+  const structuralPlacement = { ...params.placement, members: structuralMembers };
+
+  validateTrussPlacement(
+    structuralPlacement,
+    params.roofBeamTopY,
+    params.basePlateThicknessMeters,
+  );
+
+  if (eaveExtensions.length === 0) {
+    return { placement: params.placement, warnings: [] };
+  }
+
+  const warnings: DesignWarning[] = [];
+  const keptMembers = [...structuralMembers];
+  for (const extension of eaveExtensions) {
+    const candidatePlacement = {
+      ...params.placement,
+      members: [...structuralMembers, extension],
+    };
+    try {
+      validateTrussPlacement(
+        candidatePlacement,
+        params.roofBeamTopY,
+        params.basePlateThicknessMeters,
+      );
+      keptMembers.push(extension);
+    } catch (error) {
+      if (!isEaveExtensionValidationError(error)) {
+        throw error;
+      }
+      warnings.push({
+        code: 'hip_truss_eave_extension_invalid',
+        message: `Skipped hip truss eave extension at station ${params.placement.stationMeters.toFixed(3)} m because the projected tail was invalid; structural truss was kept.`,
+        severity: 'review',
+      });
+    }
+  }
+
+  const placement = { ...params.placement, members: keptMembers };
+  validateTrussPlacement(placement, params.roofBeamTopY, params.basePlateThicknessMeters);
+  return { placement, warnings };
 }
 
 export function resolveEvenStations(lengthMeters: number, maxSpacingMeters: number): {
@@ -2218,8 +2277,13 @@ function resolveHipTrussPlacements(params: {
     };
 
     try {
-      validateTrussPlacement(placement, params.roofBeamTopY, params.basePlateThicknessMeters);
-      placements.push(placement);
+      const validated = validateHipTrussPlacementKeepingStructuralCore({
+        placement,
+        roofBeamTopY: params.roofBeamTopY,
+        basePlateThicknessMeters: params.basePlateThicknessMeters,
+      });
+      warnings.push(...validated.warnings);
+      placements.push(validated.placement);
     } catch (error) {
       warnings.push({
         code: 'hip_truss_local_span_invalid',

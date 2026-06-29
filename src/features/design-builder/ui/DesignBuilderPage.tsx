@@ -619,6 +619,7 @@ export default function DesignBuilderPage({
   const [showRoofPlanSlopeArrows, setShowRoofPlanSlopeArrows] = useState(true);
   const [showRoofPlanDimensions, setShowRoofPlanDimensions] = useState(true);
   const [showRoofPlanReferenceLines, setShowRoofPlanReferenceLines] = useState(true);
+  const [showRoofPlanTrussReferenceSheet, setShowRoofPlanTrussReferenceSheet] = useState(true);
   const [visualStyle, setVisualStyle] = useState<DesignVisualStyle>('technical');
   const [twoDDrawingStyle, setTwoDDrawingStyle] = useState<Design2dDrawingStyleMode>('architectural');
   const [materialSelections, setMaterialSelections] = useState<DesignMaterialSelection>(() =>
@@ -5726,6 +5727,8 @@ export default function DesignBuilderPage({
             onShowRoofPlanDimensionsChange={setShowRoofPlanDimensions}
             showRoofPlanReferenceLines={showRoofPlanReferenceLines}
             onShowRoofPlanReferenceLinesChange={setShowRoofPlanReferenceLines}
+            showRoofPlanTrussReferenceSheet={showRoofPlanTrussReferenceSheet}
+            onShowRoofPlanTrussReferenceSheetChange={setShowRoofPlanTrussReferenceSheet}
             foundationViewMode={foundationViewMode}
             onFoundationViewModeChange={setFoundationViewMode}
             roofDisplayMode={roofDisplayMode}
@@ -5828,11 +5831,13 @@ export default function DesignBuilderPage({
                 isolatedFootings={designGeometryResult.isolatedFootings}
                 wallFootings={designGeometryResult.wallFootings}
                 resolvedRoofSystem={designGeometryResult.resolvedRoofSystem ?? null}
+                roofSystem={activeRoofSystem}
                 roofPlanDisplay={{
                   showHatch: showRoofPlanHatch,
                   showSlopeArrows: showRoofPlanSlopeArrows,
                   showDimensions: showRoofPlanDimensions,
                   showReferenceLines: showRoofPlanReferenceLines,
+                  showTrussDesignDetail: showRoofPlanTrussReferenceSheet,
                 }}
                 selectedObjectType={selectedObjectType}
                 selectedAnnotationId={selectedAnnotationId}

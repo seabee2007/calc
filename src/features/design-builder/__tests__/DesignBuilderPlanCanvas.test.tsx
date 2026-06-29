@@ -273,6 +273,60 @@ function createResolvedRoofFixture(): ResolvedRoofSystem {
   };
 }
 
+function createHipResolvedRoofFixture(): ResolvedRoofSystem {
+  const base = createResolvedRoofFixture();
+  const member = (
+    id: string,
+    memberKind: ResolvedRoofSystem['hipFramingMembers'][number]['memberKind'],
+    start: { x: number; y: number; z: number },
+    end: { x: number; y: number; z: number },
+    slopePlaneId?: string,
+  ): ResolvedRoofSystem['hipFramingMembers'][number] => ({
+    id,
+    memberKind,
+    start,
+    end,
+    slopePlaneId,
+    lengthMeters: Math.hypot(end.x - start.x, end.y - start.y, end.z - start.z),
+    source: 'hip_roof_framing_solver',
+  });
+
+  const ridgeStart = base.ridgeStart!;
+  const ridgeEnd = base.ridgeEnd!;
+  const northWest = { x: -0.6, y: 3, z: -0.6 };
+  const northEast = { x: 4.6, y: 3, z: -0.6 };
+  const southEast = { x: 4.6, y: 3, z: 2.6 };
+  const southWest = { x: -0.6, y: 3, z: 2.6 };
+
+  return {
+    ...base,
+    roofType: 'hip',
+    ridgeCapPlacements: [
+      {
+        id: 'hip-top-ridge-cap',
+        start: ridgeStart,
+        end: ridgeEnd,
+        widthMeters: 0.3,
+        thicknessMeters: 0.02,
+        roofAngleRadians: Math.PI / 2,
+      },
+    ],
+    hipFramingMembers: [
+      member('hip-ridge', 'ridge', ridgeStart, ridgeEnd),
+      member('hip-rafter-nw', 'hip', northWest, ridgeStart),
+      member('hip-rafter-ne', 'hip', northEast, ridgeEnd),
+      member('hip-jack-north', 'jack', { x: 1.2, y: 3, z: -0.6 }, { x: 0.8, y: 3.4, z: 0.2 }, 'north-hip'),
+      member('hip-common-south', 'common', { x: 2, y: 3, z: 2.6 }, { x: 2, y: 3.8, z: 1 }, 'south-hip'),
+      member('hip-corner-support', 'hip_corner_support', southWest, { x: 0.4, y: 3.3, z: 1 }),
+      member('hip-jack-bottom', 'hip_jack_bottom_chord', { x: 1.1, y: 3, z: 2.2 }, { x: 2.6, y: 3, z: 2.2 }),
+      member('hip-ridge-end-frame', 'ridge_end_frame', { x: 0.4, y: 3, z: -0.6 }, ridgeStart),
+      member('hip-ridge-end-web', 'ridge_end_frame_web', { x: 0.4, y: 3, z: 0.2 }, ridgeStart),
+      member('hip-ridge-end-bottom', 'ridge_end_frame_bottom', { x: 0.2, y: 3, z: -0.3 }, { x: 0.6, y: 3, z: -0.3 }),
+      member('hip-rafter-se', 'hip', southEast, ridgeEnd),
+    ],
+  };
+}
+
 function createPlacedColumn(id = 'placed-column-a', xMeters = 0, zMeters = 0): PlacedDesignComponent {
   return {
     id,
@@ -1467,8 +1521,82 @@ describe('DesignBuilderPlanCanvas', () => {
     expect(container.querySelector('[data-roof-plan-callout="ridge"]')?.textContent).toContain('RIDGE');
     expect(container.querySelector('[data-roof-plan-slope-arrow="north-slope"]')).toBeTruthy();
     expect(container.querySelector('[data-dimension-id="roof-overall-length"]')).toBeTruthy();
+    const referenceSheet = container.querySelector('[data-testid="roof-truss-reference-sheet"]');
+    expect(referenceSheet).toBeTruthy();
+    expect(referenceSheet?.getAttribute('transform')).toContain('scale(');
+    expect(referenceSheet).toHaveAttribute('data-reference-sheet-placement', 'model-space');
+    expect(referenceSheet).toHaveAttribute('data-origin-x-meters', '14.600');
+    expect(referenceSheet).toHaveAttribute('data-origin-z-meters', '2.600');
+    expect(container.querySelector('[data-testid="truss-reference-sheet-drawing"]')).toHaveAttribute('data-reference-sheet-units', 'meters');
+    expect(container.querySelector('[data-testid="truss-reference-sheet-notes-panel"]')).toBeTruthy();
+    expect(container.querySelector('[data-canvas-layer="roof-truss-design-detail"]')).toBeFalsy();
     expect(container.querySelector('[data-column-drag-column-id="column-a"]')).toBeFalsy();
     expect(container.querySelector('[data-plan-wall-visible="true"]')).toBeFalsy();
+  });
+
+  it('renders all hip roof framing members in the 2D roof plan', () => {
+    const { layout, frameSystem } = createColumnDragFixture();
+    const { container } = render(
+      <DesignBuilderPlanCanvas
+        layout={layout}
+        toolMode="select"
+        active2DView="roof-plan"
+        viewport={{ centerX: 2, centerZ: 1, zoom: 100 }}
+        frameSystem={frameSystem}
+        resolvedRoofSystem={createHipResolvedRoofFixture()}
+        drawingStyleMode="architectural"
+        onInteraction={vi.fn()}
+      />,
+    );
+
+    const expectedKinds: Array<ResolvedRoofSystem['hipFramingMembers'][number]['memberKind']> = [
+      'ridge',
+      'hip',
+      'jack',
+      'common',
+      'hip_corner_support',
+      'hip_jack_bottom_chord',
+      'ridge_end_frame',
+      'ridge_end_frame_web',
+      'ridge_end_frame_bottom',
+    ];
+
+    for (const kind of expectedKinds) {
+      expect(container.querySelector(`[data-roof-plan-hip-framing-member="${kind}"]`)).toBeTruthy();
+    }
+    expect(container.querySelector('[data-roof-plan-hip-framing-id="hip-jack-north"]')).toBeTruthy();
+    expect(container.querySelector('[data-roof-plan-slope-plane="north-hip"]')).toBeTruthy();
+    expect(container.querySelector('[data-roof-plan-ridge-cap="true"]')).toHaveAttribute(
+      'data-roof-plan-covering',
+      'ridge_cap',
+    );
+  });
+
+  it('hides the roof truss reference sheet when the roof plan display option is off', () => {
+    const { layout, frameSystem } = createColumnDragFixture();
+    const { container } = render(
+      <DesignBuilderPlanCanvas
+        layout={layout}
+        toolMode="select"
+        active2DView="roof-plan"
+        viewport={{ centerX: 2, centerZ: 1, zoom: 100 }}
+        frameSystem={frameSystem}
+        resolvedRoofSystem={createResolvedRoofFixture()}
+        roofPlanDisplay={{
+          showHatch: true,
+          showSlopeArrows: true,
+          showDimensions: true,
+          showReferenceLines: true,
+          showTrussDesignDetail: false,
+        }}
+        drawingStyleMode="architectural"
+        onInteraction={vi.fn()}
+      />,
+    );
+
+    expect(container.querySelector('[data-roof-plan-outline="true"]')).toBeTruthy();
+    expect(container.querySelector('[data-testid="roof-truss-reference-sheet"]')).toBeFalsy();
+    expect(container.querySelector('[data-canvas-layer="roof-truss-design-detail"]')).toBeFalsy();
   });
 
   it('snaps roof plan dimensions to roof outline corners', () => {

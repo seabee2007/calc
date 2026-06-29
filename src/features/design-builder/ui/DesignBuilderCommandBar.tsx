@@ -112,6 +112,8 @@ export type DesignBuilderCommandBarProps = {
   onShowRoofPlanDimensionsChange: (value: boolean) => void;
   showRoofPlanReferenceLines: boolean;
   onShowRoofPlanReferenceLinesChange: (value: boolean) => void;
+  showRoofPlanTrussReferenceSheet: boolean;
+  onShowRoofPlanTrussReferenceSheetChange: (value: boolean) => void;
   foundationViewMode: FoundationViewMode;
   onFoundationViewModeChange: (value: FoundationViewMode) => void;
   roofDisplayMode: RoofDisplayMode;
@@ -310,11 +312,7 @@ export function DesignBuilderCommandBar(props: DesignBuilderCommandBarProps) {
           label={
             <>
               Snap:{" "}
-              {props.snapMode === "cmu_module"
-                ? "CMU"
-                : props.snapMode === "grid"
-                  ? "Grid"
-                  : "Off"}
+              {props.snapMode === "off" ? "Off" : "Grid"}
             </>
           }
           closeOnSelect={false}
@@ -324,26 +322,28 @@ export function DesignBuilderCommandBar(props: DesignBuilderCommandBarProps) {
           <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
             Snap mode
           </div>
-          {(["grid", "cmu_module", "off"] as DesignBuilderSnapMode[]).map(
-            (mode) => (
+          {([
+            ["grid", "Grid", props.snapMode !== "off"],
+            ["off", "Off", props.snapMode === "off"],
+          ] as Array<[DesignBuilderSnapMode, string, boolean]>).map(
+            ([mode, label, enabled]) => (
               <button
                 key={mode}
                 type="button"
                 onClick={() => props.onSnapModeChange(mode)}
-                className={`block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold ${
-                  props.snapMode === mode
-                    ? "bg-cyan-600 text-white"
-                    : "text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
-                }`}
+                className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800"
               >
-                {mode === "cmu_module" ? "CMU" : mode === "grid" ? "Grid" : "Off"}
+                <span className="text-slate-700 dark:text-slate-200">
+                  {label}
+                </span>
+                {enabled ? (
+                  <span className="font-bold text-cyan-600 dark:text-cyan-300">
+                    On
+                  </span>
+                ) : null}
               </button>
             ),
           )}
-          <p className="px-3 py-1 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
-            Grid snaps wall endpoints to selected grid spacing. CMU snaps to CMU
-            module stations.
-          </p>
           <div className="my-1 border-t border-slate-200 dark:border-slate-700" />
           <button
             type="button"
@@ -429,7 +429,7 @@ export function DesignBuilderCommandBar(props: DesignBuilderCommandBarProps) {
           <p className="px-3 py-1 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
             F3 object snap · F7 grid · F8 ortho · F10 polar · Alt disables snap · Tab cycles targets.
           </p>
-          <div className={props.snapMode === "grid" ? "" : "opacity-50"}>
+          <div className={props.snapMode !== "off" ? "" : "opacity-50"}>
             <div className="my-1 border-t border-slate-200 dark:border-slate-700" />
             <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
               Snap spacing
@@ -440,7 +440,7 @@ export function DesignBuilderCommandBar(props: DesignBuilderCommandBarProps) {
                   key={preset.spacingMeters}
                   type="button"
                   onClick={() => props.onApplyGridScalePreset(preset.spacingMeters)}
-                  disabled={props.snapMode !== "grid"}
+                  disabled={props.snapMode === "off"}
                   className={`rounded-lg px-2 py-1.5 text-left text-xs font-semibold disabled:cursor-not-allowed ${
                     Math.abs(props.gridSpacingMeters - preset.spacingMeters) <
                     0.0001
@@ -456,13 +456,7 @@ export function DesignBuilderCommandBar(props: DesignBuilderCommandBarProps) {
               ))}
             </div>
             <div className="px-3 py-1 text-[11px] font-medium text-slate-500 dark:text-slate-400">
-              {props.snapMode === "grid"
-                ? `Active grid spacing: ${
-                    props.gridSpacingMeters < 1
-                      ? props.gridSpacingMeters.toFixed(1)
-                      : props.gridSpacingMeters
-                  } m`
-                : "Snap spacing applies in Grid mode only."}
+              Snap spacing applies in Grid mode only.
             </div>
           </div>
           <div className="my-1 border-t border-slate-200 dark:border-slate-700" />
@@ -539,6 +533,10 @@ export function DesignBuilderCommandBar(props: DesignBuilderCommandBarProps) {
           showRoofPlanReferenceLines={props.showRoofPlanReferenceLines}
           onShowRoofPlanReferenceLinesChange={
             props.onShowRoofPlanReferenceLinesChange
+          }
+          showRoofPlanTrussReferenceSheet={props.showRoofPlanTrussReferenceSheet}
+          onShowRoofPlanTrussReferenceSheetChange={
+            props.onShowRoofPlanTrussReferenceSheetChange
           }
           foundationViewMode={props.foundationViewMode}
           onFoundationViewModeChange={props.onFoundationViewModeChange}

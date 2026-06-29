@@ -41,6 +41,8 @@ type DesignBuilderDisplayMenuProps = {
   onShowRoofPlanDimensionsChange: (checked: boolean) => void;
   showRoofPlanReferenceLines: boolean;
   onShowRoofPlanReferenceLinesChange: (checked: boolean) => void;
+  showRoofPlanTrussReferenceSheet: boolean;
+  onShowRoofPlanTrussReferenceSheetChange: (checked: boolean) => void;
   foundationViewMode: FoundationViewMode;
   onFoundationViewModeChange: (mode: FoundationViewMode) => void;
   roofDisplayMode: RoofDisplayMode;
@@ -82,6 +84,8 @@ export function DesignBuilderDisplayMenu({
   onShowRoofPlanDimensionsChange,
   showRoofPlanReferenceLines,
   onShowRoofPlanReferenceLinesChange,
+  showRoofPlanTrussReferenceSheet,
+  onShowRoofPlanTrussReferenceSheetChange,
   foundationViewMode,
   onFoundationViewModeChange,
   roofDisplayMode,
@@ -212,6 +216,7 @@ export function DesignBuilderDisplayMenu({
             <ToggleField label="Show Roof Slope Arrows" checked={showRoofPlanSlopeArrows} onChange={onShowRoofPlanSlopeArrowsChange} />
             <ToggleField label="Show Roof Dimensions" checked={showRoofPlanDimensions} onChange={onShowRoofPlanDimensionsChange} />
             <ToggleField label="Show Roof Reference Lines" checked={showRoofPlanReferenceLines} onChange={onShowRoofPlanReferenceLinesChange} />
+            <ToggleField label="Truss Design Detail" checked={showRoofPlanTrussReferenceSheet} onChange={onShowRoofPlanTrussReferenceSheetChange} />
           </DisplayMenuCollapsibleSection>
 
           <DisplayMenuCollapsibleSection id="display-foundation-view" title="Foundation View">

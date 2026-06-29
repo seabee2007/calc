@@ -11,6 +11,7 @@ import type {
   DesignWallLayoutParameters,
   PlacedDesignComponent,
   ResolvedRoofSystem,
+  RoofSystemSettings,
   StructuralBeam,
   StructuralColumn,
   WallFooting,
@@ -68,6 +69,11 @@ import {
   PURLIN_PROFILE_WIDTH_METERS,
   TRUSS_CHORD_PROFILE_METERS,
 } from '../domain/roofFramingResolver';
+import { resolveTrussDesignSummary } from '../domain/trussDesignCalculations';
+import {
+  TrussReferenceSheetDrawing,
+  type TrussReferenceSheetPlacement,
+} from './TrussReferenceSheetDrawing';
 import {
   createCmuSepticTank,
   hitTestSepticTank,
@@ -182,6 +188,7 @@ type RoofPlanDisplayOptions = {
   showSlopeArrows: boolean;
   showDimensions: boolean;
   showReferenceLines: boolean;
+  showTrussDesignDetail: boolean;
 };
 
 function planViewTitle(viewType: Design2DViewType): string {
@@ -273,6 +280,59 @@ function roofPitchLabel(roof: ResolvedRoofSystem): string | null {
   const risePer12 = (roof.roofRiseMeters / roof.roofRunMeters) * 12;
   if (!Number.isFinite(risePer12) || risePer12 <= 0) return null;
   return `${risePer12.toFixed(1)}:12`;
+}
+
+type RoofPlanBounds = {
+  minX: number;
+  maxX: number;
+  minZ: number;
+  maxZ: number;
+  centerX: number;
+  centerZ: number;
+};
+
+function resolveTrussReferenceSheetPlacement(params: {
+  roofPlanBounds: RoofPlanBounds;
+  summary: NonNullable<ReturnType<typeof resolveTrussDesignSummary>>;
+}): TrussReferenceSheetPlacement {
+  const roofWidthMeters = Math.max(
+    params.roofPlanBounds.maxX - params.roofPlanBounds.minX,
+    params.roofPlanBounds.maxZ - params.roofPlanBounds.minZ,
+  );
+  const representativeSpanMeters = params.summary.geometry?.spanMeters ?? roofWidthMeters;
+  const sheetWidthMeters = Math.max(roofWidthMeters * 2, representativeSpanMeters * 1.8, 14);
+  const sheetHeightMeters = Math.max(sheetWidthMeters * 0.42, 7);
+  const gapMeters = 10;
+  const outerPaddingMeters = 0.28;
+  const headerHeightMeters = 0.82;
+  const panelGapMeters = 0.24;
+  const contentX = outerPaddingMeters;
+  const contentY = headerHeightMeters + 0.12;
+  const contentWidth = sheetWidthMeters - outerPaddingMeters * 2;
+  const contentHeight = sheetHeightMeters - contentY - outerPaddingMeters;
+  const trussPanelWidth = Math.max(6.5, contentWidth * 0.6);
+  const notesPanelWidth = Math.max(4.2, contentWidth - trussPanelWidth - panelGapMeters);
+
+  return {
+    origin: {
+      x: params.roofPlanBounds.maxX + gapMeters,
+      z: params.roofPlanBounds.maxZ,
+    },
+    widthMeters: sheetWidthMeters,
+    heightMeters: sheetHeightMeters,
+    trussPanel: {
+      x: contentX,
+      y: contentY,
+      width: trussPanelWidth,
+      height: contentHeight,
+    },
+    notesPanel: {
+      x: contentX + trussPanelWidth + panelGapMeters,
+      y: contentY,
+      width: notesPanelWidth,
+      height: contentHeight,
+    },
+  };
 }
 
 type PartitionWallFootprintSegmentRef = {
@@ -387,6 +447,7 @@ interface DesignBuilderPlanCanvasProps {
   isolatedFootings?: readonly import('../types').IsolatedFooting[];
   wallFootings?: readonly WallFooting[];
   resolvedRoofSystem?: ResolvedRoofSystem | null;
+  roofSystem?: RoofSystemSettings;
   roofPlanDisplay?: RoofPlanDisplayOptions;
   selectedObjectType?: import('../types').DesignObjectType | null;
   selectedAnnotationId?: string | null;
@@ -451,11 +512,13 @@ export default function DesignBuilderPlanCanvas({
   isolatedFootings = [],
   wallFootings = [],
   resolvedRoofSystem = null,
+  roofSystem,
   roofPlanDisplay = {
     showHatch: true,
     showSlopeArrows: true,
     showDimensions: true,
     showReferenceLines: true,
+    showTrussDesignDetail: true,
   },
   selectedObjectType = null,
   selectedAnnotationId = null,
@@ -516,6 +579,10 @@ export default function DesignBuilderPlanCanvas({
   const isRoofPlanView = active2DView === 'roof-plan';
   const isPlumbingPlanView = active2DView === 'plumbing-plan';
   const showStructuralPlanGeometry = active2DView === 'foundation-plan';
+  const showRoofTrussReferenceSheet =
+    isRoofPlanView &&
+    roofPlanDisplay.showTrussDesignDetail &&
+    resolvedRoofSystem?.supported === true;
   const roofPlanPerimeter = useMemo(() => roofPlanPerimeterPoints(resolvedRoofSystem), [resolvedRoofSystem]);
   const roofPlanBounds = useMemo(() => {
     if (roofPlanPerimeter.length === 0) return null;
@@ -530,6 +597,20 @@ export default function DesignBuilderPlanCanvas({
       centerZ: (Math.min(...zs) + Math.max(...zs)) / 2,
     };
   }, [roofPlanPerimeter]);
+  const trussDesignSummary = useMemo(() => {
+    if (!showRoofTrussReferenceSheet || !resolvedRoofSystem?.supported) return null;
+    return resolveTrussDesignSummary({
+      roof: resolvedRoofSystem,
+      roofSettings: roofSystem,
+    });
+  }, [resolvedRoofSystem, roofSystem, showRoofTrussReferenceSheet]);
+  const trussReferenceSheetPlacement = useMemo(() => {
+    if (!trussDesignSummary || !roofPlanBounds) return null;
+    return resolveTrussReferenceSheetPlacement({
+      roofPlanBounds,
+      summary: trussDesignSummary,
+    });
+  }, [roofPlanBounds, trussDesignSummary]);
 
   const setColumnDragState = useCallback((next: ColumnDragState | null) => {
     columnDragStateRef.current = next;
@@ -919,7 +1000,6 @@ export default function DesignBuilderPlanCanvas({
         );
       }
       resolvedRoofSystem?.hipFramingMembers.forEach((member) => {
-        if (member.memberKind !== 'hip' && member.memberKind !== 'ridge') return;
         addSegmentSnapPoints(
           { x: member.start.x, z: member.start.z },
           { x: member.end.x, z: member.end.z },
@@ -2315,6 +2395,30 @@ export default function DesignBuilderPlanCanvas({
         );
       }),
     );
+    const hipMemberFootprints = roof.hipFramingMembers.map((member) => {
+      const isPrimary = member.memberKind === 'ridge' || member.memberKind === 'hip';
+      const isSupportFrame = member.memberKind.startsWith('ridge_end_frame') || member.memberKind === 'hip_corner_support';
+      return renderPlanMemberFootprint(
+        member.id,
+        { x: member.start.x, z: member.start.z },
+        { x: member.end.x, z: member.end.z },
+        TRUSS_CHORD_PROFILE_METERS,
+        {
+          fill: isPrimary
+            ? (architecturalDrawing ? '#e5e7eb' : '#334155')
+            : (architecturalDrawing ? '#f8fafc' : '#475569'),
+          stroke: isPrimary ? permanentStroke : mutedStroke,
+          strokeWidth: isPrimary ? drawingStyle.weights.medium : drawingStyle.weights.light + 0.35,
+          opacity: isPrimary ? 0.96 : isSupportFrame ? 0.78 : 0.86,
+          data: {
+            'data-roof-plan-member': member.memberKind,
+            'data-roof-plan-hip-framing-member': member.memberKind,
+            'data-roof-plan-hip-framing-id': member.id,
+            ...(member.slopePlaneId ? { 'data-roof-plan-slope-plane': member.slopePlaneId } : {}),
+          },
+        },
+      );
+    });
     const inferredTrussLines = roof.trussPlacements.length === 0 && ridgeStart && ridgeEnd && roofPlanBounds
       ? Array.from({ length: Math.max(2, Math.floor(ridgeLength / 0.8) + 1) }, (_, index) => {
           const count = Math.max(2, Math.floor(ridgeLength / 0.8) + 1);
@@ -2435,6 +2539,7 @@ export default function DesignBuilderPlanCanvas({
         {planeLines}
         {inferredTrussLines}
         {trussMemberFootprints}
+        {hipMemberFootprints}
         {ridgeStart && ridgeEnd ? (
           <>
             {(roof.ridgeCapPlacements.length > 0
@@ -2458,7 +2563,11 @@ export default function DesignBuilderPlanCanvas({
                   stroke: selectedObjectType === 'gable_roof_system' ? selectionStroke : permanentStroke,
                   strokeWidth: selectedObjectType === 'gable_roof_system' ? drawingStyle.weights.selection : drawingStyle.weights.medium,
                   opacity: 0.96,
-                  data: { 'data-roof-plan-ridge': 'true' },
+                  data: {
+                    'data-roof-plan-ridge': 'true',
+                    'data-roof-plan-ridge-cap': 'true',
+                    'data-roof-plan-covering': 'ridge_cap',
+                  },
                   clip: false,
                 },
               ),
@@ -2479,25 +2588,6 @@ export default function DesignBuilderPlanCanvas({
             </text>
           </>
         ) : null}
-        {roof.hipFramingMembers
-          .filter((member) => member.memberKind === 'hip' || member.memberKind === 'ridge')
-          .map((member) =>
-            renderPlanMemberFootprint(
-              member.id,
-              { x: member.start.x, z: member.start.z },
-              { x: member.end.x, z: member.end.z },
-              TRUSS_CHORD_PROFILE_METERS,
-              {
-                fill: member.memberKind === 'ridge'
-                  ? (architecturalDrawing ? '#e5e7eb' : '#334155')
-                  : (architecturalDrawing ? '#f8fafc' : '#475569'),
-                stroke: member.memberKind === 'ridge' ? permanentStroke : mutedStroke,
-                strokeWidth: member.memberKind === 'ridge' ? drawingStyle.weights.medium : drawingStyle.weights.light + 0.35,
-                opacity: member.memberKind === 'ridge' ? 0.96 : 0.86,
-                data: { 'data-roof-plan-member': member.memberKind },
-              },
-            ),
-          )}
         {slopeArrows}
         {roofPlanDisplay.showDimensions && roofPlanBounds ? (
           <>
@@ -2517,6 +2607,32 @@ export default function DesignBuilderPlanCanvas({
             })}
           </>
         ) : null}
+      </g>
+    );
+  };
+
+  const renderTrussReferenceSheet = () => {
+    if (!isRoofPlanView || !trussDesignSummary || !trussReferenceSheetPlacement) return null;
+
+    const sheetOriginSurface = planToSurfacePoint(trussReferenceSheetPlacement.origin);
+
+    return (
+      <g
+        pointerEvents="none"
+        data-canvas-layer="roof-truss-reference-sheet"
+        data-testid="roof-truss-reference-sheet"
+        data-reference-sheet-placement="model-space"
+        data-origin-x-meters={trussReferenceSheetPlacement.origin.x.toFixed(3)}
+        data-origin-z-meters={trussReferenceSheetPlacement.origin.z.toFixed(3)}
+        data-sheet-width-meters={trussReferenceSheetPlacement.widthMeters.toFixed(3)}
+        data-sheet-height-meters={trussReferenceSheetPlacement.heightMeters.toFixed(3)}
+        transform={`translate(${sheetOriginSurface.sx} ${sheetOriginSurface.sy}) scale(${viewport.zoom})`}
+      >
+        <TrussReferenceSheetDrawing
+          summary={trussDesignSummary}
+          placement={trussReferenceSheetPlacement}
+          drawingStyleMode={drawingStyleMode}
+        />
       </g>
     );
   };
@@ -2953,6 +3069,7 @@ export default function DesignBuilderPlanCanvas({
           </>
         ) : null}
         {renderRoofPlanDrawing()}
+        {renderTrussReferenceSheet()}
         {showStructuralPlanGeometry ? layout.segments.map((segment) => {
           const endpoints = resolveSegmentDisplayEndpoints({
             segment,
