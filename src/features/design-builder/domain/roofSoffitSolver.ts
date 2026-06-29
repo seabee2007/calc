@@ -70,6 +70,50 @@ function soffitElevationForEdge(params: {
   return params.roofBeamTopY - DEFAULT_SOFFIT_DROP_BELOW_BEARING_METERS;
 }
 
+function resolveHipSoffitElevation(params: {
+  innerStartSource: RoofVec3;
+  innerEndSource: RoofVec3;
+  outerStartSource: RoofVec3;
+  outerEndSource: RoofVec3;
+  edgeMidpoint: RoofVec3;
+  claddingDisplayPlanes: readonly RoofPlane[];
+  fasciaPlacements: readonly FasciaPlacement[];
+  roofBeamTopY: number;
+  roofAssemblyThicknessMeters: number;
+}): number {
+  const fallbackBearingY = params.roofBeamTopY - DEFAULT_SOFFIT_DROP_BELOW_BEARING_METERS;
+  const fasciaY = soffitElevationForEdge({
+    edgeMidpoint: params.edgeMidpoint,
+    fasciaPlacements: params.fasciaPlacements,
+    roofBeamTopY: params.roofBeamTopY,
+  });
+  if (params.fasciaPlacements.length > 0) {
+    return fasciaY;
+  }
+
+  const undersideDropMeters =
+    Math.max(
+      params.roofAssemblyThicknessMeters,
+      CORRUGATED_SHEET_DISPLAY_THICKNESS_METERS,
+    ) + DEFAULT_SOFFIT_DROP_BELOW_BEARING_METERS;
+  const sampledYs = [
+    params.outerStartSource,
+    params.outerEndSource,
+    params.edgeMidpoint,
+    params.innerStartSource,
+    params.innerEndSource,
+  ]
+    .map((point) => lowestRoofPlaneYAtPoint(params.claddingDisplayPlanes, point))
+    .filter((y): y is number => y != null && Number.isFinite(y))
+    .map((roofTopY) => roofTopY - undersideDropMeters);
+
+  if (sampledYs.length === 0) {
+    return fallbackBearingY;
+  }
+
+  return Math.min(fallbackBearingY, ...sampledYs);
+}
+
 function roleForEdge(params: {
   roofType: RoofSystemSettings['roofType'];
   innerStart: RoofVec3;
@@ -106,6 +150,16 @@ function roofPlaneYAtPoint(planes: readonly RoofPlane[], point: Pick<RoofVec3, '
     return null;
   }
   return elevations.sort((a, b) => b - a)[0]!;
+}
+
+function lowestRoofPlaneYAtPoint(planes: readonly RoofPlane[], point: Pick<RoofVec3, 'x' | 'z'>): number | null {
+  const elevations = planes
+    .map((plane) => elevationOnRoofPlaneAtPoint(plane, point.x, point.z))
+    .filter((y): y is number => y != null && Number.isFinite(y));
+  if (elevations.length === 0) {
+    return null;
+  }
+  return elevations.sort((a, b) => a - b)[0]!;
 }
 
 function signedPlanDistanceFromRidge(params: {
@@ -481,6 +535,28 @@ export function resolveRoofSoffitPlacements(params: {
         fasciaOverlapMeters: params.fasciaPlacements.length > 0 ? SIDE_EAVE_FASCIA_OVERLAP_METERS : 0,
       })
     ) {
+      continue;
+    }
+
+    if (edgeRole === 'hip_eave') {
+      const hipY = resolveHipSoffitElevation({
+        innerStartSource,
+        innerEndSource,
+        outerStartSource,
+        outerEndSource,
+        edgeMidpoint,
+        claddingDisplayPlanes: params.claddingDisplayPlanes,
+        fasciaPlacements: params.fasciaPlacements,
+        roofBeamTopY: params.roofBeamTopY,
+        roofAssemblyThicknessMeters: params.roofSystem.roofAssemblyThicknessMeters,
+      });
+      pushPlacement(placements, {
+        edgeRole,
+        innerStart: { x: innerStartSource.x, y: hipY, z: innerStartSource.z },
+        innerEnd: { x: innerEndSource.x, y: hipY, z: innerEndSource.z },
+        outerEnd: { x: outerEndSource.x, y: hipY, z: outerEndSource.z },
+        outerStart: { x: outerStartSource.x, y: hipY, z: outerStartSource.z },
+      });
       continue;
     }
 

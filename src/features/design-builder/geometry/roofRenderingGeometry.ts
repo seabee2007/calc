@@ -136,6 +136,8 @@ export function memberKindMaterialColor(memberKind: SteelMemberKind): number {
   switch (memberKind) {
     case 'top_chord_left':
     case 'top_chord_right':
+    case 'top_chord_left_eave_extension':
+    case 'top_chord_right_eave_extension':
       return 0xf97316;
     case 'bottom_chord':
       return 0xa855f7;

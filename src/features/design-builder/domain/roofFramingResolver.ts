@@ -601,6 +601,68 @@ function buildPrimaryTrussMembers(
   return members;
 }
 
+function projectHipTrussSideEaveTail(params: {
+  structuralBearing: RoofVec3;
+  apex: RoofVec3;
+  eaveOverhangMeters: number;
+  fixedRoofSlope: number;
+  bearingCenterY: number;
+}): RoofVec3 {
+  const dx = params.structuralBearing.x - params.apex.x;
+  const dz = params.structuralBearing.z - params.apex.z;
+  const len = Math.hypot(dx, dz) || 1;
+  const ux = dx / len;
+  const uz = dz / len;
+  const overhang = Math.max(0, params.eaveOverhangMeters);
+
+  return {
+    x: params.structuralBearing.x + ux * overhang,
+    y: params.bearingCenterY - params.fixedRoofSlope * overhang,
+    z: params.structuralBearing.z + uz * overhang,
+  };
+}
+
+function buildHipTrussEaveExtensionMembers(params: {
+  trussId: string;
+  leftBearingTop: RoofVec3;
+  rightBearingTop: RoofVec3;
+  apex: RoofVec3;
+  eaveOverhangMeters: number;
+  fixedRoofSlope: number;
+  bearingCenterY: number;
+}): SteelMemberSegment[] {
+  if (params.eaveOverhangMeters <= TRUSS_VALIDATION_TOLERANCE_METERS) {
+    return [];
+  }
+
+  return [
+    {
+      id: `${params.trussId}-top-left-eave-extension`,
+      memberKind: 'top_chord_left_eave_extension',
+      start: projectHipTrussSideEaveTail({
+        structuralBearing: params.leftBearingTop,
+        apex: params.apex,
+        eaveOverhangMeters: params.eaveOverhangMeters,
+        fixedRoofSlope: params.fixedRoofSlope,
+        bearingCenterY: params.bearingCenterY,
+      }),
+      end: params.leftBearingTop,
+    },
+    {
+      id: `${params.trussId}-top-right-eave-extension`,
+      memberKind: 'top_chord_right_eave_extension',
+      start: projectHipTrussSideEaveTail({
+        structuralBearing: params.rightBearingTop,
+        apex: params.apex,
+        eaveOverhangMeters: params.eaveOverhangMeters,
+        fixedRoofSlope: params.fixedRoofSlope,
+        bearingCenterY: params.bearingCenterY,
+      }),
+      end: params.rightBearingTop,
+    },
+  ];
+}
+
 function chordCenterAtBearing(params: {
   member: SteelMemberSegment;
   bearing: RoofVec3;
@@ -1431,33 +1493,58 @@ export function buildPurlinRowStationFractions(params: {
   sideEaveOverhangMeters: number;
   maxPurlinSpacingMeters: number;
 }): { rowTs: number[]; rowsPerSlope: number; actualSpacingMeters: number } {
+  const slopeLengthMeters = Math.max(0.001, params.slopeLengthMeters);
+  const maxSpacingMeters = Math.max(0.001, params.maxPurlinSpacingMeters);
   const trussEaveT = sideEaveTrussRowStationFraction({
     structuralHalfRunMeters: params.structuralHalfRunMeters,
     sideEaveOverhangMeters: params.sideEaveOverhangMeters,
   });
 
-  const slopeLengthMeters = Math.max(0.001, params.slopeLengthMeters);
-  const interiorRows = Math.max(
-    2,
-    Math.ceil(slopeLengthMeters / Math.max(0.001, params.maxPurlinSpacingMeters)) + 1,
-  );
-  const actualSpacingMeters = slopeLengthMeters / (interiorRows - 1);
-
-  const rowTs = new Set<number>();
-  for (let index = 0; index < interiorRows; index += 1) {
-    rowTs.add(index / (interiorRows - 1));
-  }
+  let rowTs: number[];
   if (trussEaveT > TRUSS_VALIDATION_TOLERANCE_METERS) {
-    rowTs.add(trussEaveT);
+    const clampedTrussEaveT = Math.max(0, Math.min(1, trussEaveT));
+    const overhangSlopeLength = slopeLengthMeters * clampedTrussEaveT;
+    const overhangIntervals = Math.max(1, Math.ceil(overhangSlopeLength / maxSpacingMeters));
+    const remainingSlopeLength = slopeLengthMeters * (1 - clampedTrussEaveT);
+    const remainingIntervals = Math.max(1, Math.ceil(remainingSlopeLength / maxSpacingMeters));
+    rowTs = [];
+    for (let index = 0; index <= overhangIntervals; index += 1) {
+      rowTs.push(clampedTrussEaveT * (index / overhangIntervals));
+    }
+    for (let index = 1; index <= remainingIntervals; index += 1) {
+      rowTs.push(clampedTrussEaveT + (1 - clampedTrussEaveT) * (index / remainingIntervals));
+    }
+  } else {
+    const intervals = Math.max(1, Math.ceil(slopeLengthMeters / maxSpacingMeters));
+    rowTs = [0];
+    for (let index = 1; index <= intervals; index += 1) {
+      rowTs.push(index / intervals);
+    }
   }
 
-  const sortedTs = [...rowTs].sort((a, b) => a - b);
+  const requiredTs = new Set([0, 1]);
+  if (trussEaveT > TRUSS_VALIDATION_TOLERANCE_METERS) {
+    requiredTs.add(Math.max(0, Math.min(1, trussEaveT)));
+  }
+  const minPhysicalSpacingMeters = Math.max(0.15, Math.min(maxSpacingMeters * 0.35, 0.35));
+  const sortedTs = [...rowTs]
+    .filter((t) => Number.isFinite(t))
+    .map((t) => Math.max(0, Math.min(1, t)))
+    .sort((a, b) => a - b);
   const deduped: number[] = [];
+
   for (const t of sortedTs) {
-    if (deduped.length === 0 || t - deduped[deduped.length - 1]! > PURLIN_ROW_STATION_TOLERANCE) {
+    const previous = deduped[deduped.length - 1];
+    if (previous == null) {
+      deduped.push(t);
+      continue;
+    }
+    const physicalGap = (t - previous) * slopeLengthMeters;
+    if (physicalGap >= minPhysicalSpacingMeters || requiredTs.has(t)) {
       deduped.push(t);
     }
   }
+  const actualSpacingMeters = maxAdjacentStationSpacing(deduped) * slopeLengthMeters;
 
   return {
     rowTs: deduped,
@@ -2057,12 +2144,12 @@ function resolveHipTrussPlacements(params: {
   ridgeEnd?: RoofVec3;
   roofBeamTopY: number;
   peakY: number;
-  claddingEaveY: number;
   basePlateThicknessMeters: number;
   maxSpacingMeters: number;
   basePlateCenterInsetMeters: number;
   trussEndInsetMeters: number;
   fixedRoofSlope: number;
+  sideEaveOverhangMeters: number;
   hipInteriorTrussCount: number;
   webProfileMode: TrussWebProfileMode;
   manualWebProfileId?: TrussWebProfileId;
@@ -2130,14 +2217,9 @@ function resolveHipTrussPlacements(params: {
   }
 
   const structuralSides = spanEdgesPerpendicularToRidge(params.structuralBearing, ridgeStart2, ridgeEnd2);
-  const claddingSides = spanEdgesPerpendicularToRidge(params.claddingBearing, ridgeStart2, ridgeEnd2);
   const structuralSideEdges = [
     { start: structuralSides[0], end: structuralSides[1] },
     { start: structuralSides[2], end: structuralSides[3] },
-  ];
-  const claddingSideEdges = [
-    { start: claddingSides[0], end: claddingSides[1] },
-    { start: claddingSides[2], end: claddingSides[3] },
   ];
   const bearingY = params.roofBeamTopY + params.basePlateThicknessMeters;
   const bearingCenterY = bearingY + TRUSS_CHORD_PROFILE_METERS / 2;
@@ -2180,11 +2262,6 @@ function resolveHipTrussPlacements(params: {
       return;
     }
 
-    const claddingHits = resolveSideHitsAtRidgePoint({
-      ridgePoint: ridgePoint2,
-      perpUnit,
-      edges: claddingSideEdges,
-    });
     const bearingLeft = toVec3(bearingLeft2, bearingY);
     const bearingRight = toVec3(bearingRight2, bearingY);
     const leftTrussBearing = vec3(bearingLeft2.x, bearingCenterY, bearingLeft2.z);
@@ -2241,24 +2318,27 @@ function resolveHipTrussPlacements(params: {
       });
     }
 
-    const leftCladdingEave =
-      claddingHits[0] && planDistance(claddingHits[0], bearingLeft2) > TRUSS_VALIDATION_TOLERANCE_METERS
-        ? toVec3(claddingHits[0], params.claddingEaveY)
-        : undefined;
-    const rightCladdingEave =
-      claddingHits[1] && planDistance(claddingHits[1], bearingRight2) > TRUSS_VALIDATION_TOLERANCE_METERS
-        ? toVec3(claddingHits[1], params.claddingEaveY)
-        : undefined;
     const members = buildPrimaryTrussMembers(
       trussId,
       leftTrussBearing,
       rightTrussBearing,
       apex,
       webMembers,
-      leftCladdingEave,
-      rightCladdingEave,
+      undefined,
+      undefined,
       leftTrussBearing,
       rightTrussBearing,
+    );
+    members.push(
+      ...buildHipTrussEaveExtensionMembers({
+        trussId,
+        leftBearingTop: leftTrussBearing,
+        rightBearingTop: rightTrussBearing,
+        apex,
+        eaveOverhangMeters: params.sideEaveOverhangMeters,
+        fixedRoofSlope: params.fixedRoofSlope,
+        bearingCenterY,
+      }),
     );
     const placement: TrussPlacement = {
       id: trussId,
@@ -2690,7 +2770,6 @@ export function resolveRoofFraming(params: {
         ridgeEnd: structuralRidgeEnd,
         roofBeamTopY: params.roofBeamTopY,
         peakY: params.peakY,
-        claddingEaveY,
         basePlateThicknessMeters: params.settings.steelTrusses.basePlateEnabled
           ? params.settings.steelTrusses.basePlateThicknessMeters
           : 0,
@@ -2702,6 +2781,7 @@ export function resolveRoofFraming(params: {
           ? params.settings.steelTrusses.basePlateWidthMeters / 2
           : 0,
         fixedRoofSlope: params.fixedRoofSlope,
+        sideEaveOverhangMeters: params.sideEaveOverhangMeters,
         hipInteriorTrussCount: params.settings.steelTrusses.hipInteriorTrussCount,
         webProfileMode: params.settings.steelTrusses.webProfileMode,
         manualWebProfileId: params.settings.steelTrusses.manualWebProfileId,

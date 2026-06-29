@@ -1152,7 +1152,7 @@ export default function DesignBuilderElevationCanvas({
         {roof.hipFramingMembers.map((member) => {
           const isPrimary = member.memberKind === 'ridge' || member.memberKind === 'hip';
           const isSupportFrame = member.memberKind.startsWith('ridge_end_frame') || member.memberKind === 'hip_corner_support';
-          return uniqueMember(`${keyPrefix}-hip-framing-${member.id}`, member.start, member.end, TRUSS_CHORD_PROFILE_METERS, {
+          return renderProjectedRoofMember(`${keyPrefix}-hip-framing-${member.id}`, face, member.start, member.end, stationOffsetMeters, TRUSS_CHORD_PROFILE_METERS, {
             fill: isPrimary
               ? (architecturalDrawing ? '#e5e7eb' : '#334155')
               : (architecturalDrawing ? '#f8fafc' : '#475569'),

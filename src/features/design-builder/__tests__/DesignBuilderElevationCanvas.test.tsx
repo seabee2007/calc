@@ -294,6 +294,82 @@ function createResolvedRoofFixture(): ResolvedRoofSystem {
   };
 }
 
+function createHipResolvedRoofFixture(): ResolvedRoofSystem {
+  const base = createResolvedRoofFixture();
+  const member = (
+    id: string,
+    memberKind: ResolvedRoofSystem['hipFramingMembers'][number]['memberKind'],
+    start: { x: number; y: number; z: number },
+    end: { x: number; y: number; z: number },
+    slopePlaneId?: string,
+  ): ResolvedRoofSystem['hipFramingMembers'][number] => ({
+    id,
+    memberKind,
+    start,
+    end,
+    slopePlaneId,
+    lengthMeters: Math.hypot(end.x - start.x, end.y - start.y, end.z - start.z),
+    source: 'hip_roof_framing_solver',
+  });
+
+  const ridgeStart = base.ridgeStart!;
+  const ridgeEnd = base.ridgeEnd!;
+  const northWest = { x: -0.6, y: 3, z: -0.6 };
+  const northEast = { x: 4.6, y: 3, z: -0.6 };
+  const southEast = { x: 4.6, y: 3, z: 2.6 };
+  const southWest = { x: -0.6, y: 3, z: 2.6 };
+
+  return {
+    ...base,
+    roofType: 'hip',
+    roofTopPlanes: [
+      {
+        id: 'hip-north',
+        corners: [northWest, northEast, ridgeEnd, ridgeStart],
+        normal: { x: 0, y: 1, z: -0.25 },
+      },
+      {
+        id: 'hip-east',
+        corners: [northEast, southEast, ridgeEnd],
+        normal: { x: 0.25, y: 1, z: 0 },
+      },
+      {
+        id: 'hip-south',
+        corners: [ridgeStart, ridgeEnd, southEast, southWest],
+        normal: { x: 0, y: 1, z: 0.25 },
+      },
+      {
+        id: 'hip-west',
+        corners: [southWest, northWest, ridgeStart],
+        normal: { x: -0.25, y: 1, z: 0 },
+      },
+    ],
+    ridgeCapPlacements: [
+      {
+        id: 'hip-top-ridge-cap',
+        start: ridgeStart,
+        end: ridgeEnd,
+        widthMeters: 0.3,
+        thicknessMeters: 0.02,
+        roofAngleRadians: Math.PI / 2,
+      },
+    ],
+    hipFramingMembers: [
+      member('hip-ridge', 'ridge', ridgeStart, ridgeEnd),
+      member('hip-rafter-nw', 'hip', northWest, ridgeStart),
+      member('hip-rafter-ne', 'hip', northEast, ridgeEnd),
+      member('hip-jack-north', 'jack', { x: 1.2, y: 3, z: -0.6 }, { x: 0.8, y: 3.4, z: 0.2 }, 'hip-north'),
+      member('hip-common-south', 'common', { x: 2, y: 3, z: 2.6 }, { x: 2, y: 3.8, z: 1 }, 'hip-south'),
+      member('hip-corner-support', 'hip_corner_support', southWest, { x: 0.4, y: 3.3, z: 1 }),
+      member('hip-jack-bottom', 'hip_jack_bottom_chord', { x: 1.1, y: 3, z: 2.2 }, { x: 2.6, y: 3, z: 2.2 }),
+      member('hip-ridge-end-frame', 'ridge_end_frame', { x: 0.4, y: 3, z: -0.6 }, ridgeStart),
+      member('hip-ridge-end-web', 'ridge_end_frame_web', { x: 0.4, y: 3, z: 0.2 }, ridgeStart),
+      member('hip-ridge-end-bottom', 'ridge_end_frame_bottom', { x: 0.2, y: 3, z: -0.3 }, { x: 0.6, y: 3, z: -0.3 }),
+      member('hip-rafter-se', 'hip', southEast, ridgeEnd),
+    ],
+  };
+}
+
 describe('DesignBuilderElevationCanvas', () => {
   it('uses the shared architectural drawing shell and elevation annotations', () => {
     const { container } = render(
@@ -359,6 +435,40 @@ describe('DesignBuilderElevationCanvas', () => {
     );
     expect(layerNames.indexOf('ceiling-finishes')).toBeLessThan(layerNames.indexOf('beams-walls'));
     expect(layerNames.indexOf('ceiling-finishes')).toBeLessThan(layerNames.indexOf('columns'));
+  });
+
+  it('projects all hip roof framing members into elevation drawings', () => {
+    const { container } = render(
+      <DesignBuilderElevationCanvas
+        toolMode="select"
+        elevationView={{ face: 'north' }}
+        layoutBounds={layoutBounds}
+        drawingStyleMode="architectural"
+        frameSystem={frameSystem}
+        resolvedRoofSystem={createHipResolvedRoofFixture()}
+        onInteraction={vi.fn()}
+      />,
+    );
+
+    const expectedKinds: Array<ResolvedRoofSystem['hipFramingMembers'][number]['memberKind']> = [
+      'ridge',
+      'hip',
+      'jack',
+      'common',
+      'hip_corner_support',
+      'hip_jack_bottom_chord',
+      'ridge_end_frame',
+      'ridge_end_frame_web',
+      'ridge_end_frame_bottom',
+    ];
+
+    for (const kind of expectedKinds) {
+      const element = container.querySelector(`[data-elevation-roof-hip-framing-member="${kind}"]`);
+      expect(element, `missing projected hip roof member kind ${kind}`).toBeTruthy();
+      expect(element?.tagName.toLowerCase()).toBe('polygon');
+    }
+    expect(container.querySelector('[data-elevation-roof-hip-framing-id="hip-jack-north"]')).toBeTruthy();
+    expect(container.querySelector('[data-elevation-roof-slope-plane="hip-north"]')).toBeTruthy();
   });
 
   it('uses face-specific RC component extents for front and side elevation projections', () => {

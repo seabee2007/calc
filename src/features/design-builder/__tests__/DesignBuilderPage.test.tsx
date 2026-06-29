@@ -1750,7 +1750,7 @@ describe('DesignBuilderPage', () => {
 
     openSnapMenu();
     expect(openCommandMenus()).toHaveLength(1);
-    fireEvent.click(screen.getByRole('button', { name: /^cmu$/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^off$/i }));
     expect(openCommandMenus()).toHaveLength(1);
 
     fireEvent.pointerDown(document.body);

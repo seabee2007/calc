@@ -214,6 +214,53 @@ function hipMemberLength(member: { start: { x: number; y: number; z: number }; e
   );
 }
 
+function roofFixedSlope(roof: ReturnType<typeof roofFromGeometry>): number {
+  return (roof.roofPeakY - roof.roofBeamTopY) / roof.structuralRafterRunMeters;
+}
+
+function trussEaveExtension(
+  truss: TrussPlacement,
+  side: 'left' | 'right',
+): SteelMemberSegment | undefined {
+  return truss.members.find((member) =>
+    member.memberKind === `top_chord_${side}_eave_extension`,
+  );
+}
+
+function eaveExtensionOutwardDistance(truss: TrussPlacement, extension: SteelMemberSegment): number {
+  const bearing =
+    extension.memberKind === 'top_chord_left_eave_extension'
+      ? truss.bearingLeft
+      : truss.bearingRight;
+  const outward = {
+    x: bearing.x - truss.apex.x,
+    z: bearing.z - truss.apex.z,
+  };
+  const len = Math.hypot(outward.x, outward.z) || 1;
+  return (
+    (extension.start.x - bearing.x) * (outward.x / len) +
+    (extension.start.z - bearing.z) * (outward.z / len)
+  );
+}
+
+function maxPlanAbs(points: readonly { x: number; z: number }[]): number {
+  return Math.max(...points.flatMap((point) => [Math.abs(point.x), Math.abs(point.z)]));
+}
+
+function highestRoofDisplayYAt(
+  roof: ReturnType<typeof roofFromGeometry>,
+  point: { x: number; z: number },
+): number | null {
+  const elevations = roof.claddingDisplayPlanes
+    .map((plane) => elevationOnRoofPlaneAtPoint(plane, point.x, point.z))
+    .filter((y): y is number => y != null && Number.isFinite(y));
+  return elevations.length > 0 ? Math.max(...elevations) : null;
+}
+
+function soffitCorners(soffit: ReturnType<typeof roofFromGeometry>['soffitPlacements'][number]) {
+  return [soffit.innerStart, soffit.innerEnd, soffit.outerEnd, soffit.outerStart];
+}
+
 function purlinLength(purlin: { start: { x: number; y: number; z: number }; end: { x: number; y: number; z: number } }): number {
   return hipMemberLength(purlin);
 }
@@ -1609,17 +1656,30 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
     expect(roof.trussPlacements).toHaveLength(9);
     expect(roof.trussCount).toBe(9);
     expect(warningCodes).not.toContain('hip_truss_station_missing');
+    expect(warningCodes).not.toContain('hip_truss_eave_extension_invalid');
     expect(
       roof.warnings.some((warning) =>
         warning.message.includes('Eave extension projects inward through Roof Beam or column zone'),
       ),
     ).toBe(false);
+    const expectedExtensionLength = Math.hypot(
+      roofSystem.eaveOverhangMeters,
+      roofFixedSlope(roof) * roofSystem.eaveOverhangMeters,
+    );
 
     for (const truss of roof.trussPlacements) {
       const memberKinds = new Set(truss.members.map((member) => member.memberKind));
+      const leftExtension = trussEaveExtension(truss, 'left');
+      const rightExtension = trussEaveExtension(truss, 'right');
       expect(memberKinds.has('bottom_chord')).toBe(true);
       expect(memberKinds.has('top_chord_left')).toBe(true);
       expect(memberKinds.has('top_chord_right')).toBe(true);
+      expect(leftExtension).toBeDefined();
+      expect(rightExtension).toBeDefined();
+      expect(hipMemberLength(leftExtension!)).toBeCloseTo(expectedExtensionLength, 3);
+      expect(hipMemberLength(rightExtension!)).toBeCloseTo(expectedExtensionLength, 3);
+      expect(eaveExtensionOutwardDistance(truss, leftExtension!)).toBeGreaterThan(0.99);
+      expect(eaveExtensionOutwardDistance(truss, rightExtension!)).toBeGreaterThan(0.99);
       expect(
         truss.members.some(
           (member) => member.memberKind === 'vertical_web' || member.memberKind === 'diagonal_web',
@@ -1628,6 +1688,8 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
       expectFinitePoint(truss.bearingLeft);
       expectFinitePoint(truss.bearingRight);
       expectFinitePoint(truss.apex);
+      expectFinitePoint(leftExtension!.start);
+      expectFinitePoint(rightExtension!.start);
       expect(truss.spanMeters ?? 0).toBeGreaterThan(0);
     }
   });
@@ -1653,12 +1715,97 @@ describe('Roof framing — trusses, purlins, corrugated metal', () => {
     expect(highOverhangRoof.trussPlacements).toHaveLength(lowOverhangRoof.trussPlacements.length);
     expect(roundStations(highOverhangRoof.trussStations)).toEqual(roundStations(lowOverhangRoof.trussStations));
     expect(bearingSpan(highOverhangRoof.trussPlacements[0]!)).toBeCloseTo(6.459, 3);
+    expect(lowOverhangRoof.warnings.map((warning) => warning.code)).not.toContain('hip_truss_eave_extension_invalid');
+    expect(highOverhangRoof.warnings.map((warning) => warning.code)).not.toContain('hip_truss_eave_extension_invalid');
 
     for (const [index, lowTruss] of lowOverhangRoof.trussPlacements.entries()) {
       const highTruss = highOverhangRoof.trussPlacements[index]!;
+      const lowLeftExtension = trussEaveExtension(lowTruss, 'left')!;
+      const highLeftExtension = trussEaveExtension(highTruss, 'left')!;
       expect(bearingSpan(highTruss)).toBeCloseTo(bearingSpan(lowTruss), 6);
       expect(highTruss.spanMeters ?? 0).toBeCloseTo(lowTruss.spanMeters ?? 0, 6);
+      expect(hipMemberLength(highLeftExtension)).toBeGreaterThan(hipMemberLength(lowLeftExtension));
     }
+    const lowExtensionStarts = lowOverhangRoof.trussPlacements.flatMap((truss) =>
+      truss.members
+        .filter((member) => member.memberKind.endsWith('_eave_extension'))
+        .map((member) => member.start),
+    );
+    const highExtensionStarts = highOverhangRoof.trussPlacements.flatMap((truss) =>
+      truss.members
+        .filter((member) => member.memberKind.endsWith('_eave_extension'))
+        .map((member) => member.start),
+    );
+    expect(maxPlanAbs(highExtensionStarts)).toBeGreaterThan(maxPlanAbs(lowExtensionStarts));
+  });
+
+  it('does not duplicate hip purlin rows around the structural eave at 1 m overhang', () => {
+    const roofSystem = hipOverhangRegressionRoofSystem(1.0);
+    const roof = roofFromGeometry(frameInfillGeometry(
+      roofSystem,
+      hipOverhangRegressionLayout(),
+    ));
+    const { rowTs, actualSpacingMeters } = buildPurlinRowStationFractions({
+      slopeLengthMeters: roof.claddingRafterLengthMeters,
+      structuralHalfRunMeters: roof.structuralRafterRunMeters,
+      sideEaveOverhangMeters: roofSystem.eaveOverhangMeters,
+      maxPurlinSpacingMeters: roofSystem.purlins.maxSpacingMeters,
+    });
+    const trussEaveT = roofSystem.eaveOverhangMeters / roof.claddingRafterRunMeters;
+    const trussEaveRowIndex = rowTs.findIndex((t) => Math.abs(t - trussEaveT) < 0.001);
+
+    expect(trussEaveRowIndex).toBeGreaterThan(0);
+    for (let index = 1; index < rowTs.length; index += 1) {
+      expect((rowTs[index]! - rowTs[index - 1]!) * roof.claddingRafterLengthMeters).toBeGreaterThan(0.1);
+    }
+    for (let index = trussEaveRowIndex + 1; index < rowTs.length; index += 1) {
+      const gap = (rowTs[index]! - rowTs[index - 1]!) * roof.claddingRafterLengthMeters;
+      expect(gap).toBeLessThanOrEqual(roofSystem.purlins.maxSpacingMeters + 0.001);
+    }
+    expect(actualSpacingMeters).toBeLessThanOrEqual(roofSystem.purlins.maxSpacingMeters + 0.001);
+    expect(roof.purlinPlacements.some((purlin) => purlin.rowIndex === trussEaveRowIndex)).toBe(true);
+  });
+
+  it('places 1 m hip soffits below the sloped eave underside', () => {
+    const roofSystem = hipOverhangRegressionRoofSystem(1.0);
+    const roof = roofFromGeometry(frameInfillGeometry(
+      roofSystem,
+      hipOverhangRegressionLayout(),
+    ));
+    const fallbackBearingY = roof.roofBeamTopY - 0.0254;
+
+    expect(roof.soffitPlacements).toHaveLength(4);
+    expect(roof.soffitPlacements.every((soffit) => soffit.edgeRole === 'hip_eave')).toBe(true);
+    for (const soffit of roof.soffitPlacements) {
+      expect(soffit.areaSquareMeters).toBeGreaterThan(0);
+      for (const corner of soffitCorners(soffit)) {
+        expectFinitePoint(corner);
+        const roofTopY = highestRoofDisplayYAt(roof, corner);
+        expect(roofTopY).not.toBeNull();
+        expect(corner.y).toBeLessThan(roofTopY! - roof.roofAssemblyThicknessMeters + 0.005);
+        expect(corner.y).toBeLessThan(fallbackBearingY);
+      }
+    }
+  });
+
+  it('lowers hip soffits and increases soffit area as overhang grows', () => {
+    const lowOverhangRoof = roofFromGeometry(frameInfillGeometry(
+      hipOverhangRegressionRoofSystem(0.3),
+      hipOverhangRegressionLayout(),
+    ));
+    const highOverhangRoof = roofFromGeometry(frameInfillGeometry(
+      hipOverhangRegressionRoofSystem(1.0),
+      hipOverhangRegressionLayout(),
+    ));
+    const minSoffitY = (roof: ReturnType<typeof roofFromGeometry>) =>
+      Math.min(...roof.soffitPlacements.flatMap((soffit) => soffitCorners(soffit).map((corner) => corner.y)));
+    const soffitArea = (roof: ReturnType<typeof roofFromGeometry>) =>
+      roof.soffitPlacements.reduce((sum, soffit) => sum + soffit.areaSquareMeters, 0);
+
+    expect(lowOverhangRoof.soffitPlacements).toHaveLength(4);
+    expect(highOverhangRoof.soffitPlacements).toHaveLength(4);
+    expect(minSoffitY(highOverhangRoof)).toBeLessThan(minSoffitY(lowOverhangRoof));
+    expect(soffitArea(highOverhangRoof)).toBeGreaterThan(soffitArea(lowOverhangRoof));
   });
 
   it('keeps hip truss station gaps within max spacing while manual interior stations stay additive', () => {
