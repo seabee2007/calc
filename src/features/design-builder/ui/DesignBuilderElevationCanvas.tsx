@@ -281,6 +281,10 @@ function buildElevationBounds(params: {
         addRoofPoint(member.end);
       });
     });
+    roof.hipFramingMembers.forEach((member) => {
+      addRoofPoint(member.start);
+      addRoofPoint(member.end);
+    });
     roof.purlinPlacements.forEach((purlin) => {
       addRoofPoint(purlin.start);
       addRoofPoint(purlin.end);
@@ -1070,6 +1074,7 @@ export default function DesignBuilderElevationCanvas({
         stationForFace(face, end) + stationOffsetMeters,
         end.y,
       ].map((value) => value.toFixed(3)).join(':');
+    const projectedLineKeys = new Set<string>();
     const projectedMemberKeys = new Set<string>();
     const uniqueLine = (
       key: string,
@@ -1079,8 +1084,8 @@ export default function DesignBuilderElevationCanvas({
     ) => {
       const normalizedKey = lineKey(start, end);
       const reverseKey = lineKey(end, start);
-      if (projectedMemberKeys.has(normalizedKey) || projectedMemberKeys.has(reverseKey)) return null;
-      projectedMemberKeys.add(normalizedKey);
+      if (projectedLineKeys.has(normalizedKey) || projectedLineKeys.has(reverseKey)) return null;
+      projectedLineKeys.add(normalizedKey);
       return renderProjectedRoofLine(key, face, start, end, stationOffsetMeters, options);
     };
     const uniqueMember = (
@@ -1144,6 +1149,24 @@ export default function DesignBuilderElevationCanvas({
             });
           }),
         )}
+        {roof.hipFramingMembers.map((member) => {
+          const isPrimary = member.memberKind === 'ridge' || member.memberKind === 'hip';
+          const isSupportFrame = member.memberKind.startsWith('ridge_end_frame') || member.memberKind === 'hip_corner_support';
+          return uniqueMember(`${keyPrefix}-hip-framing-${member.id}`, member.start, member.end, TRUSS_CHORD_PROFILE_METERS, {
+            fill: isPrimary
+              ? (architecturalDrawing ? '#e5e7eb' : '#334155')
+              : (architecturalDrawing ? '#f8fafc' : '#475569'),
+            stroke: isPrimary ? permanentStroke : mutedStroke,
+            strokeWidth: isPrimary ? drawingStyle.weights.medium : drawingStyle.weights.light + 0.35,
+            opacity: isPrimary ? 0.96 : isSupportFrame ? 0.78 : 0.86,
+            data: {
+              'data-elevation-roof-member': member.memberKind,
+              'data-elevation-roof-hip-framing-member': member.memberKind,
+              'data-elevation-roof-hip-framing-id': member.id,
+              ...(member.slopePlaneId ? { 'data-elevation-roof-slope-plane': member.slopePlaneId } : {}),
+            },
+          });
+        })}
         {roof.ridgeStart && roof.ridgeEnd
           ? renderProjectedRoofLine(`${keyPrefix}-roof-ridge`, face, roof.ridgeStart, roof.ridgeEnd, stationOffsetMeters, {
               stroke: permanentStroke,

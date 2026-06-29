@@ -301,6 +301,28 @@ function createHipResolvedRoofFixture(): ResolvedRoofSystem {
   return {
     ...base,
     roofType: 'hip',
+    roofTopPlanes: [
+      {
+        id: 'hip-north',
+        corners: [northWest, northEast, ridgeEnd, ridgeStart],
+        normal: { x: 0, y: 1, z: -0.25 },
+      },
+      {
+        id: 'hip-east',
+        corners: [northEast, southEast, ridgeEnd],
+        normal: { x: 0.25, y: 1, z: 0 },
+      },
+      {
+        id: 'hip-south',
+        corners: [ridgeStart, ridgeEnd, southEast, southWest],
+        normal: { x: 0, y: 1, z: 0.25 },
+      },
+      {
+        id: 'hip-west',
+        corners: [southWest, northWest, ridgeStart],
+        normal: { x: -0.25, y: 1, z: 0 },
+      },
+    ],
     ridgeCapPlacements: [
       {
         id: 'hip-top-ridge-cap',
@@ -1570,6 +1592,71 @@ describe('DesignBuilderPlanCanvas', () => {
       'data-roof-plan-covering',
       'ridge_cap',
     );
+  });
+
+  it('renders hip roof shadow plane edges on the foundation plan', () => {
+    const { layout, frameSystem } = createColumnDragFixture();
+    const { container } = render(
+      <DesignBuilderPlanCanvas
+        layout={layout}
+        toolMode="select"
+        active2DView="foundation-plan"
+        viewport={{ centerX: 2, centerZ: 1, zoom: 100 }}
+        frameSystem={frameSystem}
+        resolvedRoofSystem={createHipResolvedRoofFixture()}
+        drawingStyleMode="architectural"
+        onInteraction={vi.fn()}
+      />,
+    );
+
+    expect(container.querySelector('[data-roof-shadow-outline="true"]')).toBeTruthy();
+    const shadowEdges = Array.from(container.querySelectorAll('[data-roof-shadow-plane-edge]'));
+    expect(shadowEdges).toHaveLength(5);
+    expect(shadowEdges.map((edge) => edge.getAttribute('data-roof-shadow-plane-edge'))).toEqual(
+      expect.arrayContaining([
+        'hip-north-edge-1',
+        'hip-north-edge-2',
+        'hip-north-edge-3',
+        'hip-east-edge-1',
+        'hip-south-edge-3',
+      ]),
+    );
+  });
+
+  it('places hip roof shadow truss station markers on the ridge line', () => {
+    const { layout, frameSystem } = createColumnDragFixture();
+    const roof = {
+      ...createHipResolvedRoofFixture(),
+      ridgeStart: { x: 2, y: 3.8, z: 2.6 },
+      ridgeEnd: { x: 2, y: 3.8, z: -0.6 },
+      trussStations: [0.4, 1.6, 2.8],
+    };
+    const { container } = render(
+      <DesignBuilderPlanCanvas
+        layout={layout}
+        toolMode="select"
+        active2DView="foundation-plan"
+        viewport={{ centerX: 2, centerZ: 1, zoom: 100 }}
+        frameSystem={frameSystem}
+        resolvedRoofSystem={roof}
+        drawingStyleMode="architectural"
+        onInteraction={vi.fn()}
+      />,
+    );
+
+    const stationMarkers = Array.from(container.querySelectorAll('[data-roof-shadow-truss-station]'));
+    expect(stationMarkers).toHaveLength(roof.trussStations.length);
+    expect(stationMarkers.map((marker) => marker.getAttribute('data-roof-shadow-truss-station'))).toEqual([
+      '0.400',
+      '1.600',
+      '2.800',
+    ]);
+    const markerCenterYs = stationMarkers.map((marker) => {
+      const line = marker as SVGLineElement;
+      return (Number(line.getAttribute('y1')) + Number(line.getAttribute('y2'))) / 2;
+    });
+    expect(markerCenterYs[0]).toBeLessThan(markerCenterYs[1]!);
+    expect(markerCenterYs[1]).toBeLessThan(markerCenterYs[2]!);
   });
 
   it('hides the roof truss reference sheet when the roof plan display option is off', () => {

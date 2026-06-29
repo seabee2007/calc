@@ -217,6 +217,47 @@ function roofPlanPerimeterPoints(roof: ResolvedRoofSystem | null): Array<{ x: nu
   return source.map((point) => ({ x: point.x, z: point.z }));
 }
 
+type RoofShadowReferenceEdge = {
+  id: string;
+  start: { x: number; z: number };
+  end: { x: number; z: number };
+};
+
+function planEdgeKey(start: { x: number; z: number }, end: { x: number; z: number }): string {
+  const startKey = `${start.x.toFixed(4)}:${start.z.toFixed(4)}`;
+  const endKey = `${end.x.toFixed(4)}:${end.z.toFixed(4)}`;
+  return startKey <= endKey ? `${startKey}|${endKey}` : `${endKey}|${startKey}`;
+}
+
+function collectRoofShadowReferenceEdges(roof: ResolvedRoofSystem | null): RoofShadowReferenceEdge[] {
+  if (!roof?.supported || roof.roofTopPlanes.length === 0) return [];
+  const perimeter = roof.eaveFootprint.length >= 3 ? roof.eaveFootprint : roofPlanPerimeterPoints(roof);
+  const perimeterEdgeKeys = new Set<string>();
+  perimeter.forEach((point, index) => {
+    const next = perimeter[(index + 1) % perimeter.length];
+    if (!next) return;
+    perimeterEdgeKeys.add(planEdgeKey(point, next));
+  });
+
+  const edges = new Map<string, RoofShadowReferenceEdge>();
+  roof.roofTopPlanes.forEach((plane) => {
+    plane.corners.forEach((corner, index) => {
+      const next = plane.corners[(index + 1) % plane.corners.length];
+      if (!next) return;
+      if (Math.hypot(next.x - corner.x, next.z - corner.z) <= 0.001) return;
+      const key = planEdgeKey(corner, next);
+      if (perimeterEdgeKeys.has(key) || edges.has(key)) return;
+      edges.set(key, {
+        id: `${plane.id}-edge-${index}`,
+        start: { x: corner.x, z: corner.z },
+        end: { x: next.x, z: next.z },
+      });
+    });
+  });
+
+  return Array.from(edges.values());
+}
+
 function pointInPlanPolygon(point: { x: number; z: number }, polygon: Array<{ x: number; z: number }>): boolean {
   if (polygon.length < 3) return false;
   let inside = false;
@@ -611,6 +652,10 @@ export default function DesignBuilderPlanCanvas({
       summary: trussDesignSummary,
     });
   }, [roofPlanBounds, trussDesignSummary]);
+  const roofShadowReferenceEdges = useMemo(
+    () => collectRoofShadowReferenceEdges(resolvedRoofSystem),
+    [resolvedRoofSystem],
+  );
 
   const setColumnDragState = useCallback((next: ColumnDragState | null) => {
     columnDragStateRef.current = next;
@@ -3406,44 +3451,69 @@ export default function DesignBuilderPlanCanvas({
               strokeWidth={selectedObjectType === 'gable_roof_system' ? 2 : 1.5}
               strokeDasharray="6 4"
               pointerEvents="none"
+              data-roof-shadow-outline="true"
             />
-            {resolvedRoofSystem.ridgeStart && resolvedRoofSystem.ridgeEnd ? (
-              <line
-                x1={planToSurfacePoint({
-                  x: resolvedRoofSystem.ridgeStart.x,
-                  z: resolvedRoofSystem.ridgeStart.z,
-                }).sx}
-                y1={planToSurfacePoint({
-                  x: resolvedRoofSystem.ridgeStart.x,
-                  z: resolvedRoofSystem.ridgeStart.z,
-                }).sy}
-                x2={planToSurfacePoint({
-                  x: resolvedRoofSystem.ridgeEnd.x,
-                  z: resolvedRoofSystem.ridgeEnd.z,
-                }).sx}
-                y2={planToSurfacePoint({
-                  x: resolvedRoofSystem.ridgeEnd.x,
-                  z: resolvedRoofSystem.ridgeEnd.z,
-                }).sy}
-                stroke={selectedObjectType === 'gable_roof_system' ? selectionStroke : mutedStroke}
-                strokeOpacity={selectedObjectType === 'gable_roof_system' ? 0.95 : 0.55}
-                strokeWidth={selectedObjectType === 'gable_roof_system' ? 2.5 : 1.5}
-                pointerEvents="none"
-              />
-            ) : null}
+            {roofShadowReferenceEdges.length > 0
+              ? roofShadowReferenceEdges.map((edge) => {
+                  const start = planToSurfacePoint(edge.start);
+                  const end = planToSurfacePoint(edge.end);
+                  return (
+                    <line
+                      key={`roof-shadow-edge-${edge.id}`}
+                      x1={start.sx}
+                      y1={start.sy}
+                      x2={end.sx}
+                      y2={end.sy}
+                      stroke={selectedObjectType === 'gable_roof_system' ? selectionStroke : mutedStroke}
+                      strokeOpacity={selectedObjectType === 'gable_roof_system' ? 0.95 : 0.55}
+                      strokeWidth={selectedObjectType === 'gable_roof_system' ? 2.5 : 1.5}
+                      pointerEvents="none"
+                      data-roof-shadow-plane-edge={edge.id}
+                    />
+                  );
+                })
+              : resolvedRoofSystem.ridgeStart && resolvedRoofSystem.ridgeEnd ? (
+                <line
+                  x1={planToSurfacePoint({
+                    x: resolvedRoofSystem.ridgeStart.x,
+                    z: resolvedRoofSystem.ridgeStart.z,
+                  }).sx}
+                  y1={planToSurfacePoint({
+                    x: resolvedRoofSystem.ridgeStart.x,
+                    z: resolvedRoofSystem.ridgeStart.z,
+                  }).sy}
+                  x2={planToSurfacePoint({
+                    x: resolvedRoofSystem.ridgeEnd.x,
+                    z: resolvedRoofSystem.ridgeEnd.z,
+                  }).sx}
+                  y2={planToSurfacePoint({
+                    x: resolvedRoofSystem.ridgeEnd.x,
+                    z: resolvedRoofSystem.ridgeEnd.z,
+                  }).sy}
+                  stroke={selectedObjectType === 'gable_roof_system' ? selectionStroke : mutedStroke}
+                  strokeOpacity={selectedObjectType === 'gable_roof_system' ? 0.95 : 0.55}
+                  strokeWidth={selectedObjectType === 'gable_roof_system' ? 2.5 : 1.5}
+                  pointerEvents="none"
+                  data-roof-shadow-ridge="fallback"
+                />
+              ) : null}
             {resolvedRoofSystem.trussStations.length > 0 && resolvedRoofSystem.ridgeStart && resolvedRoofSystem.ridgeEnd
               ? resolvedRoofSystem.trussStations.map((station, index) => {
-                  const ridgeAlongX =
-                    Math.abs(resolvedRoofSystem.ridgeEnd!.x - resolvedRoofSystem.ridgeStart!.x) >
-                    Math.abs(resolvedRoofSystem.ridgeEnd!.z - resolvedRoofSystem.ridgeStart!.z);
-                  const bounds = resolvedRoofSystem.exteriorRoofBeamBounds;
-                  const minX = Math.min(...bounds.footprint.map((point) => point.x));
-                  const minZ = Math.min(...bounds.footprint.map((point) => point.z));
-                  const maxZ = Math.max(...bounds.footprint.map((point) => point.z));
-                  const maxX = Math.max(...bounds.footprint.map((point) => point.x));
-                  const planPoint = ridgeAlongX
-                    ? { x: minX + station, z: (minZ + maxZ) / 2 }
-                    : { x: (minX + maxX) / 2, z: minZ + station };
+                  const ridgeVector = {
+                    x: resolvedRoofSystem.ridgeEnd!.x - resolvedRoofSystem.ridgeStart!.x,
+                    z: resolvedRoofSystem.ridgeEnd!.z - resolvedRoofSystem.ridgeStart!.z,
+                  };
+                  const ridgeLength = Math.hypot(ridgeVector.x, ridgeVector.z);
+                  if (ridgeLength <= 0.001) return null;
+                  const stationOnRidge = Math.max(0, Math.min(ridgeLength, station));
+                  const ridgeUnit = {
+                    x: ridgeVector.x / ridgeLength,
+                    z: ridgeVector.z / ridgeLength,
+                  };
+                  const planPoint = {
+                    x: resolvedRoofSystem.ridgeStart!.x + ridgeUnit.x * stationOnRidge,
+                    z: resolvedRoofSystem.ridgeStart!.z + ridgeUnit.z * stationOnRidge,
+                  };
                   const surface = planToSurfacePoint(planPoint);
                   return (
                     <line
@@ -3455,6 +3525,7 @@ export default function DesignBuilderPlanCanvas({
                       stroke={selectedObjectType === 'gable_roof_system' ? selectionStroke : referenceStroke}
                       strokeWidth={1.5}
                       pointerEvents="none"
+                      data-roof-shadow-truss-station={station.toFixed(3)}
                     />
                   );
                 })
