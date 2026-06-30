@@ -3,14 +3,146 @@ import {
 } from '../../estimating/application/matchQuantityToProductionRates';
 import type { ProductionRateLibraryEntry } from '../../estimating/data/productionRates/productionRateTypes';
 import type { DesignEstimatePreviewLine, DesignQuantityItem } from '../types';
+import {
+  buildDesignQuantityUsages,
+  groupDesignUsagesIntoActivities,
+} from './designActivityRecipes';
 import { classifyDesignQuantityForScope } from './designBuilderImportRules';
 import type {
+  DesignQuantityUsage,
+  DesignQuantityUsageRole,
+  DesignScopeCompileResult,
   DesignQuantityClassification,
   DesignScopePackage,
   DesignScopePackageKind,
   DesignScopePackageQuantity,
   DesignScopePackageStatus,
 } from './designScopeTypes';
+
+export function buildDesignScopeCompileResult(input: {
+  previewLines: readonly DesignEstimatePreviewLine[];
+  persistedQuantityItems: readonly DesignQuantityItem[];
+  productionRates: readonly ProductionRateLibraryEntry[];
+}): DesignScopeCompileResult {
+  const persistedByPreviewId = new Map(
+    input.persistedQuantityItems.map((item) => [
+      String(item.metadata.previewLineId ?? item.quantityType),
+      item,
+    ]),
+  );
+
+  const usages = buildDesignQuantityUsages({
+    previewLines: input.previewLines,
+  }).map((usage) =>
+    enrichUsageForCommit({
+      usage: {
+        ...usage,
+        persistedQuantityItem:
+          persistedByPreviewId.get(usage.sourcePreviewLineId ?? '') ??
+          persistedByPreviewId.get(usage.sourceQuantityType ?? ''),
+      },
+      productionRates: input.productionRates,
+    }),
+  );
+
+  const activities = groupDesignUsagesIntoActivities(usages);
+  return {
+    activities,
+    referenceUsages: usages.filter((usage) => usage.destination === 'reference_only'),
+    excludedUsages: usages.filter((usage) => usage.destination === 'excluded'),
+    rollupUsages: usages.filter((usage) => usage.destination === 'rollup'),
+    warnings: [
+      ...new Set(
+        usages
+          .map((usage) => usage.reviewReason)
+          .filter((reason): reason is string => Boolean(reason?.trim())),
+      ),
+    ],
+  };
+}
+
+function enrichUsageForCommit(params: {
+  usage: DesignQuantityUsage;
+  productionRates: readonly ProductionRateLibraryEntry[];
+}): DesignQuantityUsage {
+  const { usage } = params;
+  if (
+    !usage.enabled ||
+    usage.destination !== 'activity_line_item' ||
+    usage.reviewStatus === 'needs_review'
+  ) {
+    return usage;
+  }
+
+  const line = usage.sourceLine;
+  const match = matchQuantityToProductionRates(
+    {
+      divisionCode: String(usage.metadata.divisionCode ?? line?.divisionCode ?? '00'),
+      divisionName: String(usage.metadata.divisionName ?? line?.divisionName ?? ''),
+      description: usage.description,
+      quantity: usage.quantity,
+      unit: usage.unit,
+      quantityType: usage.sourceQuantityType ?? undefined,
+      formula: usage.formula,
+      parameterSnapshot: line?.parameterSnapshot,
+      keywords: keywordsForUsage(usage),
+    },
+    params.productionRates,
+  );
+
+  if (match.status === 'auto_matched') {
+    return {
+      ...usage,
+      reviewStatus: 'ready',
+      productionRateId: match.productionRateId,
+      candidates: match.candidates,
+      matchConfidence: match.confidence,
+      matchReason: match.matchReason,
+      reviewReason: usage.reviewReason ?? null,
+    };
+  }
+
+  if (match.status === 'review_required') {
+    return {
+      ...usage,
+      reviewStatus: 'needs_rate',
+      candidates: match.candidates,
+      reviewReason: usage.reviewReason ?? match.issue,
+    };
+  }
+
+  return {
+    ...usage,
+    enabled: false,
+    reviewStatus: 'excluded',
+    reviewReason: usage.reviewReason ?? match.reason,
+  };
+}
+
+function keywordsForUsage(usage: DesignQuantityUsage): readonly string[] {
+  const componentName = typeof usage.metadata.componentName === 'string'
+    ? usage.metadata.componentName
+    : usage.sourceLine?.description ?? '';
+  const legacyKeywords = Array.isArray(usage.metadata.keywords)
+    ? usage.metadata.keywords.filter((value): value is string => typeof value === 'string')
+    : [];
+  const roleKeywords: Record<DesignQuantityUsageRole, string[]> = {
+    place_concrete_labor: ['place concrete', 'concrete placement', 'cast-in-place', componentName],
+    concrete_material: ['ready mix concrete', 'concrete material', componentName],
+    formwork_labor: ['formwork', 'forms', 'strip forms', componentName],
+    strip_forms_labor: ['strip forms', 'formwork', componentName],
+    reinforcement_labor: ['reinforcement', 'rebar', componentName],
+    reinforcement_material: ['reinforcement', 'rebar', componentName],
+    primary_labor_driver: legacyKeywords.length > 0 ? legacyKeywords : [componentName],
+    material_takeoff: legacyKeywords.length > 0 ? legacyKeywords : [componentName],
+    equipment_takeoff: legacyKeywords.length > 0 ? legacyKeywords : [componentName],
+    reference: legacyKeywords.length > 0 ? legacyKeywords : [componentName],
+    rollup: legacyKeywords.length > 0 ? legacyKeywords : [componentName],
+    excluded: legacyKeywords.length > 0 ? legacyKeywords : [componentName],
+  };
+  return [...new Set([usage.description, usage.sourceQuantityType ?? '', ...roleKeywords[usage.role]])]
+    .filter((value) => value.trim().length > 0);
+}
 
 export function buildDesignScopePackages(input: {
   previewLines: readonly DesignEstimatePreviewLine[];

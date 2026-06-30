@@ -293,6 +293,17 @@ export function calculateFloorArea(lengthMeters: number, widthMeters: number): n
   return Math.max(0, lengthMeters) * Math.max(0, widthMeters);
 }
 
+function polygonPerimeterMeters(polygon: readonly { x: number; z: number }[]): number {
+  if (polygon.length < 2) return 0;
+  let perimeter = 0;
+  for (let index = 0; index < polygon.length; index += 1) {
+    const current = polygon[index]!;
+    const next = polygon[(index + 1) % polygon.length]!;
+    perimeter += Math.hypot(next.x - current.x, next.z - current.z);
+  }
+  return perimeter;
+}
+
 export function calculateOpeningArea(opening: Pick<WallOpeningParameters, 'widthMeters' | 'heightMeters'>): number {
   return Math.max(0, opening.widthMeters) * Math.max(0, opening.heightMeters);
 }
@@ -1124,6 +1135,9 @@ export function buildFrameInfillEstimatePreview(input: FrameInfillQuantityInput)
                 formula: 'interior_footprint_area * slab_thickness',
                 parameterSnapshot: {
                   interiorFloorSlab: input.geometryResult.interiorFloorSlab,
+                  interiorFloorSlabPerimeterMeters: polygonPerimeterMeters(
+                    input.geometryResult.resolvedFootprint?.interiorFacePolygon ?? [],
+                  ),
                   structuralObjectId: input.frameObjectId,
                   ...metaBase,
                 },
@@ -1632,11 +1646,12 @@ export function buildFrameInfillEstimatePreview(input: FrameInfillQuantityInput)
                   designObjectId: input.gableEndObjectId,
                   quantityType: 'raked_concrete_cap_linear_length',
                   description: 'Raked Concrete Cap — Linear Length',
-                  quantity: roundQuantity(rakedCapLinearLengthMeters, 2),
+                  quantity: roundQuantity(metersToFeet(rakedCapLinearLengthMeters), 2),
                   unit: 'LF',
                   formula: 'sum(resolved_raked_cap_segment_lengths)',
                   parameterSnapshot: {
                     rakedCapLinearLengthMeters,
+                    rakedCapLinearLengthFeet: roundQuantity(metersToFeet(rakedCapLinearLengthMeters), 2),
                     gableEndSegmentIds: resolvedRoof.gableEndSegmentIds,
                     gableEndId: input.gableEndObjectId,
                     ...metaBase,

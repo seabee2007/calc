@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import type { DesignEstimatePreviewLine } from '../types';
 import { classifyDesignQuantityForScope } from '../application/designBuilderImportRules';
-import { buildDesignScopePackages } from '../application/designScopeCompiler';
+import {
+  buildDesignScopeCompileResult,
+  buildDesignScopePackages,
+} from '../application/designScopeCompiler';
 
 function line(overrides: Partial<DesignEstimatePreviewLine> = {}): DesignEstimatePreviewLine {
   return {
@@ -184,6 +187,256 @@ describe('design scope compiler', () => {
     expect(classifyDesignQuantityForScope(unknown, [unknown])).toMatchObject({
       destination: 'reference_only',
       packageKind: 'reference',
+    });
+  });
+
+  it('fans out RC roof beam volume into place concrete, material, and formwork usages', () => {
+    const roofBeams = line({
+      id: 'rc-roof-beams-volume',
+      quantityType: 'rc_roof_beams_volume',
+      description: 'RC Roof Beams',
+      quantity: 9.39,
+      unit: 'CY',
+      formula: 'sum(roof_beam span * width * depth)',
+      divisionCode: '03',
+      divisionName: 'Concrete',
+      parameterSnapshot: {
+        beams: [
+          {
+            id: 'beam-1',
+            startPoint: { x: 0, y: 0, z: 0 },
+            endPoint: { x: 10, y: 0, z: 0 },
+            widthMeters: 0.3,
+            depthMeters: 0.4,
+          },
+        ],
+      },
+    });
+
+    const compiled = buildDesignScopeCompileResult({
+      previewLines: [roofBeams],
+      persistedQuantityItems: [],
+      productionRates: [],
+    });
+
+    const place = compiled.activities.find((activity) => activity.key === 'concrete:rc-roof-beams:place');
+    const formwork = compiled.activities.find((activity) => activity.key === 'concrete:rc-roof-beams:formwork');
+    expect(place?.usages).toEqual(expect.arrayContaining([
+      expect.objectContaining({ role: 'place_concrete_labor', destination: 'activity_line_item', quantity: 9.39, unit: 'CY' }),
+      expect.objectContaining({ role: 'concrete_material', destination: 'material_resource', quantity: 9.39, unit: 'CY' }),
+    ]));
+    expect(formwork?.usages).toEqual(expect.arrayContaining([
+      expect.objectContaining({ role: 'formwork_labor', destination: 'activity_line_item', derived: true }),
+    ]));
+    expect(formwork?.usages[0]?.quantity).toBeCloseTo(118.4, 1);
+  });
+
+  it('creates separate concrete activities for isolated footings, columns, plinth beams, tie beams, roof beams, slab, and raked cap', () => {
+    const lines = [
+      line({
+        quantityType: 'isolated_footings_volume',
+        description: 'Isolated Footings',
+        divisionCode: '03',
+        divisionName: 'Concrete',
+        unit: 'CY',
+        parameterSnapshot: { footings: [{ widthMeters: 1, lengthMeters: 1.2, thicknessMeters: 0.3 }] },
+      }),
+      line({
+        quantityType: 'rc_columns_volume',
+        description: 'RC Columns',
+        divisionCode: '03',
+        divisionName: 'Concrete',
+        unit: 'CY',
+        parameterSnapshot: { columns: [{ widthMeters: 0.3, depthMeters: 0.3, heightMeters: 3 }] },
+      }),
+      line({
+        quantityType: 'rc_plinth_beams_volume',
+        description: 'RC Plinth Beams',
+        divisionCode: '03',
+        divisionName: 'Concrete',
+        unit: 'CY',
+        parameterSnapshot: { beams: [{ startPoint: { x: 0, y: 0, z: 0 }, endPoint: { x: 3, y: 0, z: 0 }, widthMeters: 0.25, depthMeters: 0.4 }] },
+      }),
+      line({
+        quantityType: 'rc_tie_beams_volume',
+        description: 'RC Tie Beams',
+        divisionCode: '03',
+        divisionName: 'Concrete',
+        unit: 'CY',
+        parameterSnapshot: { beams: [{ startPoint: { x: 0, y: 0, z: 0 }, endPoint: { x: 3, y: 0, z: 0 }, widthMeters: 0.25, depthMeters: 0.4 }] },
+      }),
+      line({
+        quantityType: 'rc_roof_beams_volume',
+        description: 'RC Roof Beams',
+        divisionCode: '03',
+        divisionName: 'Concrete',
+        unit: 'CY',
+        parameterSnapshot: { beams: [{ startPoint: { x: 0, y: 0, z: 0 }, endPoint: { x: 3, y: 0, z: 0 }, widthMeters: 0.25, depthMeters: 0.4 }] },
+      }),
+      line({
+        quantityType: 'interior_floor_slab_volume',
+        description: 'Interior Floor Slab',
+        divisionCode: '03',
+        divisionName: 'Concrete',
+        unit: 'CY',
+        parameterSnapshot: { interiorFloorSlab: { thicknessMeters: 0.125 }, interiorFloorSlabPerimeterMeters: 12 },
+      }),
+      line({
+        quantityType: 'raked_concrete_cap_volume',
+        description: 'Raked Concrete Cap',
+        divisionCode: '03',
+        divisionName: 'Concrete',
+        unit: 'CY',
+      }),
+      line({
+        quantityType: 'raked_concrete_cap_linear_length',
+        description: 'Raked Concrete Cap Linear Length',
+        divisionCode: '03',
+        divisionName: 'Concrete',
+        quantity: 17.3,
+        unit: 'LF',
+      }),
+    ];
+
+    const activityKeys = buildDesignScopeCompileResult({
+      previewLines: lines,
+      persistedQuantityItems: [],
+      productionRates: [],
+    }).activities.map((activity) => activity.key);
+
+    expect(activityKeys).toEqual(expect.arrayContaining([
+      'concrete:isolated-footings:place',
+      'concrete:isolated-footings:formwork',
+      'concrete:rc-columns:place',
+      'concrete:rc-columns:formwork',
+      'concrete:rc-plinth-beams:place',
+      'concrete:rc-plinth-beams:formwork',
+      'concrete:rc-tie-beams:place',
+      'concrete:rc-tie-beams:formwork',
+      'concrete:rc-roof-beams:place',
+      'concrete:rc-roof-beams:formwork',
+      'concrete:interior-floor-slab:place',
+      'concrete:interior-floor-slab:edge-forms',
+      'concrete:raked-concrete-cap:place',
+      'concrete:raked-concrete-cap:formwork',
+    ]));
+  });
+
+  it('does not create a broad structural concrete activity when component concrete quantities exist', () => {
+    const rollup = line({
+      quantityType: 'rc_structural_concrete_volume',
+      description: 'RC structural concrete total',
+      quantity: 20,
+      unit: 'CY',
+      divisionCode: '03',
+      divisionName: 'Concrete',
+    });
+    const component = line({
+      quantityType: 'rc_roof_beams_volume',
+      description: 'RC Roof Beams',
+      quantity: 4,
+      unit: 'CY',
+      divisionCode: '03',
+      divisionName: 'Concrete',
+      parameterSnapshot: { beams: [{ startPoint: { x: 0, y: 0, z: 0 }, endPoint: { x: 1, y: 0, z: 0 }, widthMeters: 0.3, depthMeters: 0.4 }] },
+    });
+
+    const compiled = buildDesignScopeCompileResult({
+      previewLines: [rollup, component],
+      persistedQuantityItems: [],
+      productionRates: [],
+    });
+
+    expect(compiled.activities.some((activity) => /Structural Concrete Components/.test(activity.title))).toBe(false);
+    expect(compiled.rollupUsages).toEqual([
+      expect.objectContaining({
+        sourceQuantityType: 'rc_structural_concrete_volume',
+        destination: 'rollup',
+        enabled: false,
+        locked: true,
+      }),
+    ]);
+  });
+
+  it('derives footing, column, beam, slab, and raked cap formwork without guessing', () => {
+    const compiled = buildDesignScopeCompileResult({
+      previewLines: [
+        line({
+          quantityType: 'isolated_footings_volume',
+          description: 'Isolated Footings',
+          divisionCode: '03',
+          divisionName: 'Concrete',
+          unit: 'CY',
+          parameterSnapshot: { footings: [{ widthMeters: 1, lengthMeters: 2, thicknessMeters: 0.5 }] },
+        }),
+        line({
+          quantityType: 'rc_columns_volume',
+          description: 'RC Columns',
+          divisionCode: '03',
+          divisionName: 'Concrete',
+          unit: 'CY',
+          parameterSnapshot: { columns: [{ widthMeters: 0.4, depthMeters: 0.5, heightMeters: 3 }] },
+        }),
+        line({
+          quantityType: 'rc_roof_beams_volume',
+          description: 'RC Roof Beams',
+          divisionCode: '03',
+          divisionName: 'Concrete',
+          unit: 'CY',
+          parameterSnapshot: { beams: [{ startPoint: { x: 0, y: 0, z: 0 }, endPoint: { x: 10, y: 0, z: 0 }, widthMeters: 0.3, depthMeters: 0.4 }] },
+        }),
+        line({
+          quantityType: 'interior_floor_slab_volume',
+          description: 'Interior Floor Slab',
+          divisionCode: '03',
+          divisionName: 'Concrete',
+          unit: 'CY',
+          parameterSnapshot: { interiorFloorSlab: { thicknessMeters: 0.125 }, interiorFloorSlabPerimeterMeters: 20 },
+        }),
+        line({
+          quantityType: 'raked_concrete_cap_linear_length',
+          description: 'Raked Concrete Cap Linear Length',
+          divisionCode: '03',
+          divisionName: 'Concrete',
+          quantity: 17.3,
+          unit: 'LF',
+        }),
+      ],
+      persistedQuantityItems: [],
+      productionRates: [],
+    });
+
+    const usageByKey = new Map(compiled.activities.map((activity) => [activity.key, activity.usages[0]!]));
+    expect(usageByKey.get('concrete:isolated-footings:formwork')?.quantity).toBeCloseTo(32.29, 1);
+    expect(usageByKey.get('concrete:rc-columns:formwork')?.quantity).toBeCloseTo(58.13, 1);
+    expect(usageByKey.get('concrete:rc-roof-beams:formwork')?.quantity).toBeCloseTo(118.4, 1);
+    expect(usageByKey.get('concrete:interior-floor-slab:edge-forms')?.quantity).toBeCloseTo(65.62, 1);
+    expect(usageByKey.get('concrete:raked-concrete-cap:formwork')?.quantity).toBe(17.3);
+  });
+
+  it('creates review-required disabled formwork usage when required geometry is missing', () => {
+    const compiled = buildDesignScopeCompileResult({
+      previewLines: [
+        line({
+          quantityType: 'rc_roof_beams_volume',
+          description: 'RC Roof Beams',
+          quantity: 4,
+          unit: 'CY',
+          divisionCode: '03',
+          divisionName: 'Concrete',
+          parameterSnapshot: {},
+        }),
+      ],
+      persistedQuantityItems: [],
+      productionRates: [],
+    });
+
+    const formwork = compiled.activities.find((activity) => activity.key === 'concrete:rc-roof-beams:formwork');
+    expect(formwork?.usages[0]).toMatchObject({
+      quantity: 0,
+      enabled: false,
+      reviewStatus: 'needs_review',
+      reviewReason: 'Beam formwork requires beam geometry in the quantity snapshot.',
     });
   });
 });

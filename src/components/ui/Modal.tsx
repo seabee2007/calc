@@ -22,6 +22,7 @@ interface ModalProps {
   stackAboveDrawer?: boolean;
   footer?: React.ReactNode;
   panelClassName?: string;
+  closeOnBackdrop?: boolean;
 }
 
 const Modal: React.FC<ModalProps> = ({
@@ -33,6 +34,7 @@ const Modal: React.FC<ModalProps> = ({
   stackAboveDrawer = false,
   footer,
   panelClassName = '',
+  closeOnBackdrop = true,
 }) => {
   const prevIsOpen = useRef(isOpen);
   const onCloseRef = useRef(onClose);
@@ -114,7 +116,7 @@ const Modal: React.FC<ModalProps> = ({
             exit={{ opacity: 0 }}
             transition={overlayTransition}
             className="absolute inset-0 bg-slate-900/25 backdrop-blur-[2px] dark:bg-black/60"
-            onClick={handleClose}
+            onClick={closeOnBackdrop ? handleClose : undefined}
           />
 
           <motion.div

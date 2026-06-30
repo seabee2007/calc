@@ -2,7 +2,9 @@ import { supabase } from '../../../lib/supabase';
 import type { RepositoryResult } from '../../estimating/infrastructure/estimateDbTypes';
 import type {
   CreateDesignModelInput,
+  CreateDesignQuantityImportLinkInput,
   CreateDesignQuantityItemInput,
+  DesignQuantityImportLink,
   DesignModel,
   DesignModelObject,
   DesignQuantityItem,
@@ -80,6 +82,29 @@ interface DesignQuantityItemRow {
   updated_at: string;
 }
 
+interface DesignQuantityImportLinkRow {
+  id: string;
+  design_quantity_item_id: string;
+  design_model_id: string;
+  project_id: string;
+  estimate_id: string | null;
+  target_type: string;
+  target_id: string | null;
+  project_activity_id: string | null;
+  usage_role: string;
+  destination: string;
+  scope_package_key: string;
+  activity_key: string | null;
+  quantity: number;
+  unit: string;
+  formula: string;
+  derived: boolean;
+  metadata: Record<string, unknown>;
+  commit_batch_id: string;
+  created_by: string | null;
+  created_at: string;
+}
+
 function mapModelRow(row: DesignModelRow): DesignModel {
   return {
     id: row.id,
@@ -139,6 +164,31 @@ function mapQuantityRow(row: DesignQuantityItemRow): DesignQuantityItem {
     metadata: row.metadata ?? {},
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+  };
+}
+
+function mapImportLinkRow(row: DesignQuantityImportLinkRow): DesignQuantityImportLink {
+  return {
+    id: row.id,
+    designQuantityItemId: row.design_quantity_item_id,
+    designModelId: row.design_model_id,
+    projectId: row.project_id,
+    estimateId: row.estimate_id,
+    targetType: row.target_type,
+    targetId: row.target_id,
+    projectActivityId: row.project_activity_id,
+    usageRole: row.usage_role,
+    destination: row.destination,
+    scopePackageKey: row.scope_package_key,
+    activityKey: row.activity_key,
+    quantity: Number(row.quantity),
+    unit: row.unit,
+    formula: row.formula,
+    derived: row.derived,
+    metadata: row.metadata ?? {},
+    commitBatchId: row.commit_batch_id,
+    createdBy: row.created_by,
+    createdAt: row.created_at,
   };
 }
 
@@ -429,6 +479,90 @@ export async function markDesignQuantityItemsImported(params: {
       updated.push(mapQuantityRow(data as DesignQuantityItemRow));
     }
     return success(updated);
+  } catch (err) {
+    return failure(err);
+  }
+}
+
+export async function listDesignQuantityImportLinksByActivityKeys(params: {
+  designModelId: string;
+  projectId: string;
+  estimateId?: string | null;
+  activityKeys: readonly string[];
+}): Promise<RepositoryResult<DesignQuantityImportLink[]>> {
+  if (params.activityKeys.length === 0) return success([]);
+
+  try {
+    let query = supabase
+      .from('design_quantity_import_links')
+      .select('*')
+      .eq('design_model_id', params.designModelId)
+      .eq('project_id', params.projectId)
+      .in('activity_key', [...params.activityKeys]);
+
+    query = params.estimateId
+      ? query.eq('estimate_id', params.estimateId)
+      : query.is('estimate_id', null);
+
+    const { data, error } = await query;
+    if (error) return failure(error.message);
+    return success((data as DesignQuantityImportLinkRow[]).map(mapImportLinkRow));
+  } catch (err) {
+    return failure(err);
+  }
+}
+
+export async function createDesignQuantityImportLinks(
+  links: readonly CreateDesignQuantityImportLinkInput[],
+): Promise<RepositoryResult<DesignQuantityImportLink[]>> {
+  if (links.length === 0) return success([]);
+
+  try {
+    const { data: userData } = await supabase.auth.getUser();
+    const rows = links.map((link) => ({
+      design_quantity_item_id: link.designQuantityItemId,
+      design_model_id: link.designModelId,
+      project_id: link.projectId,
+      estimate_id: link.estimateId ?? null,
+      target_type: link.targetType,
+      target_id: link.targetId ?? null,
+      project_activity_id: link.projectActivityId ?? null,
+      usage_role: link.usageRole,
+      destination: link.destination,
+      scope_package_key: link.scopePackageKey,
+      activity_key: link.activityKey ?? null,
+      quantity: link.quantity,
+      unit: link.unit,
+      formula: link.formula,
+      derived: link.derived,
+      metadata: link.metadata ?? {},
+      commit_batch_id: link.commitBatchId,
+      created_by: userData.user?.id ?? null,
+    }));
+
+    const { data, error } = await supabase
+      .from('design_quantity_import_links')
+      .insert(rows)
+      .select('*');
+    if (error) return failure(error.message);
+    return success((data as DesignQuantityImportLinkRow[]).map(mapImportLinkRow));
+  } catch (err) {
+    return failure(err);
+  }
+}
+
+export async function deleteDesignQuantityImportLinks(
+  linkIds: readonly string[],
+): Promise<RepositoryResult<null>> {
+  if (linkIds.length === 0) return success(null);
+
+  try {
+    const { error } = await supabase
+      .from('design_quantity_import_links')
+      .delete()
+      .in('id', [...linkIds]);
+    if (error) return failure(error.message);
+    return success(null);
   } catch (err) {
     return failure(err);
   }

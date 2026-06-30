@@ -25,6 +25,7 @@ import type {
 import type { ProjectLaborRate } from '../../estimating/domain/laborRateTypes';
 import type { RepositoryResult } from '../../estimating/infrastructure/estimateDbTypes';
 import {
+  deleteProjectActivity,
   fetchProjectActivities,
   saveActivityBundleWithResources,
   updateProjectLineItemFromDesignPreview,
@@ -32,14 +33,24 @@ import {
   type SavedActivityBundleWithResources,
 } from '../../estimating/infrastructure/activityRepository';
 import {
+  createDesignQuantityImportLinks,
+  deleteDesignQuantityImportLinks,
+  listDesignQuantityImportLinksByActivityKeys,
   markDesignQuantityItemsImported,
   markDesignQuantityItemsCommitted,
   replaceDesignQuantityItems,
 } from '../services/designBuilderService';
-import type { DesignEstimatePreviewLine, DesignQuantityItem } from '../types';
+import type {
+  CreateDesignQuantityImportLinkInput,
+  DesignEstimatePreviewLine,
+  DesignQuantityImportLink,
+  DesignQuantityItem,
+} from '../types';
 import type { DesignBuilderScheduleGroupRule } from './designBuilderImportRules';
 import type {
+  DesignActivityDraft,
   DesignQuantityDestination,
+  DesignQuantityUsage,
   DesignScopePackage,
   DesignScopePackageQuantity,
 } from './designScopeTypes';
@@ -108,6 +119,25 @@ export interface CommitDesignScopePackagesResult {
   committedQuantityItems: DesignQuantityItem[];
 }
 
+export interface CommitDesignActivityDraftsInput {
+  projectId: string;
+  estimateId?: string | null;
+  designModelId: string;
+  activities: readonly DesignActivityDraft[];
+  referenceUsages?: readonly DesignQuantityUsage[];
+  excludedUsages?: readonly DesignQuantityUsage[];
+  rollupUsages?: readonly DesignQuantityUsage[];
+  existingActivities: readonly ProjectConstructionActivity[];
+  projectLaborRates: readonly ProjectLaborRate[];
+  productionRates: readonly ProductionRateLibraryEntry[];
+}
+
+export interface CommitDesignActivityDraftsResult {
+  bundles: SavedActivityBundleWithResources[];
+  committedQuantityItems: DesignQuantityItem[];
+  importLinks: DesignQuantityImportLink[];
+}
+
 export type DesignBuilderImportResolvedStatus =
   | 'auto_matched'
   | 'verified_rate'
@@ -126,6 +156,238 @@ export interface DesignBuilderImportCommitAssignment {
     reason: string;
     sourceNote: string;
   } | null;
+}
+
+export async function commitDesignActivityDrafts(
+  input: CommitDesignActivityDraftsInput,
+): Promise<RepositoryResult<CommitDesignActivityDraftsResult>> {
+  const candidateActivities = input.activities.filter((activity) =>
+    activity.usages.some((usage) => usage.enabled),
+  );
+  const nonActivityUsages = [
+    ...(input.referenceUsages ?? []),
+    ...(input.excludedUsages ?? []),
+    ...(input.rollupUsages ?? []),
+  ];
+
+  if (candidateActivities.length === 0 && nonActivityUsages.length === 0) {
+    return { data: null, error: 'Build activity drafts before creating activities.' };
+  }
+
+  const productionRateById = new Map(input.productionRates.map((rate) => [rate.id, rate]));
+  const validationError = validateActivityDrafts(candidateActivities, productionRateById);
+  if (validationError) return { data: null, error: validationError };
+
+  const activityKeys = candidateActivities.map((activity) => activity.key);
+  const priorLinksResult = await listDesignQuantityImportLinksByActivityKeys({
+    designModelId: input.designModelId,
+    projectId: input.projectId,
+    estimateId: input.estimateId ?? null,
+    activityKeys,
+  });
+  if (priorLinksResult.error || !priorLinksResult.data) {
+    return {
+      data: null,
+      error: priorLinksResult.error ?? 'Could not load prior Design Builder import links.',
+    };
+  }
+
+  const priorLinkIds = priorLinksResult.data.map((link) => link.id);
+  const priorActivityIds = [
+    ...new Set(
+      priorLinksResult.data
+        .map((link) => link.projectActivityId)
+        .filter((value): value is string => Boolean(value)),
+    ),
+  ];
+
+  const deleteLinksResult = await deleteDesignQuantityImportLinks(priorLinkIds);
+  if (deleteLinksResult.error) {
+    return { data: null, error: deleteLinksResult.error };
+  }
+
+  for (const activityId of priorActivityIds) {
+    const deleteActivityResult = await deleteProjectActivity(activityId);
+    if (deleteActivityResult.error) {
+      return {
+        data: null,
+        error: deleteActivityResult.error ?? 'Could not replace prior Design Builder activity.',
+      };
+    }
+  }
+
+  const loadedActivities = await fetchProjectActivities(input.projectId, input.estimateId ?? undefined);
+  if (loadedActivities.error || !loadedActivities.data) {
+    return {
+      data: null,
+      error: loadedActivities.error ?? 'Could not load existing activities before Design Builder import.',
+    };
+  }
+
+  const existingActivities = mergeActivities(loadedActivities.data, input.existingActivities);
+  const bundles: SavedActivityBundleWithResources[] = [];
+  const createdActivityIds: string[] = [];
+  const pendingLinks: CreateDesignQuantityImportLinkInput[] = [];
+  const legacyUpdates = new Map<string, Parameters<typeof markDesignQuantityItemsImported>[0]['updates'][number]>();
+  const commitBatchId = createUuid();
+  const createdLinkIds: string[] = [];
+
+  try {
+    for (const activity of candidateActivities) {
+      const enabledUsages = activity.usages.filter((usage) => usage.enabled);
+      const laborUsages = enabledUsages.filter((usage) => usage.destination === 'activity_line_item');
+      const materialUsages = enabledUsages.filter((usage) => usage.destination === 'material_resource');
+      const equipmentUsages = enabledUsages.filter((usage) => usage.destination === 'equipment_resource');
+      const shouldCreateActivity = laborUsages.length > 0 || materialUsages.length > 0 || equipmentUsages.length > 0;
+      if (!shouldCreateActivity) continue;
+
+      const sourceTemplateKey = `design_activity:${activity.key}`;
+      const identity: ActivityInstanceIdentityInput = {
+        activityName: activity.title,
+        instanceLabel: 'Parametric',
+        location: 'Design Builder',
+        notes: buildActivityDraftNotes(activity),
+      };
+      const assigned = assignProjectActivityCode({
+        existingActivities: mergeActivities(existingActivities, bundles.map((bundle) => bundle.activity)),
+        divisionCode: activity.divisionCode,
+        sourceTemplateKey,
+        identity,
+      });
+      const instantiation = instantiateActivityDraft({
+        activity,
+        laborUsages,
+        productionRateById,
+        projectId: input.projectId,
+        estimateId: input.estimateId ?? null,
+        projectLaborRates: input.projectLaborRates,
+        identity,
+        assigned,
+        sourceTemplateKey,
+      });
+
+      const saveResult = await saveActivityBundleWithResources({
+        activity: {
+          ...instantiation.projectActivity,
+          sourceTemplateKey,
+          description: activity.category,
+          scheduleEnabled: laborUsages.length > 0,
+        },
+        lineItems: instantiation.projectLineItems.map((lineItem) =>
+          mapScopeLineItemForSave(lineItem, input.projectId),
+        ),
+        materials: materialUsages.map((usage, index) =>
+          resourceForUsage({
+            usage,
+            projectId: input.projectId,
+            category: activity.category,
+            sortOrder: index,
+          }),
+        ),
+        equipment: equipmentUsages.map((usage, index) =>
+          resourceForUsage({
+            usage,
+            projectId: input.projectId,
+            category: activity.category,
+            sortOrder: index,
+          }),
+        ),
+      });
+
+      if (saveResult.error || !saveResult.data) {
+        throw new Error(saveResult.error ?? 'Could not create Design Builder activity.');
+      }
+
+      bundles.push(saveResult.data);
+      createdActivityIds.push(saveResult.data.activity.id);
+
+      const lineItemByUsageId = new Map(
+        laborUsages.map((usage, index) => [usage.id, saveResult.data!.lineItems[index]?.id ?? null]),
+      );
+      const materialByUsageId = new Map(
+        materialUsages.map((usage, index) => [usage.id, saveResult.data!.materials[index]?.id ?? null]),
+      );
+      const equipmentByUsageId = new Map(
+        equipmentUsages.map((usage, index) => [usage.id, saveResult.data!.equipment[index]?.id ?? null]),
+      );
+
+      for (const usage of enabledUsages) {
+        const target = targetForUsage({
+          usage,
+          projectActivityId: saveResult.data.activity.id,
+          lineItemId: lineItemByUsageId.get(usage.id) ?? null,
+          materialResourceId: materialByUsageId.get(usage.id) ?? null,
+          equipmentResourceId: equipmentByUsageId.get(usage.id) ?? null,
+        });
+        const link = importLinkForUsage({
+          usage,
+          target,
+          projectId: input.projectId,
+          estimateId: input.estimateId ?? null,
+          designModelId: input.designModelId,
+          commitBatchId,
+        });
+        if (link) {
+          pendingLinks.push(link);
+          rememberLegacyUpdate(legacyUpdates, usage, target);
+        }
+      }
+    }
+
+    for (const usage of nonActivityUsages) {
+      const target = {
+        targetType: usage.destination === 'excluded' ? 'excluded' : 'reference',
+        targetId: null,
+        projectActivityId: null,
+        estimateLineId: null,
+        materialResourceId: null,
+        equipmentResourceId: null,
+      };
+      const link = importLinkForUsage({
+        usage,
+        target,
+        projectId: input.projectId,
+        estimateId: input.estimateId ?? null,
+        designModelId: input.designModelId,
+        commitBatchId,
+      });
+      if (link) {
+        pendingLinks.push(link);
+        rememberLegacyUpdate(legacyUpdates, usage, target);
+      }
+    }
+
+    const linkResult = await createDesignQuantityImportLinks(pendingLinks);
+    if (linkResult.error || !linkResult.data) {
+      throw new Error(linkResult.error ?? 'Could not create Design Builder import links.');
+    }
+    createdLinkIds.push(...linkResult.data.map((link) => link.id));
+
+    const markResult = await markDesignQuantityItemsImported({
+      updates: [...legacyUpdates.values()],
+    });
+    if (markResult.error || !markResult.data) {
+      throw new Error(markResult.error ?? 'Could not mark Design Builder quantities as imported.');
+    }
+
+    return {
+      data: {
+        bundles,
+        committedQuantityItems: markResult.data,
+        importLinks: linkResult.data,
+      },
+      error: null,
+    };
+  } catch (error) {
+    await deleteDesignQuantityImportLinks(createdLinkIds);
+    for (const activityId of createdActivityIds) {
+      await deleteProjectActivity(activityId);
+    }
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
 }
 
 export async function commitDesignScopePackages(
@@ -569,6 +831,371 @@ type AssignedEntry = {
   quantityItem: DesignQuantityItem | undefined;
   assignment: DesignBuilderImportCommitAssignment;
 };
+
+type UsageTarget = {
+  targetType: string;
+  targetId: string | null;
+  projectActivityId: string | null;
+  estimateLineId: string | null;
+  materialResourceId: string | null;
+  equipmentResourceId: string | null;
+};
+
+function validateActivityDrafts(
+  activities: readonly DesignActivityDraft[],
+  productionRateById: ReadonlyMap<string, ProductionRateLibraryEntry>,
+): string | null {
+  for (const activity of activities) {
+    for (const usage of activity.usages) {
+      if (!usage.enabled || usage.destination !== 'activity_line_item') continue;
+      if (usage.reviewStatus === 'needs_review') {
+        return usage.reviewReason ?? `Review "${usage.description}" before creating activities.`;
+      }
+      if (usage.manualOverride) {
+        if (!isManualUsageComplete(usage)) {
+          return `Manual override for "${usage.description}" requires MH/unit, reason, and source note.`;
+        }
+        continue;
+      }
+      const rate = productionRateById.get(usage.productionRateId ?? '');
+      if (!rate) {
+        return `Assign an approved production rate to "${usage.description}" before creating activities.`;
+      }
+      if (rate.divisionCode !== activity.divisionCode) {
+        return `Selected production rate for "${usage.description}" is not in Division ${activity.divisionCode}.`;
+      }
+      if ((rate.manHoursPerUnit ?? 0) <= 0) {
+        return `Selected production rate for "${usage.description}" has no positive MH/unit.`;
+      }
+      if (!areProductionRateUnitsCompatible(usage.unit, rate.unitOfMeasure)) {
+        return `Selected production rate unit ${rate.unitOfMeasure} is not compatible with ${usage.unit} for "${usage.description}".`;
+      }
+    }
+  }
+  return null;
+}
+
+function isManualUsageComplete(usage: DesignQuantityUsage): boolean {
+  const manual = usage.manualOverride;
+  return (
+    Boolean(manual) &&
+    Number.isFinite(manual?.manHoursPerUnit) &&
+    (manual?.manHoursPerUnit ?? 0) > 0 &&
+    Boolean(manual?.reason.trim()) &&
+    Boolean(manual?.sourceNote.trim())
+  );
+}
+
+function instantiateActivityDraft(params: {
+  activity: DesignActivityDraft;
+  laborUsages: readonly DesignQuantityUsage[];
+  productionRateById: ReadonlyMap<string, ProductionRateLibraryEntry>;
+  projectId: string;
+  estimateId?: string | null;
+  projectLaborRates: readonly ProjectLaborRate[];
+  identity: ActivityInstanceIdentityInput;
+  assigned: ReturnType<typeof assignProjectActivityCode>;
+  sourceTemplateKey: string;
+}) {
+  const hasManualOverride = params.laborUsages.some((usage) => Boolean(usage.manualOverride));
+
+  if (params.laborUsages.length === 0 || hasManualOverride) {
+    return instantiateManualConstructionActivity({
+      projectId: params.projectId,
+      estimateId: params.estimateId ?? undefined,
+      divisionCode: params.activity.divisionCode,
+      divisionName: params.activity.divisionName,
+      lineItems: params.laborUsages.map((usage) =>
+        manualLineItemForUsage(usage, params.productionRateById),
+      ),
+      identity: params.identity,
+      assigned: params.assigned,
+      crewSize: suggestUsageCrewSize(params.laborUsages, params.productionRateById),
+      hoursPerDay: 8,
+      scheduleEnabled: params.laborUsages.length > 0,
+      projectLaborRates: params.projectLaborRates,
+      sourceTemplateKey: params.sourceTemplateKey,
+    });
+  }
+
+  return instantiateProductionRateAssembly({
+    projectId: params.projectId,
+    estimateId: params.estimateId ?? undefined,
+    group: buildUsageProductionRateGroup(params.activity, params.laborUsages, params.productionRateById),
+    selectedLineItems: params.laborUsages.map((usage) => {
+      const rate = params.productionRateById.get(usage.productionRateId ?? '')!;
+      return {
+        rate,
+        quantity: convertQuantityForProductionRateUnit(
+          usage.quantity,
+          usage.unit,
+          rate.unitOfMeasure,
+        ),
+        assignmentStatus: usage.matchConfidence != null ? 'auto_matched' : 'verified_rate',
+        matchConfidence: usage.matchConfidence ?? null,
+        matchReason: usage.matchReason ?? null,
+      };
+    }),
+    identity: params.identity,
+    assigned: params.assigned,
+    crewSize: suggestUsageCrewSize(params.laborUsages, params.productionRateById),
+    hoursPerDay: 8,
+    scheduleEnabled: true,
+    projectLaborRates: params.projectLaborRates,
+  });
+}
+
+function buildUsageProductionRateGroup(
+  activity: DesignActivityDraft,
+  laborUsages: readonly DesignQuantityUsage[],
+  productionRateById: ReadonlyMap<string, ProductionRateLibraryEntry>,
+): ProductionRateAssemblyGroup {
+  const rates = laborUsages.map((usage) => productionRateById.get(usage.productionRateId ?? '')!);
+  return {
+    divisionCode: activity.divisionCode,
+    divisionName: activity.divisionName,
+    category: activity.category,
+    rates,
+    defaultTitle: activity.title,
+    suggestedCrewSize: suggestUsageCrewSize(laborUsages, productionRateById),
+    suggestedHoursPerDay: 8,
+  };
+}
+
+function suggestUsageCrewSize(
+  laborUsages: readonly DesignQuantityUsage[],
+  productionRateById: ReadonlyMap<string, ProductionRateLibraryEntry>,
+): number {
+  const crewSizes = laborUsages
+    .map((usage) => productionRateById.get(usage.productionRateId ?? '')?.crewSize)
+    .filter((value): value is number => value != null && value > 0);
+  return crewSizes.length > 0 ? Math.max(...crewSizes) : 4;
+}
+
+function manualLineItemForUsage(
+  usage: DesignQuantityUsage,
+  productionRateById: ReadonlyMap<string, ProductionRateLibraryEntry>,
+): ManualDraftLineItemInput {
+  if (usage.manualOverride) {
+    return {
+      description: usage.description,
+      unit: usage.unit,
+      quantity: usage.quantity,
+      manHoursPerUnit: usage.manualOverride.manHoursPerUnit,
+      manualProductionRateReason: usage.manualOverride.reason,
+      manualProductionRateSourceNote: usage.manualOverride.sourceNote,
+      productionRateMatchReason: usage.matchReason ?? 'Manual Design Builder production-rate override.',
+    };
+  }
+
+  const rate = productionRateById.get(usage.productionRateId ?? '');
+  return {
+    description: rate?.activityName ?? usage.description,
+    unit: rate?.unitOfMeasure ?? usage.unit,
+    quantity: rate
+      ? convertQuantityForProductionRateUnit(usage.quantity, usage.unit, rate.unitOfMeasure)
+      : usage.quantity,
+    manHoursPerUnit: rate?.manHoursPerUnit ?? 0,
+    productionRateMatchReason:
+      usage.matchReason ??
+      usage.candidates?.find((candidate) => candidate.productionRateId === rate?.id)?.matchReason ??
+      'Verified Design Builder production-rate assignment.',
+  };
+}
+
+function resourceForUsage(params: {
+  usage: DesignQuantityUsage;
+  projectId: string;
+  category: string;
+  sortOrder: number;
+}): Omit<ActivityMaterialResource, 'id' | 'activityId' | 'createdAt' | 'updatedAt'> &
+  Omit<ActivityEquipmentResource, 'id' | 'activityId' | 'createdAt' | 'updatedAt'> {
+  const usage = params.usage;
+  return {
+    projectId: params.projectId,
+    name: usage.description,
+    description: `${usage.sourceQuantityType ?? usage.role} from Design Builder`,
+    category: params.category,
+    subcategory: usage.sourceQuantityType ?? usage.role,
+    quantity: usage.quantity,
+    unit: usage.unit,
+    unitCost: 0,
+    totalCost: 0,
+    sourceProvider: 'manual',
+    sourceSnapshot: {
+      sourceName: 'Arden Design Builder',
+      originalName: usage.description,
+      originalUnit: usage.unit,
+      originalDefaultUnitCost: 0,
+      category: params.category,
+      subcategory: usage.sourceQuantityType ?? usage.role,
+      csiDivision: String(usage.metadata.divisionCode ?? ''),
+      notes: usage.formula,
+      selectedAt: new Date().toISOString(),
+    },
+    sortOrder: params.sortOrder,
+  };
+}
+
+function targetForUsage(params: {
+  usage: DesignQuantityUsage;
+  projectActivityId: string | null;
+  lineItemId: string | null;
+  materialResourceId: string | null;
+  equipmentResourceId: string | null;
+}): UsageTarget {
+  if (params.usage.destination === 'activity_line_item') {
+    return {
+      targetType: 'project_activity_line_item',
+      targetId: params.lineItemId,
+      projectActivityId: params.projectActivityId,
+      estimateLineId: params.lineItemId,
+      materialResourceId: null,
+      equipmentResourceId: null,
+    };
+  }
+  if (params.usage.destination === 'material_resource') {
+    return {
+      targetType: 'project_activity_material_resource',
+      targetId: params.materialResourceId,
+      projectActivityId: params.projectActivityId,
+      estimateLineId: null,
+      materialResourceId: params.materialResourceId,
+      equipmentResourceId: null,
+    };
+  }
+  if (params.usage.destination === 'equipment_resource') {
+    return {
+      targetType: 'project_activity_equipment_resource',
+      targetId: params.equipmentResourceId,
+      projectActivityId: params.projectActivityId,
+      estimateLineId: null,
+      materialResourceId: null,
+      equipmentResourceId: params.equipmentResourceId,
+    };
+  }
+  return {
+    targetType: params.usage.destination === 'excluded' ? 'excluded' : 'reference',
+    targetId: null,
+    projectActivityId: params.projectActivityId,
+    estimateLineId: null,
+    materialResourceId: null,
+    equipmentResourceId: null,
+  };
+}
+
+function importLinkForUsage(params: {
+  usage: DesignQuantityUsage;
+  target: UsageTarget;
+  projectId: string;
+  estimateId?: string | null;
+  designModelId: string;
+  commitBatchId: string;
+}): CreateDesignQuantityImportLinkInput | null {
+  const quantityItem = params.usage.persistedQuantityItem;
+  if (!quantityItem) return null;
+
+  return {
+    designQuantityItemId: quantityItem.id,
+    designModelId: params.designModelId,
+    projectId: params.projectId,
+    estimateId: params.estimateId ?? null,
+    targetType: params.target.targetType,
+    targetId: params.target.targetId,
+    projectActivityId: params.target.projectActivityId,
+    usageRole: params.usage.role,
+    destination: params.usage.destination,
+    scopePackageKey: scopeKeyForUsage(params.usage),
+    activityKey: params.usage.activityKey,
+    quantity: params.usage.quantity,
+    unit: params.usage.unit,
+    formula: params.usage.formula,
+    derived: params.usage.derived,
+    metadata: {
+      usageId: params.usage.id,
+      reviewStatus: params.usage.reviewStatus,
+      reviewReason: params.usage.reviewReason ?? null,
+      sourcePreviewLineId: params.usage.sourcePreviewLineId,
+      sourceQuantityType: params.usage.sourceQuantityType,
+      ...params.usage.metadata,
+    },
+    commitBatchId: params.commitBatchId,
+  };
+}
+
+function rememberLegacyUpdate(
+  updates: Map<string, Parameters<typeof markDesignQuantityItemsImported>[0]['updates'][number]>,
+  usage: DesignQuantityUsage,
+  target: UsageTarget,
+) {
+  const quantityItem = usage.persistedQuantityItem;
+  if (!quantityItem || updates.has(quantityItem.id)) return;
+  updates.set(quantityItem.id, {
+    quantityItemId: quantityItem.id,
+    estimateActivityId: target.projectActivityId,
+    estimateLineId: target.estimateLineId,
+    materialResourceId: target.materialResourceId,
+    equipmentResourceId: target.equipmentResourceId,
+    importDestination: usage.destination as DesignQuantityDestination,
+    importStatus: importStatusForUsageDestination(usage.destination),
+    scopePackageKey: scopeKeyForUsage(usage),
+    importReviewReason: usage.reviewReason ?? null,
+  });
+}
+
+function importStatusForUsageDestination(
+  destination: DesignQuantityUsage['destination'],
+): 'imported' | 'reference_only' | 'excluded' | 'review_required' {
+  switch (destination) {
+    case 'activity_line_item':
+    case 'material_resource':
+    case 'equipment_resource':
+      return 'imported';
+    case 'reference_only':
+    case 'rollup':
+      return 'reference_only';
+    case 'excluded':
+      return 'excluded';
+    default:
+      return 'review_required';
+  }
+}
+
+function scopeKeyForUsage(usage: DesignQuantityUsage): string {
+  const packageKey = usage.metadata.packageKey;
+  if (typeof packageKey === 'string' && packageKey.trim()) return packageKey;
+  return usage.activityKey ?? 'design-usage-reference';
+}
+
+function buildActivityDraftNotes(activity: DesignActivityDraft): string {
+  const references = activity.usages
+    .filter((usage) =>
+      usage.destination === 'reference_only' ||
+      usage.destination === 'rollup' ||
+      usage.destination === 'excluded' ||
+      !usage.enabled,
+    )
+    .map((usage) => `${usage.description}: ${usage.quantity} ${usage.unit}${
+      usage.reviewReason ? ` (${usage.reviewReason})` : ''
+    }`);
+  return [
+    'Generated from Arden Design Builder usage compiler. Verify quantities, production rates, and structural requirements before pricing.',
+    references.length > 0 ? `Reference/excluded usages: ${references.join('; ')}` : null,
+  ]
+    .filter((line): line is string => Boolean(line))
+    .join('\n');
+}
+
+function createUuid(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (char) => {
+    const value = Math.floor(Math.random() * 16);
+    const nibble = char === 'x' ? value : (value & 0x3) | 0x8;
+    return nibble.toString(16);
+  });
+}
 
 function validateLaborQuantities(
   quantities: readonly DesignScopePackageQuantity[],

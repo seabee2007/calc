@@ -239,6 +239,49 @@ export interface DesignQuantityItem {
   updatedAt: string;
 }
 
+export interface DesignQuantityImportLink {
+  id: string;
+  designQuantityItemId: string;
+  designModelId: string;
+  projectId: string;
+  estimateId: string | null;
+  targetType: string;
+  targetId: string | null;
+  projectActivityId: string | null;
+  usageRole: string;
+  destination: string;
+  scopePackageKey: string;
+  activityKey: string | null;
+  quantity: number;
+  unit: string;
+  formula: string;
+  derived: boolean;
+  metadata: Record<string, unknown>;
+  commitBatchId: string;
+  createdBy: string | null;
+  createdAt: string;
+}
+
+export interface CreateDesignQuantityImportLinkInput {
+  designQuantityItemId: string;
+  designModelId: string;
+  projectId: string;
+  estimateId?: string | null;
+  targetType: string;
+  targetId?: string | null;
+  projectActivityId?: string | null;
+  usageRole: string;
+  destination: string;
+  scopePackageKey: string;
+  activityKey?: string | null;
+  quantity: number;
+  unit: string;
+  formula: string;
+  derived: boolean;
+  metadata?: Record<string, unknown>;
+  commitBatchId?: string;
+}
+
 export interface RectangleFootprintParameters {
   kind: "rectangle";
   lengthMeters: number;

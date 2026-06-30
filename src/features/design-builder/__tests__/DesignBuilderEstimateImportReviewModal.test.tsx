@@ -2,9 +2,10 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import DesignBuilderEstimateImportReviewModal from '../ui/DesignBuilderEstimateImportReviewModal';
 import type { DesignEstimatePreviewLine, DesignQuantityItem } from '../types';
+import type { ProductionRateLibraryEntry } from '../../estimating/data/productionRates/productionRateTypes';
 
 const mocks = vi.hoisted(() => ({
-  commitDesignScopePackages: vi.fn(),
+  commitDesignActivityDrafts: vi.fn(),
   useProductionRateLibrary: vi.fn(),
   useProjectLaborRates: vi.fn(),
 }));
@@ -18,7 +19,7 @@ vi.mock('../../../services/hapticService', () => ({
 }));
 
 vi.mock('../application/designBuilderToEstimate', () => ({
-  commitDesignScopePackages: mocks.commitDesignScopePackages,
+  commitDesignActivityDrafts: mocks.commitDesignActivityDrafts,
 }));
 
 vi.mock('../../estimating/ui/hooks/useProductionRateLibrary', () => ({
@@ -76,11 +77,36 @@ function quantityItem(): DesignQuantityItem {
   };
 }
 
+function productionRate(overrides: Partial<ProductionRateLibraryEntry> = {}): ProductionRateLibraryEntry {
+  return {
+    id: overrides.id ?? 'rate-wall',
+    divisionCode: overrides.divisionCode ?? '04',
+    divisionName: overrides.divisionName ?? 'Masonry',
+    figure: '04-22-10',
+    figureTitle: 'CMU wall',
+    sourcePage: '12',
+    sourcePdfPage: 12,
+    workElementNumber: '0010',
+    workElementLineNumber: '0010',
+    category: overrides.category ?? 'CMU Wall System',
+    subcategory: 'CMU',
+    activityName: overrides.activityName ?? 'Concrete masonry unit wall',
+    description: overrides.description ?? 'Install CMU wall',
+    unitOfMeasure: overrides.unitOfMeasure ?? 'SF',
+    manHoursPerUnit: overrides.manHoursPerUnit ?? 0.08,
+    crewSize: 4,
+    sourceDocumentFull: 'RSMeans Facilities Construction Cost Data',
+    sourceEdition: '2026',
+    keywords: ['cmu', 'masonry', 'wall'],
+    ...overrides,
+  };
+}
+
 describe('DesignBuilderEstimateImportReviewModal', () => {
   beforeEach(() => {
-    mocks.commitDesignScopePackages.mockReset();
-    mocks.commitDesignScopePackages.mockResolvedValue({
-      data: { bundles: [], committedQuantityItems: [{ id: 'quantity-1' }] },
+    mocks.commitDesignActivityDrafts.mockReset();
+    mocks.commitDesignActivityDrafts.mockResolvedValue({
+      data: { bundles: [], committedQuantityItems: [{ id: 'quantity-1' }], importLinks: [] },
       error: null,
     });
     mocks.useProductionRateLibrary.mockReturnValue({
@@ -120,7 +146,7 @@ describe('DesignBuilderEstimateImportReviewModal', () => {
     });
   });
 
-  it('lets material/reference rows through and blocks unresolved package activity rows', async () => {
+  it('lets material usages through and blocks unresolved labor usages until a rate or manual override is set', async () => {
     const onCommitted = vi.fn();
     const onClose = vi.fn();
     const activityLine = {
@@ -146,7 +172,8 @@ describe('DesignBuilderEstimateImportReviewModal', () => {
     );
 
     const createButton = await screen.findByRole('button', { name: /create activities/i });
-    await waitFor(() => expect(screen.getByText(/needs review/i)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getAllByText(/needs rate/i).length).toBeGreaterThan(0));
+    expect(screen.queryByPlaceholderText(/search suggested rates/i)).not.toBeInTheDocument();
     expect(createButton).toBeDisabled();
 
     fireEvent.click(screen.getByRole('button', { name: /use manual mh\/unit override/i }));
@@ -161,20 +188,20 @@ describe('DesignBuilderEstimateImportReviewModal', () => {
     expect(createButton).not.toBeDisabled();
     fireEvent.click(createButton);
 
-    await waitFor(() => expect(mocks.commitDesignScopePackages).toHaveBeenCalled());
-    expect(mocks.commitDesignScopePackages).toHaveBeenCalledWith(
+    await waitFor(() => expect(mocks.commitDesignActivityDrafts).toHaveBeenCalled());
+    expect(mocks.commitDesignActivityDrafts).toHaveBeenCalledWith(
       expect.objectContaining({
-        packages: expect.arrayContaining([
+        activities: expect.arrayContaining([
           expect.objectContaining({
             key: '04-masonry-cmu-wall-system',
-            quantities: expect.arrayContaining([
+            usages: expect.arrayContaining([
               expect.objectContaining({
-                line: expect.objectContaining({ id: 'cmu-blocks' }),
-                classification: expect.objectContaining({ destination: 'material_resource' }),
+                sourcePreviewLineId: 'cmu-blocks',
+                destination: 'material_resource',
               }),
               expect.objectContaining({
-                line: expect.objectContaining({ id: 'cmu-wall-net-area' }),
-                assignmentStatus: 'manual_override',
+                sourcePreviewLineId: 'cmu-wall-net-area',
+                destination: 'activity_line_item',
                 manualOverride: {
                   manHoursPerUnit: 0.08,
                   reason: 'No approved rate matched the Design Builder unit.',
@@ -188,5 +215,104 @@ describe('DesignBuilderEstimateImportReviewModal', () => {
     );
     expect(onCommitted).toHaveBeenCalled();
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it('does not close from a backdrop click', async () => {
+    const onCommitted = vi.fn();
+    const onClose = vi.fn();
+
+    render(
+      <DesignBuilderEstimateImportReviewModal
+        isOpen
+        projectId="project-1"
+        estimateId="estimate-1"
+        designModelId="model-1"
+        previewLines={[previewLine()]}
+        persistedQuantityItems={[quantityItem()]}
+        onClose={onClose}
+        onCommitted={onCommitted}
+      />,
+    );
+
+    await screen.findByText(/review design builder scope activities/i);
+    const backdrop = document.body.querySelector('[role="presentation"][aria-hidden="true"]');
+    expect(backdrop).not.toBeNull();
+    fireEvent.click(backdrop!);
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('filters work elements in a single deduped combobox', async () => {
+    const onCommitted = vi.fn();
+    const onClose = vi.fn();
+    const activityLine = {
+      ...previewLine(),
+      id: 'cmu-wall-net-area',
+      quantityType: 'cmu_wall_net_area',
+      description: 'CMU wall net area',
+      quantity: 1587.64,
+      unit: 'SF',
+    };
+    mocks.useProductionRateLibrary.mockReturnValue({
+      rates: [
+        productionRate({
+          id: 'rate-pumped-a',
+          activityName: 'Concrete masonry wall, pumped',
+          manHoursPerUnit: 0.08,
+        }),
+        productionRate({
+          id: 'rate-pumped-b',
+          activityName: 'Concrete masonry wall, pumped',
+          manHoursPerUnit: 0.08,
+        }),
+        productionRate({
+          id: 'rate-direct',
+          activityName: 'Concrete masonry wall, direct placement',
+          manHoursPerUnit: 0.12,
+        }),
+      ],
+      totalCount: 3,
+      loading: false,
+      error: null,
+      reload: vi.fn(),
+      showSourceRecords: false,
+      setShowSourceRecords: vi.fn(),
+      isSourceIndex: false,
+      filterRates: vi.fn(() => []),
+      groupFilteredRates: vi.fn(() => []),
+      divisionOptions: vi.fn(() => []),
+      categoryOptions: vi.fn(() => []),
+      unitOptions: vi.fn(() => []),
+      figureOptions: vi.fn(() => []),
+    });
+
+    render(
+      <DesignBuilderEstimateImportReviewModal
+        isOpen
+        projectId="project-1"
+        estimateId="estimate-1"
+        designModelId="model-1"
+        previewLines={[activityLine]}
+        persistedQuantityItems={[quantityItem()]}
+        onClose={onClose}
+        onCommitted={onCommitted}
+      />,
+    );
+
+    const combo = await screen.findByRole('combobox', {
+      name: /select work element for cmu wall net area/i,
+    });
+    expect(screen.queryByPlaceholderText(/search suggested rates/i)).not.toBeInTheDocument();
+
+    fireEvent.focus(combo);
+    fireEvent.change(combo, { target: { value: 'pumped' } });
+
+    await waitFor(() =>
+      expect(screen.getAllByRole('option', {
+        name: 'Concrete masonry wall, pumped - 0.080 MH/SF',
+      })).toHaveLength(1),
+    );
+    expect(screen.queryByRole('option', {
+      name: 'Concrete masonry wall, direct placement - 0.120 MH/SF',
+    })).not.toBeInTheDocument();
   });
 });
