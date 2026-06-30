@@ -331,6 +331,100 @@ export async function replaceProjectLineItems(
   }
 }
 
+export interface GeneratedActivityChildSource {
+  sourceProvider: 'arden_design_builder';
+  designModelId: string;
+  activityKey: string;
+  commitBatchId: string;
+}
+
+export function isStaleGeneratedChild(
+  row: { source_provider?: string | null; source_snapshot?: Record<string, unknown> | null },
+  source: GeneratedActivityChildSource,
+): boolean {
+  const snapshot = row.source_snapshot ?? {};
+  return (
+    row.source_provider === source.sourceProvider &&
+    snapshot.designModelId === source.designModelId &&
+    snapshot.activityKey === source.activityKey &&
+    snapshot.commitBatchId !== source.commitBatchId
+  );
+}
+
+async function deleteStaleGeneratedRows(
+  tableName:
+    | 'project_activity_line_items'
+    | 'project_activity_material_resources'
+    | 'project_activity_equipment_resources',
+  projectActivityId: string,
+  source: GeneratedActivityChildSource,
+): Promise<RepositoryResult<null>> {
+  try {
+    const { data, error } = await supabase
+      .from(tableName)
+      .select('id, source_provider, source_snapshot')
+      .eq('project_activity_id', projectActivityId);
+    if (error) return failure(error.message);
+
+    const staleIds = ((data ?? []) as Array<{
+      id: string;
+      source_provider?: string | null;
+      source_snapshot?: Record<string, unknown> | null;
+    }>)
+      .filter((row) => isStaleGeneratedChild(row, source))
+      .map((row) => row.id);
+
+    if (staleIds.length === 0) return success(null);
+
+    const { error: deleteError } = await supabase
+      .from(tableName)
+      .delete()
+      .in('id', staleIds);
+    if (deleteError) return failure(deleteError.message);
+    return success(null);
+  } catch (err) {
+    return failure(err);
+  }
+}
+
+export async function replaceGeneratedProjectLineItems(
+  projectActivityId: string,
+  lineItems: ProjectActivityLineItem[],
+  source: GeneratedActivityChildSource,
+): Promise<RepositoryResult<ProjectActivityLineItem[]>> {
+  try {
+    let saved: ProjectActivityLineItem[] = [];
+
+    if (lineItems.length > 0) {
+      const rows = lineItems.map((lineItem, index) =>
+        mapProjectLineItemToInsert({
+          ...lineItem,
+          id: '',
+          projectActivityId,
+          sortOrder: lineItem.sortOrder ?? index,
+        }),
+      );
+      const { data, error } = await supabase
+        .from('project_activity_line_items')
+        .insert(rows)
+        .select('*');
+      if (error) return failure(error.message);
+      saved = (data as ProjectActivityLineItemRow[]).map(mapProjectLineItemFromRow);
+    }
+
+    const deleteResult = await deleteStaleGeneratedRows(
+      'project_activity_line_items',
+      projectActivityId,
+      source,
+    );
+    if (deleteResult.error) return failure(deleteResult.error);
+
+    return success(saved);
+  } catch (err) {
+    return failure(err);
+  }
+}
+
 export async function updateProjectLineItemFromDesignPreview(
   lineItemId: string,
   updates: Pick<ProjectActivityLineItem, 'description' | 'quantity' | 'unit'>,
@@ -376,6 +470,7 @@ export async function saveActivityBundle(
     Omit<ProjectActivityLineItem, 'id' | 'projectActivityId' | 'createdAt'> & { id?: string }
   >,
   activityId?: string,
+  generatedChildSource?: GeneratedActivityChildSource,
 ): Promise<RepositoryResult<SavedActivityBundle>> {
   try {
     let savedActivity: ProjectConstructionActivity;
@@ -399,7 +494,9 @@ export async function saveActivityBundle(
       createdAt: '',
     }));
 
-    const lineItemResult = await replaceProjectLineItems(savedActivity.id, lineItemsWithActivityId);
+    const lineItemResult = generatedChildSource
+      ? await replaceGeneratedProjectLineItems(savedActivity.id, lineItemsWithActivityId, generatedChildSource)
+      : await replaceProjectLineItems(savedActivity.id, lineItemsWithActivityId);
     if (lineItemResult.error || !lineItemResult.data) {
       // Roll back a newly inserted parent so the UI does not show an activity with missing line items.
       if (isInsert) {
@@ -448,9 +545,15 @@ export async function saveActivityBundleWithResources(input: {
   materials?: Array<Omit<ActivityMaterialResource, 'id' | 'activityId' | 'createdAt' | 'updatedAt'>>;
   equipment?: Array<Omit<ActivityEquipmentResource, 'id' | 'activityId' | 'createdAt' | 'updatedAt'>>;
   activityId?: string;
+  generatedChildSource?: GeneratedActivityChildSource;
 }): Promise<RepositoryResult<SavedActivityBundleWithResources>> {
   const isInsert = !input.activityId;
-  const bundleResult = await saveActivityBundle(input.activity, input.lineItems, input.activityId);
+  const bundleResult = await saveActivityBundle(
+    input.activity,
+    input.lineItems,
+    input.activityId,
+    input.generatedChildSource,
+  );
   if (bundleResult.error || !bundleResult.data) {
     return failure(bundleResult.error ?? 'Activity save failed.');
   }
@@ -483,6 +586,17 @@ export async function saveActivityBundleWithResources(input: {
       }
       materials.push(result.data);
     }
+    if (input.generatedChildSource) {
+      const deleteMaterialsResult = await deleteStaleGeneratedRows(
+        'project_activity_material_resources',
+        savedActivity.id,
+        input.generatedChildSource,
+      );
+      if (deleteMaterialsResult.error) {
+        if (isInsert) await deleteProjectActivity(savedActivity.id);
+        return failure(deleteMaterialsResult.error);
+      }
+    }
 
     const equipment: ActivityEquipmentResource[] = [];
     for (const [index, item] of (input.equipment ?? []).entries()) {
@@ -501,6 +615,17 @@ export async function saveActivityBundleWithResources(input: {
         return failure(result.error ?? 'Equipment resource save failed.');
       }
       equipment.push(result.data);
+    }
+    if (input.generatedChildSource) {
+      const deleteEquipmentResult = await deleteStaleGeneratedRows(
+        'project_activity_equipment_resources',
+        savedActivity.id,
+        input.generatedChildSource,
+      );
+      if (deleteEquipmentResult.error) {
+        if (isInsert) await deleteProjectActivity(savedActivity.id);
+        return failure(deleteEquipmentResult.error);
+      }
     }
 
     return success({

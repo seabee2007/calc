@@ -11,6 +11,7 @@ import {
   type ManualDraftLineItemInput,
   type ProductionRateAssemblyGroup,
 } from '../../estimating/application/productionRateAssemblyBuilder';
+import { rollupConstructionActivity } from '../../estimating/domain/constructionActivityCalculations';
 import {
   areProductionRateUnitsCompatible,
   convertQuantityForProductionRateUnit,
@@ -33,8 +34,7 @@ import {
   type SavedActivityBundleWithResources,
 } from '../../estimating/infrastructure/activityRepository';
 import {
-  createDesignQuantityImportLinks,
-  deleteDesignQuantityImportLinks,
+  finalizeDesignBuilderImportLinks,
   listDesignQuantityImportLinksByActivityKeys,
   markDesignQuantityItemsImported,
   markDesignQuantityItemsCommitted,
@@ -72,6 +72,7 @@ export async function persistDesignEstimatePreview(
       designObjectId: line.designObjectId,
       projectId: input.projectId,
       estimateId: input.estimateId ?? null,
+      previewLineId: line.id,
       quantityType: line.quantityType,
       description: line.description,
       quantity: line.quantity,
@@ -161,9 +162,7 @@ export interface DesignBuilderImportCommitAssignment {
 export async function commitDesignActivityDrafts(
   input: CommitDesignActivityDraftsInput,
 ): Promise<RepositoryResult<CommitDesignActivityDraftsResult>> {
-  const candidateActivities = input.activities.filter((activity) =>
-    activity.usages.some((usage) => usage.enabled),
-  );
+  const candidateActivities = input.activities.filter((activity) => activity.usages.length > 0);
   const nonActivityUsages = [
     ...(input.referenceUsages ?? []),
     ...(input.excludedUsages ?? []),
@@ -179,11 +178,18 @@ export async function commitDesignActivityDrafts(
   if (validationError) return { data: null, error: validationError };
 
   const activityKeys = candidateActivities.map((activity) => activity.key);
+  const sourcePreviewLineIds = uniqueStrings([
+    ...candidateActivities.flatMap((activity) =>
+      activity.usages.map((usage) => usage.sourcePreviewLineId),
+    ),
+    ...nonActivityUsages.map((usage) => usage.sourcePreviewLineId),
+  ]);
   const priorLinksResult = await listDesignQuantityImportLinksByActivityKeys({
     designModelId: input.designModelId,
     projectId: input.projectId,
     estimateId: input.estimateId ?? null,
     activityKeys,
+    sourcePreviewLineIds,
   });
   if (priorLinksResult.error || !priorLinksResult.data) {
     return {
@@ -192,28 +198,10 @@ export async function commitDesignActivityDrafts(
     };
   }
 
-  const priorLinkIds = priorLinksResult.data.map((link) => link.id);
-  const priorActivityIds = [
-    ...new Set(
-      priorLinksResult.data
-        .map((link) => link.projectActivityId)
-        .filter((value): value is string => Boolean(value)),
-    ),
-  ];
-
-  const deleteLinksResult = await deleteDesignQuantityImportLinks(priorLinkIds);
-  if (deleteLinksResult.error) {
-    return { data: null, error: deleteLinksResult.error };
-  }
-
-  for (const activityId of priorActivityIds) {
-    const deleteActivityResult = await deleteProjectActivity(activityId);
-    if (deleteActivityResult.error) {
-      return {
-        data: null,
-        error: deleteActivityResult.error ?? 'Could not replace prior Design Builder activity.',
-      };
-    }
+  const priorActivityIdByKey = new Map<string, string>();
+  for (const link of priorLinksResult.data) {
+    if (!link.activityKey || !link.projectActivityId || priorActivityIdByKey.has(link.activityKey)) continue;
+    priorActivityIdByKey.set(link.activityKey, link.projectActivityId);
   }
 
   const loadedActivities = await fetchProjectActivities(input.projectId, input.estimateId ?? undefined);
@@ -225,12 +213,12 @@ export async function commitDesignActivityDrafts(
   }
 
   const existingActivities = mergeActivities(loadedActivities.data, input.existingActivities);
+  const existingActivityById = new Map(existingActivities.map((activity) => [activity.id, activity]));
   const bundles: SavedActivityBundleWithResources[] = [];
   const createdActivityIds: string[] = [];
   const pendingLinks: CreateDesignQuantityImportLinkInput[] = [];
   const legacyUpdates = new Map<string, Parameters<typeof markDesignQuantityItemsImported>[0]['updates'][number]>();
   const commitBatchId = createUuid();
-  const createdLinkIds: string[] = [];
 
   try {
     for (const activity of candidateActivities) {
@@ -238,87 +226,119 @@ export async function commitDesignActivityDrafts(
       const laborUsages = enabledUsages.filter((usage) => usage.destination === 'activity_line_item');
       const materialUsages = enabledUsages.filter((usage) => usage.destination === 'material_resource');
       const equipmentUsages = enabledUsages.filter((usage) => usage.destination === 'equipment_resource');
-      const shouldCreateActivity = laborUsages.length > 0 || materialUsages.length > 0 || equipmentUsages.length > 0;
-      if (!shouldCreateActivity) continue;
+      const hasEnabledChildren = laborUsages.length > 0 || materialUsages.length > 0 || equipmentUsages.length > 0;
+      const priorActivityId = priorActivityIdByKey.get(activity.key) ?? null;
+      const shouldSaveActivity = hasEnabledChildren || Boolean(priorActivityId);
+      const existingActivity = priorActivityId ? existingActivityById.get(priorActivityId) : undefined;
+      let saveResult: RepositoryResult<SavedActivityBundleWithResources> | null = null;
 
       const sourceTemplateKey = `design_activity:${activity.key}`;
-      const identity: ActivityInstanceIdentityInput = {
-        activityName: activity.title,
-        instanceLabel: 'Parametric',
-        location: 'Design Builder',
-        notes: buildActivityDraftNotes(activity),
-      };
-      const assigned = assignProjectActivityCode({
-        existingActivities: mergeActivities(existingActivities, bundles.map((bundle) => bundle.activity)),
-        divisionCode: activity.divisionCode,
-        sourceTemplateKey,
-        identity,
-      });
-      const instantiation = instantiateActivityDraft({
-        activity,
-        laborUsages,
-        productionRateById,
-        projectId: input.projectId,
-        estimateId: input.estimateId ?? null,
-        projectLaborRates: input.projectLaborRates,
-        identity,
-        assigned,
-        sourceTemplateKey,
-      });
-
-      const saveResult = await saveActivityBundleWithResources({
-        activity: {
-          ...instantiation.projectActivity,
+      if (shouldSaveActivity) {
+        const identity: ActivityInstanceIdentityInput = {
+          activityName: activity.title,
+          instanceLabel: 'Parametric',
+          location: 'Design Builder',
+          notes: buildActivityDraftNotes(activity),
+        };
+        const assigned = assignProjectActivityCode({
+          existingActivities: mergeActivities(existingActivities, bundles.map((bundle) => bundle.activity)),
+          divisionCode: activity.divisionCode,
           sourceTemplateKey,
-          description: activity.category,
-          scheduleEnabled: laborUsages.length > 0,
-        },
-        lineItems: instantiation.projectLineItems.map((lineItem) =>
-          mapScopeLineItemForSave(lineItem, input.projectId),
-        ),
-        materials: materialUsages.map((usage, index) =>
-          resourceForUsage({
-            usage,
-            projectId: input.projectId,
-            category: activity.category,
-            sortOrder: index,
-          }),
-        ),
-        equipment: equipmentUsages.map((usage, index) =>
-          resourceForUsage({
-            usage,
-            projectId: input.projectId,
-            category: activity.category,
-            sortOrder: index,
-          }),
-        ),
-      });
+          identity,
+          preserveActivityCode: existingActivity?.activityCode ?? null,
+          excludeActivityId: priorActivityId ?? undefined,
+        });
+        const instantiation = instantiateActivityDraft({
+          activity,
+          laborUsages,
+          productionRateById,
+          projectId: input.projectId,
+          estimateId: input.estimateId ?? null,
+          projectLaborRates: input.projectLaborRates,
+          identity,
+          assigned,
+          sourceTemplateKey,
+          projectActivityId: priorActivityId ?? undefined,
+        });
 
-      if (saveResult.error || !saveResult.data) {
-        throw new Error(saveResult.error ?? 'Could not create Design Builder activity.');
+        saveResult = await saveActivityBundleWithResources({
+          activity: {
+            ...instantiation.projectActivity,
+            sourceTemplateKey,
+            description: activity.category,
+            scheduleEnabled: laborUsages.length > 0,
+          },
+          lineItems: instantiation.projectLineItems.map((lineItem, index) =>
+            mapScopeLineItemForSave(
+              withDesignBuilderLineItemSource({
+                lineItem,
+                usage: laborUsages[index],
+                designModelId: input.designModelId,
+                activityKey: activity.key,
+                commitBatchId,
+              }),
+              input.projectId,
+            ),
+          ),
+          materials: materialUsages.map((usage, index) =>
+            resourceForUsage({
+              usage,
+              projectId: input.projectId,
+              designModelId: input.designModelId,
+              activityKey: activity.key,
+              commitBatchId,
+              category: activity.category,
+              sortOrder: index,
+            }),
+          ),
+          equipment: equipmentUsages.map((usage, index) =>
+            resourceForUsage({
+              usage,
+              projectId: input.projectId,
+              designModelId: input.designModelId,
+              activityKey: activity.key,
+              commitBatchId,
+              category: activity.category,
+              sortOrder: index,
+            }),
+          ),
+          activityId: priorActivityId ?? undefined,
+          generatedChildSource: {
+            sourceProvider: 'arden_design_builder',
+            designModelId: input.designModelId,
+            activityKey: activity.key,
+            commitBatchId,
+          },
+        });
+
+        if (saveResult.error || !saveResult.data) {
+          throw new Error(saveResult.error ?? 'Could not create Design Builder activity.');
+        }
+
+        bundles.push(saveResult.data);
+        if (!priorActivityId) createdActivityIds.push(saveResult.data.activity.id);
       }
 
-      bundles.push(saveResult.data);
-      createdActivityIds.push(saveResult.data.activity.id);
-
       const lineItemByUsageId = new Map(
-        laborUsages.map((usage, index) => [usage.id, saveResult.data!.lineItems[index]?.id ?? null]),
+        laborUsages.map((usage, index) => [usage.id, saveResult?.data?.lineItems[index]?.id ?? null]),
       );
       const materialByUsageId = new Map(
-        materialUsages.map((usage, index) => [usage.id, saveResult.data!.materials[index]?.id ?? null]),
+        materialUsages.map((usage, index) => [usage.id, saveResult?.data?.materials[index]?.id ?? null]),
       );
       const equipmentByUsageId = new Map(
-        equipmentUsages.map((usage, index) => [usage.id, saveResult.data!.equipment[index]?.id ?? null]),
+        equipmentUsages.map((usage, index) => [usage.id, saveResult?.data?.equipment[index]?.id ?? null]),
       );
 
-      for (const usage of enabledUsages) {
-        const target = targetForUsage({
-          usage,
-          projectActivityId: saveResult.data.activity.id,
-          lineItemId: lineItemByUsageId.get(usage.id) ?? null,
-          materialResourceId: materialByUsageId.get(usage.id) ?? null,
-          equipmentResourceId: equipmentByUsageId.get(usage.id) ?? null,
-        });
+      for (const usage of activity.usages) {
+        const target = usage.enabled && saveResult?.data
+          ? targetForUsage({
+              usage,
+              projectActivityId: saveResult.data.activity.id,
+              lineItemId: lineItemByUsageId.get(usage.id) ?? null,
+              materialResourceId: materialByUsageId.get(usage.id) ?? null,
+              equipmentResourceId: equipmentByUsageId.get(usage.id) ?? null,
+            })
+          : reviewTargetForUsage(usage, saveResult?.data?.activity.id ?? priorActivityId);
         const link = importLinkForUsage({
           usage,
           target,
@@ -357,29 +377,29 @@ export async function commitDesignActivityDrafts(
       }
     }
 
-    const linkResult = await createDesignQuantityImportLinks(pendingLinks);
-    if (linkResult.error || !linkResult.data) {
-      throw new Error(linkResult.error ?? 'Could not create Design Builder import links.');
-    }
-    createdLinkIds.push(...linkResult.data.map((link) => link.id));
-
-    const markResult = await markDesignQuantityItemsImported({
-      updates: [...legacyUpdates.values()],
+    const finalizeResult = await finalizeDesignBuilderImportLinks({
+      designModelId: input.designModelId,
+      projectId: input.projectId,
+      estimateId: input.estimateId ?? null,
+      commitBatchId,
+      activityKeys,
+      sourcePreviewLineIds,
+      links: pendingLinks,
+      quantityUpdates: [...legacyUpdates.values()],
     });
-    if (markResult.error || !markResult.data) {
-      throw new Error(markResult.error ?? 'Could not mark Design Builder quantities as imported.');
+    if (finalizeResult.error || !finalizeResult.data) {
+      throw new Error(finalizeResult.error ?? 'Could not finalize Design Builder import links.');
     }
 
     return {
       data: {
         bundles,
-        committedQuantityItems: markResult.data,
-        importLinks: linkResult.data,
+        committedQuantityItems: finalizeResult.data.quantityItems,
+        importLinks: finalizeResult.data.importLinks,
       },
       error: null,
     };
   } catch (error) {
-    await deleteDesignQuantityImportLinks(createdLinkIds);
     for (const activityId of createdActivityIds) {
       await deleteProjectActivity(activityId);
     }
@@ -896,10 +916,9 @@ function instantiateActivityDraft(params: {
   identity: ActivityInstanceIdentityInput;
   assigned: ReturnType<typeof assignProjectActivityCode>;
   sourceTemplateKey: string;
+  projectActivityId?: string;
 }) {
-  const hasManualOverride = params.laborUsages.some((usage) => Boolean(usage.manualOverride));
-
-  if (params.laborUsages.length === 0 || hasManualOverride) {
+  if (params.laborUsages.length === 0) {
     return instantiateManualConstructionActivity({
       projectId: params.projectId,
       estimateId: params.estimateId ?? undefined,
@@ -915,34 +934,104 @@ function instantiateActivityDraft(params: {
       scheduleEnabled: params.laborUsages.length > 0,
       projectLaborRates: params.projectLaborRates,
       sourceTemplateKey: params.sourceTemplateKey,
+      projectActivityId: params.projectActivityId,
     });
   }
 
-  return instantiateProductionRateAssembly({
-    projectId: params.projectId,
-    estimateId: params.estimateId ?? undefined,
-    group: buildUsageProductionRateGroup(params.activity, params.laborUsages, params.productionRateById),
-    selectedLineItems: params.laborUsages.map((usage) => {
-      const rate = params.productionRateById.get(usage.productionRateId ?? '')!;
-      return {
-        rate,
-        quantity: convertQuantityForProductionRateUnit(
-          usage.quantity,
-          usage.unit,
-          rate.unitOfMeasure,
-        ),
-        assignmentStatus: usage.matchConfidence != null ? 'auto_matched' : 'verified_rate',
-        matchConfidence: usage.matchConfidence ?? null,
-        matchReason: usage.matchReason ?? null,
-      };
-    }),
-    identity: params.identity,
-    assigned: params.assigned,
-    crewSize: suggestUsageCrewSize(params.laborUsages, params.productionRateById),
-    hoursPerDay: 8,
-    scheduleEnabled: true,
-    projectLaborRates: params.projectLaborRates,
+  const manualUsages = params.laborUsages.filter((usage) => Boolean(usage.manualOverride));
+  const rateUsages = params.laborUsages.filter((usage) => !usage.manualOverride);
+  const lineItemByUsageId = new Map<string, ProjectActivityLineItem>();
+  const warnings: string[] = [];
+  let projectActivity: ProjectConstructionActivity | null = null;
+
+  if (rateUsages.length > 0) {
+    const rateResult = instantiateProductionRateAssembly({
+      projectId: params.projectId,
+      estimateId: params.estimateId ?? undefined,
+      group: buildUsageProductionRateGroup(params.activity, rateUsages, params.productionRateById),
+      selectedLineItems: rateUsages.map((usage) => {
+        const rate = params.productionRateById.get(usage.productionRateId ?? '')!;
+        return {
+          rate,
+          quantity: convertQuantityForProductionRateUnit(
+            usage.quantity,
+            usage.unit,
+            rate.unitOfMeasure,
+          ),
+          assignmentStatus: usage.matchConfidence != null ? 'auto_matched' : 'verified_rate',
+          matchConfidence: usage.matchConfidence ?? null,
+          matchReason: usage.matchReason ?? null,
+        };
+      }),
+      identity: params.identity,
+      assigned: params.assigned,
+      crewSize: suggestUsageCrewSize(params.laborUsages, params.productionRateById),
+      hoursPerDay: 8,
+      scheduleEnabled: true,
+      projectLaborRates: params.projectLaborRates,
+      projectActivityId: params.projectActivityId,
+    });
+    projectActivity = rateResult.projectActivity;
+    warnings.push(...rateResult.laborRoleWarnings);
+    rateUsages.forEach((usage, index) => {
+      const lineItem = rateResult.projectLineItems[index];
+      if (lineItem) lineItemByUsageId.set(usage.id, lineItem);
+    });
+  }
+
+  if (manualUsages.length > 0) {
+    const manualResult = instantiateManualConstructionActivity({
+      projectId: params.projectId,
+      estimateId: params.estimateId ?? undefined,
+      divisionCode: params.activity.divisionCode,
+      divisionName: params.activity.divisionName,
+      lineItems: manualUsages.map((usage) =>
+        manualLineItemForUsage(usage, params.productionRateById),
+      ),
+      identity: params.identity,
+      assigned: params.assigned,
+      crewSize: suggestUsageCrewSize(params.laborUsages, params.productionRateById),
+      hoursPerDay: 8,
+      scheduleEnabled: true,
+      projectLaborRates: params.projectLaborRates,
+      sourceTemplateKey: params.sourceTemplateKey,
+      projectActivityId: params.projectActivityId,
+    });
+    projectActivity ??= manualResult.projectActivity;
+    warnings.push(...manualResult.laborRoleWarnings);
+    manualUsages.forEach((usage, index) => {
+      const lineItem = manualResult.projectLineItems[index];
+      if (lineItem) lineItemByUsageId.set(usage.id, lineItem);
+    });
+  }
+
+  const projectLineItems = params.laborUsages.flatMap((usage, index) => {
+    const lineItem = lineItemByUsageId.get(usage.id);
+    return lineItem ? [{ ...lineItem, sortOrder: index + 1 }] : [];
   });
+  const rollupBase = rollupConstructionActivity(projectActivity!, projectLineItems);
+  const rollup = {
+    ...rollupBase,
+    warnings: [...warnings, ...rollupBase.warnings],
+  };
+
+  return {
+    projectActivity: {
+      ...projectActivity!,
+      calculatedManHours: rollup.totalManHours,
+      calculatedManDays: rollup.totalManDays,
+      calculatedDurationDays: rollup.calculatedDurationDays,
+      effectiveDurationDays: rollup.effectiveDurationDays,
+      totalLaborCost: rollup.totalLaborCost,
+      totalMaterialCost: rollup.totalMaterialCost,
+      totalEquipmentCost: rollup.totalEquipmentCost,
+      totalSubcontractCost: 0,
+      totalCost: rollup.totalDirectCost,
+    },
+    projectLineItems,
+    rollup,
+    laborRoleWarnings: warnings,
+  };
 }
 
 function buildUsageProductionRateGroup(
@@ -1003,9 +1092,57 @@ function manualLineItemForUsage(
   };
 }
 
+function designBuilderSourceSnapshot(params: {
+  usage: DesignQuantityUsage;
+  designModelId: string;
+  activityKey: string;
+  commitBatchId: string;
+  category?: string;
+}): NonNullable<ProjectActivityLineItem['sourceSnapshot']> {
+  return {
+    sourceName: 'Arden Design Builder',
+    originalName: params.usage.description,
+    originalUnit: params.usage.unit,
+    originalDefaultUnitCost: 0,
+    category: params.category,
+    subcategory: params.usage.sourceQuantityType ?? params.usage.role,
+    csiDivision: String(params.usage.metadata.divisionCode ?? ''),
+    notes: params.usage.formula,
+    selectedAt: new Date().toISOString(),
+    designModelId: params.designModelId,
+    activityKey: params.activityKey,
+    usageId: params.usage.id,
+    sourcePreviewLineId: params.usage.sourcePreviewLineId,
+    commitBatchId: params.commitBatchId,
+  };
+}
+
+function withDesignBuilderLineItemSource(params: {
+  lineItem: ProjectActivityLineItem;
+  usage: DesignQuantityUsage | undefined;
+  designModelId: string;
+  activityKey: string;
+  commitBatchId: string;
+}): ProjectActivityLineItem {
+  if (!params.usage) return params.lineItem;
+  return {
+    ...params.lineItem,
+    sourceProvider: 'arden_design_builder',
+    sourceSnapshot: designBuilderSourceSnapshot({
+      usage: params.usage,
+      designModelId: params.designModelId,
+      activityKey: params.activityKey,
+      commitBatchId: params.commitBatchId,
+    }),
+  };
+}
+
 function resourceForUsage(params: {
   usage: DesignQuantityUsage;
   projectId: string;
+  designModelId: string;
+  activityKey: string;
+  commitBatchId: string;
   category: string;
   sortOrder: number;
 }): Omit<ActivityMaterialResource, 'id' | 'activityId' | 'createdAt' | 'updatedAt'> &
@@ -1021,18 +1158,14 @@ function resourceForUsage(params: {
     unit: usage.unit,
     unitCost: 0,
     totalCost: 0,
-    sourceProvider: 'manual',
-    sourceSnapshot: {
-      sourceName: 'Arden Design Builder',
-      originalName: usage.description,
-      originalUnit: usage.unit,
-      originalDefaultUnitCost: 0,
+    sourceProvider: 'arden_design_builder',
+    sourceSnapshot: designBuilderSourceSnapshot({
+      usage,
+      designModelId: params.designModelId,
+      activityKey: params.activityKey,
+      commitBatchId: params.commitBatchId,
       category: params.category,
-      subcategory: usage.sourceQuantityType ?? usage.role,
-      csiDivision: String(usage.metadata.divisionCode ?? ''),
-      notes: usage.formula,
-      selectedAt: new Date().toISOString(),
-    },
+    }),
     sortOrder: params.sortOrder,
   };
 }
@@ -1084,6 +1217,20 @@ function targetForUsage(params: {
   };
 }
 
+function reviewTargetForUsage(
+  usage: DesignQuantityUsage,
+  projectActivityId: string | null,
+): UsageTarget {
+  return {
+    targetType: usage.destination === 'excluded' ? 'excluded' : 'reference',
+    targetId: null,
+    projectActivityId,
+    estimateLineId: null,
+    materialResourceId: null,
+    equipmentResourceId: null,
+  };
+}
+
 function importLinkForUsage(params: {
   usage: DesignQuantityUsage;
   target: UsageTarget;
@@ -1107,6 +1254,7 @@ function importLinkForUsage(params: {
     destination: params.usage.destination,
     scopePackageKey: scopeKeyForUsage(params.usage),
     activityKey: params.usage.activityKey,
+    sourcePreviewLineId: params.usage.sourcePreviewLineId,
     quantity: params.usage.quantity,
     unit: params.usage.unit,
     formula: params.usage.formula,
@@ -1137,16 +1285,19 @@ function rememberLegacyUpdate(
     materialResourceId: target.materialResourceId,
     equipmentResourceId: target.equipmentResourceId,
     importDestination: usage.destination as DesignQuantityDestination,
-    importStatus: importStatusForUsageDestination(usage.destination),
+    importStatus: importStatusForUsage(usage, target),
     scopePackageKey: scopeKeyForUsage(usage),
     importReviewReason: usage.reviewReason ?? null,
   });
 }
 
-function importStatusForUsageDestination(
-  destination: DesignQuantityUsage['destination'],
+function importStatusForUsage(
+  usage: DesignQuantityUsage,
+  target: UsageTarget,
 ): 'imported' | 'reference_only' | 'excluded' | 'review_required' {
-  switch (destination) {
+  if (target.targetType === 'excluded') return 'excluded';
+  if (!usage.enabled || usage.reviewStatus === 'needs_review') return 'review_required';
+  switch (usage.destination) {
     case 'activity_line_item':
     case 'material_resource':
     case 'equipment_resource':
@@ -1195,6 +1346,10 @@ function createUuid(): string {
     const nibble = char === 'x' ? value : (value & 0x3) | 0x8;
     return nibble.toString(16);
   });
+}
+
+function uniqueStrings(values: readonly (string | null | undefined)[]): string[] {
+  return [...new Set(values.filter((value): value is string => Boolean(value?.trim())).map((value) => value.trim()))];
 }
 
 function validateLaborQuantities(
@@ -1329,6 +1484,8 @@ function mapScopeLineItemForSave(
     productionRateMatchReason: li.productionRateMatchReason ?? null,
     manualProductionRateReason: li.manualProductionRateReason ?? null,
     manualProductionRateSourceNote: li.manualProductionRateSourceNote ?? null,
+    sourceProvider: li.sourceProvider ?? null,
+    sourceSnapshot: li.sourceSnapshot,
     sortOrder: li.sortOrder ?? 0,
   };
 }

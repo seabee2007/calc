@@ -178,6 +178,8 @@ export function mapProjectLineItemFromRow(
     productionRateMatchReason: row.production_rate_match_reason ?? null,
     manualProductionRateReason: row.manual_production_rate_reason ?? null,
     manualProductionRateSourceNote: row.manual_production_rate_source_note ?? null,
+    sourceProvider: row.source_provider ?? null,
+    sourceSnapshot: parseSnapshot(row.source_snapshot),
     sortOrder: row.sort_order,
     createdAt: row.created_at,
   };
@@ -271,6 +273,10 @@ export function mapProjectLineItemToInsert(
     production_rate_match_reason: li.productionRateMatchReason ?? null,
     manual_production_rate_reason: li.manualProductionRateReason ?? null,
     manual_production_rate_source_note: li.manualProductionRateSourceNote ?? null,
+    source_provider: li.sourceProvider ?? null,
+    source_snapshot: li.sourceSnapshot
+      ? (li.sourceSnapshot as unknown as Record<string, unknown>)
+      : null,
     sort_order: li.sortOrder ?? 0,
   };
 }
@@ -294,7 +300,7 @@ import type {
   CompanyCostLibraryItemInsert,
 } from './activityDbTypes';
 
-function parseSnapshot(raw: Record<string, unknown> | null): ActivityResourceSnapshot | undefined {
+function parseSnapshot(raw: Record<string, unknown> | null | undefined): ActivityResourceSnapshot | undefined {
   if (!raw) return undefined;
   return {
     sourceName: String(raw['sourceName'] ?? ''),
@@ -307,6 +313,12 @@ function parseSnapshot(raw: Record<string, unknown> | null): ActivityResourceSna
     csiSection: raw['csiSection'] != null ? String(raw['csiSection']) : undefined,
     notes: raw['notes'] != null ? String(raw['notes']) : undefined,
     selectedAt: String(raw['selectedAt'] ?? ''),
+    designModelId: raw['designModelId'] != null ? String(raw['designModelId']) : undefined,
+    activityKey: raw['activityKey'] != null ? String(raw['activityKey']) : undefined,
+    usageId: raw['usageId'] != null ? String(raw['usageId']) : undefined,
+    sourcePreviewLineId:
+      raw['sourcePreviewLineId'] != null ? String(raw['sourcePreviewLineId']) : undefined,
+    commitBatchId: raw['commitBatchId'] != null ? String(raw['commitBatchId']) : undefined,
   };
 }
 

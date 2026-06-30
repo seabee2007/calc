@@ -4,7 +4,7 @@
  */
 import { useEffect, useState } from 'react';
 import { Search } from 'lucide-react';
-import { TEXT_BODY, TEXT_MUTED, TEXT_FOREGROUND, TEXT_SUBTLE, BORDER_DEFAULT } from '../../../../theme/appTheme';
+import { TEXT_MUTED, TEXT_FOREGROUND, TEXT_SUBTLE } from '../../../../theme/appTheme';
 import type { CompanyCostLibraryItem, ActivityResourceProvider } from '../../domain/constructionActivityTypes';
 import { getCompanyCostLibraryItems } from '../../application/companyCostLibraryService';
 
@@ -20,6 +20,7 @@ function SourceChip({ provider }: { provider: ActivityResourceProvider }) {
   const config: Record<ActivityResourceProvider, { label: string; cls: string }> = {
     manual: { label: 'Manual', cls: 'bg-slate-700 text-slate-200' },
     arden_starter: { label: 'Starter', cls: 'bg-cyan-900/60 text-cyan-300' },
+    arden_design_builder: { label: 'Design Builder', cls: 'bg-emerald-900/60 text-emerald-300' },
     company_library: { label: 'My Library', cls: 'bg-violet-900/60 text-violet-300' },
   };
   const { label, cls } = config[provider] ?? config.manual;

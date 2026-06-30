@@ -216,6 +216,7 @@ export interface DesignQuantityItem {
   id: string;
   designModelId: string;
   designObjectId: string;
+  previewLineId?: string | null;
   projectId: string;
   estimateId: string | null;
   estimateLineId: string | null;
@@ -252,12 +253,16 @@ export interface DesignQuantityImportLink {
   destination: string;
   scopePackageKey: string;
   activityKey: string | null;
+  sourcePreviewLineId?: string | null;
   quantity: number;
   unit: string;
   formula: string;
   derived: boolean;
   metadata: Record<string, unknown>;
   commitBatchId: string;
+  supersededAt?: string | null;
+  supersededByCommitBatchId?: string | null;
+  supersededReason?: string | null;
   createdBy: string | null;
   createdAt: string;
 }
@@ -274,6 +279,7 @@ export interface CreateDesignQuantityImportLinkInput {
   destination: string;
   scopePackageKey: string;
   activityKey?: string | null;
+  sourcePreviewLineId?: string | null;
   quantity: number;
   unit: string;
   formula: string;
@@ -1143,7 +1149,7 @@ export type ResolvedGableEnd = {
   rightRoofUnderside?: RoofPlane;
   masonryCourses: GableCourseAssembly[];
   rakedCapPlacements: RakedCapPlacement[];
-  cmuUnitPlacements: import("../geometry/designGeometry").CmuBlockInstance[];
+  cmuUnitPlacements: import("./geometry/designGeometry").CmuBlockInstance[];
   warnings: DesignWarning[];
 };
 
@@ -1274,6 +1280,7 @@ export interface CreateDesignQuantityItemInput {
   importStatus?: string | null;
   scopePackageKey?: string | null;
   importReviewReason?: string | null;
+  previewLineId?: string | null;
   quantityType: string;
   description: string;
   quantity: number;

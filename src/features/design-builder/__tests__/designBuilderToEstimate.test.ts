@@ -5,6 +5,9 @@ import type { ProductionRateLibraryEntry } from '../../estimating/data/productio
 const mocks = vi.hoisted(() => ({
   replaceDesignQuantityItems: vi.fn(),
   markDesignQuantityItemsCommitted: vi.fn(),
+  finalizeDesignBuilderImportLinks: vi.fn(),
+  listDesignQuantityImportLinksByActivityKeys: vi.fn(),
+  markDesignQuantityItemsImported: vi.fn(),
   instantiateAndSaveFromProductionRateAssembly: vi.fn(),
   instantiateAndSaveManualActivity: vi.fn(),
   updateProjectLineItemFromDesignPreview: vi.fn(),
@@ -13,6 +16,9 @@ const mocks = vi.hoisted(() => ({
 vi.mock('../services/designBuilderService', () => ({
   replaceDesignQuantityItems: mocks.replaceDesignQuantityItems,
   markDesignQuantityItemsCommitted: mocks.markDesignQuantityItemsCommitted,
+  finalizeDesignBuilderImportLinks: mocks.finalizeDesignBuilderImportLinks,
+  listDesignQuantityImportLinksByActivityKeys: mocks.listDesignQuantityImportLinksByActivityKeys,
+  markDesignQuantityItemsImported: mocks.markDesignQuantityItemsImported,
 }));
 
 vi.mock('../../estimating/application/constructionActivityService', () => ({

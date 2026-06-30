@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
-import type { ProductionRateLibraryEntry } from '../../estimating/data/productionRates/productionRateTypes';
+import {
+  SOURCE_DOCUMENT_FULL,
+  SOURCE_EDITION,
+  type ProductionRateLibraryEntry,
+} from '../../estimating/data/productionRates/productionRateTypes';
 import { constructionActivitiesToScheduleActivities } from '../../estimating/scheduling/adapters/constructionActivitiesToScheduleActivities';
 import type { DesignEstimatePreviewLine, DesignQuantityItem } from '../types';
 import type { DesignActivityDraft, DesignQuantityUsage, DesignScopePackage } from '../application/designScopeTypes';
@@ -9,8 +13,7 @@ const mocks = vi.hoisted(() => ({
   deleteProjectActivity: vi.fn(),
   fetchProjectActivities: vi.fn(),
   saveActivityBundleWithResources: vi.fn(),
-  createDesignQuantityImportLinks: vi.fn(),
-  deleteDesignQuantityImportLinks: vi.fn(),
+  finalizeDesignBuilderImportLinks: vi.fn(),
   listDesignQuantityImportLinksByActivityKeys: vi.fn(),
   markDesignQuantityItemsImported: vi.fn(),
 }));
@@ -23,8 +26,7 @@ vi.mock('../../estimating/infrastructure/activityRepository', () => ({
 }));
 
 vi.mock('../services/designBuilderService', () => ({
-  createDesignQuantityImportLinks: mocks.createDesignQuantityImportLinks,
-  deleteDesignQuantityImportLinks: mocks.deleteDesignQuantityImportLinks,
+  finalizeDesignBuilderImportLinks: mocks.finalizeDesignBuilderImportLinks,
   listDesignQuantityImportLinksByActivityKeys: mocks.listDesignQuantityImportLinksByActivityKeys,
   markDesignQuantityItemsImported: mocks.markDesignQuantityItemsImported,
   markDesignQuantityItemsCommitted: vi.fn(),
@@ -102,8 +104,9 @@ function productionRate(overrides: Partial<ProductionRateLibraryEntry> = {}): Pr
     unitOfMeasure: overrides.unitOfMeasure ?? 'SF',
     manHoursPerUnit: overrides.manHoursPerUnit ?? 0.05,
     crewSize: 4,
-    sourceDocumentFull: 'RSMeans Facilities Construction Cost Data',
-    sourceEdition: '2026',
+    sourceDocumentFull: SOURCE_DOCUMENT_FULL,
+    sourceEdition: SOURCE_EDITION,
+    referenceNote: 'NTRP reference',
     keywords: ['cmu', 'masonry', 'wall'],
     ...overrides,
   };
@@ -172,8 +175,7 @@ describe('design scope package commit', () => {
     mocks.deleteProjectActivity.mockReset();
     mocks.fetchProjectActivities.mockReset();
     mocks.saveActivityBundleWithResources.mockReset();
-    mocks.createDesignQuantityImportLinks.mockReset();
-    mocks.deleteDesignQuantityImportLinks.mockReset();
+    mocks.finalizeDesignBuilderImportLinks.mockReset();
     mocks.listDesignQuantityImportLinksByActivityKeys.mockReset();
     mocks.markDesignQuantityItemsImported.mockReset();
     mocks.deleteProjectActivity.mockResolvedValue({ data: null, error: null });
@@ -181,7 +183,7 @@ describe('design scope package commit', () => {
     mocks.saveActivityBundleWithResources.mockImplementation(async (bundle) => ({
       data: {
         activity: {
-          id: 'activity-1',
+          id: bundle.activityId ?? 'activity-1',
           activityCode: bundle.activity.activityCode ?? '04-01-01',
           title: bundle.activity.title ?? '04 Masonry - CMU Wall System',
           divisionCode: bundle.activity.divisionCode ?? '04',
@@ -209,15 +211,17 @@ describe('design scope package commit', () => {
       },
       error: null,
     }));
-    mocks.createDesignQuantityImportLinks.mockImplementation(async (links) => ({
-      data: links.map((link: Record<string, unknown>, index: number) => ({
-        id: `link-${index + 1}`,
-        ...link,
-        createdAt: '2026-01-01T00:00:00.000Z',
-      })),
+    mocks.finalizeDesignBuilderImportLinks.mockImplementation(async (input) => ({
+      data: {
+        importLinks: input.links.map((link: Record<string, unknown>, index: number) => ({
+          id: `link-${index + 1}`,
+          ...link,
+          createdAt: '2026-01-01T00:00:00.000Z',
+        })),
+        quantityItems: [],
+      },
       error: null,
     }));
-    mocks.deleteDesignQuantityImportLinks.mockResolvedValue({ data: null, error: null });
     mocks.listDesignQuantityImportLinksByActivityKeys.mockResolvedValue({ data: [], error: null });
     mocks.markDesignQuantityItemsImported.mockResolvedValue({
       data: [],
@@ -399,7 +403,7 @@ describe('design scope package commit', () => {
         materials: [expect.objectContaining({ name: 'Ready-mix concrete, RC Roof Beams', quantity: 9.39, unit: 'CY' })],
       }),
     );
-    const links = mocks.createDesignQuantityImportLinks.mock.calls[0][0];
+    const links = mocks.finalizeDesignBuilderImportLinks.mock.calls[0][0].links;
     expect(links).toEqual(expect.arrayContaining([
       expect.objectContaining({
         designQuantityItemId: item.id,
@@ -439,7 +443,32 @@ describe('design scope package commit', () => {
       manHoursPerUnit: 0.7,
     });
     mocks.listDesignQuantityImportLinksByActivityKeys.mockResolvedValue({
-      data: [{ id: 'prior-link', projectActivityId: 'old-activity' }],
+      data: [{
+        id: 'prior-link',
+        activityKey: 'concrete:rc-roof-beams:place',
+        projectActivityId: 'old-activity',
+      }],
+      error: null,
+    });
+    mocks.fetchProjectActivities.mockResolvedValue({
+      data: [{
+        id: 'old-activity',
+        projectId: 'project-1',
+        estimateId: 'estimate-1',
+        activityCode: '03-01-01',
+        title: '03 Concrete - RC Roof Beams - Place Concrete',
+        divisionCode: '03',
+        divisionName: 'Concrete',
+        sourceTemplateKey: 'design_activity:concrete:rc-roof-beams:place',
+        scheduleEnabled: true,
+        crewSize: 4,
+        hoursPerDay: 8,
+        productionFactor: 1,
+        calculatedManHours: 1,
+        calculatedManDays: 0.125,
+        calculatedDurationDays: 1,
+        effectiveDurationDays: 1,
+      }],
       error: null,
     });
 
@@ -453,9 +482,403 @@ describe('design scope package commit', () => {
       productionRates: [rate],
     });
 
-    expect(mocks.deleteDesignQuantityImportLinks).toHaveBeenCalledWith(['prior-link']);
-    expect(mocks.deleteProjectActivity).toHaveBeenCalledWith('old-activity');
-    expect(mocks.saveActivityBundleWithResources).toHaveBeenCalledTimes(1);
+    expect(mocks.deleteProjectActivity).not.toHaveBeenCalled();
+    expect(mocks.saveActivityBundleWithResources).toHaveBeenCalledWith(
+      expect.objectContaining({
+        activityId: 'old-activity',
+        activity: expect.objectContaining({ activityCode: '03-01-01' }),
+      }),
+    );
+    expect(mocks.finalizeDesignBuilderImportLinks).toHaveBeenCalledWith(
+      expect.objectContaining({
+        activityKeys: ['concrete:rc-roof-beams:place'],
+      }),
+    );
+  });
+
+  it('recommitting a fully disabled generated activity preserves the activity and clears generated children', async () => {
+    const concrete = previewLine({
+      id: 'rc-roof-beams-volume',
+      designObjectId: 'frame-1',
+      quantityType: 'rc_roof_beams_volume',
+      description: 'RC Roof Beams',
+      quantity: 9.39,
+      unit: 'CY',
+      divisionCode: '03',
+      divisionName: 'Concrete',
+    });
+    const item = quantityItem(concrete);
+    mocks.listDesignQuantityImportLinksByActivityKeys.mockResolvedValue({
+      data: [{
+        id: 'prior-link',
+        activityKey: 'concrete:rc-roof-beams:place',
+        projectActivityId: 'old-activity',
+      }],
+      error: null,
+    });
+    mocks.fetchProjectActivities.mockResolvedValue({
+      data: [{
+        id: 'old-activity',
+        projectId: 'project-1',
+        estimateId: 'estimate-1',
+        activityCode: '03-01-01',
+        title: '03 Concrete - RC Roof Beams - Place Concrete',
+        divisionCode: '03',
+        divisionName: 'Concrete',
+        sourceTemplateKey: 'design_activity:concrete:rc-roof-beams:place',
+        scheduleEnabled: true,
+        crewSize: 4,
+        hoursPerDay: 8,
+        productionFactor: 1,
+      }],
+      error: null,
+    });
+
+    await commitDesignActivityDrafts({
+      projectId: 'project-1',
+      estimateId: 'estimate-1',
+      designModelId: 'model-1',
+      activities: [
+        activityDraft({
+          usages: [
+            usage(concrete, item, {
+              enabled: false,
+              reviewStatus: 'ready',
+            }),
+          ],
+        }),
+      ],
+      existingActivities: [],
+      projectLaborRates: [],
+      productionRates: [],
+    });
+
+    expect(mocks.deleteProjectActivity).not.toHaveBeenCalled();
+    expect(mocks.saveActivityBundleWithResources).toHaveBeenCalledWith(
+      expect.objectContaining({
+        activityId: 'old-activity',
+        activity: expect.objectContaining({
+          activityCode: '03-01-01',
+          scheduleEnabled: false,
+        }),
+        lineItems: [],
+        materials: [],
+        equipment: [],
+        generatedChildSource: expect.objectContaining({
+          sourceProvider: 'arden_design_builder',
+          designModelId: 'model-1',
+          activityKey: 'concrete:rc-roof-beams:place',
+        }),
+      }),
+    );
+    expect(mocks.finalizeDesignBuilderImportLinks).toHaveBeenCalledWith(
+      expect.objectContaining({
+        links: [
+          expect.objectContaining({
+            designQuantityItemId: item.id,
+            targetType: 'reference',
+            projectActivityId: 'old-activity',
+          }),
+        ],
+      }),
+    );
+  });
+
+  it('keeps prior import state active when the import finalizer fails during recommit', async () => {
+    const concrete = previewLine({
+      id: 'rc-roof-beams-volume',
+      designObjectId: 'frame-1',
+      quantityType: 'rc_roof_beams_volume',
+      description: 'RC Roof Beams',
+      quantity: 9.39,
+      unit: 'CY',
+      divisionCode: '03',
+      divisionName: 'Concrete',
+    });
+    const item = quantityItem(concrete);
+    const rate = productionRate({
+      id: 'rate-concrete',
+      divisionCode: '03',
+      divisionName: 'Concrete',
+      activityName: 'Place concrete',
+      unitOfMeasure: 'CY',
+      manHoursPerUnit: 0.7,
+    });
+    mocks.listDesignQuantityImportLinksByActivityKeys.mockResolvedValue({
+      data: [{
+        id: 'prior-link',
+        activityKey: 'concrete:rc-roof-beams:place',
+        projectActivityId: 'old-activity',
+      }],
+      error: null,
+    });
+    mocks.fetchProjectActivities.mockResolvedValue({
+      data: [{
+        id: 'old-activity',
+        projectId: 'project-1',
+        estimateId: 'estimate-1',
+        activityCode: '03-01-01',
+        title: '03 Concrete - RC Roof Beams - Place Concrete',
+        divisionCode: '03',
+        divisionName: 'Concrete',
+        sourceTemplateKey: 'design_activity:concrete:rc-roof-beams:place',
+        scheduleEnabled: true,
+        crewSize: 4,
+        hoursPerDay: 8,
+        productionFactor: 1,
+      }],
+      error: null,
+    });
+    mocks.finalizeDesignBuilderImportLinks.mockResolvedValueOnce({
+      data: null,
+      error: 'finalizer failed',
+    });
+
+    const result = await commitDesignActivityDrafts({
+      projectId: 'project-1',
+      estimateId: 'estimate-1',
+      designModelId: 'model-1',
+      activities: [activityDraft({ usages: [usage(concrete, item, { productionRateId: rate.id })] })],
+      existingActivities: [],
+      projectLaborRates: [],
+      productionRates: [rate],
+    });
+
+    expect(result.data).toBeNull();
+    expect(result.error).toContain('finalizer failed');
+    expect(mocks.deleteProjectActivity).not.toHaveBeenCalled();
+    expect(mocks.finalizeDesignBuilderImportLinks).toHaveBeenCalledWith(
+      expect.objectContaining({
+        activityKeys: ['concrete:rc-roof-beams:place'],
+        sourcePreviewLineIds: ['rc-roof-beams-volume'],
+      }),
+    );
+  });
+
+  it('passes generated source markers so recommit replaces only Design Builder children', async () => {
+    const concrete = previewLine({
+      id: 'rc-roof-beams-volume',
+      designObjectId: 'frame-1',
+      quantityType: 'rc_roof_beams_volume',
+      description: 'RC Roof Beams',
+      quantity: 9.39,
+      unit: 'CY',
+      divisionCode: '03',
+      divisionName: 'Concrete',
+    });
+    const item = quantityItem(concrete);
+    const rate = productionRate({
+      id: 'rate-concrete',
+      divisionCode: '03',
+      divisionName: 'Concrete',
+      activityName: 'Place concrete',
+      unitOfMeasure: 'CY',
+      manHoursPerUnit: 0.7,
+    });
+
+    await commitDesignActivityDrafts({
+      projectId: 'project-1',
+      estimateId: 'estimate-1',
+      designModelId: 'model-1',
+      activities: [
+        activityDraft({
+          usages: [
+            usage(concrete, item, { id: 'place', productionRateId: rate.id }),
+            usage(concrete, item, {
+              id: 'ready-mix',
+              destination: 'material_resource',
+              role: 'concrete_material',
+              reviewStatus: 'material_only',
+            }),
+          ],
+        }),
+      ],
+      existingActivities: [],
+      projectLaborRates: [],
+      productionRates: [rate],
+    });
+
+    expect(mocks.saveActivityBundleWithResources).toHaveBeenCalledWith(
+      expect.objectContaining({
+        generatedChildSource: expect.objectContaining({
+          sourceProvider: 'arden_design_builder',
+          designModelId: 'model-1',
+          activityKey: 'concrete:rc-roof-beams:place',
+        }),
+        lineItems: [
+          expect.objectContaining({
+            sourceProvider: 'arden_design_builder',
+            sourceSnapshot: expect.objectContaining({
+              designModelId: 'model-1',
+              activityKey: 'concrete:rc-roof-beams:place',
+              usageId: 'place',
+              sourcePreviewLineId: 'rc-roof-beams-volume',
+            }),
+          }),
+        ],
+        materials: [
+          expect.objectContaining({
+            sourceProvider: 'arden_design_builder',
+            sourceSnapshot: expect.objectContaining({
+              usageId: 'ready-mix',
+              sourcePreviewLineId: 'rc-roof-beams-volume',
+            }),
+          }),
+        ],
+      }),
+    );
+  });
+
+  it('writes disabled and needs-review usages as audit links', async () => {
+    const concrete = previewLine({
+      id: 'rc-roof-beams-volume',
+      designObjectId: 'frame-1',
+      quantityType: 'rc_roof_beams_volume',
+      description: 'RC Roof Beams',
+      quantity: 9.39,
+      unit: 'CY',
+      divisionCode: '03',
+      divisionName: 'Concrete',
+    });
+    const formwork = previewLine({
+      id: 'rc-roof-beams-formwork',
+      designObjectId: 'frame-1',
+      quantityType: 'rc_roof_beams_formwork',
+      description: 'RC Roof Beams formwork',
+      quantity: 0,
+      unit: 'SF',
+      divisionCode: '03',
+      divisionName: 'Concrete',
+    });
+    const concreteItem = quantityItem(concrete);
+    const formworkItem = quantityItem(formwork);
+    const rate = productionRate({
+      id: 'rate-concrete',
+      divisionCode: '03',
+      divisionName: 'Concrete',
+      activityName: 'Place concrete',
+      unitOfMeasure: 'CY',
+      manHoursPerUnit: 0.7,
+    });
+
+    await commitDesignActivityDrafts({
+      projectId: 'project-1',
+      estimateId: 'estimate-1',
+      designModelId: 'model-1',
+      activities: [
+        activityDraft({
+          usages: [
+            usage(concrete, concreteItem, { id: 'place', productionRateId: rate.id }),
+            usage(formwork, formworkItem, {
+              id: 'missing-formwork',
+              enabled: false,
+              destination: 'activity_line_item',
+              role: 'formwork_labor',
+              reviewStatus: 'needs_review',
+              reviewReason: 'Missing geometry for formwork.',
+            }),
+          ],
+        }),
+      ],
+      existingActivities: [],
+      projectLaborRates: [],
+      productionRates: [rate],
+    });
+
+    const finalizeInput = mocks.finalizeDesignBuilderImportLinks.mock.calls[0][0];
+    expect(finalizeInput.links).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        designQuantityItemId: formworkItem.id,
+        targetType: 'reference',
+        activityKey: 'concrete:rc-roof-beams:place',
+        sourcePreviewLineId: 'rc-roof-beams-formwork',
+      }),
+    ]));
+    expect(finalizeInput.quantityUpdates).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        quantityItemId: formworkItem.id,
+        importStatus: 'review_required',
+      }),
+    ]));
+  });
+
+  it('preserves mixed manual and verified-rate labor provenance in one activity', async () => {
+    const placeLine = previewLine({
+      id: 'rc-roof-beams-volume',
+      designObjectId: 'frame-1',
+      quantityType: 'rc_roof_beams_volume',
+      description: 'RC Roof Beams',
+      quantity: 9.39,
+      unit: 'CY',
+      divisionCode: '03',
+      divisionName: 'Concrete',
+    });
+    const finishLine = previewLine({
+      id: 'rc-roof-beams-finish',
+      designObjectId: 'frame-1',
+      quantityType: 'rc_roof_beams_finish',
+      description: 'Finish beam top',
+      quantity: 120,
+      unit: 'SF',
+      divisionCode: '03',
+      divisionName: 'Concrete',
+    });
+    const placeItem = quantityItem(placeLine);
+    const finishItem = quantityItem(finishLine);
+    const rate = productionRate({
+      id: 'rate-concrete',
+      divisionCode: '03',
+      divisionName: 'Concrete',
+      activityName: 'Place concrete',
+      unitOfMeasure: 'CY',
+      manHoursPerUnit: 0.7,
+    });
+
+    await commitDesignActivityDrafts({
+      projectId: 'project-1',
+      estimateId: 'estimate-1',
+      designModelId: 'model-1',
+      activities: [
+        activityDraft({
+          usages: [
+            usage(placeLine, placeItem, {
+              id: 'verified-place',
+              productionRateId: rate.id,
+              matchConfidence: null,
+            }),
+            usage(finishLine, finishItem, {
+              id: 'manual-finish',
+              productionRateId: null,
+              manualOverride: {
+                manHoursPerUnit: 0.05,
+                reason: 'No approved rate matches the formwork basis.',
+                sourceNote: 'Estimator historical record.',
+              },
+            }),
+          ],
+        }),
+      ],
+      existingActivities: [],
+      projectLaborRates: [],
+      productionRates: [rate],
+    });
+
+    expect(mocks.saveActivityBundleWithResources).toHaveBeenCalledWith(
+      expect.objectContaining({
+        lineItems: [
+          expect.objectContaining({
+            productionRateAssignmentStatus: 'verified_rate',
+            sourceProductionRateKey: 'rate-concrete',
+            manualProductionRateReason: null,
+          }),
+          expect.objectContaining({
+            productionRateAssignmentStatus: 'manual_override',
+            manualProductionRateReason: 'No approved rate matches the formwork basis.',
+            manualProductionRateSourceNote: 'Estimator historical record.',
+          }),
+        ],
+      }),
+    );
   });
 
   it('creates material-only fallback activities as non-scheduled', async () => {
@@ -541,7 +964,9 @@ describe('design scope package commit', () => {
       productionRates: [],
     });
 
-    expect(mocks.createDesignQuantityImportLinks).toHaveBeenCalledWith([]);
+    expect(mocks.finalizeDesignBuilderImportLinks).toHaveBeenCalledWith(
+      expect.objectContaining({ links: [] }),
+    );
   });
 
   it('migration enables RLS policies for design quantity import links', () => {
@@ -554,5 +979,40 @@ describe('design scope package commit', () => {
     expect(sql).toContain('Project owners insert design quantity import links');
     expect(sql).toContain('Project owners update design quantity import links');
     expect(sql).toContain('Project owners delete design quantity import links');
+  });
+
+  it('hardening migration creates import links table before extending it', () => {
+    const sql = readFileSync(
+      'supabase/migrations/20260726130000_design_builder_update_only_recommit.sql',
+      'utf8',
+    );
+    const createIndex = sql.indexOf('CREATE TABLE IF NOT EXISTS public.design_quantity_import_links');
+    const alterIndex = sql.indexOf('ALTER TABLE public.design_quantity_import_links');
+
+    expect(createIndex).toBeGreaterThanOrEqual(0);
+    expect(alterIndex).toBeGreaterThan(createIndex);
+    expect(sql).toContain('source_preview_line_id');
+    expect(sql).toContain('CREATE OR REPLACE FUNCTION public.finalize_design_builder_import_links');
+    expect(sql).toContain('DROP INDEX IF EXISTS public.design_quantity_items_model_preview_line_uidx');
+    expect(sql).toContain(
+      'CREATE UNIQUE INDEX IF NOT EXISTS design_quantity_items_model_preview_line_uidx',
+    );
+    expect(sql).not.toContain(
+      'ON public.design_quantity_items(design_model_id, preview_line_id)\n  WHERE preview_line_id IS NOT NULL',
+    );
+  });
+
+  it('repair migration makes preview line upsert conflict target non-partial', () => {
+    const sql = readFileSync(
+      'supabase/migrations/20260726131000_design_quantity_items_preview_line_upsert_constraint.sql',
+      'utf8',
+    );
+
+    expect(sql).toContain('DROP INDEX IF EXISTS public.design_quantity_items_model_preview_line_uidx');
+    expect(sql).toContain('CREATE UNIQUE INDEX design_quantity_items_model_preview_line_uidx');
+    expect(sql).toContain('ON public.design_quantity_items(design_model_id, preview_line_id)');
+    expect(sql).not.toContain(
+      'ON public.design_quantity_items(design_model_id, preview_line_id)\n  WHERE preview_line_id IS NOT NULL',
+    );
   });
 });

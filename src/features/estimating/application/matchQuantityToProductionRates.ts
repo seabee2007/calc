@@ -6,6 +6,7 @@ export interface QuantityWorkElementMatchInput {
   description: string;
   quantity: number;
   unit: string;
+  usageRole?: string;
   quantityType?: string;
   sourceObjectLabel?: string;
   formula?: string;
@@ -142,6 +143,184 @@ function searchableText(rate: ProductionRateLibraryEntry): string {
     .toLowerCase();
 }
 
+function normalizeText(value: string | null | undefined): string {
+  return (value ?? '').trim().toLowerCase();
+}
+
+function hasAnyTerm(haystack: string, terms: readonly string[]): boolean {
+  return terms.some((term) => {
+    const normalized = term.toLowerCase();
+    if (normalized.includes(' ')) return haystack.includes(normalized);
+    return new RegExp(`\\b${normalized.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(haystack);
+  });
+}
+
+function categoryIs(rate: ProductionRateLibraryEntry, expected: string): boolean {
+  return normalizeText(rate.category) === expected.toLowerCase();
+}
+
+const GENERIC_CONTEXT_STOP_TERMS = new Set([
+  'area',
+  'count',
+  'length',
+  'volume',
+  'installed',
+  'installation',
+  'install',
+  'labor',
+  'driver',
+  'primary',
+  'secondary',
+  'interior',
+  'exterior',
+  'infill',
+  'finish',
+  'base',
+  'coat',
+  'work',
+  'system',
+  'surface',
+]);
+
+function uniqueValues(values: readonly string[]): string[] {
+  return [...new Set(values.map((value) => value.trim()).filter(Boolean))];
+}
+
+function genericContextTerms(input: {
+  description?: string;
+  quantityType?: string;
+  keywords?: readonly string[];
+}): string[] {
+  const values = [
+    ...(input.keywords ?? []),
+    input.description,
+    input.quantityType?.replace(/_/g, ' '),
+  ].filter((value): value is string => Boolean(value?.trim()));
+
+  const terms: string[] = [];
+  for (const value of values) {
+    const normalized = value.trim().toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ');
+    const tokens = tokenize(normalized).filter((token) => !GENERIC_CONTEXT_STOP_TERMS.has(token));
+    if (tokens.length === 0) continue;
+    if (tokens.length <= 4) terms.push(normalized);
+    terms.push(...tokens);
+  }
+  return uniqueValues(terms);
+}
+
+function hasKnownConcreteOperationCategory(rate: ProductionRateLibraryEntry): boolean {
+  return [
+    'concrete formwork',
+    'concrete placement',
+    'concrete reinforcement',
+    'concrete finishing',
+    'concrete joints, curing & accessories',
+    'aggregate base courses',
+  ].includes(normalizeText(rate.category));
+}
+
+function isRateOperationCompatibleForUsage(
+  usageRole: string | null | undefined,
+  rate: ProductionRateLibraryEntry,
+  context?: {
+    description?: string;
+    quantityType?: string;
+    keywords?: readonly string[];
+  },
+): boolean {
+  if (!usageRole) return true;
+
+  const haystack = searchableText(rate);
+  const hasKnownCategory = hasKnownConcreteOperationCategory(rate);
+  switch (usageRole) {
+    case 'formwork_labor':
+    case 'strip_forms_labor':
+      if (hasKnownCategory) return categoryIs(rate, 'Concrete Formwork');
+      return (
+        hasAnyTerm(haystack, [
+          'formwork',
+          'forming',
+          'forms',
+          'form',
+          'edge form',
+          'edge forms',
+          'bulkhead',
+        ])
+      );
+    case 'place_concrete_labor':
+      if (hasKnownCategory) return categoryIs(rate, 'Concrete Placement');
+      return (
+        hasAnyTerm(haystack, [
+          'place concrete',
+          'placing concrete',
+          'pour concrete',
+          'cast in place',
+          'cast-in-place',
+        ])
+      );
+    case 'reinforcement_labor':
+      if (hasKnownCategory) return categoryIs(rate, 'Concrete Reinforcement');
+      return (
+        hasAnyTerm(haystack, [
+          'reinforcement',
+          'reinforcing',
+          'rebar',
+          'welded wire fabric',
+          'wwf',
+        ])
+      );
+    case 'concrete_finish_labor':
+      if (hasKnownCategory) return categoryIs(rate, 'Concrete Finishing');
+      return (
+        hasAnyTerm(haystack, ['finish concrete', 'finishing', 'screed', 'float', 'trowel', 'broom finish'])
+      );
+    case 'joint_labor':
+      if (hasKnownCategory && !categoryIs(rate, 'Concrete Joints, Curing & Accessories')) return false;
+      return (
+        (categoryIs(rate, 'Concrete Joints, Curing & Accessories') || !hasKnownCategory) &&
+        hasAnyTerm(haystack, ['joint', 'saw cut', 'sawcut', 'water stop', 'waterstop', 'reglet', 'backer rod'])
+      );
+    case 'curing_labor':
+      if (hasKnownCategory && !categoryIs(rate, 'Concrete Joints, Curing & Accessories')) return false;
+      return (
+        (categoryIs(rate, 'Concrete Joints, Curing & Accessories') || !hasKnownCategory) &&
+        hasAnyTerm(haystack, ['curing', 'cure', 'cured'])
+      );
+    case 'aggregate_base_labor':
+      if (hasKnownCategory) return categoryIs(rate, 'Aggregate Base Courses');
+      return (
+        hasAnyTerm(haystack, ['aggregate base', 'base course', 'gravel base', 'stone base'])
+      );
+    case 'primary_labor_driver':
+    case 'secondary_labor_driver': {
+      const terms = genericContextTerms(context ?? {});
+      if (terms.length === 0) return true;
+      return hasAnyTerm(haystack, terms);
+    }
+    default:
+      return true;
+  }
+}
+
+export function isProductionRateAllowedForDesignUsage(input: {
+  divisionCode: string;
+  unit: string;
+  usageRole?: string | null;
+  rate: ProductionRateLibraryEntry;
+  description?: string;
+  quantityType?: string;
+  keywords?: readonly string[];
+  requireCompatibleUnit?: boolean;
+}): boolean {
+  const requireCompatibleUnit = input.requireCompatibleUnit ?? true;
+  if (input.rate.divisionCode !== input.divisionCode) return false;
+  if ((input.rate.manHoursPerUnit ?? 0) <= 0) return false;
+  if (requireCompatibleUnit && !areProductionRateUnitsCompatible(input.unit, input.rate.unitOfMeasure)) {
+    return false;
+  }
+  return isRateOperationCompatibleForUsage(input.usageRole, input.rate, input);
+}
+
 function buildInputTokens(input: QuantityWorkElementMatchInput): string[] {
   return [
     input.description,
@@ -245,6 +424,7 @@ function buildCandidates(
 ): Array<{ candidate: ProductionRateCandidate; score: number }> {
   const scored = rates
     .map((rate) => {
+      if (!isRateOperationCompatibleForUsage(input.usageRole, rate, input)) return null;
       const unitCompatible = areProductionRateUnitsCompatible(input.unit, rate.unitOfMeasure);
       if (requireCompatibleUnits && !unitCompatible) return null;
       const { score, reasons } = scoreProductionRateMatch(input, rate);

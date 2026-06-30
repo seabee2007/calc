@@ -21,7 +21,7 @@ import type {
   DesignQuantityUsageRole,
 } from '../application/designScopeTypes';
 import {
-  areProductionRateUnitsCompatible,
+  isProductionRateAllowedForDesignUsage,
   type ProductionRateCandidate,
 } from '../../estimating/application/matchQuantityToProductionRates';
 import type { RepositoryResult } from '../../estimating/infrastructure/estimateDbTypes';
@@ -292,20 +292,35 @@ export default function DesignBuilderEstimateImportReviewModal({
     const candidates = usage.candidates ?? [];
     const candidateIds = new Set((usage.candidates ?? []).map((candidate) => candidate.productionRateId));
     const divisionCode = String(usage.metadata.divisionCode ?? usage.sourceLine?.divisionCode ?? '');
+    const usageKeywords = Array.isArray(usage.metadata.keywords)
+      ? usage.metadata.keywords.filter((value): value is string => typeof value === 'string')
+      : [];
     const approvedFallbacks = library.rates
       .filter((rate) => {
         if (candidateIds.has(rate.id)) return false;
-        if (rate.divisionCode !== divisionCode) return false;
-        if ((rate.manHoursPerUnit ?? 0) <= 0) return false;
-        if (!areProductionRateUnitsCompatible(usage.unit, rate.unitOfMeasure)) return false;
-        return true;
+        return isProductionRateAllowedForDesignUsage({
+          divisionCode,
+          unit: usage.unit,
+          usageRole: usage.role,
+          rate,
+          description: usage.description,
+          quantityType: usage.sourceQuantityType ?? undefined,
+          keywords: usageKeywords,
+        });
       })
       .map((rate) => candidateFromLibraryRate(usage, rate));
     return dedupeRateCandidates([...candidates, ...approvedFallbacks]);
   }
 
   function startAddUsage(activity: DesignActivityDraft) {
-    const source = previewLines[0];
+    const source =
+      activity.sourcePreviewLineIds
+        .map((id) => previewLines.find((line) => line.id === id))
+        .find((line): line is DesignEstimatePreviewLine => Boolean(line)) ??
+      previewLines.find((line) =>
+        activity.usages.some((usage) => usage.sourcePreviewLineId === line.id),
+      ) ??
+      previewLines[0];
     if (!source) return;
     setAddUsageDrafts((current) => ({
       ...current,

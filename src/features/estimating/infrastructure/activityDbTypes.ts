@@ -131,6 +131,12 @@ export interface ProjectConstructionActivityRow {
   updated_at: string;
 }
 
+export type ActivityResourceProviderRow =
+  | 'manual'
+  | 'company_library'
+  | 'arden_starter'
+  | 'arden_design_builder';
+
 export interface ProjectActivityLineItemRow {
   id: string;
   project_activity_id: string;
@@ -170,6 +176,8 @@ export interface ProjectActivityLineItemRow {
   production_rate_match_reason: string | null;
   manual_production_rate_reason: string | null;
   manual_production_rate_source_note: string | null;
+  source_provider?: ActivityResourceProviderRow | null;
+  source_snapshot?: Record<string, unknown> | null;
   sort_order: number;
   created_at: string;
 }
@@ -241,7 +249,7 @@ export interface ActivityMaterialResourceRow {
   unit: string;
   unit_cost: number;
   total_cost: number;
-  source_provider: 'manual' | 'company_library' | 'arden_starter';
+  source_provider: ActivityResourceProviderRow;
   source_id: string | null;
   company_library_item_id: string | null;
   source_snapshot: Record<string, unknown> | null;
@@ -263,7 +271,7 @@ export interface ActivityEquipmentResourceRow {
   unit: string;
   unit_cost: number;
   total_cost: number;
-  source_provider: 'manual' | 'company_library' | 'arden_starter';
+  source_provider: ActivityResourceProviderRow;
   source_id: string | null;
   company_library_item_id: string | null;
   source_snapshot: Record<string, unknown> | null;
@@ -282,7 +290,7 @@ export interface CompanyCostLibraryItemRow {
   subcategory: string | null;
   unit: string;
   default_unit_cost: number;
-  source_provider: 'manual' | 'company_library' | 'arden_starter';
+  source_provider: ActivityResourceProviderRow;
   source_id: string | null;
   notes: string | null;
   is_active: boolean;

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { DesignEstimatePreviewLine } from '../types';
+import type { ProductionRateLibraryEntry } from '../../estimating/data/productionRates/productionRateTypes';
 import { classifyDesignQuantityForScope } from '../application/designBuilderImportRules';
 import {
   buildDesignScopeCompileResult,
@@ -21,6 +22,31 @@ function line(overrides: Partial<DesignEstimatePreviewLine> = {}): DesignEstimat
     confidence: 'calculated_from_parameters',
     divisionCode: '04',
     divisionName: 'Masonry',
+    ...overrides,
+  };
+}
+
+function productionRate(overrides: Partial<ProductionRateLibraryEntry> = {}): ProductionRateLibraryEntry {
+  return {
+    id: overrides.id ?? 'rate-1',
+    divisionCode: overrides.divisionCode ?? '03',
+    divisionName: overrides.divisionName ?? 'Concrete',
+    figure: '03-11-13',
+    figureTitle: 'Concrete formwork',
+    sourcePage: '5-C-7',
+    sourcePdfPage: 64,
+    workElementNumber: '0010',
+    workElementLineNumber: '0010',
+    category: overrides.category ?? 'Concrete Formwork',
+    subcategory: overrides.subcategory ?? 'Slab on grade forms',
+    activityName: overrides.activityName ?? 'Slab on grade, edge forms, wood, 7 to 12 inches high, one use',
+    description: overrides.description ?? 'Slab on grade, edge forms, wood, 7 to 12 inches high, one use',
+    unitOfMeasure: overrides.unitOfMeasure ?? 'LF',
+    manHoursPerUnit: overrides.manHoursPerUnit ?? 0.071,
+    sourceDocumentFull: 'RSMeans Facilities Construction Cost Data' as ProductionRateLibraryEntry['sourceDocumentFull'],
+    sourceEdition: '2026' as ProductionRateLibraryEntry['sourceEdition'],
+    referenceNote: 'Figure 5-C-7',
+    keywords: overrides.keywords ?? ['concrete', 'formwork', 'slab-on-grade', 'edge-forms'],
     ...overrides,
   };
 }
@@ -412,6 +438,120 @@ describe('design scope compiler', () => {
     expect(usageByKey.get('concrete:rc-roof-beams:formwork')?.quantity).toBeCloseTo(118.4, 1);
     expect(usageByKey.get('concrete:interior-floor-slab:edge-forms')?.quantity).toBeCloseTo(65.62, 1);
     expect(usageByKey.get('concrete:raked-concrete-cap:formwork')?.quantity).toBe(17.3);
+  });
+
+  it('filters interior floor slab edge-form candidates to formwork operations', () => {
+    const compiled = buildDesignScopeCompileResult({
+      previewLines: [
+        line({
+          quantityType: 'interior_floor_slab_volume',
+          description: 'Interior Floor Slab',
+          divisionCode: '03',
+          divisionName: 'Concrete',
+          unit: 'CY',
+          parameterSnapshot: {
+            interiorFloorSlab: { thicknessMeters: 0.125 },
+            interiorFloorSlabPerimeterMeters: 114.052,
+          },
+        }),
+      ],
+      persistedQuantityItems: [],
+      productionRates: [
+        productionRate({
+          id: 'sog-bulkhead-keyway',
+          activityName: 'Slab on grade, bulkhead forms with keyway, wood, 6 inches high, one use',
+          description: 'Slab on grade, bulkhead forms with keyway, wood, 6 inches high, one use',
+          manHoursPerUnit: 0.084,
+          keywords: ['concrete', 'formwork', 'slab-on-grade', 'bulkhead-forms'],
+        }),
+        productionRate({
+          id: 'sog-edge-forms-7-12',
+          activityName: 'Slab on grade, edge forms, wood, 7 to 12 inches high, one use',
+          description: 'Slab on grade, edge forms, wood, 7 to 12 inches high, one use',
+          manHoursPerUnit: 0.071,
+          keywords: ['concrete', 'formwork', 'slab-on-grade', 'edge-forms'],
+        }),
+        productionRate({
+          id: 'poured-expansion-joint',
+          figureTitle: 'Concrete joints and accessories',
+          category: 'Concrete Joints, Curing & Accessories',
+          subcategory: 'Expansion joints',
+          activityName: 'Poured expansion joint, 1/2 inch wide',
+          description: 'Poured expansion joint, 1/2 inch wide',
+          manHoursPerUnit: 0.05,
+          keywords: ['concrete', 'joint', 'expansion'],
+        }),
+        productionRate({
+          id: 'reglets',
+          figureTitle: 'Concrete joints and accessories',
+          category: 'Concrete Joints, Curing & Accessories',
+          subcategory: 'Reglets',
+          activityName: 'Reglets, concrete construction',
+          description: 'Reglets, concrete construction',
+          manHoursPerUnit: 0.03,
+          keywords: ['concrete', 'reglets'],
+        }),
+        productionRate({
+          id: 'water-stops',
+          figureTitle: 'Concrete joints and accessories',
+          category: 'Concrete Joints, Curing & Accessories',
+          subcategory: 'Water stops',
+          activityName: 'Water stops, PVC',
+          description: 'Water stops, PVC',
+          manHoursPerUnit: 0.04,
+          keywords: ['concrete', 'waterstop'],
+        }),
+        productionRate({
+          id: 'saw-cut-control-joint',
+          figureTitle: 'Concrete joints and accessories',
+          category: 'Concrete Joints, Curing & Accessories',
+          subcategory: 'Saw cut control joints',
+          activityName: 'Saw cut in green concrete',
+          description: 'Saw cut in green concrete control joints',
+          manHoursPerUnit: 0.02,
+          keywords: ['concrete', 'joint', 'sawcut'],
+        }),
+        productionRate({
+          id: 'control-joint-cleanup',
+          figureTitle: 'Concrete joints and accessories',
+          category: 'Concrete Joints, Curing & Accessories',
+          subcategory: 'Control joint cleanup',
+          activityName: 'Clean out control joint debris',
+          description: 'Clean out control joint debris',
+          manHoursPerUnit: 0.01,
+          keywords: ['concrete', 'joint', 'cleanup'],
+        }),
+        productionRate({
+          id: 'backer-rod',
+          figureTitle: 'Concrete joints and accessories',
+          category: 'Concrete Joints, Curing & Accessories',
+          subcategory: 'Polyethylene, backer rod',
+          activityName: 'Polyethylene, backer rod, 3/8- to 1-inch diameter',
+          description: 'Polyethylene, backer rod, 3/8- to 1-inch diameter',
+          manHoursPerUnit: 0.01,
+          keywords: ['concrete', 'joint', 'backer rod'],
+        }),
+      ],
+    });
+
+    const edgeForms = compiled.activities.find((activity) => activity.key === 'concrete:interior-floor-slab:edge-forms');
+    const usage = edgeForms?.usages[0];
+    expect(usage).toMatchObject({
+      role: 'formwork_labor',
+      quantity: 374.19,
+      unit: 'LF',
+    });
+
+    const candidateIds = usage?.candidates?.map((candidate) => candidate.productionRateId) ?? [];
+    expect(candidateIds).toEqual(expect.arrayContaining(['sog-bulkhead-keyway', 'sog-edge-forms-7-12']));
+    expect(candidateIds).not.toEqual(expect.arrayContaining([
+      'poured-expansion-joint',
+      'reglets',
+      'water-stops',
+      'saw-cut-control-joint',
+      'control-joint-cleanup',
+      'backer-rod',
+    ]));
   });
 
   it('creates review-required disabled formwork usage when required geometry is missing', () => {

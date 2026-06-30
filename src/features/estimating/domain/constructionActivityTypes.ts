@@ -231,6 +231,8 @@ export interface ProjectActivityLineItem {
   productionRateMatchReason?: string | null;
   manualProductionRateReason?: string | null;
   manualProductionRateSourceNote?: string | null;
+  sourceProvider?: ActivityResourceProvider | null;
+  sourceSnapshot?: ActivityResourceSnapshot;
   sortOrder?: number;
   createdAt?: string;
 }
@@ -243,7 +245,8 @@ export interface ProjectActivityLineItem {
 export type ActivityResourceProvider =
   | 'manual'
   | 'company_library'
-  | 'arden_starter';
+  | 'arden_starter'
+  | 'arden_design_builder';
 
 /** Immutable snapshot of the source item at the time the resource was added. */
 export interface ActivityResourceSnapshot {
@@ -267,6 +270,11 @@ export interface ActivityResourceSnapshot {
   notes?: string;
   /** ISO timestamp when the user selected this item. */
   selectedAt: string;
+  designModelId?: string;
+  activityKey?: string;
+  usageId?: string;
+  sourcePreviewLineId?: string | null;
+  commitBatchId?: string;
 }
 
 /** Shared base fields for material and equipment activity resources. */

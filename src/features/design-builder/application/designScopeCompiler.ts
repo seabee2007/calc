@@ -82,6 +82,7 @@ function enrichUsageForCommit(params: {
       description: usage.description,
       quantity: usage.quantity,
       unit: usage.unit,
+      usageRole: usage.role,
       quantityType: usage.sourceQuantityType ?? undefined,
       formula: usage.formula,
       parameterSnapshot: line?.parameterSnapshot,
