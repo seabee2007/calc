@@ -100,33 +100,6 @@ function estimatePreviewStatusCopy(params: {
   }
 }
 
-export function DesignBuilderLinkedQuantitiesPanel({
-  linkedPreviewLines,
-}: {
-  linkedPreviewLines: DesignEstimatePreviewLine[];
-}) {
-  return (
-    <Panel title="Linked Quantities">
-      {linkedPreviewLines.length > 0 ? (
-        <div className="space-y-2">
-          {linkedPreviewLines.map((line) => (
-            <div key={line.id} className="rounded-lg bg-slate-100 p-2 text-sm dark:bg-slate-800">
-              <div className="font-medium">{line.description}</div>
-              <div className="text-xs text-slate-500 dark:text-slate-400">
-                {line.quantity} {line.unit}
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <p className="text-sm text-slate-500 dark:text-slate-400">
-          Select a quantity card or estimate line to see linked quantities for this object.
-        </p>
-      )}
-    </Panel>
-  );
-}
-
 export function DesignBuilderEstimatePanel({
   rightPanelCollapsed,
   focusMode,

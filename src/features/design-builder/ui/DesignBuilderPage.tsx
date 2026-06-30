@@ -227,7 +227,6 @@ import type { DesignBuilderViewerHeightPreset } from './DesignBuilderViewMenu';
 import { DesignBuilderEditableControls } from './DesignBuilderEditableControls';
 import {
   DesignBuilderEstimatePanel,
-  DesignBuilderLinkedQuantitiesPanel,
   type EstimatePreviewState,
 } from './DesignBuilderEstimatePanel';
 import {
@@ -255,7 +254,6 @@ import {
   finishForPlasterMaterialId,
   moduleFitStatusTone,
   OBJECT_TREE_ITEMS,
-  objectIdForType,
   plasterMaterialIdForFinish,
   TOOL_MODE_OPTIONS,
 } from './DesignBuilderPageMappings';
@@ -1810,9 +1808,6 @@ export default function DesignBuilderPage({
     : selectedObjectType
       ? OBJECT_TREE_ITEMS.find((item) => item.objectType === selectedObjectType)?.label ?? 'Selected object'
       : 'Project Masonry Defaults';
-  const linkedPreviewLines = selectedObjectType
-    ? generatedPreview.filter((line) => line.designObjectId === objectIdForType(selectedObjectType, objectIds))
-    : [];
   const activeSelection: DesignBuilderSelection = selectedSegmentId
     ? { kind: 'wall_segment', id: selectedSegmentId }
     : selectedNodeId
@@ -5773,8 +5768,6 @@ export default function DesignBuilderPage({
               />
             )}
           </Panel>
-
-          <DesignBuilderLinkedQuantitiesPanel linkedPreviewLines={linkedPreviewLines} />
         </aside>
 
         <main className={`min-h-0 ${focusMode ? 'flex flex-col overflow-hidden' : 'space-y-4'}`}>

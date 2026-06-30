@@ -16,14 +16,15 @@ import {
   canUseFeature,
   getEffectiveLimits,
   minPlanForFeature,
-  isSubscriptionStatusActive,
   type FeatureKey,
   type LimitKey,
   type PlanId,
 } from '../lib/entitlements';
 import {
-  fetchSubscription,
-  resolveEffectivePlanFromRow,
+  fetchEntitlementForUser,
+  type AccessSource,
+  type InternalAccessOverride,
+  type ResolvedEntitlement,
   type SubscriptionRow,
 } from '../services/subscriptionService';
 import { subscriptionOwnerIdFromAccess } from '../services/appAccessService';
@@ -32,8 +33,11 @@ export interface SubscriptionContextValue {
   plan: PlanId;
   status: string | null;
   isActive: boolean;
+  accessSource: AccessSource;
   limits: Record<LimitKey, number>;
+  features: FeatureKey[];
   subscription: SubscriptionRow | null;
+  internalOverride: InternalAccessOverride | null;
   hasFeature: (feature: FeatureKey) => boolean;
   getLimit: (key: LimitKey) => number;
   canCreateProject: (activeCount: number) => boolean;
@@ -50,7 +54,7 @@ const SubscriptionContext = createContext<SubscriptionContextValue | null>(null)
 export function SubscriptionProvider({ children }: { children: ReactNode }) {
   const { user, loading: authLoading, profileLoading } = useAuth();
   const { access, accessResolutionState, authSessionResolved } = useAppAccess();
-  const [subscription, setSubscription] = useState<SubscriptionRow | null>(null);
+  const [entitlement, setEntitlement] = useState<ResolvedEntitlement | null>(null);
   const [loading, setLoading] = useState(true);
 
   const accessReady =
@@ -65,17 +69,17 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
 
   const refresh = useCallback(async () => {
     if (!subscriptionOwnerId) {
-      setSubscription(null);
+      setEntitlement(null);
       setLoading(false);
       return;
     }
 
     setLoading(true);
     try {
-      const row = await fetchSubscription(subscriptionOwnerId);
-      setSubscription(row);
+      const resolved = await fetchEntitlementForUser(subscriptionOwnerId);
+      setEntitlement(resolved);
     } catch {
-      setSubscription(null);
+      setEntitlement(null);
     } finally {
       setLoading(false);
     }
@@ -83,13 +87,13 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!accessReady) {
-      setSubscription(null);
+      setEntitlement(null);
       setLoading(Boolean(user));
       return;
     }
 
     if (!user) {
-      setSubscription(null);
+      setEntitlement(null);
       setLoading(false);
       return;
     }
@@ -97,22 +101,29 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     void refresh();
   }, [accessReady, accessResolutionState, authSessionResolved, refresh, user]);
 
-  const plan = useMemo(
-    () => resolveEffectivePlanFromRow(subscription),
-    [subscription],
-  );
-
+  const subscription = entitlement?.subscription ?? null;
+  const internalOverride = entitlement?.internalOverride ?? null;
+  const plan = entitlement?.planId ?? 'free';
+  const accessSource = entitlement?.accessSource ?? 'none';
   const status = subscription?.status ?? null;
-  const isActive = isSubscriptionStatusActive(status);
+  const isActive =
+    accessSource === 'stripe' ||
+    accessSource === 'trial' ||
+    accessSource === 'internal_override';
 
   const limits = useMemo(
-    () =>
-      getEffectiveLimits(plan, {
-        activeProjectLimit: subscription?.activeProjectLimit,
-        includedFieldSeats: subscription?.includedFieldSeats,
-      }),
-    [plan, subscription?.activeProjectLimit, subscription?.includedFieldSeats],
+    () => entitlement?.limits ?? getEffectiveLimits(plan),
+    [entitlement?.limits, plan],
   );
+
+  const features = useMemo(() => entitlement?.features ?? [], [entitlement?.features]);
+  const subscriptionLimitOverrides =
+    accessSource === 'internal_override'
+      ? { activeProjectLimit: null, includedFieldSeats: null }
+      : {
+          activeProjectLimit: subscription?.activeProjectLimit,
+          includedFieldSeats: subscription?.includedFieldSeats,
+        };
 
   const hasFeature = useCallback(
     (feature: FeatureKey) => canUseFeature(plan, feature),
@@ -123,20 +134,32 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
 
   const canCreateProject = useCallback(
     (activeCount: number) =>
-      canCreateProjectEntitlement(plan, activeCount, subscription?.activeProjectLimit),
-    [plan, subscription?.activeProjectLimit],
+      canCreateProjectEntitlement(
+        plan,
+        activeCount,
+        subscriptionLimitOverrides.activeProjectLimit,
+      ),
+    [plan, subscriptionLimitOverrides.activeProjectLimit],
   );
 
   const canInviteFieldSeat = useCallback(
     (currentCount: number) =>
-      canInviteFieldSeatEntitlement(plan, currentCount, subscription?.includedFieldSeats),
-    [plan, subscription?.includedFieldSeats],
+      canInviteFieldSeatEntitlement(
+        plan,
+        currentCount,
+        subscriptionLimitOverrides.includedFieldSeats,
+      ),
+    [plan, subscriptionLimitOverrides.includedFieldSeats],
   );
 
   const canInviteTeamMember = useCallback(
     (seatUsageCount: number) =>
-      canInviteTeamMemberEntitlement(plan, seatUsageCount, subscription?.includedFieldSeats),
-    [plan, subscription?.includedFieldSeats],
+      canInviteTeamMemberEntitlement(
+        plan,
+        seatUsageCount,
+        subscriptionLimitOverrides.includedFieldSeats,
+      ),
+    [plan, subscriptionLimitOverrides.includedFieldSeats],
   );
 
   const requiresUpgrade = useCallback(
@@ -151,8 +174,11 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       plan,
       status,
       isActive,
+      accessSource,
       limits,
+      features,
       subscription,
+      internalOverride,
       hasFeature,
       getLimit,
       canCreateProject,
@@ -167,8 +193,11 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       plan,
       status,
       isActive,
+      accessSource,
       limits,
+      features,
       subscription,
+      internalOverride,
       hasFeature,
       getLimit,
       canCreateProject,

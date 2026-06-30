@@ -6,6 +6,7 @@ import {
   getVisibleWorkspaceTabs,
   isScheduleWorkspaceTab,
   isTabVisibleForEstimateType,
+  resolveRouteGuardEstimateType,
   resolveWorkspaceSchedulingEnabled,
 } from '../application/estimateWorkspaceTabPolicy';
 import { resolveEstimateWorkspaceScheduleActivities } from '../application/estimateWorkspaceScheduleSource';
@@ -115,6 +116,28 @@ describe('estimate workspace tab policy', () => {
     expect(isTabVisibleForEstimateType('quick-estimate', 'quick', false)).toBe(true);
     expect(isTabVisibleForEstimateType('settings', 'detailed', true)).toBe(true);
     expect(isTabVisibleForEstimateType('settings', 'quick', false)).toBe(true);
+  });
+
+  it('uses the plan-supported fallback type for route guards when a saved estimate type is blocked', () => {
+    const routeGuardType = resolveRouteGuardEstimateType({
+      estimateType: 'detailed',
+      entitlementBlocked: true,
+      fallbackEstimateType: 'quick',
+    });
+
+    expect(routeGuardType).toBe('quick');
+    expect(isTabVisibleForEstimateType('quick-estimate', routeGuardType, false)).toBe(true);
+    expect(getDefaultWorkspaceTabForEstimateType(routeGuardType)).toBe('quick-estimate');
+  });
+
+  it('uses the saved estimate type for route guards when it is allowed', () => {
+    expect(
+      resolveRouteGuardEstimateType({
+        estimateType: 'detailed',
+        entitlementBlocked: false,
+        fallbackEstimateType: 'quick',
+      }),
+    ).toBe('detailed');
   });
 });
 

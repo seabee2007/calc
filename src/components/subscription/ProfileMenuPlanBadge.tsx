@@ -5,7 +5,7 @@ import {
 } from './profilePlanLabel';
 
 export default function ProfileMenuPlanBadge() {
-  const { plan, status, subscription, loading } = useSubscription();
+  const { plan, status, subscription, loading, accessSource } = useSubscription();
 
   if (loading) {
     return (
@@ -14,6 +14,17 @@ export default function ProfileMenuPlanBadge() {
         aria-hidden
         data-testid="profile-plan-badge-loading"
       />
+    );
+  }
+
+  if (accessSource === 'internal_override') {
+    return (
+      <span
+        className="inline-flex w-fit max-w-full items-center rounded-full border border-emerald-500/40 bg-emerald-950/40 px-2 py-0.5 text-[10px] font-medium leading-tight text-emerald-100"
+        data-testid="internal-access-override-badge"
+      >
+        Internal access override active
+      </span>
     );
   }
 

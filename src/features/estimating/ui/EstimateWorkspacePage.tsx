@@ -34,6 +34,7 @@ import {
   getVisibleWorkspaceTabs,
   isScheduleWorkspaceTab,
   isTabVisibleForEstimateType,
+  resolveRouteGuardEstimateType,
   resolveWorkspaceSchedulingEnabled,
 } from '../application/estimateWorkspaceTabPolicy';
 import {
@@ -64,9 +65,6 @@ import type {
   QuickFeasibilityInputs,
   QuickFeasibilityResult,
 } from '../application/estimateQuickFeasibility';
-import type {
-  EstimateDomainVersion,
-} from '../infrastructure/estimateDbTypes';
 import { Play } from 'lucide-react';
 import Button from '../../../components/ui/Button';
 import EstimateWorkspaceTabBar, {
@@ -416,6 +414,15 @@ export default function EstimateWorkspacePage() {
     estimate != null &&
     !subscriptionLoading &&
     !canUseEstimateType(plan, resolvedEstimateType);
+  const routeGuardEstimateType = useMemo(
+    () =>
+      resolveRouteGuardEstimateType({
+        estimateType: resolvedEstimateType,
+        entitlementBlocked: estimateTypeEntitlementBlocked,
+        fallbackEstimateType: planDefaultEstimateType,
+      }),
+    [estimateTypeEntitlementBlocked, planDefaultEstimateType, resolvedEstimateType],
+  );
   const schedulingEnabled = resolveWorkspaceSchedulingEnabled(
     resolvedEstimateType,
     currentEstimate?.schedulingEnabled,
@@ -917,38 +924,31 @@ export default function EstimateWorkspacePage() {
     if (!resolvedProjectId || dataLoading || subscriptionLoading) return;
     if (activeTab !== 'activities' || hasFeature('activity_based_estimating')) return;
 
-    const fallbackType =
-      estimate != null && !canUseEstimateType(plan, resolvedEstimateType)
-        ? planDefaultEstimateType
-        : planDefaultEstimateType;
-    const fallbackTab = getDefaultWorkspaceTabForEstimateType(fallbackType);
+    const fallbackTab = getDefaultWorkspaceTabForEstimateType(routeGuardEstimateType);
     if (activeTab === fallbackTab) return;
 
     navigate(estimateWorkspaceHref(resolvedProjectId, fallbackTab), { replace: true });
   }, [
     activeTab,
     dataLoading,
-    estimate,
     hasFeature,
     navigate,
-    plan,
-    planDefaultEstimateType,
-    resolvedEstimateType,
     resolvedProjectId,
+    routeGuardEstimateType,
     subscriptionLoading,
   ]);
 
   useEffect(() => {
     if (!resolvedProjectId || dataLoading) return;
     if (
-      isTabVisibleForEstimateType(activeTab, resolvedEstimateType, schedulingEnabled)
+      isTabVisibleForEstimateType(activeTab, routeGuardEstimateType, schedulingEnabled)
     ) {
       return;
     }
     navigate(
       estimateWorkspaceHref(
         resolvedProjectId,
-        getDefaultWorkspaceTabForEstimateType(resolvedEstimateType),
+        getDefaultWorkspaceTabForEstimateType(routeGuardEstimateType),
       ),
       { replace: true },
     );
@@ -956,8 +956,8 @@ export default function EstimateWorkspacePage() {
     activeTab,
     dataLoading,
     navigate,
-    resolvedEstimateType,
     resolvedProjectId,
+    routeGuardEstimateType,
     schedulingEnabled,
   ]);
 
@@ -2634,8 +2634,6 @@ export default function EstimateWorkspacePage() {
   const hasEstimate = estimate != null;
   const hasEstimateAdapter = estimateAdapter != null;
   const showWorkspaceTabPanels = !loadError && !estimateTypeEntitlementBlocked;
-  const selectedDivisionCount = currentEstimate?.selectedDivisions.length ?? 0;
-  const lineItemCount = currentEstimate?.lineItems.length ?? 0;
   const tabRenderOptions = { isLoading: dataLoading, hasEstimate };
   const showOverviewLoading = activeTab === 'overview' && dataLoading;
   const showEstimateTabLoading = activeTab === 'line-items' && dataLoading;
@@ -2942,7 +2940,7 @@ export default function EstimateWorkspacePage() {
           <UnsupportedEstimateTypePanel
             estimateType={resolvedEstimateType}
             plan={plan}
-            onSwitchToSupportedEstimateType={(type) => void handleSwitchToSupportedEstimateType(type)}
+            onSwitchToSupportedType={(type) => void handleSwitchToSupportedEstimateType(type)}
             switching={changingEstimateType}
           />
         ) : null}
@@ -3286,8 +3284,6 @@ export default function EstimateWorkspacePage() {
             projectContext={
               projectScopeContext
                 ? {
-                    projectName: projectScopeContext.projectName,
-                    projectDescription: projectScopeContext.projectDescription,
                     locationLabel: projectScopeContext.locationLabel,
                   }
                 : null

@@ -29,6 +29,7 @@ let mockSubscriptionState = {
   plan: 'starter' as const,
   status: null as string | null,
   isActive: false,
+  accessSource: 'none' as 'stripe' | 'trial' | 'internal_override' | 'none',
   subscription: null as MockSubscription,
   loading: false,
   refresh: vi.fn(),
@@ -85,6 +86,7 @@ describe('BillingSubscriptionPanel', () => {
       plan: 'starter',
       status: null,
       isActive: false,
+      accessSource: 'none',
       subscription: null,
       loading: false,
       refresh: vi.fn(),
@@ -168,6 +170,7 @@ describe('BillingSubscriptionPanel', () => {
       plan: 'professional',
       status: 'active',
       isActive: true,
+      accessSource: 'stripe',
       subscription: {
         stripeCustomerId: 'cus_123',
         stripeSubscriptionId: 'sub_123',
@@ -199,6 +202,7 @@ describe('BillingSubscriptionPanel', () => {
       plan: 'business',
       status: 'active',
       isActive: true,
+      accessSource: 'stripe',
       subscription: {
         stripeCustomerId: 'cus_456',
         stripeSubscriptionId: 'sub_456',
@@ -255,6 +259,7 @@ describe('BillingSubscriptionPanel', () => {
       plan: 'professional',
       status: 'active',
       isActive: true,
+      accessSource: 'stripe',
       subscription: {
         stripeCustomerId: 'cus_123',
         stripeSubscriptionId: 'sub_123',
@@ -285,6 +290,7 @@ describe('BillingSubscriptionPanel', () => {
       plan: 'professional',
       status: 'active',
       isActive: true,
+      accessSource: 'stripe',
       subscription: {
         stripeCustomerId: 'cus_123',
         stripeSubscriptionId: 'sub_123',
@@ -308,6 +314,44 @@ describe('BillingSubscriptionPanel', () => {
       expect(createCustomerPortalSession).toHaveBeenCalled();
     });
     expect(redirectToStripeUrl).toHaveBeenCalledWith('https://billing.stripe.test/portal');
+  });
+
+  it('shows the internal override badge without treating stale Stripe rows as active', async () => {
+    mockSubscriptionState = {
+      plan: 'business',
+      status: 'canceled',
+      isActive: true,
+      accessSource: 'internal_override',
+      subscription: {
+        stripeCustomerId: 'cus_789',
+        stripeSubscriptionId: 'sub_canceled',
+        currentPeriodEnd: null,
+        cancelAtPeriodEnd: false,
+      },
+      loading: false,
+      refresh: vi.fn(),
+    };
+
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter>
+        <BillingSubscriptionPanel />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByTestId('internal-access-override-badge')).toHaveTextContent(
+      'Internal access override active',
+    );
+
+    await user.click(screen.getByTestId('select-plan-business'));
+
+    await waitFor(() => {
+      expect(createCheckoutSession).toHaveBeenCalledWith({
+        planId: 'business',
+        billingInterval: 'month',
+      });
+    });
+    expect(createCustomerPortalSession).not.toHaveBeenCalled();
   });
 
   it('scrolls to Plans and highlights Professional when the usage CTA is clicked', async () => {
@@ -359,6 +403,7 @@ describe('BillingSubscriptionPanel', () => {
       plan: 'free',
       status: null,
       isActive: false,
+      accessSource: 'none',
       subscription: null,
       loading: false,
       refresh,

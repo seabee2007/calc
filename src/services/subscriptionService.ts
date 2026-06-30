@@ -1,9 +1,16 @@
 import { supabase } from '../lib/supabase';
 import {
+  getEffectiveLimits,
+  isSubscriptionStatusActive,
+  PLAN_FEATURES,
   resolveEffectivePlan,
+  type FeatureKey,
+  type LimitKey,
   type PlanId,
   type SubscriptionEntitlementInput,
 } from '../lib/entitlements';
+
+export type AccessSource = 'stripe' | 'trial' | 'internal_override' | 'none';
 
 export interface SubscriptionRow {
   id: string;
@@ -22,6 +29,28 @@ export interface SubscriptionRow {
   updatedAt: string;
 }
 
+export interface InternalAccessOverride {
+  id: string;
+  userId: string;
+  email: string;
+  planId: string;
+  reason: string;
+  grantedBy: string | null;
+  expiresAt: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ResolvedEntitlement {
+  accessSource: AccessSource;
+  planId: PlanId;
+  limits: Record<LimitKey, number>;
+  features: FeatureKey[];
+  subscription: SubscriptionRow | null;
+  internalOverride: InternalAccessOverride | null;
+}
+
 function mapSubscriptionRow(row: Record<string, unknown>): SubscriptionRow {
   return {
     id: row.id as string,
@@ -38,6 +67,21 @@ function mapSubscriptionRow(row: Record<string, unknown>): SubscriptionRow {
       row.active_project_limit == null ? null : Number(row.active_project_limit),
     includedFieldSeats:
       row.included_field_seats == null ? null : Number(row.included_field_seats),
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  };
+}
+
+function mapInternalAccessOverride(row: Record<string, unknown>): InternalAccessOverride {
+  return {
+    id: row.id as string,
+    userId: row.user_id as string,
+    email: row.email as string,
+    planId: (row.plan_id as string) ?? 'enterprise',
+    reason: row.reason as string,
+    grantedBy: (row.granted_by as string) ?? null,
+    expiresAt: (row.expires_at as string) ?? null,
+    isActive: Boolean(row.is_active),
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
   };
@@ -72,4 +116,97 @@ export async function fetchSubscription(userId: string): Promise<SubscriptionRow
 
 export function resolveEffectivePlanFromRow(row: SubscriptionRow | null): PlanId {
   return resolveEffectivePlan(toEntitlementInput(row));
+}
+
+export function isInternalAccessOverrideActive(
+  override: InternalAccessOverride | null | undefined,
+  now = new Date(),
+): override is InternalAccessOverride {
+  if (!override?.isActive) return false;
+  if (!override.expiresAt) return true;
+  const expiresAt = new Date(override.expiresAt);
+  if (Number.isNaN(expiresAt.getTime())) return false;
+  return expiresAt.getTime() > now.getTime();
+}
+
+export function normalizeInternalOverridePlanId(
+  planId: string | null | undefined,
+): PlanId {
+  void planId;
+  return 'business';
+}
+
+export async function fetchActiveInternalAccessOverride(
+  userId: string,
+): Promise<InternalAccessOverride | null> {
+  const { data, error } = await supabase
+    .from('internal_access_overrides')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('is_active', true)
+    .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
+    .maybeSingle();
+
+  if (error) {
+    if (
+      error.code === 'PGRST205' ||
+      error.message?.includes('internal_access_overrides')
+    ) {
+      return null;
+    }
+    throw error;
+  }
+
+  const override = data ? mapInternalAccessOverride(data) : null;
+  return isInternalAccessOverrideActive(override) ? override : null;
+}
+
+function featuresForPlan(planId: PlanId): FeatureKey[] {
+  return Array.from(PLAN_FEATURES[planId]);
+}
+
+export function resolveSubscriptionAccessSource(
+  row: SubscriptionRow | null,
+): AccessSource {
+  if (!row || !isSubscriptionStatusActive(row.status)) return 'none';
+  return row.status.toLowerCase() === 'trialing' ? 'trial' : 'stripe';
+}
+
+export function resolveEntitlementFromRows(
+  subscription: SubscriptionRow | null,
+  internalOverride: InternalAccessOverride | null,
+): ResolvedEntitlement {
+  if (isInternalAccessOverrideActive(internalOverride)) {
+    const planId = normalizeInternalOverridePlanId(internalOverride.planId);
+    return {
+      accessSource: 'internal_override',
+      planId,
+      limits: getEffectiveLimits(planId),
+      features: featuresForPlan(planId),
+      subscription,
+      internalOverride,
+    };
+  }
+
+  const planId = resolveEffectivePlanFromRow(subscription);
+  const accessSource = resolveSubscriptionAccessSource(subscription);
+  return {
+    accessSource,
+    planId,
+    limits: getEffectiveLimits(planId, {
+      activeProjectLimit: subscription?.activeProjectLimit,
+      includedFieldSeats: subscription?.includedFieldSeats,
+    }),
+    features: featuresForPlan(planId),
+    subscription,
+    internalOverride: null,
+  };
+}
+
+export async function fetchEntitlementForUser(userId: string): Promise<ResolvedEntitlement> {
+  const [subscription, internalOverride] = await Promise.all([
+    fetchSubscription(userId),
+    fetchActiveInternalAccessOverride(userId),
+  ]);
+  return resolveEntitlementFromRows(subscription, internalOverride);
 }

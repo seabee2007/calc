@@ -2,8 +2,8 @@ import { supabase } from '../lib/supabase';
 import { canUseFeature, type FeatureKey, type PlanId } from '../lib/entitlements';
 import { isOwnerRole, type UserRole } from '../types/fieldPlanner';
 import {
-  fetchSubscription,
-  resolveEffectivePlanFromRow,
+  fetchEntitlementForUser,
+  type ResolvedEntitlement,
 } from './subscriptionService';
 
 async function resolveSubscriptionOwnerId(userId: string): Promise<string | null> {
@@ -44,8 +44,26 @@ export async function resolveCurrentUserPlan(): Promise<PlanId | null> {
     return null;
   }
 
-  const subscription = await fetchSubscription(ownerId);
-  return resolveEffectivePlanFromRow(subscription);
+  const entitlement = await fetchEntitlementForUser(ownerId);
+  return entitlement.planId;
+}
+
+export async function resolveCurrentUserEntitlement(): Promise<ResolvedEntitlement | null> {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return null;
+  }
+
+  const ownerId = await resolveSubscriptionOwnerId(user.id);
+  if (!ownerId) {
+    return null;
+  }
+
+  return fetchEntitlementForUser(ownerId);
 }
 
 export async function currentUserHasFeature(feature: FeatureKey): Promise<boolean> {

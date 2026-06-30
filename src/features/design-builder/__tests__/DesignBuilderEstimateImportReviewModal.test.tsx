@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import DesignBuilderEstimateImportReviewModal from '../ui/DesignBuilderEstimateImportReviewModal';
 import type { DesignEstimatePreviewLine, DesignQuantityItem } from '../types';
@@ -221,6 +221,52 @@ describe('DesignBuilderEstimateImportReviewModal', () => {
     );
     expect(onCommitted).toHaveBeenCalled();
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it('shows source quantities only inside the expanded activity they feed', async () => {
+    const onCommitted = vi.fn();
+    const onClose = vi.fn();
+    const activityLine = previewLine({
+      id: 'cmu-wall-net-area',
+      quantityType: 'cmu_wall_net_area',
+      description: 'CMU wall net area',
+      quantity: 1587.64,
+      unit: 'SF',
+    });
+    const unrelatedLine = previewLine({
+      id: 'door-opening-area',
+      designObjectId: 'opening-1',
+      quantityType: 'opening_actual_area',
+      description: 'Door opening actual area',
+      quantity: 24,
+      unit: 'SF',
+      divisionCode: '08',
+      divisionName: 'Openings',
+    });
+
+    render(
+      <DesignBuilderEstimateImportReviewModal
+        isOpen
+        projectId="project-1"
+        estimateId="estimate-1"
+        designModelId="model-1"
+        previewLines={[previewLine(), activityLine, unrelatedLine]}
+        persistedQuantityItems={[quantityItem()]}
+        onClose={onClose}
+        onCommitted={onCommitted}
+      />,
+    );
+
+    const activityTitle = await screen.findByText(/04 Masonry - CMU Wall System/i);
+    const activitySection = activityTitle.closest('section');
+    expect(activitySection).not.toBeNull();
+    const activityScope = within(activitySection!);
+    const sourcePanel = within(activityScope.getByTestId('activity-source-quantities'));
+
+    expect(sourcePanel.getByText(/Activity Source Quantities/i)).toBeInTheDocument();
+    expect(sourcePanel.getByText(/CMU blocks including waste/i)).toBeInTheDocument();
+    expect(sourcePanel.getByText(/CMU wall net area/i)).toBeInTheDocument();
+    expect(sourcePanel.queryByText(/Door opening actual area/i)).not.toBeInTheDocument();
   });
 
   it('does not close from a backdrop click', async () => {

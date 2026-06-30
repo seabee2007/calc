@@ -49,7 +49,7 @@ export default function BillingSubscriptionPanel() {
   const {
     plan,
     status,
-    isActive,
+    accessSource,
     subscription,
     loading,
     refresh,
@@ -71,7 +71,10 @@ export default function BillingSubscriptionPanel() {
   const customerCurrentPlanId = getCustomerFacingCurrentPlanId(subscriptionLabels);
 
   const hasStripeCustomer = Boolean(subscription?.stripeCustomerId);
-  const hasStripeSubscription = Boolean(subscription?.stripeSubscriptionId) && isActive;
+  const hasActiveStripeEntitlement =
+    accessSource === 'stripe' || accessSource === 'trial';
+  const hasStripeSubscription =
+    Boolean(subscription?.stripeSubscriptionId) && hasActiveStripeEntitlement;
   const isPastDue = status?.toLowerCase() === 'past_due';
   const periodEndLabel = formatDate(subscription?.currentPeriodEnd);
   const cancelAtPeriodEnd = subscription?.cancelAtPeriodEnd ?? false;
@@ -252,6 +255,14 @@ export default function BillingSubscriptionPanel() {
                 ) : null}
                 {billingStatusLabel}
               </span>
+              {accessSource === 'internal_override' ? (
+                <span
+                  className="inline-flex items-center rounded-full border border-emerald-300 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-800 dark:border-emerald-500/40 dark:bg-emerald-950/40 dark:text-emerald-100"
+                  data-testid="internal-access-override-badge"
+                >
+                  Internal access override active
+                </span>
+              ) : null}
             </div>
 
             {periodEndLabel && !cancelAtPeriodEnd ? (

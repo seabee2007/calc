@@ -1,7 +1,6 @@
 import {
   canUseFeature,
   getEffectiveLimits,
-  isSubscriptionStatusActive,
   type PlanId,
 } from '../lib/entitlements';
 import { supabase } from '../lib/supabase';
@@ -12,7 +11,7 @@ import {
   type EmployeePortalAccessResult,
 } from './employeePortalAccessService';
 import { fetchProfile, fetchTeamProfiles } from './profileService';
-import { fetchSubscription, resolveEffectivePlanFromRow } from './subscriptionService';
+import { fetchEntitlementForUser } from './subscriptionService';
 
 export type AccessResolutionState = 'idle' | 'loading' | 'resolved' | 'error';
 
@@ -63,17 +62,17 @@ async function resolveWorkspaceOwnership(
     return { isOwner: false, isWorkspaceAdmin: true };
   }
 
-  const [subscription, ownedProjectCount] = await Promise.all([
-    fetchSubscription(userId).catch(() => null),
+  const [entitlement, ownedProjectCount] = await Promise.all([
+    fetchEntitlementForUser(userId).catch(() => null),
     countOwnedProjects(userId).catch(() => 0),
   ]);
 
-  const hasOwnActiveSubscription = Boolean(
-    subscription && isSubscriptionStatusActive(subscription.status),
+  const hasOwnActiveEntitlement = Boolean(
+    entitlement && entitlement.accessSource !== 'none',
   );
   const ownsWorkspaceProjects = ownedProjectCount > 0;
 
-  if (hasOwnActiveSubscription || ownsWorkspaceProjects) {
+  if (hasOwnActiveEntitlement || ownsWorkspaceProjects) {
     return { isOwner: true, isWorkspaceAdmin: false };
   }
 
@@ -127,12 +126,10 @@ async function resolveAcceptedEmployeeMembershipsLegacy(
     return [];
   }
 
-  const subscription = await fetchSubscription(workspaceId).catch(() => null);
-  const employerPlanId = subscription ? resolveEffectivePlanFromRow(subscription) : null;
-  const limits = getEffectiveLimits(employerPlanId ?? 'free', {
-    activeProjectLimit: subscription?.activeProjectLimit,
-    includedFieldSeats: subscription?.includedFieldSeats,
-  });
+  const entitlement = await fetchEntitlementForUser(workspaceId).catch(() => null);
+  const employerPlanId =
+    entitlement && entitlement.accessSource !== 'none' ? entitlement.planId : null;
+  const limits = entitlement?.limits ?? getEffectiveLimits(employerPlanId ?? 'free');
   const seatLimit = limits.included_field_seats;
   const teamIndex = teamProfiles.findIndex((member) => member.id === userId);
   const hasAssignedFieldSeat =

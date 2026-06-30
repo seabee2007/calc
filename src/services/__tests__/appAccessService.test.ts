@@ -4,7 +4,7 @@ import {
   resolveAppAccess,
 } from '../appAccessService';
 import { fetchProfile, fetchTeamProfiles } from '../profileService';
-import { fetchSubscription } from '../subscriptionService';
+import { fetchEntitlementForUser as fetchSubscription } from '../subscriptionService';
 import { fetchEmployeePortalAccess } from '../employeePortalAccessService';
 import { supabase } from '../../lib/supabase';
 
@@ -20,10 +20,78 @@ vi.mock('../profileService', () => ({
 }));
 
 vi.mock('../subscriptionService', () => ({
-  fetchSubscription: vi.fn(),
-  resolveEffectivePlanFromRow: (row: { planId: string; status: string } | null) =>
-    row?.status === 'active' ? row.planId : 'free',
+  fetchEntitlementForUser: vi.fn(),
 }));
+
+type MockSubscriptionRow = {
+  id: string;
+  userId: string;
+  planId: 'starter' | 'professional' | 'business';
+  status: string;
+  stripeCustomerId: string | null;
+  stripeSubscriptionId: string | null;
+  currentPeriodStart: string | null;
+  currentPeriodEnd: string | null;
+  trialEnd: string | null;
+  cancelAtPeriodEnd: boolean;
+  activeProjectLimit: number | null;
+  includedFieldSeats: number | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+function entitlementFromSubscription(subscription: MockSubscriptionRow | null) {
+  if (!subscription || subscription.status !== 'active') {
+    return null;
+  }
+
+  return {
+    accessSource: 'stripe' as const,
+    planId: subscription.planId,
+    limits: {
+      max_active_projects: subscription.activeProjectLimit ?? 3,
+      included_field_seats: subscription.includedFieldSeats ?? 1,
+      max_field_seats: 1,
+      ai_requests_monthly: 0,
+      level_three_exports_monthly: 0,
+      max_3d_models_per_project: 0,
+      max_3d_model_size_mb: 0,
+    },
+    features: [],
+    subscription,
+    internalOverride: null,
+  };
+}
+
+function internalOverrideEntitlement(userId: string) {
+  return {
+    accessSource: 'internal_override' as const,
+    planId: 'business' as const,
+    limits: {
+      max_active_projects: -1,
+      included_field_seats: 15,
+      max_field_seats: -1,
+      ai_requests_monthly: 500,
+      level_three_exports_monthly: -1,
+      max_3d_models_per_project: 50,
+      max_3d_model_size_mb: 500,
+    },
+    features: [],
+    subscription: null,
+    internalOverride: {
+      id: 'override-1',
+      userId,
+      email: 'owner@example.com',
+      planId: 'enterprise',
+      reason: 'Owner production access',
+      grantedBy: null,
+      expiresAt: null,
+      isActive: true,
+      createdAt: '',
+      updatedAt: '',
+    },
+  };
+}
 
 vi.mock('../employeePortalAccessService', () => ({
   fetchEmployeePortalAccess: vi.fn(),
@@ -62,7 +130,7 @@ describe('resolveAppAccess', () => {
     });
     vi.mocked(fetchSubscription).mockImplementation(async (userId: string) =>
       userId === 'owner-1'
-        ? {
+        ? entitlementFromSubscription({
             id: 'sub-1',
             userId: 'owner-1',
             planId: 'starter',
@@ -77,7 +145,7 @@ describe('resolveAppAccess', () => {
             includedFieldSeats: 1,
             createdAt: '',
             updatedAt: '',
-          }
+          })
         : null,
     );
     vi.mocked(supabase.from).mockReturnValue({
@@ -336,7 +404,7 @@ describe('resolveAppAccess', () => {
     vi.mocked(fetchEmployeePortalAccess).mockResolvedValue(null);
     vi.mocked(fetchSubscription).mockImplementation(async (userId: string) =>
       userId === 'owner-1'
-        ? {
+        ? entitlementFromSubscription({
             id: 'sub-1',
             userId: 'owner-1',
             planId: 'starter',
@@ -351,7 +419,7 @@ describe('resolveAppAccess', () => {
             includedFieldSeats: 1,
             createdAt: '',
             updatedAt: '',
-          }
+          })
         : null,
     );
     vi.mocked(fetchTeamProfiles).mockResolvedValue([
@@ -454,7 +522,7 @@ describe('resolveAppAccess', () => {
     });
     vi.mocked(fetchSubscription).mockImplementation(async (userId: string) =>
       userId === 'owner-mislabeled'
-        ? {
+        ? entitlementFromSubscription({
             id: 'sub-owner',
             userId: 'owner-mislabeled',
             planId: 'business',
@@ -469,7 +537,7 @@ describe('resolveAppAccess', () => {
             includedFieldSeats: 3,
             createdAt: '',
             updatedAt: '',
-          }
+          })
         : null,
     );
     vi.mocked(supabase.from).mockReturnValue({
@@ -479,6 +547,45 @@ describe('resolveAppAccess', () => {
     } as never);
 
     const access = await resolveAppAccess('owner-mislabeled');
+
+    expect(access.isOwner).toBe(true);
+    expect(access.defaultRoute).toBe('/dashboard');
+    expect(access.acceptedEmployeeMemberships).toEqual([]);
+    expect(fetchTeamProfiles).not.toHaveBeenCalled();
+    expect(fetchEmployeePortalAccess).not.toHaveBeenCalled();
+  });
+
+  it('treats accounts with active internal override as owner without a Stripe subscription', async () => {
+    vi.mocked(fetchProfile).mockResolvedValue({
+      id: 'owner-override',
+      role: 'employee',
+      employerId: 'some-other-owner',
+      displayName: 'Override Owner',
+      firstName: null,
+      lastName: null,
+      phone: null,
+      businessAddressStreet: null,
+      businessAddressStreet2: null,
+      businessAddressCity: null,
+      businessAddressState: null,
+      businessAddressPostalCode: null,
+      agreementAcceptedAt: null,
+      agreementVersion: null,
+      onboardingCompletedAt: null,
+      onboardingVersion: null,
+      createdAt: '',
+      updatedAt: '',
+    });
+    vi.mocked(fetchSubscription).mockResolvedValue(
+      internalOverrideEntitlement('owner-override'),
+    );
+    vi.mocked(supabase.from).mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockResolvedValue({ count: 0, error: null }),
+      }),
+    } as never);
+
+    const access = await resolveAppAccess('owner-override');
 
     expect(access.isOwner).toBe(true);
     expect(access.defaultRoute).toBe('/dashboard');

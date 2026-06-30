@@ -4,7 +4,7 @@ import React from 'react';
 import { SubscriptionProvider, useSubscription } from '../../contexts/SubscriptionContext';
 import { AppAccessProvider } from '../../contexts/AppAccessContext';
 
-const fetchSubscription = vi.fn();
+const fetchEntitlementForUser = vi.fn();
 let authState = {
   user: { id: 'owner-1' } as { id: string } | null,
   profile: { id: 'owner-1', role: 'owner', employerId: null as string | null },
@@ -27,12 +27,19 @@ vi.mock('../../services/appAccessService', async (importOriginal) => {
 });
 
 vi.mock('../../services/subscriptionService', () => ({
-  fetchSubscription: (...args: unknown[]) => fetchSubscription(...args),
-  resolveEffectivePlanFromRow: (row: { planId: string; status: string } | null) => {
-    if (!row || row.status === 'canceled') return 'free';
-    return row.planId;
-  },
+  fetchEntitlementForUser: (...args: unknown[]) => fetchEntitlementForUser(...args),
 }));
+
+function entitlementFor(subscription: { planId: 'starter' | 'professional' | 'business'; status: string } & Record<string, unknown>) {
+  return {
+    accessSource: subscription.status === 'trialing' ? 'trial' : 'stripe',
+    planId: subscription.planId,
+    limits: {},
+    features: [],
+    subscription,
+    internalOverride: null,
+  };
+}
 
 function Probe() {
   const subscription = useSubscription();
@@ -56,7 +63,7 @@ function Harness() {
 
 describe('SubscriptionContext', () => {
   beforeEach(() => {
-    fetchSubscription.mockReset();
+    fetchEntitlementForUser.mockReset();
     resolveAppAccess.mockReset();
     authState = {
       user: { id: 'owner-1' },
@@ -76,7 +83,7 @@ describe('SubscriptionContext', () => {
   });
 
   it('loads subscription data for the signed-in owner after access resolves', async () => {
-    fetchSubscription.mockResolvedValue({
+    const subscription = {
       id: 'sub-1',
       userId: 'owner-1',
       planId: 'professional',
@@ -91,7 +98,8 @@ describe('SubscriptionContext', () => {
       includedFieldSeats: null,
       createdAt: '2026-01-01T00:00:00.000Z',
       updatedAt: '2026-01-01T00:00:00.000Z',
-    });
+    } as const;
+    fetchEntitlementForUser.mockResolvedValue(entitlementFor(subscription));
 
     render(<Harness />);
 
@@ -99,7 +107,7 @@ describe('SubscriptionContext', () => {
       expect(screen.getByTestId('plan')).toHaveTextContent('professional');
     });
 
-    expect(fetchSubscription).toHaveBeenCalledWith('owner-1');
+    expect(fetchEntitlementForUser).toHaveBeenCalledWith('owner-1');
   });
 
   it('loads the employer subscription for employee portal entitlements', async () => {
@@ -126,7 +134,7 @@ describe('SubscriptionContext', () => {
       ],
       defaultRoute: '/employee/dashboard',
     });
-    fetchSubscription.mockResolvedValue({
+    const subscription = {
       id: 'sub-1',
       userId: 'owner-1',
       planId: 'starter',
@@ -141,7 +149,8 @@ describe('SubscriptionContext', () => {
       includedFieldSeats: 1,
       createdAt: '2026-01-01T00:00:00.000Z',
       updatedAt: '2026-01-01T00:00:00.000Z',
-    });
+    } as const;
+    fetchEntitlementForUser.mockResolvedValue(entitlementFor(subscription));
 
     render(<Harness />);
 
@@ -149,7 +158,7 @@ describe('SubscriptionContext', () => {
       expect(screen.getByTestId('plan')).toHaveTextContent('starter');
     });
 
-    expect(fetchSubscription).toHaveBeenCalledWith('owner-1');
-    expect(fetchSubscription).not.toHaveBeenCalledWith('employee-1');
+    expect(fetchEntitlementForUser).toHaveBeenCalledWith('owner-1');
+    expect(fetchEntitlementForUser).not.toHaveBeenCalledWith('employee-1');
   });
 });

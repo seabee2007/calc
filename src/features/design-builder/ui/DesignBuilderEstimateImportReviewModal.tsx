@@ -185,6 +185,30 @@ function withResolvedActivity(activity: DesignActivityDraft): DesignActivityDraf
   };
 }
 
+function sourcePreviewLinesForActivity(
+  activity: DesignActivityDraft,
+  previewLines: readonly DesignEstimatePreviewLine[],
+): DesignEstimatePreviewLine[] {
+  const byId = new Map(previewLines.map((line) => [line.id, line]));
+  const seen = new Set<string>();
+  const result: DesignEstimatePreviewLine[] = [];
+
+  function add(line: DesignEstimatePreviewLine | null | undefined) {
+    if (!line || seen.has(line.id)) return;
+    seen.add(line.id);
+    result.push(line);
+  }
+
+  for (const id of activity.sourcePreviewLineIds) {
+    add(byId.get(id));
+  }
+  for (const usage of activity.usages) {
+    add(usage.sourceLine ?? byId.get(usage.sourcePreviewLineId ?? ''));
+  }
+
+  return result;
+}
+
 function candidateFromLibraryRate(
   usage: DesignQuantityUsage,
   rate: ProductionRateLibraryEntry,
@@ -511,6 +535,9 @@ export default function DesignBuilderEstimateImportReviewModal({
                           ))}
                         </div>
                       ) : null}
+                      <ActivitySourceQuantitiesPanel
+                        sourceLines={sourcePreviewLinesForActivity(activity, previewLines)}
+                      />
                       <div className="space-y-2">
                         {activity.usages.map((usage) => (
                           <UsageReviewRow
@@ -583,6 +610,45 @@ export default function DesignBuilderEstimateImportReviewModal({
         </div>
       </div>
     </Modal>
+  );
+}
+
+function ActivitySourceQuantitiesPanel({
+  sourceLines,
+}: {
+  sourceLines: readonly DesignEstimatePreviewLine[];
+}) {
+  if (sourceLines.length === 0) return null;
+
+  return (
+    <div
+      className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-700 dark:bg-slate-950/40"
+      data-testid="activity-source-quantities"
+    >
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <div className="font-semibold text-slate-900 dark:text-slate-100">
+          Activity Source Quantities
+        </div>
+        <div className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+          {sourceLines.length} {sourceLines.length === 1 ? 'row' : 'rows'}
+        </div>
+      </div>
+      <div className="grid gap-2 md:grid-cols-2">
+        {sourceLines.map((line) => (
+          <div
+            key={line.id}
+            className="min-w-0 rounded border border-slate-200 bg-white p-2 dark:border-slate-700 dark:bg-slate-900"
+          >
+            <div className="break-words font-medium text-slate-900 dark:text-slate-100">
+              {line.description}
+            </div>
+            <div className="mt-1 text-slate-500">
+              {line.quantity} {line.unit} | Division {line.divisionCode} {line.divisionName}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 

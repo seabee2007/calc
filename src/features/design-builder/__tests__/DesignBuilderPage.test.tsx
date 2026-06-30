@@ -371,6 +371,8 @@ describe('DesignBuilderPage', () => {
     expect(screen.getByText(/live preview/i)).toBeInTheDocument();
     expect(screen.getByText(/review live quantities/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /show preview rows/i })).toBeInTheDocument();
+    expect(screen.queryByText(/linked quantities/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/activity source quantities/i)).not.toBeInTheDocument();
     expect(screen.queryAllByText(/calculated from parameters/i)).toHaveLength(0);
     fireEvent.click(screen.getByRole('button', { name: /show preview rows/i }));
     expect(screen.getAllByText(/calculated from parameters/i).length).toBeGreaterThan(0);

@@ -106,6 +106,16 @@ export function getDefaultWorkspaceTabForEstimateType(
   }
 }
 
+export function resolveRouteGuardEstimateType(params: {
+  estimateType: StoredEstimateType | string | null | undefined;
+  entitlementBlocked: boolean;
+  fallbackEstimateType: EstimateType;
+}): EstimateType {
+  return params.entitlementBlocked
+    ? params.fallbackEstimateType
+    : normalizeEstimateMethod(params.estimateType);
+}
+
 export function isTabVisibleForEstimateType(
   tabId: EstimateWorkspaceTabId,
   estimateType: StoredEstimateType | string | null | undefined,
