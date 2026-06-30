@@ -92,7 +92,8 @@ describe('gable vertical alignment probe', () => {
       roofBeamTopMeters: roofBeam.topElevationMeters,
       infillCourseCount:
         infillVertical.fullCourseCount + (infillVertical.hasTopClosureCourse ? 1 : 0),
-      solverFirstGableCourseIndex: beamTopVertical.fullCourseCount,
+      solverFirstGableCourseIndex:
+        beamTopVertical.fullCourseCount + (beamTopVertical.hasTopClosureCourse ? 1 : 0),
       actualFirstGableCourseIndex: firstGableCourseIndex,
       lastInfillTopY: lastInfillTop,
       firstGableBottomY: firstGableBottom,
@@ -105,11 +106,10 @@ describe('gable vertical alignment probe', () => {
     };
 
     console.log(JSON.stringify(report, null, 2));
-    expect(firstGableBottom).toBeGreaterThanOrEqual(gablePanel.topElevationMeters - 0.01);
-    expect(firstGableBottom).toBeLessThan(gablePanel.topElevationMeters + 0.05);
-    expect(firstGableBottom).toBeLessThan(roofBeam.topElevationMeters);
+    expect(firstGableBottom).toBeCloseTo(roofBeam.topElevationMeters, 3);
+    expect(firstGableBottom).toBeGreaterThanOrEqual(roofBeam.topElevationMeters - 0.001);
     expect(firstGableCourseIndex).toBe(
-      infillVertical.fullCourseCount + (infillVertical.hasTopClosureCourse ? 1 : 0),
+      beamTopVertical.fullCourseCount + (beamTopVertical.hasTopClosureCourse ? 1 : 0),
     );
   });
 });

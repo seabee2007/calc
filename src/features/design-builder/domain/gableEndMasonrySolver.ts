@@ -268,17 +268,15 @@ export function solveGableEndMasonryBlocks(params: {
   const layoutDebug: GableMasonryCourseDebug[] = [];
   const blocks: CmuBlockInstance[] = [];
 
-  const infillVertical = resolvePanelVerticalCourses({
+  const gableBandBaseElevationMeters = params.roofBeamTopElevationMeters;
+  const verticalBelowGableBase = resolvePanelVerticalCourses({
     panelBottomElevationMeters: params.panel.bottomElevationMeters,
-    panelTopElevationMeters: params.panel.topElevationMeters,
+    panelTopElevationMeters: gableBandBaseElevationMeters,
     nominalCourseHeightMeters: module.nominalModuleHeightMeters,
   });
   const firstGableCourseIndex =
-    infillVertical.fullCourseCount + (infillVertical.hasTopClosureCourse ? 1 : 0);
-  const gableBandBaseElevationMeters = Math.min(
-    params.panel.topElevationMeters,
-    params.roofBeamTopElevationMeters,
-  );
+    verticalBelowGableBase.fullCourseCount +
+    (verticalBelowGableBase.hasTopClosureCourse ? 1 : 0);
   const physicalHeightMeters = module.actualBlockHeightMeters;
   const maxCourses = Math.ceil(
     (params.resolvedRoof.peakElevationMeters - gableBandBaseElevationMeters) /

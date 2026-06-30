@@ -35,6 +35,12 @@ export type DesignBuilderRoofDebugBounds = {
   depthMeters: number;
 };
 
+export type DesignBuilderRoofDebugVerticalBounds = {
+  minY: number;
+  maxY: number;
+  heightMeters: number;
+};
+
 export type DesignBuilderRoofDebugBounds3D = {
   id: string;
   minX: number;
@@ -193,6 +199,7 @@ export type DesignBuilderRoofDebugSnapshot = {
     count: number;
     cmuBlockCount: number;
     cmuBounds: DesignBuilderRoofDebugBounds | null;
+    cmuVerticalBounds: DesignBuilderRoofDebugVerticalBounds | null;
     roofingClosureCount: number;
     segmentIds: string[];
   };
@@ -376,6 +383,7 @@ export function createDesignBuilderRoofDebugSnapshot(params: {
           0,
         ) ?? 0,
       cmuBounds: bounds2d(gableEndBlocks.flatMap(cmuBlockPlanCorners)),
+      cmuVerticalBounds: cmuBlockVerticalBounds(gableEndBlocks),
       roofingClosureCount: roof?.gableEndRoofingClosures.length ?? 0,
       segmentIds: [...(roof?.gableEndSegmentIds ?? [])].sort(),
     },
@@ -593,6 +601,28 @@ function cmuBlockPlanCorners(block: {
     x: block.x + along * cos + depth * sin,
     z: block.z - along * sin + depth * cos,
   }));
+}
+
+function cmuBlockVerticalBounds(
+  blocks: readonly Array<{ y: number; heightMeters?: number; physicalHeightMeters?: number }>,
+): DesignBuilderRoofDebugVerticalBounds | null {
+  const ranges = blocks
+    .map((block) => {
+      const height = block.physicalHeightMeters ?? block.heightMeters ?? 0;
+      return {
+        minY: block.y - height / 2,
+        maxY: block.y + height / 2,
+      };
+    })
+    .filter((range) => Number.isFinite(range.minY) && Number.isFinite(range.maxY));
+  if (ranges.length === 0) return null;
+  const minY = Math.min(...ranges.map((range) => range.minY));
+  const maxY = Math.max(...ranges.map((range) => range.maxY));
+  return {
+    minY: round(minY),
+    maxY: round(maxY),
+    heightMeters: round(maxY - minY),
+  };
 }
 
 function collectResolvedRoofPointIssues(

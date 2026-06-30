@@ -814,6 +814,19 @@ describe("Roof system — hip, gable, raked cap", () => {
         beam.kind === "roof_beam" &&
         beam.hostSegmentId === roof.gableEndSegmentIds[0],
     );
+    const firstSegmentInfillBlocks = geometry.blockInstances.filter(
+      (block) =>
+        block.segmentId === roof.gableEndSegmentIds[0] &&
+        block.source === "rc_frame_infill",
+    );
+    const blockBottomY = (block: { y: number; heightMeters?: number; physicalHeightMeters?: number }) => {
+      const height = block.physicalHeightMeters ?? block.heightMeters ?? 0;
+      return block.y - height / 2;
+    };
+    const blockTopY = (block: { y: number; heightMeters?: number; physicalHeightMeters?: number }) => {
+      const height = block.physicalHeightMeters ?? block.heightMeters ?? 0;
+      return block.y + height / 2;
+    };
 
     expect(roof.supported).toBe(true);
     expect(roof.roofBearingSource).toBe("roof_beam_outer_faces");
@@ -823,13 +836,27 @@ describe("Roof system — hip, gable, raked cap", () => {
     expect(gableBlocks.length).toBeGreaterThan(0);
     expect(firstGablePanel).toBeDefined();
     expect(firstRoofBeam).toBeDefined();
+    expect(firstGablePanel!.topElevationMeters).toBeCloseTo(
+      firstRoofBeam!.baseElevationMeters,
+      6,
+    );
+    expect(firstSegmentInfillBlocks.length).toBeGreaterThan(0);
+    expect(Math.max(...firstSegmentInfillBlocks.map(blockTopY))).toBeLessThanOrEqual(
+      firstRoofBeam!.baseElevationMeters + 0.001,
+    );
+    expect(firstGableBottom).toBeCloseTo(firstRoofBeam!.topElevationMeters, 3);
     expect(firstGableBottom).toBeGreaterThanOrEqual(
-      firstGablePanel!.topElevationMeters - 0.01,
+      firstRoofBeam!.topElevationMeters - 0.001,
     );
-    expect(firstGableBottom).toBeLessThan(
-      firstGablePanel!.topElevationMeters + 0.05,
-    );
-    expect(firstGableBottom).toBeLessThan(firstRoofBeam!.topElevationMeters);
+    expect(
+      gableBlocks
+        .filter((block) => block.segmentId === roof.gableEndSegmentIds[0])
+        .every(
+          (block) =>
+            blockBottomY(block) >= firstRoofBeam!.topElevationMeters - 0.001 ||
+            blockTopY(block) <= firstRoofBeam!.baseElevationMeters + 0.001,
+        ),
+    ).toBe(true);
   });
 
   it("hip roof on a square creates a pyramid roof with one peak", () => {

@@ -120,6 +120,15 @@ function blockBottomY(block: {
   return block.y - height / 2;
 }
 
+function blockTopY(block: {
+  y: number;
+  heightMeters?: number;
+  physicalHeightMeters?: number;
+}): number {
+  const height = block.physicalHeightMeters ?? block.heightMeters ?? 0;
+  return block.y + height / 2;
+}
+
 function assertPrimaryTopChordSeatedOnStructuralBearing(params: {
   member: SteelMemberSegment;
   bearing: { x: number; y: number; z: number };
@@ -349,16 +358,34 @@ describe("Design Builder 3D scenario matrix", () => {
         const roofBeam = roofBeams.find(
           (beam) => beam.hostSegmentId === segmentId,
         );
+        const infillBlocks = geometry.blockInstances.filter(
+          (block) =>
+            block.segmentId === segmentId && block.source === "rc_frame_infill",
+        );
         const firstGableBottom = Math.min(...segmentBlocks.map(blockBottomY));
 
         expect(segmentBlocks.length).toBeGreaterThan(0);
         expect(panel).toBeDefined();
         expect(roofBeam).toBeDefined();
-        expect(firstGableBottom).toBeGreaterThanOrEqual(
-          panel!.topElevationMeters - 0.01,
+        expect(panel!.topElevationMeters).toBeCloseTo(
+          roofBeam!.baseElevationMeters,
+          6,
         );
-        expect(firstGableBottom).toBeLessThan(panel!.topElevationMeters + 0.05);
-        expect(firstGableBottom).toBeLessThan(roofBeam!.topElevationMeters);
+        expect(infillBlocks.length).toBeGreaterThan(0);
+        expect(Math.max(...infillBlocks.map(blockTopY))).toBeLessThanOrEqual(
+          roofBeam!.baseElevationMeters + 0.001,
+        );
+        expect(firstGableBottom).toBeCloseTo(roofBeam!.topElevationMeters, 3);
+        expect(firstGableBottom).toBeGreaterThanOrEqual(
+          roofBeam!.topElevationMeters - 0.001,
+        );
+        expect(
+          segmentBlocks.every(
+            (block) =>
+              blockBottomY(block) >= roofBeam!.topElevationMeters - 0.001 ||
+              blockTopY(block) <= roofBeam!.baseElevationMeters + 0.001,
+          ),
+        ).toBe(true);
       }
 
       for (const truss of roof!.trussPlacements) {

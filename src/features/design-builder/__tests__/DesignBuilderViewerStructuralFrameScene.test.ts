@@ -195,17 +195,85 @@ describe('DesignBuilderViewerStructuralFrameScene', () => {
     resources.disposeTrackedResources();
   });
 
-  it('keeps structural columns concrete when CMU infill plaster is enabled', () => {
+  it('applies exterior plaster to upper columns and roof beams when CMU infill plaster is enabled', () => {
     const resources = createDesignBuilderViewerResources();
+    const frame = frameSystem();
+    frame.beams.push({
+      id: 'roof-1',
+      name: 'Roof beam',
+      kind: 'roof_beam',
+      startPoint: { x: -2, y: 0, z: 1 },
+      endPoint: { x: 2, y: 0, z: 1 },
+      widthMeters: 0.2,
+      depthMeters: 0.3,
+      baseElevationMeters: 2.5,
+      topElevationMeters: 2.8,
+      source: 'auto_frame_layout',
+    });
 
     const scene = buildDesignBuilderViewerStructuralFrameScene({
       state: structuralState({
         currentGeometry: geometryResult({
+          frameSystem: frame,
           infillSystem: {
             kind: 'cmu_infill_system',
             panels: [],
             plaster: {
               enabled: true,
+              finish: 'smooth',
+              profileLabel: '3-coat plaster',
+              interiorEnabled: true,
+              interiorFinish: 'smooth',
+              interiorProfileLabel: '3-coat plaster',
+            },
+          },
+        }),
+      }),
+      showCmuInfill: true,
+      trackGeometry: resources.trackGeometry,
+      trackMaterial: resources.trackMaterial,
+      makeMaterial: resources.makeMaterial,
+    });
+
+    expect(scene.group.getObjectByName('structuralColumn:column-1')).toBeUndefined();
+    const concreteColumn = meshByName(scene.group, 'structuralColumn:column-1:concrete');
+    const plasterColumn = meshByName(scene.group, 'structuralColumn:column-1:plaster');
+    const plinthBeam = meshByName(scene.group, 'structuralBeam:plinth-1');
+    const roofBeam = meshByName(scene.group, 'structuralBeam:roof-1');
+
+    expect((concreteColumn.material as THREE.MeshStandardMaterial).color.getHex()).toBe(0x9ca3af);
+    expect((plasterColumn.material as THREE.MeshStandardMaterial).color.getHex()).toBe(0xded8cf);
+    expect((plinthBeam.material as THREE.MeshStandardMaterial).color.getHex()).toBe(0x57534e);
+    expect((roofBeam.material as THREE.MeshStandardMaterial).color.getHex()).toBe(0xded8cf);
+
+    resources.disposeTrackedResources();
+  });
+
+  it('uses interior plaster on upper columns and roof beams when only interior plaster is enabled', () => {
+    const resources = createDesignBuilderViewerResources();
+    const frame = frameSystem();
+    frame.beams.push({
+      id: 'roof-1',
+      name: 'Roof beam',
+      kind: 'roof_beam',
+      startPoint: { x: -2, y: 0, z: 1 },
+      endPoint: { x: 2, y: 0, z: 1 },
+      widthMeters: 0.2,
+      depthMeters: 0.3,
+      baseElevationMeters: 2.5,
+      topElevationMeters: 2.8,
+      source: 'auto_frame_layout',
+    });
+
+    const scene = buildDesignBuilderViewerStructuralFrameScene({
+      state: structuralState({
+        currentGeometry: geometryResult({
+          frameSystem: frame,
+          infillSystem: {
+            kind: 'cmu_infill_system',
+            panels: [],
+            plaster: {
+              enabled: false,
               finish: 'textured',
               profileLabel: '3-coat plaster',
               interiorEnabled: true,
@@ -221,9 +289,15 @@ describe('DesignBuilderViewerStructuralFrameScene', () => {
       makeMaterial: resources.makeMaterial,
     });
 
-    expect(scene.group.getObjectByName('structuralColumn:column-1:plaster')).toBeUndefined();
-    const column = meshByName(scene.group, 'structuralColumn:column-1');
-    expect((column.material as THREE.MeshStandardMaterial).color.getHex()).toBe(0x9ca3af);
+    const concreteColumn = meshByName(scene.group, 'structuralColumn:column-1:concrete');
+    const plasterColumn = meshByName(scene.group, 'structuralColumn:column-1:plaster');
+    const plinthBeam = meshByName(scene.group, 'structuralBeam:plinth-1');
+    const roofBeam = meshByName(scene.group, 'structuralBeam:roof-1');
+
+    expect((concreteColumn.material as THREE.MeshStandardMaterial).color.getHex()).toBe(0x9ca3af);
+    expect((plasterColumn.material as THREE.MeshStandardMaterial).color.getHex()).toBe(0xded8cf);
+    expect((plinthBeam.material as THREE.MeshStandardMaterial).color.getHex()).toBe(0x57534e);
+    expect((roofBeam.material as THREE.MeshStandardMaterial).color.getHex()).toBe(0xded8cf);
 
     resources.disposeTrackedResources();
   });

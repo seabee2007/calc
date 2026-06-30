@@ -221,6 +221,9 @@ describe("createDesignBuilderRoofDebugSnapshot", () => {
       expect(snapshot.gableEnd.count).toBe(2);
       expect(snapshot.gableEnd.segmentIds).toHaveLength(2);
       expect(snapshot.gableEnd.cmuBlockCount).toBeGreaterThan(0);
+      expect(snapshot.gableEnd.cmuVerticalBounds?.minY ?? 0).toBeGreaterThanOrEqual(
+        (snapshot.resolvedRoof.roofBeamTopY ?? 0) - 0.001,
+      );
       expect(snapshot.rakedCaps.count).toBeGreaterThan(0);
       expect(snapshot.rakedCaps.volumeCubicMeters).toBeGreaterThan(0);
       expect(snapshot.issues).toEqual([]);

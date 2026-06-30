@@ -48,7 +48,9 @@ describe('gable full alignment probe', () => {
     const frame = getSegmentFramesForWallLayout(preset.wallLayout, preset.wall).find(
       (entry) => entry.segmentId === gableSegmentId,
     )!;
-    const roofBeam = preset.frameSystem.beams.find((beam) => beam.kind === 'roof_beam')!;
+    const roofBeam = preset.frameSystem.beams.find(
+      (beam) => beam.kind === 'roof_beam' && beam.hostSegmentId === gableSegmentId,
+    )!;
     const panelEntries = resolveInfillPanelsWithBounds({
       layout: preset.wallLayout,
       segmentFrames: getSegmentFramesForWallLayout(preset.wallLayout, preset.wall),
@@ -140,9 +142,9 @@ describe('gable full alignment probe', () => {
     };
 
     console.log(JSON.stringify(report, null, 2));
-    expect(firstGableBottom).toBeGreaterThanOrEqual(gablePanel.topElevationMeters - 0.01);
-    expect(firstGableBottom).toBeLessThan(gablePanel.topElevationMeters + 0.05);
-    expect(firstGableBottom).toBeLessThan(roofBeam.topElevationMeters);
+    expect(gablePanel.topElevationMeters).toBeCloseTo(roofBeam.baseElevationMeters, 6);
+    expect(firstGableBottom).toBeCloseTo(roofBeam.topElevationMeters, 3);
+    expect(firstGableBottom).toBeGreaterThanOrEqual(roofBeam.topElevationMeters - 0.001);
     expect(Math.abs(report.topCenterVsRidgeStation)).toBeLessThan(0.05);
     expect(Math.abs(report.bottomCenterVsRidgeStation)).toBeLessThan(0.05);
     expect(Math.abs(report.ridgeStationSegmentCenter - report.ridgeOnWallFromCladdingMidpoint)).toBeLessThan(0.002);

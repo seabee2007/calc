@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { normalizeCmuInfillSystem } from '../domain/infillPlaster';
 import type { DesignGeometryResult } from '../geometry/designGeometry';
 import { buildResolvedStructuralFrameSceneGroup } from './DesignBuilderStructuralScene';
 import {
@@ -41,7 +42,11 @@ export function buildDesignBuilderViewerStructuralFrameScene(params: {
   const state = params.state;
   const geometry = state.currentGeometry;
   const frameSystem = geometry.frameSystem;
-  const plasterFinish = 'textured';
+  const plaster = geometry.infillSystem
+    ? normalizeCmuInfillSystem(geometry.infillSystem).plaster
+    : null;
+  const useFramePlasterFinish = params.showCmuInfill && Boolean(plaster?.enabled || plaster?.interiorEnabled);
+  const plasterFinish = plaster?.enabled ? plaster.finish : (plaster?.interiorFinish ?? 'textured');
   const materialContext = {
     visualStyle: state.currentVisualStyle,
     selected: state.frameSelected,
@@ -136,7 +141,7 @@ export function buildDesignBuilderViewerStructuralFrameScene(params: {
     interiorFloorSlab,
     interiorFacePolygon: geometry.resolvedFootprint?.interiorFacePolygon,
     slabTopMeters: state.currentSlab.slabThicknessMeters,
-    useFramePlasterFinish: false,
+    useFramePlasterFinish,
     hideAbovePlinth: state.belowGradeCutawayActive,
     materials: {
       columnConcrete: columnConcreteMaterial,

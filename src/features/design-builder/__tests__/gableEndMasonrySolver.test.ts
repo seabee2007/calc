@@ -79,7 +79,7 @@ describe('gableEndMasonrySolver', () => {
 
     const verticalBelowBeam = resolvePanelVerticalCourses({
       panelBottomElevationMeters: panel!.bottomElevationMeters,
-      panelTopElevationMeters: panel!.topElevationMeters,
+      panelTopElevationMeters: roofBeamTop,
       nominalCourseHeightMeters: module.nominalModuleHeightMeters,
     });
     const firstGableCourseIndex =
@@ -234,11 +234,25 @@ describe('gableEndMasonrySolver', () => {
       const panelTop = geometry.infillSystem?.panels.find(
         (panel) => panel.hostSegmentId === segmentId && panel.infillZone === 'above_grade',
       )?.topElevationMeters;
-      const roofBeamTop = geometry.frameSystem.beams.find(
+      const roofBeam = geometry.frameSystem.beams.find(
         (beam) => beam.kind === 'roof_beam' && beam.hostSegmentId === segmentId,
-      )?.topElevationMeters;
+      );
+      const roofBeamBottom = roofBeam?.baseElevationMeters;
+      const roofBeamTop = roofBeam?.topElevationMeters;
       expect(panelTop).toBeDefined();
+      expect(roofBeamBottom).toBeDefined();
       expect(roofBeamTop).toBeDefined();
+      expect(panelTop).toBeCloseTo(roofBeamBottom!, 6);
+
+      const infillBlocks = geometry.blockInstances.filter(
+        (block) => block.segmentId === segmentId && block.source === 'rc_frame_infill',
+      );
+      expect(infillBlocks.length).toBeGreaterThan(0);
+      const lastInfillTop = Math.max(
+        ...infillBlocks.map((block) => block.y + (block.physicalHeightMeters ?? block.heightMeters ?? 0) / 2),
+      );
+      expect(lastInfillTop).toBeLessThanOrEqual(roofBeamBottom! + 0.001);
+
       const segmentBlocks = geometry.blockInstances.filter(
         (block) => block.segmentId === segmentId && block.source === 'gable_end_solver',
       );
@@ -246,8 +260,15 @@ describe('gableEndMasonrySolver', () => {
       const firstBottom = Math.min(
         ...segmentBlocks.map((block) => block.y - (block.physicalHeightMeters ?? block.heightMeters ?? 0) / 2),
       );
-      expect(firstBottom).toBeCloseTo(panelTop!, 3);
-      expect(firstBottom).toBeLessThan(roofBeamTop!);
+      expect(firstBottom).toBeCloseTo(roofBeamTop!, 3);
+      expect(
+        segmentBlocks.every((block) => {
+          const height = block.physicalHeightMeters ?? block.heightMeters ?? 0;
+          const blockBottom = block.y - height / 2;
+          const blockTop = block.y + height / 2;
+          return blockBottom >= roofBeamTop! - 0.001 || blockTop <= roofBeamBottom! + 0.001;
+        }),
+      ).toBe(true);
 
       const topCourseIndex = Math.max(...segmentBlocks.map((block) => block.courseIndex ?? 0));
       const topCourseBlocks = segmentBlocks.filter((block) => (block.courseIndex ?? 0) === topCourseIndex);
