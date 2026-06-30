@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import type { ProductionRateLibraryEntry } from '../data/productionRates/productionRateTypes';
+import {
+  SOURCE_DOCUMENT_FULL,
+  SOURCE_EDITION,
+  type ProductionRateLibraryEntry,
+} from '../data/productionRates/productionRateTypes';
 import type { ProjectActivityLineItem } from '../domain/constructionActivityTypes';
 import type { ProjectLaborRate } from '../domain/laborRateTypes';
 import { EMPTY_LABOR_PRICING_SNAPSHOT } from '../domain/constructionActivityTypes';
@@ -13,9 +17,9 @@ function sampleRate(overrides: Partial<ProductionRateLibraryEntry> = {}): Produc
     id: '03-11-13.65-0040',
     divisionCode: '03',
     divisionName: 'Concrete',
-    figure: null,
-    figureTitle: null,
-    sourcePage: null,
+    figure: 'Test Figure',
+    figureTitle: 'Test Figure Title',
+    sourcePage: 'Test Page',
     sourcePdfPage: null,
     workElementNumber: '03 11 13.65',
     workElementLineNumber: '0040',
@@ -26,9 +30,9 @@ function sampleRate(overrides: Partial<ProductionRateLibraryEntry> = {}): Produc
     unitOfMeasure: 'LB',
     manHoursPerUnit: 0.01,
     crewSize: 4,
-    sourceDocumentFull: 'Test',
-    sourceEdition: 'Test',
-    referenceNote: null,
+    sourceDocumentFull: SOURCE_DOCUMENT_FULL,
+    sourceEdition: SOURCE_EDITION,
+    referenceNote: 'Test reference',
     keywords: [],
     ...overrides,
   };
@@ -74,6 +78,21 @@ const laborerRate: ProjectLaborRate = {
   burdenPercent: 20,
   fullyBurdenedRate: 36,
   billingRate: 50,
+  isActive: true,
+  isDefault: false,
+  isOverride: false,
+};
+
+const welderRate: ProjectLaborRate = {
+  id: 'rate-welder',
+  projectId: 'project-1',
+  roleKey: 'welder',
+  roleName: 'Welder',
+  tradeCategory: 'Welding',
+  hourlyRate: 50,
+  burdenPercent: 30,
+  fullyBurdenedRate: 65,
+  billingRate: 97.5,
   isActive: true,
   isDefault: false,
   isOverride: false,
@@ -131,6 +150,28 @@ describe('laborRateResolver', () => {
     expect(resolved.resolutionSource).toBe('fallback_default_rate');
     expect(resolved.laborRoleKey).toBe('laborer');
     expect(resolved.warning).toBeUndefined();
+  });
+
+  it('resolves on-site steel truss welding to Welder when active on the project schedule', () => {
+    const resolved = resolveLaborRateForWorkElement({
+      workElement: sampleRate({
+        divisionCode: '05',
+        divisionName: 'Metals',
+        figureTitle: 'Structural Steel Welding Production',
+        category: 'Structural Steel',
+        subcategory: 'Trusses-Welded connection',
+        activityName: 'Trusses-Welded connection',
+        description: 'Field weld structural steel trusses',
+        unitOfMeasure: 'Ton',
+        keywords: ['metals', 'structural', 'steel', 'trusses', 'welded'],
+      }),
+      projectLaborRates: [welderRate, generalTradeRate],
+    });
+
+    expect(resolved.mappedRoleKey).toBe('welder');
+    expect(resolved.resolutionSource).toBe('mapped');
+    expect(resolved.laborRoleKey).toBe('welder');
+    expect(resolved.fullyBurdenedRateSnapshot).toBe(65);
   });
 
   it('returns missing warning when no active project rates exist', () => {

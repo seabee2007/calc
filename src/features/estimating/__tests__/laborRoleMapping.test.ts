@@ -1,15 +1,20 @@
 import { describe, expect, it } from 'vitest';
-import type { ProductionRateLibraryEntry } from '../data/productionRates/productionRateTypes';
+import {
+  SOURCE_DOCUMENT_FULL,
+  SOURCE_EDITION,
+  type ProductionRateLibraryEntry,
+} from '../data/productionRates/productionRateTypes';
 import { mapProductionRateToLaborRoleKey } from '../application/laborRoleMapping';
+import { STARTER_LABOR_ROLES } from '../domain/laborRateTypes';
 
 function sampleRate(overrides: Partial<ProductionRateLibraryEntry> = {}): ProductionRateLibraryEntry {
   return {
     id: 'test-rate',
     divisionCode: '08',
     divisionName: 'Openings',
-    figure: null,
-    figureTitle: null,
-    sourcePage: null,
+    figure: 'Test Figure',
+    figureTitle: 'Test Figure Title',
+    sourcePage: 'Test Page',
     sourcePdfPage: null,
     workElementNumber: '08 00 00',
     workElementLineNumber: '0010',
@@ -20,9 +25,9 @@ function sampleRate(overrides: Partial<ProductionRateLibraryEntry> = {}): Produc
     unitOfMeasure: 'EA',
     manHoursPerUnit: 0.5,
     crewSize: 2,
-    sourceDocumentFull: 'Test',
-    sourceEdition: 'Test',
-    referenceNote: null,
+    sourceDocumentFull: SOURCE_DOCUMENT_FULL,
+    sourceEdition: SOURCE_EDITION,
+    referenceNote: 'Test reference',
     keywords: [],
     ...overrides,
   };
@@ -66,6 +71,21 @@ function wallFormworkRate(
 }
 
 describe('laborRoleMapping priority buckets', () => {
+  it('includes Welder in starter company labor roles', () => {
+    expect(STARTER_LABOR_ROLES).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          roleKey: 'welder',
+          roleName: 'Welder',
+          tradeCategory: 'Welding',
+          hourlyRate: 27.29,
+          burdenPercent: 30,
+          billingRate: 53.22,
+        }),
+      ]),
+    );
+  });
+
   it.each([
     ['weatherstripping', 'carpenter'],
     ['door sweep', 'carpenter'],
@@ -109,6 +129,76 @@ describe('laborRoleMapping priority buckets', () => {
         }),
       ),
     ).toBe('carpenter');
+  });
+});
+
+describe('steel welding labor mapping', () => {
+  it.each([
+    [
+      'Trusses-Welded connection',
+      'Structural Steel',
+      'Trusses-Welded connection',
+      ['metals', 'structural', 'steel', 'trusses', 'welded'],
+    ],
+    [
+      'Cleaning and welding plates, bars, or rods to existing beams, columns, or trusses',
+      'Structural Steel',
+      'Continuous fillet, stick welding, including equipment, Single pass',
+      ['metals', 'welding', 'structural', 'steel', 'continuous', 'fillet'],
+    ],
+    [
+      'Trusses',
+      'Structural Steel',
+      'Trusses',
+      ['metals', 'structural', 'steel', 'trusses'],
+    ],
+  ])('maps "%s" to Welder', (activityName, category, subcategory, keywords) => {
+    expect(
+      mapProductionRateToLaborRoleKey(
+        sampleRate({
+          divisionCode: '05',
+          divisionName: 'Metals',
+          figureTitle: 'Structural Steel Welding Production',
+          category,
+          subcategory,
+          activityName,
+          description: activityName,
+          keywords,
+        }),
+      ),
+    ).toBe('welder');
+  });
+
+  it('keeps welded wire reinforcement on Ironworker', () => {
+    expect(
+      mapProductionRateToLaborRoleKey(
+        sampleRate({
+          divisionCode: '03',
+          divisionName: 'Concrete',
+          category: 'Concrete Reinforcement',
+          activityName: 'Welded wire fabric reinforcement',
+          description: 'Install welded wire fabric, WWF',
+          keywords: ['welded', 'wire', 'wwf', 'reinforcement'],
+        }),
+      ),
+    ).toBe('ironworker');
+  });
+
+  it('does not map structural steel truss erection to Welder without welding context', () => {
+    expect(
+      mapProductionRateToLaborRoleKey(
+        sampleRate({
+          divisionCode: '05',
+          divisionName: 'Metals',
+          figureTitle: 'Structural Steel Erection Production',
+          category: 'Structural Steel',
+          subcategory: 'Trusses',
+          activityName: 'Erection of Trusses',
+          description: 'Erection of Trusses',
+          keywords: ['metals', 'structural', 'steel', 'erection', 'trusses'],
+        }),
+      ),
+    ).toBe('general_trade');
   });
 });
 

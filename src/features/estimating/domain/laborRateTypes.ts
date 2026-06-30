@@ -81,6 +81,14 @@ export const STARTER_LABOR_ROLES: Pick<
     billingRate: 54.58,
   },
   {
+    roleKey: 'welder',
+    roleName: 'Welder',
+    tradeCategory: 'Welding',
+    hourlyRate: 27.29,
+    burdenPercent: 30,
+    billingRate: 53.22,
+  },
+  {
     roleKey: 'mason',
     roleName: 'Mason / Brickmason',
     tradeCategory: 'Masonry',

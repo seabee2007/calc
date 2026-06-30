@@ -111,6 +111,61 @@ function matchesFormworkContext(haystack: string): boolean {
   return false;
 }
 
+function matchesWeldingContext(haystack: string): boolean {
+  if (includesAny(haystack, ['welded wire', 'wwf'])) return false;
+
+  const weldingTerms = [
+    'welding',
+    'welder',
+    'welded connection',
+    'weld connection',
+    'shop weld',
+    'field weld',
+    'site weld',
+    'fillet weld',
+    'stick welding',
+    'welding plates',
+    'welding plate',
+  ];
+  if (includesAny(haystack, weldingTerms)) return true;
+
+  const structuralContext = includesAny(haystack, [
+    'structural steel',
+    'steel truss',
+    'steel trusses',
+    'metal fabrication',
+    'metal fabrications',
+    'plates, bars',
+    'plates bars',
+    'beams, columns, or trusses',
+    'beams columns or trusses',
+  ]);
+
+  if (
+    structuralContext &&
+    includesAnyBounded(haystack, [
+      'weld',
+      'welds',
+      'welded',
+      'fabricate',
+      'fabrication',
+      'fabricating',
+    ])
+  ) {
+    return true;
+  }
+
+  if (
+    includesAny(haystack, ['structural steel', 'steel']) &&
+    includesBoundedTerm(haystack, 'trusses') &&
+    !includesAny(haystack, ['erection', 'install', 'installation', 'bolted'])
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
 /** Priority-ordered conservative trade buckets (lower priority number wins first). */
 const LABOR_ROLE_MAPPING_BUCKETS: readonly LaborRoleMappingBucket[] = [
   {
@@ -192,6 +247,12 @@ const LABOR_ROLE_MAPPING_BUCKETS: readonly LaborRoleMappingBucket[] = [
   },
   {
     priority: 60,
+    roleKey: 'welder',
+    roleName: 'Welder',
+    match: matchesWeldingContext,
+  },
+  {
+    priority: 65,
     roleKey: 'ironworker',
     roleName: 'Ironworker',
     match: (haystack) =>
@@ -298,9 +359,11 @@ export function buildWorkElementSearchText(
   workElement: WorkElementForLaborResolution | ProductionRateLibraryEntry,
 ): string {
   if ('keywords' in workElement && Array.isArray(workElement.keywords)) {
+    const figureTitle = 'figureTitle' in workElement ? workElement.figureTitle : null;
     return [
       workElement.activityName,
       workElement.description,
+      figureTitle,
       workElement.category,
       workElement.subcategory,
       workElement.keywords.join(' '),
