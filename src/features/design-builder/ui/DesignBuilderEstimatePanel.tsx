@@ -1,5 +1,5 @@
 import { useState, type PointerEvent as ReactPointerEvent } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronRight, Download } from 'lucide-react';
 import { DESIGN_BUILDER_COPY } from '../domain/designBuilderCopy';
 import type {
   DesignEstimatePreviewLine,
@@ -63,10 +63,10 @@ function estimatePreviewStatusCopy(params: {
     case 'saved':
       return {
         title: 'Saved Preview',
-        badge: 'Ready to commit',
+        badge: 'Scope review',
         message: `Saved ${params.savedPreviewLineCount} quantities${
           savedAtLabel ? ` at ${savedAtLabel}` : ''
-        }. Ready to commit.`,
+        }. Ready for scope review.`,
       };
     case 'local':
       return {
@@ -148,6 +148,7 @@ export function DesignBuilderEstimatePanel({
   onSelectObjectType,
   onGeneratePreview,
   onCommitPreview,
+  onDownloadPreview,
 }: {
   rightPanelCollapsed: boolean;
   focusMode: boolean;
@@ -169,6 +170,7 @@ export function DesignBuilderEstimatePanel({
   onSelectObjectType: (objectType: DesignObjectType) => void;
   onGeneratePreview: () => void;
   onCommitPreview: () => void;
+  onDownloadPreview: () => void;
 }) {
   const [previewRowsExpanded, setPreviewRowsExpanded] = useState(false);
   const statusCopy = estimatePreviewStatusCopy({
@@ -326,6 +328,15 @@ export function DesignBuilderEstimatePanel({
               className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-cyan-500 dark:text-slate-950 dark:hover:bg-cyan-400"
             >
               Commit to Estimate
+            </button>
+            <button
+              type="button"
+              onClick={onDownloadPreview}
+              disabled={busy || visiblePreviewLines.length === 0}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-800"
+            >
+              <Download className="h-4 w-4" aria-hidden />
+              Download
             </button>
           </div>
         </Panel>

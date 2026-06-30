@@ -219,6 +219,13 @@ export interface DesignQuantityItem {
   projectId: string;
   estimateId: string | null;
   estimateLineId: string | null;
+  estimateActivityId: string | null;
+  materialResourceId: string | null;
+  equipmentResourceId: string | null;
+  importDestination: string | null;
+  importStatus: string | null;
+  scopePackageKey: string | null;
+  importReviewReason: string | null;
   quantityType: string;
   description: string;
   quantity: number;
@@ -1217,6 +1224,13 @@ export interface CreateDesignQuantityItemInput {
   projectId: string;
   estimateId?: string | null;
   estimateLineId?: string | null;
+  estimateActivityId?: string | null;
+  materialResourceId?: string | null;
+  equipmentResourceId?: string | null;
+  importDestination?: string | null;
+  importStatus?: string | null;
+  scopePackageKey?: string | null;
+  importReviewReason?: string | null;
   quantityType: string;
   description: string;
   quantity: number;

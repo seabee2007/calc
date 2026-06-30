@@ -15,6 +15,7 @@ import {
   BORDER_DEFAULT, TEXT_BODY, TEXT_MUTED, TEXT_FOREGROUND, TEXT_SUBTLE,
 } from '../../../../theme/appTheme';
 import type {
+  ActivityResourceBase,
   ActivityResourceProvider,
   ActivityResourceSnapshot,
   CompanyCostLibraryItem,
@@ -26,6 +27,10 @@ import {
 } from '../../data/starterCostLibrary/starterCostLibraryIndex';
 import { CompanyCostLibrarySection } from './CompanyCostLibrarySection';
 import type { AddResourceInput } from '../../application/activityResourceService';
+import {
+  DEFAULT_RESOURCE_QUANTITY,
+  resolveImportedResourceDefaultQuantity,
+} from './activityResourcePickerDefaults';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -53,6 +58,7 @@ interface Props {
   resourceType: 'material' | 'equipment';
   activityId: string;
   projectId: string;
+  existingResources?: readonly ActivityResourceBase[];
   onSave: (input: AddResourceInput) => Promise<{ error: string | null }>;
 }
 
@@ -216,6 +222,7 @@ export function ActivityResourcePickerModal({
   resourceType,
   activityId,
   projectId,
+  existingResources = [],
   onSave,
 }: Props) {
   const label = RESOURCE_LABEL[resourceType];
@@ -252,7 +259,13 @@ export function ActivityResourcePickerModal({
       category: item.category,
       subcategory: item.subcategory,
       unit: item.unit,
-      quantity: '1',
+      quantity: resolveImportedResourceDefaultQuantity({
+        itemName: item.name,
+        itemUnit: item.unit,
+        itemCategory: item.category,
+        itemSubcategory: item.subcategory,
+        existingResources,
+      }),
       unitCost: item.defaultUnitCost > 0 ? String(item.defaultUnitCost) : '',
       sourceProvider: 'arden_starter',
       sourceSnapshot: buildSnapshot(item),
@@ -268,7 +281,13 @@ export function ActivityResourcePickerModal({
       category: item.category,
       subcategory: item.subcategory,
       unit: item.unit,
-      quantity: '1',
+      quantity: resolveImportedResourceDefaultQuantity({
+        itemName: item.name,
+        itemUnit: item.unit,
+        itemCategory: item.category,
+        itemSubcategory: item.subcategory,
+        existingResources,
+      }),
       unitCost: item.defaultUnitCost > 0 ? String(item.defaultUnitCost) : '',
       sourceProvider: 'company_library',
       sourceSnapshot: buildSnapshotFromLibrary(item),
@@ -281,7 +300,7 @@ export function ActivityResourcePickerModal({
     setConfirm({
       name: '',
       unit: resourceType === 'equipment' ? 'day' : 'EA',
-      quantity: '1',
+      quantity: DEFAULT_RESOURCE_QUANTITY,
       unitCost: '',
       sourceProvider: 'manual',
       saveToLibrary: false,

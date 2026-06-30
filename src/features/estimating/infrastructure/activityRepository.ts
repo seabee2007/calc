@@ -433,7 +433,86 @@ import type {
 import {
   mapMaterialResourceFromRow,
   mapEquipmentResourceFromRow,
+  mapMaterialResourceToInsert,
+  mapEquipmentResourceToInsert,
 } from './activityMappers';
+
+export interface SavedActivityBundleWithResources extends SavedActivityBundle {
+  materials: ActivityMaterialResource[];
+  equipment: ActivityEquipmentResource[];
+}
+
+export async function saveActivityBundleWithResources(input: {
+  activity: Omit<ProjectConstructionActivity, 'id' | 'createdAt' | 'updatedAt'>;
+  lineItems: Array<Omit<ProjectActivityLineItem, 'id' | 'projectActivityId' | 'createdAt'> & { id?: string }>;
+  materials?: Array<Omit<ActivityMaterialResource, 'id' | 'activityId' | 'createdAt' | 'updatedAt'>>;
+  equipment?: Array<Omit<ActivityEquipmentResource, 'id' | 'activityId' | 'createdAt' | 'updatedAt'>>;
+  activityId?: string;
+}): Promise<RepositoryResult<SavedActivityBundleWithResources>> {
+  const isInsert = !input.activityId;
+  const bundleResult = await saveActivityBundle(input.activity, input.lineItems, input.activityId);
+  if (bundleResult.error || !bundleResult.data) {
+    return failure(bundleResult.error ?? 'Activity save failed.');
+  }
+
+  const savedActivity = bundleResult.data.activity;
+
+  try {
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData.user?.id;
+    if (!userId) {
+      if (isInsert) await deleteProjectActivity(savedActivity.id);
+      return failure('Not authenticated');
+    }
+
+    const materials: ActivityMaterialResource[] = [];
+    for (const [index, material] of (input.materials ?? []).entries()) {
+      const result = await upsertMaterialResource(
+        mapMaterialResourceToInsert(
+          {
+            ...material,
+            activityId: savedActivity.id,
+            sortOrder: material.sortOrder ?? index,
+          },
+          userId,
+        ),
+      );
+      if (result.error || !result.data) {
+        if (isInsert) await deleteProjectActivity(savedActivity.id);
+        return failure(result.error ?? 'Material resource save failed.');
+      }
+      materials.push(result.data);
+    }
+
+    const equipment: ActivityEquipmentResource[] = [];
+    for (const [index, item] of (input.equipment ?? []).entries()) {
+      const result = await upsertEquipmentResource(
+        mapEquipmentResourceToInsert(
+          {
+            ...item,
+            activityId: savedActivity.id,
+            sortOrder: item.sortOrder ?? index,
+          },
+          userId,
+        ),
+      );
+      if (result.error || !result.data) {
+        if (isInsert) await deleteProjectActivity(savedActivity.id);
+        return failure(result.error ?? 'Equipment resource save failed.');
+      }
+      equipment.push(result.data);
+    }
+
+    return success({
+      ...bundleResult.data,
+      materials,
+      equipment,
+    });
+  } catch (err) {
+    if (isInsert) await deleteProjectActivity(savedActivity.id);
+    return failure(err);
+  }
+}
 
 export async function fetchActivityMaterials(
   activityId: string,

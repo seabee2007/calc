@@ -540,10 +540,9 @@ export function solveRakedCapPlacementsWithWarnings(params: {
     return { placements: [], warnings: [] };
   }
 
-  const minRakeCapDepthMeters = Math.max(
-    DEFAULT_MIN_RAKE_CAP_DEPTH_METERS,
-    params.roofSystem.gable.rakeClearanceMeters,
-  );
+  // The CMU solver already applies the configured rake clearance to the masonry
+  // cutoff. Review warnings stay tied to the default minimum concrete cover.
+  const requiredConcreteAboveCmuMeters = DEFAULT_MIN_RAKE_CAP_DEPTH_METERS;
 
   const capWallDepthMeters = resolveCapWallDepthMeters({
     roofSystem: params.roofSystem,
@@ -653,23 +652,6 @@ export function solveRakedCapPlacementsWithWarnings(params: {
 
       if (!hasRenderableCapVolume(placement)) {
         continue;
-      }
-
-      const startDepth = startTopY - roofBeamTopY;
-      const endDepth = endTopY - roofBeamTopY;
-      if (
-        startDepth <
-          minRakeCapDepthMeters - GABLE_HEIGHT_TOLERANCE_METERS ||
-        endDepth <
-          minRakeCapDepthMeters - GABLE_HEIGHT_TOLERANCE_METERS
-      ) {
-        warnings.push(
-          `[Design review — visual fill only, not structurally compliant] ` +
-            `Insufficient raked-cap depth at terminal stations ` +
-            `${startStationMeters.toFixed(3)}–${endStationMeters.toFixed(3)} m ` +
-            `(actual ${Math.min(startDepth, endDepth).toFixed(3)} m, ` +
-            `required ${minRakeCapDepthMeters.toFixed(3)} m).`,
-        );
       }
 
       rawCaps.push(placement);
@@ -793,9 +775,9 @@ export function solveRakedCapPlacementsWithWarnings(params: {
 
     if (
       startDepth <
-        minRakeCapDepthMeters - GABLE_HEIGHT_TOLERANCE_METERS ||
+        requiredConcreteAboveCmuMeters - GABLE_HEIGHT_TOLERANCE_METERS ||
       endDepth <
-        minRakeCapDepthMeters - GABLE_HEIGHT_TOLERANCE_METERS
+        requiredConcreteAboveCmuMeters - GABLE_HEIGHT_TOLERANCE_METERS
     ) {
       /**
        * Visual geometry must still be emitted to prevent cap coverage holes.
@@ -806,7 +788,7 @@ export function solveRakedCapPlacementsWithWarnings(params: {
           `Insufficient raked-cap depth at stations ` +
           `${startStationMeters.toFixed(3)}–${endStationMeters.toFixed(3)} m ` +
           `(actual ${Math.min(startDepth, endDepth).toFixed(3)} m, ` +
-          `required ${minRakeCapDepthMeters.toFixed(3)} m).`,
+          `required ${requiredConcreteAboveCmuMeters.toFixed(3)} m).`,
       );
     }
 

@@ -2,11 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { createFiveBySixCmuBuildingPreset } from '../domain/designBuilderPreset';
 import { applyAutoFrameLayout } from '../domain/structureActions';
 import { createDefaultRoofSystemSettings } from '../domain/roofSystemDefaults';
-import { getSegmentFramesForWallLayout, buildDesignGeometryInputFromLayout, generateDesignGeometry } from '../geometry/designGeometry';
+import { buildDesignGeometryInputFromLayout, generateDesignGeometry } from '../geometry/designGeometry';
 import { normalizeRcFrameFoundationSettings } from '../domain/rcFrameFoundationMigration';
 import {
   masonryTopEnvelopeYAtStation,
-  minimumRakedCapDepthMeters,
   roofToCapClearanceAtStation,
   solveRakedCapPlacementsWithWarnings,
 } from '../domain/rakedCapSolver';
@@ -24,6 +23,10 @@ import {
   buildRakedCapStripRenderSegments,
   RAKED_CAP_STRIP_STATION_GAP_TOLERANCE_METERS,
 } from '../geometry/roofRenderingGeometry';
+
+function expectDefined<T>(value: T | null | undefined): asserts value is T {
+  expect(value).toBeDefined();
+}
 
 function gableGeometry(overrides: Partial<import('../types').RoofSystemSettings> = {}) {
   const preset = applyAutoFrameLayout(createFiveBySixCmuBuildingPreset());
@@ -66,7 +69,8 @@ describe('rakedCapSolver — purlin contact and minimum depth', () => {
     const frames = geometry.wallCmuLayout.segmentFrames ?? [];
     for (const cap of geometry.rakedCapPlacements ?? []) {
       const frame = frames.find((entry) => entry.segmentId === cap.gableEndSegmentId)!;
-      const panel = geometry.infillSystem?.panels.find((entry) => entry.hostSegmentId === cap.gableEndSegmentId)!;
+      const panel = geometry.infillSystem?.panels.find((entry) => entry.hostSegmentId === cap.gableEndSegmentId);
+      expectDefined(panel);
       for (const station of [cap.startStationMeters, cap.endStationMeters]) {
         const capTopY = station === cap.startStationMeters ? cap.startTopY : cap.endTopY;
         const clearance = roofToCapClearanceAtStation({
@@ -89,7 +93,8 @@ describe('rakedCapSolver — purlin contact and minimum depth', () => {
     const loose = gableGeometry({ gable: { ...createDefaultRoofSystemSettings().gable, enabled: true, rakeClearanceMeters: 0.25, rakedConcreteCapEnabled: true } });
     const gableSegmentId = tight.geometry.resolvedRoofSystem!.gableEndSegmentIds[0]!;
     const frame = (tight.geometry.wallCmuLayout.segmentFrames ?? []).find((entry) => entry.segmentId === gableSegmentId)!;
-    const panel = tight.geometry.infillSystem?.panels.find((entry) => entry.hostSegmentId === gableSegmentId)!;
+    const panel = tight.geometry.infillSystem?.panels.find((entry) => entry.hostSegmentId === gableSegmentId);
+    expectDefined(panel);
     const station = (panel.startStationMeters + panel.endStationMeters) / 2;
     const tightTop = rakedCapTopYAtStation({
       resolvedRoof: tight.geometry.resolvedRoofSystem!,
@@ -110,12 +115,30 @@ describe('rakedCapSolver — purlin contact and minimum depth', () => {
     expect(tightTop).toBeCloseTo(looseTop, 4);
   });
 
+  it('does not warn when increased gable concrete fill exceeds the default 4 in cover', () => {
+    const { geometry } = gableGeometry({
+      gable: {
+        ...createDefaultRoofSystemSettings().gable,
+        enabled: true,
+        rakeClearanceMeters: 1.3,
+        rakedConcreteCapEnabled: true,
+      },
+    });
+    const warnings =
+      geometry.resolvedRoofSystem?.gableEnds.flatMap((gableEnd) => gableEnd.warnings) ?? [];
+
+    expect(
+      warnings.filter((warning) => warning.code === 'insufficient_raked_cap_depth'),
+    ).toHaveLength(0);
+  });
+
   it('sets cap bottom to resolved CMU envelope and cap top to rakedCapTopYAtStation', () => {
     const { geometry, roofSystem, preset } = gableGeometry();
     const gableBlocks = geometry.blockInstances.filter((block) => block.source === 'gable_end_solver');
     const gableSegmentId = geometry.resolvedRoofSystem!.gableEndSegmentIds[0]!;
     const frame = (geometry.wallCmuLayout.segmentFrames ?? []).find((entry) => entry.segmentId === gableSegmentId)!;
-    const panel = geometry.infillSystem?.panels.find((entry) => entry.hostSegmentId === gableSegmentId)!;
+    const panel = geometry.infillSystem?.panels.find((entry) => entry.hostSegmentId === gableSegmentId);
+    expectDefined(panel);
     const module = resolveCmuModuleDefinition(preset.wall);
     const { placements } = solveRakedCapPlacementsWithWarnings({
       gableEndSegmentId: gableSegmentId,
@@ -151,7 +174,8 @@ describe('rakedCapSolver — purlin contact and minimum depth', () => {
     const roof = geometry.resolvedRoofSystem!;
     const gableSegmentId = roof.gableEndSegmentIds[0]!;
     const frame = (geometry.wallCmuLayout.segmentFrames ?? []).find((entry) => entry.segmentId === gableSegmentId)!;
-    const panel = geometry.infillSystem?.panels.find((entry) => entry.hostSegmentId === gableSegmentId)!;
+    const panel = geometry.infillSystem?.panels.find((entry) => entry.hostSegmentId === gableSegmentId);
+    expectDefined(panel);
     const module = resolveCmuModuleDefinition(preset.wall);
     const ridgeStation = resolveGableRidgeStationMeters({ frame, resolvedRoof: roof });
     const gableBlocks = geometry.blockInstances.filter(
@@ -225,7 +249,8 @@ describe('rakedCapSolver — purlin contact and minimum depth', () => {
     const frames = geometry.wallCmuLayout.segmentFrames ?? [];
     for (const cap of geometry.rakedCapPlacements ?? []) {
       const frame = frames.find((entry) => entry.segmentId === cap.gableEndSegmentId)!;
-      const panel = geometry.infillSystem?.panels.find((entry) => entry.hostSegmentId === cap.gableEndSegmentId)!;
+      const panel = geometry.infillSystem?.panels.find((entry) => entry.hostSegmentId === cap.gableEndSegmentId);
+      expectDefined(panel);
       const undersideStart = roofCladdingUndersideYAtStation({
         resolvedRoof: roof,
         frame,
@@ -260,7 +285,8 @@ describe('rakedCapSolver — purlin contact and minimum depth', () => {
     expect(roof.purlinPlacements.length).toBe(0);
     const gableSegmentId = roof.gableEndSegmentIds[0]!;
     const frame = (geometry.wallCmuLayout.segmentFrames ?? []).find((entry) => entry.segmentId === gableSegmentId)!;
-    const panel = geometry.infillSystem?.panels.find((entry) => entry.hostSegmentId === gableSegmentId)!;
+    const panel = geometry.infillSystem?.panels.find((entry) => entry.hostSegmentId === gableSegmentId);
+    expectDefined(panel);
     const cap = geometry.rakedCapPlacements?.[0];
     expect(cap).toBeDefined();
     const underside = roofCladdingUndersideYAtStation({
@@ -480,7 +506,8 @@ describe('allowedMasonryTopYAtStation vs rakedCapTopYAtStation', () => {
     const roof = geometry.resolvedRoofSystem!;
     const gableSegmentId = roof.gableEndSegmentIds[0]!;
     const frame = (geometry.wallCmuLayout.segmentFrames ?? []).find((entry) => entry.segmentId === gableSegmentId)!;
-    const panel = geometry.infillSystem?.panels.find((entry) => entry.hostSegmentId === gableSegmentId)!;
+    const panel = geometry.infillSystem?.panels.find((entry) => entry.hostSegmentId === gableSegmentId);
+    expectDefined(panel);
     const station = (panel.startStationMeters + panel.endStationMeters) / 2;
     const masonryCeiling = allowedMasonryTopYAtStation({
       resolvedRoof: roof,

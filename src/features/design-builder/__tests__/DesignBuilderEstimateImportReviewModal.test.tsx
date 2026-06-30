@@ -4,7 +4,7 @@ import DesignBuilderEstimateImportReviewModal from '../ui/DesignBuilderEstimateI
 import type { DesignEstimatePreviewLine, DesignQuantityItem } from '../types';
 
 const mocks = vi.hoisted(() => ({
-  commitDesignEstimatePreview: vi.fn(),
+  commitDesignScopePackages: vi.fn(),
   useProductionRateLibrary: vi.fn(),
   useProjectLaborRates: vi.fn(),
 }));
@@ -18,7 +18,7 @@ vi.mock('../../../services/hapticService', () => ({
 }));
 
 vi.mock('../application/designBuilderToEstimate', () => ({
-  commitDesignEstimatePreview: mocks.commitDesignEstimatePreview,
+  commitDesignScopePackages: mocks.commitDesignScopePackages,
 }));
 
 vi.mock('../../estimating/ui/hooks/useProductionRateLibrary', () => ({
@@ -55,6 +55,13 @@ function quantityItem(): DesignQuantityItem {
     projectId: 'project-1',
     estimateId: 'estimate-1',
     estimateLineId: null,
+    estimateActivityId: null,
+    materialResourceId: null,
+    equipmentResourceId: null,
+    importDestination: null,
+    importStatus: null,
+    scopePackageKey: null,
+    importReviewReason: null,
     quantityType: 'cmu_block_count',
     description: 'CMU blocks including waste',
     quantity: 770,
@@ -71,8 +78,8 @@ function quantityItem(): DesignQuantityItem {
 
 describe('DesignBuilderEstimateImportReviewModal', () => {
   beforeEach(() => {
-    mocks.commitDesignEstimatePreview.mockReset();
-    mocks.commitDesignEstimatePreview.mockResolvedValue({
+    mocks.commitDesignScopePackages.mockReset();
+    mocks.commitDesignScopePackages.mockResolvedValue({
       data: { bundles: [], committedQuantityItems: [{ id: 'quantity-1' }] },
       error: null,
     });
@@ -113,9 +120,17 @@ describe('DesignBuilderEstimateImportReviewModal', () => {
     });
   });
 
-  it('keeps Create Activities disabled until every included row is resolved', async () => {
+  it('lets material/reference rows through and blocks unresolved package activity rows', async () => {
     const onCommitted = vi.fn();
     const onClose = vi.fn();
+    const activityLine = {
+      ...previewLine(),
+      id: 'cmu-wall-net-area',
+      quantityType: 'cmu_wall_net_area',
+      description: 'CMU wall net area',
+      quantity: 1587.64,
+      unit: 'SF',
+    };
 
     render(
       <DesignBuilderEstimateImportReviewModal
@@ -123,7 +138,7 @@ describe('DesignBuilderEstimateImportReviewModal', () => {
         projectId="project-1"
         estimateId="estimate-1"
         designModelId="model-1"
-        previewLines={[previewLine()]}
+        previewLines={[previewLine(), activityLine]}
         persistedQuantityItems={[quantityItem()]}
         onClose={onClose}
         onCommitted={onCommitted}
@@ -131,7 +146,7 @@ describe('DesignBuilderEstimateImportReviewModal', () => {
     );
 
     const createButton = await screen.findByRole('button', { name: /create activities/i });
-    await waitFor(() => expect(screen.getByText(/need review/i)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/needs review/i)).toBeInTheDocument());
     expect(createButton).toBeDisabled();
 
     fireEvent.click(screen.getByRole('button', { name: /use manual mh\/unit override/i }));
@@ -146,20 +161,29 @@ describe('DesignBuilderEstimateImportReviewModal', () => {
     expect(createButton).not.toBeDisabled();
     fireEvent.click(createButton);
 
-    await waitFor(() => expect(mocks.commitDesignEstimatePreview).toHaveBeenCalled());
-    expect(mocks.commitDesignEstimatePreview).toHaveBeenCalledWith(
+    await waitFor(() => expect(mocks.commitDesignScopePackages).toHaveBeenCalled());
+    expect(mocks.commitDesignScopePackages).toHaveBeenCalledWith(
       expect.objectContaining({
-        assignments: [
+        packages: expect.arrayContaining([
           expect.objectContaining({
-            previewLineId: 'cmu-blocks',
-            status: 'manual_override',
-            manualOverride: {
-              manHoursPerUnit: 0.08,
-              reason: 'No approved rate matched the Design Builder unit.',
-              sourceNote: 'Estimator historical production record.',
-            },
+            key: '04-masonry-cmu-wall-system',
+            quantities: expect.arrayContaining([
+              expect.objectContaining({
+                line: expect.objectContaining({ id: 'cmu-blocks' }),
+                classification: expect.objectContaining({ destination: 'material_resource' }),
+              }),
+              expect.objectContaining({
+                line: expect.objectContaining({ id: 'cmu-wall-net-area' }),
+                assignmentStatus: 'manual_override',
+                manualOverride: {
+                  manHoursPerUnit: 0.08,
+                  reason: 'No approved rate matched the Design Builder unit.',
+                  sourceNote: 'Estimator historical production record.',
+                },
+              }),
+            ]),
           }),
-        ],
+        ]),
       }),
     );
     expect(onCommitted).toHaveBeenCalled();

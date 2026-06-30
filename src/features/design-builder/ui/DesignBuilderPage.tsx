@@ -230,6 +230,11 @@ import {
   DesignBuilderLinkedQuantitiesPanel,
   type EstimatePreviewState,
 } from './DesignBuilderEstimatePanel';
+import {
+  buildEstimatePreviewText,
+  downloadTextFile,
+  estimatePreviewTextFilename,
+} from './estimatePreviewTextExport';
 import DesignBuilderEstimateImportReviewModal from './DesignBuilderEstimateImportReviewModal';
 import { positiveOrFallback } from './designBuilderFormFieldMath';
 import {
@@ -5525,6 +5530,28 @@ export default function DesignBuilderPage({
     }
   }
 
+  function handleDownloadEstimatePreview() {
+    if (visiblePreviewLines.length === 0) {
+      setStatus({ tone: 'warning', message: 'No estimate preview data is available to download.' });
+      return;
+    }
+
+    try {
+      const generatedAt = new Date();
+      downloadTextFile(
+        estimatePreviewTextFilename(generatedAt),
+        buildEstimatePreviewText({
+          lines: visiblePreviewLines,
+          generatedAt,
+        }),
+      );
+      setStatus({ tone: 'success', message: 'Estimate preview text file downloaded.' });
+    } catch (error) {
+      console.error('Failed to download estimate preview text file', error);
+      setStatus({ tone: 'error', message: 'Estimate preview text file could not be downloaded.' });
+    }
+  }
+
   async function handleCommitPreview() {
     if (!canCommitEstimatePreview) {
       const message =
@@ -7040,6 +7067,7 @@ export default function DesignBuilderPage({
           }}
           onGeneratePreview={() => void handleGeneratePreview()}
           onCommitPreview={() => void handleCommitPreview()}
+          onDownloadPreview={handleDownloadEstimatePreview}
         />
       </div>
     </div>

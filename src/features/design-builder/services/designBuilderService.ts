@@ -8,6 +8,7 @@ import type {
   DesignQuantityItem,
   UpsertDesignModelObjectInput,
 } from '../types';
+import type { DesignQuantityDestination } from '../application/designScopeTypes';
 
 function success<T>(data: T): RepositoryResult<T> {
   return { data, error: null };
@@ -59,6 +60,13 @@ interface DesignQuantityItemRow {
   project_id: string;
   estimate_id: string | null;
   estimate_line_id: string | null;
+  estimate_activity_id?: string | null;
+  material_resource_id?: string | null;
+  equipment_resource_id?: string | null;
+  import_destination?: string | null;
+  import_status?: string | null;
+  scope_package_key?: string | null;
+  import_review_reason?: string | null;
   quantity_type: string;
   description: string;
   quantity: number;
@@ -113,6 +121,13 @@ function mapQuantityRow(row: DesignQuantityItemRow): DesignQuantityItem {
     projectId: row.project_id,
     estimateId: row.estimate_id,
     estimateLineId: row.estimate_line_id,
+    estimateActivityId: row.estimate_activity_id ?? null,
+    materialResourceId: row.material_resource_id ?? null,
+    equipmentResourceId: row.equipment_resource_id ?? null,
+    importDestination: row.import_destination ?? null,
+    importStatus: row.import_status ?? null,
+    scopePackageKey: row.scope_package_key ?? null,
+    importReviewReason: row.import_review_reason ?? null,
     quantityType: row.quantity_type,
     description: row.description,
     quantity: Number(row.quantity),
@@ -255,7 +270,9 @@ export async function replaceDesignQuantityItems(
       .from('design_quantity_items')
       .select('*')
       .eq('design_model_id', designModelId)
-      .not('estimate_line_id', 'is', null);
+      .or(
+        'estimate_line_id.not.is.null,estimate_activity_id.not.is.null,material_resource_id.not.is.null,equipment_resource_id.not.is.null,import_status.not.is.null',
+      );
     if (committedError) return failure(committedError.message);
 
     const committedByPreviewId = new Map(
@@ -269,7 +286,11 @@ export async function replaceDesignQuantityItems(
       .from('design_quantity_items')
       .delete()
       .eq('design_model_id', designModelId)
-      .is('estimate_line_id', null);
+      .is('estimate_line_id', null)
+      .is('estimate_activity_id', null)
+      .is('material_resource_id', null)
+      .is('equipment_resource_id', null)
+      .is('import_status', null);
     if (deleteError) return failure(deleteError.message);
 
     if (items.length === 0) return success([]);
@@ -282,6 +303,34 @@ export async function replaceDesignQuantityItems(
       estimate_line_id:
         item.estimateLineId ??
         committedByPreviewId.get(String(item.metadata?.previewLineId ?? item.quantityType))?.estimate_line_id ??
+        null,
+      estimate_activity_id:
+        item.estimateActivityId ??
+        committedByPreviewId.get(String(item.metadata?.previewLineId ?? item.quantityType))?.estimate_activity_id ??
+        null,
+      material_resource_id:
+        item.materialResourceId ??
+        committedByPreviewId.get(String(item.metadata?.previewLineId ?? item.quantityType))?.material_resource_id ??
+        null,
+      equipment_resource_id:
+        item.equipmentResourceId ??
+        committedByPreviewId.get(String(item.metadata?.previewLineId ?? item.quantityType))?.equipment_resource_id ??
+        null,
+      import_destination:
+        item.importDestination ??
+        committedByPreviewId.get(String(item.metadata?.previewLineId ?? item.quantityType))?.import_destination ??
+        null,
+      import_status:
+        item.importStatus ??
+        committedByPreviewId.get(String(item.metadata?.previewLineId ?? item.quantityType))?.import_status ??
+        null,
+      scope_package_key:
+        item.scopePackageKey ??
+        committedByPreviewId.get(String(item.metadata?.previewLineId ?? item.quantityType))?.scope_package_key ??
+        null,
+      import_review_reason:
+        item.importReviewReason ??
+        committedByPreviewId.get(String(item.metadata?.previewLineId ?? item.quantityType))?.import_review_reason ??
         null,
       quantity_type: item.quantityType,
       description: item.description,
@@ -327,11 +376,59 @@ export async function markDesignQuantityItemsCommitted(params: {
   try {
     const { data, error } = await supabase
       .from('design_quantity_items')
-      .update({ estimate_line_id: params.estimateLineId, updated_at: new Date().toISOString() })
+      .update({
+        estimate_line_id: params.estimateLineId,
+        import_destination: 'activity_line_item',
+        import_status: 'imported',
+        updated_at: new Date().toISOString(),
+      })
       .in('id', params.quantityItemIds)
       .select('*');
     if (error) return failure(error.message);
     return success((data as DesignQuantityItemRow[]).map(mapQuantityRow));
+  } catch (err) {
+    return failure(err);
+  }
+}
+
+export async function markDesignQuantityItemsImported(params: {
+  updates: Array<{
+    quantityItemId: string;
+    estimateActivityId?: string | null;
+    estimateLineId?: string | null;
+    materialResourceId?: string | null;
+    equipmentResourceId?: string | null;
+    importDestination: DesignQuantityDestination;
+    importStatus: 'imported' | 'reference_only' | 'excluded' | 'review_required';
+    scopePackageKey: string;
+    importReviewReason?: string | null;
+  }>;
+}): Promise<RepositoryResult<DesignQuantityItem[]>> {
+  if (params.updates.length === 0) return success([]);
+
+  try {
+    const updated: DesignQuantityItem[] = [];
+    for (const item of params.updates) {
+      const { data, error } = await supabase
+        .from('design_quantity_items')
+        .update({
+          estimate_activity_id: item.estimateActivityId ?? null,
+          estimate_line_id: item.estimateLineId ?? null,
+          material_resource_id: item.materialResourceId ?? null,
+          equipment_resource_id: item.equipmentResourceId ?? null,
+          import_destination: item.importDestination,
+          import_status: item.importStatus,
+          scope_package_key: item.scopePackageKey,
+          import_review_reason: item.importReviewReason ?? null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', item.quantityItemId)
+        .select('*')
+        .single();
+      if (error) return failure(error.message);
+      updated.push(mapQuantityRow(data as DesignQuantityItemRow));
+    }
+    return success(updated);
   } catch (err) {
     return failure(err);
   }

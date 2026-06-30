@@ -456,6 +456,7 @@ export default function ConstructionActivityCard({
         resourceType={pickerType}
         activityId={activity.id}
         projectId={activity.projectId}
+        existingResources={pickerType === 'material' ? resources.materials : resources.equipment}
         onSave={
           pickerType === 'material'
             ? editingMaterial

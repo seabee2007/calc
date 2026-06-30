@@ -95,6 +95,20 @@ export function resolveCmuCoreFillVolumePerBlockCubicFeet(wall: CmuWallSystemPar
   ];
 }
 
+function lintelDisplayName(lintelType: CmuWallSystemParameters['lintelType']): string {
+  switch (lintelType ?? 'bond_beam') {
+    case 'precast_concrete':
+      return 'Precast concrete lintel';
+    case 'steel_placeholder':
+      return 'Steel lintel allowance';
+    case 'none':
+      return 'No lintel selected';
+    case 'bond_beam':
+    default:
+      return 'Bond-beam lintel';
+  }
+}
+
 function resolveCmuCoreFillNominalDepthInches(wall: CmuWallSystemParameters): number {
   const nominalDepthInches = metersToFeet(wall.blockDepthMeters || wall.wallThicknessMeters) * 12;
   return [6, 8, 12].reduce((closest, depth) =>
@@ -455,11 +469,12 @@ export function buildCmuBuildingEstimatePreview(input: CmuBuildingQuantityInput)
       designModelId: input.designModelId,
       designObjectId: input.wallObjectId,
       quantityType: 'cmu_lintels',
-      description: 'Precast concrete lintel',
+      description: lintelDisplayName(input.wall.lintelType),
       quantity: openingGrout.lintelCount,
       unit: 'EA',
       formula: 'one_lintel_per_opening_with_configured_bearing',
       parameterSnapshot: {
+        lintelType: input.wall.lintelType ?? 'bond_beam',
         openings: input.wall.openings,
         lintels: cmuLayout.lintels,
         openingGrout,
