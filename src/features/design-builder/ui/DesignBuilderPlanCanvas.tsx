@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type PointerEvent } from 'react';
 import type {
   DesignBuilderInteractionEvent,
+  DesignBuilderSelectedObject,
   DesignBuilderSnapMode,
   DesignBuilderToolMode,
   Design2DViewType,
@@ -511,6 +512,8 @@ interface DesignBuilderPlanCanvasProps {
   roofSystem?: RoofSystemSettings;
   roofPlanDisplay?: RoofPlanDisplayOptions;
   selectedObjectType?: import('../types').DesignObjectType | null;
+  selectedObjectTreeItemId?: string | null;
+  selectedDesignObject?: DesignBuilderSelectedObject | null;
   selectedAnnotationId?: string | null;
   drawingStyleMode?: Design2dDrawingStyleMode;
   active2DView?: Design2DViewType;
@@ -586,6 +589,8 @@ export default function DesignBuilderPlanCanvas({
     showTrussDesignDetail: true,
   },
   selectedObjectType = null,
+  selectedObjectTreeItemId = null,
+  selectedDesignObject = null,
   selectedAnnotationId = null,
   drawingStyleMode = 'architectural',
   active2DView = 'foundation-plan',
@@ -640,6 +645,21 @@ export default function DesignBuilderPlanCanvas({
   const selectionStroke = drawingStyle.selectionStroke;
   const previewStroke = drawingStyle.previewStroke;
   const previewFill = drawingStyle.previewFill;
+  const objectSelectionStroke = '#06b6d4';
+  const objectSelectionFill = '#06b6d433';
+  const objectSelectionHalo = '#67e8f9';
+  const selectedObjectTreeItem =
+    selectedDesignObject?.kind === 'object_tree_item'
+      ? selectedDesignObject.objectTreeItemId
+      : selectedObjectTreeItemId;
+  const isTreeItemSelected = useCallback(
+    (id: string) => selectedObjectTreeItem === id,
+    [selectedObjectTreeItem],
+  );
+  const selectedTreeItemData = useCallback(
+    (id: string) => (isTreeItemSelected(id) ? { 'data-selected-object-tree-item-id': id } : {}),
+    [isTreeItemSelected],
+  );
   const textBackerStroke = architecturalDrawing ? drawingStyle.sheetFill : '#0f172a';
   const isRoofPlanView = active2DView === 'roof-plan';
   const isPlumbingPlanView = active2DView === 'plumbing-plan';
@@ -1053,12 +1073,8 @@ export default function DesignBuilderPlanCanvas({
         const bodyHit =
           Math.abs(dx) <= column.widthMeters / 2 + handleToleranceMeters &&
           Math.abs(dz) <= column.depthMeters / 2 + handleToleranceMeters;
-        const footerHit =
-          footing != null &&
-          Math.abs(dx) <= footing.widthMeters / 2 + handleToleranceMeters &&
-          Math.abs(dz) <= footing.lengthMeters / 2 + handleToleranceMeters;
         const centerHandleHit = Math.hypot(dx, dz) <= Math.max(handleToleranceMeters, 0.12);
-        if (bodyHit || footerHit || centerHandleHit) {
+        if (bodyHit || centerHandleHit) {
           return {
             id: column.id,
             source: 'frame',
@@ -1088,6 +1104,21 @@ export default function DesignBuilderPlanCanvas({
       const stripHit = (start: { x: number; z: number }, end: { x: number; z: number }, widthMeters: number) =>
         distanceToPlanSegment(point, start, end) <= widthMeters / 2 + toleranceMeters;
 
+      for (const footing of [...isolatedFootings].reverse()) {
+        const dx = point.x - footing.position.x;
+        const dz = point.z - footing.position.z;
+        if (
+          Math.abs(dx) <= footing.widthMeters / 2 + toleranceMeters &&
+          Math.abs(dz) <= footing.lengthMeters / 2 + toleranceMeters
+        ) {
+          return {
+            id: footing.id,
+            objectType: 'structural_frame_system',
+            objectTreeItemId: 'foundation-isolated-footings',
+          };
+        }
+      }
+
       for (const beam of [...foundationPlanBeams].reverse()) {
         if (stripHit(beam.startPoint, beam.endPoint, beam.widthMeters)) {
           return {
@@ -1113,6 +1144,7 @@ export default function DesignBuilderPlanCanvas({
           return {
             id: footing.id,
             objectType: 'structural_frame_system',
+            objectTreeItemId: 'foundation-wall-footings',
           };
         }
       }
@@ -1138,6 +1170,7 @@ export default function DesignBuilderPlanCanvas({
       foundationPlanBeams,
       interiorFloorSlab?.enabled,
       interiorFloorSlabFootprint,
+      isolatedFootings,
       showStructuralPlanGeometry,
       viewport.zoom,
       wallFootings,
@@ -2530,6 +2563,8 @@ export default function DesignBuilderPlanCanvas({
       strokeWidth?: number;
       opacity?: number;
       strokeDasharray?: string;
+      haloStroke?: string;
+      haloStrokeWidth?: number;
       data?: Record<string, string>;
     } = {},
   ) => {
@@ -2548,9 +2583,8 @@ export default function DesignBuilderPlanCanvas({
       `${end.sx - nx},${end.sy - ny}`,
       `${start.sx - nx},${start.sy - ny}`,
     ].join(' ');
-    return (
+    const polygon = (
       <polygon
-        key={key}
         points={points}
         fill={options.fill ?? 'none'}
         stroke={options.stroke ?? permanentStroke}
@@ -2562,10 +2596,41 @@ export default function DesignBuilderPlanCanvas({
         {...options.data}
       />
     );
+    if (!options.haloStroke) {
+      return (
+        <polygon
+          key={key}
+          points={points}
+          fill={options.fill ?? 'none'}
+          stroke={options.stroke ?? permanentStroke}
+          strokeWidth={options.strokeWidth ?? drawingStyle.weights.light}
+          strokeDasharray={options.strokeDasharray}
+          opacity={options.opacity ?? 1}
+          strokeLinejoin="round"
+          pointerEvents="none"
+          {...options.data}
+        />
+      );
+    }
+    return (
+      <g key={key}>
+        <polygon
+          points={points}
+          fill="none"
+          stroke={options.haloStroke}
+          strokeWidth={options.haloStrokeWidth ?? (options.strokeWidth ?? drawingStyle.weights.light) + 2}
+          strokeLinejoin="round"
+          strokeOpacity={0.75}
+          pointerEvents="none"
+        />
+        {polygon}
+      </g>
+    );
   };
 
   const renderInteriorFloorSlabFootprint = () => {
     if (!showStructuralPlanGeometry || !interiorFloorSlab?.enabled || interiorFloorSlabFootprint.length < 3) return null;
+    const selected = isTreeItemSelected('foundation-sog');
     const points = interiorFloorSlabFootprint
       .map((point) => {
         const surface = planToSurfacePoint(point);
@@ -2575,11 +2640,12 @@ export default function DesignBuilderPlanCanvas({
     return (
       <polygon
         points={points}
-        fill={architecturalDrawing ? '#e2e8f033' : '#94a3b833'}
-        stroke={architecturalDrawing ? mutedStroke : '#64748b'}
-        strokeWidth={architecturalDrawing ? drawingStyle.weights.light : 1.2}
+        fill={selected ? objectSelectionFill : architecturalDrawing ? '#e2e8f033' : '#94a3b833'}
+        stroke={selected ? objectSelectionStroke : architecturalDrawing ? mutedStroke : '#64748b'}
+        strokeWidth={selected ? drawingStyle.weights.selection : architecturalDrawing ? drawingStyle.weights.light : 1.2}
         pointerEvents="none"
         data-foundation-floor-slab="true"
+        {...selectedTreeItemData('foundation-sog')}
       />
     );
   };
@@ -2587,17 +2653,20 @@ export default function DesignBuilderPlanCanvas({
   const renderBelowGradeCmuInfill = () => {
     if (!showStructuralPlanGeometry || belowGradeCmuInfillStrips.length === 0) return null;
     return belowGradeCmuInfillStrips.map((strip) => {
+      const selected = isTreeItemSelected('foundation-cmu-infill-below-grade');
       return renderPlanMaterialStrip(
         `below-grade-cmu-${strip.id}`,
         strip.start,
         strip.end,
         strip.widthMeters,
         {
-          fill: architecturalDrawing ? 'none' : '#47556933',
-          stroke: architecturalDrawing ? permanentStroke : '#334155',
-          strokeWidth: architecturalDrawing ? drawingStyle.weights.normal : 1.4,
+          fill: selected ? objectSelectionFill : architecturalDrawing ? 'none' : '#47556933',
+          stroke: selected ? objectSelectionStroke : architecturalDrawing ? permanentStroke : '#334155',
+          strokeWidth: selected ? drawingStyle.weights.selection : architecturalDrawing ? drawingStyle.weights.normal : 1.4,
+          haloStroke: selected ? objectSelectionHalo : undefined,
           data: {
             'data-foundation-below-grade-cmu-infill': strip.id,
+            ...selectedTreeItemData('foundation-cmu-infill-below-grade'),
           },
         },
       );
@@ -3237,7 +3306,18 @@ export default function DesignBuilderPlanCanvas({
   };
 
   const renderPlanRcComponent = (component: DesignRenderRcComponent, preview = false) => {
-    const selected = !preview && selectedComponentId === component.sourceComponentId;
+    const groupTreeItemId =
+      component.type === 'column'
+        ? 'columns'
+        : component.type === 'slab'
+          ? 'slab'
+          : component.type === 'roof_beam'
+            ? 'roof-beams'
+            : null;
+    const groupSelected = !preview && groupTreeItemId != null && isTreeItemSelected(groupTreeItemId);
+    const instanceSelected = !preview && selectedComponentId === component.sourceComponentId;
+    const selected = instanceSelected || groupSelected;
+    const selectedStroke = groupSelected ? objectSelectionStroke : selectionStroke;
     const center = planToSurfacePoint({ x: component.position.x, z: component.position.z });
     const widthMeters = component.dimensions.width;
     const depthMeters = component.dimensions.depth;
@@ -3251,6 +3331,7 @@ export default function DesignBuilderPlanCanvas({
       'data-component-id': component.id,
       'data-component-type': component.type,
       'data-component-system': component.system,
+      ...(groupTreeItemId ? selectedTreeItemData(groupTreeItemId) : {}),
     };
     if (component.type === 'column') {
       const footerWidthPx = Math.max(widthPx + 10, (component.footer?.widthMeters ?? widthMeters * 2) * viewport.zoom);
@@ -3265,7 +3346,7 @@ export default function DesignBuilderPlanCanvas({
                 width={footerWidthPx}
                 height={footerLengthPx}
                 fill={preview ? previewFill : architecturalDrawing ? '#f1f5f9' : '#78716c55'}
-                stroke={preview ? previewStroke : selected ? selectionStroke : architecturalDrawing ? mutedStroke : '#57534e'}
+                stroke={preview ? previewStroke : selected ? selectedStroke : architecturalDrawing ? mutedStroke : '#57534e'}
                 strokeWidth={selected ? 2 : 1.2}
                 strokeDasharray={preview ? '6 4' : undefined}
                 data-component-footer-id={component.footer.id}
@@ -3278,14 +3359,14 @@ export default function DesignBuilderPlanCanvas({
             width={widthPx}
             height={depthPx}
             fill={preview ? previewFill : concreteFill}
-            stroke={preview ? previewStroke : selected ? selectionStroke : permanentStroke}
+            stroke={preview ? previewStroke : selected ? selectedStroke : permanentStroke}
             strokeWidth={preview || selected ? 2 : 1.6}
             strokeDasharray={preview ? '4 3' : undefined}
             data-component-column-body-id={component.id}
           />
           <line x1={center.sx - widthPx * 0.8} y1={center.sy} x2={center.sx + widthPx * 0.8} y2={center.sy} stroke={preview ? previewStroke : referenceStroke} strokeWidth={1} strokeOpacity={preview ? 0.8 : 0.7} />
           <line x1={center.sx} y1={center.sy - depthPx * 0.8} x2={center.sx} y2={center.sy + depthPx * 0.8} stroke={preview ? previewStroke : referenceStroke} strokeWidth={1} strokeOpacity={preview ? 0.8 : 0.7} />
-          {selected
+          {instanceSelected
             ? [
                 [-1, -1],
                 [1, -1],
@@ -3298,7 +3379,7 @@ export default function DesignBuilderPlanCanvas({
                   y={center.sy + dy * (depthPx / 2) - 4}
                   width={8}
                   height={8}
-                  fill={selectionStroke}
+                  fill={selectedStroke}
                   stroke={textBackerStroke}
                   strokeWidth={1}
                 />
@@ -3316,7 +3397,7 @@ export default function DesignBuilderPlanCanvas({
           width={lengthPx}
           height={widthPx}
           fill={preview ? previewFill : architecturalDrawing ? '#eef2f7' : '#94a3b833'}
-          stroke={preview ? previewStroke : selected ? selectionStroke : mutedStroke}
+          stroke={preview ? previewStroke : selected ? selectedStroke : mutedStroke}
           strokeWidth={preview || selected ? 2 : 1.5}
           strokeDasharray={preview ? '5 4' : undefined}
           {...common}
@@ -3333,7 +3414,7 @@ export default function DesignBuilderPlanCanvas({
             width={widthPx}
             height={depthPx}
             fill={preview ? previewFill : architecturalDrawing ? '#f1f5f9' : '#78716c55'}
-            stroke={preview ? previewStroke : selected ? selectionStroke : architecturalDrawing ? mutedStroke : '#57534e'}
+            stroke={preview ? previewStroke : selected ? selectedStroke : architecturalDrawing ? mutedStroke : '#57534e'}
             strokeWidth={selected ? 2.2 : preview ? 2 : 1.5}
             {...common}
           />
@@ -3343,7 +3424,7 @@ export default function DesignBuilderPlanCanvas({
             width={markerSizePx}
             height={markerSizePx}
             fill={preview ? previewFill : structuralFill}
-            stroke={preview ? previewStroke : selected ? selectionStroke : permanentStroke}
+            stroke={preview ? previewStroke : selected ? selectedStroke : permanentStroke}
             strokeWidth={preview || selected ? 1.8 : 1.3}
             data-component-footer-column-marker-id={component.id}
           />
@@ -3352,7 +3433,7 @@ export default function DesignBuilderPlanCanvas({
             y1={center.sy}
             x2={center.sx + markerSizePx * 0.7}
             y2={center.sy}
-            stroke={preview ? previewStroke : selected ? selectionStroke : referenceStroke}
+            stroke={preview ? previewStroke : selected ? selectedStroke : referenceStroke}
             strokeWidth={0.8}
             strokeOpacity={preview ? 0.8 : 0.6}
           />
@@ -3361,7 +3442,7 @@ export default function DesignBuilderPlanCanvas({
             y1={center.sy - markerSizePx * 0.7}
             x2={center.sx}
             y2={center.sy + markerSizePx * 0.7}
-            stroke={preview ? previewStroke : selected ? selectionStroke : referenceStroke}
+            stroke={preview ? previewStroke : selected ? selectedStroke : referenceStroke}
             strokeWidth={0.8}
             strokeOpacity={preview ? 0.8 : 0.6}
           />
@@ -3376,7 +3457,7 @@ export default function DesignBuilderPlanCanvas({
         width={widthPx}
         height={depthPx}
         fill={preview ? previewFill : concreteFill}
-        stroke={preview ? previewStroke : selected ? selectionStroke : permanentStroke}
+        stroke={preview ? previewStroke : selected ? selectedStroke : permanentStroke}
         strokeWidth={preview || selected ? 2 : 1.5}
         strokeDasharray={preview ? '4 3' : undefined}
         {...common}
@@ -3943,31 +4024,35 @@ export default function DesignBuilderPlanCanvas({
             })}
           </>
         ) : null}
-        {showStructuralPlanGeometry ? wallFootings.map((footing) =>
-          renderPlanMaterialStrip(
+        {showStructuralPlanGeometry ? wallFootings.map((footing) => {
+          const selected = isTreeItemSelected('foundation-wall-footings');
+          return renderPlanMaterialStrip(
             footing.id,
             footing.startPoint,
             footing.endPoint,
             footing.widthMeters,
             {
-              fill: architecturalDrawing ? 'none' : '#78716c44',
-              stroke: architecturalDrawing ? mutedStroke : '#57534e',
-              strokeWidth: architecturalDrawing ? drawingStyle.weights.medium : 1.4,
+              fill: selected ? objectSelectionFill : architecturalDrawing ? 'none' : '#78716c44',
+              stroke: selected ? objectSelectionStroke : architecturalDrawing ? mutedStroke : '#57534e',
+              strokeWidth: selected ? drawingStyle.weights.selection : architecturalDrawing ? drawingStyle.weights.medium : 1.4,
+              haloStroke: selected ? objectSelectionHalo : undefined,
               data: {
                 'data-foundation-wall-footing-id': footing.id,
                 'data-foundation-wall-footing-segment-id': footing.hostSegmentId,
+                ...selectedTreeItemData('foundation-wall-footings'),
               },
             },
-          )
-        ) : null}
+          );
+        }) : null}
         {showStructuralPlanGeometry ? isolatedFootings.map((footing) => {
           const center = planToSurfacePoint(footing.position);
           const halfW = (footing.widthMeters * viewport.zoom) / 2;
           const halfL = (footing.lengthMeters * viewport.zoom) / 2;
           const footingColumn = frameSystem?.columns.find((column) => column.id === footing.columnId);
-          const selected =
+          const nodeSelected =
             selectedNodeId != null &&
             footingColumn?.hostNodeId === selectedNodeId;
+          const groupSelected = isTreeItemSelected('foundation-isolated-footings');
           return (
             <rect
               key={footing.id}
@@ -3975,12 +4060,19 @@ export default function DesignBuilderPlanCanvas({
               y={center.sy - halfL}
               width={halfW * 2}
               height={halfL * 2}
-              fill={selected ? (architecturalDrawing ? '#e0f2fe' : '#dbeafe') : architecturalDrawing ? '#f1f5f9' : '#78716c55'}
-              stroke={selected ? selectionStroke : architecturalDrawing ? mutedStroke : '#57534e'}
-              strokeWidth={selected ? 2.2 : 1.5}
+              fill={
+                groupSelected
+                  ? objectSelectionFill
+                  : nodeSelected
+                    ? architecturalDrawing ? '#e0f2fe' : '#dbeafe'
+                    : architecturalDrawing ? '#f1f5f9' : '#78716c55'
+              }
+              stroke={groupSelected ? objectSelectionStroke : nodeSelected ? selectionStroke : architecturalDrawing ? mutedStroke : '#57534e'}
+              strokeWidth={groupSelected ? drawingStyle.weights.selection : nodeSelected ? 2.2 : 1.5}
               pointerEvents="none"
               data-foundation-footing-id={footing.id}
               data-foundation-footing-column-id={footing.columnId}
+              {...selectedTreeItemData('foundation-isolated-footings')}
             />
           );
         }) : null}
@@ -3988,18 +4080,22 @@ export default function DesignBuilderPlanCanvas({
         {foundationPlanUsesBelowGradeFrameInfill ? renderBelowGradeCmuInfill() : renderStructuralPlanWalls()}
         {showStructuralPlanGeometry ? foundationPlanBeams.map((beam) => {
             const stroke = architecturalDrawing ? permanentStroke : '#57534e';
+            const treeItemId = beam.kind === 'tie_beam' ? 'foundation-tie-beam' : 'foundation-plinth-beam';
+            const selected = isTreeItemSelected(treeItemId);
             return renderPlanMaterialStrip(
               beam.id,
               { x: beam.startPoint.x, z: beam.startPoint.z },
               { x: beam.endPoint.x, z: beam.endPoint.z },
               beam.widthMeters,
               {
-                fill: architecturalDrawing ? 'none' : `${stroke}55`,
-                stroke,
-                strokeWidth: architecturalDrawing ? drawingStyle.weights.medium : 1.5,
+                fill: selected ? objectSelectionFill : architecturalDrawing ? 'none' : `${stroke}55`,
+                stroke: selected ? objectSelectionStroke : stroke,
+                strokeWidth: selected ? drawingStyle.weights.selection : architecturalDrawing ? drawingStyle.weights.medium : 1.5,
+                haloStroke: selected ? objectSelectionHalo : undefined,
                 data: {
                   'data-foundation-beam-id': beam.id,
                   'data-foundation-beam-kind': beam.kind,
+                  ...selectedTreeItemData(treeItemId),
                 },
               },
             );
@@ -4008,7 +4104,10 @@ export default function DesignBuilderPlanCanvas({
           const center = planToSurfacePoint(column.position);
           const halfW = (column.widthMeters * viewport.zoom) / 2;
           const halfD = (column.depthMeters * viewport.zoom) / 2;
-          const selected = selectedNodeId != null && column.hostNodeId === selectedNodeId;
+          const nodeSelected = selectedNodeId != null && column.hostNodeId === selectedNodeId;
+          const groupSelected = isTreeItemSelected('columns');
+          const selected = nodeSelected || groupSelected;
+          const selectedStroke = groupSelected ? objectSelectionStroke : selectionStroke;
           return (
             <g key={column.id} pointerEvents="none">
               <rect
@@ -4016,14 +4115,15 @@ export default function DesignBuilderPlanCanvas({
                 y={center.sy - halfD}
                 width={halfW * 2}
                 height={halfD * 2}
-                fill={selected ? (architecturalDrawing ? '#e0f2fe' : '#dbeafe') : structuralFill}
-                stroke={selected ? selectionStroke : permanentStroke}
+                fill={groupSelected ? objectSelectionFill : nodeSelected ? (architecturalDrawing ? '#e0f2fe' : '#dbeafe') : structuralFill}
+                stroke={selected ? selectedStroke : permanentStroke}
                 strokeWidth={selected ? 2.2 : 1.5}
                 data-foundation-column-id={column.id}
+                {...selectedTreeItemData('columns')}
               />
-              <line x1={center.sx - halfW * 1.4} y1={center.sy} x2={center.sx + halfW * 1.4} y2={center.sy} stroke={selected ? selectionStroke : referenceStroke} strokeWidth={1} strokeOpacity={selected ? 0.95 : 0.55} />
-              <line x1={center.sx} y1={center.sy - halfD * 1.4} x2={center.sx} y2={center.sy + halfD * 1.4} stroke={selected ? selectionStroke : referenceStroke} strokeWidth={1} strokeOpacity={selected ? 0.95 : 0.55} />
-              {selected
+              <line x1={center.sx - halfW * 1.4} y1={center.sy} x2={center.sx + halfW * 1.4} y2={center.sy} stroke={selected ? selectedStroke : referenceStroke} strokeWidth={1} strokeOpacity={selected ? 0.95 : 0.55} />
+              <line x1={center.sx} y1={center.sy - halfD * 1.4} x2={center.sx} y2={center.sy + halfD * 1.4} stroke={selected ? selectedStroke : referenceStroke} strokeWidth={1} strokeOpacity={selected ? 0.95 : 0.55} />
+              {nodeSelected
                 ? [
                     [-1, -1],
                     [1, -1],
@@ -4036,7 +4136,7 @@ export default function DesignBuilderPlanCanvas({
                       y={center.sy + dy * halfD - 4}
                       width={8}
                       height={8}
-                      fill={selectionStroke}
+                      fill={selectedStroke}
                       stroke={textBackerStroke}
                       strokeWidth={1}
                     />

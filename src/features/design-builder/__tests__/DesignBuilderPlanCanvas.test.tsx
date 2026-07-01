@@ -1403,7 +1403,184 @@ describe('DesignBuilderPlanCanvas', () => {
     }));
   });
 
-  it('selects generated columns from their footing footprint and highlights the footing with the column', () => {
+  it('renders selected foundation tree items with teal group highlights', () => {
+    const { layout, frameSystem, isolatedFootings } = createColumnDragFixture();
+    const wallFootings = [{
+      id: 'wall-footing-a-b',
+      name: 'Wall Footing A-B',
+      hostSegmentId: 'segment-a-b',
+      startPoint: { x: 0, z: 0.5 },
+      endPoint: { x: 4, z: 0.5 },
+      widthMeters: 0.3,
+      thicknessMeters: 0.25,
+      topElevationMeters: -0.25,
+      bottomElevationMeters: -0.5,
+      centerElevationMeters: -0.375,
+      source: 'auto_partition_wall' as const,
+    }];
+    const { container, rerender } = render(
+      <DesignBuilderPlanCanvas
+        layout={layout}
+        toolMode="select"
+        viewport={{ centerX: 2, centerZ: 1, zoom: 100 }}
+        frameSystem={frameSystem}
+        isolatedFootings={isolatedFootings}
+        wallFootings={wallFootings}
+        selectedObjectTreeItemId="foundation-tie-beam"
+        drawingStyleMode="architectural"
+        onInteraction={vi.fn()}
+      />,
+    );
+
+    const tieBeam = container.querySelector('[data-foundation-beam-id="tie-beam-a-b"]');
+    expect(tieBeam?.getAttribute('stroke')).toBe('#06b6d4');
+    expect(tieBeam?.getAttribute('fill')).toBe('#06b6d433');
+    expect(tieBeam?.getAttribute('data-selected-object-tree-item-id')).toBe('foundation-tie-beam');
+
+    rerender(
+      <DesignBuilderPlanCanvas
+        layout={layout}
+        toolMode="select"
+        viewport={{ centerX: 2, centerZ: 1, zoom: 100 }}
+        frameSystem={frameSystem}
+        isolatedFootings={isolatedFootings}
+        wallFootings={wallFootings}
+        selectedObjectTreeItemId="foundation-plinth-beam"
+        drawingStyleMode="architectural"
+        onInteraction={vi.fn()}
+      />,
+    );
+    const plinthBeam = container.querySelector('[data-foundation-beam-id="beam-a-b"]');
+    expect(plinthBeam?.getAttribute('stroke')).toBe('#06b6d4');
+    expect(plinthBeam?.getAttribute('data-selected-object-tree-item-id')).toBe('foundation-plinth-beam');
+
+    rerender(
+      <DesignBuilderPlanCanvas
+        layout={layout}
+        toolMode="select"
+        viewport={{ centerX: 2, centerZ: 1, zoom: 100 }}
+        frameSystem={frameSystem}
+        isolatedFootings={isolatedFootings}
+        wallFootings={wallFootings}
+        selectedObjectTreeItemId="foundation-isolated-footings"
+        drawingStyleMode="architectural"
+        onInteraction={vi.fn()}
+      />,
+    );
+    const footing = container.querySelector('[data-foundation-footing-id="footing-a"]');
+    expect(footing?.getAttribute('stroke')).toBe('#06b6d4');
+    expect(footing?.getAttribute('fill')).toBe('#06b6d433');
+    expect(footing?.getAttribute('data-selected-object-tree-item-id')).toBe('foundation-isolated-footings');
+
+    rerender(
+      <DesignBuilderPlanCanvas
+        layout={layout}
+        toolMode="select"
+        viewport={{ centerX: 2, centerZ: 1, zoom: 100 }}
+        frameSystem={frameSystem}
+        isolatedFootings={isolatedFootings}
+        wallFootings={wallFootings}
+        selectedObjectTreeItemId="foundation-wall-footings"
+        drawingStyleMode="architectural"
+        onInteraction={vi.fn()}
+      />,
+    );
+    const wallFooting = container.querySelector('[data-foundation-wall-footing-id="wall-footing-a-b"]');
+    expect(wallFooting?.getAttribute('stroke')).toBe('#06b6d4');
+    expect(wallFooting?.getAttribute('data-selected-object-tree-item-id')).toBe('foundation-wall-footings');
+  });
+
+  it('renders selected below-grade CMU infill and SOG with teal group highlights', () => {
+    const { layout, frameSystem } = createColumnDragFixture();
+    const wallLayout = {
+      ...layout,
+      segments: [
+        {
+          id: 'segment-a-b',
+          startNodeId: 'node-a',
+          endNodeId: 'node-b',
+          wallHeightMeters: 2.8,
+          wallThicknessMeters: 0.19,
+          wallRole: 'exterior' as const,
+        },
+      ],
+    };
+    const preset = createFiveBySixCmuBuildingPreset();
+    const segmentFrames = getSegmentFramesForWallLayout(wallLayout, preset.wall);
+    const frame = segmentFrames[0]!;
+    const belowGradeBlock = {
+      id: 'below-grade-cmu-a-b',
+      segmentId: 'segment-a-b',
+      course: 0,
+      courseIndex: 0,
+      blockType: 'full',
+      source: 'below_grade_rc_infill',
+      x: 2,
+      y: -0.3,
+      z: 0,
+      rotationY: frame.rotationY,
+      lengthMeters: 4,
+      depthMeters: 0.19,
+      startAlongMeters: 0,
+      endAlongMeters: 4,
+      infillBand: 'below_grade',
+    } as const;
+    const slab = {
+      enabled: true,
+      thicknessMeters: 0.125,
+      topElevationMeters: 0,
+      bottomElevationMeters: -0.125,
+      areaSquareMeters: 4,
+      volumeCubicMeters: 0.5,
+    };
+    const slabFootprint = [
+      { x: 0, z: 0.25 },
+      { x: 4, z: 0.25 },
+      { x: 4, z: 1.25 },
+      { x: 0, z: 1.25 },
+    ];
+    const { container, rerender } = render(
+      <DesignBuilderPlanCanvas
+        layout={wallLayout}
+        toolMode="select"
+        viewport={{ centerX: 2, centerZ: 1, zoom: 100 }}
+        frameSystem={frameSystem}
+        segmentFrames={segmentFrames}
+        foundationBlockInstances={[belowGradeBlock]}
+        interiorFloorSlab={slab}
+        interiorFloorSlabFootprint={slabFootprint}
+        selectedObjectTreeItemId="foundation-cmu-infill-below-grade"
+        drawingStyleMode="architectural"
+        onInteraction={vi.fn()}
+      />,
+    );
+
+    const infill = container.querySelector('[data-foundation-below-grade-cmu-infill="segment-a-b"]');
+    expect(infill?.getAttribute('stroke')).toBe('#06b6d4');
+    expect(infill?.getAttribute('data-selected-object-tree-item-id')).toBe('foundation-cmu-infill-below-grade');
+
+    rerender(
+      <DesignBuilderPlanCanvas
+        layout={wallLayout}
+        toolMode="select"
+        viewport={{ centerX: 2, centerZ: 1, zoom: 100 }}
+        frameSystem={frameSystem}
+        segmentFrames={segmentFrames}
+        foundationBlockInstances={[belowGradeBlock]}
+        interiorFloorSlab={slab}
+        interiorFloorSlabFootprint={slabFootprint}
+        selectedObjectTreeItemId="foundation-sog"
+        drawingStyleMode="architectural"
+        onInteraction={vi.fn()}
+      />,
+    );
+    const sog = container.querySelector('[data-foundation-floor-slab="true"]');
+    expect(sog?.getAttribute('stroke')).toBe('#06b6d4');
+    expect(sog?.getAttribute('fill')).toBe('#06b6d433');
+    expect(sog?.getAttribute('data-selected-object-tree-item-id')).toBe('foundation-sog');
+  });
+
+  it('selects isolated footing area outside the column body as a foundation object', () => {
     const { layout, frameSystem, isolatedFootings } = createColumnDragFixture();
     const onInteraction = vi.fn();
     const { container } = render(
@@ -1428,8 +1605,8 @@ describe('DesignBuilderPlanCanvas', () => {
     fireEvent.pointerDown(svg, { button: 0, pointerId: 21, clientX: 435, clientY: 165 });
 
     expect(onInteraction).toHaveBeenCalledWith(expect.objectContaining({
-      kind: 'select_node',
-      nodeId: 'node-a',
+      kind: 'select_object',
+      objectTreeItemId: 'foundation-isolated-footings',
     }));
   });
 
@@ -2184,6 +2361,7 @@ describe('DesignBuilderPlanCanvas', () => {
     fireEvent.pointerUp(svg, { pointerId: 12, clientX: 402, clientY: 200 });
 
     expect(onInteraction).toHaveBeenCalledWith(expect.objectContaining({ kind: 'select_node', nodeId: 'node-a' }));
+    expect(onInteraction).not.toHaveBeenCalledWith(expect.objectContaining({ objectTreeItemId: 'foundation-isolated-footings' }));
     expect(onInteraction).not.toHaveBeenCalledWith(expect.objectContaining({ kind: 'move_node', phase: 'commit' }));
   });
 

@@ -73,6 +73,8 @@ vi.mock('../ui/DesignBuilderPlanCanvas', () => ({
     manualMasonry?: { enabled: boolean; runs: MasonryCourseRun[]; preview: unknown };
     septicTankPlacementActive?: boolean;
     selectedSepticTankId?: string | null;
+    selectedObjectTreeItemId?: string | null;
+    selectedDesignObject?: { kind: string; label: string } | null;
   }) => {
     mocks.plan(props);
     return <div data-testid="design-builder-plan">Plan layout</div>;
@@ -87,6 +89,8 @@ vi.mock('../ui/DesignBuilderViewer', () => ({
     placedComponents?: unknown[];
     designRenderModel?: { rcComponents?: Array<{ type?: string; system?: string; position?: { x?: number; z?: number } }> };
     selectedObjectType?: string | null;
+    selectedObjectTreeItemId?: string | null;
+    selectedDesignObject?: { kind: string; label: string } | null;
     geometryResult?: { sourcePath: string; wallSegments: unknown[]; blockCount: number };
   }) => {
     mocks.viewer(props);
@@ -154,6 +158,8 @@ function latestViewerProps() {
     } | null;
     selectedOpeningId?: string | null;
     selectedObjectType?: string | null;
+    selectedObjectTreeItemId?: string | null;
+    selectedDesignObject?: { kind: string; label: string } | null;
     placedComponents?: unknown[];
     designRenderModel?: { rcComponents?: Array<{ type?: string; system?: string; position?: { x?: number; z?: number } }> };
     wall?: { heightMeters?: number; wallThicknessMeters?: number; bondPattern?: string; blockLengthMeters?: number };
@@ -196,6 +202,8 @@ function latestPlanProps() {
     manualMasonry?: { enabled: boolean; runs: MasonryCourseRun[]; preview: unknown };
     septicTankPlacementActive?: boolean;
     selectedSepticTankId?: string | null;
+    selectedObjectTreeItemId?: string | null;
+    selectedDesignObject?: { kind: string; label: string } | null;
   };
 }
 
@@ -496,7 +504,9 @@ describe('DesignBuilderPage', () => {
     await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
     expandObjectTreeGroup('Foundation');
 
-    const foundationSection = screen.getByRole('button', { name: /foundation/i }).parentElement;
+    const foundationSection = screen
+      .getByRole('button', { name: (name) => name === 'Foundation-' || name === 'FoundationÃ¢Ë†â€™' })
+      .parentElement;
     expect(foundationSection).not.toBeNull();
     expect(within(foundationSection as HTMLElement).getByRole('button', { name: /^isolated footings$/i })).toBeInTheDocument();
     expect(within(foundationSection as HTMLElement).getByRole('button', { name: /^tie beam$/i })).toBeInTheDocument();
@@ -519,6 +529,53 @@ describe('DesignBuilderPage', () => {
     expect(structureSection).not.toBeNull();
     expect(within(structureSection as HTMLElement).queryByRole('button', { name: /^tie beams$/i })).not.toBeInTheDocument();
     expect(within(structureSection as HTMLElement).queryByRole('button', { name: /^plinth beams$/i })).not.toBeInTheDocument();
+  });
+
+  it('syncs foundation object selection between the plan canvas and Object Tree', async () => {
+    const preset = applyAutoFrameLayout(createFiveBySixCmuBuildingPreset());
+    useDesignBuilderSessionStore.getState().saveSession('project-1:estimate-1', {
+      preset,
+      layoutState: 'demo_loaded',
+      designModel: null,
+    });
+
+    render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
+
+    await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
+    selectViewMode('plan');
+    await waitFor(() => expect(latestPlanProps().onInteraction).toBeTruthy());
+
+    await act(async () => {
+      latestPlanProps().onInteraction?.({
+        kind: 'select_object',
+        toolMode: 'select',
+        objectType: 'structural_frame_system',
+        objectTreeItemId: 'foundation-tie-beam',
+      });
+    });
+
+    await waitFor(() => expect(latestPlanProps().selectedObjectTreeItemId).toBe('foundation-tie-beam'));
+    expect(latestPlanProps().selectedDesignObject).toMatchObject({
+      kind: 'object_tree_item',
+      label: 'Tie Beam',
+    });
+
+    const foundationSection = screen
+      .getByRole('button', { name: (name) => name === 'Foundation-' || name === 'FoundationÃ¢Ë†â€™' })
+      .parentElement;
+    expect(foundationSection).not.toBeNull();
+    const tieBeamRow = within(foundationSection as HTMLElement).getByRole('button', { name: /^tie beam$/i });
+    const plinthBeamRow = within(foundationSection as HTMLElement).getByRole('button', { name: /^plinth beam$/i });
+    expect(tieBeamRow.className).toContain('bg-cyan');
+
+    fireEvent.click(plinthBeamRow);
+
+    await waitFor(() => expect(latestPlanProps().selectedObjectTreeItemId).toBe('foundation-plinth-beam'));
+    expect(latestPlanProps().selectedDesignObject).toMatchObject({
+      kind: 'object_tree_item',
+      label: 'Plinth Beam',
+    });
+    expect(plinthBeamRow.className).toContain('bg-cyan');
   });
 
   it('edits project masonry defaults with no selected wall and uses text-based decimal inputs', async () => {

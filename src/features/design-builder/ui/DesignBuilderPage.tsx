@@ -173,6 +173,7 @@ import type {
   DesignBuilderElevationViewState,
   DesignBuilderInteractionEvent,
   DesignBuilderLayoutMode,
+  DesignBuilderSelectedObject,
   DesignBuilderSelection,
   DesignBuilderToolMode,
   DesignBuilderViewMode,
@@ -259,6 +260,7 @@ import {
   finishForPlasterMaterialId,
   type DesignBuilderObjectTreeItem,
   moduleFitStatusTone,
+  OBJECT_TREE_GROUPS,
   OBJECT_TREE_ITEMS,
   plasterMaterialIdForFinish,
   TOOL_MODE_OPTIONS,
@@ -633,6 +635,7 @@ export default function DesignBuilderPage({
   const [selectedObjectType, setSelectedObjectType] = useState<DesignObjectType | null>(
     () => storedSession?.selectedObjectType ?? null,
   );
+  const [selectedDesignObject, setSelectedDesignObject] = useState<DesignBuilderSelectedObject | null>(null);
   const [selectedObjectTreeItemId, setSelectedObjectTreeItemId] = useState<string | null>(null);
   const [selectedOpeningId, setSelectedOpeningId] = useState<string | null>(
     () => storedSession?.selectedOpeningId ?? null,
@@ -828,6 +831,8 @@ export default function DesignBuilderPage({
       setObjects(storedSession.objects);
       setPlacedComponents(storedSession.placedComponents ?? []);
       setAnnotations(storedSession.annotations ?? []);
+      setSelectedDesignObject(null);
+      setSelectedObjectTreeItemId(null);
       setSelectedAnnotationId(null);
       setSelectedComponentId(null);
       setSelectedSepticTankId(null);
@@ -922,6 +927,8 @@ export default function DesignBuilderPage({
         setPlacedComponents(persistedState?.placedComponents ?? []);
         setPlumbingSystem(normalizePlumbingSystem(persistedState?.plumbingSystem ?? createDefaultPlumbingSystem()));
         setAnnotations(persistedState?.annotations ?? []);
+        setSelectedDesignObject(null);
+        setSelectedObjectTreeItemId(null);
         setSelectedComponentId(null);
         setSelectedSepticTankId(null);
         setSepticTankPlacementActive(false);
@@ -1589,13 +1596,12 @@ export default function DesignBuilderPage({
       relatedComponents.push(footerWithReference);
     }
     setPlacedComponents((current) => [...current, placedComponent, ...relatedComponents]);
-    setSelectedAnnotationId(null);
-    setSelectedComponentId(placedComponent.id);
-    setSelectedObjectTreeItemId(null);
-    setSelectedSegmentId(null);
-    setSelectedNodeId(null);
-    setSelectedOpeningId(null);
-    setSelectedObjectType('structural_frame_system');
+    selectDesignObject({
+      kind: 'component',
+      componentId: placedComponent.id,
+      componentType: placedComponent.type,
+      label: componentPlacement.activeComponentDefinition.displayName,
+    });
     dispatchComponentPlacement({ type: 'placed', component: placedComponent });
     setSaveState('unsaved');
     setChangedAfterCommit(true);
@@ -1714,6 +1720,14 @@ export default function DesignBuilderPage({
         description: '',
       });
     }
+    if ((designGeometryResult.wallFootings?.length ?? 0) > 0) {
+      items.push({
+        id: 'foundation-wall-footings',
+        objectType: 'structural_frame_system',
+        label: 'Wall Footings',
+        description: '',
+      });
+    }
     if (hasBeamKind('tie_beam')) {
       items.push({
         id: 'foundation-tie-beam',
@@ -1753,6 +1767,7 @@ export default function DesignBuilderPage({
     designGeometryResult.frameSystem,
     designGeometryResult.interiorFloorSlab?.enabled,
     designGeometryResult.isolatedFootings?.length,
+    designGeometryResult.wallFootings?.length,
     isRcFrameBuilding,
     resolvedPreset.frameSystem,
   ]);
@@ -1926,6 +1941,8 @@ export default function DesignBuilderPage({
     ? 'Wall Segment'
     : selectedSepticTank
       ? 'CMU Septic Tank'
+    : selectedDesignObject
+      ? selectedDesignObject.label
     : selectedObjectTreeItem
       ? selectedObjectTreeItem.label
     : selectedObjectType
@@ -1946,58 +1963,116 @@ export default function DesignBuilderPage({
     }));
   }
 
-  function selectObjectTreeObjectType(objectType: DesignObjectType, itemId: string) {
-    setSelectedAnnotationId(null);
-    setSelectedObjectType(objectType);
-    setSelectedObjectTreeItemId(itemId);
-    setSelectedSegmentId(null);
-    setSelectedNodeId(null);
-    setSelectedSepticTankId(null);
-    setPlacementPreview(null);
-    if (objectType !== 'door_opening' && objectType !== 'window_opening') {
-      setSelectedOpeningId(null);
-    }
+  function objectTreeItemForId(itemId: string): DesignBuilderObjectTreeItem | null {
+    return [...OBJECT_TREE_ITEMS, ...foundationObjectTreeItems].find((item) => item.id === itemId) ?? null;
   }
 
-  function selectObjectTreeSegment(segmentId: string) {
-    setSelectedAnnotationId(null);
-    setSelectedObjectTreeItemId(null);
-    setSelectedSegmentId(segmentId);
-    setSelectedObjectType(null);
-    setSelectedOpeningId(null);
-    setSelectedNodeId(null);
-    setSelectedSepticTankId(null);
-    setPlacementPreview(null);
+  function expandObjectTreeGroupForItem(itemId: string) {
+    const staticGroup = OBJECT_TREE_GROUPS.find((group) =>
+      group.items.some((item) => item.id === itemId),
+    );
+    const groupId =
+      staticGroup?.id ??
+      (foundationObjectTreeItems.some((item) => item.id === itemId) ? 'foundation' : null);
+
+    if (!groupId) return;
+
+    setObjectTreeExpanded((current) => ({
+      ...current,
+      [groupId]: true,
+    }));
   }
 
-  function selectObjectTreeOpening(openingId: string, objectType: 'door_opening' | 'window_opening') {
-    setSelectedAnnotationId(null);
-    setSelectedObjectTreeItemId(null);
-    setSelectedOpeningId(openingId);
-    setSelectedObjectType(objectType);
-    setSelectedSegmentId(null);
-    setSelectedNodeId(null);
-    setSelectedSepticTankId(null);
-    setPlacementPreview(null);
+  function labelForPlumbingSelection(selection: PlumbingSelection): string {
+    if (selection.kind === 'none') return 'Plumbing';
+    if (selection.kind === 'septic-tank') return 'CMU Septic Tank';
+    if (selection.kind === 'fixture') return 'Plumbing Fixture';
+    if (selection.kind === 'run') return 'Pipe Run';
+    if (selection.kind === 'run-route-point') return 'Pipe Route Point';
+    if (selection.kind === 'fitting') return 'Plumbing Fitting';
+    if (selection.kind === 'rough-in') return 'Plumbing Rough-In';
+    if (selection.kind === 'equipment') return 'Plumbing Equipment';
+    return 'Plumbing Node';
   }
 
-  function selectObjectTreeSepticTank(tankId: string) {
+  function objectTypeForComponentType(componentType: DesignComponentType): DesignObjectType {
+    if (componentType === 'door') return 'door_opening';
+    if (componentType === 'window') return 'window_opening';
+    return 'structural_frame_system';
+  }
+
+  function selectDesignObject(selection: DesignBuilderSelectedObject) {
+    setSelectedDesignObject(selection);
     setSelectedAnnotationId(null);
     setSelectedObjectTreeItemId(null);
-    setSelectedSepticTankId(tankId);
     setSelectedObjectType(null);
     setSelectedOpeningId(null);
     setSelectedSegmentId(null);
     setSelectedNodeId(null);
     setSelectedComponentId(null);
+    setSelectedSepticTankId(null);
+    setSelectedPlumbingObject(null);
     setPlacementPreview(null);
+
+    if (selection.kind === 'object_tree_item') {
+      setSelectedObjectType(selection.objectType);
+      setSelectedObjectTreeItemId(selection.objectTreeItemId);
+      expandObjectTreeGroupForItem(selection.objectTreeItemId);
+      return;
+    }
+
+    if (selection.kind === 'wall_segment') {
+      setSelectedSegmentId(selection.segmentId);
+      return;
+    }
+
+    if (selection.kind === 'opening') {
+      setSelectedOpeningId(selection.openingId);
+      setSelectedObjectType(selection.objectType);
+      return;
+    }
+
+    if (selection.kind === 'component') {
+      setSelectedComponentId(selection.componentId);
+      setSelectedObjectType(objectTypeForComponentType(selection.componentType));
+      if (selection.objectTreeItemId) {
+        setSelectedObjectTreeItemId(selection.objectTreeItemId);
+        expandObjectTreeGroupForItem(selection.objectTreeItemId);
+      }
+      return;
+    }
+
+    if (selection.kind === 'annotation') {
+      setSelectedAnnotationId(selection.annotationId);
+      return;
+    }
+
+    if (selection.kind === 'plumbing') {
+      if (selection.selection.kind !== 'none') {
+        setSelectedPlumbingObject(selection.selection);
+      }
+      if (selection.selection.kind === 'septic-tank') {
+        setSelectedSepticTankId(selection.selection.id);
+      }
+    }
   }
 
-  function selectAnnotation(annotationId: string) {
-    const annotation = annotations.find((item) => item.id === annotationId);
-    if (annotation?.type !== 'dimension') return;
-    setSelectedAnnotationId(annotationId);
-    setSelectedObjectType(null);
+  function selectObjectFromInteraction(objectType: DesignObjectType | null | undefined, objectTreeItemId?: string | null) {
+    if (objectTreeItemId) {
+      const item = objectTreeItemForId(objectTreeItemId);
+      selectDesignObject({
+        kind: 'object_tree_item',
+        objectType: objectType ?? item?.objectType ?? 'structural_frame_system',
+        objectTreeItemId,
+        label: item?.label ?? 'Selected object',
+      });
+      return;
+    }
+
+    setSelectedDesignObject(null);
+    setSelectedAnnotationId(null);
+    setSelectedObjectType(objectType ?? null);
+    setSelectedObjectTreeItemId(null);
     setSelectedOpeningId(null);
     setSelectedSegmentId(null);
     setSelectedNodeId(null);
@@ -2007,10 +2082,71 @@ export default function DesignBuilderPage({
     setPlacementPreview(null);
   }
 
+  function selectOpeningDesignObject(openingId: string, fallbackObjectType?: 'door_opening' | 'window_opening') {
+    const opening = resolvedPreset.wall.openings.find((item) => item.id === openingId);
+    const objectType = fallbackObjectType ?? (opening?.type === 'window' ? 'window_opening' : 'door_opening');
+    selectDesignObject({
+      kind: 'opening',
+      openingId,
+      objectType,
+      label: opening ? `${opening.type === 'door' ? 'Door' : 'Window'} Opening` : 'Opening',
+    });
+  }
+
+  function selectObjectTreeObjectType(objectType: DesignObjectType, itemId: string) {
+    const item = objectTreeItemForId(itemId);
+    selectDesignObject({
+      kind: 'object_tree_item',
+      objectType,
+      objectTreeItemId: itemId,
+      label: item?.label ?? 'Selected object',
+    });
+  }
+
+  function selectObjectTreeSegment(segmentId: string) {
+    const index = wallLayout.segments.findIndex((segment) => segment.id === segmentId);
+    selectDesignObject({
+      kind: 'wall_segment',
+      segmentId,
+      label: index >= 0 ? `Segment ${index + 1}` : 'Wall Segment',
+    });
+  }
+
+  function selectObjectTreeOpening(openingId: string, objectType: 'door_opening' | 'window_opening') {
+    const opening = resolvedPreset.wall.openings.find((item) => item.id === openingId);
+    selectDesignObject({
+      kind: 'opening',
+      openingId,
+      objectType,
+      label: opening ? `${opening.type === 'door' ? 'Door' : 'Window'} Opening` : 'Opening',
+    });
+  }
+
+  function selectObjectTreeSepticTank(tankId: string) {
+    selectDesignObject({
+      kind: 'plumbing',
+      selection: { kind: 'septic-tank', id: tankId },
+      label: 'CMU Septic Tank',
+    });
+  }
+
+  function selectAnnotation(annotationId: string) {
+    const annotation = annotations.find((item) => item.id === annotationId);
+    if (annotation?.type !== 'dimension') return;
+    selectDesignObject({
+      kind: 'annotation',
+      annotationId,
+      label: 'Dimension',
+    });
+  }
+
   function deleteAnnotation(annotationId: string) {
     const annotation = annotations.find((item) => item.id === annotationId);
     if (annotation?.type !== 'dimension') return;
     setAnnotations((current) => current.filter((annotation) => annotation.id !== annotationId));
+    setSelectedDesignObject((current) =>
+      current?.kind === 'annotation' && current.annotationId === annotationId ? null : current,
+    );
     setSelectedAnnotationId((current) => (current === annotationId ? null : current));
     setSaveState('unsaved');
     setChangedAfterCommit(true);
@@ -2019,7 +2155,16 @@ export default function DesignBuilderPage({
 
   function handleAnnotationCreate(annotation: DesignAnnotation) {
     setAnnotations((current) => [...current, annotation]);
-    setSelectedAnnotationId(annotation.type === 'dimension' ? annotation.id : null);
+    if (annotation.type === 'dimension') {
+      selectDesignObject({
+        kind: 'annotation',
+        annotationId: annotation.id,
+        label: 'Dimension',
+      });
+    } else {
+      setSelectedDesignObject(null);
+      setSelectedAnnotationId(null);
+    }
     setSaveState('unsaved');
     setChangedAfterCommit(true);
   }
@@ -2060,6 +2205,7 @@ export default function DesignBuilderPage({
     setSelectedSegmentId(snapshot.selectedSegmentId);
     setSelectedNodeId(snapshot.selectedNodeId);
     setSelectedObjectType(snapshot.selectedObjectType);
+    setSelectedDesignObject(null);
     setSelectedObjectTreeItemId(null);
     setManualMasonryRuns(snapshot.masonryWall.manualMasonryCourseRuns ?? []);
   }
@@ -2448,6 +2594,7 @@ export default function DesignBuilderPage({
         }),
     );
     if (selectedComponentId === componentId || idsToRemove.has(selectedComponentId ?? '')) {
+      setSelectedDesignObject(null);
       setSelectedComponentId(null);
     }
     setDraftPlanEnd(null);
@@ -3030,7 +3177,13 @@ export default function DesignBuilderPage({
         });
         setPlumbingRunDraft(null);
         setActivePlumbingToolMode('select');
-        if (createdRoughIn) setSelectedPlumbingObject({ kind: 'rough-in', id: createdRoughIn.id });
+        if (createdRoughIn) {
+          selectDesignObject({
+            kind: 'plumbing',
+            selection: { kind: 'rough-in', id: createdRoughIn.id },
+            label: 'Plumbing Rough-In',
+          });
+        }
         setSaveState('unsaved');
         setChangedAfterCommit(true);
         setStatus({ tone: 'success', message: finishMessage });
@@ -3060,7 +3213,13 @@ export default function DesignBuilderPage({
       });
       setPlumbingRunDraft(null);
       setActivePlumbingToolMode('select');
-      if (createdRoughIn) setSelectedPlumbingObject({ kind: 'rough-in', id: createdRoughIn.id });
+      if (createdRoughIn) {
+        selectDesignObject({
+          kind: 'plumbing',
+          selection: { kind: 'rough-in', id: createdRoughIn.id },
+          label: 'Plumbing Rough-In',
+        });
+      }
       setSaveState('unsaved');
       setChangedAfterCommit(true);
       setStatus({ tone: 'success', message: finishMessage });
@@ -3198,7 +3357,11 @@ export default function DesignBuilderPage({
         return ensureSanitaryDrainConnectedToDistributionBox(result.system);
       });
       if (createdRoughIn) {
-        setSelectedPlumbingObject({ kind: 'rough-in', id: createdRoughIn.id });
+        selectDesignObject({
+          kind: 'plumbing',
+          selection: { kind: 'rough-in', id: createdRoughIn.id },
+          label: 'Plumbing Rough-In',
+        });
         setSaveState('unsaved');
         setChangedAfterCommit(true);
         setStatus({ tone: 'success', message });
@@ -3270,7 +3433,13 @@ export default function DesignBuilderPage({
           return result.system;
         });
         setPlumbingRunDraft(null);
-        if (createdRoughIn) setSelectedPlumbingObject({ kind: 'rough-in', id: createdRoughIn.id });
+        if (createdRoughIn) {
+          selectDesignObject({
+            kind: 'plumbing',
+            selection: { kind: 'rough-in', id: createdRoughIn.id },
+            label: 'Plumbing Rough-In',
+          });
+        }
         setSaveState('unsaved');
         setChangedAfterCommit(true);
         setStatus({ tone: 'success', message });
@@ -3292,7 +3461,13 @@ export default function DesignBuilderPage({
           return result.system;
         });
         setPlumbingRunDraft(null);
-        if (createdRoughIn) setSelectedPlumbingObject({ kind: 'rough-in', id: createdRoughIn.id });
+        if (createdRoughIn) {
+          selectDesignObject({
+            kind: 'plumbing',
+            selection: { kind: 'rough-in', id: createdRoughIn.id },
+            label: 'Plumbing Rough-In',
+          });
+        }
         setSaveState('unsaved');
         setChangedAfterCommit(true);
         setStatus({ tone: 'success', message });
@@ -3345,16 +3520,15 @@ export default function DesignBuilderPage({
       else if (node?.equipmentId) nextSelection = { kind: 'equipment', id: node.equipmentId };
       else if (node?.septicTankId) nextSelection = { kind: 'septic-tank', id: node.septicTankId };
     }
-    setSelectedAnnotationId(null);
-    setSelectedPlumbingObject(nextSelection.kind === 'none' ? null : nextSelection);
-    setSelectedObjectTreeItemId(null);
-    setSelectedObjectType(null);
-    setSelectedOpeningId(null);
-    setSelectedSegmentId(null);
-    setSelectedNodeId(null);
-    setSelectedComponentId(null);
-    if (nextSelection.kind === 'septic-tank') setSelectedSepticTankId(nextSelection.id);
-    else setSelectedSepticTankId(null);
+    if (nextSelection.kind === 'none') {
+      clearSelection();
+      return;
+    }
+    selectDesignObject({
+      kind: 'plumbing',
+      selection: nextSelection,
+      label: labelForPlumbingSelection(nextSelection),
+    });
   }
 
   function validateCurrentPlumbingSystem() {
@@ -3458,6 +3632,7 @@ export default function DesignBuilderPage({
     }
     setSelectedPlumbingObject(null);
     setSelectedSepticTankId(null);
+    setSelectedDesignObject(null);
     setSaveState('unsaved');
     setChangedAfterCommit(true);
     setStatus({ tone: 'success', message: 'Selected plumbing item deleted.' });
@@ -3509,15 +3684,13 @@ export default function DesignBuilderPage({
     setPlumbingSystem(result.system);
     setSepticTankPlacementActive(false);
     setToolMode('select');
-    setSelectedObjectTreeItemId(null);
-    setSelectedObjectType(null);
-    setSelectedOpeningId(null);
-    setSelectedSegmentId(null);
-    setSelectedNodeId(null);
-    setSelectedComponentId(null);
+    selectDesignObject({
+      kind: 'plumbing',
+      selection: { kind: 'septic-tank', id: result.tank.id },
+      label: 'CMU Septic Tank',
+    });
     setSaveState('unsaved');
     setChangedAfterCommit(true);
-    setSelectedSepticTankId(result.tank.id);
     setStatus({ tone: 'success', message: 'CMU septic tank placed as a model-driven site utility.' });
   }
 
@@ -4122,28 +4295,19 @@ export default function DesignBuilderPage({
     }
 
     if (event.kind === 'component_select' && event.componentId) {
-      setSelectedAnnotationId(null);
-      setSelectedComponentId(event.componentId);
-      setSelectedObjectTreeItemId(null);
-      setSelectedSepticTankId(null);
-      setSelectedSegmentId(null);
-      setSelectedNodeId(null);
-      setSelectedOpeningId(null);
-      setSelectedObjectType('structural_frame_system');
+      const component = placedComponents.find((item) => item.id === event.componentId);
+      const componentType = event.componentType ?? component?.type ?? 'column';
+      selectDesignObject({
+        kind: 'component',
+        componentId: event.componentId,
+        componentType,
+        label: getDesignComponentDefinition(componentType).displayName,
+      });
       return;
     }
 
     if (event.kind === 'select_object') {
-      setSelectedAnnotationId(null);
-      setSelectedObjectType(event.objectType ?? null);
-      setSelectedObjectTreeItemId(event.objectTreeItemId ?? null);
-      setSelectedComponentId(null);
-      setSelectedSepticTankId(null);
-      setSelectedSegmentId(null);
-      setSelectedNodeId(null);
-      setSelectedOpeningId(null);
-      setSelectedPlumbingObject(null);
-      setPlacementPreview(null);
+      selectObjectFromInteraction(event.objectType, event.objectTreeItemId);
       return;
     }
 
@@ -4188,8 +4352,14 @@ export default function DesignBuilderPage({
         });
       });
       setDraftPlanEnd(null);
-      setSelectedAnnotationId(null);
-      setSelectedComponentId(event.componentId);
+      const component = placedComponents.find((item) => item.id === event.componentId);
+      const componentType = component?.type ?? 'column';
+      selectDesignObject({
+        kind: 'component',
+        componentId: event.componentId,
+        componentType,
+        label: getDesignComponentDefinition(componentType).displayName,
+      });
       setSaveState('unsaved');
       setChangedAfterCommit(true);
       setStatus({ tone: 'success', message: 'Column moved.' });
@@ -4197,6 +4367,7 @@ export default function DesignBuilderPage({
     }
 
     if (event.kind === 'select_node' && event.nodeId) {
+      setSelectedDesignObject(null);
       setSelectedAnnotationId(null);
       setSelectedNodeId(event.nodeId);
       setSelectedObjectTreeItemId(null);
@@ -4204,6 +4375,8 @@ export default function DesignBuilderPage({
       setSelectedOpeningId(null);
       setSelectedComponentId(null);
       setSelectedObjectType(null);
+      setSelectedPlumbingObject(null);
+      setSelectedSepticTankId(null);
       if (toolMode === 'move_wall_node') setActiveDrawNodeId(event.nodeId);
       return;
     }
@@ -4243,16 +4416,8 @@ export default function DesignBuilderPage({
       }
       if (openingHit && (toolMode === 'select' || toolMode === 'move_opening')) {
         if (event.phase !== 'commit') return;
-        setSelectedAnnotationId(null);
-        setSelectedOpeningId(openingHit.openingId);
-        setSelectedObjectTreeItemId(null);
-        setSelectedSegmentId(null);
-        setSelectedNodeId(null);
-        setSelectedComponentId(null);
         const opening = effectiveWall.openings.find((item) => item.id === openingHit.openingId);
-        if (opening) {
-          setSelectedObjectType(opening.type === 'door' ? 'door_opening' : 'window_opening');
-        }
+        selectOpeningDesignObject(openingHit.openingId, opening?.type === 'window' ? 'window_opening' : 'door_opening');
         if (toolMode === 'move_opening') return;
         return;
       }
@@ -4261,13 +4426,12 @@ export default function DesignBuilderPage({
         if (toolMode === 'select' || toolMode === 'delete') clearSelection();
         return;
       }
-      setSelectedAnnotationId(null);
-      setSelectedSegmentId(hit.segment.id);
-      setSelectedObjectTreeItemId(null);
-      setSelectedNodeId(null);
-      setSelectedOpeningId(null);
-      setSelectedComponentId(null);
-      setSelectedObjectType(null);
+      const segmentIndex = layout.segments.findIndex((segment) => segment.id === hit.segment.id);
+      selectDesignObject({
+        kind: 'wall_segment',
+        segmentId: hit.segment.id,
+        label: segmentIndex >= 0 ? `Segment ${segmentIndex + 1}` : 'Wall Segment',
+      });
       if (toolMode === 'delete') {
         void confirmDeleteWallSegment(hit.segment.id);
         return;
@@ -4590,29 +4754,12 @@ export default function DesignBuilderPage({
           clearSelection();
           break;
         case 'select_object':
-          setSelectedAnnotationId(null);
-          setSelectedObjectType(event.objectType ?? null);
-          setSelectedObjectTreeItemId(event.objectTreeItemId ?? null);
-          setSelectedOpeningId(null);
-          setSelectedSegmentId(null);
-          setSelectedNodeId(null);
-          setSelectedPlumbingObject(null);
-          setSelectedSepticTankId(null);
-          setPlacementPreview(null);
+          selectObjectFromInteraction(event.objectType, event.objectTreeItemId);
           break;
         case 'select_opening':
           if (event.openingId) {
-            setSelectedAnnotationId(null);
-            setSelectedObjectTreeItemId(null);
-            setSelectedOpeningId(event.openingId);
-            setSelectedSegmentId(null);
-            setSelectedNodeId(null);
-            setSelectedPlumbingObject(null);
-            setSelectedSepticTankId(null);
             const opening = wall.openings.find((item) => item.id === event.openingId);
-            if (opening) {
-              setSelectedObjectType(opening.type === 'door' ? 'door_opening' : 'window_opening');
-            }
+            selectOpeningDesignObject(event.openingId, opening?.type === 'window' ? 'window_opening' : 'door_opening');
           }
           break;
         case 'select_plumbing':
@@ -5396,6 +5543,7 @@ export default function DesignBuilderPage({
   }
 
   function clearSelection() {
+    setSelectedDesignObject(null);
     setSelectedAnnotationId(null);
     setSelectedObjectType(null);
     setSelectedObjectTreeItemId(null);
@@ -6131,6 +6279,8 @@ export default function DesignBuilderPage({
                   showTrussDesignDetail: showRoofPlanTrussReferenceSheet,
                 }}
                 selectedObjectType={selectedObjectType}
+                selectedObjectTreeItemId={selectedObjectTreeItemId}
+                selectedDesignObject={selectedDesignObject}
                 selectedAnnotationId={selectedAnnotationId}
                 drawingStyleMode={twoDDrawingStyle}
                 active2DView={active2DView}
@@ -7222,6 +7372,7 @@ export default function DesignBuilderPage({
           onToggleRightPanel={toggleRightPanel}
           onBeginRightPanelResize={beginRightPanelResize}
           onSelectObjectType={(objectType) => {
+            setSelectedDesignObject(null);
             setSelectedObjectType(objectType);
             setSelectedObjectTreeItemId(null);
             setSelectedOpeningId(null);

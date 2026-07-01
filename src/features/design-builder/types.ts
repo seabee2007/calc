@@ -1396,6 +1396,43 @@ export type DesignBuilderSelection =
   | { kind: "gable_end"; id: string }
   | { kind: "none" };
 
+export type DesignBuilderSelectedObject =
+  | {
+      kind: "object_tree_item";
+      objectType: DesignObjectType;
+      objectTreeItemId: string;
+      sourceId?: string;
+      label: string;
+    }
+  | {
+      kind: "wall_segment";
+      segmentId: string;
+      label: string;
+    }
+  | {
+      kind: "opening";
+      openingId: string;
+      objectType: "door_opening" | "window_opening";
+      label: string;
+    }
+  | {
+      kind: "component";
+      componentId: string;
+      componentType: DesignComponentType;
+      objectTreeItemId?: string;
+      label: string;
+    }
+  | {
+      kind: "annotation";
+      annotationId: string;
+      label: string;
+    }
+  | {
+      kind: "plumbing";
+      selection: PlumbingSelection;
+      label: string;
+    };
+
 export type DesignBuilderInteractionKind =
   | "select_object"
   | "select_opening"
