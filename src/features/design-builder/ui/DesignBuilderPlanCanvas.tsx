@@ -3436,6 +3436,108 @@ export default function DesignBuilderPlanCanvas({
     );
   };
 
+  const renderPlanComponentFooter = (component: DesignRenderRcComponent, preview = false) => {
+    if (component.type !== 'column' || !component.footer) return null;
+    const center = planToSurfacePoint({ x: component.position.x, z: component.position.z });
+    const footerWidthPx = component.footer.widthMeters * viewport.zoom;
+    const footerLengthPx = component.footer.lengthMeters * viewport.zoom;
+    const groupSelected = !preview && isTreeItemSelected('foundation-isolated-footings');
+    const instanceSelected = !preview && selectedComponentId === component.sourceComponentId;
+    const selected = groupSelected || instanceSelected;
+    const selectedStroke = groupSelected ? objectSelectionStroke : selectionStroke;
+    return (
+      <rect
+        key={`${component.id}-component-footer`}
+        x={center.sx - footerWidthPx / 2}
+        y={center.sy - footerLengthPx / 2}
+        width={footerWidthPx}
+        height={footerLengthPx}
+        fill={
+          preview
+            ? previewFill
+            : groupSelected
+              ? objectSelectionFill
+              : instanceSelected
+                ? architecturalDrawing ? '#e0f2fe' : '#dbeafe'
+                : architecturalDrawing ? '#f1f5f9' : '#78716c55'
+        }
+        stroke={preview ? previewStroke : selected ? selectedStroke : architecturalDrawing ? mutedStroke : '#57534e'}
+        strokeWidth={groupSelected ? drawingStyle.weights.selection : instanceSelected ? 2.2 : preview ? 2 : 1.5}
+        strokeDasharray={preview ? '6 4' : undefined}
+        pointerEvents="none"
+        opacity={preview ? 0.72 : 1}
+        data-foundation-footing-id={component.footer.id}
+        data-foundation-footing-column-id={component.sourceComponentId}
+        data-component-footer-id={component.footer.id}
+        data-component-id={component.id}
+        data-component-type="column"
+        data-component-system={component.system}
+        {...selectedTreeItemData('foundation-isolated-footings')}
+      />
+    );
+  };
+
+  const renderPlanComponentColumnBody = (component: DesignRenderRcComponent, preview = false) => {
+    if (component.type !== 'column') return null;
+    const center = planToSurfacePoint({ x: component.position.x, z: component.position.z });
+    const widthMeters = component.dimensions.width;
+    const depthMeters = component.dimensions.depth;
+    const widthPx = Math.max(6, widthMeters * viewport.zoom);
+    const depthPx = Math.max(6, depthMeters * viewport.zoom);
+    const groupSelected = !preview && isTreeItemSelected('columns');
+    const instanceSelected = !preview && selectedComponentId === component.sourceComponentId;
+    const selected = instanceSelected || groupSelected;
+    const selectedStroke = groupSelected ? objectSelectionStroke : selectionStroke;
+    return (
+      <g
+        key={`${component.id}-component-column-body`}
+        pointerEvents="none"
+        opacity={preview ? 0.72 : 1}
+        data-component-id={component.id}
+        data-component-type="column"
+        data-component-system={component.system}
+      >
+        <rect
+          x={center.sx - widthPx / 2}
+          y={center.sy - depthPx / 2}
+          width={widthPx}
+          height={depthPx}
+          fill={preview ? previewFill : groupSelected ? objectSelectionFill : concreteFill}
+          stroke={preview ? previewStroke : selected ? selectedStroke : permanentStroke}
+          strokeWidth={preview || selected ? 2 : 1.6}
+          strokeDasharray={preview ? '4 3' : undefined}
+          data-plan-column-id={component.id}
+          data-component-column-body-id={component.id}
+          data-component-id={component.id}
+          data-component-type="column"
+          data-component-system={component.system}
+          {...selectedTreeItemData('columns')}
+        />
+        <line x1={center.sx - widthPx * 0.8} y1={center.sy} x2={center.sx + widthPx * 0.8} y2={center.sy} stroke={preview ? previewStroke : referenceStroke} strokeWidth={1} strokeOpacity={preview ? 0.8 : 0.7} />
+        <line x1={center.sx} y1={center.sy - depthPx * 0.8} x2={center.sx} y2={center.sy + depthPx * 0.8} stroke={preview ? previewStroke : referenceStroke} strokeWidth={1} strokeOpacity={preview ? 0.8 : 0.7} />
+        {instanceSelected
+          ? [
+              [-1, -1],
+              [1, -1],
+              [1, 1],
+              [-1, 1],
+            ].map(([dx, dy]) => (
+              <rect
+                key={`${component.id}-${dx}-${dy}`}
+                x={center.sx + dx * (widthPx / 2) - 4}
+                y={center.sy + dy * (depthPx / 2) - 4}
+                width={8}
+                height={8}
+                fill={selectedStroke}
+                stroke={textBackerStroke}
+                strokeWidth={1}
+              />
+            ))
+          : null}
+      </g>
+    );
+  };
+
   const renderPlanRcComponent = (component: DesignRenderRcComponent, preview = false, options: { showFooter?: boolean } = {}) => {
     const groupTreeItemId =
       component.type === 'column'
@@ -3466,57 +3568,10 @@ export default function DesignBuilderPlanCanvas({
       ...(groupTreeItemId ? selectedTreeItemData(groupTreeItemId) : {}),
     };
     if (component.type === 'column') {
-      const footerWidthPx = Math.max(widthPx + 10, (component.footer?.widthMeters ?? widthMeters * 2) * viewport.zoom);
-      const footerLengthPx = Math.max(depthPx + 10, (component.footer?.lengthMeters ?? depthMeters * 2) * viewport.zoom);
       return (
         <g key={component.id} {...common}>
-          {showFooter && component.footer ? (
-            <>
-              <rect
-                x={center.sx - footerWidthPx / 2}
-                y={center.sy - footerLengthPx / 2}
-                width={footerWidthPx}
-                height={footerLengthPx}
-                fill={preview ? previewFill : architecturalDrawing ? '#f1f5f9' : '#78716c55'}
-                stroke={preview ? previewStroke : selected ? selectedStroke : architecturalDrawing ? mutedStroke : '#57534e'}
-                strokeWidth={selected ? 2 : 1.2}
-                strokeDasharray={preview ? '6 4' : undefined}
-                data-component-footer-id={component.footer.id}
-              />
-            </>
-          ) : null}
-          <rect
-            x={center.sx - widthPx / 2}
-            y={center.sy - depthPx / 2}
-            width={widthPx}
-            height={depthPx}
-            fill={preview ? previewFill : concreteFill}
-            stroke={preview ? previewStroke : selected ? selectedStroke : permanentStroke}
-            strokeWidth={preview || selected ? 2 : 1.6}
-            strokeDasharray={preview ? '4 3' : undefined}
-            data-component-column-body-id={component.id}
-          />
-          <line x1={center.sx - widthPx * 0.8} y1={center.sy} x2={center.sx + widthPx * 0.8} y2={center.sy} stroke={preview ? previewStroke : referenceStroke} strokeWidth={1} strokeOpacity={preview ? 0.8 : 0.7} />
-          <line x1={center.sx} y1={center.sy - depthPx * 0.8} x2={center.sx} y2={center.sy + depthPx * 0.8} stroke={preview ? previewStroke : referenceStroke} strokeWidth={1} strokeOpacity={preview ? 0.8 : 0.7} />
-          {instanceSelected
-            ? [
-                [-1, -1],
-                [1, -1],
-                [1, 1],
-                [-1, 1],
-              ].map(([dx, dy]) => (
-                <rect
-                  key={`${component.id}-${dx}-${dy}`}
-                  x={center.sx + dx * (widthPx / 2) - 4}
-                  y={center.sy + dy * (depthPx / 2) - 4}
-                  width={8}
-                  height={8}
-                  fill={selectedStroke}
-                  stroke={textBackerStroke}
-                  strokeWidth={1}
-                />
-              ))
-            : null}
+          {showFooter ? renderPlanComponentFooter(component, preview) : null}
+          {renderPlanComponentColumnBody(component, preview)}
         </g>
       );
     }
@@ -4216,15 +4271,18 @@ export default function DesignBuilderPlanCanvas({
             />
           );
         }) : null}
-        {foundationPlanUsesBelowGradeFrameInfill ? renderInteriorFloorSlabFootprint() : null}
-        {showFloorPlanGeometry ? renderInteriorFloorSlabFootprint() : null}
-        {showColumnPlanGeometry
+        {showFoundationPlanGeometry
           ? committedColumnRcComponents.map((component) =>
-            renderPlanRcComponent(component, false, { showFooter: showFoundationPlanGeometry }),
+            renderPlanComponentFooter(component, false),
           )
           : null}
+        {foundationPlanUsesBelowGradeFrameInfill ? renderInteriorFloorSlabFootprint() : null}
+        {showFloorPlanGeometry ? renderInteriorFloorSlabFootprint() : null}
         {foundationPlanUsesBelowGradeFrameInfill ? renderBelowGradeCmuInfill() : null}
         {showWallPlanGeometry ? renderStructuralPlanWalls() : null}
+        {showOpeningPlanGeometry ? openingRenderItems.map((item) => (
+          <PlanOpeningSymbol key={item.key} item={item} project={planToSurfacePoint} zoom={viewport.zoom} drawingStyle={drawingStyle} />
+        )) : null}
         {showFoundationPlanGeometry ? foundationPlanBeams.map((beam) => {
             const stroke = architecturalDrawing ? permanentStroke : '#57534e';
             const treeItemId = beam.kind === 'tie_beam' ? 'foundation-tie-beam' : 'foundation-plinth-beam';
@@ -4295,13 +4353,15 @@ export default function DesignBuilderPlanCanvas({
           );
         }) : null}
         {showColumnPlanGeometry
+          ? committedColumnRcComponents.map((component) =>
+            renderPlanComponentColumnBody(component, false),
+          )
+          : null}
+        {showColumnPlanGeometry
           ? committedNonColumnRcComponents.map((component) =>
             renderPlanRcComponent(component, false, { showFooter: showFoundationPlanGeometry }),
           )
           : null}
-        {showOpeningPlanGeometry ? openingRenderItems.map((item) => (
-          <PlanOpeningSymbol key={item.key} item={item} project={planToSurfacePoint} zoom={viewport.zoom} drawingStyle={drawingStyle} />
-        )) : null}
         {renderPlumbingPlan()}
         <g data-canvas-layer="permanent-dimensions">
           {renderedDimensionAnnotations}

@@ -1621,7 +1621,57 @@ describe('DesignBuilderPlanCanvas', () => {
     }));
   });
 
-  it('layers manually placed columns below foundation beams and floor-plan CMU wall linework', () => {
+  it('selects manually placed column footers as isolated footings and bodies as columns', () => {
+    const { layout } = createColumnDragFixture();
+    const { container, rerender } = render(
+      <DesignBuilderPlanCanvas
+        layout={layout}
+        toolMode="select"
+        viewport={{ centerX: 0, centerZ: 0, zoom: 100 }}
+        placedComponents={[createPlacedColumn()]}
+        selectedObjectTreeItemId="foundation-isolated-footings"
+        drawingStyleMode="architectural"
+        onInteraction={vi.fn()}
+      />,
+    );
+
+    const footingSelectionFooter = container.querySelector('[data-component-footer-id="placed-column-a-footer"]');
+    const footingSelectionBody = container.querySelector('[data-component-column-body-id="placed-column-a"]');
+    expect(footingSelectionFooter).toBeTruthy();
+    expect(footingSelectionFooter?.getAttribute('data-foundation-footing-id')).toBe('placed-column-a-footer');
+    expect(footingSelectionFooter?.getAttribute('data-foundation-footing-column-id')).toBe('placed-column-a');
+    expect(footingSelectionFooter?.getAttribute('data-selected-object-tree-item-id')).toBe('foundation-isolated-footings');
+    expect(footingSelectionFooter?.getAttribute('stroke')).toBe('#06b6d4');
+    expect(footingSelectionFooter?.getAttribute('fill')).toBe('#06b6d433');
+    expect(footingSelectionBody?.getAttribute('data-selected-object-tree-item-id')).toBeNull();
+    expect(footingSelectionBody?.getAttribute('fill')).toBe('#e5e7eb');
+
+    rerender(
+      <DesignBuilderPlanCanvas
+        layout={layout}
+        toolMode="select"
+        viewport={{ centerX: 0, centerZ: 0, zoom: 100 }}
+        placedComponents={[createPlacedColumn()]}
+        selectedObjectTreeItemId="columns"
+        drawingStyleMode="architectural"
+        onInteraction={vi.fn()}
+      />,
+    );
+
+    const columnSelectionFooter = container.querySelector('[data-component-footer-id="placed-column-a-footer"]');
+    const columnSelectionBody = container.querySelector('[data-component-column-body-id="placed-column-a"]');
+    expect(columnSelectionBody).toBeTruthy();
+    expect(columnSelectionBody?.getAttribute('data-plan-column-id')).toBe('placed-column-a');
+    expect(columnSelectionBody?.getAttribute('data-component-id')).toBe('placed-column-a');
+    expect(columnSelectionBody?.getAttribute('data-component-type')).toBe('column');
+    expect(columnSelectionBody?.getAttribute('data-selected-object-tree-item-id')).toBe('columns');
+    expect(columnSelectionBody?.getAttribute('stroke')).toBe('#06b6d4');
+    expect(columnSelectionBody?.getAttribute('fill')).toBe('#06b6d433');
+    expect(columnSelectionFooter?.getAttribute('data-selected-object-tree-item-id')).toBeNull();
+    expect(columnSelectionFooter?.getAttribute('stroke')).toBe('#4b5563');
+  });
+
+  it('layers manually placed column footers below beams and column bodies above beams and walls', () => {
     const { layout, frameSystem } = createColumnDragFixture();
     const foundationRender = render(
       <DesignBuilderPlanCanvas
@@ -1638,10 +1688,15 @@ describe('DesignBuilderPlanCanvas', () => {
     const placedFoundationColumn = foundationRender.container.querySelector(
       '[data-component-column-body-id="placed-column-on-beam"]',
     );
+    const placedFoundationFooter = foundationRender.container.querySelector(
+      '[data-component-footer-id="placed-column-on-beam-footer"]',
+    );
     const tieBeam = foundationRender.container.querySelector('[data-foundation-beam-id="tie-beam-a-b"]');
     expect(placedFoundationColumn).toBeTruthy();
+    expect(placedFoundationFooter).toBeTruthy();
     expect(tieBeam).toBeTruthy();
-    expect((placedFoundationColumn?.compareDocumentPosition(tieBeam!) ?? 0) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect((placedFoundationFooter?.compareDocumentPosition(tieBeam!) ?? 0) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect((tieBeam?.compareDocumentPosition(placedFoundationColumn!) ?? 0) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     foundationRender.unmount();
 
     const preset = createFiveBySixCmuBuildingPreset();
@@ -1667,12 +1722,49 @@ describe('DesignBuilderPlanCanvas', () => {
     const placedFloorColumn = floorRender.container.querySelector(
       '[data-component-column-body-id="placed-column-on-wall"]',
     );
+    const placedFloorFooter = floorRender.container.querySelector(
+      '[data-component-footer-id="placed-column-on-wall-footer"]',
+    );
     const wallFace = floorRender.container.querySelector(
       `line[data-plan-wall-face="true"][data-segment-id="${wallFrame.segmentId}"]`,
     );
     expect(placedFloorColumn).toBeTruthy();
+    expect(placedFloorFooter).toBeFalsy();
     expect(wallFace).toBeTruthy();
-    expect((placedFloorColumn?.compareDocumentPosition(wallFace!) ?? 0) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect((wallFace?.compareDocumentPosition(placedFloorColumn!) ?? 0) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('shows manually placed column footer and body on Foundation Plan but only the body on Floor Plan', () => {
+    const { layout } = createColumnDragFixture();
+    const { container, rerender } = render(
+      <DesignBuilderPlanCanvas
+        layout={layout}
+        toolMode="select"
+        active2DView="foundation-plan"
+        viewport={{ centerX: 0, centerZ: 0, zoom: 100 }}
+        placedComponents={[createPlacedColumn()]}
+        drawingStyleMode="architectural"
+        onInteraction={vi.fn()}
+      />,
+    );
+
+    expect(container.querySelector('[data-component-footer-id="placed-column-a-footer"]')).toBeTruthy();
+    expect(container.querySelector('[data-component-column-body-id="placed-column-a"]')).toBeTruthy();
+
+    rerender(
+      <DesignBuilderPlanCanvas
+        layout={layout}
+        toolMode="select"
+        active2DView="floor-plan"
+        viewport={{ centerX: 0, centerZ: 0, zoom: 100 }}
+        placedComponents={[createPlacedColumn()]}
+        drawingStyleMode="architectural"
+        onInteraction={vi.fn()}
+      />,
+    );
+
+    expect(container.querySelector('[data-component-footer-id="placed-column-a-footer"]')).toBeFalsy();
+    expect(container.querySelector('[data-component-column-body-id="placed-column-a"]')).toBeTruthy();
   });
 
   it('renders placed footers as solid footing symbols with centered column markers', () => {
@@ -1763,10 +1855,13 @@ describe('DesignBuilderPlanCanvas', () => {
     expect(canvasRoot).toBeTruthy();
     const footing = container.querySelector('[data-foundation-footing-id="footing-a"]');
     const beam = container.querySelector('[data-foundation-beam-id="beam-a-b"]');
+    const column = container.querySelector('[data-foundation-column-id="column-a"]');
 
     expect(footing).toBeTruthy();
     expect(beam).toBeTruthy();
+    expect(column).toBeTruthy();
     expect(footing?.compareDocumentPosition(beam) ?? 0).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect((beam?.compareDocumentPosition(column!) ?? 0) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('renders below-grade CMU infill instead of above-grade wall faces on frame foundation plans', () => {
@@ -1852,7 +1947,7 @@ describe('DesignBuilderPlanCanvas', () => {
     expect(container.querySelector('[data-foundation-floor-slab="true"]')).toBeTruthy();
     expect((footing?.compareDocumentPosition(infill) ?? 0) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect((infill?.compareDocumentPosition(beam) ?? 0) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect((infill?.compareDocumentPosition(column) ?? 0) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect((beam?.compareDocumentPosition(column!) ?? 0) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('selects foundation beams, below-grade CMU infill, and SOG from plan clicks', () => {
