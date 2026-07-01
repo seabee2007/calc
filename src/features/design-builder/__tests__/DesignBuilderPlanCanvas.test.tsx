@@ -2,6 +2,7 @@ import { createEvent, fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { createFiveBySixCmuBuildingPreset } from '../domain/designBuilderPreset';
 import { resolveOpeningPlacementFromPlanPoint } from '../domain/openingPlacementResolver';
+import { wallFacePairAtStation } from '../domain/planOpeningGraphics';
 import { createEmptyWallLayout, createOutsideFaceRectangleLayout } from '../domain/wallLayoutRules';
 import { getSegmentFramesForWallLayout, type SegmentFrame } from '../geometry/designGeometry';
 import { projectCellWidthPx } from '../domain/planGridState';
@@ -37,23 +38,50 @@ function expectRoughOpeningCutToBeSquare(
   viewport = { centerX: 0, centerZ: 0, zoom: 100 },
 ) {
   expect(cut).toBeTruthy();
-  const halfWallThickness = frame.wallThicknessMeters / 2;
-  const center = {
-    x: frame.centerlineStart.x + frame.tangent.x * stationMeters,
-    z: frame.centerlineStart.z + frame.tangent.z * stationMeters,
-  };
-  const exterior = {
-    x: center.x - frame.inwardNormal.x * halfWallThickness,
-    z: center.z - frame.inwardNormal.z * halfWallThickness,
-  };
-  const interior = {
-    x: center.x + frame.inwardNormal.x * halfWallThickness,
-    z: center.z + frame.inwardNormal.z * halfWallThickness,
-  };
+  const { exterior, interior } = wallFacePairAtStation(frame, stationMeters);
   expect(Number(cut?.getAttribute('x1'))).toBeCloseTo(450 + (exterior.x - viewport.centerX) * viewport.zoom, 6);
   expect(Number(cut?.getAttribute('y1'))).toBeCloseTo(260 - (exterior.z - viewport.centerZ) * viewport.zoom, 6);
   expect(Number(cut?.getAttribute('x2'))).toBeCloseTo(450 + (interior.x - viewport.centerX) * viewport.zoom, 6);
   expect(Number(cut?.getAttribute('y2'))).toBeCloseTo(260 - (interior.z - viewport.centerZ) * viewport.zoom, 6);
+}
+
+function screenPointForPlanPoint(
+  point: { x: number; z: number },
+  viewport = { centerX: 0, centerZ: 0, zoom: 100 },
+) {
+  return {
+    x: 450 + (point.x - viewport.centerX) * viewport.zoom,
+    y: 260 - (point.z - viewport.centerZ) * viewport.zoom,
+  };
+}
+
+function expectLineEndpointToMatch(
+  line: Element | null,
+  endpoint: 'start' | 'end',
+  point: { x: number; z: number },
+  viewport = { centerX: 0, centerZ: 0, zoom: 100 },
+) {
+  expect(line).toBeTruthy();
+  const expected = screenPointForPlanPoint(point, viewport);
+  expect(Number(line?.getAttribute(endpoint === 'start' ? 'x1' : 'x2'))).toBeCloseTo(expected.x, 6);
+  expect(Number(line?.getAttribute(endpoint === 'start' ? 'y1' : 'y2'))).toBeCloseTo(expected.y, 6);
+}
+
+function lineConnectsPlanPoints(
+  line: Element,
+  first: { x: number; z: number },
+  second: { x: number; z: number },
+  viewport = { centerX: 0, centerZ: 0, zoom: 100 },
+) {
+  const a = screenPointForPlanPoint(first, viewport);
+  const b = screenPointForPlanPoint(second, viewport);
+  const x1 = Number(line.getAttribute('x1'));
+  const y1 = Number(line.getAttribute('y1'));
+  const x2 = Number(line.getAttribute('x2'));
+  const y2 = Number(line.getAttribute('y2'));
+  const forward = Math.hypot(x1 - a.x, y1 - a.y) < 0.001 && Math.hypot(x2 - b.x, y2 - b.y) < 0.001;
+  const reverse = Math.hypot(x1 - b.x, y1 - b.y) < 0.001 && Math.hypot(x2 - a.x, y2 - a.y) < 0.001;
+  return forward || reverse;
 }
 
 function mockPlanSurface(svg: SVGSVGElement) {
@@ -779,6 +807,7 @@ describe('DesignBuilderPlanCanvas', () => {
         active2DView="floor-plan"
         segmentFrames={frames}
         openingPreview={{
+          openingId: 'preview-door',
           resolvedPlacement: resolved,
           openingType: 'door',
           isValid: true,
@@ -878,6 +907,7 @@ describe('DesignBuilderPlanCanvas', () => {
         active2DView="floor-plan"
         segmentFrames={frames}
         openingPreview={{
+          openingId: 'preview-door',
           resolvedPlacement: resolved,
           openingType: 'door',
           isValid: true,
@@ -935,6 +965,78 @@ describe('DesignBuilderPlanCanvas', () => {
     expect(partitionFootprint).toBeTruthy();
     expect(partitionFootprint?.getAttribute('points')?.trim().split(/\s+/)).toHaveLength(4);
     expect(partitionFaces).toHaveLength(2);
+  });
+
+  it('renders partition walls with openings as split physical run polygons', () => {
+    const preset = createFiveBySixCmuBuildingPreset();
+    const startNode = preset.wallLayout.nodes[0]!;
+    const partitionEnd = { id: 'partition-end', x: startNode.x + 2.4, z: startNode.z + 1.8 };
+    const layout = {
+      ...preset.wallLayout,
+      nodes: [...preset.wallLayout.nodes, partitionEnd],
+      segments: [
+        ...preset.wallLayout.segments,
+        {
+          id: 'partition-wall',
+          startNodeId: startNode.id,
+          endNodeId: partitionEnd.id,
+          wallHeightMeters: preset.wallLayout.defaultWallHeightMeters,
+          wallThicknessMeters: 0.15,
+          wallRole: 'partition' as const,
+        },
+      ],
+    };
+    const frames = getSegmentFramesForWallLayout(layout, preset.wall);
+    const frame = frames.find((candidate) => candidate.segmentId === 'partition-wall')!;
+    const station = frame.lengthMeters * 0.5;
+    const resolved = resolveOpeningPlacementFromPlanPoint({
+      planX: frame.centerlineStart.x + frame.tangent.x * station,
+      planZ: frame.centerlineStart.z + frame.tangent.z * station,
+      hostSegmentId: frame.segmentId,
+      segmentFrame: frame,
+      openingDefinition: {
+        type: 'door',
+        widthMeters: 0.9,
+        heightMeters: 2.1,
+        roughOpeningAllowanceMeters: 0.05,
+      },
+      snapMode: 'grid',
+      gridSpacingMeters: 0.1,
+      wall: { ...preset.wall, snapToModule: false },
+    });
+
+    const { container } = render(
+      <DesignBuilderPlanCanvas
+        layout={layout}
+        toolMode="select"
+        active2DView="floor-plan"
+        viewport={{ centerX: 0, centerZ: 0, zoom: 100 }}
+        segmentFrames={frames}
+        openingItems={[{
+          openingId: 'partition-door',
+          openingType: 'door',
+          resolved,
+          isValid: true,
+          statusKind: 'clean',
+        }]}
+        onInteraction={vi.fn()}
+      />,
+    );
+
+    const splitPolygons = container.querySelectorAll(
+      'polygon[data-plan-partition-run="true"][data-segment-id="partition-wall"]',
+    );
+    const fullPartitionPolygon = container.querySelector(
+      'polygon[data-plan-wall-footprint="true"][data-segment-id="partition-wall"]:not([data-plan-partition-run="true"])',
+    );
+    const startFaces = wallFacePairAtStation(frame, resolved.roughOpeningStartMeters);
+    const endFaces = wallFacePairAtStation(frame, resolved.roughOpeningEndMeters);
+    expect(splitPolygons).toHaveLength(2);
+    expect(fullPartitionPolygon).toBeFalsy();
+    expect(container.querySelectorAll('[data-plan-rough-opening-cut="true"][data-plan-opening-id="partition-door"]')).toHaveLength(2);
+    const visibleLines = Array.from(container.querySelectorAll('line[data-plan-wall-visible="true"]'));
+    expect(visibleLines.some((line) => lineConnectsPlanPoints(line, startFaces.exterior, endFaces.interior))).toBe(false);
+    expect(visibleLines.some((line) => lineConnectsPlanPoints(line, startFaces.interior, endFaces.exterior))).toBe(false);
   });
 
   it('renders exterior CMU walls with both outside and inside face lines', () => {
@@ -1077,6 +1179,36 @@ describe('DesignBuilderPlanCanvas', () => {
     );
     expect(door).toBeTruthy();
     expect(roughCuts).toHaveLength(2);
+    const startFaces = wallFacePairAtStation(frame, resolved.roughOpeningStartMeters);
+    const endFaces = wallFacePairAtStation(frame, resolved.roughOpeningEndMeters);
+    expectLineEndpointToMatch(
+      container.querySelector(
+        `line[data-plan-wall-face-kind="exterior"][data-wall-run-index="0"][data-segment-id="${frame.segmentId}"]`,
+      ),
+      'end',
+      startFaces.exterior,
+    );
+    expectLineEndpointToMatch(
+      container.querySelector(
+        `line[data-plan-wall-face-kind="interior"][data-wall-run-index="0"][data-segment-id="${frame.segmentId}"]`,
+      ),
+      'end',
+      startFaces.interior,
+    );
+    expectLineEndpointToMatch(
+      container.querySelector(
+        `line[data-plan-wall-face-kind="exterior"][data-wall-run-index="1"][data-segment-id="${frame.segmentId}"]`,
+      ),
+      'start',
+      endFaces.exterior,
+    );
+    expectLineEndpointToMatch(
+      container.querySelector(
+        `line[data-plan-wall-face-kind="interior"][data-wall-run-index="1"][data-segment-id="${frame.segmentId}"]`,
+      ),
+      'start',
+      endFaces.interior,
+    );
     expectRoughOpeningCutToBeSquare(
       container.querySelector(
         `[data-plan-rough-opening-cut="true"][data-plan-rough-opening-edge="start"][data-segment-id="${frame.segmentId}"]`,
@@ -1091,6 +1223,17 @@ describe('DesignBuilderPlanCanvas', () => {
       frame,
       resolved.roughOpeningEndMeters,
     );
+    const startCut = container.querySelector(
+      `[data-plan-rough-opening-cut="true"][data-plan-opening-jamb="start"][data-plan-opening-id="door-1"]`,
+    );
+    expect(Number(startCut?.getAttribute('x1'))).toBeCloseTo(Number(startCut?.getAttribute('x2')), 6);
+    expect(Number(startCut?.getAttribute('y1'))).not.toBeCloseTo(Number(startCut?.getAttribute('y2')), 2);
+    expect(container.querySelector('[data-plan-opening-id="door-1"]')).toBeTruthy();
+    expect(container.querySelector('[data-plan-opening-jamb="start"][data-plan-opening-id="door-1"]')).toBeTruthy();
+    expect(container.querySelector('[data-plan-opening-jamb="end"][data-plan-opening-id="door-1"]')).toBeTruthy();
+    const visibleLines = Array.from(container.querySelectorAll('line[data-plan-wall-visible="true"]'));
+    expect(visibleLines.some((line) => lineConnectsPlanPoints(line, startFaces.exterior, endFaces.interior))).toBe(false);
+    expect(visibleLines.some((line) => lineConnectsPlanPoints(line, startFaces.interior, endFaces.exterior))).toBe(false);
     expect(door?.querySelector('[data-plan-door-leaf="true"]')).toBeTruthy();
     expect(door?.querySelector('[data-plan-door-swing-arc="true"]')).toBeTruthy();
     expect(door?.querySelector('[data-plan-opening-jamb="true"]')).toBeFalsy();
@@ -1200,6 +1343,54 @@ describe('DesignBuilderPlanCanvas', () => {
     expect(window?.querySelector('text')).toBeFalsy();
   });
 
+  it('renders vertical wall openings with horizontal screen-space jambs from shared face pairs', () => {
+    const preset = createFiveBySixCmuBuildingPreset();
+    const frames = getSegmentFramesForWallLayout(preset.wallLayout, preset.wall);
+    const frame = frames.find((candidate) => Math.abs(candidate.tangent.z) > 0.9)!;
+    const station = frame.lengthMeters * 0.5;
+    const resolved = resolveOpeningPlacementFromPlanPoint({
+      planX: frame.exteriorStart.x + frame.tangent.x * station,
+      planZ: frame.exteriorStart.z + frame.tangent.z * station,
+      hostSegmentId: frame.segmentId,
+      segmentFrame: frame,
+      openingDefinition: {
+        type: 'window',
+        widthMeters: 1.2,
+        heightMeters: 0.9,
+        sillHeightMeters: 1,
+        roughOpeningAllowanceMeters: 0.05,
+      },
+      snapMode: 'grid',
+      gridSpacingMeters: 0.1,
+      wall: { ...preset.wall, snapToModule: false },
+    });
+
+    const { container } = render(
+      <DesignBuilderPlanCanvas
+        layout={preset.wallLayout}
+        toolMode="select"
+        active2DView="floor-plan"
+        viewport={{ centerX: 0, centerZ: 0, zoom: 100 }}
+        segmentFrames={frames}
+        openingItems={[{
+          openingId: 'vertical-window',
+          openingType: 'window',
+          resolved,
+          isValid: true,
+          statusKind: 'clean',
+        }]}
+        onInteraction={vi.fn()}
+      />,
+    );
+
+    const startCut = container.querySelector(
+      `[data-plan-rough-opening-cut="true"][data-plan-opening-jamb="start"][data-plan-opening-id="vertical-window"]`,
+    );
+    expectRoughOpeningCutToBeSquare(startCut, frame, resolved.roughOpeningStartMeters);
+    expect(Number(startCut?.getAttribute('y1'))).toBeCloseTo(Number(startCut?.getAttribute('y2')), 6);
+    expect(Number(startCut?.getAttribute('x1'))).not.toBeCloseTo(Number(startCut?.getAttribute('x2')), 2);
+  });
+
   it('emits segment preview while hovering during place door', () => {
     const preset = createFiveBySixCmuBuildingPreset();
     const onInteraction = vi.fn();
@@ -1281,6 +1472,7 @@ describe('DesignBuilderPlanCanvas', () => {
         selectedSegmentId={frame.segmentId}
         segmentFrames={frames}
         openingPreview={{
+          openingId: 'preview-door',
           resolvedPlacement: resolved,
           openingType: 'door',
           isValid: true,
@@ -1328,6 +1520,7 @@ describe('DesignBuilderPlanCanvas', () => {
         selectedSegmentId={frame.segmentId}
         segmentFrames={frames}
         openingPreview={{
+          openingId: 'preview-door',
           resolvedPlacement: resolved,
           openingType: 'door',
           isValid: true,
@@ -1426,6 +1619,60 @@ describe('DesignBuilderPlanCanvas', () => {
       planX: 1,
       planZ: 0,
     }));
+  });
+
+  it('layers manually placed columns below foundation beams and floor-plan CMU wall linework', () => {
+    const { layout, frameSystem } = createColumnDragFixture();
+    const foundationRender = render(
+      <DesignBuilderPlanCanvas
+        layout={layout}
+        toolMode="select"
+        viewport={{ centerX: 2, centerZ: 0, zoom: 100 }}
+        frameSystem={frameSystem as unknown as StructuralFrameSystemParameters}
+        placedComponents={[createPlacedColumn('placed-column-on-beam', 2, 0)]}
+        drawingStyleMode="architectural"
+        onInteraction={vi.fn()}
+      />,
+    );
+
+    const placedFoundationColumn = foundationRender.container.querySelector(
+      '[data-component-column-body-id="placed-column-on-beam"]',
+    );
+    const tieBeam = foundationRender.container.querySelector('[data-foundation-beam-id="tie-beam-a-b"]');
+    expect(placedFoundationColumn).toBeTruthy();
+    expect(tieBeam).toBeTruthy();
+    expect((placedFoundationColumn?.compareDocumentPosition(tieBeam!) ?? 0) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    foundationRender.unmount();
+
+    const preset = createFiveBySixCmuBuildingPreset();
+    const segmentFrames = getSegmentFramesForWallLayout(preset.wallLayout, preset.wall);
+    const wallFrame = segmentFrames[0]!;
+    const wallColumnPosition = {
+      x: (wallFrame.exteriorStart.x + wallFrame.exteriorEnd.x) / 2,
+      z: (wallFrame.exteriorStart.z + wallFrame.exteriorEnd.z) / 2,
+    };
+    const floorRender = render(
+      <DesignBuilderPlanCanvas
+        layout={preset.wallLayout}
+        toolMode="select"
+        active2DView="floor-plan"
+        viewport={{ centerX: wallColumnPosition.x, centerZ: wallColumnPosition.z, zoom: 100 }}
+        segmentFrames={segmentFrames}
+        placedComponents={[createPlacedColumn('placed-column-on-wall', wallColumnPosition.x, wallColumnPosition.z)]}
+        drawingStyleMode="architectural"
+        onInteraction={vi.fn()}
+      />,
+    );
+
+    const placedFloorColumn = floorRender.container.querySelector(
+      '[data-component-column-body-id="placed-column-on-wall"]',
+    );
+    const wallFace = floorRender.container.querySelector(
+      `line[data-plan-wall-face="true"][data-segment-id="${wallFrame.segmentId}"]`,
+    );
+    expect(placedFloorColumn).toBeTruthy();
+    expect(wallFace).toBeTruthy();
+    expect((placedFloorColumn?.compareDocumentPosition(wallFace!) ?? 0) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('renders placed footers as solid footing symbols with centered column markers', () => {

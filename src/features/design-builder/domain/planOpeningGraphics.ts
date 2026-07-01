@@ -22,6 +22,17 @@ export type PlanWallFootprint = {
   faceB: { start: PlanPoint; end: PlanPoint };
 };
 
+export type WallFacePair = {
+  exterior: PlanPoint;
+  interior: PlanPoint;
+};
+
+export type PlanOpeningWallCut = {
+  startJamb: WallFacePair;
+  endJamb: WallFacePair;
+  roughOpeningPolygon: [PlanPoint, PlanPoint, PlanPoint, PlanPoint];
+};
+
 export type SegmentPlanFootprintEndpointAdjustments = {
   startMeters?: number;
   endMeters?: number;
@@ -34,6 +45,11 @@ export type PlanOpeningGeometry = {
   roughEnd: { x: number; z: number };
   actualStart: { x: number; z: number };
   actualEnd: { x: number; z: number };
+  roughStartJamb: WallFacePair;
+  roughEndJamb: WallFacePair;
+  roughOpeningPolygon: [PlanPoint, PlanPoint, PlanPoint, PlanPoint];
+  actualStartJamb: WallFacePair;
+  actualEndJamb: WallFacePair;
   tangent: { x: number; z: number };
   inwardNormal: { x: number; z: number };
   outwardNormal: { x: number; z: number };
@@ -74,6 +90,41 @@ export function planPointOnWall(frame: SegmentFrame, alongMeters: number): PlanP
   return {
     x: frame.centerlineStart.x + frame.tangent.x * alongMeters,
     z: frame.centerlineStart.z + frame.tangent.z * alongMeters,
+  };
+}
+
+export function wallFacePairAtStation(frame: SegmentFrame, stationMeters: number): WallFacePair {
+  const station = Math.max(0, Math.min(frame.lengthMeters, stationMeters));
+  const center = planPointOnWall(frame, station);
+  const halfThickness = Math.max(0, frame.wallThicknessMeters / 2);
+  return {
+    exterior: {
+      x: center.x + frame.outwardNormal.x * halfThickness,
+      z: center.z + frame.outwardNormal.z * halfThickness,
+    },
+    interior: {
+      x: center.x + frame.inwardNormal.x * halfThickness,
+      z: center.z + frame.inwardNormal.z * halfThickness,
+    },
+  };
+}
+
+export function buildPlanOpeningWallCut(params: {
+  frame: SegmentFrame;
+  roughOpeningStartMeters: number;
+  roughOpeningEndMeters: number;
+}): PlanOpeningWallCut {
+  const startJamb = wallFacePairAtStation(params.frame, params.roughOpeningStartMeters);
+  const endJamb = wallFacePairAtStation(params.frame, params.roughOpeningEndMeters);
+  return {
+    startJamb,
+    endJamb,
+    roughOpeningPolygon: [
+      startJamb.exterior,
+      endJamb.exterior,
+      endJamb.interior,
+      startJamb.interior,
+    ],
   };
 }
 
@@ -277,6 +328,11 @@ export function buildPlanOpeningGeometry(
   resolved: ResolvedOpeningPlacement,
   frame: SegmentFrame,
 ): PlanOpeningGeometry {
+  const roughCut = buildPlanOpeningWallCut({
+    frame,
+    roughOpeningStartMeters: resolved.roughOpeningStartMeters,
+    roughOpeningEndMeters: resolved.roughOpeningEndMeters,
+  });
   return {
     hostSegmentId: resolved.hostSegmentId,
     center: planPointOnWall(frame, resolved.positionAlongSegmentMeters),
@@ -284,6 +340,11 @@ export function buildPlanOpeningGeometry(
     roughEnd: planPointOnWall(frame, resolved.roughOpeningEndMeters),
     actualStart: planPointOnWall(frame, resolved.actualOpeningStartMeters),
     actualEnd: planPointOnWall(frame, resolved.actualOpeningEndMeters),
+    roughStartJamb: roughCut.startJamb,
+    roughEndJamb: roughCut.endJamb,
+    roughOpeningPolygon: roughCut.roughOpeningPolygon,
+    actualStartJamb: wallFacePairAtStation(frame, resolved.actualOpeningStartMeters),
+    actualEndJamb: wallFacePairAtStation(frame, resolved.actualOpeningEndMeters),
     tangent: { ...frame.tangent },
     inwardNormal: { ...frame.inwardNormal },
     outwardNormal: { ...frame.outwardNormal },

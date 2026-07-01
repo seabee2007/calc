@@ -4,6 +4,7 @@ import { createOutsideFaceRectangleLayout } from '../domain/wallLayoutRules';
 import {
   buildPlanDisplayNodeById,
   buildPlanOpeningGeometry,
+  buildPlanOpeningWallCut,
   buildPlanStripSnapPoints,
   buildSegmentFaceSnapPoints,
   buildSegmentPlanFootprint,
@@ -13,6 +14,7 @@ import {
   planPointOnWall,
   resolvePlanWallRunEndpoints,
   resolveSegmentDisplayEndpoints,
+  wallFacePairAtStation,
 } from '../domain/planOpeningGraphics';
 import {
   buildPlanDoorSymbolGeometry,
@@ -105,6 +107,62 @@ describe('planOpeningGraphics', () => {
     expect(geometry.roughWidthMeters).toBeCloseTo(1.0, 2);
     expect(geometry.roughStart).toEqual(planPointOnWall(frame, resolved.roughOpeningStartMeters));
     expect(geometry.roughEnd).toEqual(planPointOnWall(frame, resolved.roughOpeningEndMeters));
+  });
+
+  it('returns exterior and interior wall faces at the same station', () => {
+    const frame = frames[0]!;
+    const station = frame.lengthMeters * 0.4;
+    const center = planPointOnWall(frame, station);
+    const pair = wallFacePairAtStation(frame, station);
+    const exteriorVector = {
+      x: pair.exterior.x - center.x,
+      z: pair.exterior.z - center.z,
+    };
+    const interiorVector = {
+      x: pair.interior.x - center.x,
+      z: pair.interior.z - center.z,
+    };
+
+    expect(dot(normalize(exteriorVector), frame.outwardNormal)).toBeCloseTo(1, 6);
+    expect(dot(normalize(interiorVector), frame.inwardNormal)).toBeCloseTo(1, 6);
+    expect(dot(normalize({ x: pair.interior.x - pair.exterior.x, z: pair.interior.z - pair.exterior.z }), frame.tangent)).toBeCloseTo(0, 6);
+  });
+
+  it('builds rectangular rough-opening cuts with no crossed edges', () => {
+    const frame = frames[1]!;
+    const resolved = resolveWindowAt(1, 0.45);
+    const cut = buildPlanOpeningWallCut({
+      frame,
+      roughOpeningStartMeters: resolved.roughOpeningStartMeters,
+      roughOpeningEndMeters: resolved.roughOpeningEndMeters,
+    });
+    const startJambVector = {
+      x: cut.startJamb.interior.x - cut.startJamb.exterior.x,
+      z: cut.startJamb.interior.z - cut.startJamb.exterior.z,
+    };
+    const endJambVector = {
+      x: cut.endJamb.interior.x - cut.endJamb.exterior.x,
+      z: cut.endJamb.interior.z - cut.endJamb.exterior.z,
+    };
+    const exteriorRunVector = {
+      x: cut.endJamb.exterior.x - cut.startJamb.exterior.x,
+      z: cut.endJamb.exterior.z - cut.startJamb.exterior.z,
+    };
+    const interiorRunVector = {
+      x: cut.endJamb.interior.x - cut.startJamb.interior.x,
+      z: cut.endJamb.interior.z - cut.startJamb.interior.z,
+    };
+
+    expect(cut.roughOpeningPolygon).toEqual([
+      cut.startJamb.exterior,
+      cut.endJamb.exterior,
+      cut.endJamb.interior,
+      cut.startJamb.interior,
+    ]);
+    expect(dot(normalize(startJambVector), frame.tangent)).toBeCloseTo(0, 6);
+    expect(dot(normalize(endJambVector), frame.tangent)).toBeCloseTo(0, 6);
+    expect(dot(normalize(exteriorRunVector), frame.tangent)).toBeCloseTo(1, 6);
+    expect(dot(normalize(interiorRunVector), frame.tangent)).toBeCloseTo(1, 6);
   });
 
   it('renders door swing on the interior side of the wall', () => {

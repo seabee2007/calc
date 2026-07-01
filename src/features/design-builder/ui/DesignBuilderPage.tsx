@@ -1410,6 +1410,7 @@ export default function DesignBuilderPage({
     const draft = placementPreview.openingDraft;
     const placingDoor = toolMode === 'place_door' && placementPreview.openingType === 'door';
     return {
+      openingId: draft?.id ?? placementPreview.openingId,
       resolvedPlacement: placementPreview.resolvedPlacement,
       openingType: placementPreview.openingType,
       isValid: placementPreview.isValid,

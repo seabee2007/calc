@@ -36,11 +36,14 @@ import {
   buildPlanStripSnapPoints,
   buildSegmentFaceSnapPoints,
   buildSegmentPlanFootprint,
+  buildPlanOpeningWallCut,
   buildWallRunsExcludingRoughOpenings,
   hitTestPlanOpeningGeometry,
   planPointOnWall,
   resolveSegmentDisplayEndpoints,
+  wallFacePairAtStation,
   type SegmentPlanFootprintEndpointAdjustments,
+  type WallFacePair,
 } from '../domain/planOpeningGraphics';
 import {
   PlanOpeningSymbol,
@@ -116,12 +119,20 @@ export type PlanOpeningCanvasItem = {
 };
 
 export type PlanOpeningCanvasPreview = {
+  openingId?: string;
   resolvedPlacement: ResolvedOpeningPlacement;
   openingType: 'door' | 'window';
   isValid: boolean;
   statusKind?: 'clean' | 'half_block' | 'cut_block' | 'invalid';
   swingDirection?: 'left' | 'right';
   swingType?: 'inswing' | 'outswing';
+};
+
+type RoughOpeningPlanRenderData = {
+  openingId: string;
+  openingType: 'door' | 'window';
+  roughOpeningStartMeters: number;
+  roughOpeningEndMeters: number;
 };
 
 type ColumnDragState = {
@@ -795,26 +806,31 @@ export default function DesignBuilderPlanCanvas({
     [framesBySegmentId, layout],
   );
   const roughOpeningsBySegmentId = useMemo(() => {
-    const bySegment = new Map<string, { roughOpeningStartMeters: number; roughOpeningEndMeters: number }[]>();
+    const bySegment = new Map<string, RoughOpeningPlanRenderData[]>();
     if (!showOpeningPlanGeometry) return bySegment;
     openingItems.forEach((item) => {
       const list = bySegment.get(item.resolved.hostSegmentId) ?? [];
       list.push({
+        openingId: item.openingId,
+        openingType: item.openingType,
         roughOpeningStartMeters: item.resolved.roughOpeningStartMeters,
         roughOpeningEndMeters: item.resolved.roughOpeningEndMeters,
       });
       bySegment.set(item.resolved.hostSegmentId, list);
     });
-    if (openingPreview?.resolvedPlacement) {
+    if (openingPreview?.resolvedPlacement && openingPreview.openingId) {
       const preview = openingPreview.resolvedPlacement;
       const list = bySegment.get(preview.hostSegmentId) ?? [];
       const alreadyListed = list.some(
         (gap) =>
+          gap.openingId === openingPreview.openingId ||
           Math.abs(gap.roughOpeningStartMeters - preview.roughOpeningStartMeters) < 0.001 &&
           Math.abs(gap.roughOpeningEndMeters - preview.roughOpeningEndMeters) < 0.001,
       );
       if (!alreadyListed) {
         list.push({
+          openingId: openingPreview.openingId,
+          openingType: openingPreview.openingType,
           roughOpeningStartMeters: preview.roughOpeningStartMeters,
           roughOpeningEndMeters: preview.roughOpeningEndMeters,
         });
@@ -956,6 +972,14 @@ export default function DesignBuilderPlanCanvas({
   const committedRenderModel = useMemo(
     () => designRenderModel ?? buildDesignRenderModel({ placedComponents }),
     [designRenderModel, placedComponents],
+  );
+  const committedColumnRcComponents = useMemo(
+    () => committedRenderModel.rcComponents.filter((component) => component.type === 'column'),
+    [committedRenderModel.rcComponents],
+  );
+  const committedNonColumnRcComponents = useMemo(
+    () => committedRenderModel.rcComponents.filter((component) => component.type !== 'column'),
+    [committedRenderModel.rcComponents],
   );
   const previewRenderModel = useMemo(
     () => buildDesignRenderModel({ placedComponents: componentPreview ? [componentPreview] : [] }),
@@ -2741,37 +2765,16 @@ export default function DesignBuilderPlanCanvas({
           />
         );
       };
-      const interpolateFacePoint = (
-        startPoint: { x: number; z: number },
-        endPoint: { x: number; z: number },
-        alongMeters: number,
-      ) => {
-        if (!frame || frame.lengthMeters <= 0.001) return startPoint;
-        const t = Math.max(0, Math.min(1, alongMeters / frame.lengthMeters));
-        return {
-          x: startPoint.x + (endPoint.x - startPoint.x) * t,
-          z: startPoint.z + (endPoint.z - startPoint.z) * t,
-        };
-      };
       const renderRoughOpeningCutLine = (
         key: string,
-        alongMeters: number,
+        pair: WallFacePair,
+        stationMeters: number,
         edge: 'start' | 'end',
-        openingIndex: number,
+        opening: RoughOpeningPlanRenderData,
       ) => {
         if (!frame) return null;
-        const centerPoint = planPointOnWall(frame, alongMeters);
-        const halfWallThickness = Math.max(0, frame.wallThicknessMeters / 2);
-        const exteriorPoint = {
-          x: centerPoint.x - frame.inwardNormal.x * halfWallThickness,
-          z: centerPoint.z - frame.inwardNormal.z * halfWallThickness,
-        };
-        const interiorPoint = {
-          x: centerPoint.x + frame.inwardNormal.x * halfWallThickness,
-          z: centerPoint.z + frame.inwardNormal.z * halfWallThickness,
-        };
-        const exterior = planToSurfacePoint(exteriorPoint);
-        const interior = planToSurfacePoint(interiorPoint);
+        const exterior = planToSurfacePoint(pair.exterior);
+        const interior = planToSurfacePoint(pair.interior);
         return (
           <line
             key={key}
@@ -2785,63 +2788,118 @@ export default function DesignBuilderPlanCanvas({
             pointerEvents="none"
             data-plan-wall-visible="true"
             data-plan-rough-opening-cut="true"
+            data-plan-opening-jamb={edge}
+            data-plan-opening-id={opening.openingId}
+            data-plan-opening-type={opening.openingType}
             data-plan-rough-opening-edge={edge}
-            data-rough-opening-index={String(openingIndex)}
-            data-rough-opening-station-meters={alongMeters.toFixed(3)}
+            data-rough-opening-station-meters={stationMeters.toFixed(3)}
             data-segment-id={segment.id}
           />
         );
+      };
+      const renderRoughOpeningCutLines = (opening: RoughOpeningPlanRenderData) => {
+        if (!frame) return [];
+        const cut = buildPlanOpeningWallCut({
+          frame,
+          roughOpeningStartMeters: opening.roughOpeningStartMeters,
+          roughOpeningEndMeters: opening.roughOpeningEndMeters,
+        });
+        return [
+          renderRoughOpeningCutLine(
+            `${segment.id}-${opening.openingId}-start-cut`,
+            cut.startJamb,
+            opening.roughOpeningStartMeters,
+            'start',
+            opening,
+          ),
+          renderRoughOpeningCutLine(
+            `${segment.id}-${opening.openingId}-end-cut`,
+            cut.endJamb,
+            opening.roughOpeningEndMeters,
+            'end',
+            opening,
+          ),
+        ];
       };
       if (frame && roughOpenings.length > 0) {
         const runs = buildWallRunsExcludingRoughOpenings({
           segmentLengthMeters: frame.lengthMeters,
           roughOpenings,
         });
+        const renderSelectableRun = (run: { startAlongMeters: number; endAlongMeters: number }) => {
+          const centerStart = planToSurfacePoint(planPointOnWall(frame, run.startAlongMeters));
+          const centerEnd = planToSurfacePoint(planPointOnWall(frame, run.endAlongMeters));
+          return (
+            <line
+              x1={centerStart.sx}
+              y1={centerStart.sy}
+              x2={centerEnd.sx}
+              y2={centerEnd.sy}
+              stroke="transparent"
+              strokeWidth={18}
+              strokeLinecap="round"
+              pointerEvents="none"
+              data-selectable="true"
+              data-selectable-type="wall_segment"
+              data-segment-id={segment.id}
+            />
+          );
+        };
+        if (segment.wallRole === 'partition') {
+          return (
+            <g key={segment.id}>
+              {runs.map((run, index) => {
+                const startFaces = wallFacePairAtStation(frame, run.startAlongMeters);
+                const endFaces = wallFacePairAtStation(frame, run.endAlongMeters);
+                const footprintPoints = [
+                  startFaces.exterior,
+                  endFaces.exterior,
+                  endFaces.interior,
+                  startFaces.interior,
+                ]
+                  .map((point) => {
+                    const screenPoint = planToSurfacePoint(point);
+                    return `${screenPoint.sx},${screenPoint.sy}`;
+                  })
+                  .join(' ');
+                return (
+                  <g key={`${segment.id}-partition-run-${index}`}>
+                    {renderSelectableRun(run)}
+                    <polygon
+                      points={footprintPoints}
+                      fill={structuralFill}
+                      fillOpacity={selected ? 0.3 : 0.16}
+                      stroke={stroke}
+                      strokeWidth={selected ? drawingStyle.weights.selection : drawingStyle.weights.normal}
+                      pointerEvents="none"
+                      data-plan-wall-visible="true"
+                      data-plan-wall-footprint="true"
+                      data-plan-partition-run="true"
+                      data-wall-run="true"
+                      data-wall-run-index={String(index)}
+                      data-segment-id={segment.id}
+                    />
+                  </g>
+                );
+              })}
+              {roughOpenings.flatMap((opening) => renderRoughOpeningCutLines(opening))}
+            </g>
+          );
+        }
         return (
           <g key={segment.id}>
             {runs.map((run, index) => {
-              const exteriorStart = interpolateFacePoint(frame.exteriorStart, frame.exteriorEnd, run.startAlongMeters);
-              const exteriorEnd = interpolateFacePoint(frame.exteriorStart, frame.exteriorEnd, run.endAlongMeters);
-              const interiorStart = interpolateFacePoint(frame.interiorStart, frame.interiorEnd, run.startAlongMeters);
-              const interiorEnd = interpolateFacePoint(frame.interiorStart, frame.interiorEnd, run.endAlongMeters);
-              const centerStart = interpolateFacePoint(frame.centerlineStart, frame.centerlineEnd, run.startAlongMeters);
-              const centerEnd = interpolateFacePoint(frame.centerlineStart, frame.centerlineEnd, run.endAlongMeters);
-              const selectableStart = planToSurfacePoint(centerStart);
-              const selectableEnd = planToSurfacePoint(centerEnd);
+              const startFaces = wallFacePairAtStation(frame, run.startAlongMeters);
+              const endFaces = wallFacePairAtStation(frame, run.endAlongMeters);
               return (
                 <g key={`${segment.id}-run-${index}`}>
-                  <line
-                    x1={selectableStart.sx}
-                    y1={selectableStart.sy}
-                    x2={selectableEnd.sx}
-                    y2={selectableEnd.sy}
-                    stroke="transparent"
-                    strokeWidth={18}
-                    strokeLinecap="round"
-                    pointerEvents="none"
-                    data-selectable="true"
-                    data-selectable-type="wall_segment"
-                    data-segment-id={segment.id}
-                  />
-                  {renderWallFaceLine(`${segment.id}-run-${index}-exterior`, exteriorStart, exteriorEnd, 'exterior', index)}
-                  {renderWallFaceLine(`${segment.id}-run-${index}-interior`, interiorStart, interiorEnd, 'interior', index)}
+                  {renderSelectableRun(run)}
+                  {renderWallFaceLine(`${segment.id}-run-${index}-exterior`, startFaces.exterior, endFaces.exterior, 'exterior', index)}
+                  {renderWallFaceLine(`${segment.id}-run-${index}-interior`, startFaces.interior, endFaces.interior, 'interior', index)}
                 </g>
               );
             })}
-            {roughOpenings.flatMap((opening, index) => [
-              renderRoughOpeningCutLine(
-                `${segment.id}-rough-opening-${index}-start-cut`,
-                opening.roughOpeningStartMeters,
-                'start',
-                index,
-              ),
-              renderRoughOpeningCutLine(
-                `${segment.id}-rough-opening-${index}-end-cut`,
-                opening.roughOpeningEndMeters,
-                'end',
-                index,
-              ),
-            ])}
+            {roughOpenings.flatMap((opening) => renderRoughOpeningCutLines(opening))}
           </g>
         );
       }
@@ -4159,8 +4217,13 @@ export default function DesignBuilderPlanCanvas({
           );
         }) : null}
         {foundationPlanUsesBelowGradeFrameInfill ? renderInteriorFloorSlabFootprint() : null}
-        {foundationPlanUsesBelowGradeFrameInfill ? renderBelowGradeCmuInfill() : null}
         {showFloorPlanGeometry ? renderInteriorFloorSlabFootprint() : null}
+        {showColumnPlanGeometry
+          ? committedColumnRcComponents.map((component) =>
+            renderPlanRcComponent(component, false, { showFooter: showFoundationPlanGeometry }),
+          )
+          : null}
+        {foundationPlanUsesBelowGradeFrameInfill ? renderBelowGradeCmuInfill() : null}
         {showWallPlanGeometry ? renderStructuralPlanWalls() : null}
         {showFoundationPlanGeometry ? foundationPlanBeams.map((beam) => {
             const stroke = architecturalDrawing ? permanentStroke : '#57534e';
@@ -4232,7 +4295,7 @@ export default function DesignBuilderPlanCanvas({
           );
         }) : null}
         {showColumnPlanGeometry
-          ? committedRenderModel.rcComponents.map((component) =>
+          ? committedNonColumnRcComponents.map((component) =>
             renderPlanRcComponent(component, false, { showFooter: showFoundationPlanGeometry }),
           )
           : null}

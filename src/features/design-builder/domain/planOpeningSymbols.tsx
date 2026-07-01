@@ -116,13 +116,6 @@ function screenSegment(
   );
 }
 
-function offsetPlanPoint(point: { x: number; z: number }, vector: { x: number; z: number }, distance: number) {
-  return {
-    x: point.x + vector.x * distance,
-    z: point.z + vector.z * distance,
-  };
-}
-
 export function PlanOpeningSymbol({
   item,
   project,
@@ -148,19 +141,17 @@ export function PlanOpeningSymbol({
   const fill = active && item.placing ? openingFillColor(item.colorState, 0.12) : 'transparent';
   const textBacker = drawingStyle?.sheetFill ?? '#0f172a';
   const scale = openingMarkerScale(zoom);
-  const roughA = project(item.geometry.roughStart);
-  const roughB = project(item.geometry.roughEnd);
   const center = project(item.geometry.center);
   const strokeWidth = (item.placing ? 4 : item.selected ? 3.5 : item.hovered ? 3 : 2.5) * scale;
   const actualStrokeWidth = (item.placing ? 3.5 : item.selected ? 3 : 2.5) * scale;
   const symbolStrokeWidth = Math.max(1.3, (item.placing ? 2.2 : 1.55) * scale);
-  const halfWallThickness = Math.max(0.04, item.geometry.wallThicknessMeters / 2);
-  const jambAExterior = project(offsetPlanPoint(item.geometry.roughStart, item.geometry.inwardNormal, -halfWallThickness));
-  const jambAInterior = project(offsetPlanPoint(item.geometry.roughStart, item.geometry.inwardNormal, halfWallThickness));
-  const jambBExterior = project(offsetPlanPoint(item.geometry.roughEnd, item.geometry.inwardNormal, -halfWallThickness));
-  const jambBInterior = project(offsetPlanPoint(item.geometry.roughEnd, item.geometry.inwardNormal, halfWallThickness));
   const showRoughConstruction = item.placing || item.colorState === 'invalid';
-  const showSymbolJambs = item.placing || item.colorState === 'invalid';
+  const roughOutlinePoints = item.geometry.roughOpeningPolygon
+    .map((point) => {
+      const screenPoint = project(point);
+      return `${screenPoint.sx},${screenPoint.sy}`;
+    })
+    .join(' ');
 
   const door = item.doorSymbol;
   const hingeScreen = door ? project(door.hinge) : null;
@@ -175,10 +166,12 @@ export function PlanOpeningSymbol({
         })
       : null;
 
-  const windowOffsets =
-    item.openingType === 'window'
-      ? [-0.28, 0, 0.28].map((offset) => offset * item.geometry.wallThicknessMeters)
-      : [];
+  const windowFaceRatios = item.openingType === 'window' ? [0.22, 0.5, 0.78] : [];
+
+  const pointBetweenFaces = (pair: { exterior: { x: number; z: number }; interior: { x: number; z: number } }, ratio: number) => ({
+    x: pair.exterior.x + (pair.interior.x - pair.exterior.x) * ratio,
+    z: pair.exterior.z + (pair.interior.z - pair.exterior.z) * ratio,
+  });
 
   return (
     <g
@@ -190,27 +183,18 @@ export function PlanOpeningSymbol({
       data-door-swing-type={door?.swingType}
       pointerEvents="none"
     >
-      {showRoughConstruction ? screenSegment(roughA, roughB, stroke, strokeWidth * 0.7, '5 4') : null}
-      {fill !== 'transparent' ? (
-        <line
-          x1={roughA.sx}
-          y1={roughA.sy}
-          x2={roughB.sx}
-          y2={roughB.sy}
-          stroke={stroke}
-          strokeOpacity={0.35}
-          strokeWidth={1.2 * scale}
-          strokeDasharray="4 3"
+      {showRoughConstruction ? (
+        <polygon
+          points={roughOutlinePoints}
           fill={fill}
+          fillOpacity={fill === 'transparent' ? undefined : 0.35}
+          stroke={stroke}
+          strokeWidth={strokeWidth * 0.55}
+          strokeDasharray="5 4"
           pointerEvents="none"
+          data-plan-opening-preview-outline="true"
         />
       ) : null}
-      {showSymbolJambs
-        ? screenSegment(jambAExterior, jambAInterior, stroke, symbolStrokeWidth, undefined, { 'data-plan-opening-jamb': 'true' })
-        : null}
-      {showSymbolJambs
-        ? screenSegment(jambBExterior, jambBInterior, stroke, symbolStrokeWidth, undefined, { 'data-plan-opening-jamb': 'true' })
-        : null}
       {item.openingType === 'door' && door && hingeScreen && openLeafScreen ? (
         <>
           {screenSegment(hingeScreen, openLeafScreen, stroke, actualStrokeWidth + 0.35, undefined, { 'data-plan-door-leaf': 'true' })}
@@ -229,9 +213,9 @@ export function PlanOpeningSymbol({
       ) : null}
       {item.openingType === 'window' ? (
         <>
-          {windowOffsets.map((offset, index) => {
-            const windowA = project(offsetPlanPoint(item.geometry.actualStart, item.geometry.inwardNormal, offset));
-            const windowB = project(offsetPlanPoint(item.geometry.actualEnd, item.geometry.inwardNormal, offset));
+          {windowFaceRatios.map((ratio, index) => {
+            const windowA = project(pointBetweenFaces(item.geometry.actualStartJamb, ratio));
+            const windowB = project(pointBetweenFaces(item.geometry.actualEndJamb, ratio));
             return (
               <g key={`window-sash-${index}`}>
                 {screenSegment(
