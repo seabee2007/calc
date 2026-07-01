@@ -10,11 +10,17 @@ import {
 } from '../rendering/materials/designMaterialLibrary';
 import type { DesignObjectType } from '../types';
 import {
+  applyGableCmuBlockMaterialDepthBias,
+  applyGableCmuMortarMaterialDepthBias,
   blockColor,
   buildCmuBlockInstanceSceneGroup,
   buildInfillPlasterSceneGroup,
   buildInfillWallProxySceneGroup,
+  CMU_GABLE_BLOCK_RENDER_ORDER,
+  CMU_GABLE_MORTAR_RENDER_ORDER,
+  isGableEndCmuBlock,
   resolveVisibleCmuBlockInstances,
+  withGableCmuFinishFaceClearance,
 } from './DesignBuilderWallScene';
 import type { DesignBuilderViewerRebuildState } from './DesignBuilderViewerRebuildState';
 import { selectionPriorityForObjectType } from './DesignBuilderViewerSceneRegistry';
@@ -66,6 +72,9 @@ export function buildDesignBuilderViewerCmuMortarScene(params: {
   cmuCutawayActive: boolean;
   cmuOpacity: number;
   debugMode: boolean;
+  groupName?: string;
+  renderOrder?: number;
+  decorateMaterial?: (material: THREE.Material) => void;
   trackGeometry: TrackGeometry;
   trackMaterial: TrackMaterial;
 }): DesignBuilderViewerCmuMortarScene {
@@ -88,6 +97,9 @@ export function buildDesignBuilderViewerCmuMortarScene(params: {
     slabTopMeters: params.slabTopMeters,
     materialOptions: mortarMaterialOptions,
     debugMode: params.debugMode,
+    groupName: params.groupName,
+    renderOrder: params.renderOrder,
+    decorateMaterial: params.decorateMaterial,
     trackGeometry: params.trackGeometry,
     trackMaterial: params.trackMaterial,
   });
@@ -134,6 +146,10 @@ export function buildDesignBuilderViewerCmuInfillScene(params: {
     roofLayerVisibility: state.currentRoofLayerVisibility,
     blockInstances: geometry.wallCmuLayout.blocks,
   });
+  const normalBlockInstances = blockInstances.filter((block) => !isGableEndCmuBlock(block));
+  const gableBlockInstances = blockInstances
+    .filter(isGableEndCmuBlock)
+    .map((block) => withGableCmuFinishFaceClearance(block, state.currentWall.blockDepthMeters));
   const fadeCmuForFrameSelection = state.frameSelected && !state.cmuSelected;
   const effectiveCmuOpacity = fadeCmuForFrameSelection
     ? FRAME_SELECTION_CMU_CONTEXT_OPACITY
@@ -147,24 +163,52 @@ export function buildDesignBuilderViewerCmuInfillScene(params: {
       }
     : state.cmuMaterialOptions;
 
-  const mortarScene = buildDesignBuilderViewerCmuMortarScene({
-    blocks: blockInstances,
-    wall: state.currentWall,
-    slabTopMeters: state.currentSlab.slabThicknessMeters,
-    visualStyle: state.currentVisualStyle,
-    cmuCutawayActive: state.cmuCutawayActive || fadeCmuForFrameSelection,
-    cmuOpacity: effectiveCmuOpacity,
-    debugMode: false,
-    trackGeometry: params.trackGeometry,
-    trackMaterial: params.trackMaterial,
+  const mortarInputs = [
+    {
+      blocks: normalBlockInstances,
+      groupName: 'mortarJointGroup',
+      renderOrder: 0,
+      decorateMaterial: undefined,
+    },
+    {
+      blocks: gableBlockInstances,
+      groupName: 'gableMortarJointGroup',
+      renderOrder: CMU_GABLE_MORTAR_RENDER_ORDER,
+      decorateMaterial: applyGableCmuMortarMaterialDepthBias,
+    },
+  ];
+  let mortarDiagnostics: MortarJointDiagnostics | null = null;
+  mortarInputs.forEach((input) => {
+    if (input.blocks.length === 0) return;
+    const mortarScene = buildDesignBuilderViewerCmuMortarScene({
+      blocks: input.blocks,
+      wall: state.currentWall,
+      slabTopMeters: state.currentSlab.slabThicknessMeters,
+      visualStyle: state.currentVisualStyle,
+      cmuCutawayActive: state.cmuCutawayActive || fadeCmuForFrameSelection,
+      cmuOpacity: effectiveCmuOpacity,
+      debugMode: false,
+      groupName: input.groupName,
+      renderOrder: input.renderOrder,
+      decorateMaterial: input.decorateMaterial,
+      trackGeometry: params.trackGeometry,
+      trackMaterial: params.trackMaterial,
+    });
+    if (!mortarDiagnostics) mortarDiagnostics = mortarScene.diagnostics;
+    if (mortarScene.group.children.length > 0) groups.push(mortarScene.group);
   });
-  if (mortarScene.group.children.length > 0) groups.push(mortarScene.group);
 
-  if (blockInstances.length > 0) {
+  const addCmuBlockGroup = (input: {
+    blocks: readonly CmuBlockInstance[];
+    groupName: string;
+    renderOrder: number;
+    decorateMaterial?: (material: THREE.Material) => void;
+  }) => {
+    if (input.blocks.length === 0) return;
     const blockModule = resolveCmuModuleConfig(state.currentWall);
     const blockHeightMeters = blockModule.actualHeightMeters ?? blockModule.moduleHeightMeters;
     const cmuBlockGroup = buildCmuBlockInstanceSceneGroup({
-      blockInstances,
+      blockInstances: input.blocks,
       blockHeightMeters,
       defaultBlockDepthMeters: state.currentWall.blockDepthMeters,
       slabTopMeters: state.currentSlab.slabThicknessMeters,
@@ -176,6 +220,10 @@ export function buildDesignBuilderViewerCmuInfillScene(params: {
               opacity: effectiveCmuOpacity,
               ...(fadeCmuForFrameSelection ? { depthWrite: false } : {}),
             }),
+      groupName: input.groupName,
+      renderOrder: input.renderOrder,
+      decorateMaterial: input.decorateMaterial,
+      trackMaterial: params.trackMaterial,
       trackGeometry: params.trackGeometry,
     });
     markSelectableGroup({
@@ -184,7 +232,18 @@ export function buildDesignBuilderViewerCmuInfillScene(params: {
       selectableObjects,
     });
     groups.push(cmuBlockGroup);
-  }
+  };
+  addCmuBlockGroup({
+    blocks: normalBlockInstances,
+    groupName: 'cmuBlockInstanceGroup',
+    renderOrder: 0,
+  });
+  addCmuBlockGroup({
+    blocks: gableBlockInstances,
+    groupName: 'cmuGableBlockInstanceGroup',
+    renderOrder: CMU_GABLE_BLOCK_RENDER_ORDER,
+    decorateMaterial: applyGableCmuBlockMaterialDepthBias,
+  });
 
   if (params.showCmuInfill && !state.currentWall.showIndividualBlocks) {
     const wallMaterial = params.makeMaterial(
@@ -267,6 +326,6 @@ export function buildDesignBuilderViewerCmuInfillScene(params: {
   return {
     groups,
     selectableObjects,
-    mortarDiagnostics: mortarScene.diagnostics,
+    mortarDiagnostics,
   };
 }

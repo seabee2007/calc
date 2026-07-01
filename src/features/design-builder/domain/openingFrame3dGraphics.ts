@@ -6,11 +6,17 @@ import type { SegmentFrame } from '../geometry/designGeometry';
 export const SELECTION_OUTLINE_EPSILON_METERS = 0.002;
 export const FRAME_TRIM_METERS = 0.055;
 export const RENDER_EPSILON_METERS = 0.001;
+export const OPENING_FINISH_FACE_CLEARANCE_METERS = 0.012;
 export const PREVIEW_FACE_BIAS_METERS = 0.012;
 export const SELECTION_OUTLINE_COLOR = 0x22d3ee;
 export const HOVER_OUTLINE_COLOR = 0x67e8f9;
 export const ROUGH_OPENING_GUIDE_COLOR = 0xf59e0b;
 export const ROUGH_OPENING_GUIDE_OPACITY = 0.72;
+export const OPENING_UNIT_RENDER_ORDER = 3;
+export const OPENING_FRAME_RENDER_ORDER = 4;
+export const OPENING_OUTLINE_RENDER_ORDER = 5;
+export const OPENING_GUIDE_RENDER_ORDER = 6;
+export const OPENING_PREVIEW_RENDER_ORDER = 10;
 
 export type OpeningFrameOutlineDimensions = {
   widthMeters: number;
@@ -40,8 +46,12 @@ export function resolveOpeningFrameOutlineDimensions(
   return {
     widthMeters: opening.actualWidthMeters + FRAME_TRIM_METERS * 2,
     heightMeters: opening.actualHeightMeters + FRAME_TRIM_METERS * 2,
-    depthMeters: wallThicknessMeters,
+    depthMeters: resolveOpeningFrameRenderDepth(wallThicknessMeters),
   };
+}
+
+export function resolveOpeningFrameRenderDepth(wallThicknessMeters: number): number {
+  return Math.max(0, wallThicknessMeters) + OPENING_FINISH_FACE_CLEARANCE_METERS * 2;
 }
 
 export function resolveRoughOpeningGuideDimensions(
@@ -67,7 +77,7 @@ export function resolveRoughOpeningGuideDimensions(
   return {
     widthMeters: opening.roughOpeningWidthMeters,
     heightMeters: opening.roughOpeningHeightMeters,
-    depthMeters: wallThicknessMeters,
+    depthMeters: resolveOpeningFrameRenderDepth(wallThicknessMeters),
     offsetXMeters: roughCenterAlong - actualCenterAlong,
     offsetYMeters: roughCenterY - actualCenterY,
   };
@@ -152,7 +162,10 @@ export function createOpeningFrame3dGroup(
     transparent: preview,
     opacity: preview ? 0.72 : 1,
     depthTest: !preview,
-    depthWrite: !preview,
+    depthWrite: false,
+    polygonOffset: !preview,
+    polygonOffsetFactor: -1,
+    polygonOffsetUnits: -4,
   });
   const unitMaterial = new THREE.MeshStandardMaterial({
     color: opening.type === 'door' ? 0x78350f : 0x60a5fa,
@@ -160,17 +173,21 @@ export function createOpeningFrame3dGroup(
     transparent: true,
     opacity: preview ? 0.28 : 0.42,
     depthTest: !preview,
-    depthWrite: !preview,
+    depthWrite: false,
+    polygonOffset: !preview,
+    polygonOffsetFactor: -1,
+    polygonOffsetUnits: -4,
   });
 
   const centerY = slabTop + opening.actualBottomMeters + opening.actualHeightMeters / 2;
   const actualWidth = opening.actualWidthMeters;
   const actualHeight = opening.actualHeightMeters;
-  const depth = wall.wallThicknessMeters;
+  const depth = resolveOpeningFrameRenderDepth(wall.wallThicknessMeters);
   const frame = FRAME_TRIM_METERS;
 
   const frameGroup = new THREE.Group();
   frameGroup.userData.openingVisualFrame = true;
+  frameGroup.renderOrder = preview ? OPENING_PREVIEW_RENDER_ORDER : OPENING_FRAME_RENDER_ORDER;
   if (preview) {
     frameGroup.position.z = PREVIEW_FACE_BIAS_METERS;
   }
@@ -180,23 +197,28 @@ export function createOpeningFrame3dGroup(
   const unitGeom = new THREE.BoxGeometry(actualWidth, actualHeight, depth + RENDER_EPSILON_METERS);
 
   const unitMesh = new THREE.Mesh(unitGeom, unitMaterial);
-  unitMesh.position.set(0, 0, RENDER_EPSILON_METERS);
+  unitMesh.position.set(0, 0, 0);
+  unitMesh.renderOrder = preview ? OPENING_PREVIEW_RENDER_ORDER : OPENING_UNIT_RENDER_ORDER;
   frameGroup.add(unitMesh);
 
   const topFrame = new THREE.Mesh(horizontalGeom, frameMaterial);
   topFrame.position.set(0, actualHeight / 2 + frame / 2, 0);
+  topFrame.renderOrder = preview ? OPENING_PREVIEW_RENDER_ORDER : OPENING_FRAME_RENDER_ORDER;
   frameGroup.add(topFrame);
 
   const bottomFrame = new THREE.Mesh(horizontalGeom, frameMaterial);
   bottomFrame.position.set(0, -actualHeight / 2 - frame / 2, 0);
+  bottomFrame.renderOrder = preview ? OPENING_PREVIEW_RENDER_ORDER : OPENING_FRAME_RENDER_ORDER;
   frameGroup.add(bottomFrame);
 
   const leftFrame = new THREE.Mesh(verticalGeom, frameMaterial);
   leftFrame.position.set(-actualWidth / 2 - frame / 2, 0, 0);
+  leftFrame.renderOrder = preview ? OPENING_PREVIEW_RENDER_ORDER : OPENING_FRAME_RENDER_ORDER;
   frameGroup.add(leftFrame);
 
   const rightFrame = new THREE.Mesh(verticalGeom, frameMaterial);
   rightFrame.position.set(actualWidth / 2 + frame / 2, 0, 0);
+  rightFrame.renderOrder = preview ? OPENING_PREVIEW_RENDER_ORDER : OPENING_FRAME_RENDER_ORDER;
   frameGroup.add(rightFrame);
 
   if (visibility.showFrameMeshes) {
@@ -204,7 +226,7 @@ export function createOpeningFrame3dGroup(
   }
 
   if (visibility.showSelectionOutline || visibility.showHoverOutline) {
-    const outlineDimensions = resolveOpeningFrameOutlineDimensions(opening, depth);
+    const outlineDimensions = resolveOpeningFrameOutlineDimensions(opening, wall.wallThicknessMeters);
     const epsilon = SELECTION_OUTLINE_EPSILON_METERS;
     const outlineGeom = new THREE.EdgesGeometry(
       new THREE.BoxGeometry(
@@ -218,10 +240,11 @@ export function createOpeningFrame3dGroup(
       transparent: preview,
       opacity: preview ? 0.95 : 1,
       depthTest: !preview,
-      depthWrite: !preview,
+      depthWrite: false,
     });
     const outline = new THREE.LineSegments(outlineGeom, outlineMaterial);
     outline.userData.openingSelectionOutline = true;
+    outline.renderOrder = preview ? OPENING_PREVIEW_RENDER_ORDER : OPENING_OUTLINE_RENDER_ORDER;
     if (preview) {
       outline.position.z = PREVIEW_FACE_BIAS_METERS;
     }
@@ -229,13 +252,11 @@ export function createOpeningFrame3dGroup(
   }
 
   if (visibility.showRoughOpeningGuide) {
-    addRoughOpeningGuideChildren(group, opening, depth);
+    addRoughOpeningGuideChildren(group, opening, wall.wallThicknessMeters);
   }
 
   positionOpeningFrameGroup(group, opening, wall, centerY, options?.hostSegmentFrame);
-  if (preview) {
-    group.renderOrder = 10;
-  }
+  group.renderOrder = preview ? OPENING_PREVIEW_RENDER_ORDER : OPENING_FRAME_RENDER_ORDER;
   return group;
 }
 
@@ -252,6 +273,7 @@ export function createOpeningRoughOpeningGuideGroup(
   const centerY = slabTop + opening.actualBottomMeters + opening.actualHeightMeters / 2;
   addRoughOpeningGuideChildren(group, opening, wall.wallThicknessMeters);
   positionOpeningFrameGroup(group, opening, wall, centerY, hostSegmentFrame);
+  group.renderOrder = OPENING_GUIDE_RENDER_ORDER;
   return group;
 }
 
@@ -279,10 +301,12 @@ function addRoughOpeningGuideChildren(
     opacity: ROUGH_OPENING_GUIDE_OPACITY,
     dashSize: 0.08,
     gapSize: 0.05,
+    depthWrite: false,
   });
   const guideOutline = new THREE.LineSegments(guideGeom, guideMaterial);
   guideOutline.computeLineDistances();
   guideOutline.userData.openingRoughOpeningGuide = true;
+  guideOutline.renderOrder = OPENING_GUIDE_RENDER_ORDER;
   group.add(guideOutline);
 
   const label = createRoughOpeningLabel(

@@ -140,6 +140,10 @@ import {
 } from '../domain/structureActions';
 import { normalizeRcFrameFoundationSettings, resolveFoundationElevations, syncColumnHeightAbovePlinthForWallHeight } from '../domain/foundationElevations';
 import {
+  promotePlacedColumnComponentToFrameColumn,
+  promotePlacedColumnComponentsToFrameColumns,
+} from '../domain/structuralFrameLayout';
+import {
   createDefaultRoofSystemSettings,
   DEFAULT_ROOF_LAYER_VISIBILITY,
   normalizeRoofSystemSettings,
@@ -1365,6 +1369,43 @@ export default function DesignBuilderPage({
     () => designGeometryResult.wallCmuLayout.segmentFrames ?? getSegmentFramesForWallLayout(wallLayout, effectiveWall),
     [designGeometryResult.wallCmuLayout.segmentFrames, effectiveWall, wallLayout],
   );
+  useEffect(() => {
+    if (!modelLoaded || resolvedPreset.buildingSystemMode !== 'reinforced_concrete_frame_with_cmu_infill') return;
+    if (!placedComponents.some((component) => component.type === 'column')) return;
+    const promoted = promotePlacedColumnComponentsToFrameColumns({
+      placedComponents,
+      layout: wallLayout,
+      segmentFrames: planSegmentFrames,
+      frameSystem: resolvedPreset.frameSystem,
+      foundation: resolvedPreset.foundationSettings,
+      wallHeightMeters: wallLayout.defaultWallHeightMeters,
+    });
+    if (!promoted.changed) return;
+    setPreset((current) =>
+      current
+        ? {
+            ...current,
+            frameSystem: promoted.frameSystem,
+          }
+        : current,
+    );
+    setPlacedComponents(promoted.remainingPlacedComponents);
+    if (selectedComponentId && !promoted.remainingPlacedComponents.some((component) => component.id === selectedComponentId)) {
+      selectObjectFromInteraction('structural_frame_system', 'columns');
+    }
+    setChangedAfterCommit(true);
+    if (persistenceContext.canPersist) setSaveState('unsaved');
+  }, [
+    modelLoaded,
+    persistenceContext.canPersist,
+    placedComponents,
+    planSegmentFrames,
+    resolvedPreset.buildingSystemMode,
+    resolvedPreset.foundationSettings,
+    resolvedPreset.frameSystem,
+    selectedComponentId,
+    wallLayout,
+  ]);
   const planResolvedOpeningsById = useMemo(() => {
     const map = new Map<string, ResolvedOpeningPlacement>();
     effectiveWall.openings.forEach((opening) => {
@@ -1573,6 +1614,69 @@ export default function DesignBuilderPage({
       position: snapPosition,
       elevationFace: elevationView.face,
     });
+    if (
+      resolvedPreset.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill' &&
+      component.type === 'column'
+    ) {
+      const promoted = promotePlacedColumnComponentToFrameColumn({
+        component,
+        layout: wallLayout,
+        segmentFrames: planSegmentFrames,
+        frameSystem: resolvedPreset.frameSystem,
+        foundation: resolvedPreset.foundationSettings,
+        wallHeightMeters: wallLayout.defaultWallHeightMeters,
+      });
+      if (promoted) {
+        let promotedColumnId = promoted.column.id;
+        const applied = promoted.added
+          ? executeDesignCommand({
+              label: 'Place column',
+              kind: 'structure_update',
+              mutate: (before) =>
+                patchDesignSnapshot(before, resolvePresetName(), (current) => {
+                  const currentWall = wallParamsWithLegacyOpenings(current.wall, current.wallLayout);
+                  const currentFrames = getSegmentFramesForWallLayout(current.wallLayout, currentWall);
+                  const nextPromoted = promotePlacedColumnComponentToFrameColumn({
+                    component,
+                    layout: current.wallLayout,
+                    segmentFrames: currentFrames,
+                    frameSystem: current.frameSystem,
+                    foundation: current.foundationSettings,
+                    wallHeightMeters: current.wallLayout.defaultWallHeightMeters,
+                  });
+                  if (!nextPromoted) return current;
+                  promotedColumnId = nextPromoted.column.id;
+                  if (!nextPromoted.added) return current;
+                  return {
+                    ...current,
+                    frameSystem: {
+                      ...current.frameSystem,
+                      columns: [...current.frameSystem.columns, nextPromoted.column],
+                    },
+                  };
+                }),
+              afterApply: () => {
+                selectObjectFromInteraction('structural_frame_system', 'columns');
+                dispatchComponentPlacement({ type: 'placed', component });
+                closeDesignBuilderCommandMenus();
+                setToolMode('select');
+                setStatus({ tone: 'success', message: 'Column added to the structural frame.' });
+              },
+            })
+          : false;
+        if (!applied) {
+          selectObjectFromInteraction('structural_frame_system', 'columns');
+          dispatchComponentPlacement({ type: 'placed', component });
+          closeDesignBuilderCommandMenus();
+          setToolMode('select');
+          setStatus({
+            tone: 'info',
+            message: promotedColumnId === promoted.column.id ? 'Column already exists in the structural frame.' : 'Column selected.',
+          });
+        }
+        return;
+      }
+    }
     const relatedComponents: PlacedDesignComponent[] = [];
     let placedComponent = component;
     const foundation = normalizeRcFrameFoundationSettings(resolvedPreset.foundationSettings);

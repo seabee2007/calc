@@ -132,6 +132,11 @@ function attachTriplanarShader(
 ): void {
   const textureScale = 1 / textureScaleMeters;
   const normalizedPaintStrength = THREE.MathUtils.clamp(paintStrength, 0, 1);
+  material.userData.triplanarProjection = {
+    textureScaleMeters,
+    paintColorHex: paintColor.getHex(),
+    paintStrength: normalizedPaintStrength,
+  };
 
   material.customProgramCacheKey = () =>
     `triplanar_${textureScale}_${checker ? 1 : 0}_${Boolean(material.map)}_${Boolean(material.roughnessMap)}_${Boolean(material.aoMap)}_${paintColor.getHexString()}_${normalizedPaintStrength.toFixed(3)}`;
@@ -234,5 +239,18 @@ export function reapplyTriplanarShaderToClone(
   material: THREE.MeshStandardMaterial,
   textureScaleMeters: number,
 ): void {
-  attachTriplanarShader(material, textureScaleMeters, useCheckerMap, new THREE.Color(0xffffff), 0);
+  const projection = material.userData.triplanarProjection as
+    | {
+        textureScaleMeters?: number;
+        paintColorHex?: number;
+        paintStrength?: number;
+      }
+    | undefined;
+  attachTriplanarShader(
+    material,
+    projection?.textureScaleMeters ?? textureScaleMeters,
+    useCheckerMap,
+    new THREE.Color(projection?.paintColorHex ?? 0xffffff),
+    projection?.paintStrength ?? 0,
+  );
 }

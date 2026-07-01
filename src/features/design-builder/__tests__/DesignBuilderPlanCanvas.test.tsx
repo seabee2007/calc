@@ -1767,6 +1767,92 @@ describe('DesignBuilderPlanCanvas', () => {
     expect(container.querySelector('[data-component-column-body-id="placed-column-a"]')).toBeTruthy();
   });
 
+  it('renders promoted manual RC columns through frame columns and isolated footings without component duplicates', () => {
+    const { layout, frameSystem } = createColumnDragFixture();
+    const manualColumn = {
+      ...frameSystem.columns[0]!,
+      id: 'manual-column-placed-column-a',
+      name: 'Manual Column',
+      position: { x: 2, z: 0 },
+      hostNodeId: undefined,
+      hostSegmentId: 'segment-a-b',
+      source: 'manual_frame_layout' as const,
+    };
+    const promotedFrameSystem = {
+      ...frameSystem,
+      columns: [...frameSystem.columns, manualColumn],
+    };
+    const manualFooting = {
+      id: 'footing-manual-column',
+      name: 'Manual Column Footing',
+      columnId: manualColumn.id,
+      position: manualColumn.position,
+      widthMeters: 0.9,
+      lengthMeters: 0.9,
+      thicknessMeters: 0.3,
+      topElevationMeters: -0.3,
+      bottomElevationMeters: -0.6,
+      centerElevationMeters: -0.45,
+      source: 'auto_at_column' as const,
+    };
+    const { container, rerender } = render(
+      <DesignBuilderPlanCanvas
+        layout={layout}
+        toolMode="select"
+        viewport={{ centerX: 2, centerZ: 0, zoom: 100 }}
+        frameSystem={promotedFrameSystem as unknown as StructuralFrameSystemParameters}
+        isolatedFootings={[manualFooting]}
+        placedComponents={[createPlacedColumn('placed-column-a', 2, 0)]}
+        selectedObjectTreeItemId="foundation-isolated-footings"
+        drawingStyleMode="architectural"
+        onInteraction={vi.fn()}
+      />,
+    );
+
+    expect(container.querySelector('[data-component-footer-id="placed-column-a-footer"]')).toBeFalsy();
+    expect(container.querySelector('[data-component-column-body-id="placed-column-a"]')).toBeFalsy();
+    const selectedFooting = container.querySelector('[data-foundation-footing-id="footing-manual-column"]');
+    expect(selectedFooting).toBeTruthy();
+    expect(selectedFooting?.getAttribute('data-foundation-footing-column-id')).toBe(manualColumn.id);
+    expect(selectedFooting?.getAttribute('stroke')).toBe('#06b6d4');
+    expect(selectedFooting?.getAttribute('data-selected-object-tree-item-id')).toBe('foundation-isolated-footings');
+
+    rerender(
+      <DesignBuilderPlanCanvas
+        layout={layout}
+        toolMode="select"
+        viewport={{ centerX: 2, centerZ: 0, zoom: 100 }}
+        frameSystem={promotedFrameSystem as unknown as StructuralFrameSystemParameters}
+        isolatedFootings={[manualFooting]}
+        placedComponents={[createPlacedColumn('placed-column-a', 2, 0)]}
+        selectedObjectTreeItemId="columns"
+        drawingStyleMode="architectural"
+        onInteraction={vi.fn()}
+      />,
+    );
+    const selectedColumn = container.querySelector(`[data-foundation-column-id="${manualColumn.id}"]`);
+    expect(selectedColumn).toBeTruthy();
+    expect(selectedColumn?.getAttribute('stroke')).toBe('#06b6d4');
+    expect(selectedColumn?.getAttribute('data-selected-object-tree-item-id')).toBe('columns');
+
+    rerender(
+      <DesignBuilderPlanCanvas
+        layout={layout}
+        toolMode="select"
+        active2DView="floor-plan"
+        viewport={{ centerX: 2, centerZ: 0, zoom: 100 }}
+        frameSystem={promotedFrameSystem as unknown as StructuralFrameSystemParameters}
+        isolatedFootings={[manualFooting]}
+        placedComponents={[createPlacedColumn('placed-column-a', 2, 0)]}
+        drawingStyleMode="architectural"
+        onInteraction={vi.fn()}
+      />,
+    );
+    expect(container.querySelector('[data-foundation-footing-id="footing-manual-column"]')).toBeFalsy();
+    expect(container.querySelector(`[data-floor-column-id="${manualColumn.id}"]`)).toBeTruthy();
+    expect(container.querySelector('[data-component-column-body-id="placed-column-a"]')).toBeFalsy();
+  });
+
   it('renders placed footers as solid footing symbols with centered column markers', () => {
     const { layout } = createColumnDragFixture();
     const { container } = render(

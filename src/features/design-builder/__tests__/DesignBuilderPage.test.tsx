@@ -10,7 +10,7 @@ import { generateCmuLayout } from '../geometry/designGeometry';
 import { useDesignBuilderSessionStore } from '../state/designBuilderStore';
 import DesignBuilderPage from '../ui/DesignBuilderPage';
 import { DesignBuilder2DViewTabs } from '../ui/DesignBuilderViewTabs';
-import type { DesignBuilderInteractionEvent, MasonryCourseRun } from '../types';
+import type { DesignBuilderInteractionEvent, MasonryCourseRun, StructuralFrameSystemParameters } from '../types';
 
 const mocks = vi.hoisted(() => ({
   createDesignModel: vi.fn(),
@@ -68,6 +68,7 @@ vi.mock('../ui/DesignBuilderPlanCanvas', () => ({
     onPlumbingSelect?: (selection: { kind: 'none' } | { kind: 'fixture'; id: string } | { kind: 'run'; id: string } | { kind: 'run-route-point'; runId: string; pointIndex: number } | { kind: 'fitting'; id: string } | { kind: 'node'; id: string } | { kind: 'equipment'; id: string } | { kind: 'septic-tank'; id: string }) => void;
     plumbingFixtureRotationRad?: number;
     placedComponents?: unknown[];
+    frameSystem?: StructuralFrameSystemParameters;
     designRenderModel?: { rcComponents?: Array<{ type?: string; system?: string; position?: { x?: number; z?: number } }> };
     componentPreview?: unknown;
     openingPreview?: unknown;
@@ -92,6 +93,7 @@ vi.mock('../ui/DesignBuilderViewer', () => ({
     toolMode?: string;
     placementPreview?: unknown;
     placedComponents?: unknown[];
+    frameSystem?: StructuralFrameSystemParameters;
     designRenderModel?: { rcComponents?: Array<{ type?: string; system?: string; position?: { x?: number; z?: number } }> };
     selectedObjectType?: string | null;
     selectedObjectTreeItemId?: string | null;
@@ -166,6 +168,7 @@ function latestViewerProps() {
     selectedObjectTreeItemId?: string | null;
     selectedDesignObject?: { kind: string; label: string } | null;
     placedComponents?: unknown[];
+    frameSystem?: StructuralFrameSystemParameters;
     designRenderModel?: { rcComponents?: Array<{ type?: string; system?: string; position?: { x?: number; z?: number } }> };
     wall?: { heightMeters?: number; wallThicknessMeters?: number; bondPattern?: string; blockLengthMeters?: number };
     geometryResult?: {
@@ -201,6 +204,7 @@ function latestPlanProps() {
     onPlumbingSelect?: (selection: { kind: 'none' } | { kind: 'fixture'; id: string } | { kind: 'run'; id: string } | { kind: 'run-route-point'; runId: string; pointIndex: number } | { kind: 'fitting'; id: string } | { kind: 'node'; id: string } | { kind: 'equipment'; id: string } | { kind: 'septic-tank'; id: string }) => void;
     plumbingFixtureRotationRad?: number;
     placedComponents?: unknown[];
+    frameSystem?: StructuralFrameSystemParameters;
     designRenderModel?: { rcComponents?: Array<{ type?: string; system?: string; position?: { x?: number; z?: number } }> };
     componentPreview?: unknown;
     openingPreview?: unknown;
@@ -922,8 +926,23 @@ describe('DesignBuilderPage', () => {
     expect(screen.getByLabelText(/^wall type$/i)).toHaveValue('exterior');
   });
 
-  it('previews a structural component before commit and syncs the placed component into 3D', async () => {
-    seedLoadedDesignBuilderTemplate();
+  it('promotes a Column component placement into the RC frame system without a component overlay', async () => {
+    const rcPreset = createFiveBySixCmuBuildingPreset();
+    rcPreset.foundationSettings = {
+      ...rcPreset.foundationSettings,
+      columns: {
+        ...rcPreset.foundationSettings.columns,
+        placementMode: 'corners_only',
+      },
+    };
+    const clickPoint = {
+      x: 2.5,
+      z: 0,
+    };
+    useDesignBuilderSessionStore.getState().saveSession('project-1:estimate-1', {
+      preset: applyAutoFrameLayout(rcPreset),
+      layoutState: 'demo_loaded',
+    });
     render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
     await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
 
@@ -932,31 +951,69 @@ describe('DesignBuilderPage', () => {
     await waitFor(() => expect(latestPlanProps().toolMode).toBe('place_component'));
 
     await act(async () => {
-      latestPlanProps().onComponentPointer?.({ phase: 'preview', xMeters: 1.24, zMeters: -0.76 });
+      latestPlanProps().onComponentPointer?.({ phase: 'preview', xMeters: clickPoint.x, zMeters: clickPoint.z });
     });
     await waitFor(() => expect(latestPlanProps().componentPreview).toBeTruthy());
     expect((latestPlanProps().placedComponents ?? [])).toHaveLength(0);
 
     await act(async () => {
-      latestPlanProps().onComponentPointer?.({ phase: 'commit', xMeters: 1.24, zMeters: -0.76 });
+      latestPlanProps().onComponentPointer?.({ phase: 'commit', xMeters: clickPoint.x, zMeters: clickPoint.z });
     });
-    await waitFor(() => expect((latestPlanProps().placedComponents ?? []).length).toBeGreaterThan(0));
+    await waitFor(() =>
+      expect(
+        latestPlanProps().frameSystem?.columns.some((column) => column.source === 'manual_frame_layout'),
+      ).toBe(true),
+    );
     expect(latestPlanProps().componentPreview).toBeFalsy();
+    expect((latestPlanProps().placedComponents ?? [])).toHaveLength(0);
+    expect(latestPlanProps().designRenderModel?.rcComponents ?? []).toHaveLength(0);
+    const manualColumn = latestPlanProps().frameSystem?.columns.find((column) => column.source === 'manual_frame_layout');
+    expect(manualColumn).toMatchObject({
+      kind: 'rc_column',
+    });
+    expect(manualColumn?.position.x).toBeCloseTo(clickPoint.x, 6);
+    expect(manualColumn?.position.z).toBeCloseTo(clickPoint.z, 6);
+
+    fireEvent.click(screen.getByRole('button', { name: /switch to 3d view/i }));
+    await waitFor(() => expect(screen.getByTestId('design-builder-viewer')).toBeInTheDocument());
+    expect(latestViewerProps().toolMode).toBe('select');
+    expect((latestViewerProps().placedComponents ?? [])).toHaveLength(0);
+    expect(latestViewerProps().designRenderModel?.rcComponents ?? []).toHaveLength(0);
+  });
+
+  it('keeps Column component placement on the component overlay path outside RC frame mode', async () => {
+    const preset = createFiveBySixCmuBuildingPreset();
+    const bearingWallPreset = {
+      ...preset,
+      buildingSystemMode: 'cmu_bearing_wall' as const,
+      frameSystem: {
+        ...preset.frameSystem,
+        buildingSystemMode: 'cmu_bearing_wall' as const,
+      },
+    };
+    useDesignBuilderSessionStore.getState().saveSession('project-1:estimate-1', {
+      preset: bearingWallPreset,
+      layoutState: 'demo_loaded',
+    });
+    render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
+    await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
+
+    openMenuByKind('components');
+    chooseCommandMenuItem(/^column$/i);
+    await waitFor(() => expect(latestPlanProps().toolMode).toBe('place_component'));
+
+    await act(async () => {
+      latestPlanProps().onComponentPointer?.({ phase: 'commit', xMeters: 1.2, zMeters: -0.8 });
+    });
+
+    await waitFor(() => expect((latestPlanProps().placedComponents ?? [])).toHaveLength(2));
     expect(latestPlanProps().designRenderModel?.rcComponents?.[0]).toMatchObject({
       type: 'column',
       system: 'reinforced-concrete',
       position: { x: 1.2, z: -0.8 },
     });
-
-    fireEvent.click(screen.getByRole('button', { name: /switch to 3d view/i }));
-    await waitFor(() => expect(screen.getByTestId('design-builder-viewer')).toBeInTheDocument());
-    expect(latestViewerProps().toolMode).toBe('select');
-    expect((latestViewerProps().placedComponents ?? []).length).toBeGreaterThan(0);
-    expect(latestViewerProps().designRenderModel?.rcComponents?.[0]).toMatchObject({
-      type: 'column',
-      system: 'reinforced-concrete',
-      position: { x: 1.2, z: -0.8 },
-    });
+    expect(latestPlanProps().designRenderModel?.rcComponents?.some((component) => component.type === 'footer')).toBe(true);
+    expect(latestPlanProps().frameSystem?.columns.some((column) => column.source === 'manual_frame_layout')).not.toBe(true);
   });
 
   it('keeps side panels collapsed while placing and selecting a CMU septic tank', async () => {

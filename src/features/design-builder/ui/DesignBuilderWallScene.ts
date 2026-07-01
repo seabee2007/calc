@@ -1,4 +1,8 @@
 import * as THREE from 'three';
+import {
+  CMU_TEXTURE_TILE_METERS,
+  reapplyTriplanarShaderToClone,
+} from '../rendering/materials/createTriplanarStandardMaterial';
 import { DEFAULT_ROOF_LAYER_VISIBILITY } from '../domain/roofSystemDefaults';
 import { TOP_COURSE_RENDER_EPSILON_METERS } from '../domain/cmuInfillPanelSolver';
 import {
@@ -21,8 +25,10 @@ import type {
 } from '../types';
 
 type TrackGeometry = <T extends THREE.BufferGeometry>(geometry: T) => T;
+type TrackMaterial = <T extends THREE.Material>(material: T) => T;
 
 export type CmuBlockMaterialFactory = (blockType: CmuBlockType) => THREE.Material;
+export type CmuBlockMaterialDecorator = (material: THREE.Material) => void;
 export type PlasterMaterialFactory = (
   finish: NonNullable<CmuInfillSystemParameters['plaster']>['finish'],
 ) => THREE.Material;
@@ -50,8 +56,44 @@ function roofDisplayModeShowsGableMasonry(roofDisplayMode: RoofDisplayMode): boo
   );
 }
 
-function isGableEndCmuBlock(block: Pick<RenderableCmuBlockInstance, 'source'>): boolean {
+export const CMU_GABLE_FINISH_FACE_CLEARANCE_METERS = 0.012;
+export const CMU_GABLE_BLOCK_RENDER_ORDER = 2;
+export const CMU_GABLE_MORTAR_RENDER_ORDER = 3;
+
+export function isGableEndCmuBlock(block: Pick<RenderableCmuBlockInstance, 'source'>): boolean {
   return block.source === 'gable_end_solver';
+}
+
+export function resolveGableCmuRenderDepthMeters(
+  block: Pick<RenderableCmuBlockInstance, 'depthMeters'>,
+  defaultBlockDepthMeters: number,
+): number {
+  return Math.max(
+    0,
+    block.depthMeters ?? defaultBlockDepthMeters,
+  ) + CMU_GABLE_FINISH_FACE_CLEARANCE_METERS * 2;
+}
+
+export function withGableCmuFinishFaceClearance<T extends RenderableCmuBlockInstance>(
+  block: T,
+  defaultBlockDepthMeters: number,
+): T {
+  if (!isGableEndCmuBlock(block)) return block;
+  return {
+    ...block,
+    depthMeters: resolveGableCmuRenderDepthMeters(block, defaultBlockDepthMeters),
+  };
+}
+
+export function applyGableCmuBlockMaterialDepthBias(material: THREE.Material): void {
+  material.polygonOffset = true;
+  material.polygonOffsetFactor = -1;
+  material.polygonOffsetUnits = -4;
+}
+
+export function applyGableCmuMortarMaterialDepthBias(material: THREE.Material): void {
+  applyGableCmuBlockMaterialDepthBias(material);
+  material.depthWrite = false;
 }
 
 export function resolveVisibleCmuBlockInstances<T extends RenderableCmuBlockInstance>(params: {
@@ -132,19 +174,33 @@ export function buildCmuBlockInstanceSceneGroup(params: {
   defaultBlockDepthMeters: number;
   slabTopMeters: number;
   createMaterial: CmuBlockMaterialFactory;
+  groupName?: string;
+  renderOrder?: number;
+  decorateMaterial?: CmuBlockMaterialDecorator;
+  trackMaterial?: TrackMaterial;
   trackGeometry: TrackGeometry;
 }): THREE.Group {
   const group = new THREE.Group();
-  group.name = 'cmuBlockInstanceGroup';
+  group.name = params.groupName ?? 'cmuBlockInstanceGroup';
+  group.renderOrder = params.renderOrder ?? 0;
   const blocksByType = groupBlocksByType(params.blockInstances);
   blocksByType.forEach((instances, blockType) => {
     const blockGeometry = params.trackGeometry(new THREE.BoxGeometry(1, 1, 1));
+    const baseMaterial = params.createMaterial(blockType);
+    const material = params.decorateMaterial
+      ? params.trackMaterial?.(baseMaterial.clone()) ?? baseMaterial.clone()
+      : baseMaterial;
+    if (params.decorateMaterial && material instanceof THREE.MeshStandardMaterial) {
+      reapplyTriplanarShaderToClone(material, CMU_TEXTURE_TILE_METERS);
+    }
+    params.decorateMaterial?.(material);
     const blocks = new THREE.InstancedMesh(
       blockGeometry,
-      params.createMaterial(blockType),
+      material,
       instances.length,
     );
     blocks.name = `cmuBlocks:${blockType}`;
+    blocks.renderOrder = params.renderOrder ?? 0;
     const matrix = new THREE.Matrix4();
     const quaternion = new THREE.Quaternion();
     instances.forEach((block, index) => {

@@ -1,5 +1,6 @@
 import type {
   DesignWallLayoutParameters,
+  PlacedDesignComponent,
   RcFrameFoundationSettings,
   StructuralBeam,
   StructuralColumn,
@@ -29,6 +30,11 @@ import {
   DEFAULT_RC_COLUMN_DEPTH_METERS,
   DEFAULT_RC_COLUMN_WIDTH_METERS,
 } from "./structuralFrameDefaults";
+
+const MANUAL_COLUMN_NODE_TOLERANCE_METERS = 0.2;
+const MANUAL_COLUMN_SEGMENT_TOLERANCE_METERS = 0.25;
+const MANUAL_COLUMN_POSITION_MATCH_TOLERANCE_METERS = 0.025;
+const MANUAL_COLUMN_DIMENSION_MATCH_TOLERANCE_METERS = 0.001;
 
 export type ColumnFootprint = {
   column: StructuralColumn;
@@ -85,6 +91,231 @@ function resolveColumnDimensions(
       foundation.columns.depthMeters ||
       frameSystem.defaultColumnDepthMeters ||
       DEFAULT_RC_COLUMN_DEPTH_METERS,
+  };
+}
+
+function numberValue(value: unknown, fallback: number): number {
+  const numeric = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(numeric) ? numeric : fallback;
+}
+
+function positiveNumber(value: unknown, fallback: number): number {
+  const numeric = numberValue(value, fallback);
+  return numeric > 0 ? numeric : fallback;
+}
+
+function planPositionForComponent(
+  component: PlacedDesignComponent,
+): { x: number; z: number } | null {
+  if (component.viewPlacement.plan) {
+    return {
+      x: component.viewPlacement.plan.xMeters,
+      z: component.viewPlacement.plan.zMeters,
+    };
+  }
+  if (component.viewPlacement.world) {
+    return {
+      x: component.viewPlacement.world.xMeters,
+      z: component.viewPlacement.world.zMeters,
+    };
+  }
+  return null;
+}
+
+export function manualFrameColumnIdForComponent(componentId: string): string {
+  return `manual-column-${componentId}`;
+}
+
+function distanceMeters(a: { x: number; z: number }, b: { x: number; z: number }): number {
+  return Math.hypot(a.x - b.x, a.z - b.z);
+}
+
+function projectPointToFrameCenterline(
+  point: { x: number; z: number },
+  frame: SegmentFrame,
+): { point: { x: number; z: number }; stationMeters: number; distanceMeters: number } {
+  const rawStation =
+    (point.x - frame.centerlineStart.x) * frame.tangent.x +
+    (point.z - frame.centerlineStart.z) * frame.tangent.z;
+  const stationMeters = Math.max(0, Math.min(frame.lengthMeters, rawStation));
+  const projected = {
+    x: frame.centerlineStart.x + frame.tangent.x * stationMeters,
+    z: frame.centerlineStart.z + frame.tangent.z * stationMeters,
+  };
+  return {
+    point: projected,
+    stationMeters,
+    distanceMeters: distanceMeters(point, projected),
+  };
+}
+
+function resolveManualColumnHost(params: {
+  point: { x: number; z: number };
+  layout: DesignWallLayoutParameters;
+  segmentFrames: readonly SegmentFrame[];
+  widthMeters: number;
+  depthMeters: number;
+}): { position: { x: number; z: number }; hostNodeId?: string; hostSegmentId?: string } {
+  const maxColumnDimension = Math.max(params.widthMeters, params.depthMeters);
+  const nodeToleranceMeters = Math.max(MANUAL_COLUMN_NODE_TOLERANCE_METERS, maxColumnDimension);
+  const segmentToleranceMeters = Math.max(MANUAL_COLUMN_SEGMENT_TOLERANCE_METERS, maxColumnDimension);
+  const exteriorSegmentIds = getExteriorPerimeterSegmentIds(params.layout);
+  const exteriorNodeIds = getStructuralColumnNodeIds(params.layout, exteriorSegmentIds);
+  const nodeById = new Map(params.layout.nodes.map((node) => [node.id, node]));
+  const nearestNode = exteriorNodeIds
+    .map((nodeId) => {
+      const node = nodeById.get(nodeId);
+      if (!node) return null;
+      return {
+        node,
+        distance: distanceMeters(params.point, node),
+      };
+    })
+    .filter((entry): entry is { node: { id: string; x: number; z: number }; distance: number } => entry != null)
+    .filter((entry) => entry.distance <= nodeToleranceMeters)
+    .sort((a, b) => a.distance - b.distance || a.node.id.localeCompare(b.node.id))[0];
+
+  if (nearestNode) {
+    return {
+      position: { x: nearestNode.node.x, z: nearestNode.node.z },
+      hostNodeId: nearestNode.node.id,
+    };
+  }
+
+  const nearestSegment = params.segmentFrames
+    .filter((frame) => exteriorSegmentIds.has(frame.segmentId))
+    .map((frame) => ({
+      frame,
+      projection: projectPointToFrameCenterline(params.point, frame),
+    }))
+    .filter((entry) => entry.projection.distanceMeters <= segmentToleranceMeters)
+    .sort((a, b) => a.projection.distanceMeters - b.projection.distanceMeters || a.frame.segmentId.localeCompare(b.frame.segmentId))[0];
+
+  if (nearestSegment) {
+    return {
+      position: nearestSegment.projection.point,
+      hostSegmentId: nearestSegment.frame.segmentId,
+    };
+  }
+
+  return { position: params.point };
+}
+
+function columnsAreNearEqual(
+  left: Pick<StructuralColumn, "position" | "widthMeters" | "depthMeters">,
+  right: Pick<StructuralColumn, "position" | "widthMeters" | "depthMeters">,
+): boolean {
+  return (
+    distanceMeters(left.position, right.position) <= MANUAL_COLUMN_POSITION_MATCH_TOLERANCE_METERS &&
+    Math.abs(left.widthMeters - right.widthMeters) <= MANUAL_COLUMN_DIMENSION_MATCH_TOLERANCE_METERS &&
+    Math.abs(left.depthMeters - right.depthMeters) <= MANUAL_COLUMN_DIMENSION_MATCH_TOLERANCE_METERS
+  );
+}
+
+export function promotePlacedColumnComponentToFrameColumn(params: {
+  component: PlacedDesignComponent;
+  layout: DesignWallLayoutParameters;
+  segmentFrames: readonly SegmentFrame[];
+  frameSystem: StructuralFrameSystemParameters;
+  foundation: StructuralFoundationSettings | RcFrameFoundationSettings | undefined;
+  wallHeightMeters: number;
+}): { column: StructuralColumn; added: boolean } | null {
+  if (params.component.type !== "column") return null;
+  const point = planPositionForComponent(params.component);
+  if (!point) return null;
+  const foundation = resolveFoundation(params.foundation);
+  const defaultDimensions = resolveColumnDimensions(foundation, params.frameSystem);
+  const widthMeters = positiveNumber(params.component.parameters.widthMeters, defaultDimensions.widthMeters);
+  const depthMeters = positiveNumber(params.component.parameters.depthMeters, defaultDimensions.depthMeters);
+  const host = resolveManualColumnHost({
+    point,
+    layout: params.layout,
+    segmentFrames: params.segmentFrames,
+    widthMeters,
+    depthMeters,
+  });
+  const elevations = resolveFoundationElevations({
+    foundation,
+    wallHeightMeters: params.wallHeightMeters,
+  });
+  const column: StructuralColumn = {
+    id: manualFrameColumnIdForComponent(params.component.id),
+    name: `Manual Column ${params.component.id}`,
+    kind: "rc_column",
+    position: host.position,
+    widthMeters,
+    depthMeters,
+    ...resolveColumnGeometry({
+      column: { widthMeters, depthMeters },
+      elevations,
+    }),
+    hostNodeId: host.hostNodeId,
+    hostSegmentId: host.hostSegmentId,
+    source: "manual_frame_layout",
+  };
+  const existing =
+    params.frameSystem.columns.find((candidate) => candidate.id === column.id) ??
+    params.frameSystem.columns.find((candidate) => columnsAreNearEqual(candidate, column));
+  if (existing) return { column: existing, added: false };
+  return { column, added: true };
+}
+
+export function promotePlacedColumnComponentsToFrameColumns(params: {
+  placedComponents: readonly PlacedDesignComponent[];
+  layout: DesignWallLayoutParameters;
+  segmentFrames: readonly SegmentFrame[];
+  frameSystem: StructuralFrameSystemParameters;
+  foundation: StructuralFoundationSettings | RcFrameFoundationSettings | undefined;
+  wallHeightMeters: number;
+}): {
+  frameSystem: StructuralFrameSystemParameters;
+  remainingPlacedComponents: PlacedDesignComponent[];
+  promotedColumnIds: string[];
+  changed: boolean;
+} {
+  let frameSystem = params.frameSystem;
+  const promotedComponentIds = new Set<string>();
+  const promotedFooterIds = new Set<string>();
+  const promotedColumnIds: string[] = [];
+
+  for (const component of params.placedComponents) {
+    if (component.type !== "column") continue;
+    const result = promotePlacedColumnComponentToFrameColumn({
+      component,
+      layout: params.layout,
+      segmentFrames: params.segmentFrames,
+      frameSystem,
+      foundation: params.foundation,
+      wallHeightMeters: params.wallHeightMeters,
+    });
+    if (!result) continue;
+    promotedComponentIds.add(component.id);
+    for (const connectedId of component.references?.connectedComponentIds ?? []) {
+      promotedFooterIds.add(connectedId);
+    }
+    promotedColumnIds.push(result.column.id);
+    if (result.added) {
+      frameSystem = {
+        ...frameSystem,
+        columns: [...frameSystem.columns, result.column],
+      };
+    }
+  }
+
+  const remainingPlacedComponents = params.placedComponents.filter((component) => {
+    if (promotedComponentIds.has(component.id)) return false;
+    if (component.type === "footer" && component.references?.hostId && promotedComponentIds.has(component.references.hostId)) return false;
+    if (promotedFooterIds.has(component.id)) return false;
+    return true;
+  });
+
+  return {
+    frameSystem,
+    remainingPlacedComponents,
+    promotedColumnIds,
+    changed:
+      frameSystem !== params.frameSystem ||
+      remainingPlacedComponents.length !== params.placedComponents.length,
   };
 }
 

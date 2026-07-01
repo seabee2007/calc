@@ -6,10 +6,18 @@ import {
   FRAME_TRIM_METERS,
   groupHasRoughOpeningGuide,
   groupHasSelectionOutline,
+  OPENING_FINISH_FACE_CLEARANCE_METERS,
+  OPENING_FRAME_RENDER_ORDER,
+  OPENING_GUIDE_RENDER_ORDER,
+  OPENING_OUTLINE_RENDER_ORDER,
+  OPENING_PREVIEW_RENDER_ORDER,
+  OPENING_UNIT_RENDER_ORDER,
   readOpeningFrameOutlineDimensionsFromGroup,
+  RENDER_EPSILON_METERS,
   resolveOpeningFrameCenterWorld,
   resolveOpeningFrame3dVisibility,
   resolveOpeningFrameOutlineDimensions,
+  resolveOpeningFrameRenderDepth,
   resolveRoughOpeningGuideDimensions,
   SELECTION_OUTLINE_COLOR,
   SELECTION_OUTLINE_EPSILON_METERS,
@@ -61,6 +69,13 @@ function sampleDoorOpening(overrides: Partial<ResolvedCmuOpening> = {}): Resolve
   };
 }
 
+function meshLocalSize(mesh: THREE.Mesh): THREE.Vector3 {
+  mesh.geometry.computeBoundingBox();
+  const box = mesh.geometry.boundingBox;
+  expect(box).not.toBeNull();
+  return box!.getSize(new THREE.Vector3());
+}
+
 describe('openingFrame3dGraphics', () => {
   it('selected door outline bounds match rendered frame bounds', () => {
     const opening = sampleDoorOpening();
@@ -72,6 +87,40 @@ describe('openingFrame3dGraphics', () => {
     expect(outline!.widthMeters).toBeCloseTo(expected.widthMeters + SELECTION_OUTLINE_EPSILON_METERS * 2, 6);
     expect(outline!.heightMeters).toBeCloseTo(expected.heightMeters + SELECTION_OUTLINE_EPSILON_METERS * 2, 6);
     expect(outline!.depthMeters).toBeCloseTo(expected.depthMeters + SELECTION_OUTLINE_EPSILON_METERS * 2, 6);
+  });
+
+  it('renders committed opening visuals proud of wall finishes and above plaster', () => {
+    const opening = sampleDoorOpening();
+    const group = createOpeningFrame3dGroup(opening, wall, 0.1, { selected: true });
+    const visualDepth = resolveOpeningFrameRenderDepth(wall.wallThicknessMeters);
+    const frameGroup = group.children.find(
+      (child): child is THREE.Group => child instanceof THREE.Group && child.userData.openingVisualFrame,
+    );
+    expect(frameGroup).toBeDefined();
+
+    const unitMesh = frameGroup!.children[0] as THREE.Mesh;
+    const topFrame = frameGroup!.children[1] as THREE.Mesh;
+    const outline = group.children.find(
+      (child): child is THREE.LineSegments => child instanceof THREE.LineSegments && child.userData.openingSelectionOutline,
+    );
+
+    expect(visualDepth).toBeCloseTo(wall.wallThicknessMeters + OPENING_FINISH_FACE_CLEARANCE_METERS * 2, 6);
+    expect(meshLocalSize(unitMesh).z).toBeCloseTo(visualDepth + RENDER_EPSILON_METERS, 6);
+    expect(meshLocalSize(topFrame).z).toBeCloseTo(visualDepth + RENDER_EPSILON_METERS, 6);
+    expect(group.renderOrder).toBe(OPENING_FRAME_RENDER_ORDER);
+    expect(frameGroup!.renderOrder).toBe(OPENING_FRAME_RENDER_ORDER);
+    expect(unitMesh.renderOrder).toBe(OPENING_UNIT_RENDER_ORDER);
+    expect(topFrame.renderOrder).toBe(OPENING_FRAME_RENDER_ORDER);
+    expect(outline?.renderOrder).toBe(OPENING_OUTLINE_RENDER_ORDER);
+
+    const frameMaterial = topFrame.material as THREE.MeshStandardMaterial;
+    const unitMaterial = unitMesh.material as THREE.MeshStandardMaterial;
+    expect(frameMaterial.depthTest).toBe(true);
+    expect(frameMaterial.depthWrite).toBe(false);
+    expect(frameMaterial.polygonOffset).toBe(true);
+    expect(frameMaterial.polygonOffsetFactor).toBeLessThan(0);
+    expect(unitMaterial.depthTest).toBe(true);
+    expect(unitMaterial.depthWrite).toBe(false);
   });
 
   it('selected window outline bounds match rendered frame bounds', () => {
@@ -183,6 +232,8 @@ describe('openingFrame3dGraphics', () => {
     expect(outline).toBeTruthy();
     expect((guide.material as THREE.LineDashedMaterial).color.getHex()).toBe(0xf59e0b);
     expect((outline.material as THREE.LineBasicMaterial).color.getHex()).toBe(SELECTION_OUTLINE_COLOR);
+    expect(guide.renderOrder).toBe(OPENING_GUIDE_RENDER_ORDER);
+    expect((guide.material as THREE.LineDashedMaterial).depthWrite).toBe(false);
   });
 
   it('visibility policy keeps frame meshes always visible in normal view', () => {
@@ -222,7 +273,7 @@ describe('openingFrame3dGraphics', () => {
       showHoverOutline: false,
       showRoughOpeningGuide: false,
     });
-    expect(group.renderOrder).toBe(10);
+    expect(group.renderOrder).toBe(OPENING_PREVIEW_RENDER_ORDER);
     expect(groupHasSelectionOutline(group)).toBe(true);
 
     const frameMesh = group.children

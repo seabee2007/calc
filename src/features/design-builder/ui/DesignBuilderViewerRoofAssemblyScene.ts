@@ -59,6 +59,34 @@ function addGroupChildren(parent: THREE.Object3D, source: THREE.Object3D, label:
   });
 }
 
+function clearPreviewSteelTextureMaps(material: THREE.MeshStandardMaterial): void {
+  material.map = null;
+  material.normalMap = null;
+  material.roughnessMap = null;
+  material.metalnessMap = null;
+  material.aoMap = null;
+  material.bumpMap = null;
+  material.displacementMap = null;
+  material.needsUpdate = true;
+}
+
+function resolveSmoothStructuralSteelMaterial(params: {
+  visualStyle: DesignBuilderViewerRoofAssemblyState['currentVisualStyle'];
+  selected: boolean;
+  trackMaterial: TrackMaterial;
+}): THREE.MeshStandardMaterial {
+  const baseMaterial = resolveStructuralSteelMaterial(
+    { visualStyle: params.visualStyle, selected: params.selected },
+    params.trackMaterial,
+  );
+  if (params.visualStyle !== 'material_preview') {
+    return baseMaterial;
+  }
+  const material = params.trackMaterial(baseMaterial.clone()) as THREE.MeshStandardMaterial;
+  clearPreviewSteelTextureMaps(material);
+  return material;
+}
+
 export interface DesignBuilderRoofAssemblyVisibility {
   showRoofCladding: boolean;
   showRoofFraming: boolean;
@@ -223,26 +251,31 @@ export function buildDesignBuilderViewerRoofAssemblyScene(params: {
     const steelMaterials =
       state.usePreviewMaterials && !debugGuides
         ? {
-            chord: resolveStructuralSteelMaterial(
-              { visualStyle: state.currentVisualStyle, selected: state.trussSelected },
-              params.trackMaterial,
-            ),
-            web: resolveStructuralSteelMaterial(
-              { visualStyle: state.currentVisualStyle, selected: state.trussSelected },
-              params.trackMaterial,
-            ),
-            plate: resolveStructuralSteelMaterial(
-              { visualStyle: state.currentVisualStyle, selected: state.trussSelected },
-              params.trackMaterial,
-            ),
-            bolt: resolveStructuralSteelMaterial(
-              { visualStyle: state.currentVisualStyle, selected: state.trussSelected },
-              params.trackMaterial,
-            ),
-            purlin: resolveStructuralSteelMaterial(
-              { visualStyle: state.currentVisualStyle, selected: state.trussSelected },
-              params.trackMaterial,
-            ),
+            chord: resolveSmoothStructuralSteelMaterial({
+              visualStyle: state.currentVisualStyle,
+              selected: state.trussSelected,
+              trackMaterial: params.trackMaterial,
+            }),
+            web: resolveSmoothStructuralSteelMaterial({
+              visualStyle: state.currentVisualStyle,
+              selected: state.trussSelected,
+              trackMaterial: params.trackMaterial,
+            }),
+            plate: resolveSmoothStructuralSteelMaterial({
+              visualStyle: state.currentVisualStyle,
+              selected: state.trussSelected,
+              trackMaterial: params.trackMaterial,
+            }),
+            bolt: resolveSmoothStructuralSteelMaterial({
+              visualStyle: state.currentVisualStyle,
+              selected: state.trussSelected,
+              trackMaterial: params.trackMaterial,
+            }),
+            purlin: resolveSmoothStructuralSteelMaterial({
+              visualStyle: state.currentVisualStyle,
+              selected: state.trussSelected,
+              trackMaterial: params.trackMaterial,
+            }),
           }
         : createSteelTrussMaterials(state.trussSelected);
     if (!state.usePreviewMaterials || debugGuides) {
@@ -281,10 +314,11 @@ export function buildDesignBuilderViewerRoofAssemblyScene(params: {
   if (visibility.showRoofFraming && resolvedRoof.roofType === 'hip') {
     const hipMaterial =
       state.usePreviewMaterials && !debugGuides
-        ? resolveStructuralSteelMaterial(
-            { visualStyle: state.currentVisualStyle, selected: state.trussSelected },
-            params.trackMaterial,
-          )
+        ? resolveSmoothStructuralSteelMaterial({
+            visualStyle: state.currentVisualStyle,
+            selected: state.trussSelected,
+            trackMaterial: params.trackMaterial,
+          })
         : createSteelTrussMaterials(state.trussSelected).chord;
     if (!state.usePreviewMaterials || debugGuides) {
       params.trackMaterial(hipMaterial);
@@ -306,10 +340,11 @@ export function buildDesignBuilderViewerRoofAssemblyScene(params: {
     const purlinMaterial = debugGuides
       ? new THREE.MeshStandardMaterial({ color: 0x3b82f6, metalness: 0.5, roughness: 0.45 })
       : state.usePreviewMaterials
-        ? resolveStructuralSteelMaterial(
-            { visualStyle: state.currentVisualStyle, selected: state.trussSelected },
-            params.trackMaterial,
-          )
+        ? resolveSmoothStructuralSteelMaterial({
+            visualStyle: state.currentVisualStyle,
+            selected: state.trussSelected,
+            trackMaterial: params.trackMaterial,
+          })
         : steelMaterials!.purlin;
     if (debugGuides || !state.usePreviewMaterials) {
       params.trackMaterial(purlinMaterial);

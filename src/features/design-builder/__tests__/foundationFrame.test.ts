@@ -15,6 +15,8 @@ import {
 import {
   autoFrameLayout,
   findColumnAtNode,
+  promotePlacedColumnComponentsToFrameColumns,
+  promotePlacedColumnComponentToFrameColumn,
 } from "../domain/structuralFrameLayout";
 import {
   buildDesignGeometryInputFromLayout,
@@ -23,6 +25,7 @@ import {
 } from "../geometry/designGeometry";
 import type {
   LegacyStructuralFoundationSettings,
+  PlacedDesignComponent,
   RcFrameFoundationSettings,
 } from "../types";
 
@@ -364,6 +367,204 @@ describe("RC frame foundation — plinth / roof / tie beams", () => {
     expect(
       result.frameSystem.beams.some((beam) => beam.kind === "tie_beam"),
     ).toBe(true);
+  });
+
+  it("promotes manual segment columns into beam splitting and isolated footing generation", () => {
+    const manualPreset = createFiveBySixCmuBuildingPreset();
+    const manualFoundation = normalizeRcFrameFoundationSettings({
+      ...manualPreset.foundationSettings,
+      columns: {
+        ...manualPreset.foundationSettings.columns,
+        placementMode: "corners_only",
+      },
+      tieBeam: {
+        ...manualPreset.foundationSettings.tieBeam,
+        enabled: true,
+      },
+      roofBeam: {
+        ...manualPreset.foundationSettings.roofBeam,
+        enabled: true,
+      },
+    });
+    const manualFrames = getSegmentFramesForWallLayout(
+      manualPreset.wallLayout,
+      manualPreset.wall,
+    );
+    const hostFrame = manualFrames[0]!;
+    const baseFrame = autoFrameLayout({
+      layout: manualPreset.wallLayout,
+      segmentFrames: manualFrames,
+      frameSystem: manualPreset.frameSystem,
+      foundation: manualFoundation,
+    }).frameSystem;
+    const clickPoint = {
+      x: hostFrame.centerlineStart.x + hostFrame.tangent.x * (hostFrame.lengthMeters / 2),
+      z: hostFrame.centerlineStart.z + hostFrame.tangent.z * (hostFrame.lengthMeters / 2),
+    };
+    const placedColumn: PlacedDesignComponent = {
+      id: "component-manual-midspan",
+      type: "column",
+      division: "Structure",
+      category: "structure",
+      viewPlacement: {
+        plan: { xMeters: clickPoint.x, zMeters: clickPoint.z },
+      },
+      parameters: {
+        widthMeters: 0.3,
+        depthMeters: 0.3,
+        heightMeters: 3,
+        baseElevationMeters: 0,
+      },
+      derived: { topElevationMeters: 3 },
+      metadata: {
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+      },
+    };
+
+    const promoted = promotePlacedColumnComponentToFrameColumn({
+      component: placedColumn,
+      layout: manualPreset.wallLayout,
+      segmentFrames: manualFrames,
+      frameSystem: baseFrame,
+      foundation: manualFoundation,
+      wallHeightMeters: manualPreset.wallLayout.defaultWallHeightMeters,
+    });
+    expect(promoted?.added).toBe(true);
+    expect(promoted?.column.source).toBe("manual_frame_layout");
+    expect(promoted?.column.hostSegmentId).toBe(hostFrame.segmentId);
+    expect(promoted?.column.position.x).toBeCloseTo(clickPoint.x, 6);
+    expect(promoted?.column.position.z).toBeCloseTo(clickPoint.z, 6);
+
+    const result = autoFrameLayout({
+      layout: manualPreset.wallLayout,
+      segmentFrames: manualFrames,
+      frameSystem: {
+        ...baseFrame,
+        columns: [...baseFrame.columns, promoted!.column],
+      },
+      foundation: manualFoundation,
+    });
+    const manualColumn = result.frameSystem.columns.find(
+      (column) => column.id === promoted!.column.id,
+    );
+    expect(manualColumn).toBeDefined();
+
+    for (const kind of ["plinth_beam", "tie_beam", "roof_beam"] as const) {
+      const segmentBeams = result.frameSystem.beams.filter(
+        (beam) => beam.kind === kind && beam.hostSegmentId === hostFrame.segmentId,
+      );
+      expect(segmentBeams).toHaveLength(2);
+      const connected = segmentBeams.filter(
+        (beam) =>
+          beam.startColumnId === manualColumn!.id ||
+          beam.endColumnId === manualColumn!.id,
+      );
+      expect(connected).toHaveLength(2);
+      connected.forEach((beam) => {
+        const point =
+          beam.startColumnId === manualColumn!.id
+            ? beam.startPoint
+            : beam.endPoint;
+        expect(Math.hypot(point.x - manualColumn!.position.x, point.z - manualColumn!.position.z)).toBeCloseTo(
+          Math.max(manualColumn!.widthMeters, manualColumn!.depthMeters) / 2,
+          6,
+        );
+      });
+    }
+
+    expect(
+      result.isolatedFootings.some((footing) => footing.columnId === manualColumn!.id),
+    ).toBe(true);
+  });
+
+  it("promotes legacy column components idempotently and removes linked footer overlays", () => {
+    const migrationPreset = createFiveBySixCmuBuildingPreset();
+    const migrationFoundation = normalizeRcFrameFoundationSettings({
+      ...migrationPreset.foundationSettings,
+      columns: {
+        ...migrationPreset.foundationSettings.columns,
+        placementMode: "corners_only",
+      },
+    });
+    const migrationFrames = getSegmentFramesForWallLayout(
+      migrationPreset.wallLayout,
+      migrationPreset.wall,
+    );
+    const baseFrame = autoFrameLayout({
+      layout: migrationPreset.wallLayout,
+      segmentFrames: migrationFrames,
+      frameSystem: migrationPreset.frameSystem,
+      foundation: migrationFoundation,
+    }).frameSystem;
+    const legacyColumn: PlacedDesignComponent = {
+      id: "component-legacy-column",
+      type: "column",
+      division: "Structure",
+      category: "structure",
+      viewPlacement: {
+        plan: { xMeters: 2.5, zMeters: 0 },
+      },
+      parameters: {
+        widthMeters: 0.3,
+        depthMeters: 0.3,
+        heightMeters: 3,
+        baseElevationMeters: 0,
+      },
+      derived: { topElevationMeters: 3 },
+      references: { connectedComponentIds: ["component-legacy-footer"] },
+      metadata: {
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+      },
+    };
+    const legacyFooter: PlacedDesignComponent = {
+      id: "component-legacy-footer",
+      type: "footer",
+      division: "Structure",
+      category: "structure",
+      viewPlacement: {
+        plan: { xMeters: 2.5, zMeters: 0 },
+      },
+      parameters: {
+        widthMeters: 0.9,
+        lengthMeters: 0.9,
+        thicknessMeters: 0.3,
+      },
+      derived: { topElevationMeters: -0.3 },
+      references: { hostId: legacyColumn.id },
+      metadata: {
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+      },
+    };
+
+    const first = promotePlacedColumnComponentsToFrameColumns({
+      placedComponents: [legacyColumn, legacyFooter],
+      layout: migrationPreset.wallLayout,
+      segmentFrames: migrationFrames,
+      frameSystem: baseFrame,
+      foundation: migrationFoundation,
+      wallHeightMeters: migrationPreset.wallLayout.defaultWallHeightMeters,
+    });
+    expect(first.changed).toBe(true);
+    expect(first.remainingPlacedComponents).toHaveLength(0);
+    expect(
+      first.frameSystem.columns.filter((column) => column.id === "manual-column-component-legacy-column"),
+    ).toHaveLength(1);
+
+    const second = promotePlacedColumnComponentsToFrameColumns({
+      placedComponents: [legacyColumn, legacyFooter],
+      layout: migrationPreset.wallLayout,
+      segmentFrames: migrationFrames,
+      frameSystem: first.frameSystem,
+      foundation: migrationFoundation,
+      wallHeightMeters: migrationPreset.wallLayout.defaultWallHeightMeters,
+    });
+    expect(second.remainingPlacedComponents).toHaveLength(0);
+    expect(
+      second.frameSystem.columns.filter((column) => column.id === "manual-column-component-legacy-column"),
+    ).toHaveLength(1);
   });
 
   it("creates broad shallow strip footings under partition wall segments", () => {

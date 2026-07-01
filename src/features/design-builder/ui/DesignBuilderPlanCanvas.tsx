@@ -63,6 +63,7 @@ import {
 import { fitPlanToLayout, logDesignFramingDiagnostics, resetPlanView, type DesignLayoutBounds } from '../domain/designLayoutBounds';
 import { listOrthogonalGuideDirections, resolveDrawWallGuidance, type OrthogonalClosureAssist } from '../domain/wallLayoutRules';
 import { resolveCmuModuleConfig } from '../domain/cmuModuleRules';
+import { manualFrameColumnIdForComponent } from '../domain/structuralFrameLayout';
 import { DESIGN_BUILDER_COPY } from '../domain/designBuilderCopy';
 import { formatDrawWallStatusChip } from '../domain/designDrawWallFeedback';
 import {
@@ -686,6 +687,7 @@ export default function DesignBuilderPlanCanvas({
   const showFloorPlanGeometry = isFloorPlanView;
   const showWallPlanGeometry = isFloorPlanView;
   const showOpeningPlanGeometry = isFloorPlanView;
+  const wallLayoutInteractionEnabled = isFoundationPlanView || isFloorPlanView;
   const showColumnPlanGeometry = showFoundationPlanGeometry || showFloorPlanGeometry;
   const foundationPlanUsesBelowGradeFrameInfill =
     showFoundationPlanGeometry &&
@@ -973,13 +975,36 @@ export default function DesignBuilderPlanCanvas({
     () => designRenderModel ?? buildDesignRenderModel({ placedComponents }),
     [designRenderModel, placedComponents],
   );
+  const promotedFrameColumnComponentIds = useMemo(() => {
+    const ids = new Set<string>();
+    if (frameSystem?.buildingSystemMode !== 'reinforced_concrete_frame_with_cmu_infill') return ids;
+    frameSystem.columns.forEach((column) => {
+      if (column.source !== 'manual_frame_layout') return;
+      if (column.id.startsWith('manual-column-')) {
+        ids.add(column.id.slice('manual-column-'.length));
+      }
+    });
+    return ids;
+  }, [frameSystem?.buildingSystemMode, frameSystem?.columns]);
+  const isPromotedFrameColumnComponent = useCallback(
+    (component: DesignRenderRcComponent) =>
+      promotedFrameColumnComponentIds.has(component.sourceComponentId) ||
+      (frameSystem?.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill' &&
+        frameSystem.columns.some((column) => column.id === manualFrameColumnIdForComponent(component.sourceComponentId))),
+    [frameSystem?.buildingSystemMode, frameSystem?.columns, promotedFrameColumnComponentIds],
+  );
   const committedColumnRcComponents = useMemo(
-    () => committedRenderModel.rcComponents.filter((component) => component.type === 'column'),
-    [committedRenderModel.rcComponents],
+    () => committedRenderModel.rcComponents.filter((component) => component.type === 'column' && !isPromotedFrameColumnComponent(component)),
+    [committedRenderModel.rcComponents, isPromotedFrameColumnComponent],
   );
   const committedNonColumnRcComponents = useMemo(
-    () => committedRenderModel.rcComponents.filter((component) => component.type !== 'column'),
-    [committedRenderModel.rcComponents],
+    () => committedRenderModel.rcComponents.filter((component) => {
+      if (component.type === 'column') return false;
+      const hostId = component.sourceComponent.references?.hostId;
+      if (component.type === 'footer' && hostId && promotedFrameColumnComponentIds.has(hostId)) return false;
+      return true;
+    }),
+    [committedRenderModel.rcComponents, promotedFrameColumnComponentIds],
   );
   const previewRenderModel = useMemo(
     () => buildDesignRenderModel({ placedComponents: componentPreview ? [componentPreview] : [] }),
@@ -1708,7 +1733,7 @@ export default function DesignBuilderPlanCanvas({
       }
       return;
     }
-    if (showWallPlanGeometry && toolMode === 'draw_wall') {
+    if (wallLayoutInteractionEnabled && toolMode === 'draw_wall') {
       const activeNode = activeNodeId ? layout.nodes.find((node) => node.id === activeNodeId) : null;
       const snapped = resolvePrecisionSnap(point, {
         altHeld: event.altKey,
@@ -1726,7 +1751,7 @@ export default function DesignBuilderPlanCanvas({
         altHeld: event.altKey,
       });
     }
-    if (showWallPlanGeometry && toolMode === 'move_wall_node' && activeNodeId) {
+    if (wallLayoutInteractionEnabled && toolMode === 'move_wall_node' && activeNodeId) {
       onInteraction({
         kind: 'move_node',
         toolMode,
@@ -1914,7 +1939,7 @@ export default function DesignBuilderPlanCanvas({
       setDimensionSnap(null);
       return;
     }
-    if (showWallPlanGeometry && toolMode === 'draw_wall') {
+    if (wallLayoutInteractionEnabled && toolMode === 'draw_wall') {
       const activeNode = activeNodeId ? layout.nodes.find((node) => node.id === activeNodeId) : null;
       const snapped = resolvePrecisionSnap(point, {
         altHeld: event.altKey,
@@ -1933,7 +1958,7 @@ export default function DesignBuilderPlanCanvas({
       });
       return;
     }
-    if (showWallPlanGeometry && toolMode === 'move_wall_node') {
+    if (wallLayoutInteractionEnabled && toolMode === 'move_wall_node') {
       const hitNode = layout.nodes.find((node) => Math.hypot(node.x - point.x, node.z - point.z) < 0.25);
       if (hitNode) {
         onInteraction({ kind: 'select_node', toolMode, nodeId: hitNode.id });
@@ -2174,7 +2199,7 @@ export default function DesignBuilderPlanCanvas({
       emitSegmentPick('commit', point);
       return;
     }
-    if (!showWallPlanGeometry || toolMode !== 'move_wall_node' || !activeNodeId) return;
+    if (!wallLayoutInteractionEnabled || toolMode !== 'move_wall_node' || !activeNodeId) return;
     const point = screenFromEvent(event);
     if (!point) return;
     onInteraction({
@@ -2287,6 +2312,11 @@ export default function DesignBuilderPlanCanvas({
       : null;
   const snapCaptured = Boolean(snapTarget?.captured && snapTarget.type !== 'raw');
   const closureAssistActive = Boolean(orthogonalClosureAssist?.isEligible);
+  const showWallDraftOverlays =
+    wallLayoutInteractionEnabled &&
+    (toolMode === 'draw_wall' ||
+      toolMode === 'move_wall_node' ||
+      Boolean(draftEnd || snapTarget || closureCornerSnap || orthogonalClosureAssist));
   const originPoint = planToSurfacePoint({ x: 0, z: 0 });
   const xAxisStart = planToSurfacePoint({ x: visibleBounds.minX, z: 0 });
   const xAxisEnd = planToSurfacePoint({ x: visibleBounds.maxX, z: 0 });
@@ -3946,7 +3976,7 @@ export default function DesignBuilderPlanCanvas({
         ) : null}
         {renderRoofPlanDrawing()}
         {renderTrussReferenceSheet()}
-        {showWallPlanGeometry ? orthogonalGuideRays.map((guide, index) => {
+        {showWallDraftOverlays ? orthogonalGuideRays.map((guide, index) => {
           const start = planToSurfacePoint(guide.start);
           const end = planToSurfacePoint(guide.end);
           return (
@@ -3964,7 +3994,7 @@ export default function DesignBuilderPlanCanvas({
             />
           );
         }) : null}
-        {showWallPlanGeometry && drawGuidance?.guideLine && !shiftConstrained ? (
+        {showWallDraftOverlays && drawGuidance?.guideLine && !shiftConstrained ? (
           (() => {
             const start = planToSurfacePoint(drawGuidance.guideLine.start);
             const end = planToSurfacePoint(drawGuidance.guideLine.end);
@@ -3983,7 +4013,7 @@ export default function DesignBuilderPlanCanvas({
             );
           })()
         ) : null}
-        {showWallPlanGeometry && orthogonalClosureAssist?.isEligible ? (
+        {showWallDraftOverlays && orthogonalClosureAssist?.isEligible ? (
           (() => {
             const start = planToSurfacePoint(orthogonalClosureAssist.candidatePoint);
             const end = planToSurfacePoint(orthogonalClosureAssist.firstNode);
@@ -4022,7 +4052,7 @@ export default function DesignBuilderPlanCanvas({
             );
           })()
         ) : null}
-        {showWallPlanGeometry && activeNode && draftEnd ? (
+        {showWallDraftOverlays && activeNode && draftEnd ? (
           (() => {
             const a = planToSurfacePoint(activeNode);
             const b = planToSurfacePoint(draftEnd);
@@ -4041,7 +4071,7 @@ export default function DesignBuilderPlanCanvas({
             );
           })()
         ) : null}
-        {showWallPlanGeometry && snapMarker ? (
+        {showWallDraftOverlays && snapMarker ? (
           <circle
             cx={snapMarker.sx}
             cy={snapMarker.sy}
@@ -4055,7 +4085,7 @@ export default function DesignBuilderPlanCanvas({
             data-closure-assist-marker={closureAssistActive ? 'true' : 'false'}
           />
         ) : null}
-        {showWallPlanGeometry && closureCornerMarker && !closureAssistActive ? (
+        {showWallDraftOverlays && closureCornerMarker && !closureAssistActive ? (
           <circle
             cx={closureCornerMarker.sx}
             cy={closureCornerMarker.sy}
@@ -4068,7 +4098,7 @@ export default function DesignBuilderPlanCanvas({
             data-closure-corner-snap="true"
           />
         ) : null}
-        {showWallPlanGeometry && previewMidpoint && previewLength > 0 ? (
+        {showWallDraftOverlays && previewMidpoint && previewLength > 0 ? (
           <text
             x={previewMidpoint.sx + 8}
             y={previewMidpoint.sy - 8}
@@ -4083,7 +4113,7 @@ export default function DesignBuilderPlanCanvas({
             {`${formatDisplayLength(previewMetrics?.lengthMeters ?? previewLength, measurementSystem)} · ${(previewMetrics?.angleDegrees ?? 0).toFixed(0)}°`}
           </text>
         ) : null}
-        {showWallPlanGeometry && (shiftConstraintLabel ?? drawGuidance?.label) && snapMarker ? (
+        {showWallDraftOverlays && (shiftConstraintLabel ?? drawGuidance?.label) && snapMarker ? (
           <text
             x={snapMarker.sx + 12}
             y={snapMarker.sy - 14}

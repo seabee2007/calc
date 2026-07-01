@@ -5,6 +5,10 @@ import {
   type MortarJointDiagnostics,
   type MortarJointInstance,
 } from './cmuMortarJointInstances';
+import {
+  MORTAR_TEXTURE_TILE_METERS,
+  reapplyTriplanarShaderToClone,
+} from './createTriplanarStandardMaterial';
 import { resolveMortarMaterial, type ResolveDesignMaterialOptions } from './designMaterialLibrary';
 
 export type BuildMortarJointMeshesParams = {
@@ -15,6 +19,9 @@ export type BuildMortarJointMeshesParams = {
   slabTopMeters: number;
   materialOptions: ResolveDesignMaterialOptions;
   debugMode?: boolean;
+  groupName?: string;
+  renderOrder?: number;
+  decorateMaterial?: (material: THREE.Material) => void;
   trackGeometry: (geometry: THREE.BufferGeometry) => THREE.BufferGeometry;
   trackMaterial: (material: THREE.Material) => THREE.Material;
 };
@@ -47,6 +54,22 @@ function createDebugMaterial(color: number): THREE.MeshBasicMaterial {
   });
 }
 
+function createMortarJointMaterial(params: {
+  baseMaterial: THREE.MeshStandardMaterial;
+  materialOptions: ResolveDesignMaterialOptions;
+  decorateMaterial?: (material: THREE.Material) => void;
+  trackMaterial: (material: THREE.Material) => THREE.Material;
+}): THREE.MeshStandardMaterial {
+  const material = params.decorateMaterial
+    ? (params.trackMaterial(params.baseMaterial.clone()) as THREE.MeshStandardMaterial)
+    : params.baseMaterial;
+  if (params.decorateMaterial && params.materialOptions.visualStyle === 'material_preview') {
+    reapplyTriplanarShaderToClone(material, MORTAR_TEXTURE_TILE_METERS);
+  }
+  params.decorateMaterial?.(material);
+  return material;
+}
+
 export function buildMortarJointMeshes(params: BuildMortarJointMeshesParams): MortarJointMeshes {
   const { instances, diagnostics } = generateMortarJointInstances({
     blocks: params.blocks,
@@ -56,7 +79,8 @@ export function buildMortarJointMeshes(params: BuildMortarJointMeshesParams): Mo
   });
 
   const group = new THREE.Group();
-  group.name = 'mortarJointGroup';
+  group.name = params.groupName ?? 'mortarJointGroup';
+  group.renderOrder = params.renderOrder ?? 0;
 
   if (instances.length === 0) {
     return { group, diagnostics };
@@ -76,8 +100,10 @@ export function buildMortarJointMeshes(params: BuildMortarJointMeshesParams): Mo
     const addDebugMesh = (items: MortarJointInstance[], color: number, name: string) => {
       if (items.length === 0) return;
       const material = params.trackMaterial(createDebugMaterial(color));
+      params.decorateMaterial?.(material);
       const mesh = new THREE.InstancedMesh(unitGeometry, material, items.length);
       mesh.name = name;
+      mesh.renderOrder = params.renderOrder ?? 0;
       items.forEach((instance, index) => {
         composeMortarMatrix(instance, params.slabTopMeters, matrix, position, quaternion, scale);
         mesh.setMatrixAt(index, matrix);
@@ -94,12 +120,19 @@ export function buildMortarJointMeshes(params: BuildMortarJointMeshesParams): Mo
 
   const headInstances = instances.filter((instance) => instance.kind === 'head' && instance.valid);
   const bedInstances = instances.filter((instance) => instance.kind === 'bed' && instance.valid);
-  const mortarMaterial = resolveMortarMaterial(params.materialOptions, params.trackMaterial);
+  const baseMortarMaterial = resolveMortarMaterial(params.materialOptions, params.trackMaterial);
+  const mortarMaterial = createMortarJointMaterial({
+    baseMaterial: baseMortarMaterial,
+    materialOptions: params.materialOptions,
+    decorateMaterial: params.decorateMaterial,
+    trackMaterial: params.trackMaterial,
+  });
 
   const addMortarMesh = (items: MortarJointInstance[], name: string) => {
     if (items.length === 0) return;
     const mesh = new THREE.InstancedMesh(unitGeometry, mortarMaterial, items.length);
     mesh.name = name;
+    mesh.renderOrder = params.renderOrder ?? 0;
     items.forEach((instance, index) => {
       composeMortarMatrix(instance, params.slabTopMeters, matrix, position, quaternion, scale);
       mesh.setMatrixAt(index, matrix);

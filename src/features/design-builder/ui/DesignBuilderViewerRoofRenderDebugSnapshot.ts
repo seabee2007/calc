@@ -120,7 +120,7 @@ export function createDesignBuilderViewerRoofRenderDebugSnapshot(params: {
     ),
     gableEndCmu: summarizeComponent(
       expected.gableEndCmu,
-      [groups.cmuBlockInstanceGroup],
+      [groups.cmuGableBlockInstanceGroup, groups.cmuBlockInstanceGroup],
       expectedPlanBounds.gableEndCmu,
     ),
     rakedCaps: summarizeComponent(

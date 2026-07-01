@@ -18,6 +18,10 @@ import {
   type DesignBuilderViewerRoofAssemblyState,
 } from '../ui/DesignBuilderViewerRoofAssemblyScene';
 import { createDesignBuilderViewerResources } from '../ui/DesignBuilderViewerResources';
+import {
+  getDesignMaterialLibrary,
+  resetDesignMaterialLibraryForTests,
+} from '../rendering/materials/designMaterialLibrary';
 
 function gableRoofSystem(): RoofSystemSettings {
   const defaults = createDefaultRoofSystemSettings();
@@ -141,7 +145,9 @@ function roofAssemblyState(
     currentShowRoofFramingGuides: false,
     usePreviewMaterials: false,
     roofSelected: false,
+    trussSelected: false,
     gableSelected: false,
+    frameSelected: false,
     ...partial,
   };
 }
@@ -152,6 +158,20 @@ function meshCount(object: THREE.Object3D): number {
     if (child instanceof THREE.Mesh || child instanceof THREE.InstancedMesh) count += 1;
   });
   return count;
+}
+
+function firstMeshMaterial(object: THREE.Object3D): THREE.MeshStandardMaterial | null {
+  let material: THREE.MeshStandardMaterial | null = null;
+  object.traverse((child) => {
+    if (
+      !material &&
+      (child instanceof THREE.Mesh || child instanceof THREE.InstancedMesh) &&
+      child.material instanceof THREE.MeshStandardMaterial
+    ) {
+      material = child.material;
+    }
+  });
+  return material;
 }
 
 function resolvedFramingSignature(geometry: DesignGeometryResult): string {
@@ -287,6 +307,58 @@ describe('DesignBuilderViewerRoofAssemblyScene', () => {
     );
 
     resources.disposeTrackedResources();
+  });
+
+  it('renders preview steel trusses and purlins as smooth tinted members without streaky texture maps', () => {
+    resetDesignMaterialLibraryForTests();
+    const resources = createDesignBuilderViewerResources();
+    const library = getDesignMaterialLibrary();
+    const sourceColorMap = new THREE.Texture();
+    const sourceNormalMap = new THREE.Texture();
+    const sourceRoughnessMap = new THREE.Texture();
+    const sourceMetalnessMap = new THREE.Texture();
+    library.structuralSteelPreview.map = sourceColorMap;
+    library.structuralSteelPreview.normalMap = sourceNormalMap;
+    library.structuralSteelPreview.roughnessMap = sourceRoughnessMap;
+    library.structuralSteelPreview.metalnessMap = sourceMetalnessMap;
+
+    const scene = buildDesignBuilderViewerRoofAssemblyScene({
+      state: roofAssemblyState({
+        currentVisualStyle: 'material_preview',
+        usePreviewMaterials: true,
+        currentRoofDisplayMode: 'steel_framing_only',
+        currentRoofLayerVisibility: roofLayerVisibility({
+          steelTrusses: true,
+          purlins: true,
+        }),
+      }),
+      trackGeometry: resources.trackGeometry,
+      trackMaterial: resources.trackMaterial,
+      makeMaterial: resources.makeMaterial,
+    });
+    const groups = new Map(scene.groups.map((group) => [group.name, group]));
+    const chordMaterial = firstMeshMaterial(groups.get('trussChordGroup')!);
+    const webMaterial = firstMeshMaterial(groups.get('trussWebGroup')!);
+    const purlinMaterial = firstMeshMaterial(groups.get('purlinGroup')!);
+
+    for (const material of [chordMaterial, webMaterial, purlinMaterial]) {
+      expect(material).toBeDefined();
+      expect(material!.color.getHex()).toBe(library.structuralSteelPreview.color.getHex());
+      expect(material!.map).toBeNull();
+      expect(material!.normalMap).toBeNull();
+      expect(material!.roughnessMap).toBeNull();
+      expect(material!.metalnessMap).toBeNull();
+    }
+    expect(library.structuralSteelPreview.map).toBe(sourceColorMap);
+    expect(library.structuralSteelPreview.normalMap).toBe(sourceNormalMap);
+    expect(library.structuralSteelPreview.roughnessMap).toBe(sourceRoughnessMap);
+    expect(library.structuralSteelPreview.metalnessMap).toBe(sourceMetalnessMap);
+
+    resources.disposeTrackedResources();
+    sourceColorMap.dispose();
+    sourceNormalMap.dispose();
+    sourceRoughnessMap.dispose();
+    sourceMetalnessMap.dispose();
   });
 
   it('does not mutate resolved trusses or purlins when roof cladding visibility changes', () => {

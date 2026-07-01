@@ -505,7 +505,7 @@ export interface StructuralColumn {
     enabled: boolean;
     notes?: string;
   };
-  source: "user" | "auto_frame_layout";
+  source: "user" | "auto_frame_layout" | "manual_frame_layout";
 }
 
 export type StructuralBeamKind =
