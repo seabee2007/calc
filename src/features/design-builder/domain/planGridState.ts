@@ -1,4 +1,6 @@
 import { clampPlanZoom, type PlanSurfaceSize, type PlanViewportState } from './pointerPlanMapping';
+import type { MeasurementSystem } from '../../../utils/measurementPreferences';
+import { formatGridSpacing } from '../../../utils/measurementDisplay';
 
 export type PlanGridState = {
   snapSpacingMeters: number;
@@ -30,11 +32,11 @@ export function projectCellWidthPx(spacingMeters: number, viewport: PlanViewport
   return spacingMeters * clampPlanZoom(viewport.zoom);
 }
 
-export function formatPlanGridSpacingMeters(spacingMeters: number): string {
-  if (spacingMeters < 1) {
-    return `${spacingMeters.toFixed(1)} m`;
-  }
-  return `${spacingMeters} m`;
+export function formatPlanGridSpacingMeters(
+  spacingMeters: number,
+  measurementSystem: MeasurementSystem = 'metric',
+): string {
+  return formatGridSpacing(spacingMeters, measurementSystem);
 }
 
 export function resolveMajorGridSpacing(minorSpacingMeters: number): number {

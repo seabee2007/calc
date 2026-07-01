@@ -27,9 +27,9 @@ export function volumeFromCubicMeters(
   cubicMeters: number,
   system: DesignMeasurementSystem,
   precision = 2,
-): { quantity: number; unit: 'M3' | 'CY' } {
+): { quantity: number; unit: 'CM' | 'CY' } {
   if (system === 'metric') {
-    return { quantity: roundDesignQuantity(cubicMeters, precision), unit: 'M3' };
+    return { quantity: roundDesignQuantity(cubicMeters, precision), unit: 'CM' };
   }
   return {
     quantity: roundDesignQuantity(cubicMetersToCubicYardsForDisplay(cubicMeters), precision),
@@ -41,9 +41,9 @@ export function areaFromSquareMeters(
   squareMeters: number,
   system: DesignMeasurementSystem,
   precision = 2,
-): { quantity: number; unit: 'M2' | 'SF' } {
+): { quantity: number; unit: 'SM' | 'SF' } {
   if (system === 'metric') {
-    return { quantity: roundDesignQuantity(squareMeters, precision), unit: 'M2' };
+    return { quantity: roundDesignQuantity(squareMeters, precision), unit: 'SM' };
   }
   return {
     quantity: roundDesignQuantity(squareMetersToSquareFeetForDisplay(squareMeters), precision),
@@ -72,13 +72,13 @@ export function applyMeasurementSystemToPreviewLine(
         return {
           ...line,
           quantity: roundDesignQuantity(line.quantity * CUBIC_METERS_PER_CUBIC_YARD, 2),
-          unit: 'M3',
+          unit: 'CM',
         };
       case 'SF':
         return {
           ...line,
           quantity: roundDesignQuantity(line.quantity * SQUARE_METERS_PER_SQUARE_FOOT, 2),
-          unit: 'M2',
+          unit: 'SM',
         };
       case 'LF':
         return {
@@ -93,12 +93,14 @@ export function applyMeasurementSystemToPreviewLine(
 
   switch (line.unit) {
     case 'M3':
+    case 'CM':
       return {
         ...line,
         quantity: roundDesignQuantity(cubicMetersToCubicYardsForDisplay(line.quantity), 2),
         unit: 'CY',
       };
     case 'M2':
+    case 'SM':
       return {
         ...line,
         quantity: roundDesignQuantity(squareMetersToSquareFeetForDisplay(line.quantity), 2),

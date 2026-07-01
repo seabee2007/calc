@@ -219,7 +219,7 @@ describe('orthogonalClosureAssist', () => {
     );
 
     expect(container.querySelector('[data-orthogonal-closure-assist="true"]')).toBeTruthy();
-    expect(container.querySelector('[data-orthogonal-closure-label="true"]')?.textContent).toMatch(/Final leg: 4\.00 m · 90°/);
+    expect(container.querySelector('[data-orthogonal-closure-label="true"]')?.textContent).toMatch(/Final leg: 4 m · 90°/);
   });
 });
 

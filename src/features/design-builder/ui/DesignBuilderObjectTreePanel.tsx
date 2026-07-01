@@ -5,8 +5,10 @@ import type {
 } from '../types';
 import type { SepticTankModel } from '../plumbing';
 import type { ObjectTreeExpansionState } from '../state/designBuilderStore';
-import { OBJECT_TREE_GROUPS } from './DesignBuilderPageMappings';
+import { OBJECT_TREE_GROUPS, type DesignBuilderObjectTreeItem } from './DesignBuilderPageMappings';
 import { Panel } from './DesignBuilderPageShell';
+import type { MeasurementSystem } from '../../../utils/measurementPreferences';
+import { formatDisplayLength } from '../../../utils/measurementDisplay';
 
 type DesignBuilderObjectTreePanelProps = {
   objectTreeExpanded: ObjectTreeExpansionState;
@@ -14,12 +16,15 @@ type DesignBuilderObjectTreePanelProps = {
   wallSegments: DesignWallSegment[];
   openings: WallOpeningParameters[];
   septicTanks: SepticTankModel[];
+  foundationItems?: DesignBuilderObjectTreeItem[];
   selectedObjectType: DesignObjectType | null;
+  selectedObjectTreeItemId?: string | null;
   selectedOpeningId: string | null;
   selectedSepticTankId: string | null;
   selectedSegmentId: string | null;
+  measurementSystem?: MeasurementSystem;
   onToggleGroup: (groupId: string) => void;
-  onSelectObjectType: (objectType: DesignObjectType) => void;
+  onSelectObjectType: (objectType: DesignObjectType, itemId: string) => void;
   onSelectSegment: (segmentId: string) => void;
   onSelectOpening: (openingId: string, objectType: 'door_opening' | 'window_opening') => void;
   onSelectSepticTank: (tankId: string) => void;
@@ -31,10 +36,12 @@ export function DesignBuilderObjectTreePanel({
   wallSegments,
   openings,
   septicTanks,
-  selectedObjectType,
+  foundationItems,
+  selectedObjectTreeItemId = null,
   selectedOpeningId,
   selectedSepticTankId,
   selectedSegmentId,
+  measurementSystem = 'metric',
   onToggleGroup,
   onSelectObjectType,
   onSelectSegment,
@@ -45,25 +52,39 @@ export function DesignBuilderObjectTreePanel({
     <Panel title="Object Tree">
       {OBJECT_TREE_GROUPS.map((group) => {
         const expanded = objectTreeExpanded[group.id as keyof ObjectTreeExpansionState] ?? false;
+        const groupItems = group.id === 'foundation' && foundationItems ? foundationItems : group.items;
+        const groupHasSelectedItem = groupItems.some((item) => item.id === selectedObjectTreeItemId);
         return (
           <div key={group.id} className="mb-2">
             <button
               type="button"
               onClick={() => onToggleGroup(group.id)}
-              className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800"
+              className={`flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-left text-xs font-semibold uppercase tracking-wide hover:bg-slate-50 dark:hover:bg-slate-800 ${
+                groupHasSelectedItem
+                  ? 'text-cyan-700 dark:text-cyan-300'
+                  : 'text-slate-500 dark:text-slate-400'
+              }`}
             >
               <span>{group.label}</span>
-              <span>{expanded ? '-' : '+'}</span>
+              <span
+                className={`rounded-full px-1.5 py-0.5 text-[11px] leading-none ${
+                  groupHasSelectedItem
+                    ? 'bg-cyan-100 text-cyan-700 dark:bg-cyan-950/70 dark:text-cyan-200'
+                    : ''
+                }`}
+              >
+                {expanded ? '-' : '+'}
+              </span>
             </button>
             {expanded ? (
               <div className="mt-1 space-y-1">
-                {group.items.map((item) => (
+                {groupItems.map((item) => (
                   <button
                     key={item.id}
                     type="button"
-                    onClick={() => onSelectObjectType(item.objectType)}
+                    onClick={() => onSelectObjectType(item.objectType, item.id)}
                     className={`w-full rounded-lg border px-3 py-2 text-left text-sm transition ${
-                      selectedObjectType === item.objectType && !selectedOpeningId
+                      selectedObjectTreeItemId === item.id && !selectedOpeningId
                         ? 'border-cyan-400 bg-cyan-50 text-cyan-900 dark:border-cyan-600 dark:bg-cyan-950/50 dark:text-cyan-100'
                         : 'border-slate-200 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800'
                     }`}
@@ -119,7 +140,7 @@ export function DesignBuilderObjectTreePanel({
                 {opening.wallSegmentId ? ` - segment` : opening.wallFace ? ` - ${opening.wallFace}` : ''}
               </span>
               <span className="mt-0.5 block text-xs text-slate-500 dark:text-slate-400">
-                Offset {(opening.positionAlongSegment ?? opening.offsetMeters ?? 0).toFixed(2)}m
+                Offset {formatDisplayLength(opening.positionAlongSegment ?? opening.offsetMeters ?? 0, measurementSystem)}
               </span>
             </button>
           ))}

@@ -3,6 +3,12 @@ import type {
   ComponentParameterKind,
   DesignComponentDefinition,
 } from "../domain/designComponentRegistry";
+import type { MeasurementSystem } from "../../../utils/measurementPreferences";
+import {
+  displayLengthToMeters,
+  displayLengthUnit,
+  metersToDisplayLength,
+} from "../../../utils/measurementDisplay";
 
 export type DesignBuilderComponentParameterPanelProps = {
   definition: DesignComponentDefinition | null;
@@ -11,6 +17,7 @@ export type DesignBuilderComponentParameterPanelProps = {
   position: { x: number; y: number };
   collapsed: boolean;
   viewLabel: string;
+  measurementSystem?: MeasurementSystem;
   onDragStart: (event: ReactPointerEvent<HTMLDivElement>) => void;
   onCollapsedChange: (collapsed: boolean) => void;
   onCancel: () => void;
@@ -25,6 +32,7 @@ export function DesignBuilderComponentParameterPanel(
   props: DesignBuilderComponentParameterPanelProps,
 ) {
   if (!props.definition) return null;
+  const measurementSystem = props.measurementSystem ?? "metric";
 
   return (
     <div
@@ -72,7 +80,9 @@ export function DesignBuilderComponentParameterPanel(
                 <span>{field.label}</span>
                 {field.unit ? (
                   <span className="text-[10px] text-slate-500">
-                    {field.unit}
+                    {field.unit === "m"
+                      ? displayLengthUnit(measurementSystem, "small")
+                      : field.unit}
                   </span>
                 ) : null}
               </span>
@@ -98,12 +108,26 @@ export function DesignBuilderComponentParameterPanel(
                 <input
                   type={field.kind === "number" ? "number" : "text"}
                   step={field.kind === "number" ? "0.01" : undefined}
-                  min={field.min}
-                  value={String(props.draftParameters[field.key] ?? "")}
+                  min={
+                    field.kind === "number" && field.unit === "m" && field.min != null
+                      ? metersToDisplayLength(field.min, measurementSystem, "small")
+                      : field.min
+                  }
+                  value={formatComponentParameterValue(
+                    props.draftParameters[field.key],
+                    field.kind,
+                    field.unit,
+                    measurementSystem,
+                  )}
                   onChange={(event) =>
                     props.onParameterChange(
                       field.key,
-                      event.target.value,
+                      parseComponentParameterValue(
+                        event.target.value,
+                        field.kind,
+                        field.unit,
+                        measurementSystem,
+                      ),
                       field.kind,
                     )
                   }
@@ -124,4 +148,29 @@ export function DesignBuilderComponentParameterPanel(
       ) : null}
     </div>
   );
+}
+
+function formatComponentParameterValue(
+  value: unknown,
+  kind: ComponentParameterKind,
+  unit: string | undefined,
+  measurementSystem: MeasurementSystem,
+): string {
+  if (kind !== "number" || unit !== "m") return String(value ?? "");
+  const meters = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(meters)) return String(value ?? "");
+  return Number(metersToDisplayLength(meters, measurementSystem, "small").toFixed(4)).toString();
+}
+
+function parseComponentParameterValue(
+  value: string,
+  kind: ComponentParameterKind,
+  unit: string | undefined,
+  measurementSystem: MeasurementSystem,
+): string {
+  if (kind !== "number" || unit !== "m") return value;
+  if (value.trim() === "") return "";
+  const displayValue = Number(value);
+  if (!Number.isFinite(displayValue)) return value;
+  return Number(displayLengthToMeters(displayValue, measurementSystem, "small").toFixed(4)).toString();
 }

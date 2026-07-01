@@ -66,6 +66,40 @@ describe('userPreferencesService dashboard_layout wiring', () => {
     expect(prefs.dashboardLayout).toBeNull();
   });
 
+  it('normalizes legacy metric preference fields on read', async () => {
+    dbState.storedRow = {
+      user_id: authUser.id,
+      units: 'metric',
+      length_unit: 'meters',
+      volume_unit: 'cubic_meters',
+      dashboard_layout: null,
+    };
+
+    const prefs = await getUserPreferences();
+    expect(prefs.measurementSystem).toBe('metric');
+    expect(prefs.units).toBe('metric');
+    expect(prefs.lengthUnit).toBe('meters');
+    expect(prefs.volumeUnit).toBe('cubic_meters');
+  });
+
+  it('normalizes inconsistent preference fields before save', async () => {
+    dbState.storedRow = {
+      user_id: authUser.id,
+      measurement_system: 'imperial',
+      units: 'metric',
+      length_unit: 'meters',
+      volume_unit: 'cubic_meters',
+      dashboard_layout: null,
+    };
+
+    await updateDashboardLayout(getDefaultDashboardLayout());
+
+    expect(dbState.upsertedRow?.measurement_system).toBe('imperial');
+    expect(dbState.upsertedRow?.units).toBe('imperial');
+    expect(dbState.upsertedRow?.length_unit).toBe('feet');
+    expect(dbState.upsertedRow?.volume_unit).toBe('cubic_yards');
+  });
+
   it('validates/migrates and writes dashboard_layout on update', async () => {
     dbState.storedRow = { user_id: authUser.id, dashboard_layout: null };
 

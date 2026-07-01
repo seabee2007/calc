@@ -1,10 +1,11 @@
 import React from 'react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import Settings from '../Settings';
 
 const mockNavigate = vi.fn();
+const mockUpdatePreferences = vi.fn().mockResolvedValue(undefined);
 
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom');
@@ -54,16 +55,26 @@ vi.mock('../../store', () => ({
   }),
   usePreferencesStore: () => ({
     preferences: {
+      measurementSystem: 'imperial',
+      units: 'imperial',
+      lengthUnit: 'feet',
+      volumeUnit: 'cubic_yards',
+      currency: 'USD',
+      defaultPSI: '3000',
       autoSave: false,
       soundEnabled: true,
-      hapticEnabled: true,
+      hapticsEnabled: true,
       notifications: {
+        projectUpdates: true,
+        teamChanges: true,
+        systemAlerts: true,
         emailUpdates: true,
         projectReminders: true,
         weatherAlerts: true,
       },
+      dashboardLayout: null,
     },
-    updatePreferences: vi.fn().mockResolvedValue(undefined),
+    updatePreferences: mockUpdatePreferences,
     loading: false,
   }),
 }));
@@ -147,5 +158,33 @@ describe('Settings page', () => {
       expect(screen.getByTestId('settings-page')).toBeInTheDocument();
     });
     expect(screen.queryByText(/This page failed to load/i)).not.toBeInTheDocument();
+  });
+
+  it('renders one global measurement control without the old volume unit control', async () => {
+    renderSettings();
+
+    fireEvent.click(await screen.findByRole('button', { name: /^User Preferences/i }));
+
+    expect(await screen.findByText('Measurement System')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('Imperial (ft, in)')).toBeInTheDocument();
+    expect(screen.queryByText('Volume Unit')).not.toBeInTheDocument();
+  });
+
+  it('saves normalized derived unit fields when measurement system changes', async () => {
+    renderSettings();
+
+    fireEvent.click(await screen.findByRole('button', { name: /^User Preferences/i }));
+    fireEvent.change(await screen.findByDisplayValue('Imperial (ft, in)'), {
+      target: { value: 'metric' },
+    });
+
+    await waitFor(() => {
+      expect(mockUpdatePreferences).toHaveBeenCalledWith({
+        measurementSystem: 'metric',
+        units: 'metric',
+        lengthUnit: 'meters',
+        volumeUnit: 'cubic_meters',
+      });
+    });
   });
 });

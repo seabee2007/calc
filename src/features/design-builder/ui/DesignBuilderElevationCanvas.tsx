@@ -49,6 +49,8 @@ import {
   PURLIN_PROFILE_DEPTH_METERS,
   TRUSS_CHORD_PROFILE_METERS,
 } from '../domain/roofFramingResolver';
+import type { MeasurementSystem } from '../../../utils/measurementPreferences';
+import { formatDisplayLength } from '../../../utils/measurementDisplay';
 
 const FALLBACK_SURFACE_SIZE = { width: 900, height: 520 };
 const DEFAULT_ELEVATION_GRID_SPACING_METERS = 0.5;
@@ -73,6 +75,7 @@ interface DesignBuilderElevationCanvasProps {
   componentPreview?: PlacedDesignComponent | null;
   designRenderModel?: DesignRenderModel;
   drawingStyleMode?: Design2dDrawingStyleMode;
+  measurementSystem?: MeasurementSystem;
   helperMeasurements?: readonly HelperMeasurement[];
   onElevationViewChange?: (view: DesignBuilderElevationViewState) => void;
   onComponentPointer?: (event: { phase: 'preview' | 'commit'; xMeters: number; zMeters: number }) => void;
@@ -363,6 +366,7 @@ export default function DesignBuilderElevationCanvas({
   componentPreview = null,
   designRenderModel,
   drawingStyleMode = 'architectural',
+  measurementSystem = 'metric',
   helperMeasurements = [],
   onElevationViewChange,
   onComponentPointer,
@@ -1362,7 +1366,7 @@ export default function DesignBuilderElevationCanvas({
         key: 'level-top',
         x: frontTopLevel.sx - 56,
         y: frontTopLevel.sy,
-        label: `+${modelBounds.maxZ.toFixed(2)} m`,
+        label: `+${formatDisplayLength(modelBounds.maxZ, measurementSystem)}`,
         direction: 'right',
         data: { 'data-drawing-annotation': 'level-marker' },
       },
@@ -1375,9 +1379,9 @@ export default function DesignBuilderElevationCanvas({
         className="absolute left-3 top-3 z-10 flex flex-wrap items-center gap-2 rounded-full border border-cyan-700 bg-slate-900/90 px-3 py-1 text-xs font-medium text-cyan-200"
         data-view-grid-meters={gridState.displayMinorSpacingMeters}
       >
-        <span>Front + Side Elevation | View grid {formatPlanGridSpacingMeters(gridState.displayMinorSpacingMeters)}</span>
+        <span>Front + Side Elevation | View grid {formatPlanGridSpacingMeters(gridState.displayMinorSpacingMeters, measurementSystem)}</span>
         <span className="sr-only">
-          {faceLabel(elevationView.face)} · View grid {formatPlanGridSpacingMeters(gridState.displayMinorSpacingMeters)}
+          {faceLabel(elevationView.face)} · View grid {formatPlanGridSpacingMeters(gridState.displayMinorSpacingMeters, measurementSystem)}
         </span>
       </div>
       <svg
@@ -1561,8 +1565,8 @@ export default function DesignBuilderElevationCanvas({
       <div className="pointer-events-none absolute bottom-3 left-3 rounded-xl border border-slate-700 bg-slate-900/90 px-3 py-2 text-[11px] font-bold text-slate-100 shadow-sm" aria-label="Elevation coordinate widget">
         <div className="text-cyan-200">Elevation Coordinates</div>
         <div className="font-mono text-slate-200">
-          {coordinateLabelForElevationFace(elevationView.face)} {cursor ? cursor.xMeters.toFixed(2) : (elevationView.cursorX ?? 0).toFixed(2)} m /{' '}
-          {cursor ? cursor.zMeters.toFixed(2) : (elevationView.cursorZ ?? 0).toFixed(2)} m
+          {coordinateLabelForElevationFace(elevationView.face)} {formatDisplayLength(cursor ? cursor.xMeters : (elevationView.cursorX ?? 0), measurementSystem)} /{' '}
+          {formatDisplayLength(cursor ? cursor.zMeters : (elevationView.cursorZ ?? 0), measurementSystem)}
         </div>
         <div className="text-[10px] font-semibold text-slate-400">{faceLabel(elevationView.face)}</div>
       </div>

@@ -55,6 +55,13 @@ import {
   formatInputNumber,
   parseDecimalInput,
 } from "../ui/designBuilderNumberInput";
+import type { MeasurementSystem } from "../../../utils/measurementPreferences";
+import {
+  displayLengthToMeters,
+  displayLengthUnit,
+  metersToDisplayLength,
+} from "../../../utils/measurementDisplay";
+import { usePreferencesStore } from "../../../store";
 import {
   BORDER_DEFAULT,
   FORM_ERROR,
@@ -95,6 +102,7 @@ export type FrameFoundationDimensionsModalProps = {
   onApply: (payload: FrameFoundationDimensionsApplyPayload) => boolean;
   onRoofDraftChange?: (roofSystem: RoofSystemSettings) => void;
   onOpenFinishes?: (scope: Exclude<MaterialsFinishesScope, "all">) => void;
+  measurementSystem?: MeasurementSystem;
 };
 
 type FoundationSection =
@@ -117,6 +125,7 @@ function ModalNumberField({
   label,
   value,
   suffix,
+  measurementKind = "length",
   min = 0,
   error,
   onChange,
@@ -124,23 +133,38 @@ function ModalNumberField({
   label: string;
   value: number;
   suffix: string;
+  measurementKind?: "length" | "small";
   min?: number;
   error?: string;
   onChange: (value: number) => void;
 }) {
-  const [draft, setDraft] = useState(() => formatInputNumber(value));
+  const measurementSystem = usePreferencesStore((state) => state.preferences.measurementSystem);
+  const isMeterBacked = suffix === "m";
+  const displaySuffix = isMeterBacked
+    ? displayLengthUnit(measurementSystem, measurementKind)
+    : suffix;
+  const toDisplayValue = (metersOrRaw: number) =>
+    isMeterBacked
+      ? metersToDisplayLength(metersOrRaw, measurementSystem, measurementKind)
+      : metersOrRaw;
+  const toStoredValue = (displayOrRaw: number) =>
+    isMeterBacked
+      ? displayLengthToMeters(displayOrRaw, measurementSystem, measurementKind)
+      : displayOrRaw;
+  const [draft, setDraft] = useState(() => formatInputNumber(toDisplayValue(value)));
   useEffect(() => {
     if (document.activeElement?.getAttribute("aria-label") === label) return;
-    setDraft(formatInputNumber(value));
-  }, [label, value]);
+    setDraft(formatInputNumber(toDisplayValue(value)));
+  }, [label, measurementKind, measurementSystem, value]);
 
   const commit = () => {
     const parsed = parseDecimalInput(draft);
     if (!Number.isFinite(parsed)) return;
-    onChange(typeof min === "number" ? Math.max(min, parsed) : parsed);
+    const stored = toStoredValue(parsed);
+    onChange(typeof min === "number" ? Math.max(min, stored) : stored);
     setDraft(
       formatInputNumber(
-        typeof min === "number" ? Math.max(min, parsed) : parsed,
+        toDisplayValue(typeof min === "number" ? Math.max(min, stored) : stored),
       ),
     );
   };
@@ -161,7 +185,7 @@ function ModalNumberField({
           }}
           className={MODAL_INPUT_FIELD}
         />
-        <span className={MODAL_INPUT_SUFFIX}>{suffix}</span>
+        <span className={MODAL_INPUT_SUFFIX}>{displaySuffix}</span>
       </div>
       {error ? <span className={FORM_ERROR}>{error}</span> : null}
     </label>
@@ -247,8 +271,10 @@ export default function FrameFoundationDimensionsModal({
   onApply,
   onRoofDraftChange,
   onOpenFinishes,
+  measurementSystem,
 }: FrameFoundationDimensionsModalProps) {
   const confirm = useConfirm();
+  void measurementSystem;
   const [foundationDraft, setFoundationDraft] =
     useState<RcFrameFoundationSettings>(() =>
       createDefaultRcFrameFoundationSettings(),

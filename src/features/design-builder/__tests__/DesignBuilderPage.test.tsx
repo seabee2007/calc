@@ -19,6 +19,7 @@ const mocks = vi.hoisted(() => ({
   updateDesignModelMetadata: vi.fn(),
   persistDesignEstimatePreview: vi.fn(),
   commitDesignEstimatePreview: vi.fn(),
+  updatePreferences: vi.fn(),
   confirm: vi.fn(),
   plan: vi.fn(),
   viewer: vi.fn(),
@@ -33,9 +34,22 @@ vi.mock('../../../contexts/ConfirmContext', () => ({
 }));
 
 vi.mock('../../../store', () => ({
-  usePreferencesStore: () => ({
-    preferences: { unit: 'metric', soundEnabled: false },
-  }),
+  usePreferencesStore: (selector?: (state: {
+    preferences: Record<string, unknown>;
+    updatePreferences: typeof mocks.updatePreferences;
+  }) => unknown) => {
+    const state = {
+      preferences: {
+        measurementSystem: 'metric',
+        units: 'metric',
+        lengthUnit: 'meters',
+        volumeUnit: 'cubic_meters',
+        soundEnabled: false,
+      },
+      updatePreferences: mocks.updatePreferences,
+    };
+    return selector ? selector(state) : state;
+  },
 }));
 
 vi.mock('../../../services/soundService', () => ({
@@ -271,6 +285,8 @@ describe('DesignBuilderPage', () => {
     mocks.updateDesignModelMetadata.mockReset();
     mocks.persistDesignEstimatePreview.mockReset();
     mocks.commitDesignEstimatePreview.mockReset();
+    mocks.updatePreferences.mockReset();
+    mocks.updatePreferences.mockResolvedValue(undefined);
     mocks.confirm.mockReset();
     mocks.confirm.mockResolvedValue(true);
     mocks.plan.mockReset();
@@ -465,6 +481,44 @@ describe('DesignBuilderPage', () => {
 
     expect(screen.getByRole('button', { name: /cmu walls/i })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /quantity summary/i })).not.toBeInTheDocument();
+  });
+
+  it('lists generated below-grade foundation components in the Object Tree', async () => {
+    const preset = applyAutoFrameLayout(createFiveBySixCmuBuildingPreset());
+    useDesignBuilderSessionStore.getState().saveSession('project-1:estimate-1', {
+      preset,
+      layoutState: 'demo_loaded',
+      designModel: null,
+    });
+
+    render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
+
+    await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
+    expandObjectTreeGroup('Foundation');
+
+    const foundationSection = screen.getByRole('button', { name: /foundation/i }).parentElement;
+    expect(foundationSection).not.toBeNull();
+    expect(within(foundationSection as HTMLElement).getByRole('button', { name: /^isolated footings$/i })).toBeInTheDocument();
+    expect(within(foundationSection as HTMLElement).getByRole('button', { name: /^tie beam$/i })).toBeInTheDocument();
+    expect(within(foundationSection as HTMLElement).getByRole('button', { name: /^cmu infill below grade$/i })).toBeInTheDocument();
+    expect(within(foundationSection as HTMLElement).getByRole('button', { name: /^plinth beam$/i })).toBeInTheDocument();
+    expect(within(foundationSection as HTMLElement).getByRole('button', { name: /sog/i })).toBeInTheDocument();
+
+    const tieBeamRow = within(foundationSection as HTMLElement).getByRole('button', { name: /^tie beam$/i });
+    const plinthBeamRow = within(foundationSection as HTMLElement).getByRole('button', { name: /^plinth beam$/i });
+    fireEvent.click(tieBeamRow);
+    expect(tieBeamRow.className).toContain('bg-cyan');
+    expect(plinthBeamRow.className).not.toContain('bg-cyan');
+    const foundationBadge = screen
+      .getByRole('button', { name: (name) => name === 'Foundation-' || name === 'Foundationâˆ’' })
+      .querySelector('span:last-child');
+    expect(foundationBadge?.className).toContain('bg-cyan');
+
+    expandObjectTreeGroup('Structure');
+    const structureSection = screen.getByRole('button', { name: /structure/i }).parentElement;
+    expect(structureSection).not.toBeNull();
+    expect(within(structureSection as HTMLElement).queryByRole('button', { name: /^tie beams$/i })).not.toBeInTheDocument();
+    expect(within(structureSection as HTMLElement).queryByRole('button', { name: /^plinth beams$/i })).not.toBeInTheDocument();
   });
 
   it('edits project masonry defaults with no selected wall and uses text-based decimal inputs', async () => {
@@ -1854,6 +1908,24 @@ describe('DesignBuilderPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /wall overlays/i }));
     fireEvent.click(screen.getByRole('checkbox', { name: /show opening layout/i }));
     expect(openCommandMenus()).toHaveLength(1);
+  });
+
+  it('updates the global measurement preference from the Display menu', async () => {
+    seedLoadedDesignBuilderTemplate();
+    render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
+    await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
+
+    openDisplayMenu();
+    fireEvent.click(screen.getByRole('radio', { name: /imperial/i }));
+
+    await waitFor(() => {
+      expect(mocks.updatePreferences).toHaveBeenCalledWith({
+        measurementSystem: 'imperial',
+        units: 'imperial',
+        lengthUnit: 'feet',
+        volumeUnit: 'cubic_yards',
+      });
+    });
   });
 
   it('closes command menus on click outside and Escape', async () => {

@@ -9,8 +9,11 @@ import {
 import type { ModuleFitReport } from '../domain/moduleFitReport';
 import type { DesignGeometryResult } from '../geometry/designGeometry';
 import { generateCmuLayout } from '../geometry/designGeometry';
-import { cubicMetersToCubicYards } from '../quantity/designQuantityFormulas';
-import { metersToFeet } from '../domain/trussWebProfiles';
+import { usePreferencesStore } from '../../../store';
+import {
+  formatDisplayLength,
+  formatDisplayVolume,
+} from '../../../utils/measurementDisplay';
 import type {
   BuildingSystemMode,
   CmuInfillPlasterSettings,
@@ -86,18 +89,13 @@ export function DesignBuilderEditableControls({
   onOpeningChange,
   selectedOpeningId,
 }: EditableControlsProps) {
+  const measurementSystem = usePreferencesStore((state) => state.preferences.measurementSystem);
+
   if (selectedObjectType === 'building_footprint') {
     return (
       <div className="space-y-3">
-        <SelectField
-          label="Unit system"
-          value={unitSystem}
-          onChange={(value) => onUnitSystemChange(value as DesignUnitSystem)}
-          options={[
-            { value: 'metric', label: 'Metric display' },
-            { value: 'imperial', label: 'Imperial display' },
-          ]}
-        />
+        {void unitSystem}
+        {void onUnitSystemChange}
         <NumberField label="Length" value={preset.footprint.lengthMeters} suffix="m" onChange={(value) => onFootprintChange('lengthMeters', value)} />
         <NumberField label="Width" value={preset.footprint.widthMeters} suffix="m" onChange={(value) => onFootprintChange('widthMeters', value)} />
       </div>
@@ -115,13 +113,13 @@ export function DesignBuilderEditableControls({
               value={cmuModule.familyName}
               onChange={(value) => onBlockModuleChange('familyName', value)}
             />
-            <NumberField label="Module length" value={cmuModule.moduleLengthMeters} suffix="m" min={0.05} max={2} step={0.01} onChange={(value) => onBlockModuleChange('moduleLengthMeters', value)} />
-            <NumberField label="Module height" value={cmuModule.moduleHeightMeters} suffix="m" min={0.05} max={1} step={0.01} onChange={(value) => onBlockModuleChange('moduleHeightMeters', value)} />
-            <NumberField label="Nominal depth" value={cmuModule.nominalDepthMeters} suffix="m" min={0.05} max={1} step={0.01} onChange={(value) => onBlockModuleChange('nominalDepthMeters', value)} />
-            <NumberField label="Actual block length" value={cmuModule.actualLengthMeters ?? 0} suffix="m" min={0.05} max={2} step={0.01} onChange={(value) => onBlockModuleChange('actualLengthMeters', value)} />
-            <NumberField label="Actual block height" value={cmuModule.actualHeightMeters ?? 0} suffix="m" min={0.05} max={1} step={0.01} onChange={(value) => onBlockModuleChange('actualHeightMeters', value)} />
+            <NumberField label="Module length" value={cmuModule.moduleLengthMeters} suffix="m" measurementKind="small" min={0.05} max={2} step={0.01} onChange={(value) => onBlockModuleChange('moduleLengthMeters', value)} />
+            <NumberField label="Module height" value={cmuModule.moduleHeightMeters} suffix="m" measurementKind="small" min={0.05} max={1} step={0.01} onChange={(value) => onBlockModuleChange('moduleHeightMeters', value)} />
+            <NumberField label="Nominal depth" value={cmuModule.nominalDepthMeters} suffix="m" measurementKind="small" min={0.05} max={1} step={0.01} onChange={(value) => onBlockModuleChange('nominalDepthMeters', value)} />
+            <NumberField label="Actual block length" value={cmuModule.actualLengthMeters ?? 0} suffix="m" measurementKind="small" min={0.05} max={2} step={0.01} onChange={(value) => onBlockModuleChange('actualLengthMeters', value)} />
+            <NumberField label="Actual block height" value={cmuModule.actualHeightMeters ?? 0} suffix="m" measurementKind="small" min={0.05} max={1} step={0.01} onChange={(value) => onBlockModuleChange('actualHeightMeters', value)} />
             <p className="text-[11px] text-slate-500 dark:text-slate-400">
-              Nominal module = actual block + mortar joint ({cmuModule.moduleLengthMeters.toFixed(2)} m x {cmuModule.moduleHeightMeters.toFixed(2)} m).
+              Nominal module = actual block + mortar joint ({formatDisplayLength(cmuModule.moduleLengthMeters, measurementSystem, { kind: 'small' })} x {formatDisplayLength(cmuModule.moduleHeightMeters, measurementSystem, { kind: 'small' })}).
             </p>
             <label className="flex items-center justify-between rounded-lg bg-white px-3 py-2 text-sm dark:bg-slate-900">
               <span>Snap building dimensions to CMU module</span>
@@ -132,7 +130,7 @@ export function DesignBuilderEditableControls({
                 className="h-4 w-4"
               />
             </label>
-            <NumberField label="Mortar joint" value={cmuModule.mortarJointMeters} suffix="m" min={0} max={0.05} step={0.001} onChange={(value) => onBlockModuleChange('mortarJointMeters', value)} />
+            <NumberField label="Mortar joint" value={cmuModule.mortarJointMeters} suffix="m" measurementKind="small" min={0} max={0.05} step={0.001} onChange={(value) => onBlockModuleChange('mortarJointMeters', value)} />
             <ModuleFitReportPanel report={cmuLayout.moduleFitReport} />
             {moduleWarnings.length > 0 ? (
               <div className="space-y-1 rounded-lg border border-amber-200 bg-amber-50 p-2 text-xs text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
@@ -144,10 +142,10 @@ export function DesignBuilderEditableControls({
           </div>
         </div>
         <NumberField label="Wall height" value={selectedWallSegment?.wallHeightMeters ?? preset.wall.heightMeters} suffix="m" min={0.1} max={20} onChange={(value) => onWallChange('heightMeters', value)} />
-        <NumberField label="Wall thickness" value={selectedWallSegment?.wallThicknessMeters ?? preset.wall.wallThicknessMeters} suffix="m" min={0.05} max={1} onChange={(value) => onWallChange('wallThicknessMeters', value)} />
-        <NumberField label="Block length" value={preset.wall.blockLengthMeters} suffix="m" min={0.05} max={2} onChange={(value) => onWallChange('blockLengthMeters', value)} />
-        <NumberField label="Block height" value={preset.wall.blockHeightMeters} suffix="m" min={0.05} max={1} onChange={(value) => onWallChange('blockHeightMeters', value)} />
-        <NumberField label="Block depth" value={preset.wall.blockDepthMeters} suffix="m" min={0.05} max={1} onChange={(value) => onWallChange('blockDepthMeters', value)} />
+        <NumberField label="Wall thickness" value={selectedWallSegment?.wallThicknessMeters ?? preset.wall.wallThicknessMeters} suffix="m" measurementKind="small" min={0.05} max={1} onChange={(value) => onWallChange('wallThicknessMeters', value)} />
+        <NumberField label="Block length" value={preset.wall.blockLengthMeters} suffix="m" measurementKind="small" min={0.05} max={2} onChange={(value) => onWallChange('blockLengthMeters', value)} />
+        <NumberField label="Block height" value={preset.wall.blockHeightMeters} suffix="m" measurementKind="small" min={0.05} max={1} onChange={(value) => onWallChange('blockHeightMeters', value)} />
+        <NumberField label="Block depth" value={preset.wall.blockDepthMeters} suffix="m" measurementKind="small" min={0.05} max={1} onChange={(value) => onWallChange('blockDepthMeters', value)} />
         <div>
           <NumberField label="Waste" value={preset.wall.wasteFactor * 100} suffix="%" min={0} max={100} onChange={(value) => onWallChange('wasteFactor', value / 100)} />
           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
@@ -178,7 +176,7 @@ export function DesignBuilderEditableControls({
             Applies when door or window openings are added.
           </p>
         ) : null}
-        <NumberField label="Lintel bearing" value={preset.wall.lintelBearingMeters ?? 0.2} suffix="m" min={0} max={2} onChange={(value) => onWallOptionChange({ lintelBearingMeters: Math.max(0, value) })} />
+        <NumberField label="Lintel bearing" value={preset.wall.lintelBearingMeters ?? 0.2} suffix="m" measurementKind="small" min={0} max={2} onChange={(value) => onWallOptionChange({ lintelBearingMeters: Math.max(0, value) })} />
         <NumberField label="Lintel courses" value={preset.wall.lintelCourseCount ?? 1} suffix="courses" step={1} onChange={(value) => onWallOptionChange({ lintelCourseCount: Math.max(1, Math.round(value)) })} />
         <NumberField label="Core fill factor" value={preset.wall.coreFillFactor ?? 0.5} suffix="x" step={0.05} onChange={(value) => onWallOptionChange({ coreFillFactor: Math.max(0, Math.min(1, value)) })} />
         <NumberField label="Grout waste" value={(preset.wall.groutWastePercent ?? 0.1) * 100} suffix="%" step={1} onChange={(value) => onWallOptionChange({ groutWastePercent: Math.max(0, value / 100) })} />
@@ -228,9 +226,9 @@ export function DesignBuilderEditableControls({
   if (selectedObjectType === 'thickened_edge_slab') {
     return (
       <div className="space-y-3">
-        <NumberField label="Slab thickness" value={preset.slab.slabThicknessMeters} suffix="m" onChange={(value) => onSlabChange('slabThicknessMeters', value)} />
-        <NumberField label="Edge width" value={preset.slab.edgeWidthMeters} suffix="m" onChange={(value) => onSlabChange('edgeWidthMeters', value)} />
-        <NumberField label="Edge depth" value={preset.slab.edgeDepthMeters} suffix="m" onChange={(value) => onSlabChange('edgeDepthMeters', value)} />
+        <NumberField label="Slab thickness" value={preset.slab.slabThicknessMeters} suffix="m" measurementKind="small" onChange={(value) => onSlabChange('slabThicknessMeters', value)} />
+        <NumberField label="Edge width" value={preset.slab.edgeWidthMeters} suffix="m" measurementKind="small" onChange={(value) => onSlabChange('edgeWidthMeters', value)} />
+        <NumberField label="Edge depth" value={preset.slab.edgeDepthMeters} suffix="m" measurementKind="small" onChange={(value) => onSlabChange('edgeDepthMeters', value)} />
       </div>
     );
   }
@@ -264,12 +262,14 @@ export function DesignBuilderEditableControls({
           label="Default column width"
           value={preset.frameSystem.defaultColumnWidthMeters}
           suffix="m"
+          measurementKind="small"
           onChange={(value) => onStructureFieldChange({ defaultColumnWidthMeters: positiveOrFallback(value, 0.35) })}
         />
         <NumberField
           label="Default column depth"
           value={preset.frameSystem.defaultColumnDepthMeters}
           suffix="m"
+          measurementKind="small"
           onChange={(value) => onStructureFieldChange({ defaultColumnDepthMeters: positiveOrFallback(value, 0.35) })}
         />
         {preset.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill' ? (
@@ -358,10 +358,9 @@ export function DesignBuilderEditableControls({
             <div className="mt-2 grid gap-1 text-xs text-slate-600 dark:text-slate-300">
               <div>Gable-end CMU: {gableCmuBlockCount} EA</div>
               <div>
-                Raked cap concrete: {rakedCapVolumeCubicMeters.toFixed(3)} m3 (
-                {cubicMetersToCubicYards(rakedCapVolumeCubicMeters).toFixed(2)} CY)
+                Raked cap concrete: {formatDisplayVolume(rakedCapVolumeCubicMeters, measurementSystem, 3)}
               </div>
-              <div>Raked cap length: {rakedCapLinearLengthMeters.toFixed(2)} m</div>
+              <div>Raked cap length: {formatDisplayLength(rakedCapLinearLengthMeters, measurementSystem)}</div>
             </div>
             <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
               Volume is calculated from the resolved cap prism between the CMU envelope and the purlin bottom - not render-only geometry.
@@ -401,7 +400,7 @@ export function DesignBuilderEditableControls({
         />
         {truss?.spanMeters != null ? (
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            Span {truss.spanMeters.toFixed(2)} m / {metersToFeet(truss.spanMeters).toFixed(1)} ft
+            Span {formatDisplayLength(truss.spanMeters, measurementSystem)}
           </p>
         ) : null}
       </div>
@@ -437,10 +436,10 @@ export function DesignBuilderEditableControls({
         </div>
         <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-slate-600 dark:text-slate-300">
           <div>
-            Actual: {resolvedOpening.actualWidthMeters.toFixed(2)}m x {resolvedOpening.actualHeightMeters.toFixed(2)}m
+            Actual: {formatDisplayLength(resolvedOpening.actualWidthMeters, measurementSystem, { kind: 'small' })} x {formatDisplayLength(resolvedOpening.actualHeightMeters, measurementSystem, { kind: 'small' })}
           </div>
           <div>
-            Rough: {resolvedOpening.roughOpeningWidthMeters.toFixed(2)}m x {resolvedOpening.roughOpeningHeightMeters.toFixed(2)}m
+            Rough: {formatDisplayLength(resolvedOpening.roughOpeningWidthMeters, measurementSystem, { kind: 'small' })} x {formatDisplayLength(resolvedOpening.roughOpeningHeightMeters, measurementSystem, { kind: 'small' })}
           </div>
         </div>
       </div>
@@ -451,7 +450,7 @@ export function DesignBuilderEditableControls({
           <div>Right jamb closures: {summarizeClosures(rightClosures)}</div>
           <div>Cut block warnings: {cutWarnings}</div>
           <div>Jamb grout cells: {cmuLayout.jambGroutCells.filter((cell) => cell.openingId === opening.id).length}</div>
-          <div>Lintel length: {resolvedOpening.lintelLengthMeters.toFixed(2)}m</div>
+          <div>Lintel length: {formatDisplayLength(resolvedOpening.lintelLengthMeters, measurementSystem, { kind: 'small' })}</div>
           <div>Estimated closure grout: {closureGroutVolume.toFixed(4)} m3</div>
           <div>Jamb grout volume is based on selected grouted cells and course closure conditions, not the full rough opening area.</div>
         </div>
@@ -480,11 +479,11 @@ export function DesignBuilderEditableControls({
         ]}
       />
       <NumberField label="Position along wall" value={opening.offsetMeters} suffix="m" onChange={(value) => onOpeningChange(opening.id, { offsetMeters: Math.max(0, value) })} />
-      <NumberField label="Actual width" value={opening.widthMeters} suffix="m" onChange={(value) => onOpeningChange(opening.id, { widthMeters: positiveOrFallback(value, opening.widthMeters) })} />
-      <NumberField label="Actual height" value={opening.heightMeters} suffix="m" onChange={(value) => onOpeningChange(opening.id, { heightMeters: positiveOrFallback(value, opening.heightMeters) })} />
-      <NumberField label="Rough opening allowance" value={opening.roughOpeningAllowanceMeters ?? 0.05} suffix="m" step={0.005} onChange={(value) => onOpeningChange(opening.id, { roughOpeningAllowanceMeters: Math.max(0, value), roughOpeningWidthMeters: undefined, roughOpeningHeightMeters: undefined })} />
-      <NumberField label="Rough opening width override" value={opening.roughOpeningWidthMeters ?? resolvedOpening.roughOpeningWidthMeters} suffix="m" onChange={(value) => onOpeningChange(opening.id, { roughOpeningWidthMeters: positiveOrFallback(value, resolvedOpening.roughOpeningWidthMeters) })} />
-      <NumberField label="Rough opening height override" value={opening.roughOpeningHeightMeters ?? resolvedOpening.roughOpeningHeightMeters} suffix="m" onChange={(value) => onOpeningChange(opening.id, { roughOpeningHeightMeters: positiveOrFallback(value, resolvedOpening.roughOpeningHeightMeters) })} />
+      <NumberField label="Actual width" value={opening.widthMeters} suffix="m" measurementKind="small" onChange={(value) => onOpeningChange(opening.id, { widthMeters: positiveOrFallback(value, opening.widthMeters) })} />
+      <NumberField label="Actual height" value={opening.heightMeters} suffix="m" measurementKind="small" onChange={(value) => onOpeningChange(opening.id, { heightMeters: positiveOrFallback(value, opening.heightMeters) })} />
+      <NumberField label="Rough opening allowance" value={opening.roughOpeningAllowanceMeters ?? 0.05} suffix="m" measurementKind="small" step={0.005} onChange={(value) => onOpeningChange(opening.id, { roughOpeningAllowanceMeters: Math.max(0, value), roughOpeningWidthMeters: undefined, roughOpeningHeightMeters: undefined })} />
+      <NumberField label="Rough opening width override" value={opening.roughOpeningWidthMeters ?? resolvedOpening.roughOpeningWidthMeters} suffix="m" measurementKind="small" onChange={(value) => onOpeningChange(opening.id, { roughOpeningWidthMeters: positiveOrFallback(value, resolvedOpening.roughOpeningWidthMeters) })} />
+      <NumberField label="Rough opening height override" value={opening.roughOpeningHeightMeters ?? resolvedOpening.roughOpeningHeightMeters} suffix="m" measurementKind="small" onChange={(value) => onOpeningChange(opening.id, { roughOpeningHeightMeters: positiveOrFallback(value, resolvedOpening.roughOpeningHeightMeters) })} />
       {opening.type === 'window' ? (
         <>
           <NumberField label="Sill height" value={opening.sillHeightMeters ?? 0} suffix="m" onChange={(value) => onOpeningChange(opening.id, { sillHeightMeters: Math.max(0, value) })} />
@@ -518,7 +517,7 @@ export function DesignBuilderEditableControls({
           { value: 'none', label: 'None' },
         ]}
       />
-      <NumberField label="Lintel bearing" value={opening.lintelBearingMeters ?? preset.wall.lintelBearingMeters ?? 0.2} suffix="m" onChange={(value) => onOpeningChange(opening.id, { lintelBearingMeters: Math.max(0, value) })} />
+      <NumberField label="Lintel bearing" value={opening.lintelBearingMeters ?? preset.wall.lintelBearingMeters ?? 0.2} suffix="m" measurementKind="small" onChange={(value) => onOpeningChange(opening.id, { lintelBearingMeters: Math.max(0, value) })} />
       <NumberField label="Jamb cells each side" value={opening.groutCellsEachSide ?? preset.wall.jambCellsEachSide ?? 1} suffix="cells" step={1} onChange={(value) => onOpeningChange(opening.id, { groutCellsEachSide: Math.max(0, Math.round(value)) })} />
       <label className="flex items-center justify-between rounded-lg bg-slate-100 px-3 py-2 text-sm dark:bg-slate-800">
         <span>Jamb grout enabled</span>

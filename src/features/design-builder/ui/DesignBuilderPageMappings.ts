@@ -84,9 +84,7 @@ export const OBJECT_TREE_GROUPS: Array<{
   {
     id: 'structure',
     label: 'Structure',
-    items: OBJECT_TREE_ITEMS.filter((item) =>
-      ['roof-beams', 'plinth-beams', 'tie-beams', 'columns'].includes(item.id),
-    ),
+    items: OBJECT_TREE_ITEMS.filter((item) => ['roof-beams', 'columns'].includes(item.id)),
   },
   {
     id: 'foundation',

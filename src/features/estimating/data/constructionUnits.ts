@@ -1,3 +1,6 @@
+import type { MeasurementSystem } from '../../../utils/measurementPreferences';
+import { preferredConstructionUnitCodes } from '../../../utils/measurementDisplay';
+
 export interface ConstructionUnit {
   code: string;
   label: string;
@@ -5,11 +8,11 @@ export interface ConstructionUnit {
 }
 
 export const DEFAULT_UNIT_CODES: readonly string[] = [
+  'LF',
+  'SF',
+  'CY',
   'EA',
   'LS',
-  'SF',
-  'LF',
-  'CY',
   'CF',
   'SY',
   'HR',
@@ -139,8 +142,12 @@ function unitMatchesQuery(unit: ConstructionUnit, query: string): boolean {
   );
 }
 
-function sortUnitsForEmptyQuery(units: ConstructionUnit[]): ConstructionUnit[] {
-  const defaultRank = new Map(DEFAULT_UNIT_CODES.map((code, index) => [code, index]));
+function sortUnitsForEmptyQuery(
+  units: ConstructionUnit[],
+  measurementSystem: MeasurementSystem,
+): ConstructionUnit[] {
+  const preferredCodes = preferredConstructionUnitCodes(measurementSystem);
+  const defaultRank = new Map(preferredCodes.map((code, index) => [code, index]));
 
   return [...units].sort((left, right) => {
     const leftDefault = defaultRank.get(left.code);
@@ -155,11 +162,14 @@ function sortUnitsForEmptyQuery(units: ConstructionUnit[]): ConstructionUnit[] {
   });
 }
 
-export function filterConstructionUnits(query: string): ConstructionUnit[] {
+export function filterConstructionUnits(
+  query: string,
+  measurementSystem: MeasurementSystem = 'imperial',
+): ConstructionUnit[] {
   const normalizedQuery = normalizeQuery(query);
 
   if (!normalizedQuery) {
-    return sortUnitsForEmptyQuery(CONSTRUCTION_UNITS);
+    return sortUnitsForEmptyQuery(CONSTRUCTION_UNITS, measurementSystem);
   }
 
   return CONSTRUCTION_UNITS.filter((unit) => unitMatchesQuery(unit, normalizedQuery)).sort(

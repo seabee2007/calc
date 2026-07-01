@@ -1,6 +1,8 @@
 import type { DesignSnapTarget } from './designSnapRules';
 import type { DesignBuilderSnapMode } from '../types';
 import { formatPlanGridSpacingMeters } from './planGridState';
+import type { MeasurementSystem } from '../../../utils/measurementPreferences';
+import { formatDisplayLength } from '../../../utils/measurementDisplay';
 
 const STATUS_SEPARATOR = ' · ';
 
@@ -14,7 +16,9 @@ export function formatDrawWallStatusChip(params: {
   orthogonalLock: boolean;
   shiftConstraintLabel?: string | null;
   snapTarget?: DesignSnapTarget | null;
+  measurementSystem?: MeasurementSystem;
 }): string {
+  const measurementSystem = params.measurementSystem ?? 'metric';
   if (params.shiftConstraintLabel) {
     if (
       params.shiftConstraintLabel.startsWith('Closure:') ||
@@ -30,7 +34,7 @@ export function formatDrawWallStatusChip(params: {
       return 'Closure: exact rectangle corner';
     }
     if (params.snapTarget.type === 'grid') {
-      return `Snap: Grid ${formatPlanGridSpacingMeters(params.gridSpacingMeters)}`;
+      return `Snap: Grid ${formatPlanGridSpacingMeters(params.gridSpacingMeters, measurementSystem)}`;
     }
     if (params.snapTarget.type === 'cmu_module') {
       return 'Snap: CMU';
@@ -52,7 +56,9 @@ export function formatDrawWallSnapTargetFeedback(params: {
   shiftConstraintLabel?: string | null;
   lengthMeters?: number;
   angleDegrees?: number;
+  measurementSystem?: MeasurementSystem;
 }): string | null {
+  const measurementSystem = params.measurementSystem ?? 'metric';
   const parts: string[] = [];
   if (params.shiftConstraintLabel) {
     parts.push(params.shiftConstraintLabel);
@@ -64,13 +70,13 @@ export function formatDrawWallSnapTargetFeedback(params: {
     else if (params.snapTarget.label === 'Parallel') parts.push('Guide: Parallel');
     else if (params.snapTarget.type === 'cmu_module') parts.push('Snap: CMU module');
     else if (params.snapTarget.type === 'grid') {
-      parts.push(`Snap: Grid ${formatPlanGridSpacingMeters(params.gridSpacingMeters)}`);
+      parts.push(`Snap: Grid ${formatPlanGridSpacingMeters(params.gridSpacingMeters, measurementSystem)}`);
     } else if (params.snapTarget.type === 'node' || params.snapTarget.type === 'endpoint') {
       parts.push('Snap: Corner');
     }
   }
   if (params.lengthMeters != null && params.lengthMeters > 0) {
-    parts.push(`Length: ${params.lengthMeters.toFixed(2)} m`);
+    parts.push(`Length: ${formatDisplayLength(params.lengthMeters, measurementSystem)}`);
   }
   if (params.angleDegrees != null) {
     parts.push(`Angle: ${formatDegrees(params.angleDegrees)}`);

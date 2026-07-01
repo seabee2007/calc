@@ -3,11 +3,18 @@ import {
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
 } from 'react';
+import { usePreferencesStore } from '../../../store';
+import {
+  displayLengthToMeters,
+  displayLengthUnit,
+  metersToDisplayLength,
+} from '../../../utils/measurementDisplay';
 
 export function NumberField({
   label,
   value,
   suffix,
+  measurementKind = 'length',
   min = 0,
   max,
   onChange,
@@ -16,18 +23,32 @@ export function NumberField({
   value: number;
   suffix: string;
   step?: number;
+  measurementKind?: 'length' | 'small';
   min?: number;
   max?: number;
   onChange: (value: number) => void;
 }) {
-  const [draft, setDraft] = useState(() => formatInputNumber(value));
+  const measurementSystem = usePreferencesStore((state) => state.preferences.measurementSystem);
+  const isMeterBacked = suffix === 'm';
+  const displaySuffix = isMeterBacked
+    ? displayLengthUnit(measurementSystem, measurementKind)
+    : suffix;
+  const toDisplayValue = (metersOrRaw: number) =>
+    isMeterBacked
+      ? metersToDisplayLength(metersOrRaw, measurementSystem, measurementKind)
+      : metersOrRaw;
+  const toStoredValue = (displayOrRaw: number) =>
+    isMeterBacked
+      ? displayLengthToMeters(displayOrRaw, measurementSystem, measurementKind)
+      : displayOrRaw;
+  const [draft, setDraft] = useState(() => formatInputNumber(toDisplayValue(value)));
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (document.activeElement?.getAttribute('aria-label') === label) return;
-    setDraft(formatInputNumber(value));
+    setDraft(formatInputNumber(toDisplayValue(value)));
     setError(null);
-  }, [label, value]);
+  }, [label, measurementKind, measurementSystem, value]);
 
   const commit = () => {
     const parsed = parseDecimalInput(draft);
@@ -35,17 +56,18 @@ export function NumberField({
       setError('Enter a valid decimal value.');
       return;
     }
-    if (typeof min === 'number' && parsed < min) {
-      setError(`Minimum ${formatInputNumber(min)} ${suffix}.`);
+    const storedValue = toStoredValue(parsed);
+    if (typeof min === 'number' && storedValue < min) {
+      setError(`Minimum ${formatInputNumber(toDisplayValue(min))} ${displaySuffix}.`);
       return;
     }
-    if (typeof max === 'number' && parsed > max) {
-      setError(`Maximum ${formatInputNumber(max)} ${suffix}.`);
+    if (typeof max === 'number' && storedValue > max) {
+      setError(`Maximum ${formatInputNumber(toDisplayValue(max))} ${displaySuffix}.`);
       return;
     }
     setError(null);
-    onChange(parsed);
-    setDraft(formatInputNumber(parsed));
+    onChange(storedValue);
+    setDraft(formatInputNumber(toDisplayValue(storedValue)));
   };
 
   const handleKeyDown = (event: ReactKeyboardEvent<HTMLInputElement>) => {
@@ -79,7 +101,7 @@ export function NumberField({
           className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm outline-none"
         />
         <span className="flex min-w-12 items-center justify-center border-l border-slate-200 px-3 text-xs font-semibold text-slate-500 dark:border-slate-700 dark:text-slate-400">
-          {suffix}
+          {displaySuffix}
         </span>
       </div>
       {error ? <span className="mt-1 block text-xs text-red-600 dark:text-red-300">{error}</span> : null}

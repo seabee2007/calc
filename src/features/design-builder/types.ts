@@ -1435,6 +1435,7 @@ export interface DesignBuilderInteractionEvent {
   componentId?: string;
   annotationId?: string;
   objectType?: DesignObjectType;
+  objectTreeItemId?: string;
   plumbingSelection?: PlumbingSelection;
   widthMeters?: number;
   heightMeters?: number;

@@ -17,6 +17,7 @@ import {
   DEFAULT_USER_PREFERENCES,
 } from '../services/userPreferencesService';
 import { applyThemeModeFromPreferences } from './themeStore';
+import { normalizeMeasurementPreferences } from '../utils/measurementPreferences';
 import type {
   Project,
   UserPreferences,
@@ -1671,15 +1672,18 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
       // Fall back to localStorage if Supabase fails
       const saved = localStorage.getItem('concretePreferences');
       if (saved) {
-        const localPreferences = JSON.parse(saved);
-        set({ preferences: { ...defaultPreferences, ...localPreferences } });
+        const localPreferences = normalizeMeasurementPreferences({
+          ...defaultPreferences,
+          ...JSON.parse(saved),
+        });
+        set({ preferences: localPreferences });
       }
     }
   },
   
   updatePreferences: async (newPreferences) => {
     const previousPrefs = get().preferences;
-    const optimistic = { ...previousPrefs, ...newPreferences };
+    const optimistic = normalizeMeasurementPreferences({ ...previousPrefs, ...newPreferences });
     set({ preferences: optimistic });
 
     try {
@@ -1690,7 +1694,7 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
         console.error('Error updating preferences:', error);
       }
       set({ preferences: previousPrefs, loading: false });
-      const updated = { ...previousPrefs, ...newPreferences };
+      const updated = normalizeMeasurementPreferences({ ...previousPrefs, ...newPreferences });
       localStorage.setItem('concretePreferences', JSON.stringify(updated));
       set({ preferences: updated });
       throw error;

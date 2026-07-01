@@ -128,6 +128,11 @@ import {
 } from '../quantity/designQuantityUnits';
 import { usePreferencesStore } from '../../../store';
 import {
+  getMeasurementSystemFromPreferences,
+  measurementSystemToLegacyUnits,
+  type MeasurementSystem,
+} from '../../../utils/measurementPreferences';
+import {
   applyFrameFoundationDimensions,
   objectSaveKey,
   setBuildingSystemMode,
@@ -252,6 +257,7 @@ import {
 } from './DesignBuilderLayoutStorage';
 import {
   finishForPlasterMaterialId,
+  type DesignBuilderObjectTreeItem,
   moduleFitStatusTone,
   OBJECT_TREE_ITEMS,
   plasterMaterialIdForFinish,
@@ -346,6 +352,7 @@ import {
   findNearestPlumbingRunSegment,
   type PlumbingRunSegmentSnap,
 } from '../plumbing/canvas2d/plumbingSnapPoints';
+import { useDesignBuilderShortcutIsolation } from '../keyboard/useDesignBuilderShortcutIsolation';
 import { DesignBuilderSepticTankControls } from './DesignBuilderSepticTankControls';
 
 const DESIGN_BUILDER_PREVIEW_DIAGNOSTICS =
@@ -561,10 +568,24 @@ export default function DesignBuilderPage({
   const saveDesignBuilderSession = useDesignBuilderSessionStore((store) => store.saveSession);
   const clearDesignBuilderSession = useDesignBuilderSessionStore((store) => store.clearSession);
   const confirm = useConfirm();
+  const { preferences, updatePreferences } = usePreferencesStore();
+  const measurementSystem = getMeasurementSystemFromPreferences(preferences);
+  const handleGlobalMeasurementSystemChange = useCallback(
+    (system: MeasurementSystem) => {
+      if (system === measurementSystem) return;
+      void updatePreferences(measurementSystemToLegacyUnits(system)).catch((error) => {
+        if (import.meta.env.DEV) {
+          console.error('[DesignBuilder] Failed to update measurement system', error);
+        }
+      });
+    },
+    [measurementSystem, updatePreferences],
+  );
   const resizeCleanupRef = useRef<(() => void) | null>(null);
   const hasUserAdjustedPlanViewRef = useRef(storedSession?.hasUserAdjustedPlanView ?? false);
   const hasUserAdjusted3dViewRef = useRef(storedSession?.hasUserAdjusted3dView ?? false);
   const lastSnapTargetRef = useRef<DesignSnapTarget | null>(null);
+  const designBuilderRootRef = useRef<HTMLDivElement | null>(null);
   const viewerOverlayContainerRef = useRef<HTMLDivElement | null>(null);
   const pending3dFitRef = useRef(false);
   const prevFootprintClosedRef = useRef(false);
@@ -606,14 +627,18 @@ export default function DesignBuilderPage({
   );
   const [selectedAnnotationId, setSelectedAnnotationId] = useState<string | null>(null);
   const [selectedComponentId, setSelectedComponentId] = useState<string | null>(null);
-  const [unitSystem, setUnitSystem] = useState<DesignUnitSystem>(() => storedSession?.unitSystem ?? 'metric');
+  const [unitSystem, setUnitSystem] = useState<DesignUnitSystem>(
+    () => storedSession?.unitSystem ?? measurementSystem,
+  );
   const [selectedObjectType, setSelectedObjectType] = useState<DesignObjectType | null>(
     () => storedSession?.selectedObjectType ?? null,
   );
+  const [selectedObjectTreeItemId, setSelectedObjectTreeItemId] = useState<string | null>(null);
   const [selectedOpeningId, setSelectedOpeningId] = useState<string | null>(
     () => storedSession?.selectedOpeningId ?? null,
   );
   const [toolMode, setToolMode] = useState<DesignBuilderToolMode>(() => storedSession?.toolMode ?? 'select');
+  const [designBuilderRootElement, setDesignBuilderRootElement] = useState<HTMLDivElement | null>(null);
   const [masonryToolMode, setMasonryToolMode] = useState<MasonryToolMode>(() => storedSession?.masonryToolMode ?? 'full_block');
   void setMasonryToolMode;
   const [draftSnapTarget, setDraftSnapTarget] = useState<DesignSnapTarget | null>(null);
@@ -653,6 +678,31 @@ export default function DesignBuilderPage({
   const [, setSaveState] = useState<DesignBuilderSaveState>('unsaved');
   const [, setLastSaveTime] = useState<string | null>(null);
   const [, setLastSaveError] = useState<string | null>(null);
+
+  const setDesignBuilderRootRef = useCallback((element: HTMLDivElement | null) => {
+    designBuilderRootRef.current = element;
+    setDesignBuilderRootElement(element);
+  }, []);
+
+  const shortcutIsolationEnabled =
+    toolMode === 'place_dimension' ||
+    toolMode === 'place_angle' ||
+    toolMode === 'draw_wall' ||
+    toolMode === 'move_wall_node' ||
+    toolMode === 'move_opening';
+
+  const { altPressed } = useDesignBuilderShortcutIsolation({
+    enabled: shortcutIsolationEnabled,
+    rootElement: designBuilderRootElement,
+  });
+
+  const handleDesignBuilderRootPointerDown = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
+    const target = event.target as HTMLElement | null;
+    if (target?.closest('input, textarea, select, [contenteditable="true"], [role="textbox"]')) {
+      return;
+    }
+    designBuilderRootRef.current?.focus({ preventScroll: true });
+  }, []);
   const [busy, setBusy] = useState(false);
   const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(() =>
     storedSession?.leftPanelCollapsed ?? readBooleanStorage(leftPanelCollapsedKey(projectId, estimateId), false),
@@ -660,6 +710,11 @@ export default function DesignBuilderPage({
   const [rightPanelCollapsed, setRightPanelCollapsed] = useState(() =>
     storedSession?.rightPanelCollapsed ?? readBooleanStorage(rightPanelCollapsedKey(projectId, estimateId), false),
   );
+
+  useEffect(() => {
+    if (designModel || storedSession?.unitSystem) return;
+    setUnitSystem(measurementSystem);
+  }, [designModel, measurementSystem, storedSession?.unitSystem]);
   const [viewerSize, setViewerSize] = useState(() => storedSession?.viewerSize ?? readViewerSize(projectId, estimateId, focusMode));
   const [viewCommand, setViewCommand] = useState<{ id: number; action: 'fit' | 'reset' | 'grid_scale'; spacingMeters?: number } | null>(null);
   const [cameraSnapshot, setCameraSnapshot] = useState<DesignBuilderCameraSnapshot | null>(() => storedSession?.camera ?? null);
@@ -1260,9 +1315,6 @@ export default function DesignBuilderPage({
     };
   }, [objects]);
 
-  const { preferences } = usePreferencesStore();
-  const measurementSystem = preferences.measurementSystem;
-
   const generatedPreview = useMemo(() => {
     const modelId = designModel?.id ?? 'local-design-model';
     return buildDesignEstimatePreview({
@@ -1539,6 +1591,7 @@ export default function DesignBuilderPage({
     setPlacedComponents((current) => [...current, placedComponent, ...relatedComponents]);
     setSelectedAnnotationId(null);
     setSelectedComponentId(placedComponent.id);
+    setSelectedObjectTreeItemId(null);
     setSelectedSegmentId(null);
     setSelectedNodeId(null);
     setSelectedOpeningId(null);
@@ -1638,6 +1691,71 @@ export default function DesignBuilderPage({
 
   const isRcFrameBuilding =
     resolvedPreset.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill';
+  const foundationObjectTreeItems = useMemo<DesignBuilderObjectTreeItem[]>(() => {
+    if (!isRcFrameBuilding) {
+      return OBJECT_TREE_ITEMS.filter((item) => item.id === 'isolated-footings');
+    }
+
+    const items: DesignBuilderObjectTreeItem[] = [];
+    const frameSystem = designGeometryResult.frameSystem ?? resolvedPreset.frameSystem;
+    const hasBeamKind = (kind: 'tie_beam' | 'plinth_beam') =>
+      frameSystem.beams.some((beam) => beam.kind === kind);
+    const hasBelowGradeCmuInfill = designGeometryResult.blockInstances.some(
+      (block) =>
+        block.infillBand === 'below_grade' ||
+        String(block.source ?? '') === 'below_grade_rc_infill',
+    );
+
+    if ((designGeometryResult.isolatedFootings?.length ?? 0) > 0) {
+      items.push({
+        id: 'foundation-isolated-footings',
+        objectType: 'structural_frame_system',
+        label: 'Isolated Footings',
+        description: '',
+      });
+    }
+    if (hasBeamKind('tie_beam')) {
+      items.push({
+        id: 'foundation-tie-beam',
+        objectType: 'structural_frame_system',
+        label: 'Tie Beam',
+        description: '',
+      });
+    }
+    if (hasBelowGradeCmuInfill) {
+      items.push({
+        id: 'foundation-cmu-infill-below-grade',
+        objectType: 'cmu_infill_system',
+        label: 'CMU Infill Below Grade',
+        description: '',
+      });
+    }
+    if (hasBeamKind('plinth_beam')) {
+      items.push({
+        id: 'foundation-plinth-beam',
+        objectType: 'structural_frame_system',
+        label: 'Plinth Beam',
+        description: '',
+      });
+    }
+    if (designGeometryResult.interiorFloorSlab?.enabled) {
+      items.push({
+        id: 'foundation-sog',
+        objectType: 'structural_frame_system',
+        label: 'SOG',
+        description: 'Slab on grade',
+      });
+    }
+
+    return items;
+  }, [
+    designGeometryResult.blockInstances,
+    designGeometryResult.frameSystem,
+    designGeometryResult.interiorFloorSlab?.enabled,
+    designGeometryResult.isolatedFootings?.length,
+    isRcFrameBuilding,
+    resolvedPreset.frameSystem,
+  ]);
   const quantityCards = useMemo(() => {
     const previewLine = (id: string, alternateId?: string) =>
       generatedPreview.find((line) => line.id === id) ??
@@ -1674,7 +1792,7 @@ export default function DesignBuilderPage({
             {
               label: 'Thickened edge slab concrete',
               value: modelLoaded ? (thickenedSlabLine?.quantity ?? 0) : 0,
-              unit: thickenedSlabLine?.unit ?? (measurementSystem === 'metric' ? 'M3' : 'CY'),
+              unit: thickenedSlabLine?.unit ?? (measurementSystem === 'metric' ? 'CM' : 'CY'),
               objectType: 'thickened_edge_slab' as DesignObjectType,
             },
           ]),
@@ -1705,7 +1823,7 @@ export default function DesignBuilderPage({
       {
         label: 'Core Fill',
         value: modelLoaded ? (coreFillLine?.quantity ?? 0) : 0,
-        unit: coreFillLine?.unit ?? (measurementSystem === 'metric' ? 'M3' : 'CY'),
+        unit: coreFillLine?.unit ?? (measurementSystem === 'metric' ? 'CM' : 'CY'),
         objectType: 'cmu_wall_system' as DesignObjectType,
       },
       {
@@ -1721,14 +1839,14 @@ export default function DesignBuilderPage({
               value: modelLoaded ? (previewLine('isolated-footings-volume')?.quantity ?? 0) : 0,
               unit:
                 previewLine('isolated-footings-volume')?.unit ??
-                (measurementSystem === 'metric' ? 'M3' : 'CY'),
+                (measurementSystem === 'metric' ? 'CM' : 'CY'),
               objectType: 'structural_frame_system' as DesignObjectType,
             },
             {
               label: 'Columns concrete volume',
               value: modelLoaded ? (previewLine('rc-columns-volume')?.quantity ?? 0) : 0,
               unit:
-                previewLine('rc-columns-volume')?.unit ?? (measurementSystem === 'metric' ? 'M3' : 'CY'),
+                previewLine('rc-columns-volume')?.unit ?? (measurementSystem === 'metric' ? 'CM' : 'CY'),
               objectType: 'structural_frame_system' as DesignObjectType,
             },
             {
@@ -1736,14 +1854,14 @@ export default function DesignBuilderPage({
               value: modelLoaded ? (previewLine('rc-plinth-beams-volume')?.quantity ?? 0) : 0,
               unit:
                 previewLine('rc-plinth-beams-volume')?.unit ??
-                (measurementSystem === 'metric' ? 'M3' : 'CY'),
+                (measurementSystem === 'metric' ? 'CM' : 'CY'),
               objectType: 'structural_frame_system' as DesignObjectType,
             },
             {
               label: 'Tie beam concrete volume',
               value: modelLoaded ? (previewLine('rc-tie-beams-volume')?.quantity ?? 0) : 0,
               unit:
-                previewLine('rc-tie-beams-volume')?.unit ?? (measurementSystem === 'metric' ? 'M3' : 'CY'),
+                previewLine('rc-tie-beams-volume')?.unit ?? (measurementSystem === 'metric' ? 'CM' : 'CY'),
               objectType: 'structural_frame_system' as DesignObjectType,
             },
             {
@@ -1751,7 +1869,7 @@ export default function DesignBuilderPage({
               value: modelLoaded ? (previewLine('rc-roof-beams-volume')?.quantity ?? 0) : 0,
               unit:
                 previewLine('rc-roof-beams-volume')?.unit ??
-                (measurementSystem === 'metric' ? 'M3' : 'CY'),
+                (measurementSystem === 'metric' ? 'CM' : 'CY'),
               objectType: 'structural_frame_system' as DesignObjectType,
             },
           ]
@@ -1759,7 +1877,7 @@ export default function DesignBuilderPage({
       {
         label: 'Gable roof surface area',
         value: modelLoaded ? (roofAreaLine?.quantity ?? 0) : 0,
-        unit: roofAreaLine?.unit ?? (measurementSystem === 'metric' ? 'M2' : 'SF'),
+        unit: roofAreaLine?.unit ?? (measurementSystem === 'metric' ? 'SM' : 'SF'),
         objectType: 'gable_roof_system' as DesignObjectType,
       },
       {
@@ -1771,13 +1889,13 @@ export default function DesignBuilderPage({
       {
         label: 'Raked concrete cap volume',
         value: modelLoaded ? (rakedCapLine?.quantity ?? 0) : 0,
-        unit: rakedCapLine?.unit ?? (measurementSystem === 'metric' ? 'M3' : 'CY'),
+        unit: rakedCapLine?.unit ?? (measurementSystem === 'metric' ? 'CM' : 'CY'),
         objectType: 'structural_frame_system' as DesignObjectType,
       },
       {
         label: 'Interior floor slab volume',
         value: modelLoaded ? (interiorSlabLine?.quantity ?? 0) : 0,
-        unit: interiorSlabLine?.unit ?? (measurementSystem === 'metric' ? 'M3' : 'CY'),
+        unit: interiorSlabLine?.unit ?? (measurementSystem === 'metric' ? 'CM' : 'CY'),
         objectType: 'structural_frame_system' as DesignObjectType,
       },
     ];
@@ -1801,10 +1919,15 @@ export default function DesignBuilderPage({
   const selectedSepticTank = selectedSepticTankId
     ? plumbingSystem.septicTanks.find((tank) => tank.id === selectedSepticTankId) ?? null
     : null;
+  const selectedObjectTreeItem = selectedObjectTreeItemId
+    ? [...OBJECT_TREE_ITEMS, ...foundationObjectTreeItems].find((item) => item.id === selectedObjectTreeItemId) ?? null
+    : null;
   const selectedObjectLabel = selectedSegmentId
     ? 'Wall Segment'
     : selectedSepticTank
       ? 'CMU Septic Tank'
+    : selectedObjectTreeItem
+      ? selectedObjectTreeItem.label
     : selectedObjectType
       ? OBJECT_TREE_ITEMS.find((item) => item.objectType === selectedObjectType)?.label ?? 'Selected object'
       : 'Project Masonry Defaults';
@@ -1823,9 +1946,10 @@ export default function DesignBuilderPage({
     }));
   }
 
-  function selectObjectTreeObjectType(objectType: DesignObjectType) {
+  function selectObjectTreeObjectType(objectType: DesignObjectType, itemId: string) {
     setSelectedAnnotationId(null);
     setSelectedObjectType(objectType);
+    setSelectedObjectTreeItemId(itemId);
     setSelectedSegmentId(null);
     setSelectedNodeId(null);
     setSelectedSepticTankId(null);
@@ -1837,6 +1961,7 @@ export default function DesignBuilderPage({
 
   function selectObjectTreeSegment(segmentId: string) {
     setSelectedAnnotationId(null);
+    setSelectedObjectTreeItemId(null);
     setSelectedSegmentId(segmentId);
     setSelectedObjectType(null);
     setSelectedOpeningId(null);
@@ -1847,6 +1972,7 @@ export default function DesignBuilderPage({
 
   function selectObjectTreeOpening(openingId: string, objectType: 'door_opening' | 'window_opening') {
     setSelectedAnnotationId(null);
+    setSelectedObjectTreeItemId(null);
     setSelectedOpeningId(openingId);
     setSelectedObjectType(objectType);
     setSelectedSegmentId(null);
@@ -1857,6 +1983,7 @@ export default function DesignBuilderPage({
 
   function selectObjectTreeSepticTank(tankId: string) {
     setSelectedAnnotationId(null);
+    setSelectedObjectTreeItemId(null);
     setSelectedSepticTankId(tankId);
     setSelectedObjectType(null);
     setSelectedOpeningId(null);
@@ -1933,6 +2060,7 @@ export default function DesignBuilderPage({
     setSelectedSegmentId(snapshot.selectedSegmentId);
     setSelectedNodeId(snapshot.selectedNodeId);
     setSelectedObjectType(snapshot.selectedObjectType);
+    setSelectedObjectTreeItemId(null);
     setManualMasonryRuns(snapshot.masonryWall.manualMasonryCourseRuns ?? []);
   }
 
@@ -3219,6 +3347,7 @@ export default function DesignBuilderPage({
     }
     setSelectedAnnotationId(null);
     setSelectedPlumbingObject(nextSelection.kind === 'none' ? null : nextSelection);
+    setSelectedObjectTreeItemId(null);
     setSelectedObjectType(null);
     setSelectedOpeningId(null);
     setSelectedSegmentId(null);
@@ -3380,6 +3509,7 @@ export default function DesignBuilderPage({
     setPlumbingSystem(result.system);
     setSepticTankPlacementActive(false);
     setToolMode('select');
+    setSelectedObjectTreeItemId(null);
     setSelectedObjectType(null);
     setSelectedOpeningId(null);
     setSelectedSegmentId(null);
@@ -3994,11 +4124,26 @@ export default function DesignBuilderPage({
     if (event.kind === 'component_select' && event.componentId) {
       setSelectedAnnotationId(null);
       setSelectedComponentId(event.componentId);
+      setSelectedObjectTreeItemId(null);
       setSelectedSepticTankId(null);
       setSelectedSegmentId(null);
       setSelectedNodeId(null);
       setSelectedOpeningId(null);
       setSelectedObjectType('structural_frame_system');
+      return;
+    }
+
+    if (event.kind === 'select_object') {
+      setSelectedAnnotationId(null);
+      setSelectedObjectType(event.objectType ?? null);
+      setSelectedObjectTreeItemId(event.objectTreeItemId ?? null);
+      setSelectedComponentId(null);
+      setSelectedSepticTankId(null);
+      setSelectedSegmentId(null);
+      setSelectedNodeId(null);
+      setSelectedOpeningId(null);
+      setSelectedPlumbingObject(null);
+      setPlacementPreview(null);
       return;
     }
 
@@ -4054,6 +4199,7 @@ export default function DesignBuilderPage({
     if (event.kind === 'select_node' && event.nodeId) {
       setSelectedAnnotationId(null);
       setSelectedNodeId(event.nodeId);
+      setSelectedObjectTreeItemId(null);
       setSelectedSegmentId(null);
       setSelectedOpeningId(null);
       setSelectedComponentId(null);
@@ -4099,6 +4245,7 @@ export default function DesignBuilderPage({
         if (event.phase !== 'commit') return;
         setSelectedAnnotationId(null);
         setSelectedOpeningId(openingHit.openingId);
+        setSelectedObjectTreeItemId(null);
         setSelectedSegmentId(null);
         setSelectedNodeId(null);
         setSelectedComponentId(null);
@@ -4116,6 +4263,7 @@ export default function DesignBuilderPage({
       }
       setSelectedAnnotationId(null);
       setSelectedSegmentId(hit.segment.id);
+      setSelectedObjectTreeItemId(null);
       setSelectedNodeId(null);
       setSelectedOpeningId(null);
       setSelectedComponentId(null);
@@ -4444,6 +4592,7 @@ export default function DesignBuilderPage({
         case 'select_object':
           setSelectedAnnotationId(null);
           setSelectedObjectType(event.objectType ?? null);
+          setSelectedObjectTreeItemId(event.objectTreeItemId ?? null);
           setSelectedOpeningId(null);
           setSelectedSegmentId(null);
           setSelectedNodeId(null);
@@ -4454,6 +4603,7 @@ export default function DesignBuilderPage({
         case 'select_opening':
           if (event.openingId) {
             setSelectedAnnotationId(null);
+            setSelectedObjectTreeItemId(null);
             setSelectedOpeningId(event.openingId);
             setSelectedSegmentId(null);
             setSelectedNodeId(null);
@@ -4699,7 +4849,7 @@ export default function DesignBuilderPage({
           projectId,
           estimateId,
           name: preset.name,
-          unitSystem: 'metric',
+          unitSystem: measurementSystem,
           createdBy: persistenceContext.userId!,
           metadata: {
             source: 'parametric_design_builder',
@@ -5248,6 +5398,7 @@ export default function DesignBuilderPage({
   function clearSelection() {
     setSelectedAnnotationId(null);
     setSelectedObjectType(null);
+    setSelectedObjectTreeItemId(null);
     setSelectedOpeningId(null);
     setSelectedSegmentId(null);
     setSelectedNodeId(null);
@@ -5599,6 +5750,7 @@ export default function DesignBuilderPage({
     shiftConstraintLabel: drawWallConstraintLabel,
     lengthMeters: drawWallPreviewMetrics?.lengthMeters,
     angleDegrees: drawWallPreviewMetrics?.angleDegrees,
+    measurementSystem,
   });
   const toolInstruction = toolMode === 'place_door'
     ? DESIGN_BUILDER_COPY.hints.opening
@@ -5679,6 +5831,12 @@ export default function DesignBuilderPage({
     <>
     <DesignBuilderCommandMenuProvider>
     <div
+      ref={setDesignBuilderRootRef}
+      tabIndex={-1}
+      onPointerDownCapture={handleDesignBuilderRootPointerDown}
+      data-design-builder-root="true"
+      data-design-builder-shortcut-isolation={shortcutIsolationEnabled ? 'enabled' : 'disabled'}
+      data-design-builder-alt-pressed={altPressed ? 'true' : 'false'}
       className={`bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 ${
         focusMode
           ? 'flex h-[calc(100dvh-7rem)] min-h-0 flex-col overflow-hidden p-3 sm:h-[calc(100dvh-6rem)]'
@@ -5721,10 +5879,13 @@ export default function DesignBuilderPage({
             wallSegments={wallLayout.segments}
             openings={resolvedPreset.wall.openings}
             septicTanks={plumbingSystem.septicTanks}
+            foundationItems={foundationObjectTreeItems}
             selectedObjectType={selectedObjectType}
+            selectedObjectTreeItemId={selectedObjectTreeItemId}
             selectedOpeningId={selectedOpeningId}
             selectedSepticTankId={selectedSepticTankId}
             selectedSegmentId={selectedSegmentId}
+            measurementSystem={measurementSystem}
             onToggleGroup={toggleObjectTreeGroup}
             onSelectObjectType={selectObjectTreeObjectType}
             onSelectSegment={selectObjectTreeSegment}
@@ -5812,6 +5973,8 @@ export default function DesignBuilderPage({
             snapTolerancePreset={snapTolerancePreset}
             onSnapTolerancePresetChange={setSnapTolerancePreset}
             gridSpacingMeters={wallLayout.gridSpacingMeters}
+            measurementSystem={measurementSystem}
+            onMeasurementSystemChange={handleGlobalMeasurementSystemChange}
             onApplyGridScalePreset={applyGridScalePreset}
             moduleFitMode={moduleFitMode}
             onModuleFitModeChange={setModuleFitMode}
@@ -5891,6 +6054,7 @@ export default function DesignBuilderPage({
             }
             drawWallRole={drawWallRole}
             onDrawWallRoleChange={setDrawWallRole}
+            measurementSystem={measurementSystem}
             unitSystem={unitSystem}
             orthogonalGuidesEnabled={wallLayout.orthogonalLock}
             onToggleOrthogonalGuides={toggleOrthogonalGuides}
@@ -5938,6 +6102,7 @@ export default function DesignBuilderPage({
                 selectedNodeId={selectedNodeId}
                 selectedOpeningId={selectedOpeningId}
                 selectedComponentId={selectedComponentId}
+                measurementSystem={measurementSystem}
                 snapTarget={draftSnapTarget}
                 snapSettings={snapSettings}
                 snapCycleIndex={snapCycleIndex}
@@ -5953,6 +6118,9 @@ export default function DesignBuilderPage({
                 frameSystem={designGeometryResult.frameSystem}
                 isolatedFootings={designGeometryResult.isolatedFootings}
                 wallFootings={designGeometryResult.wallFootings}
+                foundationBlockInstances={designGeometryResult.blockInstances}
+                interiorFloorSlab={designGeometryResult.interiorFloorSlab ?? null}
+                interiorFloorSlabFootprint={designGeometryResult.resolvedFootprint?.interiorFacePolygon ?? []}
                 resolvedRoofSystem={designGeometryResult.resolvedRoofSystem ?? null}
                 roofSystem={activeRoofSystem}
                 roofPlanDisplay={{
@@ -6008,6 +6176,7 @@ export default function DesignBuilderPage({
                 placedComponents={placedComponents}
                 designRenderModel={designRenderModel}
                 drawingStyleMode={twoDDrawingStyle}
+                measurementSystem={measurementSystem}
                 componentPreview={componentPlacement.activeView === 'elevation' ? componentPlacement.placementPreview : null}
                 helperMeasurements={componentPlacement.activeView === 'elevation' ? componentPlacement.helperMeasurements : []}
                 onElevationViewChange={setElevationView}
@@ -6069,6 +6238,7 @@ export default function DesignBuilderPage({
                     ? `View: X / Z on ${elevationView.face.toUpperCase()} face`
                     : 'View: X / Y plan placement'
                 }
+                measurementSystem={measurementSystem}
                 onDragStart={handleComponentPanelDragStart}
                 onCollapsedChange={setComponentPanelCollapsed}
                 onCancel={cancelComponentPlacement}
@@ -7053,6 +7223,7 @@ export default function DesignBuilderPage({
           onBeginRightPanelResize={beginRightPanelResize}
           onSelectObjectType={(objectType) => {
             setSelectedObjectType(objectType);
+            setSelectedObjectTreeItemId(null);
             setSelectedOpeningId(null);
             setSelectedSegmentId(null);
             setSelectedNodeId(null);
@@ -7103,6 +7274,7 @@ export default function DesignBuilderPage({
       onApply={handleApplyFrameFoundationDimensions}
       onRoofDraftChange={setStructureModalRoofDraft}
       onOpenFinishes={(scope) => setMaterialsModal({ open: true, scope })}
+      measurementSystem={measurementSystem}
     />
     <MaterialsColorsModal
       isOpen={materialsModal.open}

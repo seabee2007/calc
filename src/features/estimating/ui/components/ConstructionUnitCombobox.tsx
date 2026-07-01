@@ -9,6 +9,8 @@ import {
   filterConstructionUnits,
   formatConstructionUnitOption,
 } from '../../data/constructionUnits';
+import { usePreferencesStore } from '../../../../store';
+import { getMeasurementSystemFromPreferences } from '../../../../utils/measurementPreferences';
 
 interface ConstructionUnitComboboxProps {
   label?: string;
@@ -26,11 +28,16 @@ export default function ConstructionUnitCombobox({
   const listboxId = useId();
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { preferences } = usePreferencesStore();
+  const measurementSystem = getMeasurementSystemFromPreferences(preferences);
   const [isFocused, setIsFocused] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const filteredUnits = useMemo(() => filterConstructionUnits(value), [value]);
+  const filteredUnits = useMemo(
+    () => filterConstructionUnits(value, measurementSystem),
+    [measurementSystem, value],
+  );
 
   useEffect(() => {
     setActiveIndex(0);

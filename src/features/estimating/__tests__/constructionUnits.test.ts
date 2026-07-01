@@ -25,6 +25,16 @@ describe('constructionUnits', () => {
     expect(codes.slice(0, DEFAULT_UNIT_CODES.length)).toEqual([...DEFAULT_UNIT_CODES]);
   });
 
+  it('returns metric defaults first when metric is selected', () => {
+    const codes = filterConstructionUnits('', 'metric').map((unit) => unit.code);
+    expect(codes.slice(0, 4)).toEqual(['LM', 'SM', 'CM', 'EA']);
+  });
+
+  it('keeps query ranking independent of default measurement order', () => {
+    const codes = filterConstructionUnits('cy', 'metric').map((unit) => unit.code);
+    expect(codes[0]).toBe('CY');
+  });
+
   it('matches code prefix for e and ranks EA near the top', () => {
     const codes = filterConstructionUnits('e').map((unit) => unit.code);
     expect(codes).toContain('EA');

@@ -21,12 +21,36 @@ vi.mock('react-router-dom', async (importOriginal) => {
 });
 
 const mockUpdateCompanySettings = vi.fn().mockResolvedValue(undefined);
+const mockUpdatePreferences = vi.fn().mockResolvedValue(undefined);
 vi.mock('../../../store', () => ({
   useSettingsStore: () => ({
     companySettings: { companyName: '', email: '', phone: '', address: '', licenseNumber: '', motto: '' },
     companySettingsHydrated: true,
     updateCompanySettings: mockUpdateCompanySettings,
     migrateSettings: vi.fn(),
+  }),
+  usePreferencesStore: () => ({
+    preferences: {
+      measurementSystem: 'imperial',
+      units: 'imperial',
+      lengthUnit: 'feet',
+      volumeUnit: 'cubic_yards',
+      currency: 'USD',
+      defaultPSI: '3000',
+      autoSave: true,
+      soundEnabled: true,
+      hapticsEnabled: true,
+      notifications: {
+        projectUpdates: true,
+        teamChanges: true,
+        systemAlerts: true,
+        emailUpdates: true,
+        projectReminders: true,
+        weatherAlerts: true,
+      },
+      dashboardLayout: null,
+    },
+    updatePreferences: mockUpdatePreferences,
   }),
 }));
 
@@ -59,6 +83,31 @@ vi.mock('../OnboardingShell', () => ({
 vi.mock('../ThemeSelector', () => ({
   default: ({ onNext }: { onNext: () => void }) => (
     <div data-testid="theme-selector">
+      <button onClick={onNext}>Continue</button>
+    </div>
+  ),
+}));
+
+vi.mock('../MeasurementSystemSelector', () => ({
+  default: ({
+    value,
+    onChange,
+    onNext,
+    onBack,
+    onSkip,
+  }: {
+    value: 'imperial' | 'metric';
+    onChange: (value: 'imperial' | 'metric') => void;
+    onNext: () => void;
+    onBack: () => void;
+    onSkip: () => void;
+  }) => (
+    <div data-testid="measurement-selector">
+      <span data-testid="measurement-value">{value}</span>
+      <button onClick={() => onChange('imperial')}>Imperial</button>
+      <button onClick={() => onChange('metric')}>Metric</button>
+      <button onClick={onBack}>Back</button>
+      <button onClick={onSkip}>Skip</button>
       <button onClick={onNext}>Continue</button>
     </div>
   ),
@@ -182,6 +231,24 @@ describe('OnboardingFlow draft — restore from draft', () => {
       expect(input?.value).toBe('Acme Construction');
     });
   });
+
+  it('restores the measurement system step and value from draft', async () => {
+    const draft: Omit<OnboardingDraft, 'updatedAt'> = {
+      schemaVersion: 1,
+      userId: mockUserId,
+      currentStep: 'measurement-system',
+      completedSteps: ['welcome', 'company-name', 'email', 'phone', 'address', 'license', 'motto'],
+      values: { measurementSystem: 'metric' },
+    };
+    saveOnboardingDraft(mockUserId, draft);
+
+    renderOnboardingFlow();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('measurement-selector')).toBeTruthy();
+      expect(screen.getByTestId('measurement-value').textContent).toBe('metric');
+    });
+  });
 });
 
 describe('OnboardingFlow draft — saves on step advance', () => {
@@ -242,6 +309,9 @@ describe('OnboardingFlow draft — clear on successful complete', () => {
     await waitFor(() => document.querySelector('input[type="text"]'));
     const mottoContinue = screen.getAllByText('Continue');
     fireEvent.click(mottoContinue[mottoContinue.length - 1]);
+    await waitFor(() => screen.getByTestId('measurement-selector'));
+    fireEvent.click(screen.getByText('Metric'));
+    fireEvent.click(screen.getByText('Continue'));
     // theme → finish
     await waitFor(() => screen.getByTestId('theme-selector'));
     fireEvent.click(screen.getByText('Continue'));
@@ -249,6 +319,12 @@ describe('OnboardingFlow draft — clear on successful complete', () => {
     await waitFor(() => {
       expect(onComplete).toHaveBeenCalled();
       expect(getOnboardingDraft(mockUserId)).toBeNull();
+      expect(mockUpdatePreferences).toHaveBeenCalledWith({
+        measurementSystem: 'metric',
+        units: 'metric',
+        lengthUnit: 'meters',
+        volumeUnit: 'cubic_meters',
+      });
     });
   });
 });
@@ -277,6 +353,8 @@ describe('OnboardingFlow draft — draft preserved when settings save fails', ()
       fireEvent.click(btns[btns.length - 1]);
       await new Promise(r => setTimeout(r, 50));
     }
+    await waitFor(() => screen.getByTestId('measurement-selector'));
+    fireEvent.click(screen.getByText('Continue'));
     await waitFor(() => screen.getByTestId('theme-selector'));
     fireEvent.click(screen.getByText('Continue'));
 

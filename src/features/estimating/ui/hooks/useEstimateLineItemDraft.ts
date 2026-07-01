@@ -28,6 +28,9 @@ import {
   type EstimateDraftLine,
 } from '../../application/estimateDraftLine';
 import type { EstimateSettings } from '../../domain/estimateTypes';
+import { usePreferencesStore } from '../../../../store';
+import { getMeasurementSystemFromPreferences } from '../../../../utils/measurementPreferences';
+import { preferredConstructionUnitCodes } from '../../../../utils/measurementDisplay';
 
 export interface UseEstimateLineItemDraftResult {
   draftLines: EstimateDraftLine[];
@@ -58,6 +61,25 @@ export interface UseEstimateLineItemDraftResult {
   resetDraftSetup: () => void;
 }
 
+function applyPreferredUnitDefault(
+  draft: EstimateDraftLine,
+  measurementSystem: 'imperial' | 'metric',
+): EstimateDraftLine {
+  if (draft.unit.trim()) return draft;
+  const preferredUnit = preferredConstructionUnitCodes(measurementSystem)[0] ?? 'EA';
+  return {
+    ...draft,
+    unit: preferredUnit,
+    task: {
+      ...draft.task,
+      calculatedValues: {
+        ...draft.task.calculatedValues,
+        unit: preferredUnit,
+      },
+    },
+  };
+}
+
 export function useEstimateLineItemDraft(
   version: EstimateDomainVersion | null,
   estimateSettings?: Partial<EstimateSettings> | null,
@@ -71,6 +93,8 @@ export function useEstimateLineItemDraft(
   const [duplicatePrompt, setDuplicatePrompt] = useState<
     { masterActivityCode: string; title: string } | null
   >(null);
+  const { preferences } = usePreferencesStore();
+  const measurementSystem = getMeasurementSystemFromPreferences(preferences);
   const hydratedVersionIdRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -90,12 +114,15 @@ export function useEstimateLineItemDraft(
 
   const createNewFormDraft = useCallback(
     (position: number) =>
-      applyDivisionScopeDefaults(
+      applyPreferredUnitDefault(
+        applyDivisionScopeDefaults(
         applyDraftLaborDefaults(
           applyEstimateSettingsToNewDraftLine(createEmptyDraftLine(position), estimateSettings),
         ),
+        ),
+        measurementSystem,
       ),
-    [estimateSettings],
+    [estimateSettings, measurementSystem],
   );
 
   const openAddDrawer = useCallback(() => {

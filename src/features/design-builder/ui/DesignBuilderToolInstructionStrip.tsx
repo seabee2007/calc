@@ -2,6 +2,12 @@ import type {
   DoorSwingDirection,
   DoorSwingType,
 } from "../domain/planDoorSymbol";
+import type { MeasurementSystem } from "../../../utils/measurementPreferences";
+import {
+  displayLengthToMeters,
+  displayLengthUnit,
+  metersToDisplayLength,
+} from "../../../utils/measurementDisplay";
 import type {
   DesignBuilderSelection,
   DesignBuilderSnapMode,
@@ -32,6 +38,7 @@ export type DesignBuilderToolInstructionStripProps = {
   onWallHeightChange: (value: number) => void;
   drawWallRole: DesignWallRole;
   onDrawWallRoleChange: (value: DesignWallRole) => void;
+  measurementSystem?: MeasurementSystem;
   unitSystem: DesignUnitSystem;
   orthogonalGuidesEnabled: boolean;
   onToggleOrthogonalGuides: () => void;
@@ -51,6 +58,57 @@ export type DesignBuilderToolInstructionStripProps = {
   onDeleteSelectedSegment: () => void;
 };
 
+function formatToolInputNumber(value: number): string {
+  if (!Number.isFinite(value)) return "";
+  return Number(value.toFixed(4)).toString();
+}
+
+function parseToolInputNumber(value: string): number {
+  const normalized = value.trim().replace(/,/g, "");
+  if (normalized === "") return Number.NaN;
+  return Number(normalized);
+}
+
+function meterStringToDisplayString(
+  value: string,
+  measurementSystem: MeasurementSystem,
+  kind: "length" | "small",
+): string {
+  if (value.trim() === "") return "";
+  const meters = parseToolInputNumber(value);
+  if (!Number.isFinite(meters)) return value;
+  return formatToolInputNumber(metersToDisplayLength(meters, measurementSystem, kind));
+}
+
+function displayStringToMeters(
+  value: string,
+  measurementSystem: MeasurementSystem,
+  kind: "length" | "small",
+): number {
+  const displayValue = parseToolInputNumber(value);
+  if (!Number.isFinite(displayValue)) return Number.NaN;
+  return displayLengthToMeters(displayValue, measurementSystem, kind);
+}
+
+function displayStringToMeterString(
+  value: string,
+  measurementSystem: MeasurementSystem,
+  kind: "length" | "small",
+): string {
+  if (value.trim() === "") return "";
+  const meters = displayStringToMeters(value, measurementSystem, kind);
+  if (!Number.isFinite(meters)) return value;
+  return formatToolInputNumber(meters);
+}
+
+function numberToDisplayString(
+  value: number,
+  measurementSystem: MeasurementSystem,
+  kind: "length" | "small",
+): string {
+  return formatToolInputNumber(metersToDisplayLength(value, measurementSystem, kind));
+}
+
 export function DesignBuilderToolInstructionStrip(
   props: DesignBuilderToolInstructionStripProps,
 ) {
@@ -61,6 +119,7 @@ export function DesignBuilderToolInstructionStrip(
   ) {
     return null;
   }
+  const measurementSystem = props.measurementSystem ?? "metric";
 
   return (
     <div className="mb-2 flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-xs shadow-sm dark:border-slate-700 dark:bg-slate-900/90">
@@ -88,12 +147,22 @@ export function DesignBuilderToolInstructionStrip(
           <label className="flex items-center gap-2 font-medium text-slate-600 dark:text-slate-300">
             Length
             <input
-              value={props.segmentLengthInput}
+              value={meterStringToDisplayString(
+                props.segmentLengthInput,
+                measurementSystem,
+                "length",
+              )}
               onChange={(event) =>
-                props.onSegmentLengthInputChange(event.target.value)
+                props.onSegmentLengthInputChange(
+                  displayStringToMeterString(
+                    event.target.value,
+                    measurementSystem,
+                    "length",
+                  ),
+                )
               }
               className="h-8 w-20 rounded border border-slate-300 bg-white px-2 dark:border-slate-700 dark:bg-slate-950"
-              placeholder="m"
+              placeholder={displayLengthUnit(measurementSystem, "length")}
             />
           </label>
           <label className="flex items-center gap-2 font-medium text-slate-600 dark:text-slate-300">
@@ -101,18 +170,27 @@ export function DesignBuilderToolInstructionStrip(
             <input
               type="text"
               inputMode="decimal"
-              value={props.wallHeightMeters}
-              onChange={(event) =>
+              value={numberToDisplayString(
+                props.wallHeightMeters,
+                measurementSystem,
+                "length",
+              )}
+              onChange={(event) => {
+                const next = displayStringToMeters(
+                  event.target.value,
+                  measurementSystem,
+                  "length",
+                );
                 props.onWallHeightChange(
-                  Math.max(0.5, Number(event.target.value) || props.wallHeightMeters),
-                )
-              }
+                  Number.isFinite(next) ? Math.max(0.5, next) : props.wallHeightMeters,
+                );
+              }}
               className="h-8 w-20 rounded border border-slate-300 bg-white px-2 dark:border-slate-700 dark:bg-slate-950"
             />
-            m
+            {displayLengthUnit(measurementSystem, "length")}
           </label>
           <span className="rounded-full border border-slate-200 px-2.5 py-1 font-semibold text-slate-600 dark:border-slate-700 dark:text-slate-300">
-            Unit: {props.unitSystem === "metric" ? "meters" : "feet/inches"}
+            Unit: {measurementSystem === "metric" ? "meters" : "feet/inches"}
           </span>
           <button
             type="button"
@@ -140,40 +218,64 @@ export function DesignBuilderToolInstructionStrip(
           <label className="flex items-center gap-2 font-medium text-slate-600 dark:text-slate-300">
             Width
             <input
-              value={props.activeOpeningSettings.widthMeters}
+              value={meterStringToDisplayString(
+                props.activeOpeningSettings.widthMeters,
+                measurementSystem,
+                "small",
+              )}
               onChange={(event) =>
                 props.onOpeningToolSettingChange(props.activeOpeningTool!, {
-                  widthMeters: event.target.value,
+                  widthMeters: displayStringToMeterString(
+                    event.target.value,
+                    measurementSystem,
+                    "small",
+                  ),
                 })
               }
               className="h-8 w-20 rounded border border-slate-300 bg-white px-2 dark:border-slate-700 dark:bg-slate-950"
-              placeholder="m"
+              placeholder={displayLengthUnit(measurementSystem, "small")}
             />
           </label>
           <label className="flex items-center gap-2 font-medium text-slate-600 dark:text-slate-300">
             Height
             <input
-              value={props.activeOpeningSettings.heightMeters}
+              value={meterStringToDisplayString(
+                props.activeOpeningSettings.heightMeters,
+                measurementSystem,
+                "small",
+              )}
               onChange={(event) =>
                 props.onOpeningToolSettingChange(props.activeOpeningTool!, {
-                  heightMeters: event.target.value,
+                  heightMeters: displayStringToMeterString(
+                    event.target.value,
+                    measurementSystem,
+                    "small",
+                  ),
                 })
               }
               className="h-8 w-20 rounded border border-slate-300 bg-white px-2 dark:border-slate-700 dark:bg-slate-950"
-              placeholder="m"
+              placeholder={displayLengthUnit(measurementSystem, "small")}
             />
           </label>
           <label className="flex items-center gap-2 font-medium text-slate-600 dark:text-slate-300">
             Rough allowance
             <input
-              value={props.activeOpeningSettings.roughOpeningAllowanceMeters}
+              value={meterStringToDisplayString(
+                props.activeOpeningSettings.roughOpeningAllowanceMeters,
+                measurementSystem,
+                "small",
+              )}
               onChange={(event) =>
                 props.onOpeningToolSettingChange(props.activeOpeningTool!, {
-                  roughOpeningAllowanceMeters: event.target.value,
+                  roughOpeningAllowanceMeters: displayStringToMeterString(
+                    event.target.value,
+                    measurementSystem,
+                    "small",
+                  ),
                 })
               }
               className="h-8 w-20 rounded border border-slate-300 bg-white px-2 dark:border-slate-700 dark:bg-slate-950"
-              placeholder="m"
+              placeholder={displayLengthUnit(measurementSystem, "small")}
             />
           </label>
           {props.activeOpeningTool === "door" ? (

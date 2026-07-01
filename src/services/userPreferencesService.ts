@@ -2,6 +2,7 @@ import { clearStaleAuthSession, isStaleRefreshTokenError } from '../lib/authSess
 import { supabase } from '../lib/supabase';
 import { validateAndMigrateLayout, type DashboardLayout } from '../lib/dashboardLayout';
 import type { UserPreferences } from '../types';
+import { normalizeMeasurementPreferences } from '../utils/measurementPreferences';
 
 async function requireAuthenticatedUserId(): Promise<string> {
   const {
@@ -32,12 +33,8 @@ const DEFAULT_NOTIFICATIONS: UserPreferences['notifications'] = {
   weatherAlerts: true,
 };
 
-export const DEFAULT_USER_PREFERENCES: UserPreferences = {
+export const DEFAULT_USER_PREFERENCES: UserPreferences = normalizeMeasurementPreferences({
   themeMode: null,
-  units: 'imperial',
-  lengthUnit: 'feet',
-  volumeUnit: 'cubic_yards',
-  measurementSystem: 'imperial',
   currency: 'USD',
   defaultPSI: '3000',
   autoSave: true,
@@ -45,7 +42,7 @@ export const DEFAULT_USER_PREFERENCES: UserPreferences = {
   hapticsEnabled: true,
   notifications: DEFAULT_NOTIFICATIONS,
   dashboardLayout: null,
-};
+});
 
 function parseThemeMode(value: unknown): UserPreferences['themeMode'] {
   if (value === 'light' || value === 'dark') {
@@ -67,13 +64,12 @@ function parseDashboardLayout(value: unknown): DashboardLayout | null {
 }
 
 function mapRowToPreferences(data: Record<string, unknown>): UserPreferences {
-  return {
+  return normalizeMeasurementPreferences({
     themeMode: parseThemeMode(data.theme_mode),
-    units: (data.units as UserPreferences['units']) || 'imperial',
-    lengthUnit: (data.length_unit as UserPreferences['lengthUnit']) || 'feet',
-    volumeUnit: (data.volume_unit as UserPreferences['volumeUnit']) || 'cubic_yards',
-    measurementSystem:
-      (data.measurement_system as UserPreferences['measurementSystem']) || 'imperial',
+    units: data.units as UserPreferences['units'] | undefined,
+    lengthUnit: data.length_unit as UserPreferences['lengthUnit'] | undefined,
+    volumeUnit: data.volume_unit as UserPreferences['volumeUnit'] | undefined,
+    measurementSystem: data.measurement_system as UserPreferences['measurementSystem'] | undefined,
     currency: (data.currency as UserPreferences['currency']) || 'USD',
     defaultPSI: (data.default_psi as UserPreferences['defaultPSI']) || '3000',
     autoSave: typeof data.auto_save === 'boolean' ? data.auto_save : true,
@@ -82,27 +78,28 @@ function mapRowToPreferences(data: Record<string, unknown>): UserPreferences {
     notifications:
       (data.notifications as UserPreferences['notifications']) || DEFAULT_NOTIFICATIONS,
     dashboardLayout: parseDashboardLayout(data.dashboard_layout),
-  };
+  });
 }
 
 function preferencesToRow(
   userId: string,
   preferences: UserPreferences,
 ): Record<string, unknown> {
+  const normalized = normalizeMeasurementPreferences(preferences);
   return {
     user_id: userId,
-    theme_mode: preferences.themeMode,
-    units: preferences.units,
-    length_unit: preferences.lengthUnit,
-    volume_unit: preferences.volumeUnit,
-    measurement_system: preferences.measurementSystem,
-    currency: preferences.currency,
-    default_psi: preferences.defaultPSI,
-    auto_save: preferences.autoSave,
-    sound_enabled: preferences.soundEnabled,
-    haptics_enabled: preferences.hapticsEnabled,
-    notifications: preferences.notifications,
-    dashboard_layout: preferences.dashboardLayout,
+    theme_mode: normalized.themeMode,
+    units: normalized.units,
+    length_unit: normalized.lengthUnit,
+    volume_unit: normalized.volumeUnit,
+    measurement_system: normalized.measurementSystem,
+    currency: normalized.currency,
+    default_psi: normalized.defaultPSI,
+    auto_save: normalized.autoSave,
+    sound_enabled: normalized.soundEnabled,
+    haptics_enabled: normalized.hapticsEnabled,
+    notifications: normalized.notifications,
+    dashboard_layout: normalized.dashboardLayout,
     updated_at: new Date().toISOString(),
   };
 }
@@ -137,10 +134,11 @@ export const saveUserPreferences = async (
   preferences: UserPreferences,
 ): Promise<UserPreferences> => {
   const userId = await requireAuthenticatedUserId();
+  const normalized = normalizeMeasurementPreferences(preferences);
 
   const { data, error } = await supabase
     .from('user_preferences')
-    .upsert(preferencesToRow(userId, preferences), { onConflict: 'user_id' })
+    .upsert(preferencesToRow(userId, normalized), { onConflict: 'user_id' })
     .select()
     .single();
 
@@ -158,7 +156,7 @@ export const updateUserPreferences = async (
   preferences: Partial<UserPreferences>,
 ): Promise<UserPreferences> => {
   const currentPreferences = await getUserPreferences();
-  const merged = { ...currentPreferences, ...preferences };
+  const merged = normalizeMeasurementPreferences({ ...currentPreferences, ...preferences });
   return saveUserPreferences(merged);
 };
 
@@ -199,7 +197,9 @@ export const migratePreferencesFromLocalStorage =
     }
 
     try {
-      const localPrefs = JSON.parse(savedPrefs) as Partial<UserPreferences>;
+      const localPrefs = normalizeMeasurementPreferences(
+        JSON.parse(savedPrefs) as Partial<UserPreferences>,
+      );
 
       const themeStorage = localStorage.getItem('theme-storage');
       if (themeStorage && localPrefs.themeMode == null) {

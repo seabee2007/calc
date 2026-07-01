@@ -1,6 +1,8 @@
 import { DESIGN_BUILDER_COPY } from "../domain/designBuilderCopy";
 import type { DesignComponentDefinition } from "../domain/designComponentRegistry";
 import { PLAN_GRID_SCALE_PRESETS } from "../domain/pointerPlanMapping";
+import type { MeasurementSystem } from "../../../utils/measurementPreferences";
+import { formatGridSpacing } from "../../../utils/measurementDisplay";
 import type {
   BuildingSystemMode,
   Design2DViewType,
@@ -74,6 +76,8 @@ export type DesignBuilderCommandBarProps = {
   snapTolerancePreset: SnapTolerancePreset;
   onSnapTolerancePresetChange: (preset: SnapTolerancePreset) => void;
   gridSpacingMeters: number;
+  measurementSystem?: MeasurementSystem;
+  onMeasurementSystemChange: (system: MeasurementSystem) => void;
   onApplyGridScalePreset: (spacingMeters: number) => void;
   moduleFitMode: ModuleFitMode;
   onModuleFitModeChange: (mode: ModuleFitMode) => void;
@@ -448,10 +452,7 @@ export function DesignBuilderCommandBar(props: DesignBuilderCommandBarProps) {
                       : "text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
                   }`}
                 >
-                  {preset.spacingMeters < 1
-                    ? preset.spacingMeters.toFixed(1)
-                    : preset.spacingMeters}{" "}
-                  m
+                  {formatGridSpacing(preset.spacingMeters, props.measurementSystem ?? "metric")}
                 </button>
               ))}
             </div>
@@ -504,6 +505,8 @@ export function DesignBuilderCommandBar(props: DesignBuilderCommandBarProps) {
         </DesignBuilderCommandMenu>
 
         <DesignBuilderDisplayMenu
+          measurementSystem={props.measurementSystem ?? "metric"}
+          onMeasurementSystemChange={props.onMeasurementSystemChange}
           buildingSystemMode={props.buildingSystemMode}
           showOpeningLayout={props.showOpeningLayout}
           onShowOpeningLayoutChange={props.onShowOpeningLayoutChange}

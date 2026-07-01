@@ -2,14 +2,20 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import WelcomeScreen from './WelcomeScreen';
-import { useSettingsStore } from '../../store';
+import { usePreferencesStore, useSettingsStore } from '../../store';
 import { useThemeStore } from '../../store/themeStore';
 import { isValidUsPhoneNumber } from '../../utils/phoneFormatting';
 import OnboardingStep, { trimPipeAddress } from './OnboardingStep';
 import OnboardingShell from './OnboardingShell';
 import ThemeSelector from './ThemeSelector';
+import MeasurementSystemSelector from './MeasurementSystemSelector';
 import { useAuth } from '../../hooks/useAuth';
 import type { Profile } from '../../types/fieldPlanner';
+import {
+  getMeasurementSystemFromPreferences,
+  measurementSystemToLegacyUnits,
+  type MeasurementSystem,
+} from '../../utils/measurementPreferences';
 import {
   getOnboardingDraft,
   saveOnboardingDraft,
@@ -42,6 +48,7 @@ const ONBOARDING_STEPS: OnboardingStepType[] = [
   'address',
   'license',
   'motto',
+  'measurement-system',
   'theme',
 ];
 
@@ -60,6 +67,7 @@ function profileAddressToPipe(profile: Profile | null | undefined): string {
 const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
   const navigate = useNavigate();
   const { updateCompanySettings, companySettings, companySettingsHydrated } = useSettingsStore();
+  const { preferences, updatePreferences } = usePreferencesStore();
   const { isDark, toggleTheme } = useThemeStore();
   const { user, profile, profileLoading } = useAuth();
 
@@ -72,6 +80,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
     address: '',
     licenseNumber: '',
     motto: '',
+    measurementSystem: getMeasurementSystemFromPreferences(preferences),
     theme: isDark ? 'dark' : 'light',
   });
 
@@ -98,6 +107,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
       address: savedAddress || profileAddressToPipe(profile),
       licenseNumber: companySettings.licenseNumber?.trim() || '',
       motto: companySettings.motto?.trim() || '',
+      measurementSystem: getMeasurementSystemFromPreferences(preferences),
       theme: isDark ? 'dark' : 'light',
     };
 
@@ -116,7 +126,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
 
     initializedRef.current = true;
     draftReadyRef.current = true;
-  }, [companySettingsHydrated, profileLoading, companySettings, profile, user, isDark]);
+  }, [companySettingsHydrated, profileLoading, companySettings, profile, user, isDark, preferences]);
 
   // ── Draft persistence: save whenever step or form data changes ──────────────
 
@@ -134,6 +144,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
         address: formData.address,
         licenseNumber: formData.licenseNumber,
         motto: formData.motto,
+        measurementSystem: formData.measurementSystem,
         theme: formData.theme,
       },
     });
@@ -188,7 +199,12 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
       };
 
       try {
-        await updateCompanySettings(settingsData, { allowEmptyTextOverwrite: true });
+        await Promise.all([
+          updateCompanySettings(settingsData, { allowEmptyTextOverwrite: true }),
+          updatePreferences(
+            measurementSystemToLegacyUnits(formData.measurementSystem as MeasurementSystem),
+          ),
+        ]);
         // Settings saved — clear the draft before calling onComplete so a
         // hard reload between this and onComplete doesn't re-show onboarding.
         if (user?.id) {
@@ -220,6 +236,9 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
     if (currentIndex < ONBOARDING_STEPS.length - 1) {
       setCurrentStep(ONBOARDING_STEPS[currentIndex + 1]);
     } else {
+      void updatePreferences(
+        measurementSystemToLegacyUnits(formData.measurementSystem as MeasurementSystem),
+      );
       if (user?.id) {
         clearOnboardingDraft(user.id);
       }
@@ -229,7 +248,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
 
   // ── Step config ─────────────────────────────────────────────────────────────
 
-  const stepConfig: Record<Exclude<OnboardingStepType, 'welcome' | 'theme'>, StepConfig> = {
+  const stepConfig: Record<Exclude<OnboardingStepType, 'welcome' | 'measurement-system' | 'theme'>, StepConfig> = {
     'company-name': {
       title: 'Company Name',
       description: 'Enter the company name to appear on your account, proposals and emails',
@@ -287,6 +306,8 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
       }
       case 'theme':
         return formData.theme;
+      case 'measurement-system':
+        return formData.measurementSystem;
       default:
         return formData[step as keyof typeof formData] || '';
     }
@@ -308,6 +329,17 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
             }
             onNext={handleNext}
             onBack={handleBack}
+          />
+        ) : currentStep === 'measurement-system' ? (
+          <MeasurementSystemSelector
+            key="measurement-system"
+            value={formData.measurementSystem as MeasurementSystem}
+            onChange={(measurementSystem) =>
+              setFormData(prev => ({ ...prev, measurementSystem }))
+            }
+            onNext={handleNext}
+            onBack={handleBack}
+            onSkip={handleSkip}
           />
         ) : (
           <OnboardingStep

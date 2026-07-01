@@ -14,6 +14,7 @@ export type OnboardingStepType =
   | 'address'
   | 'license'
   | 'motto'
+  | 'measurement-system'
   | 'theme';
 
 export interface OnboardingDraftValues {
@@ -24,6 +25,7 @@ export interface OnboardingDraftValues {
   address?: string;
   licenseNumber?: string;
   motto?: string;
+  measurementSystem?: 'imperial' | 'metric';
   theme?: string;
 }
 
@@ -46,6 +48,7 @@ const VALID_STEPS: readonly OnboardingStepType[] = [
   'address',
   'license',
   'motto',
+  'measurement-system',
   'theme',
 ];
 
@@ -114,6 +117,7 @@ export function mergeOnboardingDraftValues(
     address: draftValues.address ?? serverValues.address,
     licenseNumber: draftValues.licenseNumber ?? serverValues.licenseNumber,
     motto: draftValues.motto ?? serverValues.motto,
+    measurementSystem: draftValues.measurementSystem ?? serverValues.measurementSystem,
     theme: draftValues.theme ?? serverValues.theme,
   };
 }

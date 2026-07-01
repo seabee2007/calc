@@ -58,6 +58,10 @@ import {
   ensureNotificationPreferences,
   updateNotificationPreferences,
 } from '../services/notificationPreferenceService';
+import {
+  measurementSystemToLegacyUnits,
+  type MeasurementSystem,
+} from '../utils/measurementPreferences';
 
 const TAX_SYSTEM_LABELS: Record<string, string> = {
   none: 'None',
@@ -236,7 +240,12 @@ const Settings: React.FC = () => {
 
   const handlePreferenceChange = async (field: string, value: any) => {
     try {
-      await updatePreferences({ [field]: value } as any);
+      const patch =
+        field === 'measurementSystem'
+          ? measurementSystemToLegacyUnits(value as MeasurementSystem)
+          : ({ [field]: value } as any);
+
+      await updatePreferences(patch);
       
       // Play success sound for toggles (except sound toggle itself)
       if (field !== 'soundEnabled' && typeof value === 'boolean') {
@@ -789,17 +798,6 @@ const Settings: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Select
-              label="Volume Unit"
-              value={preferences.volumeUnit}
-              onChange={(value) => handlePreferenceChange('volumeUnit', value)}
-              options={[
-                { value: 'cubic_yards', label: 'Cubic Yards (yd³)' },
-                { value: 'cubic_feet', label: 'Cubic Feet (ft³)' },
-                { value: 'cubic_meters', label: 'Cubic Meters (m³)' }
-              ]}
-            />
-
             <Select
               label="Measurement System"
               value={preferences.measurementSystem}

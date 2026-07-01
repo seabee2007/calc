@@ -9,12 +9,15 @@ import type {
   RoofLayerVisibility,
 } from '../types';
 import type { Plumbing3DVisibility } from '../plumbing/three/plumbingThreeUtils';
+import type { MeasurementSystem } from '../../../utils/measurementPreferences';
 import {
   CommandMenuAction,
   DesignBuilderCommandMenu,
 } from './DesignBuilderCommandMenu';
 
 type DesignBuilderDisplayMenuProps = {
+  measurementSystem: MeasurementSystem;
+  onMeasurementSystemChange: (system: MeasurementSystem) => void;
   buildingSystemMode: BuildingSystemMode;
   showOpeningLayout: boolean;
   onShowOpeningLayoutChange: (checked: boolean) => void;
@@ -58,6 +61,8 @@ type DesignBuilderDisplayMenuProps = {
 };
 
 export function DesignBuilderDisplayMenu({
+  measurementSystem,
+  onMeasurementSystemChange,
   buildingSystemMode,
   showOpeningLayout,
   onShowOpeningLayoutChange,
@@ -105,6 +110,23 @@ export function DesignBuilderDisplayMenu({
       panelClassName="w-64 max-h-[min(70vh,520px)] space-y-1 overflow-y-auto p-3 text-xs"
       summaryClassName="flex h-9 items-center gap-1 rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-cyan-400/40 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
     >
+      <DisplayMenuCollapsibleSection id="display-measurement" title="Measurement" defaultOpen>
+        {(
+          [
+            ['imperial', 'Imperial (ft, in)'],
+            ['metric', 'Metric (m, mm)'],
+          ] as const
+        ).map(([system, label]) => (
+          <RadioOption
+            key={system}
+            name="design-measurement-system"
+            checked={measurementSystem === system}
+            label={label}
+            onChange={() => onMeasurementSystemChange(system)}
+          />
+        ))}
+      </DisplayMenuCollapsibleSection>
+
       <DisplayMenuCollapsibleSection id="display-wall-overlays" title="Wall Overlays">
         <ToggleField label="Show opening layout" checked={showOpeningLayout} onChange={onShowOpeningLayoutChange} />
         <ToggleField
