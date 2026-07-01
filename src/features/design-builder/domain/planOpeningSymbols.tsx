@@ -92,7 +92,14 @@ export function buildPlanOpeningRenderItem(params: {
 
 type ScreenPoint = { sx: number; sy: number };
 
-function screenSegment(start: ScreenPoint, end: ScreenPoint, stroke: string, strokeWidth: number, dash?: string) {
+function screenSegment(
+  start: ScreenPoint,
+  end: ScreenPoint,
+  stroke: string,
+  strokeWidth: number,
+  dash?: string,
+  data?: Record<string, string>,
+) {
   return (
     <line
       x1={start.sx}
@@ -104,8 +111,16 @@ function screenSegment(start: ScreenPoint, end: ScreenPoint, stroke: string, str
       strokeLinecap="round"
       strokeDasharray={dash}
       pointerEvents="none"
+      {...data}
     />
   );
+}
+
+function offsetPlanPoint(point: { x: number; z: number }, vector: { x: number; z: number }, distance: number) {
+  return {
+    x: point.x + vector.x * distance,
+    z: point.z + vector.z * distance,
+  };
 }
 
 export function PlanOpeningSymbol({
@@ -120,18 +135,32 @@ export function PlanOpeningSymbol({
   drawingStyle?: Drawing2dStyle;
 }) {
   const active = item.placing || item.selected || item.hovered || item.colorState === 'invalid';
-  const stroke = active ? openingStrokeColor(item.colorState) : drawingStyle?.openingStroke ?? openingStrokeColor(item.colorState);
-  const fill = active ? openingFillColor(item.colorState, item.placing ? 0.24 : item.selected ? 0.22 : 0.14) : 'transparent';
+  const neutralStroke = drawingStyle?.openingStroke ?? openingStrokeColor('valid');
+  const activeStroke =
+    item.colorState === 'invalid'
+      ? openingStrokeColor(item.colorState)
+      : item.placing
+        ? drawingStyle?.previewStroke ?? openingStrokeColor(item.colorState)
+        : item.selected || item.hovered
+          ? drawingStyle?.selectionStroke ?? openingStrokeColor(item.colorState)
+          : neutralStroke;
+  const stroke = active ? activeStroke : neutralStroke;
+  const fill = active && item.placing ? openingFillColor(item.colorState, 0.12) : 'transparent';
   const textBacker = drawingStyle?.sheetFill ?? '#0f172a';
   const scale = openingMarkerScale(zoom);
   const roughA = project(item.geometry.roughStart);
   const roughB = project(item.geometry.roughEnd);
-  const actualA = project(item.geometry.actualStart);
-  const actualB = project(item.geometry.actualEnd);
   const center = project(item.geometry.center);
   const strokeWidth = (item.placing ? 4 : item.selected ? 3.5 : item.hovered ? 3 : 2.5) * scale;
   const actualStrokeWidth = (item.placing ? 3.5 : item.selected ? 3 : 2.5) * scale;
-  const hingeMarkerRadius = Math.max(2, 2.5 * scale);
+  const symbolStrokeWidth = Math.max(1.3, (item.placing ? 2.2 : 1.55) * scale);
+  const halfWallThickness = Math.max(0.04, item.geometry.wallThicknessMeters / 2);
+  const jambAExterior = project(offsetPlanPoint(item.geometry.roughStart, item.geometry.inwardNormal, -halfWallThickness));
+  const jambAInterior = project(offsetPlanPoint(item.geometry.roughStart, item.geometry.inwardNormal, halfWallThickness));
+  const jambBExterior = project(offsetPlanPoint(item.geometry.roughEnd, item.geometry.inwardNormal, -halfWallThickness));
+  const jambBInterior = project(offsetPlanPoint(item.geometry.roughEnd, item.geometry.inwardNormal, halfWallThickness));
+  const showRoughConstruction = item.placing || item.colorState === 'invalid';
+  const showSymbolJambs = item.placing || item.colorState === 'invalid';
 
   const door = item.doorSymbol;
   const hingeScreen = door ? project(door.hinge) : null;
@@ -146,15 +175,10 @@ export function PlanOpeningSymbol({
         })
       : null;
 
-  const windowInset = item.openingType === 'window' ? 0.12 * scale : 0;
-  const windowA = project({
-    x: item.geometry.actualStart.x + item.geometry.inwardNormal.x * windowInset,
-    z: item.geometry.actualStart.z + item.geometry.inwardNormal.z * windowInset,
-  });
-  const windowB = project({
-    x: item.geometry.actualEnd.x + item.geometry.inwardNormal.x * windowInset,
-    z: item.geometry.actualEnd.z + item.geometry.inwardNormal.z * windowInset,
-  });
+  const windowOffsets =
+    item.openingType === 'window'
+      ? [-0.28, 0, 0.28].map((offset) => offset * item.geometry.wallThicknessMeters)
+      : [];
 
   return (
     <g
@@ -166,53 +190,61 @@ export function PlanOpeningSymbol({
       data-door-swing-type={door?.swingType}
       pointerEvents="none"
     >
-      {screenSegment(roughA, roughB, stroke, strokeWidth * 0.85, '5 4')}
-      <line
-        x1={roughA.sx}
-        y1={roughA.sy}
-        x2={roughB.sx}
-        y2={roughB.sy}
-        stroke={stroke}
-        strokeOpacity={0.35}
-        strokeWidth={1.2 * scale}
-        strokeDasharray="4 3"
-        fill={fill}
-        pointerEvents="none"
-      />
-      {item.openingType === 'door' && door && hingeScreen && closedLeafScreen ? (
+      {showRoughConstruction ? screenSegment(roughA, roughB, stroke, strokeWidth * 0.7, '5 4') : null}
+      {fill !== 'transparent' ? (
+        <line
+          x1={roughA.sx}
+          y1={roughA.sy}
+          x2={roughB.sx}
+          y2={roughB.sy}
+          stroke={stroke}
+          strokeOpacity={0.35}
+          strokeWidth={1.2 * scale}
+          strokeDasharray="4 3"
+          fill={fill}
+          pointerEvents="none"
+        />
+      ) : null}
+      {showSymbolJambs
+        ? screenSegment(jambAExterior, jambAInterior, stroke, symbolStrokeWidth, undefined, { 'data-plan-opening-jamb': 'true' })
+        : null}
+      {showSymbolJambs
+        ? screenSegment(jambBExterior, jambBInterior, stroke, symbolStrokeWidth, undefined, { 'data-plan-opening-jamb': 'true' })
+        : null}
+      {item.openingType === 'door' && door && hingeScreen && openLeafScreen ? (
         <>
-          {screenSegment(hingeScreen, closedLeafScreen, stroke, actualStrokeWidth + 0.5)}
+          {screenSegment(hingeScreen, openLeafScreen, stroke, actualStrokeWidth + 0.35, undefined, { 'data-plan-door-leaf': 'true' })}
           {swingScreenPath ? (
             <path
               d={swingScreenPath}
               fill="none"
               stroke={stroke}
-              strokeOpacity={0.85}
-              strokeWidth={1.5 * scale}
+              strokeOpacity={item.placing ? 0.92 : 0.76}
+              strokeWidth={symbolStrokeWidth}
               pointerEvents="none"
+              data-plan-door-swing-arc="true"
             />
           ) : null}
-          <circle
-            cx={hingeScreen.sx}
-            cy={hingeScreen.sy}
-            r={hingeMarkerRadius}
-            fill={stroke}
-            pointerEvents="none"
-          />
         </>
       ) : null}
       {item.openingType === 'window' ? (
         <>
-          {screenSegment(windowA, windowB, stroke, actualStrokeWidth + 0.5)}
-          <line
-            x1={(windowA.sx + windowB.sx) / 2}
-            y1={(windowA.sy + windowB.sy) / 2 - 4 * scale}
-            x2={(windowA.sx + windowB.sx) / 2}
-            y2={(windowA.sy + windowB.sy) / 2 + 4 * scale}
-            stroke={stroke}
-            strokeWidth={1.5 * scale}
-            pointerEvents="none"
-          />
+          {windowOffsets.map((offset, index) => {
+            const windowA = project(offsetPlanPoint(item.geometry.actualStart, item.geometry.inwardNormal, offset));
+            const windowB = project(offsetPlanPoint(item.geometry.actualEnd, item.geometry.inwardNormal, offset));
+            return (
+              <g key={`window-sash-${index}`}>
+                {screenSegment(
+                  windowA,
+                  windowB,
+                  stroke,
+                  index === 1 ? symbolStrokeWidth + 0.15 : symbolStrokeWidth,
+                  undefined,
+                  { 'data-plan-window-sash': 'true' },
+                )}
+              </g>
+            );
+          })}
         </>
       ) : null}
       {item.label ? (

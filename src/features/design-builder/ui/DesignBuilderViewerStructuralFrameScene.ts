@@ -64,6 +64,9 @@ export function buildDesignBuilderViewerStructuralFrameScene(params: {
     },
   });
   const interiorFloorSlab = geometry.interiorFloorSlab;
+  const interiorFloorSlabFootprint = interiorFloorSlab?.footprintPolygon?.length
+    ? interiorFloorSlab.footprintPolygon
+    : geometry.resolvedFootprint?.interiorFacePolygon;
   const beamMaterial = frameSystem?.beams.length
     ? resolveRcConcreteMaterial(materialContext, {
         role: 'beam',
@@ -110,7 +113,7 @@ export function buildDesignBuilderViewerStructuralFrameScene(params: {
       })
     : columnConcreteMaterial;
   const interiorSlabMaterial =
-    interiorFloorSlab?.enabled && geometry.resolvedFootprint?.interiorFacePolygon.length
+    interiorFloorSlab?.enabled && interiorFloorSlabFootprint?.length
       ? resolveRcConcreteMaterial(materialContext, {
           role: 'structural',
           technicalColor: 0x78716c,
@@ -139,7 +142,7 @@ export function buildDesignBuilderViewerStructuralFrameScene(params: {
     isolatedFootings: geometry.isolatedFootings,
     wallFootings: geometry.wallFootings,
     interiorFloorSlab,
-    interiorFacePolygon: geometry.resolvedFootprint?.interiorFacePolygon,
+    interiorFacePolygon: interiorFloorSlabFootprint,
     slabTopMeters: state.currentSlab.slabThicknessMeters,
     useFramePlasterFinish,
     hideAbovePlinth: state.belowGradeCutawayActive,

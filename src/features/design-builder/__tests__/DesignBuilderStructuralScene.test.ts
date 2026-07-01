@@ -82,10 +82,16 @@ describe('DesignBuilderStructuralScene', () => {
     const interiorSlab: ResolvedInteriorFloorSlab = {
       enabled: true,
       thicknessMeters: 0.125,
+      footprintPolygon: [
+        { x: -1, z: -1 },
+        { x: 1, z: -1 },
+        { x: 1, z: 1 },
+        { x: -1, z: 1 },
+      ],
       bottomElevationMeters: 0.275,
       topElevationMeters: 0.4,
-      areaSquareMeters: 12,
-      volumeCubicMeters: 1.5,
+      areaSquareMeters: 4,
+      volumeCubicMeters: 0.5,
     };
     const isolatedFootings: IsolatedFooting[] = [
       {
@@ -128,7 +134,13 @@ describe('DesignBuilderStructuralScene', () => {
 
     expect(meshByName(group, 'structuralColumn:column-1').position.y).toBeCloseTo(1.52, 6);
     expect(meshByName(group, 'structuralBeam:plinth-1').position.y).toBeCloseTo(0.37, 6);
-    expect(meshByName(group, 'interiorFloorSlab').position.y).toBeCloseTo(0.52, 6);
+    const slabMesh = meshByName(group, 'interiorFloorSlab');
+    expect(slabMesh.position.y).toBeCloseTo(0.52, 6);
+    slabMesh.geometry.computeBoundingBox();
+    expect(slabMesh.geometry.boundingBox?.min.x).toBeCloseTo(-1, 6);
+    expect(slabMesh.geometry.boundingBox?.max.x).toBeCloseTo(1, 6);
+    expect(slabMesh.geometry.boundingBox?.min.z).toBeCloseTo(-1, 6);
+    expect(slabMesh.geometry.boundingBox?.max.z).toBeCloseTo(1, 6);
     expect(meshByName(group, 'isolatedFooting:footing-1').position.y).toBeCloseTo(-0.005, 6);
   });
 

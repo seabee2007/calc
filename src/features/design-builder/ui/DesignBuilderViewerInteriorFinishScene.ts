@@ -50,10 +50,12 @@ export function buildDesignBuilderViewerInteriorFinishScene(params: {
   const state = params.state;
   const geometry = state.currentGeometry;
   const interiorFloorSlab = geometry.interiorFloorSlab;
-  const interiorFacePolygon = geometry.resolvedFootprint?.interiorFacePolygon;
+  const interiorFloorFootprint = interiorFloorSlab?.footprintPolygon?.length
+    ? interiorFloorSlab.footprintPolygon
+    : geometry.resolvedFootprint?.interiorFacePolygon;
   const groups: THREE.Group[] = [];
 
-  if (!params.showCmuInfill || !interiorFloorSlab?.enabled || !interiorFacePolygon?.length) {
+  if (!params.showCmuInfill || !interiorFloorSlab?.enabled || !interiorFloorFootprint?.length) {
     return { groups };
   }
 
@@ -90,7 +92,7 @@ export function buildDesignBuilderViewerInteriorFinishScene(params: {
         });
     const floorTileGroup = buildFloorTileSceneGroup({
       floorTileLayout,
-      interiorFacePolygon,
+      interiorFacePolygon: interiorFloorFootprint,
       slabTopMeters: state.currentSlab.slabThicknessMeters,
       interiorFloorSlabTopElevationMeters: interiorFloorSlab.topElevationMeters,
       materials: {

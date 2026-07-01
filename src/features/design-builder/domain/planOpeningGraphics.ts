@@ -39,6 +39,7 @@ export type PlanOpeningGeometry = {
   outwardNormal: { x: number; z: number };
   actualWidthMeters: number;
   roughWidthMeters: number;
+  wallThicknessMeters: number;
 };
 
 export type PlanOpeningPick = {
@@ -288,6 +289,7 @@ export function buildPlanOpeningGeometry(
     outwardNormal: { ...frame.outwardNormal },
     actualWidthMeters: resolved.actualOpeningEndMeters - resolved.actualOpeningStartMeters,
     roughWidthMeters: resolved.roughOpeningEndMeters - resolved.roughOpeningStartMeters,
+    wallThicknessMeters: frame.wallThicknessMeters,
   };
 }
 
@@ -380,7 +382,7 @@ export function shouldShowOpeningLabel(params: {
   hovered: boolean;
   placing: boolean;
 }): boolean {
-  return params.selected || params.hovered || params.placing || params.zoom >= 28;
+  return params.selected || params.hovered || params.placing;
 }
 
 export function openingMarkerScale(zoom: number): number {

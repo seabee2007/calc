@@ -271,6 +271,31 @@ describe('designBuilderPersistence', () => {
     expect(migratedPlan?.displayPreferences?.active2DView).toBe('foundation-plan');
   });
 
+  it('restores floor-plan and defaults invalid 2D drawing views to foundation', () => {
+    const preset = rcPreset();
+    const floorPlanPayload = {
+      rcFrameFoundation: preset.foundationSettings,
+      roofSystem: preset.roofSystem,
+      wallLayout: preset.wallLayout,
+      openings: [],
+      buildingSystemMode: preset.buildingSystemMode,
+      displayPreferences: {
+        activeView: '2d',
+        active2DView: 'floor-plan',
+      },
+    } as unknown as Parameters<typeof migratePersistedDesignBuilderState>[0];
+    const invalidPayload = {
+      ...floorPlanPayload,
+      displayPreferences: {
+        activeView: '2d',
+        active2DView: 'bad-plan',
+      },
+    } as unknown as Parameters<typeof migratePersistedDesignBuilderState>[0];
+
+    expect(migratePersistedDesignBuilderState(floorPlanPayload)?.displayPreferences?.active2DView).toBe('floor-plan');
+    expect(migratePersistedDesignBuilderState(invalidPayload)?.displayPreferences?.active2DView).toBe('foundation-plan');
+  });
+
   it('writes persisted state into design model metadata', () => {
     const preset = rcPreset();
     const model: DesignModel = {

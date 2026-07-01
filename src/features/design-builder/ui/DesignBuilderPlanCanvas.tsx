@@ -38,6 +38,7 @@ import {
   buildSegmentPlanFootprint,
   buildWallRunsExcludingRoughOpenings,
   hitTestPlanOpeningGeometry,
+  planPointOnWall,
   resolveSegmentDisplayEndpoints,
   type SegmentPlanFootprintEndpointAdjustments,
 } from '../domain/planOpeningGraphics';
@@ -210,6 +211,8 @@ type RoofPlanDisplayOptions = {
 
 function planViewTitle(viewType: Design2DViewType): string {
   switch (viewType) {
+    case 'floor-plan':
+      return 'Floor Plan';
     case 'roof-plan':
       return 'Roof Plan';
     case 'electrical-plan':
@@ -652,6 +655,9 @@ export default function DesignBuilderPlanCanvas({
     selectedDesignObject?.kind === 'object_tree_item'
       ? selectedDesignObject.objectTreeItemId
       : selectedObjectTreeItemId;
+  const resolvedInteriorFloorSlabFootprint = interiorFloorSlab?.footprintPolygon?.length
+    ? interiorFloorSlab.footprintPolygon
+    : interiorFloorSlabFootprint;
   const isTreeItemSelected = useCallback(
     (id: string) => selectedObjectTreeItem === id,
     [selectedObjectTreeItem],
@@ -661,11 +667,17 @@ export default function DesignBuilderPlanCanvas({
     [isTreeItemSelected],
   );
   const textBackerStroke = architecturalDrawing ? drawingStyle.sheetFill : '#0f172a';
+  const isFoundationPlanView = active2DView === 'foundation-plan';
+  const isFloorPlanView = active2DView === 'floor-plan';
   const isRoofPlanView = active2DView === 'roof-plan';
   const isPlumbingPlanView = active2DView === 'plumbing-plan';
-  const showStructuralPlanGeometry = active2DView === 'foundation-plan';
+  const showFoundationPlanGeometry = isFoundationPlanView;
+  const showFloorPlanGeometry = isFloorPlanView;
+  const showWallPlanGeometry = isFloorPlanView;
+  const showOpeningPlanGeometry = isFloorPlanView;
+  const showColumnPlanGeometry = showFoundationPlanGeometry || showFloorPlanGeometry;
   const foundationPlanUsesBelowGradeFrameInfill =
-    showStructuralPlanGeometry &&
+    showFoundationPlanGeometry &&
     frameSystem?.buildingSystemMode === 'reinforced_concrete_frame_with_cmu_infill';
   const showRoofTrussReferenceSheet =
     isRoofPlanView &&
@@ -724,7 +736,7 @@ export default function DesignBuilderPlanCanvas({
     [frameSystem?.beams],
   );
   const belowGradeCmuInfillStrips = useMemo<FoundationPlanStrip[]>(() => {
-    if (!showStructuralPlanGeometry || foundationBlockInstances.length === 0 || segmentFrames.length === 0) return [];
+    if (!showFoundationPlanGeometry || foundationBlockInstances.length === 0 || segmentFrames.length === 0) return [];
     type BelowGradeBlock = DesignGeometryBlockInstance & {
       infillBand?: 'above_grade' | 'below_grade' | 'gable' | 'main';
       startAlongMeters?: number;
@@ -776,7 +788,7 @@ export default function DesignBuilderPlanCanvas({
         widthMeters,
       }];
     });
-  }, [foundationBlockInstances, framesBySegmentId, segmentFrames.length, showStructuralPlanGeometry]);
+  }, [foundationBlockInstances, framesBySegmentId, segmentFrames.length, showFoundationPlanGeometry]);
 
   const planDisplayNodeById = useMemo(
     () => buildPlanDisplayNodeById({ layout, framesBySegmentId }),
@@ -784,6 +796,7 @@ export default function DesignBuilderPlanCanvas({
   );
   const roughOpeningsBySegmentId = useMemo(() => {
     const bySegment = new Map<string, { roughOpeningStartMeters: number; roughOpeningEndMeters: number }[]>();
+    if (!showOpeningPlanGeometry) return bySegment;
     openingItems.forEach((item) => {
       const list = bySegment.get(item.resolved.hostSegmentId) ?? [];
       list.push({
@@ -809,11 +822,12 @@ export default function DesignBuilderPlanCanvas({
       bySegment.set(preview.hostSegmentId, list);
     }
     return bySegment;
-  }, [openingItems, openingPreview]);
+  }, [openingItems, openingPreview, showOpeningPlanGeometry]);
 
   const openingRenderItems = useMemo(
-    () =>
-      openingItems.map((item) => {
+    () => {
+      if (!showOpeningPlanGeometry) return [];
+      return openingItems.map((item) => {
         const frame = framesBySegmentId.get(item.resolved.hostSegmentId);
         if (!frame) return null;
         return buildPlanOpeningRenderItem({
@@ -830,12 +844,13 @@ export default function DesignBuilderPlanCanvas({
           swingDirection: item.swingDirection,
           swingType: item.swingType,
         });
-      }).filter((item): item is NonNullable<typeof item> => item != null),
-    [framesBySegmentId, hoveredOpeningId, openingItems, selectedOpeningId, viewport.zoom],
+      }).filter((item): item is NonNullable<typeof item> => item != null);
+    },
+    [framesBySegmentId, hoveredOpeningId, openingItems, selectedOpeningId, showOpeningPlanGeometry, viewport.zoom],
   );
 
   const previewRenderItem = useMemo(() => {
-    if (!openingPreview) return null;
+    if (!showOpeningPlanGeometry || !openingPreview) return null;
     const frame = framesBySegmentId.get(openingPreview.resolvedPlacement.hostSegmentId);
     if (!frame) return null;
     return buildPlanOpeningRenderItem({
@@ -852,7 +867,7 @@ export default function DesignBuilderPlanCanvas({
       swingDirection: openingPreview.swingDirection,
       swingType: openingPreview.swingType,
     });
-  }, [framesBySegmentId, openingPreview, viewport.zoom]);
+  }, [framesBySegmentId, openingPreview, showOpeningPlanGeometry, viewport.zoom]);
 
   const emitSegmentPick = useCallback(
     (phase: 'preview' | 'commit', point: { x: number; z: number }) => {
@@ -869,7 +884,7 @@ export default function DesignBuilderPlanCanvas({
 
   const updateHoveredOpening = useCallback(
     (point: { x: number; z: number } | null) => {
-      if (!point || openingItems.length === 0) {
+      if (!showOpeningPlanGeometry || !point || openingItems.length === 0) {
         setHoveredOpeningId(null);
         return;
       }
@@ -888,7 +903,7 @@ export default function DesignBuilderPlanCanvas({
       });
       setHoveredOpeningId(bestId);
     },
-    [framesBySegmentId, openingItems],
+    [framesBySegmentId, openingItems, showOpeningPlanGeometry],
   );
 
   const contentBounds = useMemo(() => {
@@ -1099,7 +1114,7 @@ export default function DesignBuilderPlanCanvas({
 
   const hitTestFoundationPlanObject = useCallback(
     (point: { x: number; z: number }): FoundationPlanHit | null => {
-      if (!showStructuralPlanGeometry) return null;
+      if (!showFoundationPlanGeometry) return null;
       const toleranceMeters = Math.max(0.08, 10 / Math.max(1, viewport.zoom));
       const stripHit = (start: { x: number; z: number }, end: { x: number; z: number }, widthMeters: number) =>
         distanceToPlanSegment(point, start, end) <= widthMeters / 2 + toleranceMeters;
@@ -1149,12 +1164,12 @@ export default function DesignBuilderPlanCanvas({
         }
       }
 
-      if (interiorFloorSlab?.enabled && interiorFloorSlabFootprint.length >= 3) {
-        const onEdge = interiorFloorSlabFootprint.some((vertex, index) => {
-          const next = interiorFloorSlabFootprint[(index + 1) % interiorFloorSlabFootprint.length];
+      if (interiorFloorSlab?.enabled && resolvedInteriorFloorSlabFootprint.length >= 3) {
+        const onEdge = resolvedInteriorFloorSlabFootprint.some((vertex, index) => {
+          const next = resolvedInteriorFloorSlabFootprint[(index + 1) % resolvedInteriorFloorSlabFootprint.length];
           return Boolean(next) && distanceToPlanSegment(point, vertex, next!) <= toleranceMeters;
         });
-        if (onEdge || pointInPlanPolygon(point, interiorFloorSlabFootprint as Array<{ x: number; z: number }>)) {
+        if (onEdge || pointInPlanPolygon(point, resolvedInteriorFloorSlabFootprint as Array<{ x: number; z: number }>)) {
           return {
             id: 'foundation-floor-slab',
             objectType: 'structural_frame_system',
@@ -1169,9 +1184,9 @@ export default function DesignBuilderPlanCanvas({
       belowGradeCmuInfillStrips,
       foundationPlanBeams,
       interiorFloorSlab?.enabled,
-      interiorFloorSlabFootprint,
       isolatedFootings,
-      showStructuralPlanGeometry,
+      resolvedInteriorFloorSlabFootprint,
+      showFoundationPlanGeometry,
       viewport.zoom,
       wallFootings,
     ],
@@ -1619,7 +1634,7 @@ export default function DesignBuilderPlanCanvas({
     const point = screenFromEvent(event);
     if (!point) return;
     setCursorPoint(point);
-    if (toolMode === 'select' || toolMode === 'move_opening') {
+    if (showOpeningPlanGeometry && (toolMode === 'select' || toolMode === 'move_opening')) {
       updateHoveredOpening(point);
     } else {
       setHoveredOpeningId(null);
@@ -1669,7 +1684,7 @@ export default function DesignBuilderPlanCanvas({
       }
       return;
     }
-    if (toolMode === 'draw_wall') {
+    if (showWallPlanGeometry && toolMode === 'draw_wall') {
       const activeNode = activeNodeId ? layout.nodes.find((node) => node.id === activeNodeId) : null;
       const snapped = resolvePrecisionSnap(point, {
         altHeld: event.altKey,
@@ -1687,7 +1702,7 @@ export default function DesignBuilderPlanCanvas({
         altHeld: event.altKey,
       });
     }
-    if (toolMode === 'move_wall_node' && activeNodeId) {
+    if (showWallPlanGeometry && toolMode === 'move_wall_node' && activeNodeId) {
       onInteraction({
         kind: 'move_node',
         toolMode,
@@ -1697,7 +1712,10 @@ export default function DesignBuilderPlanCanvas({
         nodeId: activeNodeId,
       });
     }
-    if (toolMode === 'place_door' || toolMode === 'place_window' || (toolMode === 'move_opening' && selectedOpeningId)) {
+    if (
+      showOpeningPlanGeometry &&
+      (toolMode === 'place_door' || toolMode === 'place_window' || (toolMode === 'move_opening' && selectedOpeningId))
+    ) {
       emitSegmentPick('preview', point);
     }
   };
@@ -1872,7 +1890,7 @@ export default function DesignBuilderPlanCanvas({
       setDimensionSnap(null);
       return;
     }
-    if (toolMode === 'draw_wall') {
+    if (showWallPlanGeometry && toolMode === 'draw_wall') {
       const activeNode = activeNodeId ? layout.nodes.find((node) => node.id === activeNodeId) : null;
       const snapped = resolvePrecisionSnap(point, {
         altHeld: event.altKey,
@@ -1891,18 +1909,18 @@ export default function DesignBuilderPlanCanvas({
       });
       return;
     }
-    if (toolMode === 'move_wall_node') {
+    if (showWallPlanGeometry && toolMode === 'move_wall_node') {
       const hitNode = layout.nodes.find((node) => Math.hypot(node.x - point.x, node.z - point.z) < 0.25);
       if (hitNode) {
         onInteraction({ kind: 'select_node', toolMode, nodeId: hitNode.id });
       }
       return;
     }
-    if (toolMode === 'place_door' || toolMode === 'place_window') {
+    if (showOpeningPlanGeometry && (toolMode === 'place_door' || toolMode === 'place_window')) {
       emitSegmentPick('preview', point);
       return;
     }
-    if (toolMode === 'move_opening' && selectedOpeningId) {
+    if (showOpeningPlanGeometry && toolMode === 'move_opening' && selectedOpeningId) {
       emitSegmentPick('preview', point);
       return;
     }
@@ -2034,18 +2052,20 @@ export default function DesignBuilderPlanCanvas({
         });
         return;
       }
-      const hitNode = layout.nodes.find((node) => Math.hypot(node.x - point.x, node.z - point.z) < 0.25);
-      if (hitNode) {
-        onInteraction({ kind: 'select_node', toolMode, nodeId: hitNode.id });
-        return;
+      if (showWallPlanGeometry) {
+        const hitNode = layout.nodes.find((node) => Math.hypot(node.x - point.x, node.z - point.z) < 0.25);
+        if (hitNode) {
+          onInteraction({ kind: 'select_node', toolMode, nodeId: hitNode.id });
+          return;
+        }
+        onInteraction({
+          kind: 'segment_pick',
+          toolMode,
+          phase: 'commit',
+          planX: point.x,
+          planZ: point.z,
+        });
       }
-      onInteraction({
-        kind: 'segment_pick',
-        toolMode,
-        phase: 'commit',
-        planX: point.x,
-        planZ: point.z,
-      });
     }
   };
 
@@ -2086,7 +2106,7 @@ export default function DesignBuilderPlanCanvas({
       event.currentTarget.releasePointerCapture?.(event.pointerId);
       return;
     }
-    if (toolMode === 'place_door' || toolMode === 'place_window') {
+    if (showOpeningPlanGeometry && (toolMode === 'place_door' || toolMode === 'place_window')) {
       const point = screenFromEvent(event);
       if (!point) return;
       emitSegmentPick('commit', point);
@@ -2124,13 +2144,13 @@ export default function DesignBuilderPlanCanvas({
       onPlumbingFixturePointer?.({ phase: 'commit', xMeters: point.x, zMeters: point.z, rotationRad: plumbingFixtureRotationRad });
       return;
     }
-    if (toolMode === 'move_opening' && selectedOpeningId) {
+    if (showOpeningPlanGeometry && toolMode === 'move_opening' && selectedOpeningId) {
       const point = screenFromEvent(event);
       if (!point) return;
       emitSegmentPick('commit', point);
       return;
     }
-    if (toolMode !== 'move_wall_node' || !activeNodeId) return;
+    if (!showWallPlanGeometry || toolMode !== 'move_wall_node' || !activeNodeId) return;
     const point = screenFromEvent(event);
     if (!point) return;
     onInteraction({
@@ -2629,9 +2649,13 @@ export default function DesignBuilderPlanCanvas({
   };
 
   const renderInteriorFloorSlabFootprint = () => {
-    if (!showStructuralPlanGeometry || !interiorFloorSlab?.enabled || interiorFloorSlabFootprint.length < 3) return null;
+    if (
+      (!showFoundationPlanGeometry && !showFloorPlanGeometry) ||
+      !interiorFloorSlab?.enabled ||
+      resolvedInteriorFloorSlabFootprint.length < 3
+    ) return null;
     const selected = isTreeItemSelected('foundation-sog');
-    const points = interiorFloorSlabFootprint
+    const points = resolvedInteriorFloorSlabFootprint
       .map((point) => {
         const surface = planToSurfacePoint(point);
         return `${surface.sx},${surface.sy}`;
@@ -2651,7 +2675,7 @@ export default function DesignBuilderPlanCanvas({
   };
 
   const renderBelowGradeCmuInfill = () => {
-    if (!showStructuralPlanGeometry || belowGradeCmuInfillStrips.length === 0) return null;
+    if (!showFoundationPlanGeometry || belowGradeCmuInfillStrips.length === 0) return null;
     return belowGradeCmuInfillStrips.map((strip) => {
       const selected = isTreeItemSelected('foundation-cmu-infill-below-grade');
       return renderPlanMaterialStrip(
@@ -2674,7 +2698,7 @@ export default function DesignBuilderPlanCanvas({
   };
 
   const renderStructuralPlanWalls = () => {
-    if (!showStructuralPlanGeometry) return null;
+    if (!showWallPlanGeometry) return null;
 
     return layout.segments.map((segment) => {
       const endpoints = resolveSegmentDisplayEndpoints({
@@ -2729,6 +2753,45 @@ export default function DesignBuilderPlanCanvas({
           z: startPoint.z + (endPoint.z - startPoint.z) * t,
         };
       };
+      const renderRoughOpeningCutLine = (
+        key: string,
+        alongMeters: number,
+        edge: 'start' | 'end',
+        openingIndex: number,
+      ) => {
+        if (!frame) return null;
+        const centerPoint = planPointOnWall(frame, alongMeters);
+        const halfWallThickness = Math.max(0, frame.wallThicknessMeters / 2);
+        const exteriorPoint = {
+          x: centerPoint.x - frame.inwardNormal.x * halfWallThickness,
+          z: centerPoint.z - frame.inwardNormal.z * halfWallThickness,
+        };
+        const interiorPoint = {
+          x: centerPoint.x + frame.inwardNormal.x * halfWallThickness,
+          z: centerPoint.z + frame.inwardNormal.z * halfWallThickness,
+        };
+        const exterior = planToSurfacePoint(exteriorPoint);
+        const interior = planToSurfacePoint(interiorPoint);
+        return (
+          <line
+            key={key}
+            x1={exterior.sx}
+            y1={exterior.sy}
+            x2={interior.sx}
+            y2={interior.sy}
+            stroke={stroke}
+            strokeWidth={selected ? drawingStyle.weights.selection : drawingStyle.weights.normal}
+            strokeLinecap="butt"
+            pointerEvents="none"
+            data-plan-wall-visible="true"
+            data-plan-rough-opening-cut="true"
+            data-plan-rough-opening-edge={edge}
+            data-rough-opening-index={String(openingIndex)}
+            data-rough-opening-station-meters={alongMeters.toFixed(3)}
+            data-segment-id={segment.id}
+          />
+        );
+      };
       if (frame && roughOpenings.length > 0) {
         const runs = buildWallRunsExcludingRoughOpenings({
           segmentLengthMeters: frame.lengthMeters,
@@ -2737,12 +2800,8 @@ export default function DesignBuilderPlanCanvas({
         return (
           <g key={segment.id}>
             {runs.map((run, index) => {
-              const exteriorStart = run.startAlongMeters <= 0.001
-                ? displayStart
-                : interpolateFacePoint(frame.exteriorStart, frame.exteriorEnd, run.startAlongMeters);
-              const exteriorEnd = run.endAlongMeters >= frame.lengthMeters - 0.001
-                ? displayEnd
-                : interpolateFacePoint(frame.exteriorStart, frame.exteriorEnd, run.endAlongMeters);
+              const exteriorStart = interpolateFacePoint(frame.exteriorStart, frame.exteriorEnd, run.startAlongMeters);
+              const exteriorEnd = interpolateFacePoint(frame.exteriorStart, frame.exteriorEnd, run.endAlongMeters);
               const interiorStart = interpolateFacePoint(frame.interiorStart, frame.interiorEnd, run.startAlongMeters);
               const interiorEnd = interpolateFacePoint(frame.interiorStart, frame.interiorEnd, run.endAlongMeters);
               const centerStart = interpolateFacePoint(frame.centerlineStart, frame.centerlineEnd, run.startAlongMeters);
@@ -2769,6 +2828,20 @@ export default function DesignBuilderPlanCanvas({
                 </g>
               );
             })}
+            {roughOpenings.flatMap((opening, index) => [
+              renderRoughOpeningCutLine(
+                `${segment.id}-rough-opening-${index}-start-cut`,
+                opening.roughOpeningStartMeters,
+                'start',
+                index,
+              ),
+              renderRoughOpeningCutLine(
+                `${segment.id}-rough-opening-${index}-end-cut`,
+                opening.roughOpeningEndMeters,
+                'end',
+                index,
+              ),
+            ])}
           </g>
         );
       }
@@ -2861,7 +2934,7 @@ export default function DesignBuilderPlanCanvas({
               data-selectable-type="wall_segment"
               data-segment-id={segment.id}
             />
-            {renderWallFaceLine(`${segment.id}-exterior-face`, displayStart, displayEnd, 'exterior')}
+            {renderWallFaceLine(`${segment.id}-exterior-face`, frame.exteriorStart, frame.exteriorEnd, 'exterior')}
             {renderWallFaceLine(`${segment.id}-interior-face`, frame.interiorStart, frame.interiorEnd, 'interior')}
           </g>
         );
@@ -3305,7 +3378,7 @@ export default function DesignBuilderPlanCanvas({
     );
   };
 
-  const renderPlanRcComponent = (component: DesignRenderRcComponent, preview = false) => {
+  const renderPlanRcComponent = (component: DesignRenderRcComponent, preview = false, options: { showFooter?: boolean } = {}) => {
     const groupTreeItemId =
       component.type === 'column'
         ? 'columns'
@@ -3325,6 +3398,7 @@ export default function DesignBuilderPlanCanvas({
     const widthPx = Math.max(6, widthMeters * viewport.zoom);
     const depthPx = Math.max(6, depthMeters * viewport.zoom);
     const lengthPx = Math.max(8, lengthMeters * viewport.zoom);
+    const showFooter = options.showFooter ?? true;
     const common = {
       pointerEvents: 'none' as const,
       opacity: preview ? 0.72 : 1,
@@ -3338,7 +3412,7 @@ export default function DesignBuilderPlanCanvas({
       const footerLengthPx = Math.max(depthPx + 10, (component.footer?.lengthMeters ?? depthMeters * 2) * viewport.zoom);
       return (
         <g key={component.id} {...common}>
-          {component.footer ? (
+          {showFooter && component.footer ? (
             <>
               <rect
                 x={center.sx - footerWidthPx / 2}
@@ -3515,7 +3589,7 @@ export default function DesignBuilderPlanCanvas({
             },
           );
         })}
-        {columnDragState.footer ? (
+        {showFoundationPlanGeometry && columnDragState.footer ? (
           (() => {
             const center = planToSurfacePoint({
               x: columnDragState.originalPosition.x + delta.x,
@@ -3602,7 +3676,7 @@ export default function DesignBuilderPlanCanvas({
   };
 
   const showPlanNodeMarkers =
-    showStructuralPlanGeometry &&
+    showWallPlanGeometry &&
     (!architecturalDrawing ||
       (frameSystem?.columns.length ?? 0) === 0 ||
       toolMode === 'draw_wall' ||
@@ -3657,7 +3731,15 @@ export default function DesignBuilderPlanCanvas({
   };
 
   return (
-    <div className="relative h-full min-h-[420px] overflow-hidden rounded-2xl border border-slate-200 bg-slate-950 text-slate-100 dark:border-slate-700" data-drawing-style-mode={drawingStyleMode}>
+    <div
+      className="relative h-full min-h-[420px] overflow-hidden rounded-2xl border border-slate-200 bg-slate-950 text-slate-100 dark:border-slate-700"
+      data-active-2d-view={active2DView}
+      data-drawing-style-mode={drawingStyleMode}
+      data-show-foundation-plan-geometry={showFoundationPlanGeometry ? 'true' : 'false'}
+      data-show-floor-plan-geometry={showFloorPlanGeometry ? 'true' : 'false'}
+      data-show-wall-plan-geometry={showWallPlanGeometry ? 'true' : 'false'}
+      data-show-opening-plan-geometry={showOpeningPlanGeometry ? 'true' : 'false'}
+    >
       <div
         className="absolute left-3 top-3 rounded-full border border-cyan-700 bg-slate-900/90 px-3 py-1 text-xs font-medium text-cyan-200"
         data-view-grid-meters={planGridState.displayMinorSpacingMeters}
@@ -3751,7 +3833,7 @@ export default function DesignBuilderPlanCanvas({
         ) : null}
         {renderRoofPlanDrawing()}
         {renderTrussReferenceSheet()}
-        {showStructuralPlanGeometry ? orthogonalGuideRays.map((guide, index) => {
+        {showWallPlanGeometry ? orthogonalGuideRays.map((guide, index) => {
           const start = planToSurfacePoint(guide.start);
           const end = planToSurfacePoint(guide.end);
           return (
@@ -3769,7 +3851,7 @@ export default function DesignBuilderPlanCanvas({
             />
           );
         }) : null}
-        {showStructuralPlanGeometry && drawGuidance?.guideLine && !shiftConstrained ? (
+        {showWallPlanGeometry && drawGuidance?.guideLine && !shiftConstrained ? (
           (() => {
             const start = planToSurfacePoint(drawGuidance.guideLine.start);
             const end = planToSurfacePoint(drawGuidance.guideLine.end);
@@ -3788,7 +3870,7 @@ export default function DesignBuilderPlanCanvas({
             );
           })()
         ) : null}
-        {showStructuralPlanGeometry && orthogonalClosureAssist?.isEligible ? (
+        {showWallPlanGeometry && orthogonalClosureAssist?.isEligible ? (
           (() => {
             const start = planToSurfacePoint(orthogonalClosureAssist.candidatePoint);
             const end = planToSurfacePoint(orthogonalClosureAssist.firstNode);
@@ -3827,7 +3909,7 @@ export default function DesignBuilderPlanCanvas({
             );
           })()
         ) : null}
-        {showStructuralPlanGeometry && activeNode && draftEnd ? (
+        {showWallPlanGeometry && activeNode && draftEnd ? (
           (() => {
             const a = planToSurfacePoint(activeNode);
             const b = planToSurfacePoint(draftEnd);
@@ -3846,7 +3928,7 @@ export default function DesignBuilderPlanCanvas({
             );
           })()
         ) : null}
-        {showStructuralPlanGeometry && snapMarker ? (
+        {showWallPlanGeometry && snapMarker ? (
           <circle
             cx={snapMarker.sx}
             cy={snapMarker.sy}
@@ -3860,7 +3942,7 @@ export default function DesignBuilderPlanCanvas({
             data-closure-assist-marker={closureAssistActive ? 'true' : 'false'}
           />
         ) : null}
-        {showStructuralPlanGeometry && closureCornerMarker && !closureAssistActive ? (
+        {showWallPlanGeometry && closureCornerMarker && !closureAssistActive ? (
           <circle
             cx={closureCornerMarker.sx}
             cy={closureCornerMarker.sy}
@@ -3873,7 +3955,7 @@ export default function DesignBuilderPlanCanvas({
             data-closure-corner-snap="true"
           />
         ) : null}
-        {showStructuralPlanGeometry && previewMidpoint && previewLength > 0 ? (
+        {showWallPlanGeometry && previewMidpoint && previewLength > 0 ? (
           <text
             x={previewMidpoint.sx + 8}
             y={previewMidpoint.sy - 8}
@@ -3888,7 +3970,7 @@ export default function DesignBuilderPlanCanvas({
             {`${formatDisplayLength(previewMetrics?.lengthMeters ?? previewLength, measurementSystem)} · ${(previewMetrics?.angleDegrees ?? 0).toFixed(0)}°`}
           </text>
         ) : null}
-        {showStructuralPlanGeometry && (shiftConstraintLabel ?? drawGuidance?.label) && snapMarker ? (
+        {showWallPlanGeometry && (shiftConstraintLabel ?? drawGuidance?.label) && snapMarker ? (
           <text
             x={snapMarker.sx + 12}
             y={snapMarker.sy - 14}
@@ -3903,7 +3985,7 @@ export default function DesignBuilderPlanCanvas({
             {shiftConstraintLabel ?? drawGuidance?.label}
           </text>
         ) : null}
-        {!showStructuralPlanGeometry && !isRoofPlanView && resolvedRoofSystem?.supported && resolvedRoofSystem.eaveFootprint.length >= 3 ? (
+        {!showFoundationPlanGeometry && !showFloorPlanGeometry && !isRoofPlanView && resolvedRoofSystem?.supported && resolvedRoofSystem.eaveFootprint.length >= 3 ? (
           <>
             <polygon
               points={resolvedRoofSystem.eaveFootprint
@@ -4024,7 +4106,7 @@ export default function DesignBuilderPlanCanvas({
             })}
           </>
         ) : null}
-        {showStructuralPlanGeometry ? wallFootings.map((footing) => {
+        {showFoundationPlanGeometry ? wallFootings.map((footing) => {
           const selected = isTreeItemSelected('foundation-wall-footings');
           return renderPlanMaterialStrip(
             footing.id,
@@ -4044,7 +4126,7 @@ export default function DesignBuilderPlanCanvas({
             },
           );
         }) : null}
-        {showStructuralPlanGeometry ? isolatedFootings.map((footing) => {
+        {showFoundationPlanGeometry ? isolatedFootings.map((footing) => {
           const center = planToSurfacePoint(footing.position);
           const halfW = (footing.widthMeters * viewport.zoom) / 2;
           const halfL = (footing.lengthMeters * viewport.zoom) / 2;
@@ -4077,8 +4159,10 @@ export default function DesignBuilderPlanCanvas({
           );
         }) : null}
         {foundationPlanUsesBelowGradeFrameInfill ? renderInteriorFloorSlabFootprint() : null}
-        {foundationPlanUsesBelowGradeFrameInfill ? renderBelowGradeCmuInfill() : renderStructuralPlanWalls()}
-        {showStructuralPlanGeometry ? foundationPlanBeams.map((beam) => {
+        {foundationPlanUsesBelowGradeFrameInfill ? renderBelowGradeCmuInfill() : null}
+        {showFloorPlanGeometry ? renderInteriorFloorSlabFootprint() : null}
+        {showWallPlanGeometry ? renderStructuralPlanWalls() : null}
+        {showFoundationPlanGeometry ? foundationPlanBeams.map((beam) => {
             const stroke = architecturalDrawing ? permanentStroke : '#57534e';
             const treeItemId = beam.kind === 'tie_beam' ? 'foundation-tie-beam' : 'foundation-plinth-beam';
             const selected = isTreeItemSelected(treeItemId);
@@ -4100,7 +4184,7 @@ export default function DesignBuilderPlanCanvas({
               },
             );
           }) : null}
-        {showStructuralPlanGeometry ? frameSystem?.columns.map((column) => {
+        {showColumnPlanGeometry ? frameSystem?.columns.map((column) => {
           const center = planToSurfacePoint(column.position);
           const halfW = (column.widthMeters * viewport.zoom) / 2;
           const halfD = (column.depthMeters * viewport.zoom) / 2;
@@ -4118,7 +4202,9 @@ export default function DesignBuilderPlanCanvas({
                 fill={groupSelected ? objectSelectionFill : nodeSelected ? (architecturalDrawing ? '#e0f2fe' : '#dbeafe') : structuralFill}
                 stroke={selected ? selectedStroke : permanentStroke}
                 strokeWidth={selected ? 2.2 : 1.5}
-                data-foundation-column-id={column.id}
+                data-plan-column-id={column.id}
+                data-foundation-column-id={showFoundationPlanGeometry ? column.id : undefined}
+                data-floor-column-id={showFloorPlanGeometry ? column.id : undefined}
                 {...selectedTreeItemData('columns')}
               />
               <line x1={center.sx - halfW * 1.4} y1={center.sy} x2={center.sx + halfW * 1.4} y2={center.sy} stroke={selected ? selectedStroke : referenceStroke} strokeWidth={1} strokeOpacity={selected ? 0.95 : 0.55} />
@@ -4145,8 +4231,12 @@ export default function DesignBuilderPlanCanvas({
             </g>
           );
         }) : null}
-        {showStructuralPlanGeometry ? committedRenderModel.rcComponents.map((component) => renderPlanRcComponent(component)) : null}
-        {showStructuralPlanGeometry ? openingRenderItems.map((item) => (
+        {showColumnPlanGeometry
+          ? committedRenderModel.rcComponents.map((component) =>
+            renderPlanRcComponent(component, false, { showFooter: showFoundationPlanGeometry }),
+          )
+          : null}
+        {showOpeningPlanGeometry ? openingRenderItems.map((item) => (
           <PlanOpeningSymbol key={item.key} item={item} project={planToSurfacePoint} zoom={viewport.zoom} drawingStyle={drawingStyle} />
         )) : null}
         {renderPlumbingPlan()}
@@ -4154,11 +4244,15 @@ export default function DesignBuilderPlanCanvas({
           {renderedDimensionAnnotations}
           {renderedAngleAnnotations}
         </g>
-        {showStructuralPlanGeometry ? previewRenderModel.rcComponents.map((component) => renderPlanRcComponent(component, true)) : null}
-        {showStructuralPlanGeometry && previewRenderItem ? (
+        {showColumnPlanGeometry
+          ? previewRenderModel.rcComponents.map((component) =>
+            renderPlanRcComponent(component, true, { showFooter: showFoundationPlanGeometry }),
+          )
+          : null}
+        {showOpeningPlanGeometry && previewRenderItem ? (
           <PlanOpeningSymbol item={previewRenderItem} project={planToSurfacePoint} zoom={viewport.zoom} drawingStyle={drawingStyle} />
         ) : null}
-        {showStructuralPlanGeometry ? renderColumnDragPreview() : null}
+        {showColumnPlanGeometry ? renderColumnDragPreview() : null}
         {dimensionDraft?.step === 'start' && !dimensionDraft.previewEnd ? (
           (() => {
             const point = planToSurfacePoint(dimensionDraft.start.point);

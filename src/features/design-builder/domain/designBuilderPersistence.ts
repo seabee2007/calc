@@ -131,6 +131,7 @@ function normalizeStoredViewMode(value: unknown): DesignBuilderStoredViewMode | 
 
 function normalize2DViewType(value: unknown, legacyActiveView?: unknown): Design2DViewType {
   if (
+    value === 'floor-plan' ||
     value === 'elevation-view' ||
     value === 'roof-plan' ||
     value === 'electrical-plan' ||

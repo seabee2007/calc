@@ -10,6 +10,7 @@ const VIEW_MODE_OPTIONS: Array<[DesignBuilderViewMode, string]> = [
 
 const TWO_D_VIEW_OPTIONS: Array<[Design2DViewType, string]> = [
   ['foundation-plan', 'Foundation'],
+  ['floor-plan', 'Floor'],
   ['roof-plan', 'Roof'],
   ['electrical-plan', 'Electrical'],
   ['plumbing-plan', 'Plumbing'],
@@ -71,7 +72,7 @@ export function DesignBuilder2DViewTabs({
           onClick={() => onActive2DViewChange(drawingView)}
           className={`${index === 0 ? '' : 'border-l border-slate-200 dark:border-slate-700'} px-3 text-xs font-semibold transition ${
             active2DView === drawingView
-              ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950'
+              ? 'border-cyan-400 bg-cyan-50 text-cyan-800 dark:border-cyan-600 dark:bg-cyan-950/50 dark:text-cyan-100'
               : 'text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800'
           }`}
         >

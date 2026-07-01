@@ -1136,7 +1136,9 @@ export function buildFrameInfillEstimatePreview(input: FrameInfillQuantityInput)
                 parameterSnapshot: {
                   interiorFloorSlab: input.geometryResult.interiorFloorSlab,
                   interiorFloorSlabPerimeterMeters: polygonPerimeterMeters(
-                    input.geometryResult.resolvedFootprint?.interiorFacePolygon ?? [],
+                    input.geometryResult.interiorFloorSlab?.footprintPolygon ??
+                      input.geometryResult.resolvedFootprint?.interiorFacePolygon ??
+                      [],
                   ),
                   structuralObjectId: input.frameObjectId,
                   ...metaBase,

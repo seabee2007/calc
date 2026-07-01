@@ -87,6 +87,7 @@ describe('Design Builder session store', () => {
 
     useDesignBuilderSessionStore.getState().saveSession(key, {});
 
+    expect(useDesignBuilderSessionStore.getState().getSession(key)?.active2DView).toBe('foundation-plan');
     expect(useDesignBuilderSessionStore.getState().getSession(key)?.objectTreeExpanded).toEqual({
       foundation: false,
       layout: false,
@@ -96,5 +97,16 @@ describe('Design Builder session store', () => {
       roofGable: false,
       estimate: false,
     });
+  });
+
+  it('persists floor-plan as the active 2D view', () => {
+    const key = designBuilderSessionKey('project-1', 'estimate-1');
+
+    useDesignBuilderSessionStore.getState().saveSession(key, {
+      viewMode: '2d',
+      active2DView: 'floor-plan',
+    });
+
+    expect(useDesignBuilderSessionStore.getState().getSession(key)?.active2DView).toBe('floor-plan');
   });
 });

@@ -39,7 +39,10 @@ import {
   resolveStructuralConcreteVolumes,
   resolveStructuralWallHeightMeters,
 } from "../domain/foundationElevations";
-import { resolveInteriorFloorSlab } from "../domain/interiorFloorSlab";
+import {
+  resolveInteriorFloorSlab,
+  resolveInteriorFloorSlabFootprint,
+} from "../domain/interiorFloorSlab";
 import { resolveFloorTileLayout } from "../domain/floorTileLayout";
 import { resolvePlywoodCeilingLayout } from "../domain/plywoodCeilingLayout";
 import {
@@ -605,12 +608,23 @@ export function generateFrameInfillGeometry(
     elevations,
   });
   const interiorFacePolygon = resolvedFootprint?.interiorFacePolygon ?? [];
+  const interiorFloorSlabFootprint = resolveInteriorFloorSlabFootprint({
+    interiorFacePolygon,
+    beams: frameSystem.beams,
+    segmentFrames,
+    orderedPerimeterSegmentIds: resolvedFootprint?.orderedPerimeterSegments.map(
+      (segment) => segment.segmentId,
+    ),
+  });
   const interiorFloorSlab = resolveInteriorFloorSlab({
     foundation: foundationSettings,
     interiorFacePolygon,
+    footprintPolygon: interiorFloorSlabFootprint,
   });
   const floorTileLayout = resolveFloorTileLayout({
-    interiorFacePolygon,
+    interiorFacePolygon: interiorFloorSlab.footprintPolygon.length
+      ? interiorFloorSlab.footprintPolygon
+      : interiorFacePolygon,
     floorTileFinish: foundationSettings.floorTileFinish,
     interiorFloorSlabEnabled: interiorFloorSlab.enabled,
   });

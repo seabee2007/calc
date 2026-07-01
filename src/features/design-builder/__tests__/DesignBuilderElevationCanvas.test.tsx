@@ -107,6 +107,12 @@ const isolatedFootings = [
 const interiorFloorSlab: ResolvedInteriorFloorSlab = {
   enabled: true,
   thicknessMeters: 0.125,
+  footprintPolygon: [
+    { x: -2, z: -1.5 },
+    { x: 2, z: -1.5 },
+    { x: 2, z: 1.5 },
+    { x: -2, z: 1.5 },
+  ],
   bottomElevationMeters: 0.175,
   topElevationMeters: 0.3,
   areaSquareMeters: 12,

@@ -1270,6 +1270,7 @@ export default function DesignBuilderPage({
   const setActive2DDrawingView = useCallback((nextView: Design2DViewType) => {
     setViewMode('2d');
     setActive2DView(nextView);
+    if (nextView !== 'floor-plan') setPlacementPreview(null);
     dispatchComponentPlacement({ type: 'reset', activeView: nextView === 'elevation-view' ? 'elevation' : 'plan' });
   }, []);
 
@@ -1384,8 +1385,9 @@ export default function DesignBuilderPage({
     return map;
   }, [effectiveWall, planSegmentFrames, resolvedPreset.slab.slabThicknessMeters]);
   const planOpeningItems = useMemo(
-    () =>
-      effectiveWall.openings.flatMap((opening) => {
+    () => {
+      if (active2DView !== 'floor-plan') return [];
+      return effectiveWall.openings.flatMap((opening) => {
         const resolved = planResolvedOpeningsById.get(opening.id);
         if (!resolved) return [];
         const status = summarizeOpeningPlacementStatus(opening, effectiveWall);
@@ -1398,10 +1400,12 @@ export default function DesignBuilderPage({
           swingDirection: opening.swingDirection ?? 'left',
           swingType: opening.swingType ?? 'inswing',
         }];
-      }),
-    [effectiveWall, planResolvedOpeningsById],
+      });
+    },
+    [active2DView, effectiveWall, planResolvedOpeningsById],
   );
   const planOpeningPreview = useMemo(() => {
+    if (active2DView !== 'floor-plan') return null;
     if (!placementPreview?.resolvedPlacement) return null;
     const draft = placementPreview.openingDraft;
     const placingDoor = toolMode === 'place_door' && placementPreview.openingType === 'door';
@@ -1420,6 +1424,7 @@ export default function DesignBuilderPage({
   }, [
     openingToolSettings.door.swingDirection,
     openingToolSettings.door.swingType,
+    active2DView,
     placementPreview,
     toolMode,
   ]);
@@ -4382,8 +4387,9 @@ export default function DesignBuilderPage({
     }
 
     if (event.kind === 'segment_pick' && event.planX != null && event.planZ != null) {
+      const openingInteractionsEnabled = active2DView === 'floor-plan';
       const openingHit =
-        toolMode === 'select' || toolMode === 'delete' || toolMode === 'move_opening'
+        openingInteractionsEnabled && (toolMode === 'select' || toolMode === 'delete' || toolMode === 'move_opening')
           ? pickOpeningAtPlanPoint({
               planX: event.planX,
               planZ: event.planZ,
@@ -4427,16 +4433,19 @@ export default function DesignBuilderPage({
         return;
       }
       const segmentIndex = layout.segments.findIndex((segment) => segment.id === hit.segment.id);
-      selectDesignObject({
-        kind: 'wall_segment',
-        segmentId: hit.segment.id,
-        label: segmentIndex >= 0 ? `Segment ${segmentIndex + 1}` : 'Wall Segment',
-      });
+      if (toolMode !== 'move_opening') {
+        selectDesignObject({
+          kind: 'wall_segment',
+          segmentId: hit.segment.id,
+          label: segmentIndex >= 0 ? `Segment ${segmentIndex + 1}` : 'Wall Segment',
+        });
+      }
       if (toolMode === 'delete') {
         void confirmDeleteWallSegment(hit.segment.id);
         return;
       }
       if (toolMode === 'place_door' || toolMode === 'place_window') {
+        if (!openingInteractionsEnabled) return;
         const openingType = toolMode === 'place_door' ? 'door' : 'window';
         const frames = getSegmentFramesForWallLayout(layout, effectiveWall);
         const frame = segmentFrameById(frames, hit.segment.id);
@@ -4479,6 +4488,7 @@ export default function DesignBuilderPage({
         setPlacementPreview(null);
       }
       if (toolMode === 'move_opening' && selectedOpeningId) {
+        if (!openingInteractionsEnabled) return;
         const opening = effectiveWall.openings.find((item) => item.id === selectedOpeningId);
         if (!opening) return;
         const frame = segmentFrameById(planSegmentFrames, hit.segment.id);
@@ -4757,6 +4767,7 @@ export default function DesignBuilderPage({
           selectObjectFromInteraction(event.objectType, event.objectTreeItemId);
           break;
         case 'select_opening':
+          if (active2DView !== 'floor-plan') break;
           if (event.openingId) {
             const opening = wall.openings.find((item) => item.id === event.openingId);
             selectOpeningDesignObject(event.openingId, opening?.type === 'window' ? 'window_opening' : 'door_opening');
@@ -4882,6 +4893,7 @@ export default function DesignBuilderPage({
           }
           break;
         case 'opening_move':
+          if (active2DView !== 'floor-plan') break;
           if (event.openingId && (event.wallSegmentId || event.wallFace) && (event.positionAlongSegment != null || event.offsetMeters != null)) {
             const opening = wall.openings.find((item) => item.id === event.openingId);
             if (!opening) return;
@@ -5573,8 +5585,9 @@ export default function DesignBuilderPage({
     closeDesignBuilderCommandMenus();
     ensureDrawWallOrthogonalDefault();
     clearTransientPlanCommandState();
+    setDrawWallRole(active2DView === 'floor-plan' && wallLayout.isFootprintClosed ? 'partition' : 'exterior');
     setToolMode('draw_wall');
-    setActive2DDrawingView('foundation-plan');
+    setActive2DDrawingView('floor-plan');
   }
 
   function activateToolMode(mode: DesignBuilderToolMode) {
@@ -5586,11 +5599,22 @@ export default function DesignBuilderPage({
       return;
     }
     if (toolMode === 'draw_wall') clearTransientPlanCommandState();
+    if (mode === 'place_door' || mode === 'place_window') {
+      if (viewMode === '2d') {
+        setActive2DDrawingView('floor-plan');
+      } else {
+        setActive2DView('floor-plan');
+        dispatchComponentPlacement({ type: 'reset', activeView: 'plan' });
+      }
+    }
+    if (mode === 'move_opening') {
+      setActive2DDrawingView('floor-plan');
+    }
     setToolMode(mode);
     if ((mode === 'place_dimension' || mode === 'place_angle') && (viewMode !== '2d' || active2DView === 'elevation-view')) {
       setActive2DDrawingView('foundation-plan');
     }
-    if (mode === 'move_wall_node') setActive2DDrawingView('foundation-plan');
+    if (mode === 'move_wall_node') setActive2DDrawingView('floor-plan');
     if (mode === 'select') setPlacementPreview(null);
   }
 
@@ -6268,7 +6292,11 @@ export default function DesignBuilderPage({
                 wallFootings={designGeometryResult.wallFootings}
                 foundationBlockInstances={designGeometryResult.blockInstances}
                 interiorFloorSlab={designGeometryResult.interiorFloorSlab ?? null}
-                interiorFloorSlabFootprint={designGeometryResult.resolvedFootprint?.interiorFacePolygon ?? []}
+                interiorFloorSlabFootprint={
+                  designGeometryResult.interiorFloorSlab?.footprintPolygon ??
+                  designGeometryResult.resolvedFootprint?.interiorFacePolygon ??
+                  []
+                }
                 resolvedRoofSystem={designGeometryResult.resolvedRoofSystem ?? null}
                 roofSystem={activeRoofSystem}
                 roofPlanDisplay={{
@@ -7308,7 +7336,7 @@ export default function DesignBuilderPage({
                 ) : null}
               </div>
             ) : null}
-            {viewMode === '2d' && active2DView === 'foundation-plan' && toolMode === 'draw_wall' ? (
+            {viewMode === '2d' && active2DView === 'floor-plan' && toolMode === 'draw_wall' ? (
               <div className="pointer-events-none absolute left-3 top-12 z-10 space-y-1 rounded-xl border border-amber-400/60 bg-slate-900/95 px-3 py-2 text-xs font-medium text-amber-100 shadow-lg">
                 <div>{drawWallInstruction}</div>
                 {drawWallSnapFeedback ? <div className="font-semibold text-cyan-200">{drawWallSnapFeedback}</div> : null}
@@ -7441,7 +7469,11 @@ export default function DesignBuilderPage({
       interiorFloorSlabEnabled={
         normalizeRcFrameFoundationSettings(resolvedPreset.foundationSettings).interiorFloorSlab.enabled
       }
-      interiorFacePolygon={designGeometryResult.resolvedFootprint?.interiorFacePolygon ?? []}
+      interiorFacePolygon={
+        designGeometryResult.interiorFloorSlab?.footprintPolygon ??
+        designGeometryResult.resolvedFootprint?.interiorFacePolygon ??
+        []
+      }
       floorTileLayoutPreview={designGeometryResult.floorTileLayout ?? null}
       plywoodCeilingLayoutPreview={designGeometryResult.plywoodCeilingLayout ?? null}
       maxCeilingHeightMeters={maxPlywoodCeilingHeightMeters}

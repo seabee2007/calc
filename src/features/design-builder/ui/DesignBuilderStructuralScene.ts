@@ -190,15 +190,19 @@ export function buildResolvedStructuralFrameSceneGroup(params: {
     group.add(mesh);
   });
 
+  const interiorFloorSlabFootprint =
+    params.interiorFloorSlab?.footprintPolygon?.length
+      ? params.interiorFloorSlab.footprintPolygon
+      : params.interiorFacePolygon;
   if (
     params.interiorFloorSlab?.enabled &&
-    params.interiorFacePolygon &&
-    params.interiorFacePolygon.length >= 3
+    interiorFloorSlabFootprint &&
+    interiorFloorSlabFootprint.length >= 3
   ) {
     const interiorSlabMesh = new THREE.Mesh(
       params.trackGeometry(
         createFootprintSlabGeometry(
-          params.interiorFacePolygon,
+          interiorFloorSlabFootprint,
           params.interiorFloorSlab.thicknessMeters,
         ),
       ),

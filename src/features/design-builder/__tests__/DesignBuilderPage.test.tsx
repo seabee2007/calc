@@ -9,6 +9,7 @@ import { serializePersistedDesignBuilderState } from '../domain/designBuilderPer
 import { generateCmuLayout } from '../geometry/designGeometry';
 import { useDesignBuilderSessionStore } from '../state/designBuilderStore';
 import DesignBuilderPage from '../ui/DesignBuilderPage';
+import { DesignBuilder2DViewTabs } from '../ui/DesignBuilderViewTabs';
 import type { DesignBuilderInteractionEvent, MasonryCourseRun } from '../types';
 
 const mocks = vi.hoisted(() => ({
@@ -69,12 +70,16 @@ vi.mock('../ui/DesignBuilderPlanCanvas', () => ({
     placedComponents?: unknown[];
     designRenderModel?: { rcComponents?: Array<{ type?: string; system?: string; position?: { x?: number; z?: number } }> };
     componentPreview?: unknown;
+    openingPreview?: unknown;
     layout?: { nodes: unknown[]; segments: unknown[] };
     manualMasonry?: { enabled: boolean; runs: MasonryCourseRun[]; preview: unknown };
     septicTankPlacementActive?: boolean;
+    selectedOpeningId?: string | null;
+    selectedObjectType?: string | null;
     selectedSepticTankId?: string | null;
     selectedObjectTreeItemId?: string | null;
     selectedDesignObject?: { kind: string; label: string } | null;
+    active2DView?: string;
   }) => {
     mocks.plan(props);
     return <div data-testid="design-builder-plan">Plan layout</div>;
@@ -198,12 +203,16 @@ function latestPlanProps() {
     placedComponents?: unknown[];
     designRenderModel?: { rcComponents?: Array<{ type?: string; system?: string; position?: { x?: number; z?: number } }> };
     componentPreview?: unknown;
+    openingPreview?: unknown;
     layout?: { nodes: unknown[]; segments: unknown[]; isFootprintClosed?: boolean };
     manualMasonry?: { enabled: boolean; runs: MasonryCourseRun[]; preview: unknown };
     septicTankPlacementActive?: boolean;
+    selectedOpeningId?: string | null;
+    selectedObjectType?: string | null;
     selectedSepticTankId?: string | null;
     selectedObjectTreeItemId?: string | null;
     selectedDesignObject?: { kind: string; label: string } | null;
+    active2DView?: string;
   };
 }
 
@@ -240,6 +249,7 @@ function selectToolMode(label: RegExp | string) {
 }
 
 function selectOpeningTool(label: RegExp | string) {
+  selectFloorPlan();
   const labelText = String(label).toLowerCase();
   if (labelText.includes('move')) {
     openMenuByKind('tools');
@@ -259,6 +269,20 @@ function selectViewMode(mode: 'plan' | '3d') {
   const foundationPlan = screen.queryByRole('button', { name: /switch to foundation drawing/i });
   if (foundationPlan) fireEvent.click(foundationPlan);
 }
+
+function selectFloorPlan() {
+  fireEvent.click(screen.getByRole('button', { name: /switch to 2d view/i }));
+  const floorPlan = screen.queryByRole('button', { name: /switch to floor drawing/i });
+  if (floorPlan) fireEvent.click(floorPlan);
+}
+
+function southWallPlanPoint(positionAlongSegment: number) {
+  return { planX: -3 + positionAlongSegment, planZ: -2.5 };
+}
+
+const EXISTING_DOOR_PLAN_POINT = southWallPlanPoint(2.4);
+const NEW_OPENING_PLAN_POINT = southWallPlanPoint(4.5);
+const MOVED_OPENING_PLAN_POINT = { planX: 0, planZ: 2.5 };
 
 function savePreviewButton(): HTMLButtonElement {
   return screen.getByRole('button', { name: /save preview|regenerate preview/i });
@@ -356,6 +380,26 @@ describe('DesignBuilderPage', () => {
       },
       error: null,
     }));
+  });
+
+  it('renders 2D drawing tabs in plan order with cyan active styling', () => {
+    render(<DesignBuilder2DViewTabs active2DView="floor-plan" onActive2DViewChange={vi.fn()} />);
+
+    const group = screen.getByRole('group', { name: /switch 2d drawing view/i });
+    expect(within(group).getAllByRole('button').map((button) => button.textContent)).toEqual([
+      'Foundation',
+      'Floor',
+      'Roof',
+      'Electrical',
+      'Plumbing',
+      'Elevation',
+    ]);
+
+    const floorTab = screen.getByRole('button', { name: /switch to floor drawing/i });
+    expect(floorTab).toHaveClass('border-cyan-400');
+    expect(floorTab).toHaveClass('bg-cyan-50');
+    expect(floorTab).toHaveClass('text-cyan-800');
+    expect(floorTab).toHaveClass('dark:border-cyan-600');
   });
 
   it('loads the preset, saves an estimate preview, and commits only after confirmation', async () => {
@@ -750,15 +794,16 @@ describe('DesignBuilderPage', () => {
     await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
 
     selectOpeningTool(/door opening/i);
-    await waitFor(() => expect(latestViewerProps().toolMode).toBe('place_door'));
+    await waitFor(() => expect(latestPlanProps().toolMode).toBe('place_door'));
+    expect(latestPlanProps().active2DView).toBe('floor-plan');
     expect(openCommandMenus()).toHaveLength(0);
     expect(commandBar().querySelector('[data-menu-kind="openings"]')).not.toBeInTheDocument();
 
     selectToolMode(/^delete$/i);
-    await waitFor(() => expect(latestViewerProps().toolMode).toBe('delete'));
+    await waitFor(() => expect(latestPlanProps().toolMode).toBe('delete'));
 
     selectToolMode(/^select$/i);
-    await waitFor(() => expect(latestViewerProps().toolMode).toBe('select'));
+    await waitFor(() => expect(latestPlanProps().toolMode).toBe('select'));
   });
 
   it('routes Components Door and Window through existing opening placement tools', async () => {
@@ -766,15 +811,115 @@ describe('DesignBuilderPage', () => {
     render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
     await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
 
+    selectFloorPlan();
     openMenuByKind('components');
     chooseCommandMenuItem(/^door$/i);
-    await waitFor(() => expect(latestViewerProps().toolMode).toBe('place_door'));
+    await waitFor(() => expect(latestPlanProps().toolMode).toBe('place_door'));
+    expect(latestPlanProps().active2DView).toBe('floor-plan');
     expect(latestPlanProps().componentPreview).toBeFalsy();
 
     openMenuByKind('components');
     chooseCommandMenuItem(/^window$/i);
-    await waitFor(() => expect(latestViewerProps().toolMode).toBe('place_window'));
+    await waitFor(() => expect(latestPlanProps().toolMode).toBe('place_window'));
+    expect(latestPlanProps().active2DView).toBe('floor-plan');
     expect(latestPlanProps().componentPreview).toBeFalsy();
+  });
+
+  it('keeps 3D active when Door is activated there and accepts viewer opening placement', async () => {
+    seedLoadedDesignBuilderTemplate();
+    render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
+    await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
+    selectViewMode('3d');
+    await waitFor(() => expect(screen.getByTestId('design-builder-viewer')).toBeInTheDocument());
+
+    openMenuByKind('components');
+    chooseCommandMenuItem(/^door$/i);
+    await waitFor(() => expect(latestViewerProps().toolMode).toBe('place_door'));
+    expect(screen.getByTestId('design-builder-viewer')).toBeInTheDocument();
+    expect(screen.queryByTestId('design-builder-plan')).not.toBeInTheDocument();
+
+    const wallSegmentId =
+      useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']?.preset?.wallLayout.segments[0]?.id;
+    expect(wallSegmentId).toBeTruthy();
+    await act(async () => {
+      latestViewerProps().onInteraction?.({
+        kind: 'wall_pick',
+        toolMode: 'place_door',
+        openingType: 'door',
+        wallSegmentId: wallSegmentId!,
+        positionAlongSegment: 1.8,
+      });
+    });
+    await waitFor(() => expect(latestViewerProps().placementPreview).toBeTruthy());
+
+    const openingCountBeforeCommit =
+      useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']?.preset?.wall.openings.length ?? 0;
+    await act(async () => {
+      latestViewerProps().onInteraction?.({
+        kind: 'place_commit',
+        toolMode: 'place_door',
+        openingType: 'door',
+        wallSegmentId: wallSegmentId!,
+        positionAlongSegment: 1.8,
+      });
+    });
+
+    await waitFor(() =>
+      expect(useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']?.preset?.wall.openings).toHaveLength(
+        openingCountBeforeCommit + 1,
+      ),
+    );
+  });
+
+  it('activating Door and Window from Foundation switches to Floor Plan', async () => {
+    seedLoadedDesignBuilderTemplate();
+    render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
+    await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
+
+    selectViewMode('plan');
+    await waitFor(() => expect(latestPlanProps().active2DView).toBe('foundation-plan'));
+
+    openMenuByKind('components');
+    chooseCommandMenuItem(/^door$/i);
+    await waitFor(() => expect(latestPlanProps().toolMode).toBe('place_door'));
+    expect(latestPlanProps().active2DView).toBe('floor-plan');
+
+    fireEvent.click(screen.getByRole('button', { name: /switch to foundation drawing/i }));
+    await waitFor(() => expect(latestPlanProps().active2DView).toBe('foundation-plan'));
+    openMenuByKind('components');
+    chooseCommandMenuItem(/^window$/i);
+    await waitFor(() => expect(latestPlanProps().toolMode).toBe('place_window'));
+    expect(latestPlanProps().active2DView).toBe('floor-plan');
+  });
+
+  it('defaults Draw Wall to partition only on a closed Floor Plan', async () => {
+    seedLoadedDesignBuilderTemplate();
+    render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
+    await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
+
+    selectViewMode('plan');
+    fireEvent.click(screen.getByRole('button', { name: /switch to floor drawing/i }));
+    await waitFor(() => expect(latestPlanProps().active2DView).toBe('floor-plan'));
+
+    selectToolMode(/^draw wall$/i);
+    await waitFor(() => expect(latestPlanProps().toolMode).toBe('draw_wall'));
+    expect(latestPlanProps().active2DView).toBe('floor-plan');
+    expect(screen.getByLabelText(/^wall type$/i)).toHaveValue('partition');
+  });
+
+  it('keeps Draw Wall exterior by default for blank or open footprints', async () => {
+    seedLoadedDesignBuilderTemplate();
+    render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
+    await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
+
+    chooseNewLayout();
+    await waitFor(() => expect(latestPlanProps().layout?.segments).toHaveLength(0));
+    await waitFor(() => expect(latestPlanProps().active2DView).toBe('foundation-plan'));
+
+    selectToolMode(/^draw wall$/i);
+    await waitFor(() => expect(latestPlanProps().toolMode).toBe('draw_wall'));
+    expect(latestPlanProps().active2DView).toBe('floor-plan');
+    expect(screen.getByLabelText(/^wall type$/i)).toHaveValue('exterior');
   });
 
   it('previews a structural component before commit and syncs the placed component into 3D', async () => {
@@ -1526,15 +1671,19 @@ describe('DesignBuilderPage', () => {
     await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
     const openingId = createFiveBySixCmuBuildingPreset().wall.openings[0].id;
 
-    selectToolMode(/^delete$/i);
+    selectFloorPlan();
+    await waitFor(() => expect(latestPlanProps().active2DView).toBe('floor-plan'));
+    selectToolMode(/^select$/i);
     await act(async () => {
-      latestViewerProps().onInteraction?.({
-        kind: 'select_opening',
-        toolMode: 'delete',
-        openingId,
-        openingType: 'door',
+      latestPlanProps().onInteraction?.({
+        kind: 'segment_pick',
+        toolMode: 'select',
+        phase: 'commit',
+        ...EXISTING_DOOR_PLAN_POINT,
       });
     });
+    await waitFor(() => expect(latestPlanProps().selectedOpeningId).toBe(openingId));
+    selectToolMode(/^delete$/i);
     fireEvent.click(screen.getByRole('button', { name: /delete selected opening/i }));
     await waitFor(() => expect(mocks.confirm).toHaveBeenCalledWith(expect.objectContaining({ title: 'Delete opening?' })));
 
@@ -1708,81 +1857,71 @@ describe('DesignBuilderPage', () => {
     render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
     await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
 
+    selectOpeningTool(/door opening/i);
+    await waitFor(() => expect(latestPlanProps().toolMode).toBe('place_door'));
     await act(async () => {
-      latestViewerProps().onInteraction?.({
-        kind: 'place_commit',
+      latestPlanProps().onInteraction?.({
+        kind: 'segment_pick',
         toolMode: 'place_door',
-        wallFace: 'west',
-        offsetMeters: 2.4,
-        openingType: 'door',
+        phase: 'commit',
+        ...NEW_OPENING_PLAN_POINT,
       });
     });
 
     await waitFor(() => {
-      expect(latestViewerProps().toolMode).toBe('select');
-      expect(latestViewerProps().placementPreview).toBeNull();
+      expect(latestPlanProps().toolMode).toBe('select');
+      expect(latestPlanProps().openingPreview).toBeNull();
     });
-    const placedOpeningId = latestViewerProps().selectedOpeningId;
+    const placedOpeningId = latestPlanProps().selectedOpeningId ?? sessionPreset()?.wall.openings.at(-1)?.id;
     expect(placedOpeningId).toBeTruthy();
 
+    selectOpeningTool(/move opening/i);
+    await waitFor(() => expect(latestPlanProps().toolMode).toBe('move_opening'));
     await act(async () => {
-      latestViewerProps().onInteraction?.({
-        kind: 'wall_pick',
-        toolMode: 'select',
-        wallFace: 'west',
-        offsetMeters: 3.6,
-        openingType: 'door',
-      });
-    });
-    expect(latestViewerProps().placementPreview).toBeNull();
-
-    await act(async () => {
-      latestViewerProps().onInteraction?.({
-        kind: 'opening_move',
-        toolMode: 'move_opening',
-        phase: 'preview',
-        openingId: placedOpeningId!,
-        wallFace: 'west',
-        offsetMeters: 3.2,
-      });
-    });
-    await waitFor(() => expect(latestViewerProps().placementPreview?.offsetMeters).toBeCloseTo(3.2, 6));
-
-    await act(async () => {
-      latestViewerProps().onInteraction?.({
-        kind: 'opening_move',
+      latestPlanProps().onInteraction?.({
+        kind: 'segment_pick',
         toolMode: 'move_opening',
         phase: 'commit',
-        openingId: placedOpeningId!,
-        wallFace: 'west',
-        offsetMeters: 3.2,
-        openingType: 'door',
+        ...NEW_OPENING_PLAN_POINT,
+      });
+    });
+    await waitFor(() => expect(latestPlanProps().selectedOpeningId).toBe(placedOpeningId));
+    const movedOpeningPoint = MOVED_OPENING_PLAN_POINT;
+    await act(async () => {
+      latestPlanProps().onInteraction?.({
+        kind: 'segment_pick',
+        toolMode: 'move_opening',
+        phase: 'preview',
+        ...movedOpeningPoint,
+      });
+    });
+    await waitFor(() => expect(latestPlanProps().openingPreview).toBeTruthy());
+
+    await act(async () => {
+      latestPlanProps().onInteraction?.({
+        kind: 'segment_pick',
+        toolMode: 'move_opening',
+        phase: 'commit',
+        ...movedOpeningPoint,
       });
     });
     await waitFor(() => {
-      expect(latestViewerProps().toolMode).toBe('select');
-      expect(latestViewerProps().placementPreview).toBeNull();
-      expect(latestViewerProps().selectedOpeningId).toBe(placedOpeningId);
+      expect(latestPlanProps().toolMode).toBe('select');
+      expect(latestPlanProps().openingPreview).toBeNull();
+      expect(latestPlanProps().selectedOpeningId).toBe(placedOpeningId);
     });
 
     selectToolMode(/^delete$/i);
     fireEvent.click(screen.getByRole('button', { name: /delete selected opening/i }));
+    await waitFor(() => expect(sessionPreset()?.wall.openings.some((opening) => opening.id === placedOpeningId)).toBe(false));
     expect(mocks.commitDesignEstimatePreview).not.toHaveBeenCalled();
   });
 
-  it('commits matching opening centers from plan and viewer placement paths', async () => {
+  it('commits matching opening centers from Floor Plan placements', async () => {
     seedLoadedDesignBuilderTemplate();
     render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
     await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
     let session = useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1'];
-    const layout = session!.preset!.wallLayout;
-    const firstSegment = layout.segments[0];
-    const startNode = layout.nodes.find((node) => node.id === firstSegment.startNodeId)!;
-    const endNode = layout.nodes.find((node) => node.id === firstSegment.endNodeId)!;
-    const segmentLength = Math.hypot(endNode.x - startNode.x, endNode.z - startNode.z);
-    const planPoint = { x: 0, z: -2.5 };
-    const firstSegmentId = firstSegment.id;
-    expect(firstSegmentId).toBeTruthy();
 
     selectViewMode('plan');
     selectOpeningTool(/door opening/i);
@@ -1793,8 +1932,7 @@ describe('DesignBuilderPage', () => {
         kind: 'segment_pick',
         toolMode: 'place_door',
         phase: 'preview',
-        planX: planPoint.x,
-        planZ: planPoint.z,
+        ...NEW_OPENING_PLAN_POINT,
       });
     });
     await act(async () => {
@@ -1802,8 +1940,7 @@ describe('DesignBuilderPage', () => {
         kind: 'segment_pick',
         toolMode: 'place_door',
         phase: 'commit',
-        planX: planPoint.x,
-        planZ: planPoint.z,
+        ...NEW_OPENING_PLAN_POINT,
       });
     });
 
@@ -1823,31 +1960,33 @@ describe('DesignBuilderPage', () => {
     );
 
     selectOpeningTool(/window opening/i);
+    await waitFor(() => expect(latestPlanProps().toolMode).toBe('place_window'));
     await act(async () => {
-      latestViewerProps().onInteraction?.({
-        kind: 'wall_pick',
+      latestPlanProps().onInteraction?.({
+        kind: 'segment_pick',
         toolMode: 'place_window',
-        openingType: 'window',
-        wallSegmentId: firstSegmentId!,
-        positionAlongSegment: 4.8,
-        hitPointX: startNode.x + ((endNode.x - startNode.x) / segmentLength) * 4.8,
-        hitPointZ: startNode.z + ((endNode.z - startNode.z) / segmentLength) * 4.8,
+        phase: 'preview',
+        ...southWallPlanPoint(1),
       });
     });
-    await waitFor(() => expect(latestViewerProps().placementPreview?.openingDraft).toBeTruthy());
-    const viewerPreviewDraft = latestViewerProps().placementPreview!.openingDraft!;
+    await waitFor(() => expect(latestPlanProps().openingPreview).toBeTruthy());
+    const floorPreview = latestPlanProps().openingPreview as
+      | { resolvedPlacement?: { positionAlongSegmentMeters?: number } }
+      | null
+      | undefined;
+    const viewerPreviewPosition = floorPreview?.resolvedPlacement?.positionAlongSegmentMeters ?? 4.8;
     const openingCountBeforeViewerCommit =
       useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']?.preset?.wall.openings.length ?? 0;
+    const openingIdsBeforeViewerCommit = new Set(
+      useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1']?.preset?.wall.openings.map((opening) => opening.id) ?? [],
+    );
 
     await act(async () => {
-      latestViewerProps().onInteraction?.({
-        kind: 'place_commit',
+      latestPlanProps().onInteraction?.({
+        kind: 'segment_pick',
         toolMode: 'place_window',
-        openingType: 'window',
-        wallSegmentId: firstSegmentId!,
-        positionAlongSegment: 4.8,
-        hitPointX: startNode.x + ((endNode.x - startNode.x) / segmentLength) * 4.8,
-        hitPointZ: startNode.z + ((endNode.z - startNode.z) / segmentLength) * 4.8,
+        phase: 'commit',
+        ...southWallPlanPoint(1),
       });
     });
 
@@ -1858,10 +1997,16 @@ describe('DesignBuilderPage', () => {
     );
     session = useDesignBuilderSessionStore.getState().sessions['project-1:estimate-1'];
     const viewerOpening =
-      session?.preset?.wall.openings.find((opening) => opening.id === viewerPreviewDraft.id) ??
+      session?.preset?.wall.openings.find((opening) => !openingIdsBeforeViewerCommit.has(opening.id)) ??
       session?.preset?.wall.openings.at(-1);
+    selectViewMode('3d');
+    await waitFor(() =>
+      expect(latestViewerProps().geometryResult?.wallCmuLayout?.roughOpenings?.some((opening) => opening.id === viewerOpening?.id)).toBe(
+        true,
+      ),
+    );
     planRough = latestViewerProps().geometryResult?.wallCmuLayout?.roughOpenings?.find((opening) => opening.id === viewerOpening?.id);
-    expect(viewerOpening?.positionAlongSegment).toBeCloseTo(viewerPreviewDraft.positionAlongSegment ?? 0, 6);
+    expect(viewerOpening?.positionAlongSegment).toBeCloseTo(viewerPreviewPosition, 6);
     expect((planRough!.actualStartAlongMeters + planRough!.actualEndAlongMeters) / 2).toBeCloseTo(
       viewerOpening!.positionAlongSegment!,
       6,
@@ -1874,13 +2019,14 @@ describe('DesignBuilderPage', () => {
     await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
     const callsAfterLoad = mocks.upsertDesignModelObjects.mock.calls.length;
 
+    selectOpeningTool(/door opening/i);
+    await waitFor(() => expect(latestPlanProps().toolMode).toBe('place_door'));
     await act(async () => {
-      latestViewerProps().onInteraction?.({
-        kind: 'place_commit',
+      latestPlanProps().onInteraction?.({
+        kind: 'segment_pick',
         toolMode: 'place_door',
-        wallFace: 'west',
-        offsetMeters: 1.2,
-        openingType: 'door',
+        phase: 'commit',
+        ...southWallPlanPoint(1.2),
       });
     });
     expect(mocks.upsertDesignModelObjects.mock.calls.length).toBe(callsAfterLoad);
@@ -1935,11 +2081,13 @@ describe('DesignBuilderPage', () => {
     await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
 
     selectOpeningTool(/window opening/i);
-    await waitFor(() => expect(latestViewerProps().toolMode).toBe('place_window'));
+    await waitFor(() => expect(latestPlanProps().toolMode).toBe('place_window'));
+    expect(latestPlanProps().active2DView).toBe('floor-plan');
     expect(openCommandMenus()).toHaveLength(0);
 
     selectOpeningTool(/move opening/i);
-    await waitFor(() => expect(latestViewerProps().toolMode).toBe('move_opening'));
+    await waitFor(() => expect(latestPlanProps().toolMode).toBe('move_opening'));
+    expect(latestPlanProps().active2DView).toBe('floor-plan');
     expect(openCommandMenus()).toHaveLength(0);
 
     selectToolMode(/^draw wall$/i);
@@ -2008,21 +2156,21 @@ describe('DesignBuilderPage', () => {
     await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
 
     selectOpeningTool(/window opening/i);
+    await waitFor(() => expect(latestPlanProps().toolMode).toBe('place_window'));
     await act(async () => {
-      latestViewerProps().onInteraction?.({
-        kind: 'place_commit',
+      latestPlanProps().onInteraction?.({
+        kind: 'segment_pick',
         toolMode: 'place_window',
-        wallFace: 'west',
-        offsetMeters: 1.2,
-        openingType: 'window',
+        phase: 'commit',
+        ...southWallPlanPoint(1),
       });
     });
 
     await waitFor(() => {
-      expect(latestViewerProps().toolMode).toBe('select');
-      expect(latestViewerProps().placementPreview).toBeNull();
-      expect(latestViewerProps().selectedOpeningId).toBeTruthy();
-      expect(latestViewerProps().selectedObjectType).toBe('window_opening');
+      expect(latestPlanProps().toolMode).toBe('select');
+      expect(latestPlanProps().openingPreview).toBeNull();
+      expect(latestPlanProps().selectedOpeningId).toBeTruthy();
+      expect(latestPlanProps().selectedObjectType).toBe('window_opening');
     });
   });
 
@@ -2030,27 +2178,32 @@ describe('DesignBuilderPage', () => {
     seedLoadedDesignBuilderTemplate();
     render(<DesignBuilderPage projectId="project-1" estimateId="estimate-1" />);
     await waitFor(() => expect(latestViewerProps().geometryResult?.wallSegments?.length).toBeGreaterThan(0));
-    const openingId = createFiveBySixCmuBuildingPreset().wall.openings[0].id;
 
     selectOpeningTool(/move opening/i);
+    await waitFor(() => expect(latestPlanProps().toolMode).toBe('move_opening'));
     await act(async () => {
-      latestViewerProps().onInteraction?.({
-        kind: 'opening_move',
+      latestPlanProps().onInteraction?.({
+        kind: 'segment_pick',
         toolMode: 'move_opening',
-        phase: 'preview',
-        openingId,
-        wallFace: 'south',
-        offsetMeters: 2.8,
+        phase: 'commit',
+        ...EXISTING_DOOR_PLAN_POINT,
       });
     });
-    await waitFor(() => expect(latestViewerProps().placementPreview).not.toBeNull());
-
+    await waitFor(() => expect(latestPlanProps().selectedOpeningId).toBe(createFiveBySixCmuBuildingPreset().wall.openings[0].id));
     await act(async () => {
-      latestViewerProps().onInteraction?.({ kind: 'cancel', toolMode: 'move_opening' });
+      latestPlanProps().onInteraction?.({
+        kind: 'segment_pick',
+        toolMode: 'move_opening',
+        phase: 'preview',
+        ...NEW_OPENING_PLAN_POINT,
+      });
     });
+    await waitFor(() => expect(latestPlanProps().openingPreview).not.toBeNull());
+
+    fireEvent.keyDown(window, { key: 'Escape' });
     await waitFor(() => {
-      expect(latestViewerProps().toolMode).toBe('select');
-      expect(latestViewerProps().placementPreview).toBeNull();
+      expect(latestPlanProps().toolMode).toBe('select');
+      expect(latestPlanProps().openingPreview).toBeNull();
     });
   });
 
@@ -2066,26 +2219,28 @@ describe('DesignBuilderPage', () => {
     fireEvent.click(screen.getByRole('button', { name: (_name, element) => element.textContent?.trim() === 'Redo' }));
   }
 
-  async function placeCommittedDoor(offsetMeters = 2.4) {
+  async function placeCommittedDoor(offsetMeters = 4.5) {
+    selectOpeningTool(/door opening/i);
+    await waitFor(() => expect(latestPlanProps().toolMode).toBe('place_door'));
     await act(async () => {
-      latestViewerProps().onInteraction?.({
-        kind: 'place_commit',
+      latestPlanProps().onInteraction?.({
+        kind: 'segment_pick',
         toolMode: 'place_door',
-        wallFace: 'west',
-        offsetMeters,
-        openingType: 'door',
+        phase: 'commit',
+        ...southWallPlanPoint(offsetMeters),
       });
     });
   }
 
-  async function placeCommittedWindow(offsetMeters = 1.2) {
+  async function placeCommittedWindow(offsetMeters = 4.5) {
+    selectOpeningTool(/window opening/i);
+    await waitFor(() => expect(latestPlanProps().toolMode).toBe('place_window'));
     await act(async () => {
-      latestViewerProps().onInteraction?.({
-        kind: 'place_commit',
+      latestPlanProps().onInteraction?.({
+        kind: 'segment_pick',
         toolMode: 'place_window',
-        wallFace: 'west',
-        offsetMeters,
-        openingType: 'window',
+        phase: 'commit',
+        ...southWallPlanPoint(offsetMeters),
       });
     });
   }
@@ -2149,19 +2304,26 @@ describe('DesignBuilderPage', () => {
     const originalOffset = sessionPreset()?.wall.openings.find((item) => item.id === openingId)?.offsetMeters;
 
     selectOpeningTool(/move opening/i);
+    await waitFor(() => expect(latestPlanProps().toolMode).toBe('move_opening'));
     await act(async () => {
-      latestViewerProps().onInteraction?.({
-        kind: 'opening_move',
+      latestPlanProps().onInteraction?.({
+        kind: 'segment_pick',
         toolMode: 'move_opening',
         phase: 'commit',
-        openingId,
-        wallFace: 'south',
-        offsetMeters: 3.2,
-        openingType: 'door',
+        ...EXISTING_DOOR_PLAN_POINT,
+      });
+    });
+    await waitFor(() => expect(latestPlanProps().selectedOpeningId).toBe(openingId));
+    await act(async () => {
+      latestPlanProps().onInteraction?.({
+        kind: 'segment_pick',
+        toolMode: 'move_opening',
+        phase: 'commit',
+        ...MOVED_OPENING_PLAN_POINT,
       });
     });
     await waitFor(() =>
-      expect(sessionPreset()?.wall.openings.find((item) => item.id === openingId)?.offsetMeters).toBeCloseTo(3.2, 2),
+      expect(sessionPreset()?.wall.openings.find((item) => item.id === openingId)?.positionAlongSegment).toBeCloseTo(2.9, 2),
     );
 
     clickUndo();
@@ -2181,15 +2343,19 @@ describe('DesignBuilderPage', () => {
     const openingId = createFiveBySixCmuBuildingPreset().wall.openings[0].id;
     const openingCountBefore = sessionPreset()?.wall.openings.length ?? 0;
 
-    selectToolMode(/^delete$/i);
+    selectFloorPlan();
+    await waitFor(() => expect(latestPlanProps().active2DView).toBe('floor-plan'));
+    selectToolMode(/^select$/i);
     await act(async () => {
-      latestViewerProps().onInteraction?.({
-        kind: 'select_opening',
-        toolMode: 'delete',
-        openingId,
-        openingType: 'door',
+      latestPlanProps().onInteraction?.({
+        kind: 'segment_pick',
+        toolMode: 'select',
+        phase: 'commit',
+        ...EXISTING_DOOR_PLAN_POINT,
       });
     });
+    await waitFor(() => expect(latestPlanProps().selectedOpeningId).toBe(openingId));
+    selectToolMode(/^delete$/i);
     fireEvent.click(screen.getByRole('button', { name: /delete selected opening/i }));
     await waitFor(() => expect(sessionPreset()?.wall.openings).toHaveLength(openingCountBefore - 1));
 
@@ -2279,14 +2445,13 @@ describe('DesignBuilderPage', () => {
     expect(openingId).toBeTruthy();
 
     selectOpeningTool(/move opening/i);
+    await waitFor(() => expect(latestPlanProps().toolMode).toBe('move_opening'));
     await act(async () => {
-      latestViewerProps().onInteraction?.({
-        kind: 'opening_move',
+      latestPlanProps().onInteraction?.({
+        kind: 'segment_pick',
         toolMode: 'move_opening',
         phase: 'preview',
-        openingId: openingId!,
-        wallFace: 'west',
-        offsetMeters: 2.4,
+        ...MOVED_OPENING_PLAN_POINT,
       });
     });
 

@@ -26,6 +26,14 @@ import {
 } from '../domain/pointerPlanMapping';
 
 const STORAGE_KEY = 'arden:designBuilder:sessions';
+const VALID_2D_VIEW_TYPES: ReadonlySet<Design2DViewType> = new Set([
+  'foundation-plan',
+  'floor-plan',
+  'roof-plan',
+  'electrical-plan',
+  'plumbing-plan',
+  'elevation-view',
+]);
 
 export interface DesignBuilderViewerSizeState {
   height: number;
@@ -105,7 +113,18 @@ function readStoredSessions(): Record<string, DesignBuilderSessionState> {
   try {
     const raw = sessionStorage.getItem(STORAGE_KEY);
     if (!raw) return {};
-    return JSON.parse(raw) as Record<string, DesignBuilderSessionState>;
+    const parsed = JSON.parse(raw) as Record<string, Partial<DesignBuilderSessionState>>;
+    return Object.fromEntries(
+      Object.entries(parsed).map(([key, session]) => [
+        key,
+        {
+          ...session,
+          active2DView: VALID_2D_VIEW_TYPES.has(session.active2DView as Design2DViewType)
+            ? session.active2DView
+            : 'foundation-plan',
+        } as DesignBuilderSessionState,
+      ]),
+    );
   } catch {
     return {};
   }

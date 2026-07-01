@@ -82,14 +82,11 @@ export function buildPlanDoorSymbolGeometry(params: {
   swingType: DoorSwingType;
 }): PlanDoorSymbolGeometry {
   const leafWidthMeters = params.geometry.actualWidthMeters;
-  const hinge =
+  const roughHinge =
     params.swingDirection === 'left' ? params.geometry.actualStart : params.geometry.actualEnd;
-  const closedLeafEnd =
+  const roughClosedLeafEnd =
     params.swingDirection === 'left' ? params.geometry.actualEnd : params.geometry.actualStart;
-  const closedLeafVector = {
-    x: closedLeafEnd.x - hinge.x,
-    z: closedLeafEnd.z - hinge.z,
-  };
+  const halfWallThickness = Math.max(0, params.geometry.wallThicknessMeters / 2);
   const swingSideNormal =
     params.swingType === 'inswing'
       ? normalizePlanVector(params.geometry.inwardNormal)
@@ -97,6 +94,18 @@ export function buildPlanDoorSymbolGeometry(params: {
           x: -params.geometry.inwardNormal.x,
           z: -params.geometry.inwardNormal.z,
         });
+  const hinge = {
+    x: roughHinge.x + swingSideNormal.x * halfWallThickness,
+    z: roughHinge.z + swingSideNormal.z * halfWallThickness,
+  };
+  const closedLeafEnd = {
+    x: roughClosedLeafEnd.x + swingSideNormal.x * halfWallThickness,
+    z: roughClosedLeafEnd.z + swingSideNormal.z * halfWallThickness,
+  };
+  const closedLeafVector = {
+    x: closedLeafEnd.x - hinge.x,
+    z: closedLeafEnd.z - hinge.z,
+  };
   const openLeafVector = rotatePlanVectorTowardNormal(closedLeafVector, swingSideNormal);
   const openLeafEnd = {
     x: hinge.x + openLeafVector.x,

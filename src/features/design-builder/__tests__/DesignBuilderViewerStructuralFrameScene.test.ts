@@ -363,10 +363,16 @@ describe('DesignBuilderViewerStructuralFrameScene', () => {
           interiorFloorSlab: {
             enabled: true,
             thicknessMeters: 0.125,
+            footprintPolygon: [
+              { x: -1, z: -1 },
+              { x: 1, z: -1 },
+              { x: 1, z: 1 },
+              { x: -1, z: 1 },
+            ],
             bottomElevationMeters: -0.125,
             topElevationMeters: 0,
-            areaSquareMeters: 12,
-            volumeCubicMeters: 1.5,
+            areaSquareMeters: 4,
+            volumeCubicMeters: 0.5,
           },
           resolvedFootprint: {
             interiorFacePolygon: [
@@ -389,6 +395,11 @@ describe('DesignBuilderViewerStructuralFrameScene', () => {
     expect(meshByName(scene.group, 'structuralColumn:column-1:belowPlinth').position.y).toBeCloseTo(-0.275, 6);
 
     const floorSlab = meshByName(scene.group, 'interiorFloorSlab');
+    floorSlab.geometry.computeBoundingBox();
+    expect(floorSlab.geometry.boundingBox?.min.x).toBeCloseTo(-1, 6);
+    expect(floorSlab.geometry.boundingBox?.max.x).toBeCloseTo(1, 6);
+    expect(floorSlab.geometry.boundingBox?.min.z).toBeCloseTo(-1, 6);
+    expect(floorSlab.geometry.boundingBox?.max.z).toBeCloseTo(1, 6);
     const floorSlabMaterial = floorSlab.material as THREE.MeshStandardMaterial;
     expect(floorSlabMaterial.transparent).toBe(true);
     expect(floorSlabMaterial.opacity).toBeCloseTo(0.32, 6);

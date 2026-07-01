@@ -110,10 +110,16 @@ function geometryResult(
     interiorFloorSlab: {
       enabled: true,
       thicknessMeters: 0.125,
+      footprintPolygon: [
+        { x: -0.5, z: -0.5 },
+        { x: 0.5, z: -0.5 },
+        { x: 0.5, z: 0.5 },
+        { x: -0.5, z: 0.5 },
+      ],
       bottomElevationMeters: 0.275,
       topElevationMeters: 0.4,
-      areaSquareMeters: 12,
-      volumeCubicMeters: 1.5,
+      areaSquareMeters: 1,
+      volumeCubicMeters: 0.125,
     },
     floorTileLayout: floorTileLayout(),
     plywoodCeilingLayout: plywoodCeilingLayout(),
@@ -175,7 +181,13 @@ describe('DesignBuilderViewerInteriorFinishScene', () => {
 
     const floorGroup = scene.groups[0]!;
     const ceilingGroup = scene.groups[1]!;
-    expect((meshByName(floorGroup, 'floorThinset').material as THREE.MeshStandardMaterial).color.getHex()).toBe(0xc9b896);
+    const thinset = meshByName(floorGroup, 'floorThinset');
+    thinset.geometry.computeBoundingBox();
+    expect(thinset.geometry.boundingBox?.min.x).toBeCloseTo(-0.5, 6);
+    expect(thinset.geometry.boundingBox?.max.x).toBeCloseTo(0.5, 6);
+    expect(thinset.geometry.boundingBox?.min.z).toBeCloseTo(-0.5, 6);
+    expect(thinset.geometry.boundingBox?.max.z).toBeCloseTo(0.5, 6);
+    expect((thinset.material as THREE.MeshStandardMaterial).color.getHex()).toBe(0xc9b896);
     expect((meshByName(floorGroup, 'floorGrout').material as THREE.MeshStandardMaterial).color.getHex()).toBe(0xf5f5f0);
     expect((meshByName(floorGroup, 'floorTile:tile-1').material as THREE.MeshStandardMaterial).color.getHex()).toBe(0x9a9590);
     expect((meshByName(ceilingGroup, 'plywoodCeilingFrame:frame-1').material as THREE.MeshStandardMaterial).color.getHex()).toBe(0x374151);

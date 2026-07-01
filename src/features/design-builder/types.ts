@@ -16,6 +16,7 @@ export type DesignBuilderViewMode = "2d" | "3d";
 
 export type Design2DViewType =
   | "foundation-plan"
+  | "floor-plan"
   | "roof-plan"
   | "electrical-plan"
   | "plumbing-plan"
