@@ -38,6 +38,10 @@ vi.mock('../../contexts/AppAccessContext', () => ({
   useAppAccess: () => accessState,
 }));
 
+vi.mock('../../pages/MarketingHome', () => ({
+  default: () => <div data-testid="marketing-home">Landing page</div>,
+}));
+
 function LocationProbe() {
   const location = useLocation();
   return <div data-testid="location">{location.pathname}</div>;
@@ -54,7 +58,7 @@ describe('RootRoute', () => {
     accessState.access = null;
   });
 
-  it('redirects signed-out users from / to /login', async () => {
+  it('renders the signed-out landing page at /', async () => {
     render(
       <MemoryRouter initialEntries={['/']}>
         <Routes>
@@ -64,7 +68,8 @@ describe('RootRoute', () => {
       </MemoryRouter>,
     );
 
-    expect(await screen.findByTestId('location')).toHaveTextContent('/login');
+    expect(await screen.findByTestId('marketing-home')).toBeInTheDocument();
+    expect(screen.queryByTestId('location')).not.toBeInTheDocument();
   });
 
   it('redirects signed-in owners to /dashboard', async () => {
