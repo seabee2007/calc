@@ -129,7 +129,7 @@ describe('OwnerActivityFeed', () => {
     expect(screen.queryByText('Activity 5')).not.toBeInTheDocument();
   });
 
-  it('keeps View all navigation to the owner review page', async () => {
+  it('keeps View all navigation in the planner workspace', async () => {
     mockGetOwnerFieldActivity.mockResolvedValue(buildItems(2));
 
     render(
@@ -140,7 +140,7 @@ describe('OwnerActivityFeed', () => {
 
     await screen.findByText('Activity 0');
     fireEvent.click(screen.getByRole('button', { name: 'View all →' }));
-    expect(mockNavigate).toHaveBeenCalledWith('/owner/review');
+    expect(mockNavigate).toHaveBeenCalledWith('/planner/tasks');
   });
 
   it('shows three items on small screens by default', async () => {

@@ -40,7 +40,6 @@ import { markOnboardingCompleted } from './services/profileService';
 import { clearOnboardingDraft } from './lib/onboardingDraft';
 import FullscreenExperienceTipHost from './components/onboarding/FullscreenExperienceTipHost';
 import DefinitionsHelpHost from './features/help/DefinitionsHelpHost';
-import FeatureGate from './components/subscription/FeatureGate';
 import GlobalAskAiGate from './components/globalAskAi/GlobalAskAiGate';
 import { GatedLazyRoute } from './components/subscription/GatedLazyRoute';
 import {
@@ -98,7 +97,6 @@ import {
   LazyChangeOrderBuilderPage,
   LazyEstimateWorkspacePage,
   LazyPlannerTeamPage,
-  LazyEmployeeTaskPlannerRedirect,
   LazyEmployeeLayout,
   LazyEmployeeOnboardingPage,
   LazyEmployeeDashboardPage,
@@ -184,8 +182,8 @@ function App() {
     error: legalError,
     isSessionError: legalSessionError,
   } = useLegalAcceptance();
-  const { loadProjects, projects } = useProjectStore();
-  const { loadCompanySettings, migrateSettings, companySettings, companySettingsHydrated } =
+  const { loadProjects } = useProjectStore();
+  const { loadCompanySettings, migrateSettings, companySettingsHydrated } =
     useSettingsStore();
   const { loadPreferences, migratePreferences } = usePreferencesStore();
   const chatStore = useChatStore();
@@ -580,13 +578,7 @@ function App() {
             />
             <Route
               path="owner/review"
-              element={
-                <AuthGuard>
-                  <OwnerGuard>
-                    <LazyRoute Page={LazyOwnerReviewPage} />
-                  </OwnerGuard>
-                </AuthGuard>
-              }
+              element={<Navigate to="/planner/tasks" replace />}
             />
             <Route path="dispatch" element={<Navigate to="/" replace />} />
             <Route path="qc" element={<Navigate to="/" replace />} />
@@ -749,6 +741,14 @@ function App() {
             <Route path="planner" element={<Navigate to="/planner/hub" replace />} />
             <Route path="planner/hub" element={<LazyRoute Page={LazyPlannerHubPage} />} />
             <Route path="planner/schedule" element={<LazyRoute Page={LazyScheduleWorkspacePage} />} />
+            <Route
+              path="planner/tasks"
+              element={
+                <OwnerGuard>
+                  <LazyRoute Page={LazyOwnerReviewPage} />
+                </OwnerGuard>
+              }
+            />
             <Route
               path="planner/rfis"
               element={<GatedLazyRoute feature="rfis" Page={LazyPlannerAllRfisPage} />}
