@@ -43,7 +43,6 @@ CREATE INDEX IF NOT EXISTS schedule_events_project_start_idx ON schedule_events(
 CREATE INDEX IF NOT EXISTS schedule_events_status_idx ON schedule_events(status);
 CREATE INDEX IF NOT EXISTS schedule_events_event_type_idx ON schedule_events(event_type);
 CREATE INDEX IF NOT EXISTS schedule_events_start_date_idx ON schedule_events(start_date);
-CREATE INDEX IF NOT EXISTS schedule_events_priority_idx ON schedule_events(priority);
 
 ALTER TABLE schedule_events ENABLE ROW LEVEL SECURITY;
 
