@@ -228,7 +228,7 @@ export default function OwnerActivityFeed({
         )}
         <button
           type="button"
-          onClick={() => navigate('/owner/review')}
+          onClick={() => navigate('/planner/tasks')}
           className={linkClass}
         >
           View all →

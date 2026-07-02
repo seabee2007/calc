@@ -40,7 +40,7 @@ function sectionLabelForPath(pathname: string, search = ''): string {
   if (pathname.startsWith('/settings')) return 'Settings';
   if (pathname.startsWith('/resources')) return 'Resources';
   if (pathname.startsWith('/employees')) return 'Team';
-  if (pathname.startsWith('/owner/review')) return 'Review Queue';
+  if (pathname.startsWith('/owner/review')) return 'My Tasks';
   if (pathname.startsWith('/proposal')) return 'Proposals';
   if (pathname.startsWith('/pour-planner')) return 'Placement Planner';
   if (pathname.startsWith('/mix-design')) return 'Mix Design';
@@ -72,7 +72,7 @@ const Navbar: React.FC<NavbarProps> = ({ showThemeToggle = true, softHeader = fa
   const toolsActive = toolsModalOpen || isToolsPath(location.pathname);
   const sectionLabel = useMemo(
     () => sectionLabelForPath(location.pathname, location.search),
-    [location.pathname],
+    [location.pathname, location.search],
   );
   const mobileSectionLabel = location.pathname === '/' ? 'Dashboard' : sectionLabel;
   const isFieldOnly = isFieldOnlyRole(profile?.role);

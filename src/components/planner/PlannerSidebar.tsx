@@ -168,11 +168,11 @@ export default function PlannerSidebar({
       </Link>
 
       <Link
-        to={isOwner ? '/owner/review' : '/employee/tasks'}
+        to={isOwner ? '/planner/tasks' : '/employee/tasks'}
         onClick={onMobileClose}
         className={navClass(
           isOwner
-            ? location.pathname.startsWith('/owner/review')
+            ? location.pathname.startsWith('/planner/tasks')
             : location.pathname.startsWith('/employee/tasks'),
         )}
       >
