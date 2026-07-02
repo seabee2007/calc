@@ -18,7 +18,7 @@
 
 CREATE TABLE IF NOT EXISTS proposals (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid REFERENCES users(id) ON DELETE CASCADE NOT NULL,
+  user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   title text NOT NULL,
   template_type text NOT NULL DEFAULT 'classic',
   data jsonb NOT NULL,
