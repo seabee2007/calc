@@ -13,8 +13,10 @@ import {
 } from '../services/projectInviteService';
 import { AUTH_ACCENT } from '../components/auth/authBrandTheme';
 import type { ProjectInvitationPreview } from '../types/projectInvite';
+import { useNoIndex } from '../hooks/useNoIndex';
 
 export default function ClientInvitePage() {
+  useNoIndex();
   const { token = '' } = useParams();
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();

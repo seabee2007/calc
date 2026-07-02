@@ -18,6 +18,7 @@ import {
   signContract,
 } from '../services/contractDocumentService';
 import type { PublicContractData } from '../services/contractDocumentTypes';
+import { useNoIndex } from '../../../hooks/useNoIndex';
 
 function unavailableMessage(data: PublicContractData | null): string {
   if (!data) {
@@ -36,6 +37,7 @@ function unavailableMessage(data: PublicContractData | null): string {
 }
 
 export default function PublicContractPage() {
+  useNoIndex();
   const { token } = useParams<{ token: string }>();
   const [data, setData] = useState<PublicContractData | null>(null);
   const [loading, setLoading] = useState(true);

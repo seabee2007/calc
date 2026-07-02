@@ -16,8 +16,10 @@ import {
   buildChangeOrderDocumentContextFromPublic,
   type ChangeOrderPublicBundle,
 } from '../utils/changeOrderDocumentContext';
+import { useNoIndex } from '../hooks/useNoIndex';
 
 const PublicChangeOrder: React.FC = () => {
+  useNoIndex();
   const { token } = useParams<{ token: string }>();
   const [order, setOrder] = useState<ChangeOrder | null>(null);
   const [publicBundle, setPublicBundle] = useState<ChangeOrderPublicBundle | null>(null);
