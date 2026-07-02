@@ -1,7 +1,5 @@
--- Tighten logos bucket INSERT policy to require folder ownership.
--- Previously any authenticated user could INSERT into any path under logos.
--- UPDATE and DELETE already required auth.uid() = folder[1].
--- Unchanged: public SELECT, UPDATE/DELETE policies, bucket public flag, MIME/size limits.
+-- Logos bucket INSERT policy: require folder ownership (auth.uid() = folder[1]).
+-- Unchanged: public SELECT, UPDATE, DELETE, bucket public flag, MIME and size limits.
 
 DROP POLICY IF EXISTS "Authenticated users can upload logos" ON storage.objects;
 
