@@ -33,6 +33,7 @@ export default function PlannerAppBar({ onMenuClick, projectName }: PlannerAppBa
     if (projectName) return projectName;
     if (location.pathname === '/planner/hub') return 'Planner Hub';
     if (location.pathname === '/planner/schedule') return 'Schedule';
+    if (location.pathname === '/planner/tasks') return 'My Tasks';
     if (location.pathname === '/planner/rfis') return 'All RFIs';
     if (location.pathname === '/planner/fars') return 'All FARs';
     if (location.pathname === '/planner/change-orders') return 'All change orders';

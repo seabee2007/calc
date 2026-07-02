@@ -21,7 +21,6 @@ describe('usesPremiumCanvas', () => {
     expect(usesPremiumCanvas('/settings')).toBe(true);
     expect(usesPremiumCanvas('/accounting-tax')).toBe(true);
     expect(usesPremiumCanvas('/employees')).toBe(true);
-    expect(usesPremiumCanvas('/owner/review')).toBe(true);
   });
 
   it('excludes out-of-scope routes', () => {

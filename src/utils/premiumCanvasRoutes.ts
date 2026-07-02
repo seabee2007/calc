@@ -15,7 +15,6 @@ const PREMIUM_CANVAS_PREFIXES = [
   '/settings',
   '/accounting-tax',
   '/employees',
-  '/owner/review',
 ] as const;
 
 export function usesPremiumCanvas(pathname: string): boolean {
