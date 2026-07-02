@@ -13,8 +13,10 @@ import {
 } from '../lib/proposalTracking';
 import Button from '../components/ui/Button';
 import { SURFACE_ELEVATED, TEXT_MUTED } from '../theme/appTheme';
+import { useNoIndex } from '../hooks/useNoIndex';
 
 const PublicProposal: React.FC = () => {
+  useNoIndex();
   const { token } = useParams<{ token: string }>();
   const [proposal, setProposal] = useState<TrackedProposalRow | null>(null);
   const [loading, setLoading] = useState(true);
