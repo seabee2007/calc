@@ -1,24 +1,8 @@
-/*
-  # Add Proposals Table
-
-  1. New Tables
-    - `proposals`
-      - `id` (uuid, primary key)
-      - `user_id` (uuid, foreign key)
-      - `title` (text)
-      - `template_type` (text)
-      - `data` (jsonb) - stores the complete proposal data
-      - `created_at` (timestamp)
-      - `updated_at` (timestamp)
-
-  2. Security
-    - Enable RLS
-    - Add policies for authenticated users to manage their own proposals
-*/
+-- Add proposals table (user_id references auth.users).
 
 CREATE TABLE IF NOT EXISTS proposals (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid REFERENCES users(id) ON DELETE CASCADE NOT NULL,
+  user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   title text NOT NULL,
   template_type text NOT NULL DEFAULT 'classic',
   data jsonb NOT NULL,
@@ -49,6 +33,6 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
-CREATE TRIGGER update_proposals_updated_at 
-  BEFORE UPDATE ON proposals 
-  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); 
+CREATE TRIGGER update_proposals_updated_at
+  BEFORE UPDATE ON proposals
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
