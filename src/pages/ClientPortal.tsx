@@ -31,8 +31,10 @@ import {
   OPS_TITLE,
 } from '../components/dashboard/opsTheme';
 import { TEXT_ACCENT } from '../theme/appTheme';
+import { useNoIndex } from '../hooks/useNoIndex';
 
 const ClientPortal: React.FC = () => {
+  useNoIndex();
   const { token } = useParams<{ token: string }>();
   const [data, setData] = useState<ClientPortalViewData | null>(null);
   const [loading, setLoading] = useState(true);

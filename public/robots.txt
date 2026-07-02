@@ -15,8 +15,12 @@ Disallow: /calculators
 Disallow: /resources
 Disallow: /auth/
 
-# Allow public-facing token pages
-Allow: /proposal/
-Allow: /client/project/
+# Disallow public token pages - these hold client-specific data behind
+# shareable, high-entropy tokens and must not be indexed if a URL leaks.
+Disallow: /proposal/
+Disallow: /change-order/
+Disallow: /contract/
+Disallow: /client/project/
+Disallow: /invite/
 
 Sitemap: https://app.ardenprojectos.com/sitemap.xml
