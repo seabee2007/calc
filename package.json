@@ -26,7 +26,7 @@
     "generate:canonical-production-rates": "node --import tsx scripts/generateCanonicalProductionRateLibrary.ts",
     "preview": "vite preview",
     "serve:prod": "node csp-server.cjs",
-    "upload-sounds": "ts-node scripts/uploadSounds.ts",
+    "upload-sounds": "tsx scripts/uploadSounds.ts",
     "generate:favicons": "node scripts/generateFavicons.mjs",
     "qa:seed-gates": "tsx scripts/qa/seed-tier-gate-data.ts",
     "qa:cleanup-gates": "tsx scripts/qa/cleanup-tier-gate-data.ts",
