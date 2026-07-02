@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS qc_records (
 ALTER TABLE qc_records ENABLE ROW LEVEL SECURITY;
 
 -- Create policies
+DROP POLICY IF EXISTS "Users can manage QC records for their projects" ON qc_records;
 CREATE POLICY "Users can manage QC records for their projects"
   ON qc_records
   FOR ALL
