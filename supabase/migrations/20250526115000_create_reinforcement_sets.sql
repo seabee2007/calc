@@ -1,5 +1,5 @@
 -- Bootstrap reinforcement_sets and cut_list_items for fresh migration replay.
--- Schema captured from production introspection (Arden Project OS).
+-- Production schema capture; SQL behavior unchanged.
 
 CREATE TABLE IF NOT EXISTS public.reinforcement_sets (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -43,35 +43,41 @@ CREATE TABLE IF NOT EXISTS public.cut_list_items (
 );
 
 CREATE INDEX IF NOT EXISTS idx_reinforcement_sets_project_id
-  ON public.reinforcement_sets(project_id);
+  ON public.reinforcement_sets (project_id);
 
 CREATE INDEX IF NOT EXISTS reinforcement_sets_user_id_idx
-  ON public.reinforcement_sets(user_id);
+  ON public.reinforcement_sets (user_id);
 
 CREATE INDEX IF NOT EXISTS idx_cut_list_items_reinforcement_set_id
-  ON public.cut_list_items(reinforcement_set_id);
+  ON public.cut_list_items (reinforcement_set_id);
 
 ALTER TABLE public.reinforcement_sets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.cut_list_items ENABLE ROW LEVEL SECURITY;
 
-DROP POLICY IF EXISTS "Users can manage reinforcement for own projects" ON public.reinforcement_sets;
+DROP POLICY IF EXISTS "Users can manage reinforcement for own projects"
+  ON public.reinforcement_sets;
+
 CREATE POLICY "Users can manage reinforcement for own projects"
   ON public.reinforcement_sets
   FOR ALL
   USING (
     project_id IN (
-      SELECT projects.id FROM projects
+      SELECT projects.id
+      FROM projects
       WHERE projects.user_id = auth.uid()
     )
   )
   WITH CHECK (
     project_id IN (
-      SELECT projects.id FROM projects
+      SELECT projects.id
+      FROM projects
       WHERE projects.user_id = auth.uid()
     )
   );
 
-DROP POLICY IF EXISTS "Users can manage cut list items for own reinforcement" ON public.cut_list_items;
+DROP POLICY IF EXISTS "Users can manage cut list items for own reinforcement"
+  ON public.cut_list_items;
+
 CREATE POLICY "Users can manage cut list items for own reinforcement"
   ON public.cut_list_items
   FOR ALL
