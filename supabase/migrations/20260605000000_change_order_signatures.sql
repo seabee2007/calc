@@ -1,4 +1,4 @@
-﻿-- Contractor / client signatures on change orders
+-- Contractor / client signatures on change orders
 ALTER TABLE change_orders
   ADD COLUMN IF NOT EXISTS contractor_name text,
   ADD COLUMN IF NOT EXISTS contractor_signature text,
