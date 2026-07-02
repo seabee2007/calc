@@ -132,7 +132,7 @@ describe('App routing integration', () => {
     localStorage.clear();
   });
 
-  it('signed-out user at / is sent to /login', async () => {
+  it('signed-out user at / sees the landing page', async () => {
     mocks.authState.user = null;
     mocks.accessState.access = null;
 
@@ -145,7 +145,8 @@ describe('App routing integration', () => {
       </MemoryRouter>,
     );
 
-    expect(await screen.findByTestId('location')).toHaveTextContent('/login');
+    expect(await screen.findByTestId('marketing-home')).toBeInTheDocument();
+    expect(screen.queryByTestId('location')).not.toBeInTheDocument();
   });
 
   it('signed-out user at /employee/dashboard is sent to /login', async () => {

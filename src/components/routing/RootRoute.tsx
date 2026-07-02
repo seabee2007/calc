@@ -4,6 +4,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useAppAccess } from '../../contexts/AppAccessContext';
 import AccessLoadingSurface from './AccessLoadingSurface';
 import { AccessRedirect } from './AccessRedirect';
+import MarketingHome from '../../pages/MarketingHome';
 import {
   logRootRouteDiagnostics,
   logRouteRedirect,
@@ -102,6 +103,10 @@ export default function RootRoute() {
 
   if (decision.type === 'loading') {
     return <AccessLoadingSurface />;
+  }
+
+  if (decision.accessKind === 'signed_out' && location.pathname === '/') {
+    return <MarketingHome />;
   }
 
   if (
