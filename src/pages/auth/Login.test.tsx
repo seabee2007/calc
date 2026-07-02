@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import Login from './Login';
 
 const authState = vi.hoisted(() => ({
@@ -99,7 +99,37 @@ describe('Login', () => {
     expect(screen.getByText('Social login failed. Please try again.')).toBeInTheDocument();
   });
 
-  it('does not auto-redirect authenticated users away from /login', () => {
+  it('routes Back to the signed-out landing page', async () => {
+
+    render(
+
+      <MemoryRouter initialEntries={['/login']}>
+
+        <Routes>
+
+          <Route path="/login" element={<Login />} />
+
+          <Route path="/" element={<div data-testid="landing-page">Landing page</div>} />
+
+        </Routes>
+
+      </MemoryRouter>,
+
+    );
+
+
+
+    fireEvent.click(screen.getByRole('button', { name: 'Back' }));
+
+
+
+    expect(await screen.findByTestId('landing-page')).toBeInTheDocument();
+
+  });
+
+
+
+  it('does not auto-redirect authenticated users away from /login', () => {
     authState.user = { id: 'employee-1', email: 'employee@example.com' };
     authState.profile = { role: 'employee', employerId: 'owner-1' };
     accessState.access = {
