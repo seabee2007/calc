@@ -2,27 +2,11 @@
   Security hardening — RLS and public-token response field minimization.
 
   Changes:
-  1. Enable RLS on production_rate_sources (read-only reference catalog).
-  2. Redact get_proposal_by_public_token — return client-safe fields only.
-  3. Redact get_change_order_by_public_token — return client-safe fields only.
-  4. Redact record_change_order_client_action return type to match.
-  5. Fix client-safe error wording for proposal/change-order invalid tokens.
+  1. Redact get_proposal_by_public_token — return client-safe fields only.
+  2. Redact get_change_order_by_public_token — return client-safe fields only.
+  3. Redact record_change_order_client_action return type to match.
+  4. Fix client-safe error wording for proposal/change-order invalid tokens.
 */
-
--- ── 1. production_rate_sources ─────────────────────────────────────────────
--- Reference/seed catalog. Enable RLS so direct PostgREST reads require auth.
-
-ALTER TABLE production_rate_sources ENABLE ROW LEVEL SECURITY;
-
--- Authenticated users may read the reference catalog.
-DROP POLICY IF EXISTS production_rate_sources_authenticated_read
-  ON production_rate_sources;
-
-CREATE POLICY production_rate_sources_authenticated_read
-  ON production_rate_sources
-  FOR SELECT
-  TO authenticated
-  USING (true);
 
 -- ── Drop old RPC signatures before changing return types ───────────────────
 -- PostgreSQL cannot CREATE OR REPLACE a function when the return type changes.

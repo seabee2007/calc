@@ -32,6 +32,18 @@ ON CONFLICT (code) DO UPDATE SET
   notes = EXCLUDED.notes,
   updated_at = now();
 
+-- Reference/seed catalog. Enable RLS so direct PostgREST reads require auth.
+ALTER TABLE production_rate_sources ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS production_rate_sources_authenticated_read
+  ON production_rate_sources;
+
+CREATE POLICY production_rate_sources_authenticated_read
+  ON production_rate_sources
+  FOR SELECT
+  TO authenticated
+  USING (true);
+
 ALTER TABLE production_rates
   ADD COLUMN IF NOT EXISTS source_document_code text REFERENCES production_rate_sources(code),
   ADD COLUMN IF NOT EXISTS category text,
