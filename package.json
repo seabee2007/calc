@@ -11,6 +11,8 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint src",
+    "typecheck": "tsc --noEmit -p tsconfig.app.json",
+    "typecheck:node": "tsc --noEmit -p tsconfig.node.json",
     "test": "vitest run",
     "extract:adobe-production-rates": "node tools/data-extraction/adobe/extract_adobe_pdf.cjs",
     "extract:production-rates": "python tools/data-extraction/extract_chapter5.py --all-divisions",
