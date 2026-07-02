@@ -27,6 +27,21 @@ function assertNoBrowserServiceRoleKey(): void {
   }
 }
 
+function assertNoBrowserMapboxSecretTokens(): void {
+  for (const [name, value] of Object.entries(process.env)) {
+    if (!name.startsWith('VITE_MAPBOX_') || !value?.trim()) continue;
+    if (value.trim().startsWith('sk.')) {
+      console.error(
+        `BLOCKED: ${name} appears to be a Mapbox secret token (sk. prefix). Secret Mapbox tokens must stay server-side and must not use a VITE_ prefix.`,
+      );
+      console.error(
+        'Use a pk.-prefixed public token under VITE_MAPBOX_* only if the frontend needs Mapbox directly, or keep secret tokens in server-only env vars.',
+      );
+      process.exit(1);
+    }
+  }
+}
+
 async function askConfirmation(question: string): Promise<boolean> {
   if (!process.stdin.isTTY) return false;
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
@@ -42,6 +57,7 @@ async function askConfirmation(question: string): Promise<boolean> {
 export async function assertSafeQaEnvironment(): Promise<void> {
   loadQaEnv();
   assertNoBrowserServiceRoleKey();
+  assertNoBrowserMapboxSecretTokens();
 
   if (process.env.NODE_ENV === 'production') {
     console.error('BLOCKED: NODE_ENV=production');
@@ -87,6 +103,7 @@ export async function assertSafeQaEnvironment(): Promise<void> {
 export function getSupabaseAdminConfig(): { url: string; serviceRoleKey: string } {
   loadQaEnv();
   assertNoBrowserServiceRoleKey();
+  assertNoBrowserMapboxSecretTokens();
 
   const url = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
