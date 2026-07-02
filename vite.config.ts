@@ -9,11 +9,16 @@ if (!globalThis.crypto) {
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import { visualizer } from 'rollup-plugin-visualizer';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { productionRateReviewDevServer } from './vite-plugins/productionRateReviewDevServer';
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)));
+
+// Report-only bundle analysis. Enabled via `npm run analyze` (ANALYZE=true);
+// never active during normal `npm run build` / production deploys.
+const analyze = process.env.ANALYZE === 'true';
 
 export default defineConfig({
   plugins: [
@@ -72,7 +77,17 @@ export default defineConfig({
           },
         ],
       },
-    })
+    }),
+    ...(analyze
+      ? [
+          visualizer({
+            filename: 'dist/bundle-stats.html',
+            template: 'treemap',
+            gzipSize: true,
+            brotliSize: true,
+          }),
+        ]
+      : []),
   ],
   build: {
     chunkSizeWarningLimit: 1500,
